@@ -77,6 +77,76 @@ td:first-child{text-align:left;font-family:'Outfit',sans-serif;font-size:.78rem;
 tr:last-child td{border-bottom:none;}
 tr.total-row td{font-weight:600;background:var(--card2);border-top:1px solid var(--border);}
 .c-muted{color:var(--muted);}
+
+/* AI BOX */
+.ai-section { margin-top: 20px; }
+.ai-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+.ai-card-header {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.ai-card-title {
+  font-size: .73rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .07em; color: var(--muted);
+  flex: 1;
+}
+.ai-analyze-btn {
+  padding: 7px 16px;
+  background: linear-gradient(135deg, #007aff, #5856d6);
+  color: white; border: none; border-radius: 20px;
+  font-family: 'Outfit', sans-serif; font-size: .78rem; font-weight: 600;
+  cursor: pointer; transition: opacity .2s; white-space: nowrap;
+}
+.ai-analyze-btn:hover { opacity: .85; }
+.ai-analyze-btn:disabled { opacity: .5; cursor: not-allowed; }
+.ai-body { padding: 18px; }
+.ai-key-row {
+  display: flex; gap: 8px; align-items: center; margin-bottom: 14px;
+}
+.ai-key-input {
+  flex: 1; height: 34px; border: 1px solid var(--border);
+  border-radius: var(--radius-sm); background: var(--card2);
+  color: var(--text); font-family: 'DM Mono', monospace;
+  font-size: .75rem; padding: 0 10px; outline: none;
+}
+.ai-key-input:focus { border-color: var(--blue); }
+.ai-key-save {
+  height: 34px; padding: 0 14px;
+  background: var(--blue); color: white; border: none;
+  border-radius: var(--radius-sm); font-family: 'Outfit', sans-serif;
+  font-size: .78rem; font-weight: 600; cursor: pointer;
+}
+.ai-key-label {
+  font-size: .7rem; color: var(--muted); margin-bottom: 6px;
+  display: flex; align-items: center; gap: 6px;
+}
+.ai-key-saved { color: var(--green); font-weight: 600; }
+.ai-output {
+  min-height: 80px;
+  font-size: .88rem; line-height: 1.65;
+  color: var(--text);
+  white-space: pre-wrap;
+}
+.ai-output.loading {
+  color: var(--muted);
+  font-style: italic;
+}
+.ai-output.error { color: var(--red); font-size: .82rem; }
+.ai-disclaimer {
+  margin-top: 12px; padding: 8px 12px;
+  background: var(--card2); border-radius: 8px;
+  font-size: .68rem; color: var(--muted); line-height: 1.4;
+}
+
 </style>
 </head>
 <body>
@@ -197,6 +267,31 @@ tr.total-row td{font-weight:600;background:var(--card2);border-top:1px solid var
     </div>
   </div>
 </div>
+
+  <!-- AI ANALYSIS -->
+  <div class="ai-section" id="ai-section" style="display:none">
+    <div class="section-title">Analisi AI</div>
+    <div class="ai-card">
+      <div class="ai-card-header">
+        <span class="ai-card-title">✦ Commento del periodo</span>
+        <button class="ai-analyze-btn" id="ai-btn" onclick="runAnalysis()">Analizza con AI</button>
+      </div>
+      <div class="ai-body">
+        <div id="ai-key-section">
+          <div class="ai-key-label">
+            <span>API Key Anthropic</span>
+            <span id="ai-key-status"></span>
+          </div>
+          <div class="ai-key-row">
+            <input type="password" class="ai-key-input" id="ai-key-input" placeholder="sk-ant-..." autocomplete="off">
+            <button class="ai-key-save" onclick="saveApiKey()">Salva</button>
+          </div>
+        </div>
+        <div class="ai-output" id="ai-output">Seleziona un periodo e clicca "Analizza con AI" per ricevere un commento sull'andamento.</div>
+        <div class="ai-disclaimer">⚠ La chiave API viene salvata solo nel tuo browser. I dati inviati sono esclusivamente numeri aggregati, nessun dettaglio personale. Costo stimato: &lt;0.01€ per analisi.</div>
+      </div>
+    </div>
+  </div>
 
 <input type="file" id="file-input" accept=".csv,.CSV" style="position:fixed;top:-9999px;left:-9999px;opacity:0;">
 
@@ -349,6 +444,7 @@ function initApp(records, filename) {
   document.getElementById('dropzone-wrap').style.display = 'none';
   document.getElementById('app').style.display = 'block';
   render();
+  initAiSection();
 }
 
 function setMode(m, btn) {
@@ -461,6 +557,163 @@ function render() {
     if(d){const r=JSON.parse(d);if(r&&r.length>0){initApp(r,null);return;}}
   } catch(e){}
 })();
+
+// ===== AI ANALYSIS =====
+const AI_KEY_STORAGE = 'iu_apikey_v1';
+
+function loadApiKey() {
+  try { return localStorage.getItem(AI_KEY_STORAGE) || ''; } catch(e) { return ''; }
+}
+function saveApiKey() {
+  const key = document.getElementById('ai-key-input').value.trim();
+  if (!key.startsWith('sk-ant-')) {
+    alert('La chiave deve iniziare con sk-ant-');
+    return;
+  }
+  try {
+    localStorage.setItem(AI_KEY_STORAGE, key);
+    showKeyStatus(true);
+  } catch(e) {
+    alert('Impossibile salvare la chiave nel browser.');
+  }
+}
+function showKeyStatus(saved) {
+  const el = document.getElementById('ai-key-status');
+  el.className = saved ? 'ai-key-saved' : '';
+  el.textContent = saved ? '✓ Salvata' : '';
+}
+
+function initAiSection() {
+  document.getElementById('ai-section').style.display = 'block';
+  const key = loadApiKey();
+  if (key) {
+    document.getElementById('ai-key-input').value = key;
+    showKeyStatus(true);
+  }
+}
+
+async function runAnalysis() {
+  const key = loadApiKey() || document.getElementById('ai-key-input').value.trim();
+  if (!key.startsWith('sk-ant-')) {
+    document.getElementById('ai-output').className = 'ai-output error';
+    document.getElementById('ai-output').textContent = 'Inserisci una API key Anthropic valida (sk-ant-...) e clicca Salva.';
+    return;
+  }
+
+  if (!RAW.length) return;
+
+  const btn = document.getElementById('ai-btn');
+  const out = document.getElementById('ai-output');
+  btn.disabled = true;
+  out.className = 'ai-output loading';
+  out.textContent = 'Analisi in corso…';
+
+  // Build context from current render state
+  const today = new Date();
+  const curYear = today.getFullYear();
+  const curMonth = today.getMonth() + 1;
+  const curDay = today.getDate();
+  const refAnno = parseInt(document.getElementById('sel-anno').value);
+  let m1, m2;
+  if (mode === 'mese') { m1 = m2 = parseInt(document.getElementById('sel-mese').value); }
+  else if (mode === 'range') {
+    m1 = parseInt(document.getElementById('sel-range-from').value);
+    m2 = parseInt(document.getElementById('sel-range-to').value);
+    if (m2 < m1) m2 = m1;
+  } else { m1 = 1; m2 = 12; }
+
+  const prorata = m2 === curMonth;
+  const dayCap = prorata ? curDay : null;
+
+  const MESI_IT_LOCAL = ['','Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+  const MESI_SHORT_LOCAL = ['','Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
+
+  const fmtE = v => v.toLocaleString('it-IT', {minimumFractionDigits:0, maximumFractionDigits:0}) + ' €';
+  const pl = m1===m2 ? `${MESI_IT_LOCAL[m1]} ${refAnno}` : `${MESI_SHORT_LOCAL[m1]}–${MESI_SHORT_LOCAL[m2]} ${refAnno}`;
+
+  // Build YoY data for prompt
+  let years = [refAnno];
+  for (let i = 1; i <= 5; i++) {
+    const y = refAnno - i;
+    if (availAnni.includes(y)) years.push(y);
+  }
+  years = years.sort((a,b) => a-b);
+
+  const results = {};
+  years.forEach(y => { results[y] = aggregate(y, m1, m2, dayCap); });
+
+  let yoyTable = '';
+  years.forEach(y => {
+    const r = results[y];
+    const m = r.ricavi - r.costi;
+    const pct = r.ricavi > 0 ? ((m/r.ricavi)*100).toFixed(1) : '—';
+    yoyTable += `\n- ${y}: Ricavi ${fmtE(r.ricavi)} | Costi ${fmtE(r.costi)} | Margine ${fmtE(m)} (${pct}%)`;
+  });
+
+  const ref = results[refAnno];
+  const prev = results[refAnno-1] || null;
+
+  let catBreakdown = '\nPrincipali voci di costo ' + refAnno + ':';
+  const sortedCosti = Object.entries(ref.catCosti).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  sortedCosti.forEach(([cat,val]) => { catBreakdown += `\n  - ${cat}: ${fmtE(val)}`; });
+
+  let catRicavi = '\nVoci di ricavo ' + refAnno + ':';
+  Object.entries(ref.catRicavi).sort((a,b)=>b[1]-a[1]).forEach(([cat,val]) => {
+    catRicavi += `\n  - ${cat}: ${fmtE(val)}`;
+  });
+
+  const prorataNote = prorata ? `\nNota: i dati del ${MESI_IT_LOCAL[m2]} ${refAnno} sono parziali (al giorno ${curDay}). Il confronto con gli anni precedenti è limitato allo stesso giorno per omogeneità.` : '';
+
+  const prompt = `Sei un consulente finanziario che analizza i dati di InternoUno, un B&B con circa 10 camere a Roma (due immobili: Via Campaldino e Via Lorenzo il Magnifico).
+
+Periodo analizzato: ${pl}${prorataNote}
+
+Confronto storico anno su anno:${yoyTable}
+${catRicavi}
+${catBreakdown}
+
+Fornisci un'analisi concisa (massimo 180 parole) in italiano su:
+1. Andamento del periodo rispetto agli anni precedenti
+2. Eventuali anomalie o trend significativi nei costi o ricavi
+3. Un breve commento sul margine e sulla stagionalità
+4. Se ci sono segnali da tenere d'occhio
+
+Tono: professionale ma diretto, come un consulente che conosce bene il business. Niente elenchi puntati, testo fluido.`;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 400,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.error?.message || `Errore API: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const text = data.content?.[0]?.text || 'Nessuna risposta ricevuta.';
+    out.className = 'ai-output';
+    out.textContent = text;
+
+  } catch(e) {
+    out.className = 'ai-output error';
+    out.textContent = 'Errore: ' + e.message + '\n\nVerifica che la API key sia valida e che il browser non blocchi le richieste cross-origin.';
+  }
+
+  btn.disabled = false;
+}
+
 </script>
 </body>
 </html>
