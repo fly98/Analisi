@@ -7,296 +7,76 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
-
 :root {
-  --bg: #f5f5f7;
-  --card: #ffffff;
-  --card2: #f9f9fb;
-  --border: #e5e5ea;
-  --text: #1d1d1f;
-  --muted: #86868b;
-  --green: #34c759;
-  --green-bg: #f0faf3;
-  --red: #ff3b30;
-  --red-bg: #fff5f4;
-  --amber: #ff9500;
-  --amber-bg: #fff8f0;
-  --blue: #007aff;
-  --blue-bg: #f0f6ff;
-  --shadow: 0 2px 12px rgba(0,0,0,0.07);
-  --radius: 14px;
-  --radius-sm: 10px;
+  --bg:#f5f5f7;--card:#fff;--card2:#f9f9fb;--border:#e5e5ea;--text:#1d1d1f;--muted:#86868b;
+  --green:#34c759;--red:#ff3b30;--amber:#ff9500;--blue:#007aff;--blue-bg:#f0f6ff;
+  --shadow:0 2px 12px rgba(0,0,0,0.07);--radius:14px;--radius-sm:10px;
 }
-
-* { box-sizing: border-box; margin: 0; padding: 0; }
-
-body {
-  font-family: 'Outfit', -apple-system, sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  min-height: 100vh;
-  -webkit-font-smoothing: antialiased;
-}
-
-/* HEADER */
-.app-header {
-  background: rgba(255,255,255,0.85);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--border);
-  padding: 0 20px;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  height: 52px;
-}
-.app-header h1 { font-size: 0.95rem; font-weight: 600; flex: 1; letter-spacing: -0.01em; }
-.header-badge {
-  font-family: 'DM Mono', monospace;
-  font-size: 0.68rem;
-  color: var(--muted);
-  background: var(--bg);
-  border: 1px solid var(--border);
-  padding: 3px 8px;
-  border-radius: 20px;
-  white-space: nowrap;
-}
-.change-file-btn {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 6px 12px;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  font-family: 'Outfit', sans-serif;
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: var(--blue);
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background .15s;
-}
-.change-file-btn:hover { background: var(--blue-bg); }
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Outfit',-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;}
+.app-header{background:rgba(255,255,255,0.9);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 20px;position:sticky;top:0;z-index:100;display:flex;align-items:center;gap:12px;height:52px;}
+.app-header h1{font-size:.95rem;font-weight:600;flex:1;letter-spacing:-.01em;}
+.header-badge{font-family:'DM Mono',monospace;font-size:.68rem;color:var(--muted);background:var(--bg);border:1px solid var(--border);padding:3px 8px;border-radius:20px;white-space:nowrap;}
+.update-btn{display:flex;align-items:center;gap:5px;padding:6px 14px;background:var(--blue);color:white;border:none;border-radius:20px;font-family:'Outfit',sans-serif;font-size:.78rem;font-weight:600;cursor:pointer;white-space:nowrap;}
+.update-btn:active{opacity:.8;}
 
 /* DROP ZONE */
-#dropzone-wrap {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: calc(100vh - 52px);
-  padding: 24px;
-}
-#dropzone {
-  background: var(--card);
-  border: 2px dashed var(--border);
-  border-radius: 20px;
-  padding: 56px 32px;
-  text-align: center;
-  cursor: pointer;
-  transition: all .2s;
-  max-width: 480px;
-  width: 100%;
-  box-shadow: var(--shadow);
-}
-#dropzone:hover, #dropzone.dragover {
-  border-color: var(--blue);
-  background: var(--blue-bg);
-}
-#dropzone .drop-icon { font-size: 3rem; margin-bottom: 16px; }
-#dropzone h2 { font-size: 1.2rem; font-weight: 600; margin-bottom: 8px; }
-#dropzone p { font-size: 0.85rem; color: var(--muted); line-height: 1.5; }
-#dropzone input { display: none; }
-.upload-btn {
-  display: inline-block;
-  margin-top: 20px;
-  padding: 11px 28px;
-  background: var(--blue);
-  color: white;
-  border-radius: 22px;
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  border: none;
-  transition: opacity .2s;
-  font-family: 'Outfit', sans-serif;
-}
-.upload-btn:hover { opacity: 0.85; }
-.drop-note {
-  margin-top: 14px;
-  font-size: 0.72rem;
-  color: var(--muted);
-}
+#dropzone-wrap{display:flex;align-items:center;justify-content:center;min-height:calc(100vh - 52px);padding:24px;}
+#dropzone{background:var(--card);border:2px dashed var(--border);border-radius:20px;padding:48px 28px;text-align:center;max-width:460px;width:100%;box-shadow:var(--shadow);}
+#dropzone .drop-icon{font-size:2.8rem;margin-bottom:14px;}
+#dropzone h2{font-size:1.15rem;font-weight:600;margin-bottom:8px;}
+#dropzone p{font-size:.85rem;color:var(--muted);line-height:1.5;}
+.upload-label{display:inline-block;margin-top:18px;padding:11px 28px;background:var(--blue);color:white;border-radius:22px;font-size:.9rem;font-weight:600;cursor:pointer;}
+.upload-label:active{opacity:.8;}
+.drop-note{margin-top:12px;font-size:.72rem;color:var(--muted);}
+#error-msg{display:none;margin-top:14px;padding:10px 14px;background:#fff5f4;border:1px solid #ffb3ae;border-radius:10px;font-size:.8rem;color:var(--red);font-weight:500;}
 
-/* MAIN APP */
-#app { display: none; padding: 0 16px 60px; max-width: 1100px; margin: 0 auto; }
-
-/* CONTROLS */
-.controls-card {
-  background: var(--card);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  padding: 18px 20px;
-  margin: 16px 0;
-}
-.controls-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  align-items: flex-end;
-}
-.ctrl-group { display: flex; flex-direction: column; gap: 5px; }
-.ctrl-label {
-  font-size: 0.68rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  color: var(--muted);
-}
-select {
-  height: 36px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: var(--card2);
-  color: var(--text);
-  font-family: 'Outfit', sans-serif;
-  font-size: 0.875rem;
-  padding: 0 10px;
-  cursor: pointer;
-  outline: none;
-}
-select:focus { border-color: var(--blue); }
-.seg-ctrl {
-  display: flex;
-  padding: 3px;
-  gap: 2px;
-  background: var(--bg);
-  border-radius: var(--radius-sm);
-}
-.seg-btn {
-  padding: 5px 12px;
-  border-radius: 7px;
-  border: none;
-  background: transparent;
-  font-family: 'Outfit', sans-serif;
-  font-size: 0.78rem;
-  font-weight: 500;
-  color: var(--muted);
-  cursor: pointer;
-  transition: all .15s;
-  white-space: nowrap;
-}
-.seg-btn.active {
-  background: white;
-  color: var(--text);
-  box-shadow: 0 1px 4px rgba(0,0,0,0.12);
-}
-.apply-btn {
-  height: 36px;
-  padding: 0 18px;
-  background: var(--blue);
-  color: white;
-  border: none;
-  border-radius: var(--radius-sm);
-  font-family: 'Outfit', sans-serif;
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: opacity .2s;
-}
-.apply-btn:hover { opacity: 0.85; }
-.prorata-notice {
-  display: none;
-  margin-top: 12px;
-  padding: 10px 14px;
-  background: var(--amber-bg);
-  border: 1px solid #ffd59e;
-  border-radius: var(--radius-sm);
-  font-size: 0.8rem;
-  color: #b36200;
-  font-weight: 500;
-}
-.prorata-notice.show { display: block; }
-
-/* KPI */
-.kpi-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
-  gap: 10px;
-  margin-bottom: 14px;
-}
-.kpi-card {
-  background: var(--card);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  padding: 16px 14px;
-}
-.kpi-card.green { border-top: 3px solid var(--green); }
-.kpi-card.red   { border-top: 3px solid var(--red); }
-.kpi-card.amber { border-top: 3px solid var(--amber); }
-.kpi-card.blue  { border-top: 3px solid var(--blue); }
-.kpi-label { font-size: 0.68rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); margin-bottom: 4px; }
-.kpi-value { font-family: 'DM Mono', monospace; font-size: 1.2rem; font-weight: 500; }
-.kpi-value.green { color: var(--green); }
-.kpi-value.red   { color: var(--red); }
-.kpi-value.blue  { color: var(--blue); }
-.kpi-delta { font-size: 0.7rem; font-family: 'DM Mono', monospace; font-weight: 500; margin-top: 2px; }
-.kpi-delta.up   { color: var(--green); }
-.kpi-delta.down { color: var(--red); }
-.kpi-sub { font-size: 0.68rem; color: var(--muted); font-family: 'DM Mono', monospace; margin-top: 2px; }
-
-/* CHARTS */
-.chart-card {
-  background: var(--card);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  padding: 18px;
-  margin-bottom: 14px;
-}
-.chart-title { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); margin-bottom: 2px; }
-.chart-subtitle { font-size: 0.78rem; color: var(--muted); margin-bottom: 14px; }
-.chart-wrap { position: relative; height: 250px; }
-.chart-wrap.tall { height: 300px; }
-.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-@media(max-width: 680px) { .two-col { grid-template-columns: 1fr; } }
-.section-title {
-  font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
-  letter-spacing: 0.1em; color: var(--muted); margin: 20px 0 8px; padding-left: 2px;
-}
-
-/* TABLES */
-.table-card {
-  background: var(--card);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  overflow: hidden;
-  margin-bottom: 14px;
-}
-.table-header { padding: 14px 18px 10px; border-bottom: 1px solid var(--border); }
-.table-title { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); }
-.table-scroll { overflow-x: auto; }
-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
-th {
-  padding: 9px 14px; text-align: right;
-  font-family: 'DM Mono', monospace; font-weight: 500; font-size: 0.68rem;
-  color: var(--muted); background: var(--card2);
-  border-bottom: 1px solid var(--border); white-space: nowrap;
-}
-th:first-child { text-align: left; }
-td {
-  padding: 9px 14px; text-align: right;
-  font-family: 'DM Mono', monospace; font-size: 0.76rem;
-  border-bottom: 1px solid #f2f2f7; white-space: nowrap;
-}
-td:first-child { text-align: left; font-family: 'Outfit', sans-serif; font-size: 0.8rem; }
-tr:last-child td { border-bottom: none; }
-tr.total-row td { font-weight: 600; background: var(--card2); border-top: 1px solid var(--border); }
-.c-green { color: var(--green); }
-.c-red   { color: var(--red); }
-.c-muted { color: var(--muted); }
+/* APP */
+#app{display:none;padding:0 16px 60px;max-width:1100px;margin:0 auto;}
+.controls-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px 18px;margin:14px 0;}
+.controls-row{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;}
+.ctrl-group{display:flex;flex-direction:column;gap:4px;}
+.ctrl-label{font-size:.67rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);}
+select{height:34px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--card2);color:var(--text);font-family:'Outfit',sans-serif;font-size:.85rem;padding:0 10px;cursor:pointer;outline:none;}
+select:focus{border-color:var(--blue);}
+.seg-ctrl{display:flex;padding:3px;gap:2px;background:var(--bg);border-radius:var(--radius-sm);}
+.seg-btn{padding:4px 11px;border-radius:7px;border:none;background:transparent;font-family:'Outfit',sans-serif;font-size:.76rem;font-weight:500;color:var(--muted);cursor:pointer;transition:all .15s;white-space:nowrap;}
+.seg-btn.active{background:white;color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.12);}
+.apply-btn{height:34px;padding:0 16px;background:var(--blue);color:white;border:none;border-radius:var(--radius-sm);font-family:'Outfit',sans-serif;font-size:.85rem;font-weight:600;cursor:pointer;}
+.prorata-notice{display:none;margin-top:10px;padding:9px 13px;background:#fff8f0;border:1px solid #ffd59e;border-radius:var(--radius-sm);font-size:.78rem;color:#b36200;font-weight:500;}
+.prorata-notice.show{display:block;}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:12px;}
+.kpi-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;}
+.kpi-card.green{border-top:3px solid var(--green);}
+.kpi-card.red{border-top:3px solid var(--red);}
+.kpi-card.amber{border-top:3px solid var(--amber);}
+.kpi-card.blue{border-top:3px solid var(--blue);}
+.kpi-label{font-size:.66rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:3px;}
+.kpi-value{font-family:'DM Mono',monospace;font-size:1.15rem;font-weight:500;}
+.kpi-value.green{color:var(--green);}.kpi-value.red{color:var(--red);}.kpi-value.blue{color:var(--blue);}
+.kpi-delta{font-size:.68rem;font-family:'DM Mono',monospace;font-weight:500;margin-top:2px;}
+.kpi-delta.up{color:var(--green);}.kpi-delta.down{color:var(--red);}
+.kpi-sub{font-size:.66rem;color:var(--muted);font-family:'DM Mono',monospace;margin-top:2px;}
+.chart-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;margin-bottom:12px;}
+.chart-title{font-size:.73rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:2px;}
+.chart-subtitle{font-size:.76rem;color:var(--muted);margin-bottom:12px;}
+.chart-wrap{position:relative;height:240px;}
+.chart-wrap.tall{height:290px;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+@media(max-width:660px){.two-col{grid-template-columns:1fr;}}
+.section-title{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin:18px 0 8px;padding-left:2px;}
+.table-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;margin-bottom:12px;}
+.table-header{padding:12px 16px 9px;border-bottom:1px solid var(--border);}
+.table-title{font-size:.73rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);}
+.table-scroll{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:.78rem;}
+th{padding:8px 13px;text-align:right;font-family:'DM Mono',monospace;font-weight:500;font-size:.67rem;color:var(--muted);background:var(--card2);border-bottom:1px solid var(--border);white-space:nowrap;}
+th:first-child{text-align:left;}
+td{padding:8px 13px;text-align:right;font-family:'DM Mono',monospace;font-size:.74rem;border-bottom:1px solid #f2f2f7;white-space:nowrap;}
+td:first-child{text-align:left;font-family:'Outfit',sans-serif;font-size:.78rem;}
+tr:last-child td{border-bottom:none;}
+tr.total-row td{font-weight:600;background:var(--card2);border-top:1px solid var(--border);}
+.c-muted{color:var(--muted);}
 </style>
 </head>
 <body>
@@ -304,24 +84,20 @@ tr.total-row td { font-weight: 600; background: var(--card2); border-top: 1px so
 <header class="app-header">
   <h1>InternoUno · Analisi Finanziaria</h1>
   <span class="header-badge" id="header-badge">Nessun file</span>
-  <button class="change-file-btn" id="change-file-btn" style="display:none" onclick="document.getElementById('file-input-hidden').click()">
-    ↑ Aggiorna CSV
-  </button>
-  <input type="file" id="file-input-hidden" accept=".csv" style="display:none">
+  <button class="update-btn" id="update-btn" style="display:none" onclick="triggerUpload()">↑ Aggiorna CSV</button>
 </header>
 
-<!-- DROP ZONE -->
 <div id="dropzone-wrap">
   <div id="dropzone">
     <div class="drop-icon">📊</div>
     <h2>Carica il file iCompta</h2>
-    <p>Trascina qui il CSV esportato da iCompta,<br>oppure clicca il pulsante qui sotto.</p>
-    <label class="upload-btn">Scegli file CSV <input type="file" id="file-input" accept=".csv"></label>
-    <p class="drop-note">Il file viene elaborato localmente nel browser.<br>I dati vengono salvati e ricaricati automaticamente.</p>
+    <p>Seleziona il CSV esportato da iCompta.<br>Elaborato localmente, nessun dato inviato.</p>
+    <label class="upload-label" for="file-input">Scegli file CSV</label>
+    <p class="drop-note">I dati restano salvati fino al prossimo aggiornamento.</p>
+    <div id="error-msg"></div>
   </div>
 </div>
 
-<!-- APP -->
 <div id="app">
   <div class="controls-card">
     <div class="controls-row">
@@ -353,7 +129,7 @@ tr.total-row td { font-weight: 600; background: var(--card2); border-top: 1px so
             <option value="7">Lug</option><option value="8">Ago</option><option value="9">Set</option>
             <option value="10">Ott</option><option value="11">Nov</option><option value="12">Dic</option>
           </select>
-          <span style="color:var(--muted);font-size:0.85rem">→</span>
+          <span style="color:var(--muted)">→</span>
           <select id="sel-range-to">
             <option value="1">Gen</option><option value="2">Feb</option><option value="3">Mar</option>
             <option value="4">Apr</option><option value="5">Mag</option><option value="6">Giu</option>
@@ -380,27 +156,23 @@ tr.total-row td { font-weight: 600; background: var(--card2); border-top: 1px so
   </div>
 
   <div class="kpi-grid" id="kpi-grid"></div>
-
   <div class="section-title">Ricavi</div>
   <div class="chart-card">
     <div class="chart-title" id="ricavi-chart-title"></div>
     <div class="chart-subtitle" id="ricavi-chart-sub"></div>
     <div class="chart-wrap"><canvas id="chart-ricavi"></canvas></div>
   </div>
-
   <div class="section-title">Costi</div>
   <div class="chart-card">
     <div class="chart-title" id="costi-chart-title"></div>
     <div class="chart-subtitle" id="costi-chart-sub"></div>
     <div class="chart-wrap"><canvas id="chart-costi"></canvas></div>
   </div>
-
   <div class="section-title">Margine</div>
   <div class="chart-card">
     <div class="chart-title">Margine operativo (Ricavi − Costi)</div>
     <div class="chart-wrap"><canvas id="chart-margine"></canvas></div>
   </div>
-
   <div class="section-title">Dettaglio categorie</div>
   <div class="two-col">
     <div class="chart-card">
@@ -414,7 +186,6 @@ tr.total-row td { font-weight: 600; background: var(--card2); border-top: 1px so
       <div class="chart-wrap tall"><canvas id="chart-cat-costi"></canvas></div>
     </div>
   </div>
-
   <div class="two-col">
     <div class="table-card">
       <div class="table-header"><span class="table-title">Ricavi per categoria</span></div>
@@ -427,34 +198,111 @@ tr.total-row td { font-weight: 600; background: var(--card2); border-top: 1px so
   </div>
 </div>
 
+<input type="file" id="file-input" accept=".csv,.CSV" style="position:fixed;top:-9999px;left:-9999px;opacity:0;">
+
 <script>
-const STORAGE_KEY = 'internouno_data_v2';
-const MESI_IT = ['','Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
-const MESI_SHORT = ['','Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
+const MESI_IT=['','Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+const MESI_SHORT=['','Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
+const STORAGE_KEY='iu_data_v3';
+let RAW=[], availAnni=[], mode='mese', yoyCount=5, charts={};
 
-let RAW = [];
-let availAnni = [];
-let mode = 'mese';
-let yoyCount = 5;
-let charts = {};
+function showError(msg) {
+  const el = document.getElementById('error-msg');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
 
-// ===== STORAGE =====
-function saveToStorage(records) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
-  } catch(e) {
-    console.warn('localStorage non disponibile:', e);
+function triggerUpload() {
+  document.getElementById('file-input').click();
+}
+
+// FILE INPUT — unico elemento, gestione robusta
+document.getElementById('file-input').addEventListener('change', function() {
+  const file = this.files && this.files[0];
+  if (!file) return;
+  
+  // Reset input so same file can be reloaded
+  const fileName = file.name;
+  
+  // Try multiple encodings
+  const tryParse = (text) => {
+    const records = parseCSV(text);
+    if (records.length > 0) {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(records)); } catch(e) {}
+      initApp(records, fileName);
+      return true;
+    }
+    return false;
+  };
+
+  const reader = new FileReader();
+  reader.onerror = () => showError('Errore lettura file. Riprova.');
+  reader.onload = (e) => {
+    const text = e.target.result;
+    if (!tryParse(text)) {
+      // Try with different line ending normalization
+      const normalized = text.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
+      if (!tryParse(normalized)) {
+        showError('File non riconosciuto (' + records_debug + ' righe trovate). Assicurati di esportare da iCompta con separatore ";".');
+      }
+    }
+    // Reset so same file can be selected again
+    this.value = '';
+  };
+  
+  // Try UTF-8 first, then Latin-1
+  reader.readAsText(file, 'UTF-8');
+}, false);
+
+let records_debug = 0;
+
+function parseCSV(text) {
+  const lines = text.replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n');
+  records_debug = lines.length;
+  if (lines.length < 2) return [];
+  
+  const header = lines[0].split(';');
+  const idxData = header.findIndex(h => h.trim() === 'Data');
+  const idxImporto = header.findIndex(h => h.trim() === 'Importo');
+  const idxCat = header.findIndex(h => h.trim() === 'Categoria');
+  const idxNome = header.findIndex(h => h.trim() === 'Nome');
+  const idxComm = header.findIndex(h => h.trim() === 'Commento');
+  
+  if (idxData < 0 || idxImporto < 0) return [];
+  
+  const records = [];
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+    const cols = line.split(';');
+    if (cols.length < Math.max(idxData, idxImporto) + 1) continue;
+    
+    const rawDate = (cols[idxData]||'').trim();
+    if (!rawDate) continue;
+    const parts = rawDate.split('/');
+    if (parts.length !== 3) continue;
+    const giorno = parseInt(parts[0]);
+    const mese = parseInt(parts[1]);
+    const anno = parseInt(parts[2]);
+    if (isNaN(anno) || anno < 2010 || anno > 2100) continue;
+    if (isNaN(mese) || mese < 1 || mese > 12) continue;
+    if (isNaN(giorno) || giorno < 1 || giorno > 31) continue;
+    
+    const impStr = (cols[idxImporto]||'').trim().replace(',','.');
+    const imp = parseFloat(impStr);
+    if (isNaN(imp) || imp === 0) continue;
+    
+    const cat = cleanCat(idxCat >= 0 ? (cols[idxCat]||'') : '');
+    records.push({
+      anno, mese, giorno, importo: imp, cat,
+      tipo: imp < 0 ? 'ricavo' : 'costo',
+      nome: (idxNome >= 0 ? cols[idxNome] : '').trim(),
+      commento: (idxComm >= 0 ? cols[idxComm] : '').trim()
+    });
   }
+  return records;
 }
 
-function loadFromStorage() {
-  try {
-    const d = localStorage.getItem(STORAGE_KEY);
-    return d ? JSON.parse(d) : null;
-  } catch(e) { return null; }
-}
-
-// ===== PARSE CSV =====
 function cleanCat(c) {
   if (!c) return 'Altro';
   if (c.includes('Redditi')) return 'Redditi';
@@ -480,357 +328,138 @@ function cleanCat(c) {
   return 'Altro';
 }
 
-function parseCSV(text) {
-  const lines = text.split('\n');
-  if (lines.length < 2) return [];
-  const header = lines[0].split(';');
-  const idx = {
-    data: header.indexOf('Data'),
-    importo: header.indexOf('Importo'),
-    categoria: header.indexOf('Categoria'),
-    nome: header.indexOf('Nome'),
-    commento: header.indexOf('Commento')
-  };
-  const records = [];
-  for (let i = 1; i < lines.length; i++) {
-    const cols = lines[i].split(';');
-    if (cols.length < 5) continue;
-    const rawDate = (cols[idx.data]||'').trim();
-    if (!rawDate) continue;
-    const parts = rawDate.split('/');
-    if (parts.length !== 3) continue;
-    const anno = parseInt(parts[2]);
-    const mese = parseInt(parts[1]);
-    const giorno = parseInt(parts[0]);
-    if (anno < 2010 || isNaN(anno)) continue;
-    const imp = parseFloat((cols[idx.importo]||'').replace(',','.'));
-    if (isNaN(imp) || imp === 0) continue;
-    const cat = cleanCat(cols[idx.categoria] || '');
-    records.push({
-      anno, mese, giorno,
-      importo: imp,
-      cat,
-      tipo: imp < 0 ? 'ricavo' : 'costo',
-      nome: (cols[idx.nome]||'').trim(),
-      commento: (cols[idx.commento]||'').trim()
-    });
-  }
-  return records;
-}
-
-// ===== INIT =====
 function initApp(records, filename) {
   RAW = records;
-  availAnni = [...new Set(records.map(r => r.anno))].sort();
-
+  availAnni = [...new Set(records.map(r=>r.anno))].sort();
   const today = new Date();
   const curYear = today.getFullYear();
-  const curMonth = today.getMonth() + 1;
-
+  const curMonth = today.getMonth()+1;
   const selAnno = document.getElementById('sel-anno');
   selAnno.innerHTML = '';
   [...availAnni].reverse().forEach(a => {
-    const opt = document.createElement('option');
-    opt.value = a;
-    opt.textContent = a;
-    if (a === curYear) opt.selected = true;
-    selAnno.appendChild(opt);
+    const o = document.createElement('option');
+    o.value = a; o.textContent = a;
+    if (a === curYear) o.selected = true;
+    selAnno.appendChild(o);
   });
   document.getElementById('sel-mese').value = curMonth;
-
-  const badge = filename
-    ? `${records.length.toLocaleString('it-IT')} transazioni · ${availAnni[0]}–${availAnni[availAnni.length-1]}`
-    : `${records.length.toLocaleString('it-IT')} trans. (salvate)`;
-  document.getElementById('header-badge').textContent = badge;
-  document.getElementById('change-file-btn').style.display = 'flex';
+  document.getElementById('header-badge').textContent =
+    `${records.length.toLocaleString('it-IT')} trans · ${availAnni[0]}–${availAnni[availAnni.length-1]}`;
+  document.getElementById('update-btn').style.display = 'flex';
   document.getElementById('dropzone-wrap').style.display = 'none';
   document.getElementById('app').style.display = 'block';
-
   render();
 }
 
-// ===== FILE HANDLING =====
-function handleFile(file) {
-  if (!file) return;
-  if (!file.name.endsWith('.csv')) return alert('Carica un file .csv da iCompta.');
-  const reader = new FileReader();
-  reader.onload = e => {
-    const records = parseCSV(e.target.result);
-    if (records.length === 0) return alert('Nessun dato trovato nel file.');
-    saveToStorage(records);
-    initApp(records, file.name);
-  };
-  reader.readAsText(file, 'utf-8');
-}
-
-document.getElementById('file-input').addEventListener('change', e => handleFile(e.target.files[0]));
-document.getElementById('file-input-hidden').addEventListener('change', e => handleFile(e.target.files[0]));
-
-const dz = document.getElementById('dropzone');
-dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover'); });
-dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
-dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('dragover'); handleFile(e.dataTransfer.files[0]); });
-dz.addEventListener('click', e => { if (e.target.tagName !== 'INPUT') document.getElementById('file-input').click(); });
-
-// ===== MODE / YOY =====
 function setMode(m, btn) {
   mode = m;
-  document.querySelectorAll('#mode-seg .seg-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('#mode-seg .seg-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
-  document.getElementById('ctrl-mese').style.display = (m === 'mese') ? '' : 'none';
-  document.getElementById('ctrl-range').style.display = (m === 'range') ? '' : 'none';
+  document.getElementById('ctrl-mese').style.display = m==='mese'?'':'none';
+  document.getElementById('ctrl-range').style.display = m==='range'?'':'none';
   render();
 }
 function setYoY(n, btn) {
   yoyCount = n;
-  btn.closest('.seg-ctrl').querySelectorAll('.seg-btn').forEach(b => b.classList.remove('active'));
+  btn.closest('.seg-ctrl').querySelectorAll('.seg-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   render();
 }
 
-// ===== AGGREGATE =====
 function aggregate(anno, m1, m2, dayCap) {
-  let ricavi = 0, costi = 0;
-  const catRicavi = {}, catCosti = {};
+  let ricavi=0, costi=0;
+  const catR={}, catC={};
   for (const r of RAW) {
-    if (r.anno !== anno) continue;
-    if (r.mese < m1 || r.mese > m2) continue;
-    if (dayCap !== null && r.mese === m2 && r.giorno > dayCap) continue;
-    if (r.tipo === 'ricavo') {
-      const v = Math.abs(r.importo);
-      ricavi += v;
-      catRicavi[r.cat] = (catRicavi[r.cat] || 0) + v;
-    } else if (r.tipo === 'costo') {
-      costi += r.importo;
-      catCosti[r.cat] = (catCosti[r.cat] || 0) + r.importo;
-    }
+    if (r.anno!==anno || r.mese<m1 || r.mese>m2) continue;
+    if (dayCap!==null && r.mese===m2 && r.giorno>dayCap) continue;
+    if (r.tipo==='ricavo') { const v=Math.abs(r.importo); ricavi+=v; catR[r.cat]=(catR[r.cat]||0)+v; }
+    else if (r.tipo==='costo') { costi+=r.importo; catC[r.cat]=(catC[r.cat]||0)+r.importo; }
   }
-  return {
-    ricavi: Math.round(ricavi * 100) / 100,
-    costi: Math.round(costi * 100) / 100,
-    catRicavi, catCosti
-  };
+  return { ricavi:Math.round(ricavi*100)/100, costi:Math.round(costi*100)/100, catRicavi:catR, catCosti:catC };
 }
 
-// ===== RENDER =====
 function render() {
-  if (RAW.length === 0) return;
-  const today = new Date();
-  const curYear = today.getFullYear();
-  const curMonth = today.getMonth() + 1;
-  const curDay = today.getDate();
-
-  const refAnno = parseInt(document.getElementById('sel-anno').value);
-  let m1, m2;
-  if (mode === 'mese') {
-    m1 = m2 = parseInt(document.getElementById('sel-mese').value);
-  } else if (mode === 'range') {
-    m1 = parseInt(document.getElementById('sel-range-from').value);
-    m2 = parseInt(document.getElementById('sel-range-to').value);
-    if (m2 < m1) m2 = m1;
-  } else { m1 = 1; m2 = 12; }
-
-  const lastMonthIsCurrent = (m2 === curMonth);
-  const notice = document.getElementById('prorata-notice');
-  if (lastMonthIsCurrent) {
-    notice.className = 'prorata-notice show';
-    notice.textContent = `⚡ Il confronto include ${MESI_IT[curMonth]} — limitato al giorno ${curDay} per tutti gli anni.`;
-  } else {
-    notice.className = 'prorata-notice';
+  if (!RAW.length) return;
+  const today=new Date(), curYear=today.getFullYear(), curMonth=today.getMonth()+1, curDay=today.getDate();
+  const refAnno=parseInt(document.getElementById('sel-anno').value);
+  let m1,m2;
+  if (mode==='mese') { m1=m2=parseInt(document.getElementById('sel-mese').value); }
+  else if (mode==='range') { m1=parseInt(document.getElementById('sel-range-from').value); m2=parseInt(document.getElementById('sel-range-to').value); if(m2<m1)m2=m1; }
+  else { m1=1; m2=12; }
+  const prorata = m2===curMonth;
+  const notice=document.getElementById('prorata-notice');
+  if (prorata) { notice.className='prorata-notice show'; notice.textContent=`⚡ Confronto limitato al giorno ${curDay} per tutti gli anni.`; }
+  else { notice.className='prorata-notice'; }
+  let years=[refAnno];
+  if (yoyCount>0) for(let i=1;i<=yoyCount;i++){const y=refAnno-i;if(availAnni.includes(y))years.push(y);}
+  years=years.sort((a,b)=>a-b);
+  const results={};
+  years.forEach(y=>{results[y]=aggregate(y,m1,m2,prorata?curDay:null);});
+  const ref=results[refAnno], prev=results[refAnno-1]||null;
+  const fmtE=v=>v.toLocaleString('it-IT',{minimumFractionDigits:0,maximumFractionDigits:0})+' €';
+  const pctStr=(a,b)=>{if(!b)return'';const p=((a-b)/b*100).toFixed(1);return(p>=0?'+':'')+p+'% vs '+(refAnno-1);};
+  const dc=(a,b,inv)=>{if(!b)return'';const up=a>=b;return inv?(up?'down':'up'):(up?'up':'down');};
+  const marg=ref.ricavi-ref.costi, margP=prev?prev.ricavi-prev.costi:null;
+  const pl=m1===m2?`${MESI_IT[m1]} ${refAnno}`:`${MESI_SHORT[m1]}–${MESI_SHORT[m2]} ${refAnno}`;
+  const dt=prorata?` al ${curDay}/${m2}`:'';
+  document.getElementById('kpi-grid').innerHTML=`
+    <div class="kpi-card green"><div class="kpi-label">Ricavi — ${pl}${dt}</div><div class="kpi-value green">${fmtE(ref.ricavi)}</div>${prev?`<div class="kpi-delta ${dc(ref.ricavi,prev.ricavi,false)}">${pctStr(ref.ricavi,prev.ricavi)}</div>`:''}</div>
+    <div class="kpi-card red"><div class="kpi-label">Costi — ${pl}${dt}</div><div class="kpi-value red">${fmtE(ref.costi)}</div>${prev?`<div class="kpi-delta ${dc(ref.costi,prev.costi,true)}">${pctStr(ref.costi,prev.costi)}</div>`:''}</div>
+    <div class="kpi-card ${marg>=0?'green':'red'}"><div class="kpi-label">Margine</div><div class="kpi-value ${marg>=0?'green':'red'}">${marg>=0?'+':''}${fmtE(marg)}</div>${margP!==null?`<div class="kpi-delta ${marg>=margP?'up':'down'}">${pctStr(marg,margP)}</div>`:''}</div>
+    <div class="kpi-card blue"><div class="kpi-label">Margine %</div><div class="kpi-value blue">${ref.ricavi>0?((marg/ref.ricavi)*100).toFixed(1)+'%':'—'}</div><div class="kpi-sub">${prorata?`al ${curDay}/${m2}`:'periodo completo'}</div></div>`;
+  const labels=years.map(String);
+  const rD=years.map(y=>results[y].ricavi), cD=years.map(y=>results[y].costi), mD=years.map(y=>results[y].ricavi-results[y].costi);
+  const rC=years.map(y=>y===refAnno?'#34c759':'rgba(52,199,89,0.28)');
+  const cC=years.map(y=>y===refAnno?'#ff3b30':'rgba(255,59,48,0.28)');
+  const mC=mD.map((v,i)=>{const r=years[i]===refAnno;return v>=0?(r?'#007aff':'rgba(0,122,255,0.28)'):(r?'#ff3b30':'rgba(255,59,48,0.28)');});
+  const dlPlugin={id:'dl',afterDatasetsDraw(chart){const{ctx,data,chartArea:{top}}=chart;ctx.save();data.datasets.forEach((ds,di)=>{chart.getDatasetMeta(di).data.forEach((bar,idx)=>{const v=ds.data[idx];if(!v&&v!==0)return;const l=Math.abs(v)>=1000?(Math.abs(v)/1000).toFixed(1).replace('.',',')+'k':Math.abs(v).toFixed(0);ctx.font='600 10px DM Mono,monospace';ctx.fillStyle='#444';ctx.textAlign='center';ctx.textBaseline='bottom';const y=bar.y-4;ctx.fillText((v<0?'−':'')+l,bar.x,y<top+12?top+12:y);});});ctx.restore();}};
+  Chart.defaults.font.family='DM Mono'; Chart.defaults.color='#86868b'; Chart.defaults.font.size=11;
+  const sub=prorata?`Dati al giorno ${curDay} per tutti gli anni`:`${m1===m2?MESI_IT[m1]:MESI_SHORT[m1]+'–'+MESI_SHORT[m2]} · ${years[0]}–${refAnno}`;
+  const ml=m1===m2?MESI_SHORT[m1]:MESI_SHORT[m1]+'–'+MESI_SHORT[m2];
+  function makeBar(id,data,colors,tid,sid,ttxt){
+    if(charts[id])charts[id].destroy();
+    if(tid)document.getElementById(tid).textContent=ttxt;
+    if(sid)document.getElementById(sid).textContent=sub;
+    charts[id]=new Chart(document.getElementById(id),{type:'bar',data:{labels,datasets:[{data,backgroundColor:colors,borderColor:colors.map(c=>c.startsWith('rgba')?c.replace('0.28','0.7'):c),borderWidth:1,borderRadius:5,borderSkipped:false}]},plugins:[dlPlugin],options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>'  '+fmtE(Math.abs(ctx.raw))}}},scales:{x:{grid:{display:false},border:{display:false}},y:{grid:{color:'#f2f2f7'},border:{display:false},ticks:{callback:v=>(v/1000).toFixed(0)+'k'}}},layout:{padding:{top:20}}}});
   }
-
-  let years = [refAnno];
-  if (yoyCount > 0) {
-    for (let i = 1; i <= yoyCount; i++) {
-      const y = refAnno - i;
-      if (availAnni.includes(y)) years.push(y);
-    }
+  makeBar('chart-ricavi',rD,rC,'ricavi-chart-title','ricavi-chart-sub',`Ricavi — ${ml} · confronto anni`);
+  makeBar('chart-costi',cD,cC,'costi-chart-title','costi-chart-sub',`Costi — ${ml} · confronto anni`);
+  if(charts['chart-margine'])charts['chart-margine'].destroy();
+  charts['chart-margine']=new Chart(document.getElementById('chart-margine'),{type:'bar',data:{labels,datasets:[{data:mD,backgroundColor:mC,borderColor:mC.map(c=>c.startsWith('rgba')?c.replace('0.28','0.7'):c),borderWidth:1,borderRadius:5,borderSkipped:false}]},plugins:[dlPlugin],options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>'  '+fmtE(ctx.raw)}}},scales:{x:{grid:{display:false},border:{display:false}},y:{grid:{color:'#f2f2f7'},border:{display:false},ticks:{callback:v=>(v>=0?'':'−')+(Math.abs(v)/1000).toFixed(0)+'k'}}},layout:{padding:{top:20}}}});
+  const pal=['#007aff','#34c759','#ff9500','#ff3b30','#af52de','#5ac8fa','#ff2d55','#30b0c7','#ffcc00','#4cd964','#5856d6','#ff6b35'];
+  function makePie(id,catObj,sid,sub){
+    if(charts[id])charts[id].destroy();
+    if(sid)document.getElementById(sid).textContent=sub;
+    const e=Object.entries(catObj).filter(([,v])=>v>5).sort((a,b)=>b[1]-a[1]);
+    if(!e.length)return;
+    charts[id]=new Chart(document.getElementById(id),{type:'doughnut',data:{labels:e.map(([k])=>k),datasets:[{data:e.map(([,v])=>Math.round(v)),backgroundColor:pal,borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{boxWidth:10,font:{size:10},padding:6}},tooltip:{callbacks:{label:ctx=>` ${ctx.label}: ${fmtE(ctx.raw)}`}}}}});
   }
-  years = years.sort((a,b) => a - b);
-
-  const results = {};
-  years.forEach(y => {
-    results[y] = aggregate(y, m1, m2, lastMonthIsCurrent ? curDay : null);
-  });
-
-  const refResult = results[refAnno];
-  const prevResult = results[refAnno - 1] || null;
-  const fmtE = v => v.toLocaleString('it-IT', {minimumFractionDigits:0, maximumFractionDigits:0}) + ' €';
-  const pctStr = (a, b) => {
-    if (!b || b === 0) return '';
-    const p = ((a-b)/b*100).toFixed(1);
-    return (p >= 0 ? '+' : '') + p + '% vs ' + (refAnno-1);
-  };
-  const dClass = (a, b, inv) => {
-    if (!b) return '';
-    const up = a >= b;
-    return inv ? (up ? 'down' : 'up') : (up ? 'up' : 'down');
-  };
-
-  const margine = refResult.ricavi - refResult.costi;
-  const margPrev = prevResult ? prevResult.ricavi - prevResult.costi : null;
-  const periodLabel = m1===m2 ? `${MESI_IT[m1]} ${refAnno}` : `${MESI_SHORT[m1]}–${MESI_SHORT[m2]} ${refAnno}`;
-  const dayTag = lastMonthIsCurrent ? ` al ${curDay}/${m2}` : '';
-
-  document.getElementById('kpi-grid').innerHTML = `
-    <div class="kpi-card green">
-      <div class="kpi-label">Ricavi — ${periodLabel}${dayTag}</div>
-      <div class="kpi-value green">${fmtE(refResult.ricavi)}</div>
-      ${prevResult ? `<div class="kpi-delta ${dClass(refResult.ricavi,prevResult.ricavi,false)}">${pctStr(refResult.ricavi,prevResult.ricavi)}</div>` : ''}
-    </div>
-    <div class="kpi-card red">
-      <div class="kpi-label">Costi — ${periodLabel}${dayTag}</div>
-      <div class="kpi-value red">${fmtE(refResult.costi)}</div>
-      ${prevResult ? `<div class="kpi-delta ${dClass(refResult.costi,prevResult.costi,true)}">${pctStr(refResult.costi,prevResult.costi)}</div>` : ''}
-    </div>
-    <div class="kpi-card ${margine>=0?'green':'red'}">
-      <div class="kpi-label">Margine</div>
-      <div class="kpi-value ${margine>=0?'green':'red'}">${margine>=0?'+':''}${fmtE(margine)}</div>
-      ${margPrev!==null ? `<div class="kpi-delta ${margine>=margPrev?'up':'down'}">${pctStr(margine,margPrev)}</div>` : ''}
-    </div>
-    <div class="kpi-card blue">
-      <div class="kpi-label">Margine %</div>
-      <div class="kpi-value blue">${refResult.ricavi>0?((margine/refResult.ricavi)*100).toFixed(1)+'%':'—'}</div>
-      <div class="kpi-sub">${lastMonthIsCurrent?`al ${curDay}/${m2}`:'periodo completo'}</div>
-    </div>`;
-
-  const labels = years.map(String);
-  const ricaviData = years.map(y => results[y].ricavi);
-  const costiData  = years.map(y => results[y].costi);
-  const margData   = years.map(y => results[y].ricavi - results[y].costi);
-
-  const datalabelPlugin = {
-    id: 'datalabels',
-    afterDatasetsDraw(chart) {
-      const {ctx, data, chartArea:{top}} = chart;
-      ctx.save();
-      data.datasets.forEach((ds, di) => {
-        chart.getDatasetMeta(di).data.forEach((bar, idx) => {
-          const val = ds.data[idx];
-          if (!val && val !== 0) return;
-          const lbl = Math.abs(val) >= 1000
-            ? (Math.abs(val)/1000).toFixed(1).replace('.',',')+'k'
-            : Math.abs(val).toFixed(0);
-          ctx.font = '600 10px DM Mono, monospace';
-          ctx.fillStyle = '#444';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'bottom';
-          const y = bar.y - 5;
-          ctx.fillText((val < 0 ? '−' : '') + lbl, bar.x, y < top+12 ? top+12 : y);
-        });
-      });
-      ctx.restore();
-    }
-  };
-
-  Chart.defaults.font.family = 'DM Mono';
-  Chart.defaults.color = '#86868b';
-  Chart.defaults.font.size = 11;
-
-  const subText = lastMonthIsCurrent
-    ? `Dati limitati al giorno ${curDay} per tutti gli anni`
-    : `${m1===m2?MESI_IT[m1]:MESI_SHORT[m1]+'–'+MESI_SHORT[m2]} · ${years[0]}–${refAnno}`;
-
-  function makeBar(id, data, colors, titleId, subId, titleTxt) {
-    if (charts[id]) charts[id].destroy();
-    if (titleId) document.getElementById(titleId).textContent = titleTxt;
-    if (subId) document.getElementById(subId).textContent = subText;
-    charts[id] = new Chart(document.getElementById(id), {
-      type: 'bar',
-      data: { labels, datasets: [{ data, backgroundColor: colors,
-        borderColor: colors.map(c => c.startsWith('rgba') ? c.replace('0.3','0.7') : c),
-        borderWidth: 1, borderRadius: 5, borderSkipped: false }] },
-      plugins: [datalabelPlugin],
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => '  '+fmtE(Math.abs(ctx.raw)) } } },
-        scales: {
-          x: { grid: { display: false }, border: { display: false } },
-          y: { grid: { color: '#f2f2f7' }, border: { display: false }, ticks: { callback: v => (v/1000).toFixed(0)+'k' } }
-        },
-        layout: { padding: { top: 22 } }
-      }
+  makePie('chart-cat-ricavi',ref.catRicavi,'cat-ricavi-sub',`${refAnno} — ${pl}`);
+  makePie('chart-cat-costi',ref.catCosti,'cat-costi-sub',`${refAnno} — ${pl}`);
+  function buildTable(id,isR){
+    const allC=new Set();years.forEach(y=>Object.keys(isR?results[y].catRicavi:results[y].catCosti).forEach(k=>allC.add(k)));
+    const cats=[...allC].sort((a,b)=>((isR?results[refAnno].catRicavi[b]:results[refAnno].catCosti[b])||0)-((isR?results[refAnno].catRicavi[a]:results[refAnno].catCosti[a])||0));
+    const dy=years.slice(-4);
+    let h=`<thead><tr><th>Categoria</th>${dy.map(y=>`<th>${y}</th>`).join('')}</tr></thead><tbody>`;
+    cats.forEach(cat=>{
+      const vals=dy.map(y=>(isR?results[y].catRicavi[cat]:results[y].catCosti[cat])||0);
+      if(vals.every(v=>v===0))return;
+      h+=`<tr><td>${cat}</td>${dy.map((y,i)=>`<td ${y===refAnno?'style="font-weight:600"':''}>${vals[i]>0?fmtE(vals[i]):'<span class="c-muted">—</span>'}</td>`).join('')}</tr>`;
     });
+    const tots=dy.map(y=>Object.values(isR?results[y].catRicavi:results[y].catCosti).reduce((s,v)=>s+v,0));
+    h+=`<tr class="total-row"><td>Totale</td>${tots.map((v,i)=>`<td ${dy[i]===refAnno?'style="font-weight:700"':''}>${fmtE(Math.round(v))}</td>`).join('')}</tr></tbody>`;
+    document.getElementById(id).innerHTML=h;
   }
-
-  const rColors = years.map(y => y===refAnno ? '#34c759' : 'rgba(52,199,89,0.3)');
-  const cColors = years.map(y => y===refAnno ? '#ff3b30' : 'rgba(255,59,48,0.3)');
-  const mColors = margData.map((v,i) => {
-    const ref = years[i]===refAnno;
-    return v>=0 ? (ref?'#007aff':'rgba(0,122,255,0.3)') : (ref?'#ff3b30':'rgba(255,59,48,0.3)');
-  });
-
-  const mLabel = m1===m2 ? MESI_SHORT[m1] : MESI_SHORT[m1]+'–'+MESI_SHORT[m2];
-  makeBar('chart-ricavi', ricaviData, rColors, 'ricavi-chart-title', 'ricavi-chart-sub', `Ricavi — ${mLabel} · confronto anni`);
-  makeBar('chart-costi',  costiData,  cColors, 'costi-chart-title',  'costi-chart-sub',  `Costi — ${mLabel} · confronto anni`);
-
-  if (charts['chart-margine']) charts['chart-margine'].destroy();
-  charts['chart-margine'] = new Chart(document.getElementById('chart-margine'), {
-    type: 'bar',
-    data: { labels, datasets: [{ data: margData, backgroundColor: mColors,
-      borderColor: mColors.map(c => c.startsWith('rgba') ? c.replace('0.3','0.7') : c),
-      borderWidth: 1, borderRadius: 5, borderSkipped: false }] },
-    plugins: [datalabelPlugin],
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => '  '+fmtE(ctx.raw) } } },
-      scales: {
-        x: { grid: { display: false }, border: { display: false } },
-        y: { grid: { color: '#f2f2f7' }, border: { display: false },
-          ticks: { callback: v => (v>=0?'':'−')+(Math.abs(v)/1000).toFixed(0)+'k' } }
-      },
-      layout: { padding: { top: 22 } }
-    }
-  });
-
-  // Donut cats
-  const catPalette = ['#007aff','#34c759','#ff9500','#ff3b30','#af52de','#5ac8fa','#ff2d55','#30b0c7','#ffcc00','#4cd964','#5856d6','#ff6b35','#32ade6','#64d2ff'];
-  function makePie(id, catObj, subId, sub) {
-    if (charts[id]) charts[id].destroy();
-    if (subId) document.getElementById(subId).textContent = sub;
-    const entries = Object.entries(catObj).filter(([,v])=>v>5).sort((a,b)=>b[1]-a[1]);
-    if (!entries.length) return;
-    charts[id] = new Chart(document.getElementById(id), {
-      type: 'doughnut',
-      data: { labels: entries.map(([k])=>k), datasets: [{ data: entries.map(([,v])=>Math.round(v)), backgroundColor: catPalette, borderWidth: 2, borderColor: '#fff' }] },
-      options: { responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font:{size:10}, padding:6 } },
-          tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${fmtE(ctx.raw)}` } } } }
-    });
-  }
-  makePie('chart-cat-ricavi', refResult.catRicavi, 'cat-ricavi-sub', `${refAnno} — ${periodLabel}`);
-  makePie('chart-cat-costi',  refResult.catCosti,  'cat-costi-sub',  `${refAnno} — ${periodLabel}`);
-
-  // Tables
-  function buildTable(id, isRicavo) {
-    const allCats = new Set();
-    years.forEach(y => Object.keys(isRicavo ? results[y].catRicavi : results[y].catCosti).forEach(k=>allCats.add(k)));
-    const cats = [...allCats].sort((a,b) => {
-      const va = (isRicavo ? results[refAnno].catRicavi[a] : results[refAnno].catCosti[a])||0;
-      const vb = (isRicavo ? results[refAnno].catRicavi[b] : results[refAnno].catCosti[b])||0;
-      return vb-va;
-    });
-    const dispY = years.slice(-4);
-    let html = `<thead><tr><th>Categoria</th>${dispY.map(y=>`<th>${y}</th>`).join('')}</tr></thead><tbody>`;
-    cats.forEach(cat => {
-      const vals = dispY.map(y => (isRicavo ? results[y].catRicavi[cat] : results[y].catCosti[cat])||0);
-      if (vals.every(v=>v===0)) return;
-      html += `<tr><td>${cat}</td>${dispY.map((y,i)=>`<td ${y===refAnno?'style="font-weight:600"':''}>${vals[i]>0?fmtE(vals[i]):'<span class="c-muted">—</span>'}</td>`).join('')}</tr>`;
-    });
-    const tots = dispY.map(y => Object.values(isRicavo?results[y].catRicavi:results[y].catCosti).reduce((s,v)=>s+v,0));
-    html += `<tr class="total-row"><td>Totale</td>${tots.map((v,i)=>`<td ${dispY[i]===refAnno?'style="font-weight:700"':''}>${fmtE(Math.round(v))}</td>`).join('')}</tr></tbody>`;
-    document.getElementById(id).innerHTML = html;
-  }
-  buildTable('table-ricavi', true);
-  buildTable('table-costi', false);
+  buildTable('table-ricavi',true);
+  buildTable('table-costi',false);
 }
 
-// ===== STARTUP =====
-(function() {
-  const saved = loadFromStorage();
-  if (saved && saved.length > 0) {
-    initApp(saved, null);
-  }
+// Startup: try localStorage
+(function(){
+  try {
+    const d=localStorage.getItem(STORAGE_KEY);
+    if(d){const r=JSON.parse(d);if(r&&r.length>0){initApp(r,null);return;}}
+  } catch(e){}
 })();
 </script>
 </body>
