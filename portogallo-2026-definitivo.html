@@ -1,0 +1,1326 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🇵🇹 Portogallo Agosto 2026 — Filippo & Mena</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --terra: #C2714F;
+  --terra-light: #E8977A;
+  --ocean: #1B4F72;
+  --ocean-mid: #2E86AB;
+  --sand: #F5EFE6;
+  --chalk: #FAFAF8;
+  --dark: #1A1A1A;
+  --muted: #6B6B6B;
+  --green: #4A7B5A;
+  --gold: #D4A853;
+  --red: #C0392B;
+  --white: #FFFFFF;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
+body { font-family:'Inter',sans-serif; background:var(--chalk); color:var(--dark); line-height:1.6; font-size:15px; }
+
+/* ── HERO ── */
+.hero {
+  background: linear-gradient(155deg, #0D2137 0%, var(--ocean) 60%, #1a3a5c 100%);
+  color:white; padding:52px 20px 72px; text-align:center; position:relative; overflow:hidden;
+}
+.hero::after {
+  content:''; position:absolute; bottom:0; left:0; right:0; height:56px;
+  background:var(--chalk); clip-path:ellipse(55% 100% at 50% 100%);
+}
+.hero-flag { font-size:54px; display:block; margin-bottom:14px; }
+.hero h1 { font-family:'Playfair Display',serif; font-size:clamp(30px,8vw,54px); font-weight:700; line-height:1.1; margin-bottom:6px; }
+.hero-sub { font-size:13px; letter-spacing:3px; text-transform:uppercase; color:rgba(255,255,255,.55); margin-bottom:24px; }
+.hero-badges { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; }
+.badge { background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.2); border-radius:50px; padding:8px 16px; font-size:13px; font-weight:500; }
+
+/* ── STICKY NAV ── */
+.nav { position:sticky; top:0; z-index:200; background:white; border-bottom:1px solid #E5E0D8; box-shadow:0 2px 10px rgba(0,0,0,.07); overflow-x:auto; scrollbar-width:none; }
+.nav::-webkit-scrollbar { display:none; }
+.nav-inner { display:flex; min-width:max-content; padding:0 12px; }
+.nav a { display:flex; align-items:center; gap:5px; padding:13px 14px; font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--muted); text-decoration:none; border-bottom:2px solid transparent; white-space:nowrap; transition:all .2s; }
+.nav a:hover, .nav a.active { color:var(--terra); border-bottom-color:var(--terra); }
+
+/* ── ROUTE BAR ── */
+.route-bar { background:var(--sand); padding:24px 20px; border-bottom:1px solid #E5E0D8; }
+.route-bar h3 { font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--terra); margin-bottom:14px; }
+.route-stops { display:flex; flex-wrap:wrap; align-items:center; gap:4px; }
+.route-stop { background:white; border:1px solid #DDD8D0; border-radius:50px; padding:6px 13px; font-size:12px; font-weight:600; }
+.route-arrow { color:var(--terra); font-size:14px; }
+.route-note { font-size:12px; color:var(--muted); margin-top:10px; }
+
+/* ── SECTION TITLES ── */
+.section-wrap { padding:40px 20px 0; scroll-margin-top:52px; }
+.section-eyebrow { font-size:11px; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:var(--terra); margin-bottom:6px; }
+.section-title { font-family:'Playfair Display',serif; font-size:clamp(26px,6vw,40px); font-weight:700; line-height:1.15; }
+.section-desc { font-size:13px; color:var(--muted); margin-top:6px; max-width:440px; }
+
+
+/* ── CARDS ── */
+.cards { padding:12px 16px 0; }
+.card { background:white; border-radius:14px; border:1px solid #EBE7E0; margin-bottom:12px; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,.04); }
+.card-head { background:var(--dark); color:white; padding:14px 16px; display:flex; gap:12px; align-items:flex-start; }
+.card-day { font-family:'Playfair Display',serif; font-size:38px; font-weight:700; color:var(--terra-light); line-height:1; min-width:48px; }
+.card-info { flex:1; }
+.card-date { font-size:10px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:rgba(255,255,255,.45); margin-bottom:2px; }
+.card-title { font-family:'Playfair Display',serif; font-size:17px; font-weight:700; line-height:1.2; }
+.card-tags { display:flex; flex-wrap:wrap; gap:5px; margin-top:6px; }
+.tag { font-size:10px; font-weight:600; letter-spacing:.5px; text-transform:uppercase; padding:3px 7px; border-radius:4px; background:rgba(255,255,255,.1); color:rgba(255,255,255,.75); }
+.tag.act { background:rgba(194,113,79,.35); color:#E8977A; }
+.tag.food { background:rgba(74,123,90,.35); color:#8DCCA0; }
+.tag.cult { background:rgba(46,134,171,.35); color:#8DD4F0; }
+
+
+.card-body { padding:16px; }
+
+.time-block { margin-bottom:12px; }
+.time-label { font-size:10px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--terra); margin-bottom:4px; display:flex; align-items:center; gap:6px; }
+.time-label::after { content:''; flex:1; height:1px; background:#EBE7E0; }
+.time-text { font-size:13px; color:#333; line-height:1.6; }
+.time-text strong { color:var(--dark); font-weight:600; }
+
+/* ── HIGHLIGHT BOXES ── */
+.hl { border-radius:11px; padding:13px 15px; margin:10px 0; display:flex; gap:11px; align-items:flex-start; }
+.hl.blue { background:linear-gradient(135deg,var(--ocean),var(--ocean-mid)); color:white; }
+.hl.terra { background:linear-gradient(135deg,#A0522D,var(--terra)); color:white; }
+.hl.green { background:linear-gradient(135deg,#2D5A3D,var(--green)); color:white; }
+.hl.gold { background:linear-gradient(135deg,#7A5A10,var(--gold)); color:white; }
+.hl-icon { font-size:22px; flex-shrink:0; margin-top:1px; }
+.hl-title { font-weight:700; font-size:13px; margin-bottom:2px; }
+.hl-desc { font-size:12px; opacity:.85; line-height:1.5; }
+
+/* ── BOOKING BOXES ── */
+.book { background:#FFF8F0; border:1.5px solid var(--terra); border-radius:11px; padding:13px 15px; margin:10px 0; }
+.book-title { font-size:10px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--terra); margin-bottom:8px; }
+.book a { display:flex; align-items:center; gap:7px; font-size:13px; font-weight:500; color:var(--ocean); text-decoration:none; padding:5px 0; border-bottom:1px solid #F0E8DE; }
+.book a:last-of-type { border-bottom:none; }
+.book a:hover { color:var(--terra); }
+.book-note { font-size:11px; color:var(--muted); margin-top:5px; padding-left:2px; }
+
+/* ── ACCOMMODATION BOX ── */
+.accom { background:linear-gradient(135deg,#0D2137,var(--ocean)); color:white; border-radius:14px; padding:18px; margin:10px 0; }
+.accom-name { font-family:'Playfair Display',serif; font-size:19px; margin-bottom:12px; }
+.accom-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.accom-item { background:rgba(255,255,255,.1); border-radius:8px; padding:10px 12px; }
+.accom-label { font-size:10px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; opacity:.6; margin-bottom:3px; }
+.accom-value { font-size:13px; font-weight:600; line-height:1.4; }
+.accom-full { background:rgba(255,255,255,.08); border-radius:8px; padding:10px 12px; margin-top:8px; }
+.accom a { color:#8DD4F0; text-decoration:none; font-size:13px; font-weight:500; display:flex; align-items:center; gap:6px; padding:4px 0; }
+.accom a:hover { color:white; }
+.accom-warn { background:rgba(192,57,43,.3); border-radius:8px; padding:10px 12px; margin-top:8px; font-size:12px; }
+
+/* ── FOOD BOX ── */
+.food-box { background:#F0F7F2; border:1.5px solid var(--green); border-radius:11px; padding:13px 15px; margin:10px 0; }
+.food-title { font-size:10px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--green); margin-bottom:8px; }
+.food-item { padding:8px 0; border-bottom:1px solid #D8EDE0; }
+.food-item:last-child { border-bottom:none; padding-bottom:0; }
+.food-item strong { display:block; font-size:13px; font-weight:700; color:var(--dark); }
+.food-item span { font-size:12px; color:var(--muted); }
+.food-item .price { font-size:11px; font-weight:700; color:var(--green); }
+.food-item a { font-size:12px; color:var(--ocean); text-decoration:none; }
+
+/* ── TIP ── */
+.tip { background:#FFFBF0; border-left:3px solid var(--gold); padding:11px 13px; margin:10px 0; border-radius:0 8px 8px 0; font-size:13px; color:#555; }
+.tip strong { color:var(--dark); }
+
+/* ── DIVIDER ── */
+.divider { margin:36px 16px 0; padding-bottom:10px; border-bottom:2px solid var(--sand); display:flex; align-items:center; gap:10px; }
+.divider span:first-child { font-size:26px; }
+.divider span:last-child { font-family:'Playfair Display',serif; font-size:20px; }
+
+/* ── FLIGHT/CAR BOX ── */
+.info-card { background:white; border-radius:14px; border:1px solid #EBE7E0; margin:12px 16px; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,.04); }
+.info-head { padding:14px 16px; display:flex; align-items:center; gap:10px; }
+.info-head.blue { background:linear-gradient(135deg,var(--ocean),var(--ocean-mid)); color:white; }
+.info-head.dark { background:var(--dark); color:white; }
+.info-head-icon { font-size:28px; }
+.info-head-text h3 { font-family:'Playfair Display',serif; font-size:17px; font-weight:700; }
+.info-head-text p { font-size:11px; opacity:.7; margin-top:1px; }
+.info-body { padding:16px; }
+.info-row { display:flex; gap:8px; padding:9px 0; border-bottom:1px solid #F0EDE8; align-items:flex-start; }
+.info-row:last-child { border-bottom:none; }
+.info-key { font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--muted); min-width:110px; flex-shrink:0; margin-top:2px; }
+.info-val { font-size:13px; font-weight:500; color:var(--dark); line-height:1.5; }
+.info-val a { color:var(--ocean); text-decoration:none; }
+.info-val a:hover { color:var(--terra); }
+.info-val .warn { color:var(--red); font-weight:600; }
+.code { font-family:monospace; background:#F0EDE8; padding:2px 7px; border-radius:5px; font-size:13px; font-weight:700; letter-spacing:1px; }
+
+/* ── CONTACTS BOX ── */
+.contacts { background:var(--dark); color:white; border-radius:14px; padding:18px; margin:12px 16px; }
+.contacts h3 { font-family:'Playfair Display',serif; font-size:17px; margin-bottom:12px; }
+.contact-item { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid rgba(255,255,255,.1); }
+.contact-item:last-child { border-bottom:none; }
+.contact-name { font-size:13px; font-weight:600; }
+.contact-sub { font-size:11px; color:rgba(255,255,255,.5); }
+.contact-link a { color:#8DD4F0; text-decoration:none; font-size:13px; font-weight:500; }
+
+/* ── AGENDA TABLE ── */
+.agenda-wrap { padding:0 16px 12px; overflow-x:auto; }
+.agenda { width:100%; border-collapse:collapse; font-size:13px; }
+.agenda th { background:var(--dark); color:white; padding:10px 12px; text-align:left; font-size:10px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; }
+.agenda td { padding:10px 12px; border-bottom:1px solid #EBE7E0; vertical-align:top; }
+.agenda tr:last-child td { border-bottom:none; }
+.agenda tr:nth-child(even) td { background:#FAFAF8; }
+.agenda td a { color:var(--ocean); text-decoration:none; display:block; font-size:12px; }
+.agenda td a:hover { color:var(--terra); }
+.urgent { color:var(--terra); font-weight:700; }
+.done { color:var(--green); font-weight:700; }
+
+/* ── BACALHAU ── */
+.bacalhau { background:linear-gradient(135deg,#2D5A3D,var(--green)); color:white; border-radius:14px; padding:18px; margin:12px 16px; }
+.bacalhau h3 { font-family:'Playfair Display',serif; font-size:18px; margin-bottom:12px; }
+.b-item { padding:8px 0; border-bottom:1px solid rgba(255,255,255,.15); font-size:13px; }
+.b-item:last-child { border-bottom:none; }
+.b-item strong { color:#A8D8B4; display:block; }
+.b-item span { color:rgba(255,255,255,.75); font-size:12px; }
+
+/* ── EMERGENCY ── */
+.emergency { background:var(--red); color:white; border-radius:14px; padding:18px; margin:12px 16px; }
+.emergency h3 { font-family:'Playfair Display',serif; font-size:17px; margin-bottom:10px; }
+.em-row { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(255,255,255,.2); font-size:13px; }
+.em-row:last-child { border-bottom:none; }
+.em-row a { color:white; text-decoration:none; font-weight:700; font-size:15px; }
+
+/* ── COSTS ── */
+.costs { background:white; border:1px solid #EBE7E0; border-radius:14px; padding:18px; margin:12px 16px; }
+.costs h3 { font-family:'Playfair Display',serif; font-size:17px; margin-bottom:12px; color:var(--dark); }
+.cost-row { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #F0EDE8; font-size:13px; }
+.cost-row:last-child { border-bottom:none; font-weight:700; font-size:15px; color:var(--terra); }
+.cost-label { color:var(--muted); }
+.cost-val { font-weight:600; color:var(--dark); }
+.cost-note { font-size:11px; color:var(--red); }
+
+/* ── FOOTER ── */
+footer { background:var(--dark); color:rgba(255,255,255,.5); text-align:center; padding:32px 20px; font-size:12px; margin-top:48px; }
+footer strong { color:white; }
+
+
+.section-photo {
+  width: 100%;
+  height: 210px;
+  object-fit: cover;
+  display: block;
+  margin: 16px 0 0;
+}
+.card-photo {
+  width: 100%;
+  height: 170px;
+  object-fit: cover;
+  display: block;
+}
+@media(min-width:600px) {
+  .section-photo { height: 260px; }
+  .card-photo { height: 210px; }
+}
+
+
+.section-photo {
+  width: 100%;
+  height: 210px;
+  object-fit: cover;
+  display: block;
+  margin: 16px 0 0;
+}
+.card-photo {
+  width: 100%;
+  height: 170px;
+  object-fit: cover;
+  display: block;
+}
+@media(min-width:600px) {
+  .section-photo { height: 260px; }
+  .card-photo { height: 210px; }
+}
+
+
+.accom-photo {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  display: block;
+  border-radius: 8px;
+  margin-bottom: 14px;
+}
+
+/* ── MISC ── */
+
+.section-rule {
+  height: 3px;
+  background: linear-gradient(90deg, var(--terra) 0%, transparent 100%);
+  margin: 16px 20px 0;
+  border-radius: 2px;
+}
+
+.anchor { scroll-margin-top:52px; }
+.map-link { display:inline-flex; align-items:center; gap:5px; color:var(--ocean); font-size:12px; font-weight:600; text-decoration:none; background:#EEF6FF; padding:5px 10px; border-radius:6px; margin-top:5px; }
+.map-link:hover { background:#D4E9FF; }
+
+@media(min-width:600px) {
+  .cards { padding:12px 20px 0; }
+}
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <span class="hero-flag">🇵🇹</span>
+  <h1>Portogallo<br><em style="font-weight:400;font-style:italic;">Agosto 2026</em></h1>
+  <p class="hero-sub">Filippo & Mena · Guida completa di viaggio</p>
+  <div class="hero-badges">
+    <span class="badge">📅 14–25 agosto · 11 notti</span>
+    <span class="badge">✈️ TAP Portugal · YH3B69</span>
+    <span class="badge">🚗 Budget · 48034667IT2</span>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="javascript:void(0)" onclick="navTo('volo')">✈️ Volo</a>
+    <a href="javascript:void(0)" onclick="navTo('auto')">🚗 Auto</a>
+    <a href="javascript:void(0)" onclick="navTo('evora')">🏛️ Évora</a>
+    <a href="javascript:void(0)" onclick="navTo('milfontes')">🌊 Milfontes</a>
+    <a href="javascript:void(0)" onclick="navTo('sagres')">⚓ Sagres</a>
+    <a href="javascript:void(0)" onclick="navTo('lisbona')">🌆 Lisbona</a>
+    <a href="javascript:void(0)" onclick="navTo('mangiare')">🍽️ Mangiare</a>
+    <a href="javascript:void(0)" onclick="navTo('prenota')">📌 Prenota</a>
+    <a href="javascript:void(0)" onclick="navTo('costi')">💶 Costi</a>
+    <a href="javascript:void(0)" onclick="navTo('emergency')">🆘 SOS</a>
+  </div>
+</nav>
+
+<!-- ROUTE -->
+<div class="route-bar">
+  <h3>Il percorso</h3>
+  <div class="route-stops">
+    <span class="route-stop">✈️ Roma FCO</span>
+    <span class="route-arrow">→</span>
+    <span class="route-stop">🏛️ Évora 14–17</span>
+    <span class="route-arrow">→</span>
+    <span class="route-stop">🌊 Milfontes 17–19</span>
+    <span class="route-arrow">→</span>
+    <span class="route-stop">⚓ Sagres 19–21</span>
+    <span class="route-arrow">→</span>
+    <span class="route-stop">🌆 Lisbona 21–25</span>
+    <span class="route-arrow">→</span>
+    <span class="route-stop">✈️ Roma FCO</span>
+  </div>
+  <p class="route-note">🚗 Auto: 14 ago ore 14:00 → 21 ago ore 14:00 · Da Lisbona: metro + Uber</p>
+</div>
+
+<!-- ═══════════════ VOLO ═══════════════ -->
+<div id="volo" class="anchor" style="padding-top:8px;"></div>
+<div class="info-card" style="margin-top:20px;">
+  <div class="info-head blue">
+    <span class="info-head-icon">✈️</span>
+    <div class="info-head-text">
+      <h3>Volo TAP Portugal</h3>
+      <p>Prenotazione YH3B69 · Economy · Solo bagaglio a mano</p>
+    </div>
+  </div>
+  <div class="info-body">
+    <div class="info-row">
+      <span class="info-key">Andata</span>
+      <span class="info-val"><strong>Ven 14 ago</strong> · Roma FCO 11:10 → Lisbona LIS 13:20<br>Volo <strong>TP831</strong> · Diretto · 3h10</span>
+    </div>
+    <div class="info-row">
+      <span class="info-key">Ritorno</span>
+      <span class="info-val"><strong>Mar 25 ago</strong> · Lisbona LIS 20:15 → Roma FCO 00:15 (+1)<br>Volo <strong>TP838</strong> · Diretto · 3h</span>
+    </div>
+    <div class="info-row">
+      <span class="info-key">PNR</span>
+      <span class="info-val"><span class="code">YH3B69</span></span>
+    </div>
+    <div class="info-row">
+      <span class="info-key">E-ticket Filippo</span>
+      <span class="info-val"><span class="code">0472525658225</span></span>
+    </div>
+    <div class="info-row">
+      <span class="info-key">E-ticket Mena</span>
+      <span class="info-val"><span class="code">0472525658226</span></span>
+    </div>
+    <div class="info-row">
+      <span class="info-key">Bagagli</span>
+      <span class="info-val">1 oggetto personale + 1 bagaglio a mano 25×40×55cm max 10kg<br><span class="warn">⚠️ Nessun bagaglio da stiva incluso</span></span>
+    </div>
+    <div class="info-row">
+      <span class="info-key">Gestisci</span>
+      <span class="info-val"><a href="https://www.flytap.com/it-it/check-in" target="_blank">→ Check-in online TAP</a><a href="https://www.flytap.com/it-it/gestione-prenotazione" target="_blank">→ Gestisci prenotazione TAP</a></span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ AUTO ═══════════════ -->
+<div id="auto" class="anchor"></div>
+<div class="info-card">
+  <div class="info-head dark">
+    <span class="info-head-icon">🚗</span>
+    <div class="info-head-text">
+      <h3>Auto Noleggio — Budget</h3>
+      <p>Toyota Yaris Cross SUV · Automatico · KM illimitati</p>
+    </div>
+  </div>
+  <div class="info-body">
+    <div class="info-row">
+      <span class="info-key">Ritiro</span>
+      <span class="info-val"><strong>Ven 14 ago · ore 14:00</strong><br>Aeroporto Lisbona — Al terminal</span>
+    </div>
+    <div class="info-row">
+      <span class="info-key">Riconsegna</span>
+      <span class="info-val"><strong>Ven 21 ago · ore 14:00</strong><br>Aeroporto Lisbona — Al terminal</span>
+    </div>
+    <div class="info-row">
+      <span class="info-key">Conferma Budget</span>
+      <span class="info-val"><span class="code">48034667IT2</span></span>
+    </div>
+    <div class="info-row">
+      <span class="info-key">Rif. Booking</span>
+      <span class="info-val"><span class="code">682798600</span></span>
+    </div>
+    <div class="info-row">
+      <span class="info-key">Indirizzo</span>
+      <span class="info-val">
+        Alameda das Comunidades Portuguesas, Lisbona 1700-008<br>
+        <a class="map-link" href="https://maps.google.com/?q=Budget+Car+Rental+Lisbon+Airport" target="_blank">📍 Apri in Maps</a>
+      </span>
+    </div>
+    <div class="info-row">
+      <span class="info-key">Telefono Budget</span>
+      <span class="info-val"><a href="tel:+351218435550">+351 218 435 550</a></span>
+    </div>
+    <div class="info-row">
+      <span class="info-key">Assistenza Booking</span>
+      <span class="info-val"><a href="tel:0687505504">068 750 5504</a></span>
+    </div>
+    <div class="info-row">
+      <span class="info-key">Deposito</span>
+      <span class="info-val"><span class="warn">200€ bloccati su carta di credito fisica</span><br>Franchigia danni/furto: 2.976,60€</span>
+    </div>
+    <div class="info-row">
+      <span class="info-key">Carburante</span>
+      <span class="info-val">Riconsegna allo stesso livello del ritiro</span>
+    </div>
+    <div class="info-row">
+      <span class="info-key">Porta con te</span>
+      <span class="info-val">Voucher + Patente + CI/Passaporto + Biglietto aereo TP831</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ ÉVORA ═══════════════ -->
+<div id="evora" class="anchor">
+  <div class="section-wrap">
+    <p class="section-eyebrow">Tappa 1 · 14–17 agosto · 3 notti</p>
+    <h2 class="section-title">Évora &<br>Lago Alqueva</h2>
+    <p class="section-desc">Patrimonio UNESCO, megaliti, vino dell'Alentejo e il lago più grande d'Europa</p>
+  </div>
+  
+</div>
+</div>
+
+<!-- ALLOGGIO ÉVORA -->
+<div class="cards">
+  <div class="accom">
+    <div class="accom-name">🏠 Casa do Contreyras · Évora</div>
+    <img src="https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=75&fit=crop" class="accom-photo" alt="Casa do Contreyras Évora" loading="lazy">
+    <div class="accom-grid">
+      <div class="accom-item">
+        <div class="accom-label">Check-in</div>
+        <div class="accom-value">Ven 14 ago<br>ore 16:00</div>
+      </div>
+      <div class="accom-item">
+        <div class="accom-label">Check-out</div>
+        <div class="accom-value">Lun 17 ago<br>ore 11:00</div>
+      </div>
+      <div class="accom-item">
+        <div class="accom-label">Codice Airbnb</div>
+        <div class="accom-value"><span style="font-family:monospace;font-size:14px;letter-spacing:1px;">HMFS54ZYDQ</span></div>
+      </div>
+      <div class="accom-item">
+        <div class="accom-label">Costo totale</div>
+        <div class="accom-value">270,90 €</div>
+      </div>
+    </div>
+    <div class="accom-full">
+      <div class="accom-label" style="color:rgba(255,255,255,.5);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;">Indirizzo & Contatti</div>
+      <div style="font-size:13px;margin-bottom:8px;">Travessa do Contreyras 13, Évora 7000, Portogallo</div>
+      <a href="https://maps.google.com/?q=Travessa+do+Contreyras+13+Evora+Portugal" target="_blank">📍 Apri in Maps</a>
+      <a href="https://www.airbnb.it/trips/v1/reservation-details/ro/RESERVATION2_CHECKIN/HMFS54ZYDQ" target="_blank" style="margin-top:4px;">📋 Prenotazione Airbnb</a>
+      <div style="margin-top:8px;font-size:12px;opacity:.7;">Host: Ana · Co-host: Miguel · @alojamentos_evora<br>Check-in: cassetta di sicurezza · WiFi: 48h prima</div>
+    </div>
+    <div class="accom-warn">
+      🅿️ Non si arriva in auto fino alla travessa. Parcheggio vicino: Hotel M'ar De Ar Muralhas (1 min a piedi, pagamento lun–ven 8:30–19:30, sab 9–14). Gratuito: Chiesa Salesiani / GALP Portas do Raimundo, Av. Túlio Espanca 7005-840
+    </div>
+  </div>
+</div>
+
+<!-- GIORNI ÉVORA -->
+<div class="cards">
+
+  <div class="card">
+    <div class="card-head">
+      <div class="card-day">14</div>
+      <div class="card-info">
+        <div class="card-date">Giovedì · Agosto</div>
+        <div class="card-title">Arrivo ad Évora</div>
+        <div class="card-tags"><span class="tag">✈️ Arrivo</span><span class="tag food">Cena</span></div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="time-block">
+        <div class="time-label">✈️ Ore 11:10 — Decollo Roma FCO</div>
+        <div class="time-text">Volo TP831 · Arrivo Lisbona 13:20 · Ritiro auto Budget terminal aeroporto (conf. <strong>48034667IT2</strong>) · Autostrada A6 verso Évora ~1h30</div>
+      </div>
+      <div class="time-block">
+        <div class="time-label">🏠 Ore ~16:00 — Check-in</div>
+        <div class="time-text">Casa do Contreyras, Travessa do Contreyras 13 · Self check-in cassetta di sicurezza · Codice: <strong>HMFS54ZYDQ</strong></div>
+      </div>
+      <div class="time-block">
+        <div class="time-label">🌆 Pomeriggio</div>
+        <div class="time-text">Prima passeggiata: <strong>Praça do Giraldo</strong>, mura medievali, <strong>Tempio Romano</strong> dall'esterno all'ora d'oro. Aperitivo in piazza con primo vino alentejano.</div>
+      </div>
+      <div class="time-block">
+        <div class="time-label">🍽️ Cena</div>
+        <div class="time-text"><strong>Restaurante Típico Guião</strong> — Rua da República 81. Bochechas de porco preto, bacalhau à lagareiro. ~25€/pp. Prenota.</div>
+      </div>
+      <a class="map-link" href="https://maps.google.com/?q=Praça+do+Giraldo+Evora" target="_blank">📍 Praça do Giraldo</a>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div class="card-day">15</div>
+      <div class="card-info">
+        <div class="card-date">Venerdì · Agosto</div>
+        <div class="card-title">Évora UNESCO + Megaliti</div>
+        <div class="card-tags"><span class="tag cult">Cultura</span><span class="tag act">🪨 Megaliti</span></div>
+      </div>
+    </div>
+    
+</div>
+    <img src="https://images.unsplash.com/photo-1548263594-a71ea65a8598?w=800&q=75&fit=crop" class="card-photo" alt="Évora" loading="lazy">
+    <div class="card-body">
+      <div class="time-block">
+        <div class="time-label">🌅 Mattina</div>
+        <div class="time-text"><strong>Cappella delle Ossa</strong> (Igreja de São Francisco) — pareti rivestite di ossa di 5.000 frati. Perturbante e indimenticabile. Poi cattedrale gotica, università rinascimentale, vicoli bianchi.</div>
+      </div>
+      <div class="time-block">
+        <div class="time-label">🍴 Pranzo</div>
+        <div class="time-text"><strong>Tasca O Templo</strong> — Rua de Burgos 10. Familiare, economico, cucina di casa.</div>
+      </div>
+      <div class="time-block">
+        <div class="time-label">🌤️ Pomeriggio</div>
+        <div class="time-text"><strong>Cromeleque dos Almendres</strong> — 92 menhir in cerchio, 4000 a.C., pianura infinita, silenzio totale. 15 km da Évora in auto.</div>
+      </div>
+      <div class="hl blue">
+        <span class="hl-icon">🪨</span>
+        <div><div class="hl-title">Cromeleque dos Almendres</div><div class="hl-desc">Il più grande complesso megalitico della Penisola Iberica · Gratuito · Quasi sempre deserto · Portate acqua</div></div>
+      </div>
+      <a class="map-link" href="https://maps.google.com/?q=Cromeleque+dos+Almendres+Evora" target="_blank">📍 Cromeleque dos Almendres</a>
+      <a class="map-link" href="https://maps.google.com/?q=Igreja+de+Sao+Francisco+Evora" target="_blank">📍 Cappella delle Ossa</a>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div class="card-day">16</div>
+      <div class="card-info">
+        <div class="card-date">Sabato · Agosto</div>
+        <div class="card-title">Monsaraz + Kayak Alqueva + Esporão</div>
+        <div class="card-tags"><span class="tag act">🛶 Kayak</span><span class="tag food">🍷 Cantina</span><span class="tag cult">Borgo</span></div>
+      </div>
+    </div>
+    
+</div>
+    <img src="https://images.unsplash.com/photo-1591604466107-ec97de577aff?w=800&q=75&fit=crop" class="card-photo" alt="Monsaraz" loading="lazy">
+    <div class="card-body">
+      <div class="time-block">
+        <div class="time-label">🌅 Ore 9:00 — Monsaraz</div>
+        <div class="time-text">~45 min di auto. Auto fuori dal borgo, si sale a piedi. Case bianche, silenzio assoluto, vista sul Lago Alqueva. Pranzo con <strong>Reserva Monsaraz</strong> in un ristorante dentro le mura.</div>
+      </div>
+      <div class="time-block">
+        <div class="time-label">🛶 Ore 14:30 — Kayak Alqueva</div>
+        <div class="time-text">Centro Náutico Sem-Fim. Kayak/SUP sul più grande lago artificiale d'Europa. ~25€/persona.</div>
+      </div>
+      <div class="hl blue">
+        <span class="hl-icon">🛶</span>
+        <div><div class="hl-title">Kayak/SUP · Lago Alqueva</div><div class="hl-desc">Centro Náutico Sem-Fim · ~25€/pp · Da prenotare con anticipo</div></div>
+      </div>
+      <div class="book">
+        <div class="book-title">📌 Prenota Kayak Alqueva</div>
+        <a href="https://sem-fim.com" target="_blank">🌐 sem-fim.com</a>
+        <a href="mailto:sem-fim.com@gmail.com">📧 sem-fim.com@gmail.com</a>
+        <a href="tel:+351961667584">📞 +351 961 667 584 (Tiago)</a>
+        <a class="map-link" href="https://maps.google.com/?q=Centro+Nautico+Monsaraz+Alqueva" target="_blank">📍 Centro Náutico Monsaraz</a>
+      </div>
+      <div class="time-block">
+        <div class="time-label">🍷 Ore 17:00 — Herdade do Esporão</div>
+        <div class="time-text">Una delle più grandi cantine del Portogallo. Visita vigneti + cantine + degustazione 4 vini. Wine bar con vista sulla diga.</div>
+      </div>
+      <div class="hl gold">
+        <span class="hl-icon">🍷</span>
+        <div><div class="hl-title">Herdade do Esporão · Visita + Degustazione</div><div class="hl-desc">Orario estivo: 17:00 in portoghese, 11:00 in inglese · Prenotazione obbligatoria</div></div>
+      </div>
+      <div class="book">
+        <div class="book-title">📌 Prenota Esporão</div>
+        <a href="https://esporao.com/en/tourism/herdade-do-esporao-visit" target="_blank">🌐 esporao.com</a>
+        <a href="mailto:reservas@esporao.com">📧 reservas@esporao.com</a>
+        <a href="tel:+351266509280">📞 +351 266 509 280 (lun–dom 10–18:30)</a>
+        <a class="map-link" href="https://maps.google.com/?q=Herdade+do+Esporao+Reguengos+de+Monsaraz" target="_blank">📍 Herdade do Esporão</a>
+      </div>
+      <a class="map-link" href="https://maps.google.com/?q=Monsaraz+Portugal" target="_blank">📍 Monsaraz</a>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════ MILFONTES ═══════════════ -->
+<div class="divider"><span>🌊</span><span>Vila Nova de Milfontes</span></div>
+<div id="milfontes" class="anchor">
+  <div class="section-wrap">
+    <p class="section-eyebrow">Tappa 2 · 17–19 agosto · 2 notti</p>
+    <h2 class="section-title">Vila Nova<br>de Milfontes</h2>
+    <p class="section-desc">Il borgo costiero più autentico dell'Alentejo, porta della Rota Vicentina</p>
+  </div>
+  
+</div>
+</div>
+
+<div class="cards">
+  <div class="accom">
+    <div class="accom-name">🏠 By the C House · Milfontes</div>
+    <img src="https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?w=800&q=75&fit=crop" class="accom-photo" alt="By the C House Milfontes" loading="lazy">
+    <div class="accom-grid">
+      <div class="accom-item">
+        <div class="accom-label">Check-in</div>
+        <div class="accom-value">Lun 17 ago<br>ore 16:00–24:00</div>
+      </div>
+      <div class="accom-item">
+        <div class="accom-label">Check-out</div>
+        <div class="accom-value">Mer 19 ago<br>ore 12:00</div>
+      </div>
+      <div class="accom-item">
+        <div class="accom-label">Conferma Booking</div>
+        <div class="accom-value"><span style="font-family:monospace;font-size:13px;">6189491641</span></div>
+      </div>
+      <div class="accom-item">
+        <div class="accom-label">PIN</div>
+        <div class="accom-value"><span style="font-family:monospace;font-size:18px;font-weight:700;">8410</span></div>
+      </div>
+    </div>
+    <div class="accom-full">
+      <div class="accom-label" style="color:rgba(255,255,255,.5);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;">Indirizzo & Contatti</div>
+      <div style="font-size:13px;margin-bottom:8px;">Rua Vicente Ferreira n° 24, Bloco A, 1° B · 7645-234 Vila Nova de Milfontes</div>
+      <a href="https://maps.google.com/?q=Rua+Vicente+Ferreira+24+Vila+Nova+de+Milfontes" target="_blank">📍 Apri in Maps</a>
+      <a href="tel:+351965839839" style="margin-top:4px;">📞 +351 965 839 839</a>
+      <div style="margin-top:8px;font-size:12px;opacity:.7;">Accesso: incontro sul posto · Cancellazione gratuita fino al 11 agosto</div>
+    </div>
+    <div class="accom-warn">💶 Costo totale 280,36€ · <strong>⚠️ Ancora da pagare su Booking.com</strong></div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div class="card-day">17</div>
+      <div class="card-info">
+        <div class="card-date">Domenica · Agosto</div>
+        <div class="card-title">Évora → Milfontes · Primo mare</div>
+        <div class="card-tags"><span class="tag">🚗 Trasferimento</span><span class="tag act">🏖️ Mare</span></div>
+      </div>
+    </div>
+    <img src="https://images.unsplash.com/photo-1548263594-a71ea65a8598?w=800&q=75&fit=crop" class="card-photo" alt="Évora" loading="lazy">
+    <div class="card-body">
+      <div class="time-block">
+        <div class="time-label">🚗 Mattina</div>
+        <div class="time-text">Check-out Évora (entro 11:00) · Partenza verso Milfontes ~2h30 attraverso la pianura alentejana.</div>
+      </div>
+      <div class="time-block">
+        <div class="time-label">🌊 Pomeriggio</div>
+        <div class="time-text">Mezza giornata di mare: <strong>Praia de Milfontes</strong> (oceano aperto) o foce del <strong>Rio Mira</strong> (acque più calme, SUP). Qualche ora di bagni e relax.</div>
+      </div>
+      <div class="time-block">
+        <div class="time-label">🍽️ Sera</div>
+        <div class="time-text">Aperitivo nel borgo. Cena: <strong>Pátio Alentejano</strong> — griglia a vista, frequentato dai locali, carne de porco à alentejana. Prezzi onesti.</div>
+      </div>
+      <a class="map-link" href="https://maps.google.com/?q=Praia+de+Vila+Nova+de+Milfontes" target="_blank">📍 Praia de Milfontes</a>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div class="card-day">18</div>
+      <div class="card-info">
+        <div class="card-date">Lunedì · Agosto</div>
+        <div class="card-title">Fishermen's Trail</div>
+        <div class="card-tags"><span class="tag act">🥾 Trekking</span><span class="tag act">⛵ Barca</span></div>
+      </div>
+    </div>
+    
+</div>
+    <img src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&q=75&fit=crop" class="card-photo" alt="Fishermen's Trail" loading="lazy">
+    <div class="card-body">
+      <div class="hl green">
+        <span class="hl-icon">🥾</span>
+        <div><div class="hl-title">Fishermen's Trail · Milfontes → Almograve</div><div class="hl-desc">11 km · ~3h · Difficoltà facile · Scogliere 50m, spiagge selvagge, silenzio totale · Una delle più belle d'Europa</div></div>
+      </div>
+      <div class="time-block">
+        <div class="time-label">⛵ Ore 8:30 — Barca</div>
+        <div class="time-text">Dal porticciolo vicino al Forte São Vicente. ~5€/pp, ogni 30 min, no prenotazione. Si imbocca subito il sentiero.</div>
+      </div>
+      <div class="time-block">
+        <div class="time-label">🥾 Mattina</div>
+        <div class="time-text">Trekking fino ad Almograve: scogliere, spiagge nascoste, pochi segni umani. Bagno in una spiaggia deserta lungo il percorso. Pranzo ad Almograve.</div>
+      </div>
+      <div class="time-block">
+        <div class="time-label">🚗 Pomeriggio</div>
+        <div class="time-text">Rientro a Milfontes in auto (~25 min). Doccia, relax. Cena: <strong>Tasca do Celso</strong> — Rua dos Aviadores 34, il migliore di Milfontes. Prenota.</div>
+      </div>
+      <div class="tip"><strong>💡 Tip:</strong> Partite alle 8:30 max — agosto è caldo e il percorso è esposto. Acqua abbondante, cappello, scarpe da trail.</div>
+      <a class="map-link" href="https://maps.google.com/?q=Forte+de+Sao+Vicente+Vila+Nova+de+Milfontes" target="_blank">📍 Forte São Vicente (barca)</a>
+      <a class="map-link" href="https://maps.google.com/?q=Almograve+Portugal" target="_blank">📍 Almograve (arrivo trekking)</a>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════ SAGRES ═══════════════ -->
+<div class="divider"><span>⚓</span><span>Sagres — Fine del Mondo</span></div>
+<div id="sagres" class="anchor">
+  <div class="section-wrap">
+    <p class="section-eyebrow">Tappa 3 · 19–21 agosto · 2 notti</p>
+    <h2 class="section-title">Sagres</h2>
+    <p class="section-desc">Il punto più sud-occidentale d'Europa. Scogliere a 75m, vento costante, tramonti epici</p>
+  </div>
+  
+</div>
+</div>
+
+<div class="cards">
+  <div class="accom">
+    <div class="accom-name">🏠 Milaroubas · Sagres</div>
+    <img src="https://images.unsplash.com/photo-1510798831971-661eb04b3739?w=800&q=75&fit=crop" class="accom-photo" alt="Milaroubas Sagres" loading="lazy">
+    <div class="accom-grid">
+      <div class="accom-item">
+        <div class="accom-label">Check-in</div>
+        <div class="accom-value">Mer 19 ago<br>ore 15:00</div>
+      </div>
+      <div class="accom-item">
+        <div class="accom-label">Check-out</div>
+        <div class="accom-value">Ven 21 ago<br>ore 11:00</div>
+      </div>
+      <div class="accom-item">
+        <div class="accom-label">Codice Airbnb</div>
+        <div class="accom-value"><span style="font-family:monospace;font-size:13px;">HMH4KBRZHD</span></div>
+      </div>
+      <div class="accom-item">
+        <div class="accom-label">Costo totale</div>
+        <div class="accom-value">255,62 €</div>
+      </div>
+    </div>
+    <div class="accom-full">
+      <div class="accom-label" style="color:rgba(255,255,255,.5);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;">Indirizzo & Come Arrivare</div>
+      <div style="font-size:13px;margin-bottom:8px;">Rua do Mercado, Sagres, Faro 8650 · #AmarSagres#</div>
+      <a href="https://maps.google.com/?q=Rua+do+Mercado+Sagres+Faro+Portugal" target="_blank">📍 Apri in Maps</a>
+      <a href="https://www.airbnb.it/trips/v1/reservation-details/ro/RESERVATION2_CHECKIN/HMH4KBRZHD" target="_blank" style="margin-top:4px;">📋 Prenotazione Airbnb</a>
+      <div style="margin-top:8px;font-size:12px;opacity:.7;">Host: Ema · Check-in: cassetta di sicurezza · WiFi: 48h prima · Cucina disponibile</div>
+    </div>
+    <div class="accom-warn" style="font-size:12px;">
+      🗺️ <strong>Indicazioni host:</strong> Entrando a Sagres dritto fino rotonda → 3ª uscita → nuova rotonda → 4ª uscita (Centro Sanitario/Mercato/Chiesa) → prima casa isolata a sinistra con insegna #AmarSagres#
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div class="card-day">19</div>
+      <div class="card-info">
+        <div class="card-date">Martedì · Agosto</div>
+        <div class="card-title">Arrivo + E-bike verso Cabo</div>
+        <div class="card-tags"><span class="tag act">🚴 E-Bike</span><span class="tag act">🌅 Tramonto</span></div>
+      </div>
+    </div>
+    
+</div>
+    <img src="https://images.unsplash.com/photo-1589393922695-ef4c2f9deb8b?w=800&q=75&fit=crop" class="card-photo" alt="Cabo de São Vicente" loading="lazy">
+    <div class="card-body">
+      <div class="time-block">
+        <div class="time-label">🚗 Mattina</div>
+        <div class="time-text">Check-out Milfontes (entro 12:00) · ~1h40 verso Sagres. Deviazione opzionale: <strong>Zambujeira do Mar</strong> o <strong>Odeceixe</strong> sulla strada.</div>
+      </div>
+      <div class="time-block">
+        <div class="time-label">🚴 Pomeriggio — Subito in bici!</div>
+        <div class="time-text">Check-in Milaroubas · Ritira e-bike e via: <strong>Sagres → Cabo de São Vicente</strong> lungo la costa. ~7 km quasi pianeggianti, sentiero segnalato, scogliere, vento atlantico.</div>
+      </div>
+      <div class="hl terra">
+        <span class="hl-icon">🚴</span>
+        <div><div class="hl-title">E-bike · Sagres → Cabo de São Vicente</div><div class="hl-desc">7 km coast path · ~1h30 a/r · ~40€/bici · Tramonto al faro — il premio finale</div></div>
+      </div>
+      <div class="book">
+        <div class="book-title">📌 Noleggio E-Bike Sagres</div>
+        <a href="https://www.musette.bike/bike-rental-sagres" target="_blank">🌐 musette.bike — Prenota online</a>
+        <a href="https://bikerentalalgarve.com" target="_blank">🌐 bikerentalalgarve.com — Fat e-bike</a>
+        <a href="https://maretasurfshop.com" target="_blank">🌐 maretasurfshop.com — Shop in centro</a>
+      </div>
+      <a class="map-link" href="https://maps.google.com/?q=Cabo+de+Sao+Vicente+Portugal" target="_blank">📍 Cabo de São Vicente</a>
+      <a class="map-link" href="https://maps.google.com/?q=Sagres+Portugal" target="_blank">📍 Sagres centro</a>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div class="card-day">20</div>
+      <div class="card-info">
+        <div class="card-date">Mercoledì · Agosto</div>
+        <div class="card-title">Kayak grotte + Fortaleza + Spiaggia</div>
+        <div class="card-tags"><span class="tag act">🛶 Kayak</span><span class="tag cult">🏰 Fortezza</span><span class="tag act">🏖️ Mare</span></div>
+      </div>
+    </div>
+    
+</div>
+    <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=75&fit=crop" class="card-photo" alt="Kayak Ponta da Piedade" loading="lazy">
+    <div class="card-body">
+      <div class="time-block">
+        <div class="time-label">🛶 Ore 9:00 — Kayak grotte</div>
+        <div class="time-text">Tour kayak guidato alle <strong>grotte di Ponta da Piedade</strong> (Lagos, ~30 min di auto). I kayak vengono portati in barca alle scogliere, poi esplorazione grotte, passaggi stretti, formazioni rocciose. ~3h.</div>
+      </div>
+      <div class="hl blue">
+        <span class="hl-icon">🛶</span>
+        <div><div class="hl-title">Kayak · Grotte Ponta da Piedade</div><div class="hl-desc">Da Lagos · ~30€/pp · 2-3h · Porta costume, protezione solare, sacca stagna · Dipende dal meteo</div></div>
+      </div>
+      <div class="book">
+        <div class="book-title">📌 Prenota Kayak Lagos</div>
+        <a href="https://www.civitatis.com/en/lagos/ponta-da-piedade-kayak-tour/" target="_blank">🌐 Civitatis — Ponta da Piedade Kayak Tour</a>
+        <a href="https://www.getyourguide.com/lagos-l710/kayak-tc2/" target="_blank">🌐 GetYourGuide — Kayak Lagos</a>
+        <div class="book-note">⚠️ Cancellazione gratuita 48h prima · Partenza mattina presto</div>
+      </div>
+      <div class="time-block">
+        <div class="time-label">🏰 Pomeriggio</div>
+        <div class="time-text"><strong>Fortaleza de Sagres</strong> — mura sospese sulle scogliere. Perimetro esterno gratuito e spettacolare. Poi spiaggia <strong>Praia do Tonel</strong> per un bagno meritato.</div>
+      </div>
+      <div class="time-block">
+        <div class="time-label">🍽️ Cena</div>
+        <div class="time-text"><strong>⚠️ A Tasca chiusa il mercoledì</strong> → Alternativa: <strong>Restaurante Carlos</strong> — ambiente spartano, pesce del giorno al banco, nessuna pretesa.</div>
+      </div>
+      <a class="map-link" href="https://maps.google.com/?q=Ponta+da+Piedade+Lagos+Portugal" target="_blank">📍 Ponta da Piedade (kayak)</a>
+      <a class="map-link" href="https://maps.google.com/?q=Fortaleza+de+Sagres" target="_blank">📍 Fortaleza de Sagres</a>
+      <a class="map-link" href="https://maps.google.com/?q=Praia+do+Tonel+Sagres" target="_blank">📍 Praia do Tonel</a>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div class="card-day">21</div>
+      <div class="card-info">
+        <div class="card-date">Giovedì · Agosto</div>
+        <div class="card-title">Ultima mattina → Lisbona</div>
+        <div class="card-tags"><span class="tag">🚗 Trasferimento</span><span class="tag">🔑 Restituzione auto</span></div>
+      </div>
+    </div>
+    <img src="https://images.unsplash.com/photo-1591604466107-ec97de577aff?w=800&q=75&fit=crop" class="card-photo" alt="Monsaraz" loading="lazy">
+    <div class="card-body">
+      <div class="time-block">
+        <div class="time-label">🌅 Mattina libera</div>
+        <div class="time-text">Colazione, passeggiata sulle scogliere, eventuale bagno a Praia do Tonel. Check-out entro le 11:00.</div>
+      </div>
+      <div class="time-block">
+        <div class="time-label">🚗 Ore 13:00 — Partenza</div>
+        <div class="time-text">A22/A2 verso Lisbona ~2h30. <strong>Restituzione auto Budget aeroporto entro le 14:00</strong> — conf. <strong>48034667IT2</strong> · Tel: <a href="tel:+351218435550">+351 218 435 550</a></div>
+      </div>
+      <div class="time-block">
+        <div class="time-label">🌆 Pomeriggio — Alfama</div>
+        <div class="time-text">Check-in Alfama Blue House II · Rua Guilherme Braga 24, 3º Dir. · Codice Airbnb: <strong>HMYCPPP3W9</strong><br>Aperitivo: <strong>Miradouro das Portas do Sol</strong> o <strong>Miradouro da Graça</strong>.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════ LISBONA ═══════════════ -->
+<div class="divider"><span>🌆</span><span>Lisbona</span></div>
+<div id="lisbona" class="anchor">
+  <div class="section-wrap">
+    <p class="section-eyebrow">Tappa 4 · 21–25 agosto · 4 notti</p>
+    <h2 class="section-title">Lisboa</h2>
+    <p class="section-desc">Alfama, Belém, Sintra, Cascais, Cabo da Roca — e una notte seria alla Pink Street</p>
+  </div>
+  
+</div>
+</div>
+
+<div class="cards">
+  <div class="accom">
+    <div class="accom-name">🏠 Alfama Blue House II (River View)</div>
+    <img src="https://images.unsplash.com/photo-1555881400-74d7acaacd8b?w=800&q=75&fit=crop" class="accom-photo" alt="Alfama Blue House II" loading="lazy">
+    <div class="accom-grid">
+      <div class="accom-item">
+        <div class="accom-label">Check-in</div>
+        <div class="accom-value">Gio 21 ago<br>ore 14:00</div>
+      </div>
+      <div class="accom-item">
+        <div class="accom-label">Check-out</div>
+        <div class="accom-value">Lun 25 ago<br>ore 12:00</div>
+      </div>
+      <div class="accom-item">
+        <div class="accom-label">Codice Airbnb</div>
+        <div class="accom-value"><span style="font-family:monospace;font-size:12px;">HMYCPPP3W9</span></div>
+      </div>
+      <div class="accom-item">
+        <div class="accom-label">Costo totale</div>
+        <div class="accom-value">528,41 €</div>
+      </div>
+    </div>
+    <div class="accom-full">
+      <div class="accom-label" style="color:rgba(255,255,255,.5);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;">Indirizzo & Contatti</div>
+      <div style="font-size:13px;margin-bottom:8px;">Rua Guilherme Braga 24, 3º Dir. · 1100 Lisbona</div>
+      <a href="https://maps.google.com/?q=Rua+Guilherme+Braga+24+Lisboa+Portugal" target="_blank">📍 Apri in Maps</a>
+      <div style="margin-top:8px;font-size:12px;opacity:.7;">Host: Hugo & Silvia · Quartiere Alfama</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div class="card-day">22</div>
+      <div class="card-info">
+        <div class="card-date">Venerdì · Agosto</div>
+        <div class="card-title">Belém + Chiado + Bairro Alto</div>
+        <div class="card-tags"><span class="tag cult">UNESCO</span><span class="tag food">🥐 Pastéis</span><span class="tag act">🍹 Rooftop</span></div>
+      </div>
+    </div>
+    
+</div>
+    <img src="https://images.unsplash.com/photo-1585208798174-6cedd86e019a?w=800&q=75&fit=crop" class="card-photo" alt="Belém Lisbona" loading="lazy">
+    <div class="card-body">
+      <div class="time-block">
+        <div class="time-label">🌅 Mattina — Belém</div>
+        <div class="time-text"><strong>Torre de Belém</strong>, <strong>Mosteiro dos Jerónimos</strong> (gotico manuelino), Monumento alle Scoperte. <strong>Pastéis de Belém</strong> — fila inevitabile, ricetta segreta dal 1837.</div>
+      </div>
+      <div class="time-block">
+        <div class="time-label">🌆 Pomeriggio — Chiado</div>
+        <div class="time-text"><strong>Livraria Bertrand</strong> (libreria più antica del mondo), piazze del Chiado, <strong>Time Out Market</strong> per uno spuntino misto.</div>
+      </div>
+      <div class="time-block">
+        <div class="time-label">🍹 Aperitivo</div>
+        <div class="time-text"><strong>Park Bar</strong> — rooftop nascosto in cima a un parcheggio nel Bairro Alto. Vista sulla città, aperto fino a tarda notte.</div>
+      </div>
+      <div class="time-block">
+        <div class="time-label">🌙 Serata</div>
+        <div class="time-text">Bairro Alto fino a mezzanotte, poi <strong>Pink Street (Cais do Sodré)</strong> — si balla davvero dalle 2:00.</div>
+      </div>
+      <a class="map-link" href="https://maps.google.com/?q=Torre+de+Belem+Lisboa" target="_blank">📍 Torre de Belém</a>
+      <a class="map-link" href="https://maps.google.com/?q=Mosteiro+dos+Jeronimos+Lisboa" target="_blank">📍 Mosteiro dos Jerónimos</a>
+      <a class="map-link" href="https://maps.google.com/?q=Pasteis+de+Belem+Lisboa" target="_blank">📍 Pastéis de Belém</a>
+      <a class="map-link" href="https://maps.google.com/?q=Park+Bar+Lisboa+Bairro+Alto" target="_blank">📍 Park Bar rooftop</a>
+      <a class="map-link" href="https://maps.google.com/?q=Pink+Street+Cais+do+Sodre+Lisboa" target="_blank">📍 Pink Street</a>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div class="card-day">23</div>
+      <div class="card-info">
+        <div class="card-date">Sabato · Agosto</div>
+        <div class="card-title">Sintra + Cabo da Roca + Cascais</div>
+        <div class="card-tags"><span class="tag cult">🏰 Sintra</span><span class="tag act">🌊 Cabo</span></div>
+      </div>
+    </div>
+    
+</div>
+    <img src="https://images.unsplash.com/photo-1513735492246-483525079686?w=800&q=75&fit=crop" class="card-photo" alt="Sintra" loading="lazy">
+    <div class="card-body">
+      <div class="tip"><strong>🚆 Trasporti:</strong> Treno da Rossio → Sintra ~40 min (~2€) · Da Sintra bus 403 → Cabo da Roca → Cascais · Da Cascais treno panoramico → Cais do Sodré. Zero macchina, zero parcheggio.</div>
+      <div class="time-block">
+        <div class="time-label">🌅 Mattina presto — Sintra</div>
+        <div class="time-text">Arriva presto. <strong>Palácio da Pena</strong> (esterno), <strong>Castelo dos Mouros</strong>, vicoli con pastéis de Sintra.</div>
+      </div>
+      <div class="time-block">
+        <div class="time-label">🌊 Pomeriggio — Cabo da Roca + Cascais</div>
+        <div class="time-text"><strong>Cabo da Roca</strong> — il punto più occidentale dell'Europa continentale. Vento fortissimo, scogliere a picco. Poi <strong>Cascais</strong>: marina, centro storico piacevole.</div>
+      </div>
+      <a class="map-link" href="https://maps.google.com/?q=Palacio+Nacional+da+Pena+Sintra" target="_blank">📍 Palácio da Pena</a>
+      <a class="map-link" href="https://maps.google.com/?q=Cabo+da+Roca+Portugal" target="_blank">📍 Cabo da Roca</a>
+      <a class="map-link" href="https://maps.google.com/?q=Cascais+Portugal" target="_blank">📍 Cascais</a>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div class="card-day">24</div>
+      <div class="card-info">
+        <div class="card-date">Domenica · Agosto</div>
+        <div class="card-title">Alfama + LX Factory + Discoteca</div>
+        <div class="card-tags"><span class="tag cult">🏰 Castello</span><span class="tag act">💃 Club</span></div>
+      </div>
+    </div>
+    <img src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&q=75&fit=crop" class="card-photo" alt="Fishermen's Trail" loading="lazy">
+    <div class="card-body">
+      <div class="time-block">
+        <div class="time-label">🌅 Mattina</div>
+        <div class="time-text"><strong>Mercado de Santa Clara</strong> (antiquariato domenica mattina) · <strong>Castelo de São Jorge</strong> con viste panoramiche.</div>
+      </div>
+      <div class="time-block">
+        <div class="time-label">🍴 Pranzo</div>
+        <div class="time-text"><strong>Zé da Mouraria</strong> (Mouraria) — porzioni enormi in pentole di acciaio, cucina alentejana vera, prezzi popolari.</div>
+      </div>
+      <div class="time-block">
+        <div class="time-label">🏭 Pomeriggio — LX Factory</div>
+        <div class="time-text"><strong>LX Factory</strong> ad Alcântara — ex complesso industriale creativo. Domenica = giornata del mercato.</div>
+      </div>
+      <div class="time-block">
+        <div class="time-label">🌙 La notte giusta per ballare</div>
+        <div class="time-text"><strong>Pink Street / Avenida 24 de Julho</strong> dalle 23:00, club veri dalle 2:00. <strong>Music Box</strong> o <strong>K Urban Beach Club</strong>. Tutto a 5 min Uber da Alfama.</div>
+      </div>
+      <a class="map-link" href="https://maps.google.com/?q=Castelo+de+Sao+Jorge+Lisboa" target="_blank">📍 Castelo de São Jorge</a>
+      <a class="map-link" href="https://maps.google.com/?q=LX+Factory+Lisboa" target="_blank">📍 LX Factory</a>
+      <a class="map-link" href="https://maps.google.com/?q=Music+Box+Lisboa" target="_blank">📍 Music Box Club</a>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div class="card-day">25</div>
+      <div class="card-info">
+        <div class="card-date">Lunedì · Agosto</div>
+        <div class="card-title">Ultima mattina → Roma</div>
+        <div class="card-tags"><span class="tag">✈️ TP838 ore 20:15</span></div>
+      </div>
+    </div>
+    <img src="https://images.unsplash.com/photo-1589393922695-ef4c2f9deb8b?w=800&q=75&fit=crop" class="card-photo" alt="Cabo de São Vicente" loading="lazy">
+    <div class="card-body">
+      <div class="time-block">
+        <div class="time-label">☕ Mattina lenta</div>
+        <div class="time-text">Colazione in un café di Alfama · Check-out entro le 12:00 · Eventuale giro al Miradouro da Graça.</div>
+      </div>
+      <div class="tip"><strong>✈️ Volo TP838 ore 20:15</strong> — Partite dall'appartamento entro le 17:00 max. Uber o metro da Alfama → aeroporto ~20-25 min. Check-in online già fatto.</div>
+      <a class="map-link" href="https://maps.google.com/?q=Aeroporto+de+Lisboa+Humberto+Delgado" target="_blank">📍 Aeroporto Lisbona</a>
+    </div>
+  </div>
+
+  <!-- FADO -->
+  <div class="card">
+    <div class="card-head" style="background:linear-gradient(135deg,#2c0a0a,#6B0F1A);">
+      <div class="card-day" style="font-size:28px;min-width:36px;">🎵</div>
+      <div class="card-info">
+        <div class="card-date">Serata speciale · 21 agosto</div>
+        <div class="card-title">Fado dal vivo — Tasca do Chico</div>
+        <div class="card-tags"><span class="tag">Alfama · Prenotare!</span></div>
+      </div>
+    </div>
+    <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=75&fit=crop" class="card-photo" alt="Kayak Ponta da Piedade" loading="lazy">
+    <div class="card-body">
+      <div class="time-text" style="margin-bottom:12px;">La casa di fado più autentica di Alfama. Piccola, vissuta, con tavoli condivisi. Fado dal vivo giovedì → domenica dalle 21:00. Caldo verde leggendario. Solo telefono — non c'è prenotazione online.</div>
+      <div class="book">
+        <div class="book-title">📌 Prenota Tasca do Chico (Fado)</div>
+        <a href="tel:+351961339697">📞 +351 961 339 697</a>
+        <div class="book-note">Rua dos Remédios · Alfama · Fado gio–dom · Arriva presto o è piena</div>
+      </div>
+      <a class="map-link" href="https://maps.google.com/?q=Tasca+do+Chico+Alfama+Lisboa" target="_blank">📍 Tasca do Chico</a>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════ DOVE MANGIARE ═══════════════ -->
+<div class="divider"><span>🍽️</span><span>Dove Mangiare</span></div>
+<div id="mangiare" class="anchor"></div>
+
+<div class="bacalhau">
+  <h3>📖 Il Vocabolario del Bacalhau</h3>
+  <div class="b-item"><strong>Bacalhau à Brás</strong><span>Baccalà sminuzzato con uova strapazzate e patatine sottilissime. Il piatto nazionale.</span></div>
+  <div class="b-item"><strong>Bacalhau à Lagareiro</strong><span>Baccalà al forno con olio d'oliva a fiumi. Semplice e devastante.</span></div>
+  <div class="b-item"><strong>Pastéis / Croquetes de Bacalhau</strong><span>Le crocchette. Quelle buone cambiano tutto.</span></div>
+  <div class="b-item"><strong>Carne de Porco à Alentejana</strong><span>Maiale con vongole, paprika e coriandolo. Suona strano, è sorprendente.</span></div>
+  <div class="b-item"><strong>Bochechas de Porco Preto</strong><span>Guanciale di maiale nero alentejano. Il piatto del dio.</span></div>
+  <div class="b-item"><strong>Migas Alentejanas</strong><span>Pane raffermo con aglio e carne di maiale. Il comfort food dell'Alentejo.</span></div>
+  <div class="b-item"><strong>Bifana</strong><span>Panino con lonza di maiale marinata. Lo spuntino di strada perfetto.</span></div>
+  <div style="margin-top:10px;font-size:11px;opacity:.5;">⚠️ Segnale di pericolo: menù in 6 lingue fuori dalla porta + foto plastificate + camerieri che fermano per strada → scappare</div>
+</div>
+
+<div style="padding:0 16px;">
+
+  <div class="food-box" style="margin-top:16px;">
+    <div class="food-title">🏛️ Évora</div>
+    <div class="food-item">
+      <strong>Restaurante Típico Guião</strong>
+      <span>Rua da República 81 · Azulejos XVII sec., cucina alentejana pura · Bochechas porco, bacalhau lagareiro · ~25€/pp · Chiuso dom sera e lun · <strong>Prenota</strong></span>
+      <br><span class="price">€€</span>
+      <a href="https://maps.google.com/?q=Restaurante+Guiao+Evora" target="_blank">📍 Maps</a>
+    </div>
+    <div class="food-item">
+      <strong>Tasca O Templo</strong>
+      <span>Rua de Burgos 10 · Familiare, economico, il proprietario Vasco ti fa sentire a casa · Perfetto per pranzo</span>
+      <br><span class="price">€</span>
+      <a href="https://maps.google.com/?q=O+Templo+Evora+Portugal" target="_blank">📍 Maps</a>
+    </div>
+  </div>
+
+  <div class="food-box">
+    <div class="food-title">🌊 Vila Nova de Milfontes</div>
+    <div class="food-item">
+      <strong>Pátio Alentejano</strong>
+      <span>Fuori dal centro · Griglia a vista, locali, porzioni generose · Carne de porco à alentejana da manuale</span>
+      <br><span class="price">€</span>
+      <a href="https://maps.google.com/?q=Patio+Alentejano+Vila+Nova+de+Milfontes" target="_blank">📍 Maps</a>
+    </div>
+    <div class="food-item">
+      <strong>Tasca do Celso</strong>
+      <span>Rua dos Aviadores 34 · Il migliore di Milfontes · Ingredienti top, tradizione vera · <strong>Prenota</strong></span>
+      <br><span class="price">€€</span>
+      <a href="https://maps.google.com/?q=Tasca+do+Celso+Vila+Nova+de+Milfontes" target="_blank">📍 Maps</a>
+    </div>
+    <div class="food-item">
+      <strong>Alento</strong>
+      <span>Cucina alentejana reinterpretata da giovani chef locali · Più contemporaneo senza tradire l'autenticità</span>
+      <br><span class="price">€€</span>
+    </div>
+  </div>
+
+  <div class="food-box">
+    <div class="food-title">⚓ Sagres</div>
+    <div class="food-item">
+      <strong>A Tasca</strong>
+      <span>Porto da Baleeira · Il posto dei locals · Cucina autentica del porto · ⚠️ <strong>Chiuso il mercoledì</strong></span>
+      <br><span class="price">€€</span>
+      <a href="https://maps.google.com/?q=A+Tasca+Sagres+Porto+da+Baleeira" target="_blank">📍 Maps</a>
+    </div>
+    <div class="food-item">
+      <strong>Restaurante Carlos</strong>
+      <span>Ambiente spartano · Pesce del giorno al banco · Alternativa ideale il mercoledì</span>
+      <br><span class="price">€</span>
+      <a href="https://maps.google.com/?q=Restaurante+Carlos+Sagres" target="_blank">📍 Maps</a>
+    </div>
+  </div>
+
+  <div class="food-box">
+    <div class="food-title">🌆 Lisbona</div>
+    <div class="food-item">
+      <strong>Tasca do Chico (Alfama)</strong>
+      <span>Rua dos Remédios · Fado dal vivo gio–dom · Caldo verde leggendario · <strong>Prenota: +351 961 339 697</strong></span>
+      <br><span class="price">€€</span>
+      <a href="https://maps.google.com/?q=Tasca+do+Chico+Alfama+Lisboa" target="_blank">📍 Maps</a>
+    </div>
+    <div class="food-item">
+      <strong>Zé da Mouraria</strong>
+      <span>Mouraria · Porzioni enormi in pentole di acciaio · Carne de porco à alentejana · Prezzi popolari</span>
+      <br><span class="price">€</span>
+      <a href="https://maps.google.com/?q=Ze+da+Mouraria+Lisboa" target="_blank">📍 Maps</a>
+    </div>
+    <div class="food-item">
+      <strong>Casa do Alentejo</strong>
+      <span>Rua das Portas de Santo Antão 58 · Palazzo storico nascosto · Taverna al piano terra + ristorante</span>
+      <br><span class="price">€€</span>
+      <a href="https://maps.google.com/?q=Casa+do+Alentejo+Lisboa" target="_blank">📍 Maps</a>
+    </div>
+    <div class="food-item">
+      <strong>Pastéis de Belém</strong>
+      <span>Rua de Belém 84 · La pasticceria originale dal 1837 · Fila obbligatoria · Vale ogni minuto</span>
+      <br><span class="price">€</span>
+      <a href="https://maps.google.com/?q=Pasteis+de+Belem+Lisboa" target="_blank">📍 Maps</a>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════ DA PRENOTARE ═══════════════ -->
+<div class="divider"><span>📌</span><span>Da Prenotare Subito</span></div>
+<div id="prenota" class="anchor"></div>
+<div class="agenda-wrap" style="padding-top:16px;">
+  <table class="agenda">
+    <thead>
+      <tr><th>Data</th><th>Cosa</th><th>Come prenotare</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="urgent">16 ago</span></td>
+        <td><strong>Kayak/SUP Lago Alqueva</strong><br><small>Centro Náutico Sem-Fim · ~25€/pp</small></td>
+        <td>
+          <a href="https://sem-fim.com" target="_blank">🌐 sem-fim.com</a>
+          <a href="mailto:sem-fim.com@gmail.com">📧 email</a>
+          <a href="tel:+351961667584">📞 +351 961 667 584</a>
+        </td>
+      </tr>
+      <tr>
+        <td><span class="urgent">16 ago</span></td>
+        <td><strong>Herdade do Esporão</strong><br><small>Visita + degustazione 4 vini</small></td>
+        <td>
+          <a href="https://esporao.com/en/tourism/herdade-do-esporao-visit" target="_blank">🌐 esporao.com</a>
+          <a href="mailto:reservas@esporao.com">📧 email</a>
+          <a href="tel:+351266509280">📞 +351 266 509 280</a>
+        </td>
+      </tr>
+      <tr>
+        <td><span class="urgent">19 ago</span></td>
+        <td><strong>Noleggio E-Bike Sagres</strong><br><small>~40€/bici · Per Cabo de São Vicente</small></td>
+        <td>
+          <a href="https://www.musette.bike/bike-rental-sagres" target="_blank">🌐 musette.bike</a>
+          <a href="https://bikerentalalgarve.com" target="_blank">🌐 bikerentalalgarve.com</a>
+        </td>
+      </tr>
+      <tr>
+        <td><span class="urgent">20 ago</span></td>
+        <td><strong>Kayak Grotte Ponta da Piedade</strong><br><small>Da Lagos · ~30€/pp · 3h mattina</small></td>
+        <td>
+          <a href="https://www.civitatis.com/en/lagos/ponta-da-piedade-kayak-tour/" target="_blank">🌐 Civitatis</a>
+          <a href="https://www.getyourguide.com/lagos-l710/kayak-tc2/" target="_blank">🌐 GetYourGuide</a>
+        </td>
+      </tr>
+      <tr>
+        <td><span class="urgent">21 ago</span></td>
+        <td><strong>Tasca do Chico — Fado</strong><br><small>Alfama · Solo telefono</small></td>
+        <td>
+          <a href="tel:+351961339697">📞 +351 961 339 697</a>
+        </td>
+      </tr>
+      <tr>
+        <td><span class="done">✅ Fatto</span></td>
+        <td><strong>Volo TAP</strong> · YH3B69<br><small>TP831 (andata) + TP838 (ritorno)</small></td>
+        <td><a href="https://www.flytap.com/it-it/check-in" target="_blank">→ Check-in TAP</a></td>
+      </tr>
+      <tr>
+        <td><span class="done">✅ Fatto</span></td>
+        <td><strong>Auto Budget</strong> · 48034667IT2<br><small>SUV Yaris Cross · 14→21 ago</small></td>
+        <td><a href="tel:+351218435550">📞 +351 218 435 550</a></td>
+      </tr>
+      <tr>
+        <td><span class="done">✅ Fatto</span></td>
+        <td><strong>Évora</strong> · Casa do Contreyras<br><small>HMFS54ZYDQ</small></td>
+        <td><a href="https://maps.google.com/?q=Travessa+do+Contreyras+13+Evora" target="_blank">📍 Maps</a></td>
+      </tr>
+      <tr>
+        <td><span class="done">✅ Fatto</span></td>
+        <td><strong>Milfontes</strong> · By the C House<br><small>6189491641 · ⚠️ Da pagare</small></td>
+        <td><a href="tel:+351965839839">📞 +351 965 839 839</a></td>
+      </tr>
+      <tr>
+        <td><span class="done">✅ Fatto</span></td>
+        <td><strong>Sagres</strong> · Milaroubas<br><small>HMH4KBRZHD</small></td>
+        <td><a href="https://maps.google.com/?q=Rua+do+Mercado+Sagres" target="_blank">📍 Maps</a></td>
+      </tr>
+      <tr>
+        <td><span class="done">✅ Fatto</span></td>
+        <td><strong>Lisbona</strong> · Alfama Blue House II<br><small>HMYCPPP3W9</small></td>
+        <td><a href="https://maps.google.com/?q=Rua+Guilherme+Braga+24+Lisboa" target="_blank">📍 Maps</a></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════════════ COSTI ═══════════════ -->
+<div class="divider"><span>💶</span><span>Riepilogo Costi</span></div>
+<div id="costi" class="anchor"></div>
+<div class="costs">
+  <h3>Spese già sostenute</h3>
+  <div class="cost-row"><span class="cost-label">✈️ Voli TAP (x2)</span><span class="cost-val">da recuperare</span></div>
+  <div class="cost-row"><span class="cost-label">🚗 Auto Budget (7 gg)</span><span class="cost-val">da recuperare</span></div>
+  <div class="cost-row"><span class="cost-label">🏠 Évora · Casa do Contreyras</span><span class="cost-val">270,90 €</span></div>
+  <div class="cost-row"><span class="cost-label">🏠 Sagres · Milaroubas</span><span class="cost-val">255,62 €</span></div>
+  <div class="cost-row"><span class="cost-label">🏠 Lisbona · Alfama Blue House II</span><span class="cost-val">528,41 €</span></div>
+  <div class="cost-row" style="border-top:1px solid #EBE7E0;"><span class="cost-label">🏠 Milfontes · By the C House</span><span class="cost-val"><span class="cost-note">⚠️ 280,36 € da pagare</span></span></div>
+</div>
+<div class="costs" style="margin-top:0;">
+  <h3>Attività stimate</h3>
+  <div class="cost-row"><span class="cost-label">🛶 Kayak Alqueva (x2)</span><span class="cost-val">~50 €</span></div>
+  <div class="cost-row"><span class="cost-label">🍷 Esporão visita+degustazione (x2)</span><span class="cost-val">~40 €</span></div>
+  <div class="cost-row"><span class="cost-label">🚴 E-bike Sagres (x2)</span><span class="cost-val">~80 €</span></div>
+  <div class="cost-row"><span class="cost-label">🛶 Kayak Lagos (x2)</span><span class="cost-val">~60 €</span></div>
+  <div class="cost-row"><span class="cost-label">🎵 Fado Tasca do Chico (x2)</span><span class="cost-val">~30 €</span></div>
+  <div class="cost-row"><span class="cost-label">Total attività stimate</span><span class="cost-val">~260 €</span></div>
+</div>
+
+<!-- ═══════════════ CONTATTI ═══════════════ -->
+<div class="contacts">
+  <h3>📞 Contatti Rapidi</h3>
+  <div class="contact-item">
+    <div><div class="contact-name">TAP Portugal</div><div class="contact-sub">Volo TP831/TP838 · PNR YH3B69</div></div>
+    <div class="contact-link"><a href="https://www.flytap.com" target="_blank">flytap.com</a></div>
+  </div>
+  <div class="contact-item">
+    <div><div class="contact-name">Budget Car Rental</div><div class="contact-sub">Conf. 48034667IT2 · Aeroporto LIS</div></div>
+    <div class="contact-link"><a href="tel:+351218435550">+351 218 435 550</a></div>
+  </div>
+  <div class="contact-item">
+    <div><div class="contact-name">Ana (Évora)</div><div class="contact-sub">Casa do Contreyras · HMFS54ZYDQ</div></div>
+    <div class="contact-link"><a href="https://www.airbnb.it" target="_blank">Airbnb</a></div>
+  </div>
+  <div class="contact-item">
+    <div><div class="contact-name">By the C House (Milfontes)</div><div class="contact-sub">Conf. 6189491641 · PIN 8410</div></div>
+    <div class="contact-link"><a href="tel:+351965839839">+351 965 839 839</a></div>
+  </div>
+  <div class="contact-item">
+    <div><div class="contact-name">Ema (Sagres)</div><div class="contact-sub">Milaroubas · HMH4KBRZHD</div></div>
+    <div class="contact-link"><a href="https://www.airbnb.it" target="_blank">Airbnb</a></div>
+  </div>
+  <div class="contact-item">
+    <div><div class="contact-name">Hugo & Silvia (Lisbona)</div><div class="contact-sub">Alfama Blue House II · HMYCPPP3W9</div></div>
+    <div class="contact-link"><a href="https://www.airbnb.it" target="_blank">Airbnb</a></div>
+  </div>
+  <div class="contact-item">
+    <div><div class="contact-name">Sem-Fim (Kayak Alqueva)</div><div class="contact-sub">Centro Náutico Monsaraz</div></div>
+    <div class="contact-link"><a href="tel:+351961667584">+351 961 667 584</a></div>
+  </div>
+  <div class="contact-item">
+    <div><div class="contact-name">Tasca do Chico (Fado)</div><div class="contact-sub">Alfama · Rua dos Remédios</div></div>
+    <div class="contact-link"><a href="tel:+351961339697">+351 961 339 697</a></div>
+  </div>
+  <div class="contact-item">
+    <div><div class="contact-name">Esporão Cantina</div><div class="contact-sub">reservas@esporao.com</div></div>
+    <div class="contact-link"><a href="tel:+351266509280">+351 266 509 280</a></div>
+  </div>
+  <div class="contact-item">
+    <div><div class="contact-name">Booking.com Assistenza</div><div class="contact-sub">Per Milfontes e auto</div></div>
+    <div class="contact-link"><a href="tel:0687505504">068 750 5504</a></div>
+  </div>
+</div>
+
+<!-- ═══════════════ EMERGENZE ═══════════════ -->
+<div class="divider"><span>🆘</span><span>Numeri SOS</span></div>
+<div id="emergency" class="anchor"></div>
+<div class="emergency">
+  <h3>🆘 Emergenze Portogallo</h3>
+  <div class="em-row"><span>🚨 Emergenze / Polizia / Ambulanza</span><a href="tel:112">112</a></div>
+  <div class="em-row"><span>🚗 Budget assistenza guasto</span><a href="tel:+351218435550">+351 218 435 550</a></div>
+  <div class="em-row"><span>🚗 Booking Cars assistenza</span><a href="tel:0687505504">068 750 5504</a></div>
+  <div class="em-row"><span>✈️ TAP Portugal</span><a href="tel:+351707205700">+351 707 205 700</a></div>
+  <div class="em-row"><span>🏥 Numero emergenze IT estero</span><a href="tel:+390646923961">+39 06 4692 3961</a></div>
+  <div class="em-row"><span>📞 Prefisso Portogallo</span><span style="font-weight:700;">+351</span></div>
+</div>
+
+<footer>
+  <p><strong>🇵🇹 Portogallo — Agosto 2026</strong></p>
+  <p style="margin-top:6px;">Filippo & Mena · 11 notti · Évora → Milfontes → Sagres → Lisbona</p>
+  <p style="margin-top:10px; font-size:11px; opacity:.4;">Documento aggiornato: giugno 2026 · Buon viaggio! 🌊</p>
+</footer>
+
+<script>
+
+function navTo(id) {
+  const el = document.getElementById(id);
+  if (el) {
+    const offset = 56;
+    const top = el.getBoundingClientRect().top + window.scrollY - offset;
+    window.scrollTo({ top: top, behavior: 'smooth' });
+    document.querySelectorAll('.nav a').forEach(a => a.classList.remove('active'));
+    const active = document.querySelector(`.nav a[onclick*="${id}"]`);
+    if (active) active.classList.add('active');
+  }
+}
+
+const navLinks = document.querySelectorAll('.nav a');
+const sections = ['volo','auto','evora','milfontes','sagres','lisbona','mangiare','prenota','costi','emergency'];
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      navLinks.forEach(l => l.classList.remove('active'));
+      const a = document.querySelector(`.nav a[href="#${e.target.id}"]`);
+      if (a) { a.classList.add('active'); a.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'}); }
+    }
+  });
+}, { threshold: 0.2, rootMargin: '-50px 0px -60% 0px' });
+sections.forEach(id => { const el = document.getElementById(id); if(el) observer.observe(el); });
+</script>
+</body>
+</html>
