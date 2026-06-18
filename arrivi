@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arrivi · InternoUno</title>
+<style>
+  :root{
+    --ink:#1d1d1f; --paper:#f5f5f7; --card:#ffffff; --line:#e3e3e6;
+    --terra:#c45a3a; --sage:#5c6b52; --gold:#b8893a; --muted:#86868b;
+    --sysfont:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue',Helvetica,Arial,sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  body{background:var(--paper);color:var(--ink);font-family:var(--sysfont);line-height:1.47;padding:0 0 60px;-webkit-font-smoothing:antialiased;}
+  header{padding:44px 20px 22px;text-align:center;}
+  .eyebrow{font-size:12px;letter-spacing:0.04em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:6px;}
+  h1{font-weight:700;font-size:34px;line-height:1.05;letter-spacing:-0.02em;}
+  .controls{max-width:560px;margin:18px auto 0;padding:0 16px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+  .controls input[type=date]{flex:1;min-width:150px;font-family:var(--sysfont);font-size:16px;padding:11px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);}
+  .btn{background:var(--terra);color:#fff;border:none;padding:12px 18px;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;}
+  .btn:active{filter:brightness(0.92);}
+  .btn.sec{background:var(--sage);}
+  .quick{max-width:560px;margin:8px auto 0;padding:0 16px;display:flex;gap:8px;}
+  .quick button{flex:1;background:transparent;border:1.5px solid var(--line);color:var(--sage);font-weight:600;font-size:14px;padding:9px;border-radius:9px;cursor:pointer;}
+  .quick button:active{background:#eee7d8;}
+  .list{padding:18px 16px 0;max-width:560px;margin:0 auto;}
+  .status{text-align:center;color:var(--muted);padding:30px 16px;font-size:15px;}
+  .subtitle{font-size:15px;color:var(--muted);margin-top:4px;}
+  .daytitle{font-size:17px;font-weight:600;color:var(--ink);text-align:center;margin:6px 0 4px;text-transform:capitalize;letter-spacing:-0.01em;}
+  .card{background:var(--card);border:none;border-radius:20px;padding:22px 22px 20px;margin-bottom:18px;position:relative;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.06),0 6px 22px rgba(0,0,0,0.05);}
+  .card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:6px;background:var(--accent,var(--terra));}
+  .card-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:7px;}
+  .name{font-size:21px;font-weight:600;letter-spacing:-0.02em;}
+  .flag{font-size:18px;}
+  .room-badge{flex-shrink:0;font-weight:700;font-size:18px;color:#fff;background:var(--accent,var(--terra));min-width:42px;height:42px;padding:0 10px;border-radius:12px;display:flex;align-items:center;justify-content:center;letter-spacing:-0.01em;}
+  .room-badge.lm{color:#1d1d1f;background:#fff;border:2px solid var(--line);}
+  .meta{font-size:13px;color:var(--muted);margin-bottom:14px;display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;}
+  .meta b{color:var(--sage);font-weight:600;}
+  .src-badge{display:inline-flex;align-items:center;font-size:11px;font-weight:700;letter-spacing:0.02em;padding:3px 9px;border-radius:6px;color:#fff;text-transform:uppercase;}
+  .actions{display:flex;gap:7px;flex-wrap:nowrap;}
+  .tax-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:4px;background:#5ac8e0;color:#fff;border:none;font-weight:600;font-size:13px;padding:11px 6px;border-radius:10px;cursor:pointer;font-family:var(--sysfont);white-space:nowrap;}
+  .tax-btn:active{filter:brightness(0.93);}
+  /* modale tassa */
+  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.4);display:none;align-items:center;justify-content:center;z-index:100;padding:20px;}
+  .modal-bg.show{display:flex;}
+  .modal{background:var(--card);border-radius:18px;padding:24px;max-width:440px;width:100%;box-shadow:0 10px 40px rgba(0,0,0,0.2);}
+  .modal h3{font-size:19px;font-weight:600;margin-bottom:6px;letter-spacing:-0.01em;}
+  .modal p{font-size:14px;color:var(--muted);margin-bottom:16px;}
+  .modal input{width:100%;font-family:var(--sysfont);font-size:16px;padding:12px;border:1.5px solid var(--line);border-radius:10px;margin-bottom:16px;}
+  .modal-actions{display:flex;gap:8px;}
+  .modal-actions button{flex:1;border:none;border-radius:10px;font-weight:600;font-size:15px;padding:12px;cursor:pointer;font-family:var(--sysfont);}
+  .m-cancel{background:var(--line);color:var(--ink);}
+  .m-ok{background:var(--gold);color:#fff;}
+  .tax-result{margin-top:14px;}
+  .wa-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;background:#25D366;color:#fff;text-decoration:none;font-weight:600;font-size:13px;padding:11px 6px;border-radius:10px;border:none;cursor:pointer;font-family:var(--sysfont);white-space:nowrap;}
+  .wa-btn:active{filter:brightness(0.95);}
+  .wa-btn svg{width:16px;height:16px;flex-shrink:0;}
+  .copy-msg-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:4px;background:var(--ink);color:#fff;border:none;font-weight:600;font-size:13px;padding:11px 6px;border-radius:10px;cursor:pointer;font-family:var(--sysfont);white-space:nowrap;}
+  .copy-msg-btn:active{filter:brightness(1.3);}
+  .copy-msg-btn.done{background:var(--sage);}
+  .copy-note{font-size:12.5px;color:var(--gold);font-weight:600;margin-bottom:8px;}
+  .msg-box{position:relative;background:#f5f5f7;border:1px solid var(--line);border-radius:12px;padding:14px;font-size:13px;line-height:1.5;color:#3a3a3c;white-space:pre-wrap;}
+  .copy-btn{position:absolute;top:8px;right:8px;background:var(--ink);color:#fff;border:none;border-radius:8px;font-family:var(--sysfont);font-size:11px;font-weight:600;padding:6px 11px;cursor:pointer;}
+  .copy-btn.done{background:var(--sage);}
+  @media(prefers-reduced-motion:reduce){*{transition:none!important;}}
+</style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">Gestione Check-in</div>
+  <h1>InternoUno</h1>
+  <div class="subtitle">Arrivi &amp; messaggi di benvenuto</div>
+</header>
+
+<div class="controls">
+  <input type="date" id="dateInput">
+  <button class="btn" onclick="caricaData()">Cerca</button>
+</div>
+<div class="quick">
+  <button onclick="vaiA(0)">Oggi</button>
+  <button onclick="vaiA(1)">Domani</button>
+  <button onclick="vaiA(2)">Dopodomani</button>
+</div>
+
+<div class="daytitle" id="daytitle"></div>
+<div class="list" id="list"></div>
+
+<div class="modal-bg" id="taxModal">
+  <div class="modal">
+    <h3>Tassa di soggiorno</h3>
+    <p>Incolla il link di pagamento Stripe generato da Amenitiz. Il messaggio verrà creato nella lingua dell'ospite, con o senza l'opzione contanti in base alle notti.</p>
+    <input type="text" id="taxLink" placeholder="https://...link Stripe...">
+    <div class="modal-actions">
+      <button class="m-cancel" onclick="chiudiTassa()">Annulla</button>
+      <button class="m-ok" onclick="generaTassa()">Genera messaggio</button>
+    </div>
+    <div class="tax-result" id="taxResult"></div>
+  </div>
+</div>
+
+<script>
+// ====== CONFIG ======
+const WORKER = "https://little-shadow-145e.f-castiglioni.workers.dev";
+const WA_BUSINESS = "+39 392 299 9914";
+
+// ====== MAPPATURE ======
+const CAMPALDINO = {
+  "Gialla":  {let:"G", etich:"appartamento G", descr:"è la prima porta entrando, sulla destra", col:"#e0a92e"},
+  "Marrone": {let:"M", etich:"camera M", descr:"è la prima sulla sinistra", col:"#7a5230"},
+  "Rossa":   {let:"R", etich:"camera R", descr:"è la seconda sulla sinistra", col:"#b03a2e"},
+  "Verde":   {let:"V", etich:"camera V", descr:"è la terza sulla sinistra", col:"#5c6b52"},
+  "Azzurra": {let:"A", etich:"camera A", descr:"è in fondo al corridoio, frontale", col:"#5b8fb0"},
+};
+const LORENZO = {"Uno":"1","Due":"2","Tre":"3","Quattro":"4","Cinque":"5"};
+
+const MESI=["","gennaio","febbraio","marzo","aprile","maggio","giugno","luglio","agosto","settembre","ottobre","novembre","dicembre"];
+const GIORNI=["domenica","lunedì","martedì","mercoledì","giovedì","venerdì","sabato"];
+const FLAGS={it:"🇮🇹",en:"🇬🇧",es:"🇪🇸",fr:"🇫🇷",pt:"🇵🇹",de:"🇩🇪"};
+
+function dataLunga(iso){const[y,m,d]=iso.split("-").map(Number);const dt=new Date(y,m-1,d);return `${GIORNI[dt.getDay()]} ${d} ${MESI[m]} ${y}`;}
+function dataBreve(iso){const[y,m,d]=iso.split("-").map(Number);return `${d} ${MESI[m]}`;}
+
+function lingua(language,phone){
+  const l=(language||"").toUpperCase();
+  const map={IT:"it",EN:"en",ES:"es",FR:"fr",PT:"pt",DE:"de"};
+  if(map[l])return map[l];
+  const p=(phone||"").replace(/\s/g,"");
+  if(p.startsWith("+34"))return"es"; if(p.startsWith("+33"))return"fr";
+  if(p.startsWith("+351"))return"pt"; if(p.startsWith("+49")||p.startsWith("+43")||p.startsWith("+41"))return"de";
+  if(p.startsWith("+39"))return"it"; return"en";
+}
+function numeroValido(phone){
+  if(!phone)return false;
+  const p=phone.replace(/[\s-]/g,"");
+  if(p.startsWith("+357")||p.startsWith("+11"))return false;
+  if(/^\+?1+$/.test(p))return false;
+  return p.startsWith("+")&&p.length>=9;
+}
+
+// ====== TEMPLATE ======
+function msgCampaldino(nome,iso,etich,descr,lng){
+  const d=dataBreve(iso);
+  if(lng==="it")return `Buongiorno ${nome}! 😊
+Sono Filippo di *InternoUno*. La contatto per la sua prenotazione del ${d}.
+Gestendo più strutture, non disponiamo di una reception fissa, quindi le invio le istruzioni per accedere comodamente in autonomia:
+All'arrivo in Via Campaldino, inserisca nella cassetta sulla sinistra della porta d'ingresso il codice *3044 + tasto B* (in basso a destra) e troverà all'interno le chiavi. La sua *${etich}* ${descr}.
+Il check-in è possibile dalle *13:00*. Potrebbe indicarmi a che ora pensa di arrivare, così possiamo organizzarci al meglio?
+Per qualsiasi necessità sono disponibile su WhatsApp o telefonicamente. A presto! 🏠`;
+  return `Good morning, ${nome}! 😊
+I am Filippo from *InternoUno*. I am contacting you about your booking for ${d}.
+As we manage multiple properties, we do not have a fixed reception, so I am sending you the check-in instructions:
+Upon arrival at Via Campaldino, enter code *3044 + button B* (bottom right) in the key box on the left of the entrance door — the keys are inside. Your *${etich.replace("appartamento","apartment").replace("camera","room")}* ${descr}.
+Check-in is available from *1:00 PM*. Could you let me know what time you plan to arrive, so we can organize accordingly?
+For any need I am available on WhatsApp or by phone. See you soon! 🏠`;
+}
+function msgLorenzo(nome,iso,num,lng){
+  const d=dataBreve(iso); const link="https://www.interno1.it/it/pagina/check-in";
+  if(lng==="it")return `Buongiorno ${nome}! 😊
+Sono Filippo di *InternoUno Deluxe*. La contatto per la sua prenotazione del ${d}.
+Gestendo più strutture, non disponiamo di una reception fissa, quindi le invio le istruzioni per accedere comodamente in autonomia alla *camera ${num}*:
+👉 ${link}
+Il check-in è possibile dalle *13:00*. Potrebbe indicarmi a che ora pensa di arrivare, così possiamo organizzarci al meglio?
+Per qualsiasi necessità sono disponibile su WhatsApp o telefonicamente. A presto! 🏠`;
+  return `Good morning, ${nome}! 😊
+I am Filippo from *InternoUno Deluxe*. I am contacting you about your booking for ${d}.
+As we manage multiple properties, we do not have a fixed reception, so I am sending you the check-in instructions for *room ${num}*:
+👉 ${link}
+Check-in is available from *1:00 PM*. Could you let me know what time you plan to arrive, so we can organize accordingly?
+For any need I am available on WhatsApp or by phone. See you soon! 🏠`;
+}
+// versione cinese semplificato (accodata all'inglese per ospiti cinesi)
+function msgCampaldinoZh(nome,iso,etichRoom){
+  const d=dataBreve(iso);
+  return `您好，${nome}！😊
+我是 InternoUno 的 Filippo。关于您 ${d} 的预订与您联系。
+由于我们管理多家住宿，没有固定前台，因此提前向您发送自助入住说明：
+抵达 Via Campaldino 后，在入口门左侧的钥匙箱中输入密码 *3044 + B 键*（右下方），即可取到钥匙。您的 *${etichRoom}*。
+入住时间为 *13:00* 起。能否告知您大约几点到达，以便我们更好地安排？
+如有任何需要，可通过 WhatsApp 或电话联系我。期待您的到来！🏠`;
+}
+function msgLorenzoZh(nome,iso,num){
+  const d=dataBreve(iso); const link="https://www.interno1.it/it/pagina/check-in";
+  return `您好，${nome}！😊
+我是 InternoUno Deluxe 的 Filippo。关于您 ${d} 的预订与您联系。
+由于我们管理多家住宿，没有固定前台，因此提前向您发送 *${num} 号房间* 的自助入住说明：
+👉 ${link}
+入住时间为 *13:00* 起。能否告知您大约几点到达，以便我们更好地安排？
+如有任何需要，可通过 WhatsApp 或电话联系我。期待您的到来！🏠`;
+}
+  it:`Per un contatto più diretto e veloce, può raggiungermi su WhatsApp al ${WA_BUSINESS}.`,
+  en:`For a quicker and more direct contact, feel free to reach me on WhatsApp at ${WA_BUSINESS}.`,
+  es:`Para un contacto más directo y rápido, puede contactarme por WhatsApp al ${WA_BUSINESS}.`,
+  fr:`Pour un contact plus direct et rapide, vous pouvez me joindre sur WhatsApp au ${WA_BUSINESS}.`,
+  pt:`Para um contacto mais direto e rápido, pode contactar-me pelo WhatsApp no ${WA_BUSINESS}.`,
+  de:`Für einen schnelleren und direkten Kontakt erreichen Sie mich über WhatsApp unter ${WA_BUSINESS}.`,
+};
+
+// ====== RENDER ======
+const waIcon='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 14.4c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.95 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.48-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51l-.57-.01c-.2 0-.52.07-.8.37-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.07 2.88 1.22 3.08.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.69.63.71.22 1.36.19 1.87.12.57-.09 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42-.07-.13-.27-.2-.57-.35z"/></svg>';
+
+// ====== TASSA DI SOGGIORNO ======
+// regola: 1 notte -> solo link Stripe; 2+ notti -> aggiungi opzione contanti
+function msgTassa(nome,lng,notti,link){
+  const T={
+    it:{base:`Il pagamento della camera risulta già effettuato tramite il canale di prenotazione. 😊\nLe invio il link per il pagamento della tassa di soggiorno, da corrispondere direttamente alla struttura:\n👉 ${link}`,
+        cash:`\nIn alternativa, potrà pagarla in contanti il giorno successivo al check-in con il personale presente in struttura.`},
+    en:{base:`The room payment has already been completed through the booking platform. 😊\nHere is the link to pay the tourist tax, which is collected directly by the property:\n👉 ${link}`,
+        cash:`\nAlternatively, you can pay it in cash the day after check-in with our staff on site.`},
+    es:{base:`El pago de la habitación ya ha sido realizado a través del canal de reserva. 😊\nLe envío el enlace para el pago de la tasa turística, que se abona directamente en el establecimiento:\n👉 ${link}`,
+        cash:`\nAlternativamente, podrá pagarla en efectivo al día siguiente del check-in con el personal presente.`},
+    fr:{base:`Le paiement de la chambre a déjà été effectué via la plateforme de réservation. 😊\nJe vous envoie le lien pour le paiement de la taxe de séjour, à régler directement auprès de l'établissement :\n👉 ${link}`,
+        cash:`\nVous pouvez également la régler en espèces le lendemain du check-in auprès du personnel présent.`},
+    pt:{base:`O pagamento do quarto já foi efetuado através da plataforma de reserva. 😊\nEnvio o link para o pagamento da taxa turística, a ser paga diretamente à estrutura:\n👉 ${link}`,
+        cash:`\nEm alternativa, poderá pagá-la em dinheiro no dia seguinte ao check-in com o pessoal presente.`},
+    de:{base:`Die Zahlung für das Zimmer wurde bereits über den Buchungskanal abgewickelt. 😊\nHier ist der Link zur Zahlung der Kurtaxe, die direkt an die Unterkunft entrichtet wird:\n👉 ${link}`,
+        cash:`\nAlternativ können Sie diese am Tag nach dem Check-in bar beim anwesenden Personal bezahlen.`},
+  };
+  const t=T[lng]||T.en;
+  return t.base+(notti>=2?t.cash:"");
+}
+let taxStore={};
+let taxCurrent=null;
+
+function apriTassa(i){
+  taxCurrent=i;
+  document.getElementById("taxLink").value="";
+  document.getElementById("taxResult").innerHTML="";
+  document.getElementById("taxModal").classList.add("show");
+  setTimeout(()=>document.getElementById("taxLink").focus(),100);
+}
+function chiudiTassa(){document.getElementById("taxModal").classList.remove("show");}
+function generaTassa(){
+  const link=document.getElementById("taxLink").value.trim();
+  if(!link){document.getElementById("taxLink").focus();return;}
+  const d=taxStore[taxCurrent];
+  const testo=msgTassa(d.nome,d.lng,d.notti,link);
+  const res=document.getElementById("taxResult");
+  const nota=d.notti>=2?"2+ notti: incluso il pagamento in contanti":"1 notte: solo link, senza contanti";
+  res.innerHTML=`<div class="copy-note">${nota}</div>
+    <div class="msg-box"><button class="copy-btn" id="taxCopyBtn">Copia</button>${testo.replace(/</g,"&lt;")}</div>`;
+  document.getElementById("taxCopyBtn").onclick=function(){
+    navigator.clipboard.writeText(testo).then(()=>{
+      this.textContent="Copiato ✓"; this.classList.add("done");
+      setTimeout(()=>{this.textContent="Copia";this.classList.remove("done");},2000);
+    });
+  };
+}
+
+function badgeCanale(source){
+  const s=(source||"").toLowerCase();
+  let nome,col;
+  if(s.includes("booking")){nome="Booking";col="#003580";}
+  else if(s.includes("expedia")){nome="Expedia";col="#fbc02d";}
+  else if(s.includes("airbnb")){nome="Airbnb";col="#ff385c";}
+  else if(s.includes("manual")){nome="Personale";col="#86868b";}
+  else if(s.includes("amenitiz")){nome="Amenitiz";col="#3b82f6";}
+  else{nome=source||"OTA";col="#86868b";}
+  // Expedia ha fondo chiaro -> testo scuro
+  const txt=(nome==="Expedia")?"#1d1d1f":"#fff";
+  return `<span class="src-badge" style="background:${col};color:${txt}">${nome}</span>`;
+}
+
+let msgStore={};
+
+function render(iso,bookings){
+  document.getElementById("daytitle").textContent=`${dataLunga(iso)} — ${bookings.length} ${bookings.length===1?'ospite':'ospiti'}`;
+  const list=document.getElementById("list"); list.innerHTML=""; msgStore={};
+  if(bookings.length===0){list.innerHTML='<div class="status">Nessun arrivo per questa data.</div>';return;}
+
+  bookings.forEach((b,i)=>{
+    const booker=b.booker||{};
+    const nome=(booker.first_name||"").trim();
+    const cognome=(booker.last_name||"").trim();
+    const phone=booker.phone||"";
+    const lng=lingua(booker.language,phone);
+    const room=(b.rooms&&b.rooms[0])||{};
+    const roomName=room.individual_room_name||"";
+    const source=b.source||"";
+    let etichetta,descr,accent,roomLabel,testo,struttura;
+
+    let isLorenzo=false;
+    if(CAMPALDINO[roomName]){
+      const c=CAMPALDINO[roomName];
+      accent=c.col; roomLabel=c.let; struttura="Via Campaldino";
+      testo=msgCampaldino(nome,iso,c.etich,c.descr,lng);
+    }else{
+      const num=LORENZO[roomName]||roomName;
+      accent="#5c6b52"; roomLabel=num; struttura="Lorenzo il Magnifico"; isLorenzo=true;
+      testo=msgLorenzo(nome,iso,num,lng);
+    }
+
+    const card=document.createElement("div");
+    card.className="card"; card.style.setProperty("--accent",accent);
+
+    // il testo da copiare include SEMPRE la frase del contatto WhatsApp business
+    const testoCopia=testo+"\n"+(FRASE_WA[lng]||FRASE_WA.en);
+    msgStore[i]=testoCopia;
+
+    // calcola numero notti per la regola contanti
+    let notti=1;
+    try{
+      const ci=new Date(iso), co=new Date(b.checkout);
+      notti=Math.max(1,Math.round((co-ci)/(1000*60*60*24)));
+    }catch(e){}
+
+    let action="";
+    if(numeroValido(phone)){
+      const link=`whatsapp://send?phone=${phone.replace(/\s/g,"").replace("+","")}&text=${encodeURIComponent(testo)}`;
+      action=`<div class="actions">
+          <a class="wa-btn" href="${link}">${waIcon}WhatsApp</a>
+          <button class="copy-msg-btn" onclick="copia(${i},this)">📋 Copia</button>
+          <button class="tax-btn" onclick="apriTassa(${i})">💶 Tassa</button>
+        </div>`;
+    }else{
+      const warn=source.toLowerCase().includes("expedia")?"Numero virtuale Expedia":(source==="manual"?"Prenotazione manuale":"Numero assente");
+      action=`<div class="copy-note">⚠︎ ${warn} — nessun numero WhatsApp, invia tramite messaggistica ${source||'OTA'}</div>
+        <div class="actions">
+          <button class="copy-msg-btn" onclick="copia(${i},this)">📋 Copia</button>
+          <button class="tax-btn" onclick="apriTassa(${i})">💶 Tassa</button>
+        </div>`;
+    }
+    // salva dati per il messaggio tassa
+    taxStore[i]={nome,lng,notti};
+
+    card.innerHTML=`<div class="card-top">
+        <div class="name">${nome} ${cognome} <span class="flag">${FLAGS[lng]||""}</span></div>
+        <div class="room-badge${isLorenzo?' lm':''}">${roomLabel}</div>
+      </div>
+      <div class="meta"><span><b>${struttura}</b></span><span>${iso} → ${b.checkout||""}</span>${badgeCanale(source)}</div>
+      ${action}`;
+    list.appendChild(card);
+  });
+}
+
+function copia(i,btn){
+  navigator.clipboard.writeText(msgStore[i]).then(()=>{
+    const orig=btn.textContent;
+    btn.textContent="Copiato ✓"; btn.classList.add("done");
+    setTimeout(()=>{btn.textContent=orig;btn.classList.remove("done");},2000);
+  });
+}
+
+async function caricaData(){
+  const iso=document.getElementById("dateInput").value;
+  if(!iso){return;}
+  const list=document.getElementById("list");
+  document.getElementById("daytitle").textContent="";
+  list.innerHTML='<div class="status">Carico gli arrivi…</div>';
+  try{
+    const r=await fetch(`${WORKER}/?date=${iso}`);
+    const data=await r.json();
+    if(data.error){list.innerHTML=`<div class="status">Errore: ${data.error} (${data.status||''})</div>`;return;}
+    render(iso,data.bookings||[]);
+  }catch(e){
+    list.innerHTML=`<div class="status">Impossibile contattare il server.<br>${e.message}</div>`;
+  }
+}
+
+function vaiA(giorniDopo){
+  const d=new Date(); d.setDate(d.getDate()+giorniDopo);
+  const iso=d.toISOString().slice(0,10);
+  document.getElementById("dateInput").value=iso;
+  caricaData();
+}
+
+// avvio: mostra domani
+vaiA(1);
+</script>
+</body>
+</html>
