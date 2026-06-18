@@ -3,385 +3,717 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Arrivi · InternoUno</title>
+<title>InternoUno · Analisi Finanziaria</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-  :root{
-    --ink:#1d1d1f; --paper:#f5f5f7; --card:#ffffff; --line:#e3e3e6;
-    --terra:#c45a3a; --sage:#5c6b52; --gold:#b8893a; --muted:#86868b;
-    --sysfont:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue',Helvetica,Arial,sans-serif;
-  }
-  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-  body{background:var(--paper);color:var(--ink);font-family:var(--sysfont);line-height:1.47;padding:0 0 60px;-webkit-font-smoothing:antialiased;}
-  header{padding:44px 20px 22px;text-align:center;}
-  .eyebrow{font-size:12px;letter-spacing:0.04em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:6px;}
-  h1{font-weight:700;font-size:34px;line-height:1.05;letter-spacing:-0.02em;}
-  .controls{max-width:560px;margin:18px auto 0;padding:0 16px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
-  .controls input[type=date]{flex:1;min-width:150px;font-family:var(--sysfont);font-size:16px;padding:11px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);}
-  .btn{background:var(--terra);color:#fff;border:none;padding:12px 18px;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;}
-  .btn:active{filter:brightness(0.92);}
-  .btn.sec{background:var(--sage);}
-  .quick{max-width:560px;margin:8px auto 0;padding:0 16px;display:flex;gap:8px;}
-  .quick button{flex:1;background:transparent;border:1.5px solid var(--line);color:var(--sage);font-weight:600;font-size:14px;padding:9px;border-radius:9px;cursor:pointer;}
-  .quick button:active{background:#eee7d8;}
-  .list{padding:18px 16px 0;max-width:560px;margin:0 auto;}
-  .status{text-align:center;color:var(--muted);padding:30px 16px;font-size:15px;}
-  .subtitle{font-size:15px;color:var(--muted);margin-top:4px;}
-  .daytitle{font-size:17px;font-weight:600;color:var(--ink);text-align:center;margin:6px 0 4px;text-transform:capitalize;letter-spacing:-0.01em;}
-  .card{background:var(--card);border:none;border-radius:20px;padding:22px 22px 20px;margin-bottom:18px;position:relative;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.06),0 6px 22px rgba(0,0,0,0.05);}
-  .card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:6px;background:var(--accent,var(--terra));}
-  .card-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:7px;}
-  .name{font-size:21px;font-weight:600;letter-spacing:-0.02em;}
-  .flag{font-size:18px;}
-  .room-badge{flex-shrink:0;font-weight:700;font-size:18px;color:#fff;background:var(--accent,var(--terra));min-width:42px;height:42px;padding:0 10px;border-radius:12px;display:flex;align-items:center;justify-content:center;letter-spacing:-0.01em;}
-  .room-badge.lm{color:#1d1d1f;background:#fff;border:2px solid var(--line);}
-  .meta{font-size:13px;color:var(--muted);margin-bottom:14px;display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;}
-  .meta b{color:var(--sage);font-weight:600;}
-  .src-badge{display:inline-flex;align-items:center;font-size:11px;font-weight:700;letter-spacing:0.02em;padding:3px 9px;border-radius:6px;color:#fff;text-transform:uppercase;}
-  .actions{display:flex;gap:7px;flex-wrap:nowrap;}
-  .tax-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:4px;background:#5ac8e0;color:#fff;border:none;font-weight:600;font-size:13px;padding:11px 6px;border-radius:10px;cursor:pointer;font-family:var(--sysfont);white-space:nowrap;}
-  .tax-btn:active{filter:brightness(0.93);}
-  /* modale tassa */
-  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.4);display:none;align-items:center;justify-content:center;z-index:100;padding:20px;}
-  .modal-bg.show{display:flex;}
-  .modal{background:var(--card);border-radius:18px;padding:24px;max-width:440px;width:100%;box-shadow:0 10px 40px rgba(0,0,0,0.2);}
-  .modal h3{font-size:19px;font-weight:600;margin-bottom:6px;letter-spacing:-0.01em;}
-  .modal p{font-size:14px;color:var(--muted);margin-bottom:16px;}
-  .modal input{width:100%;font-family:var(--sysfont);font-size:16px;padding:12px;border:1.5px solid var(--line);border-radius:10px;margin-bottom:16px;}
-  .modal-actions{display:flex;gap:8px;}
-  .modal-actions button{flex:1;border:none;border-radius:10px;font-weight:600;font-size:15px;padding:12px;cursor:pointer;font-family:var(--sysfont);}
-  .m-cancel{background:var(--line);color:var(--ink);}
-  .m-ok{background:var(--gold);color:#fff;}
-  .tax-result{margin-top:14px;}
-  .wa-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;background:#25D366;color:#fff;text-decoration:none;font-weight:600;font-size:13px;padding:11px 6px;border-radius:10px;border:none;cursor:pointer;font-family:var(--sysfont);white-space:nowrap;}
-  .wa-btn:active{filter:brightness(0.95);}
-  .wa-btn svg{width:16px;height:16px;flex-shrink:0;}
-  .copy-msg-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:4px;background:var(--ink);color:#fff;border:none;font-weight:600;font-size:13px;padding:11px 6px;border-radius:10px;cursor:pointer;font-family:var(--sysfont);white-space:nowrap;}
-  .copy-msg-btn:active{filter:brightness(1.3);}
-  .copy-msg-btn.done{background:var(--sage);}
-  .copy-note{font-size:12.5px;color:var(--gold);font-weight:600;margin-bottom:8px;}
-  .msg-box{position:relative;background:#f5f5f7;border:1px solid var(--line);border-radius:12px;padding:14px;font-size:13px;line-height:1.5;color:#3a3a3c;white-space:pre-wrap;}
-  .copy-btn{position:absolute;top:8px;right:8px;background:var(--ink);color:#fff;border:none;border-radius:8px;font-family:var(--sysfont);font-size:11px;font-weight:600;padding:6px 11px;cursor:pointer;}
-  .copy-btn.done{background:var(--sage);}
-  @media(prefers-reduced-motion:reduce){*{transition:none!important;}}
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+:root {
+  --bg:#f5f5f7;--card:#fff;--card2:#f9f9fb;--border:#e5e5ea;--text:#1d1d1f;--muted:#86868b;
+  --green:#34c759;--red:#ff3b30;--amber:#ff9500;--blue:#007aff;--blue-bg:#f0f6ff;
+  --shadow:0 2px 12px rgba(0,0,0,0.07);--radius:14px;--radius-sm:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Outfit',-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;}
+.app-header{background:rgba(255,255,255,0.9);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 20px;position:sticky;top:0;z-index:100;display:flex;align-items:center;gap:12px;height:52px;}
+.app-header h1{font-size:.95rem;font-weight:600;flex:1;letter-spacing:-.01em;}
+.header-badge{font-family:'DM Mono',monospace;font-size:.68rem;color:var(--muted);background:var(--bg);border:1px solid var(--border);padding:3px 8px;border-radius:20px;white-space:nowrap;}
+.update-btn{display:flex;align-items:center;gap:5px;padding:6px 14px;background:var(--blue);color:white;border:none;border-radius:20px;font-family:'Outfit',sans-serif;font-size:.78rem;font-weight:600;cursor:pointer;white-space:nowrap;}
+.update-btn:active{opacity:.8;}
+
+/* DROP ZONE */
+#dropzone-wrap{display:flex;align-items:center;justify-content:center;min-height:calc(100vh - 52px);padding:24px;}
+#dropzone{background:var(--card);border:2px dashed var(--border);border-radius:20px;padding:48px 28px;text-align:center;max-width:460px;width:100%;box-shadow:var(--shadow);}
+#dropzone .drop-icon{font-size:2.8rem;margin-bottom:14px;}
+#dropzone h2{font-size:1.15rem;font-weight:600;margin-bottom:8px;}
+#dropzone p{font-size:.85rem;color:var(--muted);line-height:1.5;}
+.upload-label{display:inline-block;margin-top:18px;padding:11px 28px;background:var(--blue);color:white;border-radius:22px;font-size:.9rem;font-weight:600;cursor:pointer;}
+.upload-label:active{opacity:.8;}
+.drop-note{margin-top:12px;font-size:.72rem;color:var(--muted);}
+#error-msg{display:none;margin-top:14px;padding:10px 14px;background:#fff5f4;border:1px solid #ffb3ae;border-radius:10px;font-size:.8rem;color:var(--red);font-weight:500;}
+
+/* APP */
+#app{display:none;padding:0 16px 60px;max-width:1100px;margin:0 auto;}
+.controls-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px 18px;margin:14px 0;}
+.controls-row{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;}
+.ctrl-group{display:flex;flex-direction:column;gap:4px;}
+.ctrl-label{font-size:.67rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);}
+select{height:34px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--card2);color:var(--text);font-family:'Outfit',sans-serif;font-size:.85rem;padding:0 10px;cursor:pointer;outline:none;}
+select:focus{border-color:var(--blue);}
+.seg-ctrl{display:flex;padding:3px;gap:2px;background:var(--bg);border-radius:var(--radius-sm);}
+.seg-btn{padding:4px 11px;border-radius:7px;border:none;background:transparent;font-family:'Outfit',sans-serif;font-size:.76rem;font-weight:500;color:var(--muted);cursor:pointer;transition:all .15s;white-space:nowrap;}
+.seg-btn.active{background:white;color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.12);}
+.apply-btn{height:34px;padding:0 16px;background:var(--blue);color:white;border:none;border-radius:var(--radius-sm);font-family:'Outfit',sans-serif;font-size:.85rem;font-weight:600;cursor:pointer;}
+.prorata-notice{display:none;margin-top:10px;padding:9px 13px;background:#fff8f0;border:1px solid #ffd59e;border-radius:var(--radius-sm);font-size:.78rem;color:#b36200;font-weight:500;}
+.prorata-notice.show{display:block;}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:12px;}
+.kpi-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;}
+.kpi-card.green{border-top:3px solid var(--green);}
+.kpi-card.red{border-top:3px solid var(--red);}
+.kpi-card.amber{border-top:3px solid var(--amber);}
+.kpi-card.blue{border-top:3px solid var(--blue);}
+.kpi-label{font-size:.66rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:3px;}
+.kpi-value{font-family:'DM Mono',monospace;font-size:1.15rem;font-weight:500;}
+.kpi-value.green{color:var(--green);}.kpi-value.red{color:var(--red);}.kpi-value.blue{color:var(--blue);}
+.kpi-delta{font-size:.68rem;font-family:'DM Mono',monospace;font-weight:500;margin-top:2px;}
+.kpi-delta.up{color:var(--green);}.kpi-delta.down{color:var(--red);}
+.kpi-sub{font-size:.66rem;color:var(--muted);font-family:'DM Mono',monospace;margin-top:2px;}
+.chart-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;margin-bottom:12px;}
+.chart-title{font-size:.73rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:2px;}
+.chart-subtitle{font-size:.76rem;color:var(--muted);margin-bottom:12px;}
+.chart-wrap{position:relative;height:240px;}
+.chart-wrap.tall{height:290px;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+@media(max-width:660px){.two-col{grid-template-columns:1fr;}}
+.section-title{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin:18px 0 8px;padding-left:2px;}
+.table-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;margin-bottom:12px;}
+.table-header{padding:12px 16px 9px;border-bottom:1px solid var(--border);}
+.table-title{font-size:.73rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);}
+.table-scroll{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:.78rem;}
+th{padding:8px 13px;text-align:right;font-family:'DM Mono',monospace;font-weight:500;font-size:.67rem;color:var(--muted);background:var(--card2);border-bottom:1px solid var(--border);white-space:nowrap;}
+th:first-child{text-align:left;}
+td{padding:8px 13px;text-align:right;font-family:'DM Mono',monospace;font-size:.74rem;border-bottom:1px solid #f2f2f7;white-space:nowrap;}
+td:first-child{text-align:left;font-family:'Outfit',sans-serif;font-size:.78rem;}
+tr:last-child td{border-bottom:none;}
+tr.total-row td{font-weight:600;background:var(--card2);border-top:1px solid var(--border);}
+.c-muted{color:var(--muted);}
+
+/* AI BOX */
+.ai-section { margin-top: 20px; }
+.ai-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+.ai-card-header {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.ai-card-title {
+  font-size: .73rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .07em; color: var(--muted);
+  flex: 1;
+}
+.ai-analyze-btn {
+  padding: 7px 16px;
+  background: linear-gradient(135deg, #007aff, #5856d6);
+  color: white; border: none; border-radius: 20px;
+  font-family: 'Outfit', sans-serif; font-size: .78rem; font-weight: 600;
+  cursor: pointer; transition: opacity .2s; white-space: nowrap;
+}
+.ai-analyze-btn:hover { opacity: .85; }
+.ai-analyze-btn:disabled { opacity: .5; cursor: not-allowed; }
+.ai-body { padding: 18px; }
+.ai-key-row {
+  display: flex; gap: 8px; align-items: center; margin-bottom: 14px;
+}
+.ai-key-input {
+  flex: 1; height: 34px; border: 1px solid var(--border);
+  border-radius: var(--radius-sm); background: var(--card2);
+  color: var(--text); font-family: 'DM Mono', monospace;
+  font-size: .75rem; padding: 0 10px; outline: none;
+}
+.ai-key-input:focus { border-color: var(--blue); }
+.ai-key-save {
+  height: 34px; padding: 0 14px;
+  background: var(--blue); color: white; border: none;
+  border-radius: var(--radius-sm); font-family: 'Outfit', sans-serif;
+  font-size: .78rem; font-weight: 600; cursor: pointer;
+}
+.ai-key-label {
+  font-size: .7rem; color: var(--muted); margin-bottom: 6px;
+  display: flex; align-items: center; gap: 6px;
+}
+.ai-key-saved { color: var(--green); font-weight: 600; }
+.ai-output {
+  min-height: 80px;
+  font-size: .88rem; line-height: 1.65;
+  color: var(--text);
+  white-space: pre-wrap;
+}
+.ai-output.loading {
+  color: var(--muted);
+  font-style: italic;
+}
+.ai-output.error { color: var(--red); font-size: .82rem; }
+.ai-disclaimer {
+  margin-top: 12px; padding: 8px 12px;
+  background: var(--card2); border-radius: 8px;
+  font-size: .68rem; color: var(--muted); line-height: 1.4;
+}
+
 </style>
 </head>
 <body>
-<header>
-  <div class="eyebrow">Gestione Check-in</div>
-  <h1>InternoUno</h1>
-  <div class="subtitle">Arrivi &amp; messaggi di benvenuto</div>
+
+<header class="app-header">
+  <h1>InternoUno · Analisi Finanziaria</h1>
+  <span class="header-badge" id="header-badge">Nessun file</span>
+  <button class="update-btn" id="update-btn" style="display:none" onclick="triggerUpload()">↑ Aggiorna CSV</button>
 </header>
 
-<div class="controls">
-  <input type="date" id="dateInput">
-  <button class="btn" onclick="caricaData()">Cerca</button>
-</div>
-<div class="quick">
-  <button onclick="vaiA(0)">Oggi</button>
-  <button onclick="vaiA(1)">Domani</button>
-  <button onclick="vaiA(2)">Dopodomani</button>
-</div>
-
-<div class="daytitle" id="daytitle"></div>
-<div class="list" id="list"></div>
-
-<div class="modal-bg" id="taxModal">
-  <div class="modal">
-    <h3>Tassa di soggiorno</h3>
-    <p>Incolla il link di pagamento Stripe generato da Amenitiz. Il messaggio verrà creato nella lingua dell'ospite, con o senza l'opzione contanti in base alle notti.</p>
-    <input type="text" id="taxLink" placeholder="https://...link Stripe...">
-    <div class="modal-actions">
-      <button class="m-cancel" onclick="chiudiTassa()">Annulla</button>
-      <button class="m-ok" onclick="generaTassa()">Genera messaggio</button>
-    </div>
-    <div class="tax-result" id="taxResult"></div>
+<div id="dropzone-wrap">
+  <div id="dropzone">
+    <div class="drop-icon">📊</div>
+    <h2>Carica il file iCompta</h2>
+    <p>Seleziona il CSV esportato da iCompta.<br>Elaborato localmente, nessun dato inviato.</p>
+    <label class="upload-label" for="file-input">Scegli file CSV</label>
+    <p class="drop-note">I dati restano salvati fino al prossimo aggiornamento.</p>
+    <div id="error-msg"></div>
   </div>
 </div>
 
-<script>
-// ====== CONFIG ======
-const WORKER = "https://little-shadow-145e.f-castiglioni.workers.dev";
-const WA_BUSINESS = "+39 392 299 9914";
-
-// ====== MAPPATURE ======
-const CAMPALDINO = {
-  "Gialla":  {let:"G", etich:"appartamento G", descr:"è la prima porta entrando, sulla destra", col:"#e0a92e"},
-  "Marrone": {let:"M", etich:"camera M", descr:"è la prima sulla sinistra", col:"#7a5230"},
-  "Rossa":   {let:"R", etich:"camera R", descr:"è la seconda sulla sinistra", col:"#b03a2e"},
-  "Verde":   {let:"V", etich:"camera V", descr:"è la terza sulla sinistra", col:"#5c6b52"},
-  "Azzurra": {let:"A", etich:"camera A", descr:"è in fondo al corridoio, frontale", col:"#5b8fb0"},
-};
-const LORENZO = {"Uno":"1","Due":"2","Tre":"3","Quattro":"4","Cinque":"5"};
-
-const MESI=["","gennaio","febbraio","marzo","aprile","maggio","giugno","luglio","agosto","settembre","ottobre","novembre","dicembre"];
-const GIORNI=["domenica","lunedì","martedì","mercoledì","giovedì","venerdì","sabato"];
-const FLAGS={it:"🇮🇹",en:"🇬🇧",es:"🇪🇸",fr:"🇫🇷",pt:"🇵🇹",de:"🇩🇪"};
-
-function dataLunga(iso){const[y,m,d]=iso.split("-").map(Number);const dt=new Date(y,m-1,d);return `${GIORNI[dt.getDay()]} ${d} ${MESI[m]} ${y}`;}
-function dataBreve(iso){const[y,m,d]=iso.split("-").map(Number);return `${d} ${MESI[m]}`;}
-
-function lingua(language,phone){
-  const l=(language||"").toUpperCase();
-  const map={IT:"it",EN:"en",ES:"es",FR:"fr",PT:"pt",DE:"de"};
-  if(map[l])return map[l];
-  const p=(phone||"").replace(/\s/g,"");
-  if(p.startsWith("+34"))return"es"; if(p.startsWith("+33"))return"fr";
-  if(p.startsWith("+351"))return"pt"; if(p.startsWith("+49")||p.startsWith("+43")||p.startsWith("+41"))return"de";
-  if(p.startsWith("+39"))return"it"; return"en";
-}
-function numeroValido(phone){
-  if(!phone)return false;
-  const p=phone.replace(/[\s-]/g,"");
-  if(p.startsWith("+357")||p.startsWith("+11"))return false;
-  if(/^\+?1+$/.test(p))return false;
-  return p.startsWith("+")&&p.length>=9;
-}
-
-// ====== TEMPLATE ======
-function msgCampaldino(nome,iso,etich,descr,lng){
-  const d=dataBreve(iso);
-  if(lng==="it")return `Buongiorno ${nome}! 😊
-Sono Filippo di *InternoUno*. La contatto per la sua prenotazione del ${d}.
-Gestendo più strutture, non disponiamo di una reception fissa, quindi le invio le istruzioni per accedere comodamente in autonomia:
-All'arrivo in Via Campaldino, inserisca nella cassetta sulla sinistra della porta d'ingresso il codice *3044 + tasto B* (in basso a destra) e troverà all'interno le chiavi. La sua *${etich}* ${descr}.
-Il check-in è possibile dalle *13:00*. Potrebbe indicarmi a che ora pensa di arrivare, così possiamo organizzarci al meglio?
-Per qualsiasi necessità sono disponibile su WhatsApp o telefonicamente. A presto! 🏠`;
-  return `Good morning, ${nome}! 😊
-I am Filippo from *InternoUno*. I am contacting you about your booking for ${d}.
-As we manage multiple properties, we do not have a fixed reception, so I am sending you the check-in instructions:
-Upon arrival at Via Campaldino, enter code *3044 + button B* (bottom right) in the key box on the left of the entrance door — the keys are inside. Your *${etich.replace("appartamento","apartment").replace("camera","room")}* ${descr}.
-Check-in is available from *1:00 PM*. Could you let me know what time you plan to arrive, so we can organize accordingly?
-For any need I am available on WhatsApp or by phone. See you soon! 🏠`;
-}
-function msgLorenzo(nome,iso,num,lng){
-  const d=dataBreve(iso); const link="https://www.interno1.it/it/pagina/check-in";
-  if(lng==="it")return `Buongiorno ${nome}! 😊
-Sono Filippo di *InternoUno Deluxe*. La contatto per la sua prenotazione del ${d}.
-Gestendo più strutture, non disponiamo di una reception fissa, quindi le invio le istruzioni per accedere comodamente in autonomia alla *camera ${num}*:
-👉 ${link}
-Il check-in è possibile dalle *13:00*. Potrebbe indicarmi a che ora pensa di arrivare, così possiamo organizzarci al meglio?
-Per qualsiasi necessità sono disponibile su WhatsApp o telefonicamente. A presto! 🏠`;
-  return `Good morning, ${nome}! 😊
-I am Filippo from *InternoUno Deluxe*. I am contacting you about your booking for ${d}.
-As we manage multiple properties, we do not have a fixed reception, so I am sending you the check-in instructions for *room ${num}*:
-👉 ${link}
-Check-in is available from *1:00 PM*. Could you let me know what time you plan to arrive, so we can organize accordingly?
-For any need I am available on WhatsApp or by phone. See you soon! 🏠`;
-}
-// versione cinese semplificato (accodata all'inglese per ospiti cinesi)
-function msgCampaldinoZh(nome,iso,etichRoom){
-  const d=dataBreve(iso);
-  return `您好，${nome}！😊
-我是 InternoUno 的 Filippo。关于您 ${d} 的预订与您联系。
-由于我们管理多家住宿，没有固定前台，因此提前向您发送自助入住说明：
-抵达 Via Campaldino 后，在入口门左侧的钥匙箱中输入密码 *3044 + B 键*（右下方），即可取到钥匙。您的 *${etichRoom}*。
-入住时间为 *13:00* 起。能否告知您大约几点到达，以便我们更好地安排？
-如有任何需要，可通过 WhatsApp 或电话联系我。期待您的到来！🏠`;
-}
-function msgLorenzoZh(nome,iso,num){
-  const d=dataBreve(iso); const link="https://www.interno1.it/it/pagina/check-in";
-  return `您好，${nome}！😊
-我是 InternoUno Deluxe 的 Filippo。关于您 ${d} 的预订与您联系。
-由于我们管理多家住宿，没有固定前台，因此提前向您发送 *${num} 号房间* 的自助入住说明：
-👉 ${link}
-入住时间为 *13:00* 起。能否告知您大约几点到达，以便我们更好地安排？
-如有任何需要，可通过 WhatsApp 或电话联系我。期待您的到来！🏠`;
-}
-const FRASE_WA={
-  it:`Per un contatto più diretto e veloce, può raggiungermi su WhatsApp al ${WA_BUSINESS}.`,
-  en:`For a quicker and more direct contact, feel free to reach me on WhatsApp at ${WA_BUSINESS}.`,
-  es:`Para un contacto más directo y rápido, puede contactarme por WhatsApp al ${WA_BUSINESS}.`,
-  fr:`Pour un contact plus direct et rapide, vous pouvez me joindre sur WhatsApp au ${WA_BUSINESS}.`,
-  pt:`Para um contacto mais direto e rápido, pode contactar-me pelo WhatsApp no ${WA_BUSINESS}.`,
-  de:`Für einen schnelleren und direkten Kontakt erreichen Sie mich über WhatsApp unter ${WA_BUSINESS}.`,
-};
-
-// ====== RENDER ======
-const waIcon='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 14.4c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.95 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.48-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51l-.57-.01c-.2 0-.52.07-.8.37-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.07 2.88 1.22 3.08.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.69.63.71.22 1.36.19 1.87.12.57-.09 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42-.07-.13-.27-.2-.57-.35z"/></svg>';
-
-// ====== TASSA DI SOGGIORNO ======
-// regola: 1 notte -> solo link Stripe; 2+ notti -> aggiungi opzione contanti
-function msgTassa(nome,lng,notti,link){
-  const T={
-    it:{base:`Il pagamento della camera risulta già effettuato tramite il canale di prenotazione. 😊\nLe invio il link per il pagamento della tassa di soggiorno, da corrispondere direttamente alla struttura:\n👉 ${link}`,
-        cash:`\nIn alternativa, potrà pagarla in contanti il giorno successivo al check-in con il personale presente in struttura.`},
-    en:{base:`The room payment has already been completed through the booking platform. 😊\nHere is the link to pay the tourist tax, which is collected directly by the property:\n👉 ${link}`,
-        cash:`\nAlternatively, you can pay it in cash the day after check-in with our staff on site.`},
-    es:{base:`El pago de la habitación ya ha sido realizado a través del canal de reserva. 😊\nLe envío el enlace para el pago de la tasa turística, que se abona directamente en el establecimiento:\n👉 ${link}`,
-        cash:`\nAlternativamente, podrá pagarla en efectivo al día siguiente del check-in con el personal presente.`},
-    fr:{base:`Le paiement de la chambre a déjà été effectué via la plateforme de réservation. 😊\nJe vous envoie le lien pour le paiement de la taxe de séjour, à régler directement auprès de l'établissement :\n👉 ${link}`,
-        cash:`\nVous pouvez également la régler en espèces le lendemain du check-in auprès du personnel présent.`},
-    pt:{base:`O pagamento do quarto já foi efetuado através da plataforma de reserva. 😊\nEnvio o link para o pagamento da taxa turística, a ser paga diretamente à estrutura:\n👉 ${link}`,
-        cash:`\nEm alternativa, poderá pagá-la em dinheiro no dia seguinte ao check-in com o pessoal presente.`},
-    de:{base:`Die Zahlung für das Zimmer wurde bereits über den Buchungskanal abgewickelt. 😊\nHier ist der Link zur Zahlung der Kurtaxe, die direkt an die Unterkunft entrichtet wird:\n👉 ${link}`,
-        cash:`\nAlternativ können Sie diese am Tag nach dem Check-in bar beim anwesenden Personal bezahlen.`},
-  };
-  const t=T[lng]||T.en;
-  return t.base+(notti>=2?t.cash:"");
-}
-let taxStore={};
-let taxCurrent=null;
-
-function apriTassa(i){
-  taxCurrent=i;
-  document.getElementById("taxLink").value="";
-  document.getElementById("taxResult").innerHTML="";
-  document.getElementById("taxModal").classList.add("show");
-  setTimeout(()=>document.getElementById("taxLink").focus(),100);
-}
-function chiudiTassa(){document.getElementById("taxModal").classList.remove("show");}
-function generaTassa(){
-  const link=document.getElementById("taxLink").value.trim();
-  if(!link){document.getElementById("taxLink").focus();return;}
-  const d=taxStore[taxCurrent];
-  const testo=msgTassa(d.nome,d.lng,d.notti,link);
-  const res=document.getElementById("taxResult");
-  const nota=d.notti>=2?"2+ notti: incluso il pagamento in contanti":"1 notte: solo link, senza contanti";
-  res.innerHTML=`<div class="copy-note">${nota}</div>
-    <div class="msg-box"><button class="copy-btn" id="taxCopyBtn">Copia</button>${testo.replace(/</g,"&lt;")}</div>`;
-  document.getElementById("taxCopyBtn").onclick=function(){
-    navigator.clipboard.writeText(testo).then(()=>{
-      this.textContent="Copiato ✓"; this.classList.add("done");
-      setTimeout(()=>{this.textContent="Copia";this.classList.remove("done");},2000);
-    });
-  };
-}
-
-function badgeCanale(source){
-  const s=(source||"").toLowerCase();
-  let nome,col;
-  if(s.includes("booking")){nome="Booking";col="#003580";}
-  else if(s.includes("expedia")){nome="Expedia";col="#fbc02d";}
-  else if(s.includes("airbnb")){nome="Airbnb";col="#ff385c";}
-  else if(s.includes("manual")){nome="Personale";col="#86868b";}
-  else if(s.includes("amenitiz")){nome="Amenitiz";col="#3b82f6";}
-  else{nome=source||"OTA";col="#86868b";}
-  // Expedia ha fondo chiaro -> testo scuro
-  const txt=(nome==="Expedia")?"#1d1d1f":"#fff";
-  return `<span class="src-badge" style="background:${col};color:${txt}">${nome}</span>`;
-}
-
-let msgStore={};
-
-function render(iso,bookings){
-  document.getElementById("daytitle").textContent=`${dataLunga(iso)} — ${bookings.length} ${bookings.length===1?'ospite':'ospiti'}`;
-  const list=document.getElementById("list"); list.innerHTML=""; msgStore={};
-  if(bookings.length===0){list.innerHTML='<div class="status">Nessun arrivo per questa data.</div>';return;}
-
-  bookings.forEach((b,i)=>{
-    const booker=b.booker||{};
-    const nome=(booker.first_name||"").trim();
-    const cognome=(booker.last_name||"").trim();
-    const phone=booker.phone||"";
-    const lng=lingua(booker.language,phone);
-    const room=(b.rooms&&b.rooms[0])||{};
-    const roomName=room.individual_room_name||"";
-    const source=b.source||"";
-    let etichetta,descr,accent,roomLabel,testo,struttura;
-
-    let isLorenzo=false;
-    if(CAMPALDINO[roomName]){
-      const c=CAMPALDINO[roomName];
-      accent=c.col; roomLabel=c.let; struttura="Via Campaldino";
-      testo=msgCampaldino(nome,iso,c.etich,c.descr,lng);
-    }else{
-      const num=LORENZO[roomName]||roomName;
-      accent="#5c6b52"; roomLabel=num; struttura="Lorenzo il Magnifico"; isLorenzo=true;
-      testo=msgLorenzo(nome,iso,num,lng);
-    }
-
-    // ospite cinese (telefono +86): accoda la versione in cinese semplificato all'inglese
-    const isCinese=(phone||"").replace(/\s/g,"").startsWith("+86");
-    if(isCinese){
-      let testoZh;
-      if(isLorenzo){
-        const num=LORENZO[roomName]||roomName;
-        testoZh=msgLorenzoZh(nome,iso,num);
-      }else{
-        const c=CAMPALDINO[roomName];
-        // etichetta camera in cinese: "G 号公寓" per appartamento, "X 号房间" per camera
-        const etichRoom=(c.let==="G")?`${c.let} 号公寓`:`${c.let} 号房间`;
-        testoZh=msgCampaldinoZh(nome,iso,etichRoom);
-      }
-      testo=testo+"\n\n— — —\n\n"+testoZh;
-    }
-
-    const card=document.createElement("div");
-    card.className="card"; card.style.setProperty("--accent",accent);
-
-    // il testo da copiare include SEMPRE la frase del contatto WhatsApp business
-    const testoCopia=testo+"\n"+(FRASE_WA[lng]||FRASE_WA.en);
-    msgStore[i]=testoCopia;
-
-    // calcola numero notti per la regola contanti
-    let notti=1;
-    try{
-      const ci=new Date(iso), co=new Date(b.checkout);
-      notti=Math.max(1,Math.round((co-ci)/(1000*60*60*24)));
-    }catch(e){}
-
-    let action="";
-    if(numeroValido(phone)){
-      const link=`whatsapp://send?phone=${phone.replace(/\s/g,"").replace("+","")}&text=${encodeURIComponent(testo)}`;
-      action=`<div class="actions">
-          <a class="wa-btn" href="${link}">${waIcon}WhatsApp</a>
-          <button class="copy-msg-btn" onclick="copia(${i},this)">📋 Copia</button>
-          <button class="tax-btn" onclick="apriTassa(${i})">💶 Tassa</button>
-        </div>`;
-    }else{
-      const warn=source.toLowerCase().includes("expedia")?"Numero virtuale Expedia":(source==="manual"?"Prenotazione manuale":"Numero assente");
-      action=`<div class="copy-note">⚠︎ ${warn} — nessun numero WhatsApp, invia tramite messaggistica ${source||'OTA'}</div>
-        <div class="actions">
-          <button class="copy-msg-btn" onclick="copia(${i},this)">📋 Copia</button>
-          <button class="tax-btn" onclick="apriTassa(${i})">💶 Tassa</button>
-        </div>`;
-    }
-    // salva dati per il messaggio tassa
-    taxStore[i]={nome,lng,notti};
-
-    card.innerHTML=`<div class="card-top">
-        <div class="name">${nome} ${cognome} <span class="flag">${FLAGS[lng]||""}</span></div>
-        <div class="room-badge${isLorenzo?' lm':''}">${roomLabel}</div>
+<div id="app">
+  <div class="controls-card">
+    <div class="controls-row">
+      <div class="ctrl-group">
+        <span class="ctrl-label">Modalità</span>
+        <div class="seg-ctrl" id="mode-seg">
+          <button class="seg-btn active" onclick="setMode('mese',this)">Mese</button>
+          <button class="seg-btn" onclick="setMode('range',this)">Range</button>
+          <button class="seg-btn" onclick="setMode('anno',this)">Anno</button>
+        </div>
       </div>
-      <div class="meta"><span><b>${struttura}</b></span><span>${iso} → ${b.checkout||""}</span>${badgeCanale(source)}</div>
-      ${action}`;
-    list.appendChild(card);
-  });
+      <div class="ctrl-group" id="ctrl-mese">
+        <span class="ctrl-label">Mese</span>
+        <select id="sel-mese">
+          <option value="1">Gennaio</option><option value="2">Febbraio</option>
+          <option value="3">Marzo</option><option value="4">Aprile</option>
+          <option value="5">Maggio</option><option value="6" selected>Giugno</option>
+          <option value="7">Luglio</option><option value="8">Agosto</option>
+          <option value="9">Settembre</option><option value="10">Ottobre</option>
+          <option value="11">Novembre</option><option value="12">Dicembre</option>
+        </select>
+      </div>
+      <div class="ctrl-group" id="ctrl-range" style="display:none">
+        <span class="ctrl-label">Da — A</span>
+        <div style="display:flex;gap:6px;align-items:center">
+          <select id="sel-range-from">
+            <option value="1">Gen</option><option value="2">Feb</option><option value="3">Mar</option>
+            <option value="4">Apr</option><option value="5">Mag</option><option value="6" selected>Giu</option>
+            <option value="7">Lug</option><option value="8">Ago</option><option value="9">Set</option>
+            <option value="10">Ott</option><option value="11">Nov</option><option value="12">Dic</option>
+          </select>
+          <span style="color:var(--muted)">→</span>
+          <select id="sel-range-to">
+            <option value="1">Gen</option><option value="2">Feb</option><option value="3">Mar</option>
+            <option value="4">Apr</option><option value="5">Mag</option><option value="6">Giu</option>
+            <option value="7">Lug</option><option value="8">Ago</option><option value="9">Set</option>
+            <option value="10">Ott</option><option value="11">Nov</option><option value="12">Dic</option>
+          </select>
+        </div>
+      </div>
+      <div class="ctrl-group">
+        <span class="ctrl-label">Anno</span>
+        <select id="sel-anno"></select>
+      </div>
+      <div class="ctrl-group">
+        <span class="ctrl-label">Confronto</span>
+        <div class="seg-ctrl">
+          <button class="seg-btn active" onclick="setYoY(5,this)">5 anni</button>
+          <button class="seg-btn" onclick="setYoY(3,this)">3 anni</button>
+          <button class="seg-btn" onclick="setYoY(0,this)">Solo</button>
+        </div>
+      </div>
+      <button class="apply-btn" onclick="render()">Aggiorna ↗</button>
+    </div>
+    <div class="prorata-notice" id="prorata-notice"></div>
+  </div>
+
+  <div class="kpi-grid" id="kpi-grid"></div>
+  <div class="section-title">Ricavi</div>
+  <div class="chart-card">
+    <div class="chart-title" id="ricavi-chart-title"></div>
+    <div class="chart-subtitle" id="ricavi-chart-sub"></div>
+    <div class="chart-wrap"><canvas id="chart-ricavi"></canvas></div>
+  </div>
+  <div class="section-title">Costi</div>
+  <div class="chart-card">
+    <div class="chart-title" id="costi-chart-title"></div>
+    <div class="chart-subtitle" id="costi-chart-sub"></div>
+    <div class="chart-wrap"><canvas id="chart-costi"></canvas></div>
+  </div>
+  <div class="section-title">Margine</div>
+  <div class="chart-card">
+    <div class="chart-title">Margine operativo (Ricavi − Costi)</div>
+    <div class="chart-wrap"><canvas id="chart-margine"></canvas></div>
+  </div>
+  <div class="section-title">Dettaglio categorie</div>
+  <div class="two-col">
+    <div class="chart-card">
+      <div class="chart-title">Composizione Ricavi</div>
+      <div class="chart-subtitle" id="cat-ricavi-sub"></div>
+      <div class="chart-wrap tall"><canvas id="chart-cat-ricavi"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Composizione Costi</div>
+      <div class="chart-subtitle" id="cat-costi-sub"></div>
+      <div class="chart-wrap tall"><canvas id="chart-cat-costi"></canvas></div>
+    </div>
+  </div>
+  <div class="two-col">
+    <div class="table-card">
+      <div class="table-header"><span class="table-title">Ricavi per categoria</span></div>
+      <div class="table-scroll"><table id="table-ricavi"></table></div>
+    </div>
+    <div class="table-card">
+      <div class="table-header"><span class="table-title">Costi per categoria</span></div>
+      <div class="table-scroll"><table id="table-costi"></table></div>
+    </div>
+  </div>
+</div>
+
+  <!-- AI ANALYSIS -->
+  <div class="ai-section" id="ai-section" style="display:none">
+    <div class="section-title">Analisi AI</div>
+    <div class="ai-card">
+      <div class="ai-card-header">
+        <span class="ai-card-title">✦ Commento del periodo</span>
+        <button class="ai-analyze-btn" id="ai-btn" onclick="runAnalysis()">Analizza con AI</button>
+      </div>
+      <div class="ai-body">
+        <div id="ai-key-section">
+          <div class="ai-key-label">
+            <span>API Key Anthropic</span>
+            <span id="ai-key-status"></span>
+          </div>
+          <div class="ai-key-row">
+            <input type="password" class="ai-key-input" id="ai-key-input" placeholder="sk-ant-..." autocomplete="off">
+            <button class="ai-key-save" onclick="saveApiKey()">Salva</button>
+          </div>
+        </div>
+        <div class="ai-output" id="ai-output">Seleziona un periodo e clicca "Analizza con AI" per ricevere un commento sull'andamento.</div>
+        <div class="ai-disclaimer">⚠ La chiave API viene salvata solo nel tuo browser. I dati inviati sono esclusivamente numeri aggregati, nessun dettaglio personale. Costo stimato: &lt;0.01€ per analisi.</div>
+      </div>
+    </div>
+  </div>
+
+<input type="file" id="file-input" accept=".csv,.CSV" style="position:fixed;top:-9999px;left:-9999px;opacity:0;">
+
+<script>
+const MESI_IT=['','Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+const MESI_SHORT=['','Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
+const STORAGE_KEY='iu_data_v3';
+let RAW=[], availAnni=[], mode='mese', yoyCount=5, charts={};
+
+function showError(msg) {
+  const el = document.getElementById('error-msg');
+  el.textContent = msg;
+  el.style.display = 'block';
 }
 
-function copia(i,btn){
-  navigator.clipboard.writeText(msgStore[i]).then(()=>{
-    const orig=btn.textContent;
-    btn.textContent="Copiato ✓"; btn.classList.add("done");
-    setTimeout(()=>{btn.textContent=orig;btn.classList.remove("done");},2000);
-  });
+function triggerUpload() {
+  document.getElementById('file-input').click();
 }
 
-async function caricaData(){
-  const iso=document.getElementById("dateInput").value;
-  if(!iso){return;}
-  const list=document.getElementById("list");
-  document.getElementById("daytitle").textContent="";
-  list.innerHTML='<div class="status">Carico gli arrivi…</div>';
-  try{
-    const r=await fetch(`${WORKER}/?date=${iso}`);
-    const data=await r.json();
-    if(data.error){list.innerHTML=`<div class="status">Errore: ${data.error} (${data.status||''})</div>`;return;}
-    render(iso,data.bookings||[]);
-  }catch(e){
-    list.innerHTML=`<div class="status">Impossibile contattare il server.<br>${e.message}</div>`;
+// FILE INPUT — unico elemento, gestione robusta
+document.getElementById('file-input').addEventListener('change', function() {
+  const file = this.files && this.files[0];
+  if (!file) return;
+  
+  // Reset input so same file can be reloaded
+  const fileName = file.name;
+  
+  // Try multiple encodings
+  const tryParse = (text) => {
+    const records = parseCSV(text);
+    if (records.length > 0) {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(records)); } catch(e) {}
+      initApp(records, fileName);
+      return true;
+    }
+    return false;
+  };
+
+  const reader = new FileReader();
+  reader.onerror = () => showError('Errore lettura file. Riprova.');
+  reader.onload = (e) => {
+    const text = e.target.result;
+    if (!tryParse(text)) {
+      // Try with different line ending normalization
+      const normalized = text.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
+      if (!tryParse(normalized)) {
+        showError('File non riconosciuto (' + records_debug + ' righe trovate). Assicurati di esportare da iCompta con separatore ";".');
+      }
+    }
+    // Reset so same file can be selected again
+    this.value = '';
+  };
+  
+  // Try UTF-8 first, then Latin-1
+  reader.readAsText(file, 'UTF-8');
+}, false);
+
+let records_debug = 0;
+
+function parseCSV(text) {
+  const lines = text.replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n');
+  records_debug = lines.length;
+  if (lines.length < 2) return [];
+  
+  const header = lines[0].split(';');
+  const idxData = header.findIndex(h => h.trim() === 'Data');
+  const idxImporto = header.findIndex(h => h.trim() === 'Importo');
+  const idxCat = header.findIndex(h => h.trim() === 'Categoria');
+  const idxNome = header.findIndex(h => h.trim() === 'Nome');
+  const idxComm = header.findIndex(h => h.trim() === 'Commento');
+  
+  if (idxData < 0 || idxImporto < 0) return [];
+  
+  const records = [];
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+    const cols = line.split(';');
+    if (cols.length < Math.max(idxData, idxImporto) + 1) continue;
+    
+    const rawDate = (cols[idxData]||'').trim();
+    if (!rawDate) continue;
+    const parts = rawDate.split('/');
+    if (parts.length !== 3) continue;
+    const giorno = parseInt(parts[0]);
+    const mese = parseInt(parts[1]);
+    const anno = parseInt(parts[2]);
+    if (isNaN(anno) || anno < 2010 || anno > 2100) continue;
+    if (isNaN(mese) || mese < 1 || mese > 12) continue;
+    if (isNaN(giorno) || giorno < 1 || giorno > 31) continue;
+    
+    const impStr = (cols[idxImporto]||'').trim().replace(',','.');
+    const imp = parseFloat(impStr);
+    if (isNaN(imp) || imp === 0) continue;
+    
+    const cat = cleanCat(idxCat >= 0 ? (cols[idxCat]||'') : '');
+    records.push({
+      anno, mese, giorno, importo: imp, cat,
+      tipo: imp < 0 ? 'ricavo' : 'costo',
+      nome: (idxNome >= 0 ? cols[idxNome] : '').trim(),
+      commento: (idxComm >= 0 ? cols[idxComm] : '').trim()
+    });
+  }
+  return records;
+}
+
+function cleanCat(c) {
+  if (!c) return 'Altro';
+  if (c.includes('Redditi')) return 'Redditi';
+  if (c.includes('Commissioni')) return 'Commissioni';
+  if (c.includes('Tasse') && !c.includes('Soggiorno')) return 'Tasse e imposte';
+  if (c.includes('Pulizia')) return 'Pulizia';
+  if (c.includes('Stipendio')) return 'Stipendio Filippo';
+  if (c.includes('Lenzuola')) return 'Lenzuola/Biancheria';
+  if (c.includes('Manutenzione')) return 'Manutenzione';
+  if (c.includes('Mutuo')) return 'Mutuo';
+  if (c.includes('Luce')) return 'Luce';
+  if (c.includes('Condominio')) return 'Condominio';
+  if (c.includes('Automobile')) return 'Automobile';
+  if (c.includes('Ufficio')) return 'Ufficio';
+  if (c.includes('Weekend')) return 'Weekend';
+  if (c.includes('Commercialista')) return 'Commercialista';
+  if (c.includes('Mondezza')) return 'Mondezza/TARI';
+  if (c.includes('Mclink')) return 'Mclink/Internet';
+  if (c.includes('Tassa di Soggiorno')) return 'Tassa di Soggiorno';
+  if (c.includes('Ristrutturazione')) return 'Ristrutturazione';
+  if (c.includes('Immobiliare')) return 'Canone Immobiliare';
+  if (c.includes('Promozione')) return 'Promozione';
+  return 'Altro';
+}
+
+function initApp(records, filename) {
+  RAW = records;
+  availAnni = [...new Set(records.map(r=>r.anno))].sort();
+  const today = new Date();
+  const curYear = today.getFullYear();
+  const curMonth = today.getMonth()+1;
+  const selAnno = document.getElementById('sel-anno');
+  selAnno.innerHTML = '';
+  [...availAnni].reverse().forEach(a => {
+    const o = document.createElement('option');
+    o.value = a; o.textContent = a;
+    if (a === curYear) o.selected = true;
+    selAnno.appendChild(o);
+  });
+  document.getElementById('sel-mese').value = curMonth;
+  document.getElementById('header-badge').textContent =
+    `${records.length.toLocaleString('it-IT')} trans · ${availAnni[0]}–${availAnni[availAnni.length-1]}`;
+  document.getElementById('update-btn').style.display = 'flex';
+  document.getElementById('dropzone-wrap').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  render();
+  initAiSection();
+}
+
+function setMode(m, btn) {
+  mode = m;
+  document.querySelectorAll('#mode-seg .seg-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('ctrl-mese').style.display = m==='mese'?'':'none';
+  document.getElementById('ctrl-range').style.display = m==='range'?'':'none';
+  render();
+}
+function setYoY(n, btn) {
+  yoyCount = n;
+  btn.closest('.seg-ctrl').querySelectorAll('.seg-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+
+function aggregate(anno, m1, m2, dayCap) {
+  let ricavi=0, costi=0;
+  const catR={}, catC={};
+  for (const r of RAW) {
+    if (r.anno!==anno || r.mese<m1 || r.mese>m2) continue;
+    if (dayCap!==null && r.mese===m2 && r.giorno>dayCap) continue;
+    if (r.tipo==='ricavo') { const v=Math.abs(r.importo); ricavi+=v; catR[r.cat]=(catR[r.cat]||0)+v; }
+    else if (r.tipo==='costo') { costi+=r.importo; catC[r.cat]=(catC[r.cat]||0)+r.importo; }
+  }
+  return { ricavi:Math.round(ricavi*100)/100, costi:Math.round(costi*100)/100, catRicavi:catR, catCosti:catC };
+}
+
+function render() {
+  if (!RAW.length) return;
+  const today=new Date(), curYear=today.getFullYear(), curMonth=today.getMonth()+1, curDay=today.getDate();
+  const refAnno=parseInt(document.getElementById('sel-anno').value);
+  let m1,m2;
+  if (mode==='mese') { m1=m2=parseInt(document.getElementById('sel-mese').value); }
+  else if (mode==='range') { m1=parseInt(document.getElementById('sel-range-from').value); m2=parseInt(document.getElementById('sel-range-to').value); if(m2<m1)m2=m1; }
+  else { m1=1; m2=12; }
+  const prorata = m2===curMonth;
+  const notice=document.getElementById('prorata-notice');
+  if (prorata) { notice.className='prorata-notice show'; notice.textContent=`⚡ Confronto limitato al giorno ${curDay} per tutti gli anni.`; }
+  else { notice.className='prorata-notice'; }
+  let years=[refAnno];
+  if (yoyCount>0) for(let i=1;i<=yoyCount;i++){const y=refAnno-i;if(availAnni.includes(y))years.push(y);}
+  years=years.sort((a,b)=>a-b);
+  const results={};
+  years.forEach(y=>{results[y]=aggregate(y,m1,m2,prorata?curDay:null);});
+  const ref=results[refAnno], prev=results[refAnno-1]||null;
+  const fmtE=v=>v.toLocaleString('it-IT',{minimumFractionDigits:0,maximumFractionDigits:0})+' €';
+  const pctStr=(a,b)=>{if(!b)return'';const p=((a-b)/b*100).toFixed(1);return(p>=0?'+':'')+p+'% vs '+(refAnno-1);};
+  const dc=(a,b,inv)=>{if(!b)return'';const up=a>=b;return inv?(up?'down':'up'):(up?'up':'down');};
+  const marg=ref.ricavi-ref.costi, margP=prev?prev.ricavi-prev.costi:null;
+  const pl=m1===m2?`${MESI_IT[m1]} ${refAnno}`:`${MESI_SHORT[m1]}–${MESI_SHORT[m2]} ${refAnno}`;
+  const dt=prorata?` al ${curDay}/${m2}`:'';
+  document.getElementById('kpi-grid').innerHTML=`
+    <div class="kpi-card green"><div class="kpi-label">Ricavi — ${pl}${dt}</div><div class="kpi-value green">${fmtE(ref.ricavi)}</div>${prev?`<div class="kpi-delta ${dc(ref.ricavi,prev.ricavi,false)}">${pctStr(ref.ricavi,prev.ricavi)}</div>`:''}</div>
+    <div class="kpi-card red"><div class="kpi-label">Costi — ${pl}${dt}</div><div class="kpi-value red">${fmtE(ref.costi)}</div>${prev?`<div class="kpi-delta ${dc(ref.costi,prev.costi,true)}">${pctStr(ref.costi,prev.costi)}</div>`:''}</div>
+    <div class="kpi-card ${marg>=0?'green':'red'}"><div class="kpi-label">Margine</div><div class="kpi-value ${marg>=0?'green':'red'}">${marg>=0?'+':''}${fmtE(marg)}</div>${margP!==null?`<div class="kpi-delta ${marg>=margP?'up':'down'}">${pctStr(marg,margP)}</div>`:''}</div>
+    <div class="kpi-card blue"><div class="kpi-label">Margine %</div><div class="kpi-value blue">${ref.ricavi>0?((marg/ref.ricavi)*100).toFixed(1)+'%':'—'}</div><div class="kpi-sub">${prorata?`al ${curDay}/${m2}`:'periodo completo'}</div></div>`;
+  const labels=years.map(String);
+  const rD=years.map(y=>results[y].ricavi), cD=years.map(y=>results[y].costi), mD=years.map(y=>results[y].ricavi-results[y].costi);
+  const rC=years.map(y=>y===refAnno?'#34c759':'rgba(52,199,89,0.28)');
+  const cC=years.map(y=>y===refAnno?'#ff3b30':'rgba(255,59,48,0.28)');
+  const mC=mD.map((v,i)=>{const r=years[i]===refAnno;return v>=0?(r?'#007aff':'rgba(0,122,255,0.28)'):(r?'#ff3b30':'rgba(255,59,48,0.28)');});
+  const dlPlugin={id:'dl',afterDatasetsDraw(chart){const{ctx,data,chartArea:{top}}=chart;ctx.save();data.datasets.forEach((ds,di)=>{chart.getDatasetMeta(di).data.forEach((bar,idx)=>{const v=ds.data[idx];if(!v&&v!==0)return;const l=Math.abs(v)>=1000?(Math.abs(v)/1000).toFixed(1).replace('.',',')+'k':Math.abs(v).toFixed(0);ctx.font='600 10px DM Mono,monospace';ctx.fillStyle='#444';ctx.textAlign='center';ctx.textBaseline='bottom';const y=bar.y-4;ctx.fillText((v<0?'−':'')+l,bar.x,y<top+12?top+12:y);});});ctx.restore();}};
+  Chart.defaults.font.family='DM Mono'; Chart.defaults.color='#86868b'; Chart.defaults.font.size=11;
+  const sub=prorata?`Dati al giorno ${curDay} per tutti gli anni`:`${m1===m2?MESI_IT[m1]:MESI_SHORT[m1]+'–'+MESI_SHORT[m2]} · ${years[0]}–${refAnno}`;
+  const ml=m1===m2?MESI_SHORT[m1]:MESI_SHORT[m1]+'–'+MESI_SHORT[m2];
+  function makeBar(id,data,colors,tid,sid,ttxt){
+    if(charts[id])charts[id].destroy();
+    if(tid)document.getElementById(tid).textContent=ttxt;
+    if(sid)document.getElementById(sid).textContent=sub;
+    charts[id]=new Chart(document.getElementById(id),{type:'bar',data:{labels,datasets:[{data,backgroundColor:colors,borderColor:colors.map(c=>c.startsWith('rgba')?c.replace('0.28','0.7'):c),borderWidth:1,borderRadius:5,borderSkipped:false}]},plugins:[dlPlugin],options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>'  '+fmtE(Math.abs(ctx.raw))}}},scales:{x:{grid:{display:false},border:{display:false}},y:{grid:{color:'#f2f2f7'},border:{display:false},ticks:{callback:v=>(v/1000).toFixed(0)+'k'}}},layout:{padding:{top:20}}}});
+  }
+  makeBar('chart-ricavi',rD,rC,'ricavi-chart-title','ricavi-chart-sub',`Ricavi — ${ml} · confronto anni`);
+  makeBar('chart-costi',cD,cC,'costi-chart-title','costi-chart-sub',`Costi — ${ml} · confronto anni`);
+  if(charts['chart-margine'])charts['chart-margine'].destroy();
+  charts['chart-margine']=new Chart(document.getElementById('chart-margine'),{type:'bar',data:{labels,datasets:[{data:mD,backgroundColor:mC,borderColor:mC.map(c=>c.startsWith('rgba')?c.replace('0.28','0.7'):c),borderWidth:1,borderRadius:5,borderSkipped:false}]},plugins:[dlPlugin],options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>'  '+fmtE(ctx.raw)}}},scales:{x:{grid:{display:false},border:{display:false}},y:{grid:{color:'#f2f2f7'},border:{display:false},ticks:{callback:v=>(v>=0?'':'−')+(Math.abs(v)/1000).toFixed(0)+'k'}}},layout:{padding:{top:20}}}});
+  const pal=['#007aff','#34c759','#ff9500','#ff3b30','#af52de','#5ac8fa','#ff2d55','#30b0c7','#ffcc00','#4cd964','#5856d6','#ff6b35'];
+  function makePie(id,catObj,sid,sub){
+    if(charts[id])charts[id].destroy();
+    if(sid)document.getElementById(sid).textContent=sub;
+    const e=Object.entries(catObj).filter(([,v])=>v>5).sort((a,b)=>b[1]-a[1]);
+    if(!e.length)return;
+    charts[id]=new Chart(document.getElementById(id),{type:'doughnut',data:{labels:e.map(([k])=>k),datasets:[{data:e.map(([,v])=>Math.round(v)),backgroundColor:pal,borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{boxWidth:10,font:{size:10},padding:6}},tooltip:{callbacks:{label:ctx=>` ${ctx.label}: ${fmtE(ctx.raw)}`}}}}});
+  }
+  makePie('chart-cat-ricavi',ref.catRicavi,'cat-ricavi-sub',`${refAnno} — ${pl}`);
+  makePie('chart-cat-costi',ref.catCosti,'cat-costi-sub',`${refAnno} — ${pl}`);
+  function buildTable(id,isR){
+    const allC=new Set();years.forEach(y=>Object.keys(isR?results[y].catRicavi:results[y].catCosti).forEach(k=>allC.add(k)));
+    const cats=[...allC].sort((a,b)=>((isR?results[refAnno].catRicavi[b]:results[refAnno].catCosti[b])||0)-((isR?results[refAnno].catRicavi[a]:results[refAnno].catCosti[a])||0));
+    const dy=years.slice(-4);
+    let h=`<thead><tr><th>Categoria</th>${dy.map(y=>`<th>${y}</th>`).join('')}</tr></thead><tbody>`;
+    cats.forEach(cat=>{
+      const vals=dy.map(y=>(isR?results[y].catRicavi[cat]:results[y].catCosti[cat])||0);
+      if(vals.every(v=>v===0))return;
+      h+=`<tr><td>${cat}</td>${dy.map((y,i)=>`<td ${y===refAnno?'style="font-weight:600"':''}>${vals[i]>0?fmtE(vals[i]):'<span class="c-muted">—</span>'}</td>`).join('')}</tr>`;
+    });
+    const tots=dy.map(y=>Object.values(isR?results[y].catRicavi:results[y].catCosti).reduce((s,v)=>s+v,0));
+    h+=`<tr class="total-row"><td>Totale</td>${tots.map((v,i)=>`<td ${dy[i]===refAnno?'style="font-weight:700"':''}>${fmtE(Math.round(v))}</td>`).join('')}</tr></tbody>`;
+    document.getElementById(id).innerHTML=h;
+  }
+  buildTable('table-ricavi',true);
+  buildTable('table-costi',false);
+}
+
+// Startup: try localStorage
+(function(){
+  try {
+    const d=localStorage.getItem(STORAGE_KEY);
+    if(d){const r=JSON.parse(d);if(r&&r.length>0){initApp(r,null);return;}}
+  } catch(e){}
+})();
+
+// ===== AI ANALYSIS =====
+const AI_KEY_STORAGE = 'iu_apikey_v1';
+
+function loadApiKey() {
+  try { return localStorage.getItem(AI_KEY_STORAGE) || ''; } catch(e) { return ''; }
+}
+function saveApiKey() {
+  const key = document.getElementById('ai-key-input').value.trim();
+  if (!key.startsWith('sk-ant-')) {
+    alert('La chiave deve iniziare con sk-ant-');
+    return;
+  }
+  try {
+    localStorage.setItem(AI_KEY_STORAGE, key);
+    showKeyStatus(true);
+  } catch(e) {
+    alert('Impossibile salvare la chiave nel browser.');
+  }
+}
+function showKeyStatus(saved) {
+  const el = document.getElementById('ai-key-status');
+  el.className = saved ? 'ai-key-saved' : '';
+  el.textContent = saved ? '✓ Salvata' : '';
+}
+
+function initAiSection() {
+  document.getElementById('ai-section').style.display = 'block';
+  const key = loadApiKey();
+  if (key) {
+    document.getElementById('ai-key-input').value = key;
+    showKeyStatus(true);
   }
 }
 
-function vaiA(giorniDopo){
-  const d=new Date(); d.setDate(d.getDate()+giorniDopo);
-  const iso=d.toISOString().slice(0,10);
-  document.getElementById("dateInput").value=iso;
-  caricaData();
+async function runAnalysis() {
+  const key = loadApiKey() || document.getElementById('ai-key-input').value.trim();
+  if (!key.startsWith('sk-ant-')) {
+    document.getElementById('ai-output').className = 'ai-output error';
+    document.getElementById('ai-output').textContent = 'Inserisci una API key Anthropic valida (sk-ant-...) e clicca Salva.';
+    return;
+  }
+
+  if (!RAW.length) return;
+
+  const btn = document.getElementById('ai-btn');
+  const out = document.getElementById('ai-output');
+  btn.disabled = true;
+  out.className = 'ai-output loading';
+  out.textContent = 'Analisi in corso…';
+
+  // Build context from current render state
+  const today = new Date();
+  const curYear = today.getFullYear();
+  const curMonth = today.getMonth() + 1;
+  const curDay = today.getDate();
+  const refAnno = parseInt(document.getElementById('sel-anno').value);
+  let m1, m2;
+  if (mode === 'mese') { m1 = m2 = parseInt(document.getElementById('sel-mese').value); }
+  else if (mode === 'range') {
+    m1 = parseInt(document.getElementById('sel-range-from').value);
+    m2 = parseInt(document.getElementById('sel-range-to').value);
+    if (m2 < m1) m2 = m1;
+  } else { m1 = 1; m2 = 12; }
+
+  const prorata = m2 === curMonth;
+  const dayCap = prorata ? curDay : null;
+
+  const MESI_IT_LOCAL = ['','Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+  const MESI_SHORT_LOCAL = ['','Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
+
+  const fmtE = v => v.toLocaleString('it-IT', {minimumFractionDigits:0, maximumFractionDigits:0}) + ' €';
+  const pl = m1===m2 ? `${MESI_IT_LOCAL[m1]} ${refAnno}` : `${MESI_SHORT_LOCAL[m1]}–${MESI_SHORT_LOCAL[m2]} ${refAnno}`;
+
+  // Build YoY data for prompt
+  let years = [refAnno];
+  for (let i = 1; i <= 5; i++) {
+    const y = refAnno - i;
+    if (availAnni.includes(y)) years.push(y);
+  }
+  years = years.sort((a,b) => a-b);
+
+  const results = {};
+  years.forEach(y => { results[y] = aggregate(y, m1, m2, dayCap); });
+
+  let yoyTable = '';
+  years.forEach(y => {
+    const r = results[y];
+    const m = r.ricavi - r.costi;
+    const pct = r.ricavi > 0 ? ((m/r.ricavi)*100).toFixed(1) : '—';
+    yoyTable += `\n- ${y}: Ricavi ${fmtE(r.ricavi)} | Costi ${fmtE(r.costi)} | Margine ${fmtE(m)} (${pct}%)`;
+  });
+
+  const ref = results[refAnno];
+  const prev = results[refAnno-1] || null;
+
+  let catBreakdown = '\nPrincipali voci di costo ' + refAnno + ':';
+  const sortedCosti = Object.entries(ref.catCosti).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  sortedCosti.forEach(([cat,val]) => { catBreakdown += `\n  - ${cat}: ${fmtE(val)}`; });
+
+  let catRicavi = '\nVoci di ricavo ' + refAnno + ':';
+  Object.entries(ref.catRicavi).sort((a,b)=>b[1]-a[1]).forEach(([cat,val]) => {
+    catRicavi += `\n  - ${cat}: ${fmtE(val)}`;
+  });
+
+  const prorataNote = prorata ? `\nNota: i dati del ${MESI_IT_LOCAL[m2]} ${refAnno} sono parziali (al giorno ${curDay}). Il confronto con gli anni precedenti è limitato allo stesso giorno per omogeneità.` : '';
+
+  const prompt = `Sei un consulente finanziario che analizza i dati di InternoUno, un B&B con circa 10 camere a Roma (due immobili: Via Campaldino e Via Lorenzo il Magnifico).
+
+Periodo analizzato: ${pl}${prorataNote}
+
+Confronto storico anno su anno:${yoyTable}
+${catRicavi}
+${catBreakdown}
+
+Fornisci un'analisi concisa (massimo 180 parole) in italiano su:
+1. Andamento del periodo rispetto agli anni precedenti
+2. Eventuali anomalie o trend significativi nei costi o ricavi
+3. Un breve commento sul margine e sulla stagionalità
+4. Se ci sono segnali da tenere d'occhio
+
+Tono: professionale ma diretto, come un consulente che conosce bene il business. Niente elenchi puntati, testo fluido.`;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 400,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.error?.message || `Errore API: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const text = data.content?.[0]?.text || 'Nessuna risposta ricevuta.';
+    out.className = 'ai-output';
+    out.textContent = text;
+
+  } catch(e) {
+    out.className = 'ai-output error';
+    out.textContent = 'Errore: ' + e.message + '\n\nVerifica che la API key sia valida e che il browser non blocchi le richieste cross-origin.';
+  }
+
+  btn.disabled = false;
 }
 
-// avvio: mostra domani
-vaiA(1);
 </script>
 </body>
 </html>
