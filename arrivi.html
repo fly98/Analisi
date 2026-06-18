@@ -3,19 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Arrivi · InternoUno</title>
-
-<link rel="apple-touch-icon" href="icon-180.png">
-<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
-<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
-
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Arrivi">
-
-<style>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Arrivi · InternoUno</title>
 <style>
   :root{
@@ -200,6 +187,7 @@ function msgLorenzoZh(nome,iso,num){
 入住时间为 *13:00* 起。能否告知您大约几点到达，以便我们更好地安排？
 如有任何需要，可通过 WhatsApp 或电话联系我。期待您的到来！🏠`;
 }
+const FRASE_WA={
   it:`Per un contatto più diretto e veloce, può raggiungermi su WhatsApp al ${WA_BUSINESS}.`,
   en:`For a quicker and more direct contact, feel free to reach me on WhatsApp at ${WA_BUSINESS}.`,
   es:`Para un contacto más directo y rápido, puede contactarme por WhatsApp al ${WA_BUSINESS}.`,
@@ -300,6 +288,22 @@ function render(iso,bookings){
       const num=LORENZO[roomName]||roomName;
       accent="#5c6b52"; roomLabel=num; struttura="Lorenzo il Magnifico"; isLorenzo=true;
       testo=msgLorenzo(nome,iso,num,lng);
+    }
+
+    // ospite cinese (telefono +86): accoda la versione in cinese semplificato all'inglese
+    const isCinese=(phone||"").replace(/\s/g,"").startsWith("+86");
+    if(isCinese){
+      let testoZh;
+      if(isLorenzo){
+        const num=LORENZO[roomName]||roomName;
+        testoZh=msgLorenzoZh(nome,iso,num);
+      }else{
+        const c=CAMPALDINO[roomName];
+        // etichetta camera in cinese: "G 号公寓" per appartamento, "X 号房间" per camera
+        const etichRoom=(c.let==="G")?`${c.let} 号公寓`:`${c.let} 号房间`;
+        testoZh=msgCampaldinoZh(nome,iso,etichRoom);
+      }
+      testo=testo+"\n\n— — —\n\n"+testoZh;
     }
 
     const card=document.createElement("div");
