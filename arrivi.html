@@ -4,6 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Arrivi · InternoUno</title>
+<link rel="manifest" href="manifest.json">
+<!-- iOS -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="InternoUno">
+<link rel="apple-touch-icon" href="icon-180.png">
+<!-- Android / Chrome -->
+<meta name="theme-color" content="#f5f5f7">
 <style>
   :root{
     --ink:#1d1d1f; --paper:#f5f5f7; --card:#ffffff; --line:#e3e3e6;
@@ -72,6 +80,7 @@
   .msg-box{position:relative;background:#f5f5f7;border:1px solid var(--line);border-radius:12px;padding:14px;font-size:13px;line-height:1.5;color:#3a3a3c;white-space:pre-wrap;}
   .copy-btn{position:absolute;top:8px;right:8px;background:var(--ink);color:#fff;border:none;border-radius:8px;font-family:var(--sysfont);font-size:11px;font-weight:600;padding:6px 11px;cursor:pointer;}
   .copy-btn.done{background:var(--sage);}
+  .nome-ignoto{color:var(--gold);font-style:italic;}
   @media(prefers-reduced-motion:reduce){*{transition:none!important;}}
 </style>
 </head>
@@ -367,15 +376,26 @@ let msgStore={};
 let msgFull={};
 let infoStore={};
 
+// ordine camere desiderato: G M R V A 1 2 3 4 5
+const ORDINE_CAMERE={"Gialla":0,"Marrone":1,"Rossa":2,"Verde":3,"Azzurra":4,"Uno":5,"Due":6,"Tre":7,"Quattro":8,"Cinque":9};
+function ordineDi(b){
+  const rn=(b.rooms&&b.rooms[0]&&b.rooms[0].individual_room_name)||"";
+  return (rn in ORDINE_CAMERE)?ORDINE_CAMERE[rn]:99;
+}
+
 function render(iso,bookings){
+  bookings=(bookings||[]).slice().sort((a,b)=>ordineDi(a)-ordineDi(b));
   document.getElementById("daytitle").textContent=`${dataLunga(iso)} — ${bookings.length} ${bookings.length===1?'ospite':'ospiti'}`;
   const list=document.getElementById("list"); list.innerHTML=""; msgStore={};
   if(bookings.length===0){list.innerHTML='<div class="status">Nessun arrivo per questa data.</div>';return;}
 
   bookings.forEach((b,i)=>{
     const booker=b.booker||{};
-    const nome=(booker.first_name||"").trim();
-    const cognome=(booker.last_name||"").trim();
+    const guest=(b.rooms&&b.rooms[0]&&b.rooms[0].guests&&b.rooms[0].guests[0])||{};
+    const nome=((booker.first_name||"").trim()||( guest.first_name||"").trim());
+    const cognome=((booker.last_name||"").trim()||(guest.last_name||"").trim());
+    const guestFallback=!(booker.first_name||"").trim()&&!!(guest.first_name||"").trim();
+    const noNome=!nome&&!cognome;
     const phone=booker.phone||"";
     const lng=lingua(booker.language,phone);
     const room=(b.rooms&&b.rooms[0])||{};
@@ -424,6 +444,20 @@ function render(iso,bookings){
           <button class="tax-btn" onclick="apriTassa(${i})">💶 Tassa</button>
         </div>`;
     }
+    // se manca il nome, sovrascrivi action con warning semplice
+    if(noNome){
+      action=`<div class="copy-note">⚠️ Prenotazione senza nome — verifica su Amenitiz</div>
+        <div class="actions">
+          <button class="msg-open-btn" onclick="apriInfo(${i})">ⓘ Dettagli</button>
+        </div>`;
+    } else if(guestFallback){
+      // nome preso da guests[], booker vuoto -> nessun telefono/email dal booker
+      action=`<div class="copy-note">⚠️ Contatti booker assenti — nome da lista ospiti</div>
+        <div class="actions">
+          <button class="msg-open-btn" onclick="apriMsg(${i})">✉️ Messaggio</button>
+          <button class="tax-btn" onclick="apriTassa(${i})">💶 Tassa</button>
+        </div>`;
+    }
     // salva dati per le modali
     taxStore[i]={nome,lng,notti,phone:numeroValido(phone)?phone:""};
     msgFull[i]={testo:testoCopia, email:(booker.email||""), nome, lng, waLink};
@@ -432,11 +466,12 @@ function render(iso,bookings){
       checkin:iso, checkout:b.checkout||"", notti, adults:b.adults||"", children:b.children||0,
       source, phone:phone||"—", email:booker.email||"—", lng,
       bookingId:b.booking_id||"—", total:b.total_amount_after_tax||"—",
-      checkinUrl:b.online_checkin_url||"", registered:b.online_checkin_registered
+      checkinUrl:b.online_checkin_url||"", registered:b.online_checkin_registered,
+      guestFallback
     };
 
     card.innerHTML=`<div class="card-top">
-        <div class="name" onclick="apriInfo(${i})">${nome} ${cognome} <span class="flag">${FLAGS[lng]||""}</span> <span class="info-dot">ⓘ</span></div>
+        <div class="name${noNome?' nome-ignoto':''}" onclick="apriInfo(${i})">${noNome?'⚠️ Verifica su Amenitiz':`${nome} ${cognome}`} ${noNome?'':('<span class="flag">'+FLAGS[lng]+'</span>')} <span class="info-dot">ⓘ</span></div>
         <div class="room-badge${isLorenzo?' lm':''}">${roomLabel}</div>
       </div>
       <div class="meta"><span><b>${struttura}</b></span><span>${iso} → ${b.checkout||""}</span>${badgeCanale(source)}</div>
@@ -501,6 +536,7 @@ function apriInfo(i){
   let html=`<h3>Dettagli prenotazione</h3><table class="info-table">`;
   righe.forEach(r=>{html+=`<tr><td class="info-k">${r[0]}</td><td class="info-v">${r[1]}</td></tr>`;});
   html+=`</table>`;
+  if(d.guestFallback){html+=`<div class="copy-note" style="margin-top:12px">⚠️ Nome recuperato da lista ospiti — dati booker assenti su Amenitiz</div>`;}
   html+=`<div class="modal-actions" style="margin-top:14px"><button class="m-cancel" onclick="chiudiInfo()">Chiudi</button></div>`;
   box.innerHTML=html;
   document.getElementById("infoModal").classList.add("show");
