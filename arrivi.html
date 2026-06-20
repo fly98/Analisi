@@ -81,6 +81,56 @@
   .copy-btn{position:absolute;top:8px;right:8px;background:var(--ink);color:#fff;border:none;border-radius:8px;font-family:var(--sysfont);font-size:11px;font-weight:600;padding:6px 11px;cursor:pointer;}
   .copy-btn.done{background:var(--sage);}
   .nome-ignoto{color:var(--gold);font-style:italic;}
+
+
+  /* ====== DISPONIBILITÀ & PREZZI ====== */
+  .disp-fab{display:block;margin:12px auto 0;background:#e0e0e3;color:#3a3a3c;border:none;border-radius:10px;padding:9px 20px;font-size:13px;font-weight:600;font-family:var(--sysfont);cursor:pointer;letter-spacing:0.01em;}
+  .disp-fab:active{filter:brightness(0.93);}
+  .disp-modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.45);display:none;align-items:flex-end;justify-content:center;z-index:200;padding:0;}
+  .disp-modal-bg.show{display:flex;}
+  .disp-sheet{background:var(--card);border-radius:22px 22px 0 0;padding:24px 20px 40px;width:100%;max-width:560px;max-height:85vh;overflow-y:auto;}
+  .disp-sheet h3{font-size:19px;font-weight:700;letter-spacing:-0.01em;margin-bottom:4px;}
+  .disp-sheet p{font-size:13px;color:var(--muted);margin-bottom:16px;}
+  .disp-row{display:flex;gap:8px;align-items:center;margin-bottom:14px;flex-wrap:wrap;}
+  .disp-row input[type=date]{flex:1;min-width:130px;font-family:var(--sysfont);font-size:15px;padding:11px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);}
+  .disp-row .btn{white-space:nowrap;}
+  .disp-sep{color:var(--muted);font-weight:600;font-size:18px;}
+  .disp-result{margin-top:6px;}
+  .disp-status{text-align:center;color:var(--muted);padding:20px;font-size:14px;}
+  .disp-card{background:var(--paper);border-radius:14px;padding:14px 16px;margin-bottom:10px;}
+  .disp-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+  .disp-cam-name{font-weight:700;font-size:15px;display:flex;align-items:center;gap:8px;}
+  .disp-pip{width:11px;height:11px;border-radius:50%;flex-shrink:0;}
+  .disp-badge{font-size:11px;font-weight:700;padding:3px 9px;border-radius:7px;}
+  .disp-badge.free{background:#e8f5e9;color:#2e7d32;}
+  .disp-badge.busy{background:#fce4ec;color:#c62828;}
+  .disp-prices{display:flex;flex-wrap:wrap;gap:6px;}
+  .disp-price-chip{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:5px 9px;font-size:12px;text-align:center;min-width:58px;}
+  .disp-price-chip .dc-date{color:var(--muted);font-size:10px;display:block;margin-bottom:1px;}
+  .disp-price-chip .dc-val{font-weight:700;color:var(--ink);}
+  .disp-price-chip.dc-busy{opacity:0.35;}
+  .disp-note{font-size:11px;color:var(--muted);text-align:center;margin-top:14px;padding-top:10px;border-top:1px solid var(--line);}
+  .cal-wrap{background:var(--paper);border-radius:14px;padding:12px;}
+  .cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+  .cal-nav-btn{background:none;border:1px solid var(--line);border-radius:8px;font-size:18px;width:34px;height:34px;cursor:pointer;color:var(--ink);font-family:var(--sysfont);}
+  .cal-titolo{font-weight:700;font-size:15px;text-transform:capitalize;}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;text-align:center;}
+  .cal-gi{font-size:11px;font-weight:600;color:var(--muted);padding:4px 0;}
+  .cal-day{font-size:14px;padding:8px 2px;border-radius:8px;cursor:pointer;transition:background 0.1s;user-select:none;}
+  .cal-day:hover:not(.cal-vuoto):not(.cal-past){background:var(--line);}
+  .cal-past{color:var(--line);cursor:default;}
+  .cal-vuoto{cursor:default;}
+  .cal-day.sel-start,.cal-day.sel-end{background:var(--terra);color:#fff;font-weight:700;}
+  .cal-day.sel-range{background:#f0ddd7;color:var(--terra);}
+  .cal-selezione{margin-top:10px;font-size:13px;font-weight:600;color:var(--terra);text-align:center;min-height:20px;}
+  .disp-totali{display:flex;flex-direction:column;gap:0;border-top:1px solid var(--line);margin-top:10px;padding-top:8px;}
+  .disp-riga{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:14px;color:var(--ink);}
+  .disp-riga span:first-child{color:var(--muted);}
+  .disp-riga span:last-child{font-weight:600;}
+  .disp-totale{border-top:1.5px solid var(--line);margin-top:4px;padding-top:8px;}
+  .disp-totale span{font-size:16px!important;font-weight:700!important;color:var(--ink)!important;}
+  .disp-sconto span{color:var(--sage)!important;}
+  .disp-sconto span:last-child{font-weight:700!important;}
   @media(prefers-reduced-motion:reduce){*{transition:none!important;}}
 </style>
 </head>
@@ -89,6 +139,7 @@
   <div class="eyebrow">Gestione Check-in</div>
   <h1>InternoUno</h1>
   <div class="subtitle">Arrivi &amp; messaggi di benvenuto</div>
+  <button class="disp-fab" onclick="apriDisp()">📅 Disponibilità &amp; Prezzi</button>
 </header>
 
 <div class="controls">
@@ -197,43 +248,43 @@ function msgCampaldino(nome,iso,c,lng){
   const etich=parolaCamera(c.tipo,c.let,lng);
   const descr=(POS[c.pos]&&POS[c.pos][lng])||POS[c.pos].en;
   const T={
-it:`Buongiorno ${nome}! 😊
+it:`Buongiorno${nome?" "+nome:""}! 😊
 Sono Filippo di *InternoUno*. La contatto per la sua prenotazione del ${d}.
 Gestendo più strutture, non disponiamo di una reception fissa, quindi le invio le istruzioni per accedere comodamente in autonomia:
 All'arrivo in Via Campaldino, inserisca nella cassetta sulla sinistra della porta d'ingresso il codice *3044 + tasto B* (in basso a destra) e troverà all'interno le chiavi. La sua *${etich}* ${descr}.
 Il check-in è possibile dalle *13:00*. Potrebbe indicarmi a che ora pensa di arrivare, così possiamo organizzarci al meglio?
 Per qualsiasi necessità sono disponibile su WhatsApp o telefonicamente. A presto! 🏠`,
-en:`Good morning, ${nome}! 😊
+en:`Good morning${nome?", "+nome:""}! 😊
 I am Filippo from *InternoUno*. I am contacting you about your booking for ${d}.
 As we manage multiple properties, we do not have a fixed reception, so I am sending you the check-in instructions:
 Upon arrival at Via Campaldino, enter code *3044 + button B* (bottom right) in the key box on the left of the entrance door — the keys are inside. Your *${etich}* ${descr}.
 Check-in is available from *1:00 PM*. Could you let me know what time you plan to arrive, so we can organize accordingly?
 For any need I am available on WhatsApp or by phone. See you soon! 🏠`,
-es:`¡Buenos días, ${nome}! 😊
+es:`¡Buenos días${nome?", "+nome:""}! 😊
 Soy Filippo de *InternoUno*. Le escribo en relación con su reserva del ${d}.
 Gestionando varias propiedades, no disponemos de una recepción fija, por lo que le envío las instrucciones para acceder cómodamente de forma autónoma:
 Al llegar a Via Campaldino, introduzca en la caja de llaves a la izquierda de la puerta de entrada el código *3044 + botón B* (abajo a la derecha) y encontrará las llaves dentro. Su *${etich}* ${descr}.
 El check-in está disponible a partir de las *13:00*. ¿Podría indicarme a qué hora piensa llegar, para organizarnos mejor?
 Para cualquier necesidad estoy disponible por WhatsApp o teléfono. ¡Hasta pronto! 🏠`,
-fr:`Bonjour ${nome} ! 😊
+fr:`Bonjour${nome?" "+nome:""} ! 😊
 Je suis Filippo de *InternoUno*. Je vous contacte au sujet de votre réservation du ${d}.
 Gérant plusieurs établissements, nous n'avons pas de réception fixe, je vous envoie donc les instructions pour accéder en toute autonomie :
 À votre arrivée à Via Campaldino, saisissez dans la boîte à clés à gauche de la porte d'entrée le code *3044 + bouton B* (en bas à droite) et vous trouverez les clés à l'intérieur. Votre *${etich}* ${descr}.
 Le check-in est possible à partir de *13h00*. Pourriez-vous m'indiquer à quelle heure vous pensez arriver, afin de mieux nous organiser ?
 Pour tout besoin je suis disponible sur WhatsApp ou par téléphone. À bientôt ! 🏠`,
-de:`Guten Tag ${nome}! 😊
+de:`Guten Tag${nome?" "+nome:""}! 😊
 Ich bin Filippo von *InternoUno*. Ich kontaktiere Sie bezüglich Ihrer Buchung vom ${d}.
 Da wir mehrere Unterkünfte verwalten, haben wir keine feste Rezeption. Daher sende ich Ihnen die Anweisungen für den selbstständigen Zugang:
 Bei der Ankunft in der Via Campaldino geben Sie im Schlüsselkasten links neben der Eingangstür den Code *3044 + Taste B* (unten rechts) ein, darin finden Sie die Schlüssel. Ihr *${etich}* ${descr}.
 Der Check-in ist ab *13:00 Uhr* möglich. Könnten Sie mir mitteilen, um wie viel Uhr Sie ankommen möchten, damit wir uns besser organisieren können?
 Für alle Anliegen bin ich über WhatsApp oder telefonisch erreichbar. Bis bald! 🏠`,
-pt:`Bom dia, ${nome}! 😊
+pt:`Bom dia${nome?", "+nome:""}! 😊
 Sou o Filippo do *InternoUno*. Contacto-o(a) acerca da sua reserva de ${d}.
 Gerindo várias estruturas, não dispomos de uma receção fixa, por isso envio-lhe as instruções para aceder de forma autónoma:
 À chegada em Via Campaldino, introduza na caixa de chaves à esquerda da porta de entrada o código *3044 + botão B* (em baixo à direita) e encontrará as chaves lá dentro. O seu *${etich}* ${descr}.
 O check-in está disponível a partir das *13:00*. Poderia indicar-me a que horas pensa chegar, para nos organizarmos melhor?
 Para qualquer necessidade estou disponível no WhatsApp ou por telefone. Até breve! 🏠`,
-zh:`您好，${nome}！😊
+zh:`您好${nome?"，"+nome:""}！😊
 我是 InternoUno 的 Filippo。关于您 ${d} 的预订与您联系。
 由于我们管理多家住宿，没有固定前台，因此提前向您发送自助入住说明：
 抵达 Via Campaldino 后，在入口门左侧的钥匙箱中输入密码 *3044 + B 键*（右下方），即可取到钥匙。您的 *${etich}*，${descr}。
@@ -246,43 +297,43 @@ zh:`您好，${nome}！😊
 function msgLorenzo(nome,iso,num,lng){
   const d=dataBreve(iso); const link="https://www.interno1.it/it/pagina/check-in";
   const T={
-it:`Buongiorno ${nome}! 😊
+it:`Buongiorno${nome?" "+nome:""}! 😊
 Sono Filippo di *InternoUno Deluxe*. La contatto per la sua prenotazione del ${d}.
 Gestendo più strutture, non disponiamo di una reception fissa, quindi le invio le istruzioni per accedere comodamente in autonomia alla *camera ${num}*:
 👉 ${link}
 Il check-in è possibile dalle *13:00*. Potrebbe indicarmi a che ora pensa di arrivare, così possiamo organizzarci al meglio?
 Per qualsiasi necessità sono disponibile su WhatsApp o telefonicamente. A presto! 🏠`,
-en:`Good morning, ${nome}! 😊
+en:`Good morning${nome?", "+nome:""}! 😊
 I am Filippo from *InternoUno Deluxe*. I am contacting you about your booking for ${d}.
 As we manage multiple properties, we do not have a fixed reception, so I am sending you the check-in instructions for *room ${num}*:
 👉 ${link}
 Check-in is available from *1:00 PM*. Could you let me know what time you plan to arrive, so we can organize accordingly?
 For any need I am available on WhatsApp or by phone. See you soon! 🏠`,
-es:`¡Buenos días, ${nome}! 😊
+es:`¡Buenos días${nome?", "+nome:""}! 😊
 Soy Filippo de *InternoUno Deluxe*. Le escribo en relación con su reserva del ${d}.
 Gestionando varias propiedades, no disponemos de una recepción fija, por lo que le envío las instrucciones para acceder cómodamente de forma autónoma a la *habitación ${num}*:
 👉 ${link}
 El check-in está disponible a partir de las *13:00*. ¿Podría indicarme a qué hora piensa llegar, para organizarnos mejor?
 Para cualquier necesidad estoy disponible por WhatsApp o teléfono. ¡Hasta pronto! 🏠`,
-fr:`Bonjour ${nome} ! 😊
+fr:`Bonjour${nome?" "+nome:""} ! 😊
 Je suis Filippo de *InternoUno Deluxe*. Je vous contacte au sujet de votre réservation du ${d}.
 Gérant plusieurs établissements, nous n'avons pas de réception fixe, je vous envoie donc les instructions pour accéder en toute autonomie à la *chambre ${num}* :
 👉 ${link}
 Le check-in est possible à partir de *13h00*. Pourriez-vous m'indiquer à quelle heure vous pensez arriver, afin de mieux nous organiser ?
 Pour tout besoin je suis disponible sur WhatsApp ou par téléphone. À bientôt ! 🏠`,
-de:`Guten Tag ${nome}! 😊
+de:`Guten Tag${nome?" "+nome:""}! 😊
 Ich bin Filippo von *InternoUno Deluxe*. Ich kontaktiere Sie bezüglich Ihrer Buchung vom ${d}.
 Da wir mehrere Unterkünfte verwalten, haben wir keine feste Rezeption. Daher sende ich Ihnen die Anweisungen für den selbstständigen Zugang zu *Zimmer ${num}*:
 👉 ${link}
 Der Check-in ist ab *13:00 Uhr* möglich. Könnten Sie mir mitteilen, um wie viel Uhr Sie ankommen möchten, damit wir uns besser organisieren können?
 Für alle Anliegen bin ich über WhatsApp oder telefonisch erreichbar. Bis bald! 🏠`,
-pt:`Bom dia, ${nome}! 😊
+pt:`Bom dia${nome?", "+nome:""}! 😊
 Sou o Filippo do *InternoUno Deluxe*. Contacto-o(a) acerca da sua reserva de ${d}.
 Gerindo várias estruturas, não dispomos de uma receção fixa, por isso envio-lhe as instruções para aceder de forma autónoma ao *quarto ${num}*:
 👉 ${link}
 O check-in está disponível a partir das *13:00*. Poderia indicar-me a que horas pensa chegar, para nos organizarmos melhor?
 Para qualquer necessidade estou disponível no WhatsApp ou por telefone. Até breve! 🏠`,
-zh:`您好，${nome}！😊
+zh:`您好${nome?"，"+nome:""}！😊
 我是 InternoUno Deluxe 的 Filippo。关于您 ${d} 的预订与您联系。
 由于我们管理多家住宿，没有固定前台，因此提前向您发送 *${num} 号房间* 的自助入住说明：
 👉 ${link}
@@ -396,6 +447,11 @@ function render(iso,bookings){
     const cognome=((booker.last_name||"").trim()||(guest.last_name||"").trim());
     const guestFallback=!(booker.first_name||"").trim()&&!!(guest.first_name||"").trim();
     const noNome=!nome&&!cognome;
+    // controlla se prenotante e ospite sono persone diverse
+    const guestNome=((guest.first_name||"").trim()+" "+(guest.last_name||"").trim()).trim();
+    const bookerNome=(nome+" "+cognome).trim();
+    const mismatch=!noNome&&!guestFallback&&guestNome&&bookerNome&&
+      guestNome.toLowerCase()!==bookerNome.toLowerCase();
     const phone=booker.phone||"";
     const lng=lingua(booker.language,phone);
     const room=(b.rooms&&b.rooms[0])||{};
@@ -404,14 +460,16 @@ function render(iso,bookings){
     let etichetta,descr,accent,roomLabel,testo,struttura;
 
     let isLorenzo=false;
+    // se prenotante ≠ ospite, non mettere il nome nel messaggio
+    const nomeMsg = (mismatch || guestFallback) ? "" : nome;
     if(CAMPALDINO[roomName]){
       const c=CAMPALDINO[roomName];
       accent=c.col; roomLabel=c.let; struttura="Via Campaldino";
-      testo=msgCampaldino(nome,iso,c,lng);
+      testo=msgCampaldino(nomeMsg,iso,c,lng);
     }else{
       const num=LORENZO[roomName]||roomName;
       accent="#5c6b52"; roomLabel=num; struttura="Lorenzo il Magnifico"; isLorenzo=true;
-      testo=msgLorenzo(nome,iso,num,lng);
+      testo=msgLorenzo(nomeMsg,iso,num,lng);
     }
 
     const card=document.createElement("div");
@@ -450,6 +508,21 @@ function render(iso,bookings){
         <div class="actions">
           <button class="msg-open-btn" onclick="apriInfo(${i})">ⓘ Dettagli</button>
         </div>`;
+    } else if(mismatch){
+      // prenotante diverso dall'ospite - mostra avviso ma mantieni pulsanti
+      const avvisoMismatch=`<div class="copy-note">⚠️ Prenotante (${bookerNome}) ≠ ospite (${guestNome}) — verifica nome e tel. su Amenitiz</div>`;
+      if(numeroValido(phone)){
+        action=avvisoMismatch+`<div class="actions">
+          <a class="wa-btn" href="${waLink}">${waIcon}WhatsApp</a>
+          <button class="msg-open-btn" onclick="apriMsg(${i})">✉️ Messaggio</button>
+          <button class="tax-btn" onclick="apriTassa(${i})">💶 Tassa</button>
+        </div>`;
+      } else {
+        action=avvisoMismatch+`<div class="actions">
+          <button class="msg-open-btn" onclick="apriMsg(${i})">✉️ Messaggio</button>
+          <button class="tax-btn" onclick="apriTassa(${i})">💶 Tassa</button>
+        </div>`;
+      }
     } else if(guestFallback){
       // nome preso da guests[], booker vuoto -> nessun telefono/email dal booker
       action=`<div class="copy-note">⚠️ Contatti booker assenti — nome da lista ospiti</div>
@@ -467,7 +540,7 @@ function render(iso,bookings){
       source, phone:phone||"—", email:booker.email||"—", lng,
       bookingId:b.booking_id||"—", total:b.total_amount_after_tax||"—",
       checkinUrl:b.online_checkin_url||"", registered:b.online_checkin_registered,
-      guestFallback
+      guestFallback, mismatch, guestNome
     };
 
     card.innerHTML=`<div class="card-top">
@@ -537,6 +610,7 @@ function apriInfo(i){
   righe.forEach(r=>{html+=`<tr><td class="info-k">${r[0]}</td><td class="info-v">${r[1]}</td></tr>`;});
   html+=`</table>`;
   if(d.guestFallback){html+=`<div class="copy-note" style="margin-top:12px">⚠️ Nome recuperato da lista ospiti — dati booker assenti su Amenitiz</div>`;}
+  if(d.mismatch){html+=`<div class="copy-note" style="margin-top:12px">⚠️ Prenotante (${d.nome}) diverso dall'ospite (${d.guestNome}) — verifica nome e telefono su Amenitiz. Il messaggio è stato generato senza nome.</div>`;}
   html+=`<div class="modal-actions" style="margin-top:14px"><button class="m-cancel" onclick="chiudiInfo()">Chiudi</button></div>`;
   box.innerHTML=html;
   document.getElementById("infoModal").classList.add("show");
@@ -566,8 +640,240 @@ function vaiA(giorniDopo){
   caricaData();
 }
 
+
+// ====== DISPONIBILITÀ & PREZZI ======
+const ROOM_MAP = {
+  "c3c60864-c3f3-46f9-a769-dfc751fb82b6": {nome:"Appartamento 4 pax",       col:"#e0a92e", struttura:"Campaldino"},
+  "98aa5f1e-ce0f-4599-97a6-f93854d1a56f": {nome:"Tripla Standard",           col:"#7a5230", struttura:"Campaldino"},
+  "100441b2-c3c1-44dd-9216-54b685540030": {nome:"Matrimoniale Standard",     col:"#b03a2e", struttura:"Campaldino"},
+  "dd569122-7dfd-42dd-a8e0-65ed5d75ed70": {nome:"Matrimoniale Superior",     col:"#5c6b52", struttura:"Lorenzo"},
+  "10bf4893-7907-4894-8b6c-67f3df0734f6": {nome:"Matrimoniale con Terrazza", col:"#5b8fb0", struttura:"Lorenzo"},
+  "5cfc1387-8c05-43f0-8cb3-489d76397124": {nome:"Economy Double",            col:"#86868b", struttura:"Lorenzo"},
+};
+// ordine di visualizzazione
+const ROOM_ORDER = [
+  "c3c60864-c3f3-46f9-a769-dfc751fb82b6",
+  "98aa5f1e-ce0f-4599-97a6-f93854d1a56f",
+  "100441b2-c3c1-44dd-9216-54b685540030",
+  "dd569122-7dfd-42dd-a8e0-65ed5d75ed70",
+  "10bf4893-7907-4894-8b6c-67f3df0734f6",
+  "5cfc1387-8c05-43f0-8cb3-489d76397124",
+];
+
+// ── CALENDARIO RANGE ──
+let calAnno, calMese, calFrom=null, calTo=null, calStep=0;
+const MESI_CAL=["Gennaio","Febbraio","Marzo","Aprile","Maggio","Giugno","Luglio","Agosto","Settembre","Ottobre","Novembre","Dicembre"];
+const GG_CAL=["Lu","Ma","Me","Gi","Ve","Sa","Do"];
+
+function calIso(d){return d.toISOString().slice(0,10);}
+function calDaIso(s){const[y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d);}
+function calFormatta(s){const d=calDaIso(s);return `${d.getDate()} ${MESI_CAL[d.getMonth()].slice(0,3)} ${d.getFullYear()}`;}
+
+function calDisegna(){
+  const titolo=document.getElementById("calTitolo");
+  const grid=document.getElementById("calGrid");
+  titolo.textContent=`${MESI_CAL[calMese]} ${calAnno}`;
+  const oggi=calIso(new Date());
+  let html="";
+  GG_CAL.forEach(g=>{ html+=`<div class="cal-gi">${g}</div>`; });
+  const primoGiorno=new Date(calAnno,calMese,1);
+  const offset=(primoGiorno.getDay()+6)%7;
+  for(let i=0;i<offset;i++) html+=`<div class="cal-vuoto"></div>`;
+  const giorniMese=new Date(calAnno,calMese+1,0).getDate();
+  for(let g=1;g<=giorniMese;g++){
+    const iso=`${calAnno}-${String(calMese+1).padStart(2,"0")}-${String(g).padStart(2,"0")}`;
+    const isPast=iso<oggi;
+    let cls="cal-day";
+    if(isPast) cls+=" cal-past";
+    else if(calFrom&&calTo&&iso>calFrom&&iso<calTo) cls+=" sel-range";
+    else if(iso===calFrom||iso===calTo) cls+=" sel-start";
+    html+=`<div class="${cls}" data-iso="${iso}">${g}</div>`;
+  }
+  grid.innerHTML=html;
+  grid.onclick=function(e){
+    const iso=e.target.dataset.iso;
+    if(iso&&!e.target.classList.contains("cal-past")) calClick(iso);
+  };
+  aggiornaSelLabel();
+}
+
+function aggiornaSelLabel(){
+  const el=document.getElementById("calSelezione");
+  const hint=document.getElementById("dispHint");
+  if(!calFrom&&!calTo){
+    el.textContent="Nessuna data selezionata";
+    hint.innerHTML="Tocca il giorno di <b>arrivo</b>, poi quello di <b>partenza</b>.";
+  } else if(calFrom&&!calTo){
+    el.textContent=`Arrivo: ${calFormatta(calFrom)} — seleziona la partenza`;
+    hint.innerHTML="Ora tocca il giorno di <b>partenza</b>.";
+  } else {
+    const notti=Math.round((calDaIso(calTo)-calDaIso(calFrom))/(1000*60*60*24));
+    const label=notti===1?"notte":"notti";
+    el.textContent=`${calFormatta(calFrom)} → ${calFormatta(calTo)} (${notti} ${label})`;
+    hint.innerHTML="Tocca <b>Cerca</b> oppure modifica il periodo.";
+  }
+}
+
+function calClick(iso){
+  if(calStep===0||calTo){
+    calFrom=iso; calTo=null; calStep=1;
+  } else {
+    if(iso<=calFrom){calFrom=iso;calStep=1;calTo=null;}
+    else{calTo=iso;calStep=0;}
+  }
+  calDisegna();
+}
+
+function calSposta(dir){
+  calMese+=dir;
+  if(calMese>11){calMese=0;calAnno++;}
+  if(calMese<0){calMese=11;calAnno--;}
+  calDisegna();
+}
+function apriDisp(){
+  const oggi=new Date();
+  calAnno=oggi.getFullYear(); calMese=oggi.getMonth();
+  calFrom=null; calTo=null; calStep=0;
+  document.getElementById("dispResult").innerHTML="";
+  document.getElementById("dispModal").classList.add("show");
+  calDisegna();
+}
+function chiudiDisp(){document.getElementById("dispModal").classList.remove("show");}
+
+async function cercaDisp(){
+  const from     = calFrom;
+  const to       = calTo;
+  const persone  = parseInt(document.getElementById("dispPersone").value)||2;
+  const res      = document.getElementById("dispResult");
+  if(!from||!to){res.innerHTML='<div class="disp-status">Seleziona arrivo e partenza sul calendario.</div>';return;}
+
+  const notti = Math.round((new Date(to)-new Date(from))/(1000*60*60*24));
+  if(notti<=0){res.innerHTML='<div class="disp-status">Data fine precedente alla data inizio.</div>';return;}
+  if(notti>30){res.innerHTML='<div class="disp-status">Periodo massimo 30 giorni.</div>';return;}
+
+  res.innerHTML='<div class="disp-status">Carico disponibilità e prezzi…</div>';
+
+  try{
+    // L'endpoint prezzi vuole le date delle notti (from inclusa, to esclusa = giorno checkout)
+    const [rAvail, rPrices] = await Promise.all([
+      fetch(`${WORKER}/?action=availabilities&from=${from}&to=${to}`).then(r=>r.json()),
+      fetch(`${WORKER}/?action=prices&from=${from}&to=${to}`).then(r=>r.json()),
+    ]);
+
+    // Indice availability: room_id -> date -> availability
+    const avail = {};
+    (rAvail.availabilities||[]).forEach(a=>{
+      if(!avail[a.room_id]) avail[a.room_id]={};
+      avail[a.room_id][a.date]=a.availability;
+    });
+
+    // Indice prezzi: room_id -> date -> price
+    const prices = {};
+    (rPrices.rate_prices||[]).forEach(rp=>{
+      if(!prices[rp.room_id]) prices[rp.room_id]={};
+      (rp.prices||[]).forEach(p=>{ prices[rp.room_id][p.date]=p.price; });
+    });
+
+    // Date delle notti (dal from al giorno prima del to)
+    const dates = [];
+    const cur = new Date(from);
+    const end = new Date(to);
+    while(cur < end){ dates.push(cur.toISOString().slice(0,10)); cur.setDate(cur.getDate()+1); }
+
+    const TASSA_NOTTE = 5; // €5 per persona per notte (max 10 notti)
+    const nottiTassa  = Math.min(notti, 10);
+    const tassaTot    = TASSA_NOTTE * persone * nottiTassa;
+
+    let html = "";
+    let trovate = 0;
+
+    ROOM_ORDER.forEach(rid=>{
+      const info = ROOM_MAP[rid];
+      if(!info) return;
+      const av = avail[rid]||{};
+      const pr = prices[rid]||{};
+
+      // Libera solo se TUTTE le notti hanno availability > 0
+      const tutteLiberee = dates.every(d=>(av[d]||0)>0);
+      if(!tutteLiberee) return; // non mostrare le occupate
+
+      // Somma prezzi di tutte le notti
+      const prezzoCamera = dates.reduce((sum,d)=>sum+(pr[d]||0),0);
+      const hasSconto = notti >= 3;
+      const sconto = hasSconto ? Math.round(prezzoCamera * 0.08) : 0;
+      const prezzoCameraFinale = prezzoCamera - sconto;
+      const totale = prezzoCameraFinale + tassaTot;
+
+      trovate++;
+      const rigaSconto = hasSconto
+        ? `<div class="disp-riga disp-sconto"><span>Sconto min. 3 notti (-8%)</span><span>-€${sconto}</span></div>`
+        : "";
+      html += `<div class="disp-card">
+        <div class="disp-card-top">
+          <div class="disp-cam-name">
+            <span class="disp-pip" style="background:${info.col}"></span>
+            ${info.nome}
+            <span style="font-size:11px;color:var(--muted);font-weight:400">${info.struttura}</span>
+          </div>
+        </div>
+        <div class="disp-totali">
+          <div class="disp-riga"><span>Camera (${notti} notti)</span><span>€${prezzoCamera}</span></div>
+          ${rigaSconto}
+          <div class="disp-riga"><span>Tassa soggiorno (${persone}×${nottiTassa} notti)</span><span>€${tassaTot}</span></div>
+          <div class="disp-riga disp-totale"><span>Totale</span><span>€${totale}</span></div>
+        </div>
+      </div>`;
+    });
+
+    if(trovate===0){
+      html='<div class="disp-status">Nessuna camera disponibile per il periodo selezionato.</div>';
+    } else {
+      html+=`<div class="disp-note">${trovate} camera${trovate>1?'e':''} disponibil${trovate>1?'i':'e'} · check-in ${from} · check-out ${to} · ${persone} person${persone>1?'e':'a'}</div>`;
+    }
+
+    res.innerHTML = html;
+
+  }catch(e){
+    res.innerHTML=`<div class="disp-status">Errore: ${e.message}</div>`;
+  }
+}
+
 // avvio: mostra domani
 vaiA(1);
 </script>
+  </div>
+</div>
+
+
+<!-- ====== MODAL DISPONIBILITÀ & PREZZI ====== -->
+<div class="disp-modal-bg" id="dispModal">
+  <div class="disp-sheet">
+    <h3>📅 Disponibilità &amp; Prezzi</h3>
+    <p id="dispHint">Tocca il giorno di <b>arrivo</b>, poi quello di <b>partenza</b>.</p>
+    <div class="cal-wrap">
+      <div class="cal-nav">
+        <button class="cal-nav-btn" onclick="calSposta(-1)">‹</button>
+        <span class="cal-titolo" id="calTitolo"></span>
+        <button class="cal-nav-btn" onclick="calSposta(1)">›</button>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+      <div class="cal-selezione" id="calSelezione">Nessuna data selezionata</div>
+    </div>
+    <div class="disp-row" style="margin-top:12px">
+      <select id="dispPersone" style="flex:1;font-family:var(--sysfont);font-size:15px;padding:11px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);">
+        <option value="1">1 persona</option>
+        <option value="2" selected>2 persone</option>
+        <option value="3">3 persone</option>
+        <option value="4">4 persone</option>
+        <option value="5">5 persone</option>
+        <option value="6">6 persone</option>
+      </select>
+      <button class="btn" onclick="cercaDisp()">Cerca</button>
+    </div>
+    <div class="disp-result" id="dispResult"></div>
+    <button class="btn sec" style="width:100%;margin-top:14px" onclick="chiudiDisp()">Chiudi</button>
+  </div>
+</div>
+
 </body>
 </html>
