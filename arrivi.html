@@ -131,6 +131,18 @@
   .disp-totale span{font-size:16px!important;font-weight:700!important;color:var(--ink)!important;}
   .disp-sconto span{color:var(--sage)!important;}
   .disp-sconto span:last-child{font-weight:700!important;}
+  .orario-chip{display:inline-flex;align-items:center;font-size:11px;font-weight:600;padding:3px 8px;border-radius:6px;background:var(--paper);border:1.5px solid var(--line);color:var(--muted);cursor:pointer;user-select:none;}
+  .orario-chip.set{color:var(--sage);border-color:var(--sage);background:#f0f4ee;}
+  .orario-chip:active{filter:brightness(0.93);}
+  .orario-modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.4);display:none;align-items:center;justify-content:center;z-index:300;padding:20px;}
+  .orario-modal-bg.show{display:flex;}
+  .orario-modal{background:var(--card);border-radius:18px;padding:24px;max-width:300px;width:100%;box-shadow:0 10px 40px rgba(0,0,0,0.2);}
+  .orario-modal h3{font-size:17px;font-weight:600;margin-bottom:16px;}
+  .orario-selects{display:flex;align-items:center;gap:10px;justify-content:center;margin-bottom:20px;}
+  .orario-sel{font-family:var(--sysfont);font-size:22px;font-weight:700;padding:10px 8px;border:1.5px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);text-align:center;width:80px;}
+  .orario-sep{font-size:24px;font-weight:700;color:var(--ink);}
+  .orario-actions{display:flex;gap:8px;}
+  .orario-actions button{flex:1;border:none;border-radius:10px;font-weight:600;font-size:15px;padding:12px;cursor:pointer;font-family:var(--sysfont);}
   @media(prefers-reduced-motion:reduce){*{transition:none!important;}}
 </style>
 </head>
@@ -543,12 +555,16 @@ function render(iso,bookings){
       guestFallback, mismatch, guestNome
     };
 
+    // orario arrivo salvato
+    const orarioSalvato = orariMap[String(b.booking_id)] || "";
+
     card.innerHTML=`<div class="card-top">
         <div class="name${noNome?' nome-ignoto':''}" onclick="apriInfo(${i})">${noNome?'⚠️ Verifica su Amenitiz':`${nome} ${cognome}`} ${noNome?'':('<span class="flag">'+FLAGS[lng]+'</span>')} <span class="info-dot">ⓘ</span></div>
         <div class="room-badge${isLorenzo?' lm':''}">${roomLabel}</div>
       </div>
-      <div class="meta"><span><b>${struttura}</b></span><span>${iso} → ${b.checkout||""}</span>${badgeCanale(source)}</div>
-      ${action}`;
+      <div class="meta"><span><b>${struttura}</b></span><span>${iso} → ${b.checkout||""}</span>${badgeCanale(source)}<span class="orario-chip" onclick="apriOrarioModal(${i},${b.booking_id},'${iso}')">${orarioSalvato?("🕐 "+orarioSalvato):"🕐 orario"}</span></div>
+      ${action}
+`;
     list.appendChild(card);
   });
 }
@@ -617,6 +633,8 @@ function apriInfo(i){
 }
 function chiudiInfo(){document.getElementById("infoModal").classList.remove("show");}
 
+let orariMap = {};
+
 async function caricaData(){
   const iso=document.getElementById("dateInput").value;
   if(!iso){return;}
@@ -624,13 +642,83 @@ async function caricaData(){
   document.getElementById("daytitle").textContent="";
   list.innerHTML='<div class="status">Carico gli arrivi…</div>';
   try{
-    const r=await fetch(`${WORKER}/?date=${iso}`);
-    const data=await r.json();
-    if(data.error){list.innerHTML=`<div class="status">Errore: ${data.error} (${data.status||''})</div>`;return;}
-    render(iso,data.bookings||[]);
+    // carica arrivi e orari in parallelo
+    const [rArrivi, rOrari] = await Promise.all([
+      fetch(`${WORKER}/?date=${iso}`).then(r=>r.json()),
+      fetch(`${WORKER}/?action=getOrari&date=${iso}`).then(r=>r.json()).catch(()=>({orari:{}})),
+    ]);
+    if(rArrivi.error){list.innerHTML=`<div class="status">Errore: ${rArrivi.error} (${rArrivi.status||''})</div>`;return;}
+    orariMap = rOrari.orari || {};
+    render(iso,rArrivi.bookings||[]);
   }catch(e){
     list.innerHTML=`<div class="status">Impossibile contattare il server.<br>${e.message}</div>`;
   }
+}
+
+// ── MODAL ORARIO ──
+let orarioCtx = {i:null, bookingId:null, date:null};
+
+function apriOrarioModal(i, bookingId, date){
+  orarioCtx = {i, bookingId, date};
+  // popola ore
+  const selOre = document.getElementById("orarioOre");
+  const selMin = document.getElementById("orarioMinuti");
+  selOre.innerHTML = "";
+  for(let h=6;h<=23;h++){
+    const opt=document.createElement("option");
+    opt.value=String(h).padStart(2,"0");
+    opt.textContent=String(h).padStart(2,"0");
+    selOre.appendChild(opt);
+  }
+  selMin.innerHTML = "";
+  ["00","15","30","45"].forEach(m=>{
+    const opt=document.createElement("option");
+    opt.value=m; opt.textContent=m;
+    selMin.appendChild(opt);
+  });
+  // preseleziona orario salvato se esiste
+  const saved = orariMap[String(bookingId)];
+  if(saved){
+    const [h,m]=saved.split(":");
+    selOre.value=h;
+    selMin.value=m;
+  } else {
+    selOre.value="14";
+    selMin.value="00";
+  }
+  document.getElementById("orarioModal").classList.add("show");
+}
+
+function chiudiOrarioModal(){
+  document.getElementById("orarioModal").classList.remove("show");
+}
+
+async function confermaOrario(){
+  const ore = document.getElementById("orarioOre").value;
+  const min = document.getElementById("orarioMinuti").value;
+  const orario = `${ore}:${min}`;
+  const {i, bookingId, date} = orarioCtx;
+  chiudiOrarioModal();
+  try{
+    const r = await fetch(`${WORKER}/?action=setOrario&booking_id=${bookingId}&date=${date}&orario=${encodeURIComponent(orario)}`);
+    const d = await r.json();
+    if(d.ok){
+      orariMap[String(bookingId)] = orario;
+      const cards = document.querySelectorAll(".orario-chip");
+      if(cards[i]){cards[i].textContent="🕐 "+orario;cards[i].classList.add("set");}
+    }
+  }catch(e){console.error("Errore salvataggio orario:",e);}
+}
+
+async function cancellaOrario(){
+  const {i, bookingId, date} = orarioCtx;
+  chiudiOrarioModal();
+  try{
+    await fetch(`${WORKER}/?action=setOrario&booking_id=${bookingId}&date=${date}&orario=`);
+    delete orariMap[String(bookingId)];
+    const cards = document.querySelectorAll(".orario-chip");
+    if(cards[i]){cards[i].textContent="🕐 orario";cards[i].classList.remove("set");}
+  }catch(e){console.error("Errore rimozione orario:",e);}
 }
 
 function vaiA(giorniDopo){
@@ -844,6 +932,23 @@ vaiA(1);
   </div>
 </div>
 
+
+<!-- ====== MODAL ORARIO ARRIVO ====== -->
+<div class="orario-modal-bg" id="orarioModal">
+  <div class="orario-modal">
+    <h3>🕐 Orario di arrivo</h3>
+    <div class="orario-selects">
+      <select class="orario-sel" id="orarioOre"></select>
+      <span class="orario-sep">:</span>
+      <select class="orario-sel" id="orarioMinuti"></select>
+    </div>
+    <div class="orario-actions">
+      <button class="m-cancel" onclick="chiudiOrarioModal()">Annulla</button>
+      <button style="flex:1;border:none;border-radius:10px;font-weight:600;font-size:15px;padding:12px;cursor:pointer;font-family:var(--sysfont);background:#fce4ec;color:#c62828;" onclick="cancellaOrario()">🗑 Rimuovi</button>
+      <button class="m-ok" onclick="confermaOrario()">Salva</button>
+    </div>
+  </div>
+</div>
 
 <!-- ====== MODAL DISPONIBILITÀ & PREZZI ====== -->
 <div class="disp-modal-bg" id="dispModal">
