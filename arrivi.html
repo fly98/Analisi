@@ -131,9 +131,11 @@
   .disp-totale span{font-size:16px!important;font-weight:700!important;color:var(--ink)!important;}
   .disp-sconto span{color:var(--sage)!important;}
   .disp-sconto span:last-child{font-weight:700!important;}
-  .orario-chip{display:inline-flex;align-items:center;font-size:11px;font-weight:600;padding:3px 8px;border-radius:6px;background:var(--paper);border:1.5px solid var(--line);color:var(--muted);cursor:pointer;user-select:none;}
+  .orario-chip,.nota-chip{display:inline-flex;align-items:center;font-size:11px;font-weight:600;padding:3px 8px;border-radius:6px;background:var(--paper);border:1.5px solid var(--line);color:var(--muted);cursor:pointer;user-select:none;}
+  .nota-chip.set{color:var(--terra);border-color:var(--terra);background:#fdf0ec;font-weight:700;}
+  .orario-chip:active,.nota-chip:active{filter:brightness(0.93);}
   .orario-chip.set{color:var(--sage);border-color:var(--sage);background:#f0f4ee;}
-  .orario-chip:active{filter:brightness(0.93);}
+  .nota-textarea{width:100%;font-family:var(--sysfont);font-size:15px;padding:12px;border:1.5px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);resize:none;height:120px;margin-bottom:16px;}
   .orario-modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.4);display:none;align-items:center;justify-content:center;z-index:300;padding:20px;}
   .orario-modal-bg.show{display:flex;}
   .orario-modal{background:var(--card);border-radius:18px;padding:24px;max-width:300px;width:100%;box-shadow:0 10px 40px rgba(0,0,0,0.2);}
@@ -143,6 +145,7 @@
   .orario-sep{font-size:24px;font-weight:700;color:var(--ink);}
   .orario-actions{display:flex;gap:8px;}
   .orario-actions button{flex:1;border:none;border-radius:10px;font-weight:600;font-size:15px;padding:12px;cursor:pointer;font-family:var(--sysfont);}
+  .nota-preview{font-size:11.5px;color:var(--muted);margin-top:8px;padding:6px 10px;background:var(--paper);border-radius:8px;border-left:3px solid var(--terra);line-height:1.4;word-break:break-word;}
   @media(prefers-reduced-motion:reduce){*{transition:none!important;}}
 </style>
 </head>
@@ -208,6 +211,11 @@ const GIORNI=["domenica","lunedì","martedì","mercoledì","giovedì","venerdì"
 const FLAGS={it:"🇮🇹",en:"🇬🇧",es:"🇪🇸",fr:"🇫🇷",pt:"🇵🇹",de:"🇩🇪",zh:"🇨🇳"};
 
 function dataLunga(iso){const[y,m,d]=iso.split("-").map(Number);const dt=new Date(y,m-1,d);return `${GIORNI[dt.getDay()]} ${d} ${MESI[m]} ${y}`;}
+function dataCompatta(iso){
+  if(!iso)return"";
+  const[y,m,d]=iso.split("-");
+  return `${d}/${m}`;
+}
 function dataBreve(iso){const[y,m,d]=iso.split("-").map(Number);return `${d} ${MESI[m]}`;}
 
 function lingua(language,phone){
@@ -557,14 +565,21 @@ function render(iso,bookings){
 
     // orario arrivo salvato
     const orarioSalvato = orariMap[String(b.booking_id)] || "";
+    const notaSalvata = noteMap[String(b.booking_id)] || "";
 
     card.innerHTML=`<div class="card-top">
         <div class="name${noNome?' nome-ignoto':''}" onclick="apriInfo(${i})">${noNome?'⚠️ Verifica su Amenitiz':`${nome} ${cognome}`} ${noNome?'':('<span class="flag">'+FLAGS[lng]+'</span>')} <span class="info-dot">ⓘ</span></div>
         <div class="room-badge${isLorenzo?' lm':''}">${roomLabel}</div>
       </div>
-      <div class="meta"><span><b>${struttura}</b></span><span>${iso} → ${b.checkout||""}</span>${badgeCanale(source)}<span class="orario-chip" onclick="apriOrarioModal(${i},${b.booking_id},'${iso}')">${orarioSalvato?("🕐 "+orarioSalvato):"🕐 orario"}</span></div>
+      <div class="meta"><span>${dataCompatta(iso)} → ${dataCompatta(b.checkout||"")}</span>${badgeCanale(source)}<span class="orario-chip${orarioSalvato?" set":""}" onclick="apriOrarioModal(${i},${b.booking_id},'${iso}')">${orarioSalvato?"🕐 "+orarioSalvato:"🕐 orario"}</span><span class="nota-chip${notaSalvata?" set":""}" onclick="apriNotaModal(${i},${b.booking_id},'${iso}')">${notaSalvata?"📝 note":"📝 note"}</span></div>
       ${action}
 `;
+    if(notaSalvata){
+      const prev=document.createElement('div');
+      prev.className='nota-preview';
+      prev.textContent=notaSalvata;
+      card.appendChild(prev);
+    }
     list.appendChild(card);
   });
 }
@@ -634,6 +649,7 @@ function apriInfo(i){
 function chiudiInfo(){document.getElementById("infoModal").classList.remove("show");}
 
 let orariMap = {};
+let noteMap = {};
 
 async function caricaData(){
   const iso=document.getElementById("dateInput").value;
@@ -643,12 +659,14 @@ async function caricaData(){
   list.innerHTML='<div class="status">Carico gli arrivi…</div>';
   try{
     // carica arrivi e orari in parallelo
-    const [rArrivi, rOrari] = await Promise.all([
+    const [rArrivi, rOrari, rNote] = await Promise.all([
       fetch(`${WORKER}/?date=${iso}`).then(r=>r.json()),
       fetch(`${WORKER}/?action=getOrari&date=${iso}`).then(r=>r.json()).catch(()=>({orari:{}})),
+      fetch(`${WORKER}/?action=getNote&date=${iso}`).then(r=>r.json()).catch(()=>({note:{}})),
     ]);
     if(rArrivi.error){list.innerHTML=`<div class="status">Errore: ${rArrivi.error} (${rArrivi.status||''})</div>`;return;}
     orariMap = rOrari.orari || {};
+    noteMap = rNote.note || {};
     render(iso,rArrivi.bookings||[]);
   }catch(e){
     list.innerHTML=`<div class="status">Impossibile contattare il server.<br>${e.message}</div>`;
@@ -747,6 +765,55 @@ const ROOM_ORDER = [
   "10bf4893-7907-4894-8b6c-67f3df0734f6",
   "5cfc1387-8c05-43f0-8cb3-489d76397124",
 ];
+
+// ── MODAL NOTA ──
+let notaCtx = {i:null, bookingId:null, date:null};
+
+function apriNotaModal(i, bookingId, date){
+  notaCtx = {i, bookingId, date};
+  const saved = noteMap[String(bookingId)] || "";
+  document.getElementById("notaText").value = saved;
+  document.getElementById("notaModal").classList.add("show");
+  setTimeout(()=>document.getElementById("notaText").focus(), 100);
+}
+function chiudiNotaModal(){
+  document.getElementById("notaModal").classList.remove("show");
+}
+async function salvaNota(){
+  const nota = document.getElementById("notaText").value.trim();
+  if(!nota){await cancellaNotaModal();return;}
+  const {i, bookingId, date} = notaCtx;
+  chiudiNotaModal();
+  try{
+    await fetch(`${WORKER}/?action=setNota&booking_id=${bookingId}&date=${date}&nota=${encodeURIComponent(nota)}`);
+    noteMap[String(bookingId)] = nota;
+    const chips = document.querySelectorAll(".nota-chip");
+    if(chips[i]){chips[i].classList.add("set");}
+    // aggiorna anteprima nota sulla card
+    const cards = document.querySelectorAll(".card");
+    if(cards[i]){
+      let prev = cards[i].querySelector(".nota-preview");
+      if(!prev){prev=document.createElement("div");prev.className="nota-preview";cards[i].appendChild(prev);}
+      prev.textContent=nota;
+    }
+  }catch(e){console.error("Errore salvataggio nota:",e);}
+}
+async function cancellaNotaModal(){
+  const {i, bookingId, date} = notaCtx;
+  chiudiNotaModal();
+  try{
+    await fetch(`${WORKER}/?action=deleteNota&booking_id=${bookingId}&date=${date}`);
+    delete noteMap[String(bookingId)];
+    const chips = document.querySelectorAll(".nota-chip");
+    if(chips[i]){chips[i].classList.remove("set");}
+    // rimuovi anteprima nota dalla card
+    const cards = document.querySelectorAll(".card");
+    if(cards[i]){
+      const prev = cards[i].querySelector(".nota-preview");
+      if(prev) prev.remove();
+    }
+  }catch(e){console.error("Errore rimozione nota:",e);}
+}
 
 // ── CALENDARIO RANGE ──
 let calAnno, calMese, calFrom=null, calTo=null, calStep=0;
@@ -946,6 +1013,19 @@ vaiA(1);
       <button class="m-cancel" onclick="chiudiOrarioModal()">Annulla</button>
       <button style="flex:1;border:none;border-radius:10px;font-weight:600;font-size:15px;padding:12px;cursor:pointer;font-family:var(--sysfont);background:#fce4ec;color:#c62828;" onclick="cancellaOrario()">🗑 Rimuovi</button>
       <button class="m-ok" onclick="confermaOrario()">Salva</button>
+    </div>
+  </div>
+</div>
+
+<!-- ====== MODAL NOTA ====== -->
+<div class="orario-modal-bg" id="notaModal">
+  <div class="orario-modal">
+    <h3>📝 Note prenotazione</h3>
+    <textarea class="nota-textarea" id="notaText" placeholder="Inserisci una nota…"></textarea>
+    <div class="orario-actions">
+      <button class="m-cancel" onclick="chiudiNotaModal()">Annulla</button>
+      <button style="flex:1;border:none;border-radius:10px;font-weight:600;font-size:15px;padding:12px;cursor:pointer;font-family:var(--sysfont);background:#fce4ec;color:#c62828;" onclick="cancellaNotaModal()">🗑 Rimuovi</button>
+      <button class="m-ok" onclick="salvaNota()">Salva</button>
     </div>
   </div>
 </div>
