@@ -714,7 +714,7 @@ async function cancellaOrario(){
   const {i, bookingId, date} = orarioCtx;
   chiudiOrarioModal();
   try{
-    await fetch(`${WORKER}/?action=setOrario&booking_id=${bookingId}&date=${date}&orario=`);
+    await fetch(`${WORKER}/?action=deleteOrario&booking_id=${bookingId}&date=${date}`);
     delete orariMap[String(bookingId)];
     const cards = document.querySelectorAll(".orario-chip");
     if(cards[i]){cards[i].textContent="🕐 orario";cards[i].classList.remove("set");}
