@@ -569,7 +569,7 @@ function render(iso,bookings){
 
     card.innerHTML=`<div class="card-top">
         <div class="name${noNome?' nome-ignoto':''}" onclick="apriInfo(${i})">${noNome?'⚠️ Verifica su Amenitiz':`${nome} ${cognome}`} ${noNome?'':('<span class="flag">'+FLAGS[lng]+'</span>')} <span class="info-dot">ⓘ</span></div>
-        <div class="room-badge${isLorenzo?' lm':''}">${roomLabel}</div>
+        ${numeroValido(phone)?`<a class="room-badge${isLorenzo?' lm':''}" href="whatsapp://send?phone=${phone.replace(/[\s-]/g,'').replace('+','')}" style="text-decoration:none">${roomLabel}</a>`:`<div class="room-badge${isLorenzo?' lm':''}">${roomLabel}</div>`}
       </div>
       <div class="meta"><span>${dataCompatta(iso)} → ${dataCompatta(b.checkout||"")}</span>${badgeCanale(source)}<span class="orario-chip${orarioSalvato?" set":""}" onclick="apriOrarioModal(${i},${b.booking_id},'${iso}')">${orarioSalvato?"🕐 "+orarioSalvato:"🕐 orario"}</span><span class="nota-chip${notaSalvata?" set":""}" onclick="apriNotaModal(${i},${b.booking_id},'${iso}')">${notaSalvata?"📝 note":"📝 note"}</span></div>
       ${action}
