@@ -317,9 +317,11 @@ export default {
         ));
         const allBookings = fetched.flat();
 
+        const includeCancelled = url.searchParams.get("include_cancelled") === "true";
         const futuri = allBookings.filter(b => {
           const s = (b.status || "").toLowerCase();
-          if (s === "cancelled" || s === "canceled") return false;
+          // Se include_cancelled=true, teniamo tutto (snapshot storico)
+          if (!includeCancelled && (s === "cancelled" || s === "canceled")) return false;
           return (b.checkin || "") > futureFrom;
         });
         const perMese = {};
