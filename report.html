@@ -179,37 +179,72 @@ function isoDate(d) {
 }
 
 async function fetchRicavi(anno) {
-  // Da luglio 2023 per il primo anno, 1 gennaio per gli altri
+  // Chunk mensili in parallelo — l'API Amenitiz accetta max 1 mese per chiamata
   const primoMese = (anno === PRIMO_ANNO) ? PRIMO_MESE_PRIMO_ANNO : 1;
-  const from = `${anno}-${String(primoMese).padStart(2,'0')}-01`;
-  // Fino a fine anno, ma se è l'anno corrente ci fermiamo al giorno corrente
-  let to;
-  if (anno === curYear) {
-    to = isoDate(oggi);
-  } else {
-    to = `${anno}-12-31`;
+  const ultimoMese = (anno === curYear) ? curMonth : 12;
+  const ultimoGiorno = (anno === curYear) ? curDay : null;
+
+  const mesi = [];
+  for (let m = primoMese; m <= ultimoMese; m++) {
+    const from = `${anno}-${String(m).padStart(2,'0')}-01`;
+    const lastDay = new Date(anno, m, 0).getDate();
+    const toDay = (anno === curYear && m === curMonth) ? curDay : lastDay;
+    const to = `${anno}-${String(m).padStart(2,'0')}-${String(toDay).padStart(2,'0')}`;
+    mesi.push({ from, to });
   }
-  const r = await fetch(`${WORKER}?action=reportRicavi&from=${from}&to=${to}`);
-  if (!r.ok) throw new Error(`reportRicavi ${anno}: HTTP ${r.status}`);
-  return r.json();
+
+  const results = await Promise.all(mesi.map(async ({ from, to }) => {
+    const r = await fetch(`${WORKER}?action=reportRicavi&from=${from}&to=${to}`);
+    if (!r.ok) return { mensile: {}, totalBookings: 0, totalNotti: 0 };
+    return r.json();
+  }));
+
+  // Unisci tutti i risultati mensili
+  const mensile = {};
+  let totalBookings = 0, totalNotti = 0;
+  for (const res of results) {
+    totalBookings += res.totalBookings || 0;
+    totalNotti += res.totalNotti || 0;
+    Object.assign(mensile, res.mensile || {});
+  }
+  return { mensile, totalBookings, totalNotti };
 }
 
 async function fetchWindow(anno) {
-  // "Visti da oggi" ma per quell'anno:
-  // - created_from: 1 gennaio di quell'anno (o luglio 2023 se è il primo anno)
-  // - created_to: stesso giorno/mese ma di quell'anno
-  // - future_from: stesso giorno/mese di quell'anno (checkin > questa data)
+  // Chunk mensili in parallelo per created — stesso limite API
   const primoMese = (anno === PRIMO_ANNO) ? PRIMO_MESE_PRIMO_ANNO : 1;
-  const createdFrom = `${anno}-${String(primoMese).padStart(2,'0')}-01`;
-
-  // "Oggi" ma dell'anno di riferimento
   const cutoffAnno = `${anno}-${String(curMonth).padStart(2,'0')}-${String(curDay).padStart(2,'0')}`;
 
-  // created_to non può superare la data reale se anno=curYear (già ok)
-  // Per anni passati è una data passata, quindi l'API restituisce solo prenotazioni create entro quella data
-  const r = await fetch(`${WORKER}?action=reportWindow&created_from=${createdFrom}&created_to=${cutoffAnno}&future_from=${cutoffAnno}`);
-  if (!r.ok) throw new Error(`reportWindow ${anno}: HTTP ${r.status}`);
-  return r.json();
+  const mesi = [];
+  for (let m = primoMese; m <= curMonth; m++) {
+    const from = `${anno}-${String(m).padStart(2,'0')}-01`;
+    const lastDay = new Date(anno, m, 0).getDate();
+    const toDay = (m === curMonth) ? curDay : lastDay;
+    const to = `${anno}-${String(m).padStart(2,'0')}-${String(toDay).padStart(2,'0')}`;
+    mesi.push({ from, to });
+  }
+
+  const results = await Promise.all(mesi.map(async ({ from, to }) => {
+    const r = await fetch(`${WORKER}?action=reportWindow&created_from=${from}&created_to=${to}&future_from=${cutoffAnno}`);
+    if (!r.ok) return { perMese: {}, totalPrenotazioni: 0, totalRicavi: 0, totalNotti: 0 };
+    return r.json();
+  }));
+
+  // Unisci risultati
+  const perMese = {};
+  let totalPrenotazioni = 0, totalRicavi = 0, totalNotti = 0;
+  for (const res of results) {
+    totalPrenotazioni += res.totalPrenotazioni || 0;
+    totalRicavi += res.totalRicavi || 0;
+    totalNotti += res.totalNotti || 0;
+    for (const [k, v] of Object.entries(res.perMese || {})) {
+      if (!perMese[k]) perMese[k] = { prenotazioni: 0, ricavi: 0, notti: 0 };
+      perMese[k].prenotazioni += v.prenotazioni || 0;
+      perMese[k].ricavi += v.ricavi || 0;
+      perMese[k].notti += v.notti || 0;
+    }
+  }
+  return { perMese, totalPrenotazioni, totalRicavi, totalNotti };
 }
 
 async function loadAll() {
