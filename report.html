@@ -117,7 +117,7 @@ tr.total-row td{font-weight:600;background:var(--card2);border-top:1px solid var
   </div>
 
   <!-- ===== SEZIONE 2: BOOKING WINDOW ===== -->
-  <div class="section-title">Prenotazioni future al <span id="cutoff-label">oggi</span> — confronto anni</div>
+  <div class="section-title">Snapshot prenotazioni al <span id="cutoff-label">oggi</span> per mesi futuri — confronto anni</div>
 
   <div class="kpi-grid" id="kpi-window"></div>
 
@@ -179,27 +179,33 @@ function isoDate(d) {
 }
 
 async function fetchRicavi(anno) {
-  // Chunk mensili in parallelo — l'API Amenitiz accetta max 1 mese per chiamata
+  // Grafico 1: tutti i 12 mesi (passati=consuntivo, futuri=provvisorio con pren. attuali)
+  // Per anni passati: solo mesi con dati (da luglio 2023)
+  // Per anno corrente: mesi passati + futuri con checkin già prenotati
   const primoMese = (anno === PRIMO_ANNO) ? PRIMO_MESE_PRIMO_ANNO : 1;
-  const ultimoMese = (anno === curYear) ? curMonth : 12;
-  const ultimoGiorno = (anno === curYear) ? curDay : null;
+  const ultimoMese = 12; // sempre tutti i mesi — futuri avranno prenotazioni già acquisite
 
   const mesi = [];
   for (let m = primoMese; m <= ultimoMese; m++) {
     const from = `${anno}-${String(m).padStart(2,'0')}-01`;
     const lastDay = new Date(anno, m, 0).getDate();
-    const toDay = (anno === curYear && m === curMonth) ? curDay : lastDay;
-    const to = `${anno}-${String(m).padStart(2,'0')}-${String(toDay).padStart(2,'0')}`;
-    mesi.push({ from, to });
+    const to = `${anno}-${String(m).padStart(2,'0')}-${String(lastDay).padStart(2,'0')}`;
+    mesi.push({ from, to, mese: m });
   }
 
-  const results = await Promise.all(mesi.map(async ({ from, to }) => {
+  const results = await Promise.all(mesi.map(async ({ from, to, mese }) => {
     const r = await fetch(`${WORKER}?action=reportRicavi&from=${from}&to=${to}`);
     if (!r.ok) return { mensile: {}, totalBookings: 0, totalNotti: 0 };
-    return r.json();
+    const d = await r.json();
+    // Marca i mesi futuri come provvisori
+    const key = `${anno}-${String(mese).padStart(2,'0')}`;
+    const oggi_key = `${curYear}-${String(curMonth).padStart(2,'0')}`;
+    if (d.mensile && d.mensile[key]) {
+      d.mensile[key].provvisorio = (anno > curYear) || (anno === curYear && key >= oggi_key);
+    }
+    return d;
   }));
 
-  // Unisci tutti i risultati mensili
   const mensile = {};
   let totalBookings = 0, totalNotti = 0;
   for (const res of results) {
@@ -211,10 +217,12 @@ async function fetchRicavi(anno) {
 }
 
 async function fetchWindow(anno) {
-  // Chunk mensili in parallelo per created — stesso limite API
+  // Grafico 2: snapshot "quante pren. avevo al 22/6 di quest'anno per i mesi futuri"
+  // USA /bookings/created senza filtrare cancelled — foto del momento, non importa cosa è successo dopo
   const primoMese = (anno === PRIMO_ANNO) ? PRIMO_MESE_PRIMO_ANNO : 1;
-  const cutoffAnno = `${anno}-${String(curMonth).padStart(2,'0')}-${String(curDay).padStart(2,'0')}`;
-
+  // Cutoff = stesso giorno/mese ma nell'anno di riferimento
+  const cutoff = `${anno}-${String(curMonth).padStart(2,'0')}-${String(curDay).padStart(2,'0')}`;
+  // Fetch chunk mensili fino al cutoff di quell'anno (created_from/to)
   const mesi = [];
   for (let m = primoMese; m <= curMonth; m++) {
     const from = `${anno}-${String(m).padStart(2,'0')}-01`;
@@ -225,12 +233,12 @@ async function fetchWindow(anno) {
   }
 
   const results = await Promise.all(mesi.map(async ({ from, to }) => {
-    const r = await fetch(`${WORKER}?action=reportWindow&created_from=${from}&created_to=${to}&future_from=${cutoffAnno}`);
+    // include_cancelled=true passa al Worker che NON filtra i cancelled
+    const r = await fetch(`${WORKER}?action=reportWindow&created_from=${from}&created_to=${to}&future_from=${cutoff}&include_cancelled=true`);
     if (!r.ok) return { perMese: {}, totalPrenotazioni: 0, totalRicavi: 0, totalNotti: 0 };
     return r.json();
   }));
 
-  // Unisci risultati
   const perMese = {};
   let totalPrenotazioni = 0, totalRicavi = 0, totalNotti = 0;
   for (const res of results) {
@@ -350,32 +358,40 @@ function renderRicavi() {
   // Per il grafico usiamo etichette mese breve
   const labelsMesi = MESI.slice(1); // Gen..Dic (12 elementi, indice 0=Gen=mese1)
 
+  const oggiKey = `${curYear}-${String(curMonth).padStart(2,'0')}`;
   const datasets = anni.map(a => {
     const col = ANNO_COLORS[a] || '#86868b';
-    const vals = [];
+    const vals = [], bgColors = [], borderColors = [], borderWidths = [];
     for (let m = 1; m <= 12; m++) {
       const key = `${a}-${String(m).padStart(2,'0')}`;
       const entry = (datiRicavi[a].mensile || {})[key];
-      if (!entry) { vals.push(null); continue; }
+      const isProv = entry && entry.provvisorio;
+      if (!entry) { vals.push(null); bgColors.push('transparent'); borderColors.push('transparent'); borderWidths.push(0); continue; }
       if (activeTab === 'eur') vals.push(entry.ricavi);
       else if (activeTab === 'pren') vals.push(entry.prenotazioni);
       else vals.push(entry.notti);
+      // Mesi provvisori: più trasparenti e bordo tratteggiato
+      const alpha = isProv ? '44' : (a === curAnno ? 'dd' : '88');
+      bgColors.push(col + alpha);
+      borderColors.push(col);
+      borderWidths.push(isProv ? 2 : (a === curAnno ? 2 : 1));
     }
     return {
       label: String(a),
       data: vals,
-      backgroundColor: col + (a === curAnno ? 'dd' : '88'),
-      borderColor: col,
-      borderWidth: a === curAnno ? 2 : 1,
+      backgroundColor: bgColors,
+      borderColor: borderColors,
+      borderWidth: borderWidths,
       borderRadius: 4,
       borderSkipped: false,
+      borderDash: [],
     };
   });
 
   // Update chart title
   const titles = { eur: 'Ricavi €', pren: 'Prenotazioni', notti: 'Notti vendute' };
   document.getElementById('chart-r-title').textContent = `${titles[activeTab]} per mese — confronto anni`;
-  document.getElementById('chart-r-sub').textContent = `Dati da luglio 2023. Anno ${curAnno} limitato al ${curDay}/${curMonth}.`;
+  document.getElementById('chart-r-sub').textContent = `Dati da luglio 2023. Mesi futuri = provvisorio con prenotazioni attuali (barre chiare).`;
 
   // Legend
   document.getElementById('legend-ricavi').innerHTML = anni.map(a =>
@@ -505,7 +521,7 @@ function renderWindow() {
   });
 
   document.getElementById('chart-w-sub').textContent =
-    `Prenotazioni già acquisite al ${curDay} ${MESI_FULL[curMonth]} con arrivo futuro, per anno`;
+    `Prenotazioni attive al ${curDay} ${MESI_FULL[curMonth]} di ogni anno per i mesi successivi (incl. poi cancellate)`;
 
   document.getElementById('legend-window').innerHTML = anni.map(a =>
     `<div class="legend-item"><div class="legend-dot" style="background:${ANNO_COLORS[a]||'#86868b'}"></div>${a}${a===curAnno?' ★':''}</div>`
