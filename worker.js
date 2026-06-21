@@ -233,18 +233,27 @@ export default {
           status: 400, headers: { ...CORS, "Content-Type": "application/json" },
         });
 
-        // Singola chiamata annuale
-        const resp = await amenitizGet(
-          `/bookings/checkin?from=${from}&to=${to}&hotel_id=${HOTEL_UUID}`, env
-        );
-        if (!resp.ok) {
-          const errBody = await resp.text();
-          return new Response(JSON.stringify({ error: `checkin ${from}/${to}`, status: resp.status, detail: errBody }), {
-            status: resp.status, headers: { ...CORS, "Content-Type": "application/json" },
-          });
+        // Chunk mensili in parallelo (l'API non accetta range > 1 mese)
+        function getMonthChunks(f, t) {
+          const res = [], end = new Date(t);
+          let cur = new Date(f);
+          while (cur <= end) {
+            const y = cur.getFullYear(), m = cur.getMonth();
+            const s = new Date(Math.max(cur, new Date(f)));
+            const e = new Date(Math.min(new Date(y, m+1, 0), end));
+            const fmt = d => d.toISOString().slice(0,10);
+            res.push({ from: fmt(s), to: fmt(e) });
+            cur = new Date(y, m+1, 1);
+          }
+          return res;
         }
-        const raw = await resp.json();
-        const allBookings = Array.isArray(raw) ? raw : [];
+        const chunks = getMonthChunks(from, to);
+        const fetched = await Promise.all(chunks.map(c =>
+          amenitizGet(`/bookings/checkin?from=${c.from}&to=${c.to}&hotel_id=${HOTEL_UUID}`, env)
+            .then(async r => { const d = await r.json(); return Array.isArray(d) ? d : []; })
+            .catch(() => [])
+        ));
+        const allBookings = fetched.flat();
 
         const mensile = {};
         let totalBookings = 0;
@@ -286,18 +295,27 @@ export default {
           });
         }
 
-        // Singola chiamata per range
-        const resp = await amenitizGet(
-          `/bookings/created?from=${createdFrom}&to=${createdTo}&hotel_id=${HOTEL_UUID}`, env
-        );
-        if (!resp.ok) {
-          const errBody = await resp.text();
-          return new Response(JSON.stringify({ error: `created ${createdFrom}/${createdTo}`, status: resp.status, detail: errBody }), {
-            status: resp.status, headers: { ...CORS, "Content-Type": "application/json" },
-          });
+        // Chunk mensili in parallelo
+        function getMonthChunks(f, t) {
+          const res = [], end = new Date(t);
+          let cur = new Date(f);
+          while (cur <= end) {
+            const y = cur.getFullYear(), m = cur.getMonth();
+            const s = new Date(Math.max(cur, new Date(f)));
+            const e = new Date(Math.min(new Date(y, m+1, 0), end));
+            const fmt = d => d.toISOString().slice(0,10);
+            res.push({ from: fmt(s), to: fmt(e) });
+            cur = new Date(y, m+1, 1);
+          }
+          return res;
         }
-        const raw = await resp.json();
-        const allBookings = Array.isArray(raw) ? raw : [];
+        const chunks = getMonthChunks(createdFrom, createdTo);
+        const fetched = await Promise.all(chunks.map(c =>
+          amenitizGet(`/bookings/created?from=${c.from}&to=${c.to}&hotel_id=${HOTEL_UUID}`, env)
+            .then(async r => { const d = await r.json(); return Array.isArray(d) ? d : []; })
+            .catch(() => [])
+        ));
+        const allBookings = fetched.flat();
 
         const futuri = allBookings.filter(b => {
           const s = (b.status || "").toLowerCase();
