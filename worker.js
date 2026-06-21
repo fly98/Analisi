@@ -233,38 +233,18 @@ export default {
           status: 400, headers: { ...CORS, "Content-Type": "application/json" },
         });
 
-        // Genera lista di chunk settimanali tra from e to (7 giorni per evitare 422)
-        function monthChunks(fromStr, toStr) {
-          const chunks = [];
-          const end = new Date(toStr);
-          let cur = new Date(fromStr);
-          while (cur <= end) {
-            const chunkEnd = new Date(cur);
-            chunkEnd.setDate(chunkEnd.getDate() + 6);
-            if (chunkEnd > end) chunkEnd.setTime(end.getTime());
-            const fmt = d => d.toISOString().slice(0, 10);
-            chunks.push({ from: fmt(cur), to: fmt(chunkEnd) });
-            cur = new Date(chunkEnd);
-            cur.setDate(cur.getDate() + 1);
-          }
-          return chunks;
+        // Singola chiamata annuale
+        const resp = await amenitizGet(
+          `/bookings/checkin?from=${from}&to=${to}&hotel_id=${HOTEL_UUID}`, env
+        );
+        if (!resp.ok) {
+          const errBody = await resp.text();
+          return new Response(JSON.stringify({ error: `checkin ${from}/${to}`, status: resp.status, detail: errBody }), {
+            status: resp.status, headers: { ...CORS, "Content-Type": "application/json" },
+          });
         }
-
-        const chunks = monthChunks(from, to);
-        const allBookings = [];
-        for (const chunk of chunks) {
-          const resp = await amenitizGet(
-            `/bookings/checkin?from=${chunk.from}&to=${chunk.to}&hotel_id=${HOTEL_UUID}`, env
-          );
-          if (!resp.ok) {
-            const errBody = await resp.text();
-            return new Response(JSON.stringify({ error: `checkin ${chunk.from}/${chunk.to}`, status: resp.status, detail: errBody }), {
-              status: 422, headers: { ...CORS, "Content-Type": "application/json" },
-            });
-          }
-          const data = await resp.json();
-          if (Array.isArray(data)) allBookings.push(...data);
-        }
+        const raw = await resp.json();
+        const allBookings = Array.isArray(raw) ? raw : [];
 
         const mensile = {};
         let totalBookings = 0;
