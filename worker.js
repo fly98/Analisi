@@ -306,36 +306,18 @@ export default {
           });
         }
 
-        // Chunk mensili in PARALLELO
-        function monthChunks(fromStr, toStr) {
-          const chunks = [];
-          const end = new Date(toStr);
-          let cur = new Date(fromStr);
-          while (cur <= end) {
-            const y = cur.getFullYear(), m = cur.getMonth();
-            const cs = new Date(y, m, 1);
-            const ce = new Date(y, m + 1, 0);
-            const fmt = d => d.toISOString().slice(0, 10);
-            chunks.push({
-              from: fmt(cs < new Date(fromStr) ? new Date(fromStr) : cs),
-              to: fmt(ce > end ? end : ce)
-            });
-            cur = new Date(y, m + 1, 1);
-          }
-          return chunks;
+        // Singola chiamata per range
+        const resp = await amenitizGet(
+          `/bookings/created?from=${createdFrom}&to=${createdTo}&hotel_id=${HOTEL_UUID}`, env
+        );
+        if (!resp.ok) {
+          const errBody = await resp.text();
+          return new Response(JSON.stringify({ error: `created ${createdFrom}/${createdTo}`, status: resp.status, detail: errBody }), {
+            status: resp.status, headers: { ...CORS, "Content-Type": "application/json" },
+          });
         }
-
-        const chunks = monthChunks(createdFrom, createdTo);
-        const results = await Promise.all(chunks.map(chunk =>
-          amenitizGet(`/bookings/created?from=${chunk.from}&to=${chunk.to}&hotel_id=${HOTEL_UUID}`, env)
-            .then(async r => {
-              if (!r.ok) return [];
-              const d = await r.json();
-              return Array.isArray(d) ? d : [];
-            })
-            .catch(() => [])
-        ));
-        const allBookings = results.flat();
+        const raw = await resp.json();
+        const allBookings = Array.isArray(raw) ? raw : [];
 
         const futuri = allBookings.filter(b => {
           const s = (b.status || "").toLowerCase();
