@@ -1,0 +1,7 @@
+name = "little-shadow-145e"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+
+[[kv_namespaces]]
+binding = "ARRIVI_KV"
+id = "48138f095e8b43d2823c85580af22125"
