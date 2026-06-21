@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>InternoUno · Report</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+:root {
+  --bg:#f5f5f7;--card:#fff;--card2:#f9f9fb;--border:#e5e5ea;--text:#1d1d1f;--muted:#86868b;
+  --green:#34c759;--red:#ff3b30;--amber:#ff9500;--blue:#007aff;--blue-bg:#f0f6ff;
+  --shadow:0 2px 12px rgba(0,0,0,0.07);--radius:14px;--radius-sm:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Outfit',-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;}
+.app-header{background:rgba(255,255,255,0.9);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 20px;position:sticky;top:0;z-index:100;display:flex;align-items:center;gap:12px;height:52px;}
+.app-header h1{font-size:.95rem;font-weight:600;flex:1;letter-spacing:-.01em;}
+.header-links{display:flex;gap:8px;}
+.header-link{font-size:.75rem;font-weight:500;color:var(--blue);text-decoration:none;padding:4px 10px;border-radius:20px;background:var(--blue-bg);}
+.load-btn{display:flex;align-items:center;gap:5px;padding:6px 14px;background:var(--blue);color:white;border:none;border-radius:20px;font-family:'Outfit',sans-serif;font-size:.78rem;font-weight:600;cursor:pointer;white-space:nowrap;}
+.load-btn:disabled{opacity:.5;cursor:default;}
+.load-btn:active:not(:disabled){opacity:.8;}
+
+#app{padding:0 16px 60px;max-width:1100px;margin:0 auto;}
+.section-title{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin:20px 0 10px;padding-left:2px;}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:14px;}
+.kpi-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;}
+.kpi-card.green{border-top:3px solid var(--green);}
+.kpi-card.blue{border-top:3px solid var(--blue);}
+.kpi-card.amber{border-top:3px solid var(--amber);}
+.kpi-label{font-size:.66rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:3px;}
+.kpi-value{font-family:'DM Mono',monospace;font-size:1.15rem;font-weight:500;}
+.kpi-value.green{color:var(--green);}
+.kpi-value.blue{color:var(--blue);}
+.kpi-value.amber{color:var(--amber);}
+.kpi-sub{font-size:.66rem;color:var(--muted);font-family:'DM Mono',monospace;margin-top:2px;}
+.chart-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;margin-bottom:12px;}
+.chart-title{font-size:.73rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:2px;}
+.chart-subtitle{font-size:.76rem;color:var(--muted);margin-bottom:12px;}
+.chart-wrap{position:relative;height:260px;}
+.chart-wrap.tall{height:300px;}
+.table-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;margin-bottom:12px;}
+.table-header{padding:12px 16px 9px;border-bottom:1px solid var(--border);}
+.table-title{font-size:.73rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);}
+.table-scroll{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:.78rem;}
+th{padding:8px 13px;text-align:right;font-family:'DM Mono',monospace;font-weight:500;font-size:.67rem;color:var(--muted);background:var(--card2);border-bottom:1px solid var(--border);white-space:nowrap;}
+th:first-child{text-align:left;}
+td{padding:8px 13px;text-align:right;font-family:'DM Mono',monospace;font-size:.74rem;border-bottom:1px solid #f2f2f7;white-space:nowrap;}
+td:first-child{text-align:left;font-family:'Outfit',sans-serif;font-size:.78rem;}
+tr:last-child td{border-bottom:none;}
+tr.total-row td{font-weight:600;background:var(--card2);border-top:1px solid var(--border);}
+.c-muted{color:var(--muted);}
+.badge-anno{display:inline-block;font-family:'DM Mono',monospace;font-size:.65rem;font-weight:500;padding:2px 7px;border-radius:20px;margin-left:4px;}
+
+/* status bar */
+.status-bar{background:var(--blue-bg);border:1px solid #c0d8ff;border-radius:var(--radius-sm);padding:10px 14px;margin:14px 0;font-size:.8rem;color:var(--blue);font-weight:500;display:none;}
+.status-bar.error{background:#fff5f4;border-color:#ffb3ae;color:var(--red);}
+.status-bar.show{display:block;}
+
+/* legend */
+.legend-row{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px;}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:.72rem;font-family:'DM Mono',monospace;color:var(--muted);}
+.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+
+/* tabs */
+.tab-row{display:flex;gap:2px;padding:3px;background:var(--bg);border-radius:var(--radius-sm);width:fit-content;margin:14px 0 4px;}
+.tab-btn{padding:5px 14px;border-radius:8px;border:none;background:transparent;font-family:'Outfit',sans-serif;font-size:.8rem;font-weight:500;color:var(--muted);cursor:pointer;transition:all .15s;}
+.tab-btn.active{background:white;color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.12);}
+
+/* prorata notice */
+.prorata-notice{display:none;margin:8px 0;padding:9px 13px;background:#fff8f0;border:1px solid #ffd59e;border-radius:var(--radius-sm);font-size:.78rem;color:#b36200;font-weight:500;}
+.prorata-notice.show{display:block;}
+
+@media(max-width:660px){
+  .kpi-grid{grid-template-columns:1fr 1fr;}
+}
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <h1>📊 InternoUno · Report</h1>
+  <div class="header-links">
+    <a href="arrivi.html" class="header-link">Arrivi</a>
+    <a href="index.html" class="header-link">Analisi CSV</a>
+  </div>
+  <button class="load-btn" id="load-btn" onclick="loadAll()">⟳ Carica dati</button>
+</div>
+
+<div id="app">
+  <div class="status-bar" id="status-bar"></div>
+
+  <!-- ===== SEZIONE 1: RICAVI ===== -->
+  <div class="section-title">Ricavi da Amenitiz — confronto anni</div>
+  <div class="prorata-notice" id="prorata-notice"></div>
+
+  <div class="tab-row">
+    <button class="tab-btn active" id="tab-eur" onclick="switchTab('eur',this)">Ricavi €</button>
+    <button class="tab-btn" id="tab-pren" onclick="switchTab('pren',this)">Prenotazioni</button>
+    <button class="tab-btn" id="tab-notti" onclick="switchTab('notti',this)">Notti vendute</button>
+  </div>
+
+  <div class="kpi-grid" id="kpi-ricavi"></div>
+
+  <div class="chart-card">
+    <div class="chart-title" id="chart-r-title">Ricavi mensili per anno</div>
+    <div class="chart-subtitle" id="chart-r-sub">In caricamento…</div>
+    <div class="legend-row" id="legend-ricavi"></div>
+    <div class="chart-wrap tall"><canvas id="chart-ricavi"></canvas></div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-header"><span class="table-title">Dettaglio mensile per anno</span></div>
+    <div class="table-scroll"><table id="table-ricavi"></table></div>
+  </div>
+
+  <!-- ===== SEZIONE 2: BOOKING WINDOW ===== -->
+  <div class="section-title">Prenotazioni future al <span id="cutoff-label">oggi</span> — confronto anni</div>
+
+  <div class="kpi-grid" id="kpi-window"></div>
+
+  <div class="chart-card">
+    <div class="chart-title">Prenotazioni future per mese di arrivo</div>
+    <div class="chart-subtitle" id="chart-w-sub">Quante prenotazioni erano già in casa a questa data dell'anno</div>
+    <div class="legend-row" id="legend-window"></div>
+    <div class="chart-wrap tall"><canvas id="chart-window"></canvas></div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-header"><span class="table-title">Booking window — dettaglio per mese di arrivo</span></div>
+    <div class="table-scroll"><table id="table-window"></table></div>
+  </div>
+
+</div>
+
+<script>
+const WORKER = 'https://little-shadow-145e.f-castiglioni.workers.dev';
+const MESI = ['','Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
+const MESI_FULL = ['','Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+
+// Anno di inizio dati Amenitiz
+const PRIMO_ANNO = 2023;
+const PRIMO_MESE_PRIMO_ANNO = 7; // luglio 2023
+
+// Colori per anno
+const ANNO_COLORS = {
+  2023: '#ff9500',
+  2024: '#34c759',
+  2025: '#007aff',
+  2026: '#af52de',
+};
+
+let datiRicavi = {}; // { anno: { mensile: {...}, totalBookings, totalNotti } }
+let datiWindow = {}; // { anno: { totalPrenotazioni, totalRicavi, totalNotti, perMese: {...} } }
+let activeTab = 'eur';
+let charts = {};
+let oggi, curYear, curMonth, curDay;
+
+function fmtE(v) {
+  return v.toLocaleString('it-IT', {minimumFractionDigits:0, maximumFractionDigits:0}) + ' €';
+}
+function fmtN(v) {
+  return v.toLocaleString('it-IT');
+}
+
+function setStatus(msg, isError = false) {
+  const el = document.getElementById('status-bar');
+  el.textContent = msg;
+  el.className = 'status-bar show' + (isError ? ' error' : '');
+}
+function hideStatus() {
+  document.getElementById('status-bar').className = 'status-bar';
+}
+
+function isoDate(d) {
+  return d.toISOString().slice(0, 10);
+}
+
+async function fetchRicavi(anno) {
+  // Da luglio 2023 per il primo anno, 1 gennaio per gli altri
+  const primoMese = (anno === PRIMO_ANNO) ? PRIMO_MESE_PRIMO_ANNO : 1;
+  const from = `${anno}-${String(primoMese).padStart(2,'0')}-01`;
+  // Fino a fine anno, ma se è l'anno corrente ci fermiamo al giorno corrente
+  let to;
+  if (anno === curYear) {
+    to = isoDate(oggi);
+  } else {
+    to = `${anno}-12-31`;
+  }
+  const r = await fetch(`${WORKER}?action=reportRicavi&from=${from}&to=${to}`);
+  if (!r.ok) throw new Error(`reportRicavi ${anno}: HTTP ${r.status}`);
+  return r.json();
+}
+
+async function fetchWindow(anno) {
+  // "Visti da oggi" ma per quell'anno:
+  // - created_from: 1 gennaio di quell'anno (o luglio 2023 se è il primo anno)
+  // - created_to: stesso giorno/mese ma di quell'anno
+  // - future_from: stesso giorno/mese di quell'anno (checkin > questa data)
+  const primoMese = (anno === PRIMO_ANNO) ? PRIMO_MESE_PRIMO_ANNO : 1;
+  const createdFrom = `${anno}-${String(primoMese).padStart(2,'0')}-01`;
+
+  // "Oggi" ma dell'anno di riferimento
+  const cutoffAnno = `${anno}-${String(curMonth).padStart(2,'0')}-${String(curDay).padStart(2,'0')}`;
+
+  // created_to non può superare la data reale se anno=curYear (già ok)
+  // Per anni passati è una data passata, quindi l'API restituisce solo prenotazioni create entro quella data
+  const r = await fetch(`${WORKER}?action=reportWindow&created_from=${createdFrom}&created_to=${cutoffAnno}&future_from=${cutoffAnno}`);
+  if (!r.ok) throw new Error(`reportWindow ${anno}: HTTP ${r.status}`);
+  return r.json();
+}
+
+async function loadAll() {
+  const btn = document.getElementById('load-btn');
+  btn.disabled = true;
+  btn.textContent = '⟳ Caricamento…';
+
+  oggi = new Date();
+  curYear = oggi.getFullYear();
+  curMonth = oggi.getMonth() + 1;
+  curDay = oggi.getDate();
+
+  // Aggiorna label cutoff
+  document.getElementById('cutoff-label').textContent =
+    `${curDay} ${MESI_FULL[curMonth]}`;
+
+  // Prorata notice
+  const pn = document.getElementById('prorata-notice');
+  pn.className = 'prorata-notice show';
+  pn.textContent = `⚡ Anno corrente (${curYear}): dati fino al ${curDay} ${MESI_FULL[curMonth]}. Il confronto con gli anni precedenti usa lo stesso giorno per omogeneità.`;
+
+  // Anni da caricare
+  const anni = [];
+  for (let a = PRIMO_ANNO; a <= curYear; a++) anni.push(a);
+
+  datiRicavi = {};
+  datiWindow = {};
+
+  try {
+    setStatus(`Caricamento ricavi per ${anni.length} anni…`);
+
+    // Carica ricavi in parallelo
+    const ricaviResults = await Promise.all(anni.map(a => fetchRicavi(a).then(d => [a, d])));
+    for (const [a, d] of ricaviResults) datiRicavi[a] = d;
+
+    setStatus(`Caricamento booking window…`);
+
+    // Carica window in parallelo
+    const windowResults = await Promise.all(anni.map(a => fetchWindow(a).then(d => [a, d])));
+    for (const [a, d] of windowResults) datiWindow[a] = d;
+
+    hideStatus();
+    renderAll();
+
+  } catch(e) {
+    setStatus('Errore: ' + e.message, true);
+  }
+
+  btn.disabled = false;
+  btn.textContent = '⟳ Aggiorna';
+}
+
+function switchTab(tab, btn) {
+  activeTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderRicavi();
+}
+
+function renderAll() {
+  renderRicavi();
+  renderWindow();
+}
+
+// ============================================================
+// SEZIONE RICAVI
+// ============================================================
+function renderRicavi() {
+  const anni = Object.keys(datiRicavi).map(Number).sort();
+  const curAnno = curYear;
+
+  // Tutti i mesi presenti in almeno un anno
+  const tuttiMesi = new Set();
+  for (const a of anni) {
+    Object.keys(datiRicavi[a].mensile || {}).forEach(m => tuttiMesi.add(m));
+  }
+  // Mesi ordinati: solo da luglio 2023 in poi
+  const mesiOrdinati = [...tuttiMesi].sort();
+
+  // KPI: totali per anno
+  const kpiEl = document.getElementById('kpi-ricavi');
+  let kpiHtml = '';
+  for (const a of anni) {
+    const d = datiRicavi[a];
+    const totR = Object.values(d.mensile || {}).reduce((s,m) => s + m.ricavi, 0);
+    const totP = d.totalBookings || 0;
+    const totN = d.totalNotti || 0;
+    const isCur = a === curAnno;
+    const col = ANNO_COLORS[a] || '#86868b';
+    const label = isCur ? `${a} (fino al ${curDay}/${curMonth})` : String(a);
+    const val = activeTab === 'eur' ? fmtE(totR) : activeTab === 'pren' ? totP + ' pren.' : totN + ' notti';
+    kpiHtml += `<div class="kpi-card" style="border-top:3px solid ${col}">
+      <div class="kpi-label">${label}</div>
+      <div class="kpi-value" style="color:${col}">${val}</div>
+    </div>`;
+  }
+  kpiEl.innerHTML = kpiHtml;
+
+  // Grafico a barre raggruppate per mese, una serie per anno
+  // Asse X = mesi dell'anno (Gen-Dic), dataset = un anno per colore
+  // Mostriamo i mesi "comuni" (Gen-Dic), ma partiamo da lug per il 2023
+
+  // Per il grafico usiamo etichette mese breve
+  const labelsMesi = MESI.slice(1); // Gen..Dic (12 elementi, indice 0=Gen=mese1)
+
+  const datasets = anni.map(a => {
+    const col = ANNO_COLORS[a] || '#86868b';
+    const vals = [];
+    for (let m = 1; m <= 12; m++) {
+      const key = `${a}-${String(m).padStart(2,'0')}`;
+      const entry = (datiRicavi[a].mensile || {})[key];
+      if (!entry) { vals.push(null); continue; }
+      if (activeTab === 'eur') vals.push(entry.ricavi);
+      else if (activeTab === 'pren') vals.push(entry.prenotazioni);
+      else vals.push(entry.notti);
+    }
+    return {
+      label: String(a),
+      data: vals,
+      backgroundColor: col + (a === curAnno ? 'dd' : '88'),
+      borderColor: col,
+      borderWidth: a === curAnno ? 2 : 1,
+      borderRadius: 4,
+      borderSkipped: false,
+    };
+  });
+
+  // Update chart title
+  const titles = { eur: 'Ricavi €', pren: 'Prenotazioni', notti: 'Notti vendute' };
+  document.getElementById('chart-r-title').textContent = `${titles[activeTab]} per mese — confronto anni`;
+  document.getElementById('chart-r-sub').textContent = `Dati da luglio 2023. Anno ${curAnno} limitato al ${curDay}/${curMonth}.`;
+
+  // Legend
+  document.getElementById('legend-ricavi').innerHTML = anni.map(a =>
+    `<div class="legend-item"><div class="legend-dot" style="background:${ANNO_COLORS[a]||'#86868b'}"></div>${a}${a===curAnno?' ★':''}</div>`
+  ).join('');
+
+  if (charts['ricavi']) charts['ricavi'].destroy();
+  charts['ricavi'] = new Chart(document.getElementById('chart-ricavi'), {
+    type: 'bar',
+    data: { labels: labelsMesi, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              const v = ctx.raw;
+              if (v === null) return null;
+              if (activeTab === 'eur') return ` ${ctx.dataset.label}: ${fmtE(v)}`;
+              return ` ${ctx.dataset.label}: ${fmtN(v)}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: { grid: { display: false }, border: { display: false } },
+        y: {
+          grid: { color: '#f2f2f7' },
+          border: { display: false },
+          ticks: {
+            callback: v => activeTab === 'eur' ? (v/1000).toFixed(0)+'k' : fmtN(v)
+          }
+        }
+      },
+      layout: { padding: { top: 10 } }
+    }
+  });
+
+  // Tabella dettaglio
+  let html = '<thead><tr><th>Mese</th>';
+  for (const a of anni) html += `<th>${a}${a===curAnno?' ★':''}</th>`;
+  html += '</tr></thead><tbody>';
+
+  const unitLabel = { eur: '€', pren: 'pren', notti: 'notti' };
+  const totals = {};
+  anni.forEach(a => totals[a] = 0);
+
+  for (let m = 1; m <= 12; m++) {
+    const meseLbl = MESI_FULL[m];
+    let hasAny = false;
+    const cells = anni.map(a => {
+      const key = `${a}-${String(m).padStart(2,'0')}`;
+      const entry = (datiRicavi[a].mensile || {})[key];
+      if (!entry) return null;
+      hasAny = true;
+      if (activeTab === 'eur') { totals[a] += entry.ricavi; return fmtE(entry.ricavi); }
+      if (activeTab === 'pren') { totals[a] += entry.prenotazioni; return entry.prenotazioni; }
+      totals[a] += entry.notti; return entry.notti;
+    });
+    if (!hasAny) continue;
+    html += `<tr><td>${meseLbl}</td>`;
+    html += cells.map((v,i) => {
+      const a = anni[i];
+      const bold = a === curAnno ? 'style="font-weight:600"' : '';
+      return `<td ${bold}>${v !== null ? v : '<span class="c-muted">—</span>'}</td>`;
+    }).join('');
+    html += '</tr>';
+  }
+
+  // Riga totale
+  html += '<tr class="total-row"><td>Totale</td>';
+  html += anni.map((a,i) => {
+    const bold = a === curAnno ? 'style="font-weight:700"' : '';
+    const v = activeTab === 'eur' ? fmtE(totals[a]) : fmtN(totals[a]);
+    return `<td ${bold}>${v}</td>`;
+  }).join('');
+  html += '</tr></tbody>';
+  document.getElementById('table-ricavi').innerHTML = html;
+}
+
+// ============================================================
+// SEZIONE BOOKING WINDOW
+// ============================================================
+function renderWindow() {
+  const anni = Object.keys(datiWindow).map(Number).sort();
+  const curAnno = curYear;
+
+  // KPI: totali prenotazioni future per anno
+  const kpiEl = document.getElementById('kpi-window');
+  let kpiHtml = '';
+  for (const a of anni) {
+    const d = datiWindow[a];
+    const col = ANNO_COLORS[a] || '#86868b';
+    const isCur = a === curAnno;
+    const label = `${a} — al ${curDay}/${curMonth}`;
+    kpiHtml += `<div class="kpi-card" style="border-top:3px solid ${col}">
+      <div class="kpi-label">${label}</div>
+      <div class="kpi-value" style="color:${col}">${d.totalPrenotazioni} pren.</div>
+      <div class="kpi-sub">${fmtE(d.totalRicavi)} · ${d.totalNotti} notti</div>
+    </div>`;
+  }
+  kpiEl.innerHTML = kpiHtml;
+
+  // Grafico: prenotazioni future per mese di arrivo, per anno
+  // Mesi futuri rispetto al cutoff — ma mostriamo tutti i mesi per confronto
+  const labelsMesi = MESI.slice(1);
+
+  const datasets = anni.map(a => {
+    const col = ANNO_COLORS[a] || '#86868b';
+    const vals = [];
+    for (let m = 1; m <= 12; m++) {
+      const key = `${a}-${String(m).padStart(2,'0')}`;
+      const entry = (datiWindow[a].perMese || {})[key];
+      vals.push(entry ? entry.prenotazioni : null);
+    }
+    return {
+      label: String(a),
+      data: vals,
+      backgroundColor: col + (a === curAnno ? 'dd' : '88'),
+      borderColor: col,
+      borderWidth: a === curAnno ? 2 : 1,
+      borderRadius: 4,
+      borderSkipped: false,
+    };
+  });
+
+  document.getElementById('chart-w-sub').textContent =
+    `Prenotazioni già acquisite al ${curDay} ${MESI_FULL[curMonth]} con arrivo futuro, per anno`;
+
+  document.getElementById('legend-window').innerHTML = anni.map(a =>
+    `<div class="legend-item"><div class="legend-dot" style="background:${ANNO_COLORS[a]||'#86868b'}"></div>${a}${a===curAnno?' ★':''}</div>`
+  ).join('');
+
+  if (charts['window']) charts['window'].destroy();
+  charts['window'] = new Chart(document.getElementById('chart-window'), {
+    type: 'bar',
+    data: { labels: labelsMesi, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              const v = ctx.raw;
+              if (v === null) return null;
+              const a = ctx.dataset.label;
+              const m = ctx.dataIndex + 1;
+              const key = `${a}-${String(m).padStart(2,'0')}`;
+              const entry = (datiWindow[parseInt(a)].perMese || {})[key];
+              if (!entry) return null;
+              return [` ${a}: ${v} pren.`, `  ${fmtE(entry.ricavi)} · ${entry.notti} notti`];
+            }
+          }
+        }
+      },
+      scales: {
+        x: { grid: { display: false }, border: { display: false } },
+        y: { grid: { color: '#f2f2f7' }, border: { display: false }, ticks: { stepSize: 1 } }
+      },
+      layout: { padding: { top: 10 } }
+    }
+  });
+
+  // Tabella booking window
+  let html = '<thead><tr><th>Mese arrivo</th>';
+  for (const a of anni) html += `<th>${a}${a===curAnno?' ★':''}<br><span style="font-weight:400;color:var(--muted)">pren · €</span></th>`;
+  html += '</tr></thead><tbody>';
+
+  const totPren = {}, totRic = {};
+  anni.forEach(a => { totPren[a] = 0; totRic[a] = 0; });
+
+  for (let m = 1; m <= 12; m++) {
+    const meseLbl = MESI_FULL[m];
+    let hasAny = false;
+    const cells = anni.map(a => {
+      const key = `${a}-${String(m).padStart(2,'0')}`;
+      const entry = (datiWindow[a].perMese || {})[key];
+      if (!entry) return null;
+      hasAny = true;
+      totPren[a] += entry.prenotazioni;
+      totRic[a] += entry.ricavi;
+      return entry;
+    });
+    if (!hasAny) continue;
+    html += `<tr><td>${meseLbl}</td>`;
+    html += cells.map((entry, i) => {
+      const a = anni[i];
+      const bold = a === curAnno ? 'style="font-weight:600"' : '';
+      if (!entry) return `<td><span class="c-muted">—</span></td>`;
+      return `<td ${bold}>${entry.prenotazioni} · ${fmtE(entry.ricavi)}</td>`;
+    }).join('');
+    html += '</tr>';
+  }
+
+  html += '<tr class="total-row"><td>Totale</td>';
+  html += anni.map(a => {
+    const bold = a === curAnno ? 'style="font-weight:700"' : '';
+    return `<td ${bold}>${totPren[a]} · ${fmtE(totRic[a])}</td>`;
+  }).join('');
+  html += '</tr></tbody>';
+  document.getElementById('table-window').innerHTML = html;
+}
+
+// Auto-carica al primo accesso
+window.addEventListener('DOMContentLoaded', loadAll);
+</script>
+</body>
+</html>
