@@ -306,35 +306,36 @@ export default {
           });
         }
 
-        // Fetch settimanale per evitare limite 422
+        // Chunk mensili in PARALLELO
         function monthChunks(fromStr, toStr) {
           const chunks = [];
           const end = new Date(toStr);
           let cur = new Date(fromStr);
           while (cur <= end) {
-            const chunkEnd = new Date(cur);
-            chunkEnd.setDate(chunkEnd.getDate() + 6);
-            if (chunkEnd > end) chunkEnd.setTime(end.getTime());
+            const y = cur.getFullYear(), m = cur.getMonth();
+            const cs = new Date(y, m, 1);
+            const ce = new Date(y, m + 1, 0);
             const fmt = d => d.toISOString().slice(0, 10);
-            chunks.push({ from: fmt(cur), to: fmt(chunkEnd) });
-            cur = new Date(chunkEnd);
-            cur.setDate(cur.getDate() + 1);
+            chunks.push({
+              from: fmt(cs < new Date(fromStr) ? new Date(fromStr) : cs),
+              to: fmt(ce > end ? end : ce)
+            });
+            cur = new Date(y, m + 1, 1);
           }
           return chunks;
         }
 
         const chunks = monthChunks(createdFrom, createdTo);
-        const allBookings = [];
-        for (const chunk of chunks) {
-          const resp = await amenitizGet(
-            `/bookings/created?from=${chunk.from}&to=${chunk.to}&hotel_id=${HOTEL_UUID}`, env
-          );
-          if (!resp.ok) return new Response(JSON.stringify({ error: `API Amenitiz window ${chunk.from}`, status: resp.status }), {
-            status: resp.status, headers: { ...CORS, "Content-Type": "application/json" },
-          });
-          const data = await resp.json();
-          if (Array.isArray(data)) allBookings.push(...data);
-        }
+        const results = await Promise.all(chunks.map(chunk =>
+          amenitizGet(`/bookings/created?from=${chunk.from}&to=${chunk.to}&hotel_id=${HOTEL_UUID}`, env)
+            .then(async r => {
+              if (!r.ok) return [];
+              const d = await r.json();
+              return Array.isArray(d) ? d : [];
+            })
+            .catch(() => [])
+        ));
+        const allBookings = results.flat();
 
         const futuri = allBookings.filter(b => {
           const s = (b.status || "").toLowerCase();
