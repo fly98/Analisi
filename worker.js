@@ -216,21 +216,19 @@ export default {
           status: 400, headers: { ...CORS, "Content-Type": "application/json" },
         });
 
-        // Genera lista di chunk mensili tra from e to
+        // Genera lista di chunk settimanali tra from e to (7 giorni per evitare 422)
         function monthChunks(fromStr, toStr) {
           const chunks = [];
           const end = new Date(toStr);
           let cur = new Date(fromStr);
           while (cur <= end) {
-            const y = cur.getFullYear();
-            const m = cur.getMonth(); // 0-based
-            const chunkStart = new Date(y, m, 1);
-            const chunkEnd = new Date(y, m + 1, 0); // ultimo giorno del mese
-            const actualStart = chunkStart < new Date(fromStr) ? new Date(fromStr) : chunkStart;
-            const actualEnd = chunkEnd > end ? end : chunkEnd;
+            const chunkEnd = new Date(cur);
+            chunkEnd.setDate(chunkEnd.getDate() + 6);
+            if (chunkEnd > end) chunkEnd.setTime(end.getTime());
             const fmt = d => d.toISOString().slice(0, 10);
-            chunks.push({ from: fmt(actualStart), to: fmt(actualEnd) });
-            cur = new Date(y, m + 1, 1);
+            chunks.push({ from: fmt(cur), to: fmt(chunkEnd) });
+            cur = new Date(chunkEnd);
+            cur.setDate(cur.getDate() + 1);
           }
           return chunks;
         }
@@ -288,21 +286,19 @@ export default {
           });
         }
 
-        // Fetch mese per mese per evitare limite 422
+        // Fetch settimanale per evitare limite 422
         function monthChunks(fromStr, toStr) {
           const chunks = [];
           const end = new Date(toStr);
           let cur = new Date(fromStr);
           while (cur <= end) {
-            const y = cur.getFullYear();
-            const m = cur.getMonth();
-            const chunkStart = new Date(y, m, 1);
-            const chunkEnd = new Date(y, m + 1, 0);
-            const actualStart = chunkStart < new Date(fromStr) ? new Date(fromStr) : chunkStart;
-            const actualEnd = chunkEnd > end ? end : chunkEnd;
+            const chunkEnd = new Date(cur);
+            chunkEnd.setDate(chunkEnd.getDate() + 6);
+            if (chunkEnd > end) chunkEnd.setTime(end.getTime());
             const fmt = d => d.toISOString().slice(0, 10);
-            chunks.push({ from: fmt(actualStart), to: fmt(actualEnd) });
-            cur = new Date(y, m + 1, 1);
+            chunks.push({ from: fmt(cur), to: fmt(chunkEnd) });
+            cur = new Date(chunkEnd);
+            cur.setDate(cur.getDate() + 1);
           }
           return chunks;
         }
