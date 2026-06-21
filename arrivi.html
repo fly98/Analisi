@@ -845,14 +845,16 @@ async function apriInCasa(){
     noteMap=rNote.note||{};
     const inCasa=res.bookings||[];
     const n=inCasa.length;
-    document.getElementById("daytitle").textContent=
-      `🏠 In casa · ${dataLunga(isoOggi)} — ${n} ospite${n!==1?"i":""}`;
     if(n===0){
+      document.getElementById("daytitle").textContent=
+        `🏠 In casa · ${dataLunga(isoOggi)} — nessun ospite`;
       list.innerHTML='<div class="status">Nessun ospite in struttura.</div>';
       return;
     }
-    // usa render direttamente sulla lista principale
+    // usa render (che sovrascrive daytitle), poi lo reimpostiamo
     render(isoOggi, inCasa);
+    document.getElementById("daytitle").textContent=
+      `🏠 In casa · ${dataLunga(isoOggi)} — ${n} ospite${n!==1?"i":""}`;
   }catch(e){
     list.innerHTML=`<div class="status">Errore: ${e.message}</div>`;
   }
