@@ -207,7 +207,24 @@ export default {
         });
       }
 
-      // ── REPORT RICAVI: fetch mese per mese per evitare il limite 422 dell'API ──
+
+      // ── DEBUG: testa chiamata Amenitiz e ritorna errore raw ──
+      if (action === "debug422") {
+        const from = url.searchParams.get("from") || "2025-01-01";
+        const to = url.searchParams.get("to") || "2025-01-07";
+        const resp = await amenitizGet(
+          `/bookings/checkin?from=${from}&to=${to}&hotel_id=${HOTEL_UUID}`, env
+        );
+        const body = await resp.text();
+        return new Response(JSON.stringify({ 
+          status: resp.status, 
+          ok: resp.ok,
+          headers: Object.fromEntries(resp.headers),
+          body: body.slice(0, 2000)
+        }), { headers: { ...CORS, "Content-Type": "application/json" } });
+      }
+
+            // ── REPORT RICAVI: fetch mese per mese per evitare il limite 422 dell'API ──
       // ?action=reportRicavi&from=YYYY-MM-DD&to=YYYY-MM-DD
       if (action === "reportRicavi") {
         const from = url.searchParams.get("from");
@@ -239,9 +256,12 @@ export default {
           const resp = await amenitizGet(
             `/bookings/checkin?from=${chunk.from}&to=${chunk.to}&hotel_id=${HOTEL_UUID}`, env
           );
-          if (!resp.ok) return new Response(JSON.stringify({ error: `API Amenitiz ${chunk.from}`, status: resp.status }), {
-            status: resp.status, headers: { ...CORS, "Content-Type": "application/json" },
-          });
+          if (!resp.ok) {
+            const errBody = await resp.text();
+            return new Response(JSON.stringify({ error: `API Amenitiz ${chunk.from}`, status: resp.status, detail: errBody }), {
+              status: 422, headers: { ...CORS, "Content-Type": "application/json" },
+            });
+          }
           const data = await resp.json();
           if (Array.isArray(data)) allBookings.push(...data);
         }
