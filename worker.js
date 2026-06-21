@@ -258,7 +258,7 @@ export default {
           );
           if (!resp.ok) {
             const errBody = await resp.text();
-            return new Response(JSON.stringify({ error: `API Amenitiz ${chunk.from}`, status: resp.status, detail: errBody }), {
+            return new Response(JSON.stringify({ error: `checkin ${chunk.from}/${chunk.to}`, status: resp.status, detail: errBody }), {
               status: 422, headers: { ...CORS, "Content-Type": "application/json" },
             });
           }
