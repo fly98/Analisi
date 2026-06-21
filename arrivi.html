@@ -84,7 +84,10 @@
 
 
   /* ====== DISPONIBILITÀ & PREZZI ====== */
-  .disp-fab{display:block;margin:12px auto 0;background:#e0e0e3;color:#3a3a3c;border:none;border-radius:10px;padding:9px 20px;font-size:13px;font-weight:600;font-family:var(--sysfont);cursor:pointer;letter-spacing:0.01em;}
+  .fab-row{display:flex;gap:10px;justify-content:center;margin:12px auto 0;padding:0 16px;max-width:400px;}
+  .disp-fab{flex:1;background:#e0e0e3;color:#3a3a3c;border:none;border-radius:10px;padding:9px 20px;font-size:13px;font-weight:600;font-family:var(--sysfont);cursor:pointer;letter-spacing:0.01em;}
+  .disp-fab.active{background:var(--sage);color:#fff;}
+  .disp-fab:active{filter:brightness(0.92);}
   .disp-fab:active{filter:brightness(0.93);}
   .disp-modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.45);display:none;align-items:flex-end;justify-content:center;z-index:200;padding:0;}
   .disp-modal-bg.show{display:flex;}
@@ -155,7 +158,10 @@
   <div class="eyebrow">Gestione Check-in</div>
   <h1>InternoUno</h1>
   <div class="subtitle">Arrivi &amp; messaggi di benvenuto</div>
-  <button class="disp-fab" onclick="apriDisp()">📅 Disponibilità &amp; Prezzi</button>
+  <div class="fab-row">
+    <button class="disp-fab" onclick="apriDisp()">📅 Prezzi</button>
+    <button class="disp-fab" id="inCasaBtn" onclick="apriInCasa()">🏠 In casa</button>
+  </div>
 </header>
 
 <div class="controls">
@@ -686,6 +692,12 @@ let orariMap = {};
 let noteMap = {};
 
 async function caricaData(){
+  // resetta modalità in casa se attiva
+  if(modalitaInCasa){
+    modalitaInCasa=false;
+    const btn=document.getElementById("inCasaBtn");
+    if(btn) btn.classList.remove("active");
+  }
   const iso=document.getElementById("dateInput").value;
   if(!iso){return;}
   const list=document.getElementById("list");
@@ -799,6 +811,52 @@ const ROOM_ORDER = [
   "10bf4893-7907-4894-8b6c-67f3df0734f6",
   "5cfc1387-8c05-43f0-8cb3-489d76397124",
 ];
+
+// ── IN CASA ──
+function chiudiInCasa(){document.getElementById("inCasaModal").classList.remove("show");}
+
+let modalitaInCasa = false;
+
+function chiudiInCasa(){ /* non più usata */ }
+
+async function apriInCasa(){
+  if(modalitaInCasa){
+    // toggle off: torna agli arrivi di domani
+    modalitaInCasa=false;
+    document.getElementById("inCasaBtn").classList.remove("active");
+    vaiA(1);
+    return;
+  }
+  modalitaInCasa=true;
+  document.getElementById("inCasaBtn").classList.add("active");
+
+  const isoOggi=new Date().toISOString().slice(0,10);
+  const list=document.getElementById("list");
+  document.getElementById("daytitle").textContent="";
+  list.innerHTML='<div class="status">Carico ospiti in struttura…</div>';
+
+  try{
+    const [res, rOrari, rNote]=await Promise.all([
+      fetch(`${WORKER}/?action=incasa`).then(r=>r.json()),
+      fetch(`${WORKER}/?action=getOrari&date=${isoOggi}`).then(r=>r.json()).catch(()=>({orari:{}})),
+      fetch(`${WORKER}/?action=getNote&date=${isoOggi}`).then(r=>r.json()).catch(()=>({note:{}})),
+    ]);
+    orariMap=rOrari.orari||{};
+    noteMap=rNote.note||{};
+    const inCasa=res.bookings||[];
+    const n=inCasa.length;
+    document.getElementById("daytitle").textContent=
+      `🏠 In casa · ${dataLunga(isoOggi)} — ${n} ospite${n!==1?"i":""}`;
+    if(n===0){
+      list.innerHTML='<div class="status">Nessun ospite in struttura.</div>';
+      return;
+    }
+    // usa render direttamente sulla lista principale
+    render(isoOggi, inCasa);
+  }catch(e){
+    list.innerHTML=`<div class="status">Errore: ${e.message}</div>`;
+  }
+}
 
 // ── MODAL NOTA ──
 let notaCtx = {i:null, bookingId:null, date:null};
