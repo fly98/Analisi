@@ -145,6 +145,7 @@
   .orario-sep{font-size:24px;font-weight:700;color:var(--ink);}
   .orario-actions{display:flex;gap:8px;}
   .orario-actions button{flex:1;border:none;border-radius:10px;font-weight:600;font-size:15px;padding:12px;cursor:pointer;font-family:var(--sysfont);}
+  .altri-ospiti{font-size:12px;color:var(--muted);margin:4px 0 6px;padding:4px 8px;background:var(--paper);border-radius:7px;}
   .nota-preview{font-size:11.5px;color:var(--muted);margin-top:8px;padding:6px 10px;background:var(--paper);border-radius:8px;border-left:3px solid var(--terra);line-height:1.4;word-break:break-word;}
   @media(prefers-reduced-motion:reduce){*{transition:none!important;}}
 </style>
@@ -455,7 +456,7 @@ function ordineDi(b){
 }
 
 function render(iso,bookings){
-  bookings=(bookings||[]).slice().sort((a,b)=>ordineDi(a)-ordineDi(b));
+  bookings = (bookings||[]).slice().sort((a,b)=>ordineDi(a)-ordineDi(b));
   document.getElementById("daytitle").textContent=`${dataLunga(iso)} — ${bookings.length} ${bookings.length===1?'ospite':'ospiti'}`;
   const list=document.getElementById("list"); list.innerHTML=""; msgStore={};
   if(bookings.length===0){list.innerHTML='<div class="status">Nessun arrivo per questa data.</div>';return;}
@@ -470,18 +471,24 @@ function render(iso,bookings){
     // controlla se prenotante e ospite sono persone diverse
     const guestNome=((guest.first_name||"").trim()+" "+(guest.last_name||"").trim()).trim();
     const bookerNome=(nome+" "+cognome).trim();
-    const mismatch=!noNome&&!guestFallback&&guestNome&&bookerNome&&
+    // mismatch solo per prenotazioni con una camera sola
+    // in booking multi-camera è normale che gli ospiti siano diversi dal booker
+    const isMultiRoom=(b.rooms||[]).length>1;
+    const mismatch=!isMultiRoom&&!noNome&&!guestFallback&&guestNome&&bookerNome&&
       guestNome.toLowerCase()!==bookerNome.toLowerCase();
     const phone=booker.phone||"";
     const lng=lingua(booker.language,phone);
-    const room=(b.rooms&&b.rooms[0])||{};
+    const rooms=b.rooms||[];
+    const room=rooms[0]||{};
     const roomName=room.individual_room_name||"";
     const source=b.source||"";
-    let etichetta,descr,accent,roomLabel,testo,struttura;
-
+    let accent,roomLabel,testo,struttura;
     let isLorenzo=false;
+
     // se prenotante ≠ ospite, non mettere il nome nel messaggio
     const nomeMsg = (mismatch || guestFallback) ? "" : nome;
+
+    // prima camera: struttura, testo, colore accent
     if(CAMPALDINO[roomName]){
       const c=CAMPALDINO[roomName];
       accent=c.col; roomLabel=c.let; struttura="Via Campaldino";
@@ -491,6 +498,32 @@ function render(iso,bookings){
       accent="#5c6b52"; roomLabel=num; struttura="Lorenzo il Magnifico"; isLorenzo=true;
       testo=msgLorenzo(nomeMsg,iso,num,lng);
     }
+
+    // badge per tutte le camere
+    const roomBadgesHtml=rooms.map(r=>{
+      const rn=r.individual_room_name||"";
+      const isL=!CAMPALDINO[rn];
+      const info=CAMPALDINO[rn];
+      const lbl=info?info.let:(LORENZO[rn]||rn);
+      const col=info?info.col:"#5c6b52";
+      const waNum=numeroValido(phone)?phone.replace(/[\s-]/g,"").replace("+",""):"";
+      const link=waNum?`href="whatsapp://send?phone=${waNum}"`:"";
+      const tag=waNum?"a":"div";
+      const bgStyle=isL?"":"background:"+col;
+      return `<${tag} class="room-badge${isL?" lm":""}" style="min-width:36px;height:36px;font-size:16px;${bgStyle};text-decoration:none" ${link}>${lbl}</${tag}>`;
+    }).join("");
+
+    // ospiti diversi dal booker in qualsiasi camera
+    const bookerNomeCompleto=`${nome} ${cognome}`.trim().toLowerCase();
+    const altriOspiti=rooms.map(r=>{
+      const g=r.guests&&r.guests[0];
+      const gn=g?`${g.first_name||""} ${g.last_name||""}`.trim():"";
+      const rn=r.individual_room_name||"";
+      const info=CAMPALDINO[rn];
+      const lbl=info?info.let:(LORENZO[rn]||rn);
+      if(gn&&gn.toLowerCase()!==bookerNomeCompleto) return `${lbl}: ${gn}`;
+      return null;
+    }).filter(Boolean);
 
     const card=document.createElement("div");
     card.className="card"; card.style.setProperty("--accent",accent);
@@ -569,9 +602,10 @@ function render(iso,bookings){
 
     card.innerHTML=`<div class="card-top">
         <div class="name${noNome?' nome-ignoto':''}" onclick="apriInfo(${i})">${noNome?'⚠️ Verifica su Amenitiz':`${nome} ${cognome}`} ${noNome?'':('<span class="flag">'+FLAGS[lng]+'</span>')} <span class="info-dot">ⓘ</span></div>
-        ${numeroValido(phone)?`<a class="room-badge${isLorenzo?' lm':''}" href="whatsapp://send?phone=${phone.replace(/[\s-]/g,'').replace('+','')}" style="text-decoration:none">${roomLabel}</a>`:`<div class="room-badge${isLorenzo?' lm':''}">${roomLabel}</div>`}
+        <div style="display:flex;gap:5px">${roomBadgesHtml}</div>
       </div>
-      <div class="meta"><span>${dataCompatta(iso)} → ${dataCompatta(b.checkout||"")}</span>${badgeCanale(source)}<span class="orario-chip${orarioSalvato?" set":""}" onclick="apriOrarioModal(${i},${b.booking_id},'${iso}')">${orarioSalvato?"🕐 "+orarioSalvato:"🕐 orario"}</span><span class="nota-chip${notaSalvata?" set":""}" onclick="apriNotaModal(${i},${b.booking_id},'${iso}')">${notaSalvata?"📝 note":"📝 note"}</span></div>
+      ${altriOspiti.length?`<div class="altri-ospiti">👤 ${altriOspiti.join(" · ")}</div>`:""}
+      <div class="meta"><span>${dataCompatta(iso)} → ${dataCompatta(b.checkout||"")}</span>${badgeCanale(source)}</div><div class="meta"><span class="orario-chip${orarioSalvato?" set":""}" onclick="apriOrarioModal(${i},${b.booking_id},'${iso}')">${orarioSalvato?"🕐 "+orarioSalvato:"🕐 orario"}</span><span class="nota-chip${notaSalvata?" set":""}" onclick="apriNotaModal(${i},${b.booking_id},'${iso}')">${notaSalvata?"📝 note":"📝 note"}</span></div>
       ${action}
 `;
     if(notaSalvata){
