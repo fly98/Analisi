@@ -561,9 +561,10 @@ function renderWindow() {
     for (let m = 1; m <= 12; m++) {
       const key = `${a}-${String(m).padStart(2,'0')}`;
       const entry = (datiWindow[a].perMese || {})[key];
-      const wVal = activeWindowTab === 'amenitiz' ? entry.ricaviAmenitiz :
-                   activeWindowTab === 'citytax' ? entry.cityTax : entry.ricavi;
-      vals.push(entry ? (wVal || 0) : null);
+      if (!entry) { vals.push(null); continue; }
+      const wVal = activeWindowTab === 'amenitiz' ? entry.ricaviAmenitiz||0 :
+                   activeWindowTab === 'citytax' ? entry.cityTax||0 : entry.ricavi||0;
+      vals.push(wVal);
     }
     return {
       label: String(a),
