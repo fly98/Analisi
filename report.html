@@ -195,24 +195,39 @@ function isoDate(d) {
 }
 
 async function fetchRicavi(anno) {
-  // Una sola chiamata per anno — range -7gg per catturare soggiorni cross-mese
-  // Il pro-rata viene fatto nel Worker
+  // Chiamate mensili in parallelo, ogni mese allargato di 7gg a sinistra per pro-rata cross-mese
   const primoMese = (anno === PRIMO_ANNO) ? PRIMO_MESE_PRIMO_ANNO : 1;
-  const fromD = new Date(anno, primoMese - 1, 1);
-  fromD.setDate(fromD.getDate() - 7);
-  const from = fromD.toISOString().slice(0, 10);
-  const to = (anno === curYear) ? isoDate(oggi) : `${anno}-12-31`;
+  const oggiKey = `${curYear}-${String(curMonth).padStart(2,'0')}`;
 
-  const r = await fetch(`${WORKER}?action=reportRicavi&from=${from}&to=${to}&year=${anno}`);
-  if (!r.ok) throw new Error(`reportRicavi ${anno}: HTTP ${r.status}`);
-  const d = await r.json();
-
-  // Marca mesi futuri come provvisori
-  const oggi_key = `${curYear}-${String(curMonth).padStart(2,'0')}`;
-  for (const key of Object.keys(d.mensile || {})) {
-    d.mensile[key].provvisorio = key >= oggi_key;
+  const mesi = [];
+  for (let m = primoMese; m <= 12; m++) {
+    const fromD = new Date(anno, m - 1, 1);
+    fromD.setDate(fromD.getDate() - 7);
+    const from = fromD.toISOString().slice(0, 10);
+    const lastDay = new Date(anno, m, 0).getDate();
+    const to = `${anno}-${String(m).padStart(2,'0')}-${String(lastDay).padStart(2,'0')}`;
+    const meseKey = `${anno}-${String(m).padStart(2,'0')}`;
+    mesi.push({ from, to, meseKey, m });
   }
-  return d;
+
+  const results = await Promise.all(mesi.map(async ({ from, to, meseKey, m }) => {
+    const r = await fetch(`${WORKER}?action=reportRicavi&from=${from}&to=${to}&year=${anno}&month=${m}`);
+    if (!r.ok) return { mensile: {} };
+    const d = await r.json();
+    if (d.mensile && d.mensile[meseKey]) {
+      d.mensile[meseKey].provvisorio = meseKey >= oggiKey;
+    }
+    return d;
+  }));
+
+  const mensile = {};
+  let totalBookings = 0, totalNotti = 0;
+  for (const res of results) {
+    totalBookings += res.totalBookings || 0;
+    totalNotti += res.totalNotti || 0;
+    Object.assign(mensile, res.mensile || {});
+  }
+  return { mensile, totalBookings, totalNotti };
 }
 
 async function fetchWindow(anno) {
