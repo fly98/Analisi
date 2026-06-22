@@ -658,10 +658,16 @@ async function salva(){
   const hist=_cache||await getStorico();
   const sessioni=hist.sessioni||[];
 
-  // IDs selezionati da tracciare nello storico
+  // IDs selezionati da tracciare nello storico — formato: "DD/MM/YYYY|Nome Ospite|importo"
   const cashIds=[];
-  document.querySelectorAll('#cash-tbody input[type=checkbox]:checked').forEach(cb=>cashIds.push(S.cashRows[parseInt(cb.dataset.i)].id));
-  document.querySelectorAll('#stripe-tbody input[type=checkbox]:checked').forEach(cb=>cashIds.push(S.stripeRows[parseInt(cb.dataset.i)].id));
+  document.querySelectorAll('#cash-tbody input[type=checkbox]:checked').forEach(cb=>{
+    const r=S.cashRows[parseInt(cb.dataset.i)];
+    cashIds.push((r.date?fmtDate(r.date):'?')+'|'+(r.cliente||'?')+'|'+r.importo);
+  });
+  document.querySelectorAll('#stripe-tbody input[type=checkbox]:checked').forEach(cb=>{
+    const r=S.stripeRows[parseInt(cb.dataset.i)];
+    cashIds.push((r.date?fmtDate(r.date):'?')+'|'+(r.cliente||'?')+'|'+r.importo);
+  });
 
   const nuova={
     id:Date.now(),
@@ -733,20 +739,20 @@ function openStoDetail(idx){
   const periodoClean=(s.periodo||'Sessione').replace(/\s*→\s*/g,' — ');
   const periodoWkClean=(s.periodoWk||'').replace(/\s*→\s*/g,' — ');
 
-  // Parsing cashIds: formato "DD/MM/YYYY|prenotazione|importo"
+  // Parsing cashIds: formato "DD/MM/YYYY|Nome Ospite|importo"
   const cashList=(s.cashIds||[]).map(id=>{
     const parts=id.split('|');
     const data=parts[0]||'';
-    const pren=parts[1]||'';
+    const nome=parts[1]||'';
     const imp=parseFloat(parts[2])||0;
-    return {data, pren, imp};
+    return {data, nome, imp};
   }).filter(r=>r.imp>0);
 
   const cashRows=cashList.map(r=>`
     <tr style="border-bottom:1px solid var(--border)">
-      <td style="padding:5px 8px;font-size:12px;color:var(--muted)">${r.data}</td>
-      <td style="padding:5px 8px;font-size:12px;color:var(--muted)">#${r.pren}</td>
-      <td style="padding:5px 8px;font-size:12px;text-align:right;font-weight:500">${fmtEur(r.imp)}</td>
+      <td style="padding:5px 8px;font-size:12px;color:var(--muted);white-space:nowrap">${r.data}</td>
+      <td style="padding:5px 8px;font-size:12px;color:var(--text)">${r.nome}</td>
+      <td style="padding:5px 8px;font-size:12px;text-align:right;font-weight:500;white-space:nowrap">${fmtEur(r.imp)}</td>
     </tr>
   `).join('');
 
