@@ -638,6 +638,95 @@ function calcSaldo(){
   S.lastCalc={cash,stripe,totContanti,wkTot,wkN,sp,man,bab,ferie,stip,spTot,daMe,saldo};
 }
 
+function generaPDF(idx){
+  const hist=_cache||{sessioni:[]};
+  const s=hist.sessioni[idx];
+  if(!s) return;
+  const pos=s.saldo>=0;
+  const periodoClean=(s.periodo||'').replace(/\s*→\s*/g,' - ');
+
+  const cashList=(s.cashIds||[]).map(id=>{
+    const p=id.split('|');
+    return {data:p[0]||'',nome:p[1]||'',imp:parseFloat(p[2])||0};
+  }).filter(r=>r.imp>0);
+
+  const righeContanti=cashList.map(r=>`
+    <tr>
+      <td>${r.data}</td>
+      <td>${r.nome}</td>
+      <td style="text-align:right">${fmtEur(r.imp)}</td>
+    </tr>`).join('');
+
+  const vociSpese=[
+    s.wkTot>0?`<tr><td>Weekend / festività (${s.wkN||0} gg × €60)</td><td style="text-align:right">− ${fmtEur(s.wkTot)}</td></tr>`:'',
+    s.sp>0?`<tr><td>Spesa B&B</td><td style="text-align:right">− ${fmtEur(s.sp)}</td></tr>`:'',
+    s.man>0?`<tr><td>Manutenzione</td><td style="text-align:right">− ${fmtEur(s.man)}</td></tr>`:'',
+    s.bab>0?`<tr><td>Babbo / Mamma</td><td style="text-align:right">− ${fmtEur(s.bab)}</td></tr>`:'',
+    s.ferie>0?`<tr><td>Ferie / sostituzioni</td><td style="text-align:right">− ${fmtEur(s.ferie)}</td></tr>`:'',
+    s.stip>0?`<tr><td>Stipendio</td><td style="text-align:right">− ${fmtEur(s.stip)}</td></tr>`:'',
+  ].filter(Boolean).join('');
+
+  const html=`<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Liquidazione Leo - ${periodoClean}</title>
+<style>
+  body{font-family:-apple-system,sans-serif;max-width:480px;margin:2rem auto;padding:1rem;color:#1a1a1a;font-size:14px}
+  h1{font-size:18px;font-weight:700;margin-bottom:.25rem}
+  .sub{font-size:12px;color:#666;margin-bottom:1.5rem}
+  h2{font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#666;margin:1.25rem 0 .5rem}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  td{padding:6px 0;border-bottom:1px solid #eee}
+  tr:last-child td{border-bottom:none}
+  .tot-row td{padding-top:10px;font-weight:700;border-top:2px solid #1a1a1a;border-bottom:none}
+  .saldo{margin-top:1.5rem;padding:1.25rem;border-radius:10px;text-align:center}
+  .saldo.pos{background:#e8f5ee;border:1px solid #a8d9b8}
+  .saldo.neg{background:#fdf0f0;border:1px solid #f0b8b8}
+  .saldo-label{font-size:12px;font-weight:600;margin-bottom:.25rem}
+  .saldo.pos .saldo-label{color:#1a7a4a}
+  .saldo.neg .saldo-label{color:#b83232}
+  .saldo-amount{font-size:32px;font-weight:700}
+  .saldo.pos .saldo-amount{color:#1a7a4a}
+  .saldo.neg .saldo-amount{color:#b83232}
+  .footer{margin-top:2rem;font-size:11px;color:#999;text-align:center}
+  @media print{body{margin:1rem}}
+</style>
+</head>
+<body>
+  <h1>Liquidazione Leo</h1>
+  <div class="sub">Periodo: ${periodoClean}<br>
+  Generato il ${new Date().toLocaleDateString('it-IT',{day:'2-digit',month:'long',year:'numeric'})}</div>
+
+  <h2>Contanti incassati</h2>
+  <table>
+    <thead><tr><td style="color:#666">Data</td><td style="color:#666">Cliente</td><td style="text-align:right;color:#666">Importo</td></tr></thead>
+    <tbody>${righeContanti}</tbody>
+    <tfoot><tr class="tot-row"><td colspan="2">Totale contanti</td><td style="text-align:right">${fmtEur(s.totContanti||0)}</td></tr></tfoot>
+  </table>
+
+  <h2>Da pagare a Leo</h2>
+  <table>
+    <tbody>${vociSpese}</tbody>
+    <tfoot><tr class="tot-row"><td>Totale da pagare</td><td style="text-align:right">− ${fmtEur(s.daMe||0)}</td></tr></tfoot>
+  </table>
+
+  <div class="saldo ${pos?'pos':'neg'}">
+    <div class="saldo-label">${pos?'📥 Hai ricevuto da Leo':'📤 Hai dato a Leo'}</div>
+    <div class="saldo-amount">${fmtEur(Math.abs(s.saldo||0))}</div>
+  </div>
+
+  <div class="footer">InternoUno · Liquidazione dipendente</div>
+</body>
+</html>`;
+
+  const win=window.open('','_blank');
+  win.document.write(html);
+  win.document.close();
+  setTimeout(()=>win.print(),500);
+}
+
 // ---------- STORICO ----------
 async function getStorico(){
   if(_cache) return _cache;
@@ -718,6 +807,7 @@ function renderSto(hist){
       </div>
       <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
         <span style="font-size:18px;color:var(--faint)">›</span>
+        <button class="btn" onclick="event.stopPropagation();generaPDF(${i})" style="font-size:12px;padding:5px 10px">📄 PDF</button>
         <button class="btn btn-d" onclick="event.stopPropagation();delSto(${i})">🗑</button>
       </div>
     </div>
