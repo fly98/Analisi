@@ -282,7 +282,7 @@ export default {
             const numMese = parseInt(mese.slice(5,7));
             if (year && annoMese !== parseInt(year)) continue;
             if (month && numMese !== parseInt(month)) continue;
-            if (!mensile[mese]) mensile[mese] = { ricavi: 0, prenotazioni: 0, notti: 0, cityTax: 0 };
+            if (!mensile[mese]) mensile[mese] = { ricavi: 0, ricaviAmenitiz: 0, prenotazioni: 0, notti: 0, cityTax: 0 };
             mensile[mese].ricavi += importoTot / totNotti;
             mensile[mese].notti++;
             const notteIdx = Math.round((new Date(d) - cin) / 86400000);
@@ -292,12 +292,14 @@ export default {
           const annoMeseCin = parseInt(meseCin.slice(0,4));
           const numMeseCin = parseInt(meseCin.slice(5,7));
           if ((!year || annoMeseCin === parseInt(year)) && (!month || numMeseCin === parseInt(month))) {
-            if (!mensile[meseCin]) mensile[meseCin] = { ricavi: 0, prenotazioni: 0, notti: 0, cityTax: 0 };
+            if (!mensile[meseCin]) mensile[meseCin] = { ricavi: 0, ricaviAmenitiz: 0, prenotazioni: 0, notti: 0, cityTax: 0 };
             mensile[meseCin].prenotazioni++;
+            mensile[meseCin].ricaviAmenitiz += importoTot; // importo intero al mese checkin
           }
         }
         for (const k of Object.keys(mensile)) {
           mensile[k].ricavi = Math.round(mensile[k].ricavi * 100) / 100;
+          mensile[k].ricaviAmenitiz = Math.round((mensile[k].ricaviAmenitiz || 0) * 100) / 100;
           mensile[k].cityTax = Math.round((mensile[k].cityTax || 0) * 100) / 100;
         }
         return new Response(JSON.stringify({ from, to, totalBookings, totalNotti, mensile }), {
