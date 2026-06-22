@@ -416,14 +416,17 @@ function renderRicavi() {
       const key = `${a}-${String(m).padStart(2,'0')}`;
       const entry = (datiRicavi[a].mensile || {})[key];
       const isProv = entry && entry.provvisorio;
-      if (!entry) { vals.push(null); bgColors.push('transparent'); borderColors.push('transparent'); borderWidths.push(0); continue; }
-      if (activeTab === 'tax') vals.push(entry.cityTax || 0);
-      else vals.push(entry.ricavi || 0);
-      // Mesi provvisori: più trasparenti e bordo tratteggiato
-      const alpha = isProv ? '44' : (a === curAnno ? 'dd' : '88');
-      bgColors.push(col + alpha);
-      borderColors.push(col);
-      borderWidths.push(isProv ? 2 : (a === curAnno ? 2 : 1));
+      if (!entry) {
+        vals.push(null); bgColors.push('transparent'); borderColors.push('transparent'); borderWidths.push(0);
+      } else {
+        if (activeTab === 'tax') vals.push(entry.cityTax || 0);
+        else vals.push(entry.ricavi || 0);
+        const alpha = isProv ? '44' : (a === curAnno ? 'dd' : '88');
+        bgColors.push(col + alpha);
+        borderColors.push(col);
+        borderWidths.push(isProv ? 2 : (a === curAnno ? 2 : 1));
+      }
+
     }
     return {
       label: String(a),
