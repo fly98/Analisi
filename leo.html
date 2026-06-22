@@ -635,7 +635,15 @@ function calcSaldo(){
   } else {
     box.innerHTML=`<div class="saldo neg"><div class="sl">⬆️ Tu devi dargli</div><div class="sa">${fmtEur(Math.abs(saldo))}</div><div class="ss">${fmtEur(totContanti)} contanti − ${fmtEur(daMe)} da pagare</div></div>`;
   }
-  S.lastCalc={cash,stripe,totContanti,wkTot,wkN,sp,man,bab,ferie,stip,spTot,daMe,saldo};
+  // Raccogli date weekend selezionati
+  const wkDateSel=[];
+  document.querySelectorAll('#wk-list input[type=checkbox]:checked').forEach(cb=>{
+    const i=parseInt(cb.dataset.i);
+    if(S.wkDays[i]) wkDateSel.push(fmtDate(S.wkDays[i].date));
+  });
+
+  S.lastCalc={cash,stripe,totContanti,wkTot,wkN,wkDateSel,sp,man,bab,ferie,stip,spTot,daMe,saldo,
+    ferieDal:S.ferieDal||null, ferieAl:S.ferieAl||null};
 }
 
 function generaPDF(idx){
@@ -651,80 +659,98 @@ function generaPDF(idx){
   }).filter(r=>r.imp>0);
 
   const righeContanti=cashList.map(r=>`
-    <tr>
-      <td>${r.data}</td>
-      <td>${r.nome}</td>
-      <td style="text-align:right">${fmtEur(r.imp)}</td>
-    </tr>`).join('');
+    <tr><td>${r.data}</td><td>${r.nome}</td><td class="right">${fmtEur(r.imp)}</td></tr>`).join('');
+
+  // Weekend con date
+  const wkDates=(s.wkDateSel||[]);
+  const wkLabel=s.wkTot>0
+    ? `Weekend / festività — ${s.wkN||0} gg × €60${wkDates.length?'<div class="detail">'+wkDates.join(', ')+'</div>':''}`
+    : '';
+
+  // Ferie con date
+  const ferieLabel=s.ferie>0
+    ? `Ferie / sostituzioni${s.ferieDal&&s.ferieAl?' dal '+s.ferieDal.split('-').reverse().join('/')+' al '+s.ferieAl.split('-').reverse().join('/'):''}${s.ferieGiorni?' ('+s.ferieGiorni+'gg × €30)':''}`
+    : '';
 
   const vociSpese=[
-    s.wkTot>0?`<tr><td>Weekend / festività (${s.wkN||0} gg × €60)</td><td style="text-align:right">− ${fmtEur(s.wkTot)}</td></tr>`:'',
-    s.sp>0?`<tr><td>Spesa B&B</td><td style="text-align:right">− ${fmtEur(s.sp)}</td></tr>`:'',
-    s.man>0?`<tr><td>Manutenzione</td><td style="text-align:right">− ${fmtEur(s.man)}</td></tr>`:'',
-    s.bab>0?`<tr><td>Babbo / Mamma</td><td style="text-align:right">− ${fmtEur(s.bab)}</td></tr>`:'',
-    s.ferie>0?`<tr><td>Ferie / sostituzioni</td><td style="text-align:right">− ${fmtEur(s.ferie)}</td></tr>`:'',
-    s.stip>0?`<tr><td>Stipendio</td><td style="text-align:right">− ${fmtEur(s.stip)}</td></tr>`:'',
+    s.wkTot>0?`<tr><td>${wkLabel}</td><td class="right">− ${fmtEur(s.wkTot)}</td></tr>`:'',
+    s.sp>0?`<tr><td>Spesa B&B</td><td class="right">− ${fmtEur(s.sp)}</td></tr>`:'',
+    s.man>0?`<tr><td>Manutenzione</td><td class="right">− ${fmtEur(s.man)}</td></tr>`:'',
+    s.bab>0?`<tr><td>Babbo / Mamma</td><td class="right">− ${fmtEur(s.bab)}</td></tr>`:'',
+    s.ferie>0?`<tr><td>${ferieLabel}</td><td class="right">− ${fmtEur(s.ferie)}</td></tr>`:'',
+    s.stip>0?`<tr><td>Stipendio</td><td class="right">− ${fmtEur(s.stip)}</td></tr>`:'',
   ].filter(Boolean).join('');
 
   const html=`<!DOCTYPE html>
-<html lang="it">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="it"><head><meta charset="UTF-8">
 <title>Liquidazione Leo - ${periodoClean}</title>
 <style>
-  body{font-family:-apple-system,sans-serif;max-width:480px;margin:2rem auto;padding:1rem;color:#1a1a1a;font-size:14px}
-  h1{font-size:18px;font-weight:700;margin-bottom:.25rem}
-  .sub{font-size:12px;color:#666;margin-bottom:1.5rem}
-  h2{font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#666;margin:1.25rem 0 .5rem}
-  table{width:100%;border-collapse:collapse;font-size:13px}
-  td{padding:6px 0;border-bottom:1px solid #eee}
-  tr:last-child td{border-bottom:none}
-  .tot-row td{padding-top:10px;font-weight:700;border-top:2px solid #1a1a1a;border-bottom:none}
-  .saldo{margin-top:1.5rem;padding:1.25rem;border-radius:10px;text-align:center}
-  .saldo.pos{background:#e8f5ee;border:1px solid #a8d9b8}
-  .saldo.neg{background:#fdf0f0;border:1px solid #f0b8b8}
-  .saldo-label{font-size:12px;font-weight:600;margin-bottom:.25rem}
-  .saldo.pos .saldo-label{color:#1a7a4a}
-  .saldo.neg .saldo-label{color:#b83232}
-  .saldo-amount{font-size:32px;font-weight:700}
-  .saldo.pos .saldo-amount{color:#1a7a4a}
-  .saldo.neg .saldo-amount{color:#b83232}
-  .footer{margin-top:2rem;font-size:11px;color:#999;text-align:center}
-  @media print{body{margin:1rem}}
-</style>
-</head>
-<body>
-  <h1>Liquidazione Leo</h1>
-  <div class="sub">Periodo: ${periodoClean}<br>
-  Generato il ${new Date().toLocaleDateString('it-IT',{day:'2-digit',month:'long',year:'numeric'})}</div>
+body{font-family:-apple-system,sans-serif;max-width:480px;margin:2rem auto;padding:1.5rem;color:#1a1a1a;font-size:14px}
+h1{font-size:20px;font-weight:700;margin-bottom:.25rem}
+.sub{font-size:12px;color:#666;margin-bottom:1.5rem;line-height:1.6}
+h2{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#888;margin:1.5rem 0 .5rem;padding-bottom:.25rem;border-bottom:1px solid #eee}
+table{width:100%;border-collapse:collapse;font-size:13px}
+td{padding:7px 0;border-bottom:1px solid #f0f0f0;vertical-align:top}
+tr:last-child td{border-bottom:none}
+.right{text-align:right;white-space:nowrap;font-weight:500}
+.detail{font-size:11px;color:#888;margin-top:3px;line-height:1.5}
+.tot-row td{padding-top:10px;font-weight:700;font-size:14px;border-top:2px solid #1a1a1a;border-bottom:none}
+.saldo{margin-top:1.5rem;padding:1.25rem;border-radius:10px;text-align:center}
+.saldo.pos{background:#e8f5ee;border:1px solid #a8d9b8}
+.saldo.neg{background:#fdf0f0;border:1px solid #f0b8b8}
+.sl{font-size:12px;font-weight:600;margin-bottom:.25rem}
+.saldo.pos .sl{color:#1a7a4a}
+.saldo.neg .sl{color:#b83232}
+.sa{font-size:34px;font-weight:700}
+.saldo.pos .sa{color:#1a7a4a}
+.saldo.neg .sa{color:#b83232}
+.foot{margin-top:2rem;font-size:11px;color:#bbb;text-align:center}
+</style></head><body>
+<h1>Liquidazione Leo</h1>
+<div class="sub">
+  Periodo: <strong>${periodoClean}</strong><br>
+  Generato il ${new Date().toLocaleDateString('it-IT',{day:'2-digit',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'})}
+</div>
 
-  <h2>Contanti incassati</h2>
-  <table>
-    <thead><tr><td style="color:#666">Data</td><td style="color:#666">Cliente</td><td style="text-align:right;color:#666">Importo</td></tr></thead>
-    <tbody>${righeContanti}</tbody>
-    <tfoot><tr class="tot-row"><td colspan="2">Totale contanti</td><td style="text-align:right">${fmtEur(s.totContanti||0)}</td></tr></tfoot>
-  </table>
+<h2>Contanti incassati</h2>
+<table>
+  <tbody>${righeContanti}</tbody>
+  <tfoot><tr class="tot-row"><td>Totale contanti</td><td class="right">${fmtEur(s.totContanti||0)}</td></tr></tfoot>
+</table>
 
-  <h2>Da pagare a Leo</h2>
-  <table>
-    <tbody>${vociSpese}</tbody>
-    <tfoot><tr class="tot-row"><td>Totale da pagare</td><td style="text-align:right">− ${fmtEur(s.daMe||0)}</td></tr></tfoot>
-  </table>
+<h2>Da pagare a Leo</h2>
+<table>
+  <tbody>${vociSpese}</tbody>
+  <tfoot><tr class="tot-row"><td>Totale da pagare</td><td class="right">− ${fmtEur(s.daMe||0)}</td></tr></tfoot>
+</table>
 
-  <div class="saldo ${pos?'pos':'neg'}">
-    <div class="saldo-label">${pos?'📥 Hai ricevuto da Leo':'📤 Hai dato a Leo'}</div>
-    <div class="saldo-amount">${fmtEur(Math.abs(s.saldo||0))}</div>
-  </div>
+<div class="saldo ${pos?'pos':'neg'}">
+  <div class="sl">${pos?'📥 Filippo riceve da Leo':'📤 Filippo dà a Leo'}</div>
+  <div class="sa">${fmtEur(Math.abs(s.saldo||0))}</div>
+</div>
 
-  <div class="footer">InternoUno · Liquidazione dipendente</div>
-</body>
-</html>`;
+<div class="foot">InternoUno · Liquidazione dipendente</div>
+</body></html>`;
 
-  const win=window.open('','_blank');
-  win.document.write(html);
-  win.document.close();
-  setTimeout(()=>win.print(),500);
+  // Prova condivisione nativa iOS (WhatsApp, Mail ecc.)
+  if(navigator.share){
+    const blob=new Blob([html],{type:'text/html'});
+    const file=new File([blob],`liquidazione-leo-${periodoClean.replace(/\//g,'-')}.html`,{type:'text/html'});
+    // iOS preferisce PDF — genera via print su nuova finestra con condivisione
+    const win=window.open('','_blank');
+    win.document.write(html);
+    win.document.close();
+    // Aspetta che carichi poi apri condivisione
+    setTimeout(()=>{
+      try{ win.navigator.share({title:'Liquidazione Leo',text:'Riepilogo liquidazione periodo '+periodoClean}); }
+      catch(e){ win.print(); }
+    },600);
+  } else {
+    const win=window.open('','_blank');
+    win.document.write(html);
+    win.document.close();
+    setTimeout(()=>win.print(),500);
+  }
 }
 
 // ---------- STORICO ----------
@@ -945,6 +971,8 @@ function applyFerie(){
   const tot=n*30;
   document.getElementById('v-ferie').value=tot;
   document.getElementById('ferie-giorni-label').textContent=`(${n}gg × €30)`;
+  // Salva date in S per il PDF
+  S.ferieDal=f; S.ferieAl=t;
   closeFerie();
   calcSaldo();
 }
