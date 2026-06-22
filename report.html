@@ -386,7 +386,7 @@ function renderRicavi() {
   let kpiHtml = '';
   for (const a of anni) {
     const d = datiRicavi[a];
-    const totR = Object.values(d.mensile || {}).reduce((s,m) => s + m.ricavi, 0);
+    const totR = Object.values(d.mensile || {}).reduce((s,m) => s + (m.ricavi||0), 0);
     const totP = d.totalBookings || 0;
     const totN = d.totalNotti || 0;
     const isCur = a === curAnno;
@@ -518,7 +518,7 @@ function renderRicavi() {
   html += '<tr class="total-row"><td>Totale</td>';
   html += anni.map((a,i) => {
     const bold = a === curAnno ? 'style="font-weight:700"' : '';
-    const v = fmtE(totals[a]);
+    const v = fmtE(totals[a] || 0);
     return `<td ${bold}>${v}</td>`;
   }).join('');
   html += '</tr></tbody>';
