@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leo — Liquidazione InternoUno</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f5f4f0;
+    --surface: #ffffff;
+    --border: rgba(0,0,0,0.1);
+    --border-strong: rgba(0,0,0,0.2);
+    --text: #1a1a1a;
+    --text-muted: #666;
+    --text-faint: #999;
+    --green: #1a7a4a;
+    --green-bg: #e8f5ee;
+    --green-border: #a8d9b8;
+    --red: #b83232;
+    --red-bg: #fdf0f0;
+    --red-border: #f0b8b8;
+    --amber: #7a5a00;
+    --amber-bg: #fef8e8;
+    --amber-border: #f0d880;
+    --blue: #1a4a7a;
+    --blue-bg: #eef4fd;
+    --blue-border: #a8c4e8;
+    --radius: 10px;
+    --radius-sm: 6px;
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 15px; }
+  .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 1rem 1.5rem; display: flex; align-items: center; gap: 12px; }
+  .header-icon { width: 36px; height: 36px; background: var(--text); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; }
+  .header h1 { font-size: 17px; font-weight: 600; }
+  .header p { font-size: 12px; color: var(--text-muted); }
+  .tabs { background: var(--surface); border-bottom: 1px solid var(--border); display: flex; padding: 0 1.5rem; }
+  .tab { padding: 12px 16px; font-size: 13px; font-weight: 500; color: var(--text-muted); border-bottom: 2px solid transparent; cursor: pointer; margin-bottom: -1px; background: none; border-top: none; border-left: none; border-right: none; }
+  .tab.active { color: var(--text); border-bottom-color: var(--text); }
+  .container { max-width: 780px; margin: 0 auto; padding: 1.5rem; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; margin-bottom: 1rem; }
+  .card-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted); margin-bottom: 1rem; }
+  .step-num { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; background: var(--text); color: white; border-radius: 50%; font-size: 10px; font-weight: 700; margin-right: 6px; }
+  /* Bottone fetch mail */
+  .btn-fetch { width: 100%; padding: 14px; border: 2px dashed var(--border-strong); border-radius: var(--radius); background: none; cursor: pointer; font-size: 14px; color: var(--text-muted); display: flex; align-items: center; justify-content: center; gap: 8px; transition: all .15s; }
+  .btn-fetch:hover { background: var(--bg); border-color: var(--text); color: var(--text); }
+  .btn-fetch.loading { opacity: .6; pointer-events: none; }
+  .btn { padding: 8px 16px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 500; cursor: pointer; border: 1px solid var(--border-strong); background: none; color: var(--text); transition: all .15s; }
+  .btn:hover { background: var(--bg); }
+  .btn-primary { background: var(--text); color: white; border-color: transparent; }
+  .btn-primary:hover { opacity: .85; background: var(--text); }
+  .btn-danger { color: var(--red); border-color: var(--red-border); }
+  .btn-danger:hover { background: var(--red-bg); }
+  /* Badge */
+  .badge { display: inline-block; font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 20px; }
+  .badge-ok { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+  .badge-warn { background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber-border); }
+  .badge-info { background: var(--blue-bg); color: var(--blue); border: 1px solid var(--blue-border); }
+  .badge-err { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); }
+  /* Tabella contanti */
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; padding: 6px 8px; color: var(--text-muted); font-weight: 500; border-bottom: 1px solid var(--border); }
+  td { padding: 8px 8px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr.dup td { opacity: .4; }
+  .cash-tot { display: flex; justify-content: flex-end; align-items: center; gap: 12px; margin-top: .75rem; padding-top: .75rem; border-top: 1px solid var(--border); }
+  /* Input rows */
+  .input-row { display: flex; align-items: center; gap: 10px; margin-bottom: .75rem; }
+  .input-row label { min-width: 150px; font-size: 14px; color: var(--text); }
+  .input-row input[type=number] { width: 130px; padding: 7px 10px; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 14px; background: white; color: var(--text); }
+  .input-row .hint { font-size: 12px; color: var(--text-faint); }
+  .divider { border: none; border-top: 1px solid var(--border); margin: .75rem 0; }
+  /* Metric grid */
+  .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1rem; }
+  .metric { background: var(--bg); border-radius: var(--radius-sm); padding: .875rem 1rem; }
+  .metric-label { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
+  .metric-val { font-size: 20px; font-weight: 600; }
+  /* Saldo */
+  .saldo { border-radius: var(--radius); padding: 1.5rem; text-align: center; margin-top: .5rem; }
+  .saldo.positivo { background: var(--green-bg); border: 1px solid var(--green-border); }
+  .saldo.negativo { background: var(--red-bg); border: 1px solid var(--red-border); }
+  .saldo-label { font-size: 13px; font-weight: 600; margin-bottom: .25rem; }
+  .saldo.positivo .saldo-label { color: var(--green); }
+  .saldo.negativo .saldo-label { color: var(--red); }
+  .saldo-amount { font-size: 42px; font-weight: 700; line-height: 1.1; }
+  .saldo.positivo .saldo-amount { color: var(--green); }
+  .saldo.negativo .saldo-amount { color: var(--red); }
+  .saldo-sub { font-size: 12px; color: var(--text-muted); margin-top: .375rem; }
+  /* Weekend list */
+  .weekend-list { background: var(--bg); border-radius: var(--radius-sm); padding: .75rem; margin-top: .75rem; }
+  .weekend-item { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .weekend-item:last-child { border-bottom: none; }
+  /* Storico */
+  .storico-item { padding: 1rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; }
+  .storico-item:last-child { border-bottom: none; }
+  .storico-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+  /* Avviso dup */
+  .dup-warn { background: var(--amber-bg); border: 1px solid var(--amber-border); border-radius: var(--radius-sm); padding: .75rem 1rem; font-size: 13px; color: var(--amber); margin-bottom: .75rem; }
+  /* Alert */
+  .alert { padding: .75rem 1rem; border-radius: var(--radius-sm); font-size: 13px; margin-bottom: 1rem; }
+  .alert-info { background: var(--blue-bg); color: var(--blue); border: 1px solid var(--blue-border); }
+  .alert-err { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); }
+  /* Mail info */
+  .mail-info { display: flex; align-items: center; gap: 10px; padding: .875rem 1rem; background: var(--green-bg); border: 1px solid var(--green-border); border-radius: var(--radius-sm); font-size: 13px; margin-bottom: 1rem; }
+  .mail-info strong { color: var(--green); }
+  /* Periodo manuale */
+  .periodo-box { margin-top: .75rem; padding-top: .75rem; border-top: 1px solid var(--border); }
+  .periodo-label { font-size: 12px; color: var(--text-muted); margin-bottom: .5rem; }
+  .periodo-inputs { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .periodo-inputs input[type=date] { padding: 6px 10px; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 13px; background: white; color: var(--text); }
+  /* Spinner */
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spinner { width: 16px; height: 16px; border: 2px solid var(--border); border-top-color: var(--text); border-radius: 50%; animation: spin .6s linear infinite; display: inline-block; }
+  .hidden { display: none !important; }
+  /* Upload fallback */
+  .upload-or { text-align: center; font-size: 12px; color: var(--text-faint); margin: .75rem 0; }
+  .btn-upload-manual { width: 100%; padding: 10px; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); background: none; cursor: pointer; font-size: 13px; color: var(--text-muted); }
+  .btn-upload-manual:hover { background: var(--bg); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-icon">💶</div>
+  <div>
+    <h1>Leo — Liquidazione</h1>
+    <p>InternoUno · Contabilità dipendente</p>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('liquidazione', this)">Liquidazione</button>
+  <button class="tab" onclick="switchTab('storico', this)">Storico</button>
+</div>
+
+<div class="container">
+
+  <!-- TAB LIQUIDAZIONE -->
+  <div id="tab-liquidazione">
+
+    <!-- Step 1: Fetch mail -->
+    <div class="card">
+      <div class="card-title"><span class="step-num">1</span>Report Amenitiz</div>
+      <div id="mail-success" class="mail-info hidden">
+        <span>📎</span>
+        <div><strong id="mail-filename">—</strong><br><span id="mail-date" style="color:var(--text-muted)"></span></div>
+        <button class="btn" style="margin-left:auto" onclick="resetReport()">Cambia</button>
+      </div>
+      <button class="btn-fetch" id="btn-fetch" onclick="fetchReport()">
+        <span id="fetch-icon">📬</span>
+        <span id="fetch-label">Recupera ultima mail Amenitiz</span>
+      </button>
+      <div class="upload-or">oppure</div>
+      <label style="display:block">
+        <input type="file" id="file-manual" accept=".xlsx" style="display:none" onchange="handleManualUpload(this)">
+        <div class="btn-upload-manual" onclick="document.getElementById('file-manual').click()">📁 Carica file manualmente</div>
+      </label>
+      <div id="fetch-error" class="alert alert-err hidden"></div>
+
+      <!-- Periodo manuale override -->
+      <div class="periodo-box" id="periodo-override" style="display:none">
+        <div class="periodo-label">Periodo rilevato dal file · puoi correggerlo:</div>
+        <div class="periodo-inputs">
+          <input type="date" id="periodo-from">
+          <span style="color:var(--text-muted);font-size:13px">→</span>
+          <input type="date" id="periodo-to">
+          <button class="btn" onclick="ricalcola()">Ricalcola</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2: Contanti -->
+    <div class="card hidden" id="card-contanti">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+        <div class="card-title" style="margin:0"><span class="step-num">2</span>Contanti rilevati</div>
+        <span class="badge badge-info" id="period-badge"></span>
+      </div>
+      <div class="dup-warn hidden" id="dup-warn"></div>
+      <table>
+        <thead><tr>
+          <th>Data</th><th>Cliente</th><th>Camera</th><th style="text-align:right">Importo</th><th>Stato</th>
+        </tr></thead>
+        <tbody id="cash-tbody"></tbody>
+      </table>
+      <div class="cash-tot">
+        <span style="font-size:13px;color:var(--text-muted)">Totale netto duplicati</span>
+        <span style="font-size:20px;font-weight:700" id="cash-total-display">€0,00</span>
+      </div>
+    </div>
+
+    <!-- Step 3: Weekend -->
+    <div class="card hidden" id="card-weekend">
+      <div class="card-title"><span class="step-num">3</span>Weekend e festività</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:.5rem">
+        <div class="metric"><div class="metric-label">Giorni</div><div class="metric-val" id="wk-giorni">—</div></div>
+        <div class="metric"><div class="metric-label">€ / giorno</div><div class="metric-val">60</div></div>
+        <div class="metric"><div class="metric-label">Totale</div><div class="metric-val" id="wk-tot">—</div></div>
+      </div>
+      <div class="weekend-list" id="weekend-list"></div>
+    </div>
+
+    <!-- Step 4: Voci -->
+    <div class="card" id="card-voci">
+      <div class="card-title"><span class="step-num">4</span>Voci da pagare</div>
+      <div class="input-row">
+        <label>🛒 Spesa B&B</label>
+        <input type="number" id="v-spesa" value="0" min="0" step="0.01" oninput="calcSaldo()">
+        <span class="hint">€</span>
+      </div>
+      <div class="input-row">
+        <label>🔧 Manutenzione</label>
+        <input type="number" id="v-manutenzione" value="0" min="0" step="0.01" oninput="calcSaldo()">
+        <span class="hint">€</span>
+      </div>
+      <div class="input-row">
+        <label>👤 Babbo</label>
+        <input type="number" id="v-babbo" value="0" min="0" step="0.01" oninput="calcSaldo()">
+        <span class="hint">€</span>
+      </div>
+      <hr class="divider">
+      <div class="input-row">
+        <label>💰 Stipendio</label>
+        <input type="number" id="v-stipendio" value="0" min="0" step="0.01" oninput="calcSaldo()">
+        <span class="hint" id="stip-hint">€</span>
+      </div>
+      <div id="stip-info" style="font-size:12px;color:var(--text-faint);margin-left:160px;margin-top:-.5rem"></div>
+    </div>
+
+    <!-- Step 5: Riepilogo -->
+    <div class="card">
+      <div class="card-title"><span class="step-num">5</span>Riepilogo</div>
+      <div class="metrics">
+        <div class="metric"><div class="metric-label">Contanti da consegnare</div><div class="metric-val" id="r-contanti">€—</div></div>
+        <div class="metric"><div class="metric-label">Weekend / festività</div><div class="metric-val" id="r-weekend">€—</div></div>
+        <div class="metric"><div class="metric-label">Spesa + manutenzione + babbo</div><div class="metric-val" id="r-spese">€—</div></div>
+        <div class="metric"><div class="metric-label">Stipendio</div><div class="metric-val" id="r-stipendio">€—</div></div>
+      </div>
+      <div id="saldo-box"></div>
+      <div style="display:flex;justify-content:flex-end;margin-top:1rem">
+        <button class="btn btn-primary" id="btn-salva" onclick="salvaSessione()">💾 Salva in storico</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- TAB STORICO -->
+  <div id="tab-storico" class="hidden">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+        <div class="card-title" style="margin:0">Sessioni salvate</div>
+        <span class="badge badge-info" id="storico-count-badge"></span>
+      </div>
+      <div id="storico-loading" class="alert alert-info">Caricamento storico...</div>
+      <div id="storico-list"></div>
+      <div id="storico-empty" class="hidden" style="text-align:center;padding:2rem;color:var(--text-faint);font-size:14px">
+        📋 Nessuna sessione salvata ancora.
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const WORKER = 'https://leo-worker.f-castiglioni.workers.dev';
+const STIPENDIO_DEFAULT = 750;
+const FESTIVI = ['01-01','06-01','25-04','01-05','02-06','15-08','01-11','08-12','25-12','26-12'];
+
+let S = {
+  cashRows: [], dupIds: [], cashTotal: 0,
+  periodStart: null, periodEnd: null,
+  weekendDays: [], weekendTotal: 0,
+  stipendioMesi: [], loaded: false
+};
+
+// ---------- TAB ----------
+function switchTab(name, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-liquidazione').classList.toggle('hidden', name !== 'liquidazione');
+  document.getElementById('tab-storico').classList.toggle('hidden', name !== 'storico');
+  if (name === 'storico') loadStorico();
+}
+
+// ---------- FETCH REPORT ----------
+async function fetchReport() {
+  const btn = document.getElementById('btn-fetch');
+  const lbl = document.getElementById('fetch-label');
+  const ico = document.getElementById('fetch-icon');
+  const errBox = document.getElementById('fetch-error');
+  errBox.classList.add('hidden');
+  btn.classList.add('loading');
+  lbl.textContent = 'Recupero mail...';
+  ico.innerHTML = '<span class="spinner"></span>';
+
+  try {
+    const resp = await fetch(`${WORKER}?action=getReport`);
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error);
+
+    // Converti base64url → ArrayBuffer
+    const b64 = data.data.replace(/-/g, '+').replace(/_/g, '/');
+    const binary = atob(b64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+
+    document.getElementById('mail-filename').textContent = data.filename;
+    document.getElementById('mail-date').textContent = 'Mail del ' + new Date(data.msgDate).toLocaleDateString('it-IT', {day:'2-digit',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('mail-success').classList.remove('hidden');
+    btn.classList.add('hidden');
+
+    processXlsx(bytes.buffer);
+  } catch(e) {
+    errBox.textContent = '⚠️ ' + e.message;
+    errBox.classList.remove('hidden');
+    btn.classList.remove('loading');
+    lbl.textContent = 'Recupera ultima mail Amenitiz';
+    ico.textContent = '📬';
+  }
+}
+
+function handleManualUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  document.getElementById('mail-filename').textContent = file.name;
+  document.getElementById('mail-date').textContent = 'Caricato manualmente';
+  document.getElementById('mail-success').classList.remove('hidden');
+  document.getElementById('btn-fetch').classList.add('hidden');
+  const reader = new FileReader();
+  reader.onload = e => processXlsx(e.target.result);
+  reader.readAsArrayBuffer(file);
+}
+
+function resetReport() {
+  document.getElementById('mail-success').classList.add('hidden');
+  document.getElementById('btn-fetch').classList.remove('hidden');
+  document.getElementById('btn-fetch').classList.remove('loading');
+  document.getElementById('fetch-label').textContent = 'Recupera ultima mail Amenitiz';
+  document.getElementById('fetch-icon').textContent = '📬';
+  document.getElementById('fetch-error').classList.add('hidden');
+  document.getElementById('card-contanti').classList.add('hidden');
+  document.getElementById('card-weekend').classList.add('hidden');
+  document.getElementById('periodo-override').style.display = 'none';
+  S = { cashRows:[], dupIds:[], cashTotal:0, periodStart:null, periodEnd:null, weekendDays:[], weekendTotal:0, stipendioMesi:[], loaded:false };
+  calcSaldo();
+}
+
+// ---------- PARSE XLSX ----------
+function processXlsx(buffer) {
+  const wb = XLSX.read(buffer, {type:'array'});
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+  parseAmenitiz(rows);
+}
+
+function excelDateToJS(val) {
+  if (typeof val === 'number') {
+    return new Date(Math.round((val - 25569) * 86400000));
+  }
+  if (typeof val === 'string' && val.includes('/')) {
+    const [d,m,y] = val.split('/');
+    return new Date(parseInt(y), parseInt(m)-1, parseInt(d));
+  }
+  return null;
+}
+
+function parseAmenitiz(rows) {
+  let cashRows = [], periodStart = null, periodEnd = null;
+  let inCash = false;
+  for (let i = 0; i < rows.length; i++) {
+    const r = rows[i];
+    const r0 = String(r[0]||'').trim();
+    if (r0.startsWith('REPORT PAGAMENTI')) {
+      const m = r0.match(/DA (\d{2}\/\d{2}\/\d{4}) A (\d{2}\/\d{2}\/\d{4})/);
+      if (m) {
+        const [,d1,m1,y1] = m[1].match(/(\d+)\/(\d+)\/(\d+)/)||[];
+        const [,d2,m2,y2] = m[2].match(/(\d+)\/(\d+)\/(\d+)/)||[];
+        periodStart = new Date(y1, m1-1, d1);
+        periodEnd = new Date(y2, m2-1, d2);
+      }
+    }
+    if (r0 === 'Contanti') { inCash = true; continue; }
+    if (inCash && r0 === 'Contanti - Totale') { inCash = false; continue; }
+    if (inCash && r[0] && r[3]) {
+      const dateObj = excelDateToJS(r[1]);
+      const importo = parseFloat(r[8]);
+      if (!isNaN(importo) && importo > 0 && dateObj) {
+        const prenotazione = String(r[6]||'').trim();
+        const id = fmtDate(dateObj) + '|' + prenotazione + '|' + importo;
+        cashRows.push({
+          date: dateObj,
+          cliente: String(r[3]||'').trim(),
+          camera: String(r[4]||'').split(' - ')[0].trim(),
+          prenotazione, importo, id
+        });
+      }
+    }
+  }
+  S.cashRows = cashRows;
+  S.periodStart = periodStart || (cashRows.length ? cashRows.reduce((a,b)=>a.date<b.date?a:b).date : null);
+  S.periodEnd = periodEnd || (cashRows.length ? cashRows.reduce((a,b)=>a.date>b.date?a:b).date : null);
+
+  // Mostra periodo e permetti override
+  if (S.periodStart && S.periodEnd) {
+    document.getElementById('periodo-from').value = toISO(S.periodStart);
+    document.getElementById('periodo-to').value = toISO(S.periodEnd);
+    document.getElementById('periodo-override').style.display = '';
+  }
+
+  checkDuplicatesAndRender();
+}
+
+async function checkDuplicatesAndRender() {
+  const hist = await loadStorico();
+  const allIds = new Set();
+  (hist.sessioni || []).forEach(s => (s.cashIds||[]).forEach(id => allIds.add(id)));
+  S.dupIds = S.cashRows.filter(r => allIds.has(r.id)).map(r => r.id);
+
+  // Calcola periodo weekend: dall'ultimo incontro salvato a oggi/fine periodo
+  const sessioni = (hist.sessioni || []);
+  if (sessioni.length > 0) {
+    const ultimaData = new Date(sessioni[0].dataSalvataggio);
+    // Giorno dopo l'ultimo incontro
+    const dopoUltimo = new Date(ultimaData);
+    dopoUltimo.setDate(dopoUltimo.getDate() + 1);
+    S.wkStart = dopoUltimo;
+  } else {
+    S.wkStart = S.periodStart;
+  }
+  S.wkEnd = S.periodEnd || new Date();
+
+  computeAll();
+  renderContanti();
+  renderWeekend();
+  setupStipendio();
+  calcSaldo();
+  S.loaded = true;
+  document.getElementById('card-contanti').classList.remove('hidden');
+  document.getElementById('card-weekend').classList.remove('hidden');
+}
+
+function ricalcola() {
+  const f = document.getElementById('periodo-from').value;
+  const t = document.getElementById('periodo-to').value;
+  if (!f || !t) return;
+  S.periodStart = new Date(f);
+  S.periodEnd = new Date(t);
+  S.wkEnd = S.periodEnd;
+  computeAll();
+  renderContanti();
+  renderWeekend();
+  setupStipendio();
+  calcSaldo();
+}
+
+function computeAll() {
+  const wkS = S.wkStart || S.periodStart;
+  const wkE = S.wkEnd || S.periodEnd;
+  S.weekendDays = wkS && wkE ? calcWeekendDays(wkS, wkE) : [];
+  S.weekendTotal = S.weekendDays.length * 60;
+  S.stipendioMesi = S.periodStart && S.periodEnd ? calcStipendioMesi(S.periodStart, S.periodEnd) : [];
+}
+
+// ---------- WEEKEND ----------
+function getEaster(y) {
+  const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,
+        f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),
+        h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,
+        l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),
+        mo=Math.floor((h+l-7*m+114)/31),dy=((h+l-7*m+114)%31)+1;
+  return new Date(y,mo-1,dy);
+}
+function isHoliday(d) {
+  const mm=String(d.getMonth()+1).padStart(2,'0'), dd=String(d.getDate()).padStart(2,'0');
+  if (FESTIVI.includes(mm+'-'+dd)) return true;
+  const easter = getEaster(d.getFullYear());
+  const em = new Date(easter); em.setDate(em.getDate()+1);
+  return d.toDateString() === em.toDateString();
+}
+function calcWeekendDays(start, end) {
+  const days = []; const cur = new Date(start);
+  while (cur <= end) {
+    const dow = cur.getDay(), hol = isHoliday(cur);
+    if (dow===0||dow===6||hol) days.push({date:new Date(cur),dow,hol});
+    cur.setDate(cur.getDate()+1);
+  }
+  return days;
+}
+function calcStipendioMesi(start, end) {
+  const mesi=[], cur=new Date(start.getFullYear(),start.getMonth(),1);
+  while(cur<=end){
+    const p=new Date(cur.getFullYear(),cur.getMonth(),1);
+    if(p>=start&&p<=end) mesi.push(new Date(p));
+    cur.setMonth(cur.getMonth()+1);
+  }
+  return mesi;
+}
+
+// ---------- RENDER ----------
+function renderContanti() {
+  const tbody = document.getElementById('cash-tbody');
+  tbody.innerHTML = '';
+  let dups = 0;
+  S.cashRows.forEach(r => {
+    const isDup = S.dupIds.includes(r.id);
+    if (isDup) dups++;
+    const tr = document.createElement('tr');
+    if (isDup) tr.className = 'dup';
+    tr.innerHTML = `
+      <td>${r.date ? fmtDate(r.date) : ''}</td>
+      <td>${r.cliente}</td>
+      <td style="font-size:12px;color:var(--text-muted)">${r.camera}</td>
+      <td style="text-align:right;font-weight:600">${fmtEur(r.importo)}</td>
+      <td>${isDup ? '<span class="badge badge-warn">già contab.</span>' : '<span class="badge badge-ok">nuovo</span>'}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+  const valid = S.cashRows.filter(r => !S.dupIds.includes(r.id));
+  S.cashTotal = valid.reduce((a,b) => a+b.importo, 0);
+  document.getElementById('cash-total-display').textContent = fmtEur(S.cashTotal);
+  const pb = document.getElementById('period-badge');
+  if (S.periodStart && S.periodEnd) pb.textContent = fmtDate(S.periodStart) + ' → ' + fmtDate(S.periodEnd);
+  const dw = document.getElementById('dup-warn');
+  if (dups > 0) {
+    dw.textContent = `⚠️ ${dups} pagamento${dups>1?'i':''} già contabilizzat${dups>1?'i':''} in sessioni precedenti — esclus${dups>1?'i':'o'} dal totale.`;
+    dw.classList.remove('hidden');
+  } else { dw.classList.add('hidden'); }
+}
+
+function renderWeekend() {
+  document.getElementById('wk-giorni').textContent = S.weekendDays.length;
+  document.getElementById('wk-tot').textContent = fmtEur(S.weekendTotal);
+  const list = document.getElementById('weekend-list');
+  const wkS = S.wkStart || S.periodStart;
+  const wkE = S.wkEnd || S.periodEnd;
+  const periodoNote = wkS && wkE ? ` (dal ${fmtDate(wkS)} al ${fmtDate(wkE)})` : '';
+  if (S.weekendDays.length === 0) { list.innerHTML = `<div style="font-size:13px;color:var(--text-faint);text-align:center;padding:.5rem">Nessun giorno festivo${periodoNote}</div>`; return; }
+  const days = ['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
+  list.innerHTML = S.weekendDays.map(d => {
+    const tipo = d.hol && d.dow!==0 && d.dow!==6 ? 'Festività' : d.dow===0 ? 'Domenica' : 'Sabato';
+    const cls = d.hol && d.dow!==0 && d.dow!==6 ? 'badge-info' : d.dow===0 ? 'badge-err' : 'badge-warn';
+    return `<div class="weekend-item">
+      <span style="font-weight:500">${fmtDate(d.date)}</span>
+      <span style="color:var(--text-muted)">${days[d.dow]}</span>
+      <span class="badge ${cls}">${tipo}</span>
+      <span style="font-weight:600">€60</span>
+    </div>`;
+  }).join('');
+  // Nota periodo
+  const nota = document.createElement('div');
+  nota.style.cssText = 'font-size:11px;color:var(--text-faint);text-align:center;padding:.5rem .5rem 0';
+  nota.textContent = 'Periodo weekend' + periodoNote;
+  list.appendChild(nota);
+}
+
+function setupStipendio() {
+  const mesi = S.stipendioMesi;
+  const n = mesi.length;
+  const tot = n * STIPENDIO_DEFAULT;
+  document.getElementById('v-stipendio').value = tot;
+  const names = mesi.map(m => m.toLocaleDateString('it-IT',{month:'long',year:'numeric'})).join(', ');
+  document.getElementById('stip-hint').textContent = '€';
+  document.getElementById('stip-info').textContent = n > 0
+    ? `${n} mese${n>1?'i':''}: ${names} · preimpostato ${n}×€${STIPENDIO_DEFAULT} = ${fmtEur(tot)}`
+    : 'Nessun 1° del mese nel periodo — inserisci manualmente se dovuto';
+  calcSaldo();
+}
+
+function calcSaldo() {
+  const contanti = S.cashTotal || 0;
+  const weekend = S.weekendTotal || 0;
+  const spesa = parseFloat(document.getElementById('v-spesa').value)||0;
+  const man = parseFloat(document.getElementById('v-manutenzione').value)||0;
+  const babbo = parseFloat(document.getElementById('v-babbo').value)||0;
+  const stip = parseFloat(document.getElementById('v-stipendio').value)||0;
+  const speseTot = spesa + man + babbo;
+  const daMe = weekend + speseTot + stip;
+  const saldo = contanti - daMe;
+  document.getElementById('r-contanti').textContent = fmtEur(contanti);
+  document.getElementById('r-weekend').textContent = fmtEur(weekend);
+  document.getElementById('r-spese').textContent = fmtEur(speseTot);
+  document.getElementById('r-stipendio').textContent = fmtEur(stip);
+  const box = document.getElementById('saldo-box');
+  if (saldo >= 0) {
+    box.innerHTML = `<div class="saldo positivo">
+      <div class="saldo-label">⬇️ Lui ti deve consegnare</div>
+      <div class="saldo-amount">${fmtEur(Math.abs(saldo))}</div>
+      <div class="saldo-sub">${fmtEur(contanti)} contanti − ${fmtEur(daMe)} da pagare</div>
+    </div>`;
+  } else {
+    box.innerHTML = `<div class="saldo negativo">
+      <div class="saldo-label">⬆️ Tu devi dargli</div>
+      <div class="saldo-amount">${fmtEur(Math.abs(saldo))}</div>
+      <div class="saldo-sub">${fmtEur(contanti)} contanti − ${fmtEur(daMe)} da pagare</div>
+    </div>`;
+  }
+  S.lastCalc = { contanti, weekend, spesa, man, babbo, stip, speseTot, daMe, saldo };
+}
+
+// ---------- STORICO ----------
+let _storicCache = null;
+
+async function loadStorico() {
+  try {
+    const resp = await fetch(`${WORKER}?action=getStorico`);
+    const data = await resp.json();
+    _storicCache = data;
+    return data;
+  } catch(e) {
+    return { sessioni: [] };
+  }
+}
+
+async function salvaSessione() {
+  if (!S.loaded) { alert('Carica prima il report Amenitiz.'); return; }
+  const btn = document.getElementById('btn-salva');
+  btn.textContent = '⏳ Salvataggio...';
+  btn.disabled = true;
+  const hist = _storicCache || await loadStorico();
+  const sessioni = hist.sessioni || [];
+  const nuova = {
+    id: Date.now(),
+    dataSalvataggio: new Date().toISOString(),
+    periodo: S.periodStart && S.periodEnd ? fmtDate(S.periodStart) + ' → ' + fmtDate(S.periodEnd) : '',
+    periodoWk: S.wkStart && S.wkEnd ? fmtDate(S.wkStart) + ' → ' + fmtDate(S.wkEnd) : '',
+    cashIds: S.cashRows.filter(r=>!S.dupIds.includes(r.id)).map(r=>r.id),
+    ...S.lastCalc
+  };
+  sessioni.unshift(nuova);
+  try {
+    const resp = await fetch(`${WORKER}?action=saveStorico`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ sessioni })
+    });
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error);
+    _storicCache = { sessioni };
+    btn.textContent = '✅ Salvato!';
+    setTimeout(()=>{ btn.textContent='💾 Salva in storico'; btn.disabled=false; }, 2000);
+  } catch(e) {
+    btn.textContent = '💾 Salva in storico';
+    btn.disabled = false;
+    alert('Errore salvataggio: ' + e.message);
+  }
+}
+
+function renderStorico(hist) {
+  const list = document.getElementById('storico-list');
+  const empty = document.getElementById('storico-empty');
+  const count = document.getElementById('storico-count-badge');
+  const sessioni = hist.sessioni || [];
+  count.textContent = sessioni.length + ' sessioni';
+  document.getElementById('storico-loading').classList.add('hidden');
+  if (sessioni.length === 0) { list.innerHTML=''; empty.classList.remove('hidden'); return; }
+  empty.classList.add('hidden');
+  list.innerHTML = sessioni.map((s,i) => `
+    <div class="storico-item">
+      <div style="flex:1">
+        <div style="font-weight:600;margin-bottom:2px">${s.periodo || 'Periodo non specificato'}</div>
+        <div style="font-size:12px;color:var(--text-muted)">
+          Salvato il ${new Date(s.dataSalvataggio).toLocaleDateString('it-IT',{day:'2-digit',month:'long',year:'numeric'})} · ${(s.cashIds||[]).length} pagamenti contabilizzati
+          ${s.periodoWk ? '<br>Weekend dal: '+s.periodoWk : ''}
+        </div>
+        <div class="storico-badges">
+          <span class="badge badge-info">💵 ${fmtEur(s.contanti||0)}</span>
+          <span class="badge badge-warn">📅 ${fmtEur(s.weekend||0)}</span>
+          ${s.saldo>=0
+            ? `<span class="badge badge-ok">📥 Ricevi ${fmtEur(Math.abs(s.saldo))}</span>`
+            : `<span class="badge badge-err">📤 Dai ${fmtEur(Math.abs(s.saldo))}</span>`
+          }
+        </div>
+      </div>
+      <button class="btn btn-danger" onclick="eliminaSessione(${i})" style="flex-shrink:0">🗑</button>
+    </div>
+  `).join('');
+}
+
+async function eliminaSessione(idx) {
+  if (!confirm('Eliminare questa sessione dallo storico?')) return;
+  const hist = _storicCache || await loadStorico();
+  hist.sessioni.splice(idx, 1);
+  await fetch(`${WORKER}?action=saveStorico`, {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(hist)
+  });
+  _storicCache = hist;
+  renderStorico(hist);
+}
+
+async function loadStoricoTab() {
+  document.getElementById('storico-loading').classList.remove('hidden');
+  const hist = await loadStorico();
+  renderStorico(hist);
+}
+// Alias
+const loadStorico_tab = loadStoricoTab;
+
+// Override switchTab per caricare storico
+const _origSwitch = window.switchTab;
+window.switchTab = function(name, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-liquidazione').classList.toggle('hidden', name!=='liquidazione');
+  document.getElementById('tab-storico').classList.toggle('hidden', name!=='storico');
+  if (name==='storico') loadStoricoTab();
+};
+
+// ---------- UTILS ----------
+function fmtDate(d) { return d.toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'}); }
+function fmtEur(n) { return '€'+Number(n).toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function toISO(d) { return d.toISOString().slice(0,10); }
+
+// Init
+calcSaldo();
+</script>
+</body>
+</html>
