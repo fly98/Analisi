@@ -111,6 +111,7 @@ tr.total-row td{font-weight:600;background:var(--card2);border-top:1px solid var
 
   <div class="tab-row">
     <button class="tab-btn active" id="tab-eur" onclick="switchTab('eur',this)">Ricavi €</button>
+    <button class="tab-btn" id="tab-amenitiz" onclick="switchTab('amenitiz',this)">Logica Amenitiz</button>
     <button class="tab-btn" id="tab-tax" onclick="switchTab('tax',this)">Tassa soggiorno</button>
   </div>
 
@@ -352,7 +353,7 @@ async function loadAll() {
 
 function switchTab(tab, btn) {
   activeTab = tab;
-  document.querySelectorAll('#tab-eur, #tab-tax').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('#tab-eur, #tab-amenitiz, #tab-tax').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   renderRicavi();
 }
@@ -396,7 +397,8 @@ function renderRicavi() {
     const col = ANNO_COLORS[a] || '#86868b';
     const label = isCur ? `${a} (fino al ${curDay}/${curMonth})` : String(a);
     const totTax = Object.values(d.mensile || {}).reduce((s,m) => s + (m.cityTax||0), 0);
-    const val = activeTab === 'tax' ? fmtE(totTax) : fmtE(totR);
+    const totAmenitiz = Object.values(d.mensile || {}).reduce((s,m) => s + (m.ricaviAmenitiz||0), 0);
+    const val = activeTab === 'tax' ? fmtE(totTax) : activeTab === 'amenitiz' ? fmtE(totAmenitiz) : fmtE(totR);
     kpiHtml += `<div class="kpi-card" style="border-top:3px solid ${col}">
       <div class="kpi-label">${label}</div>
       <div class="kpi-value" style="color:${col}">${val}</div>
@@ -420,9 +422,9 @@ function renderRicavi() {
       const entry = (datiRicavi[a].mensile || {})[key];
       const isProv = entry && entry.provvisorio;
       if (!entry) { vals.push(null); bgColors.push('transparent'); borderColors.push('transparent'); borderWidths.push(0); continue; }
-      if (activeTab === 'eur') vals.push(entry.ricavi);
+      if (activeTab === 'amenitiz') vals.push(entry.ricaviAmenitiz || 0);
       else if (activeTab === 'tax') vals.push(entry.cityTax || 0);
-      else vals.push(entry.ricavi);
+      else vals.push(entry.ricavi || 0);
       // Mesi provvisori: più trasparenti e bordo tratteggiato
       const alpha = isProv ? '44' : (a === curAnno ? 'dd' : '88');
       bgColors.push(col + alpha);
@@ -442,7 +444,7 @@ function renderRicavi() {
   });
 
   // Update chart title
-  const titles = { eur: 'Ricavi €', tax: 'Tassa di soggiorno €' };
+  const titles = { eur: 'Ricavi €', amenitiz: 'Ricavi € (logica Amenitiz)', tax: 'Tassa di soggiorno €' };
   document.getElementById('chart-r-title').textContent = `${titles[activeTab] || 'Ricavi €'} per mese — confronto anni`;
   document.getElementById('chart-r-sub').textContent = `Dati da luglio 2023. Mesi futuri = provvisorio con prenotazioni attuali (barre chiare).`;
 
@@ -503,7 +505,8 @@ function renderRicavi() {
       if (!entry) return null;
       hasAny = true;
       if (activeTab === 'tax') { totals[a] += entry.cityTax||0; return fmtE(entry.cityTax||0); }
-      totals[a] += entry.ricavi; return fmtE(entry.ricavi);
+      if (activeTab === 'amenitiz') { totals[a] += entry.ricaviAmenitiz||0; return fmtE(entry.ricaviAmenitiz||0); }
+      totals[a] += entry.ricavi||0; return fmtE(entry.ricavi||0);
     });
     if (!hasAny) continue;
     html += `<tr><td>${meseLbl}</td>`;
