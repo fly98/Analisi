@@ -66,19 +66,33 @@ export default {
 
         // Salva su GitHub
         if (GH_PAT) {
-          const ghUrl = 'https://api.github.com/repos/fly98/Analisi/contents/ha_states.json'
-          const shaResp = await fetch(ghUrl, { headers: { 'Authorization': `Bearer ${GH_PAT}` } })
-          let sha = ''
-          if (shaResp.ok) { const d = await shaResp.json(); sha = d.sha }
-          const content = btoa(unescape(encodeURIComponent(JSON.stringify(summary, null, 2))))
-          const putBody = { message: 'ha dump ' + summary.timestamp, content, branch: 'main' }
-          if (sha) putBody.sha = sha
-          const pr = await fetch(ghUrl, {
-            method: 'PUT',
-            headers: { 'Authorization': `Bearer ${GH_PAT}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify(putBody)
-          })
-          summary.github_save = pr.status
+          try {
+            const ghUrl = 'https://api.github.com/repos/fly98/Analisi/contents/ha_states.json'
+            const shaResp = await fetch(ghUrl, { headers: { 'Authorization': `Bearer ${GH_PAT}`, 'User-Agent': 'ha-worker' } })
+            let sha = ''
+            if (shaResp.ok) { const d = await shaResp.json(); sha = d.sha }
+            // Encoding robusto per caratteri unicode
+            const jsonStr = JSON.stringify(summary, null, 2)
+            const encoder = new TextEncoder()
+            const bytes = encoder.encode(jsonStr)
+            let binary = ''
+            bytes.forEach(b => binary += String.fromCharCode(b))
+            const b64content = btoa(binary)
+            const putBody = { message: 'ha dump ' + summary.timestamp, content: b64content, branch: 'main' }
+            if (sha) putBody.sha = sha
+            const pr = await fetch(ghUrl, {
+              method: 'PUT',
+              headers: { 'Authorization': `Bearer ${GH_PAT}`, 'Content-Type': 'application/json', 'User-Agent': 'ha-worker' },
+              body: JSON.stringify(putBody)
+            })
+            const prText = await pr.text()
+            summary.github_save = pr.status
+            if (pr.status !== 200 && pr.status !== 201) {
+              summary.github_error = prText.substring(0, 200)
+            }
+          } catch(e) {
+            summary.github_save = 'exception: ' + e.message
+          }
         }
 
         return new Response(JSON.stringify(summary, null, 2), { headers: corsHeaders })
