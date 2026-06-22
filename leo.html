@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Leo — Liquidazione InternoUno</title>
+<title>Leo — InternoUno</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -94,6 +94,22 @@ tr.dup td{opacity:.4}
 @keyframes spin{to{transform:rotate(360deg)}}
 .spin{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--text);border-radius:50%;animation:spin .6s linear infinite;display:inline-block}
 .hidden{display:none!important}
+/* Calendario ferie */
+.cal-nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem}
+.cal-nav button{background:none;border:none;font-size:18px;cursor:pointer;padding:4px 8px;color:var(--text)}
+.cal-nav span{font-size:14px;font-weight:600}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center}
+.cal-dow{font-size:11px;color:var(--muted);padding:4px 0;font-weight:500}
+.cal-day{font-size:13px;padding:7px 2px;border-radius:var(--rs);cursor:pointer;transition:background .1s}
+.cal-day:hover{background:var(--bg)}
+.cal-day.other{color:var(--faint);pointer-events:none}
+.cal-day.wk{color:var(--red);font-weight:500}
+.cal-day.hol{color:var(--blue);font-weight:500}
+.cal-day.sel-start,.cal-day.sel-end{background:var(--text);color:#fff;border-radius:var(--rs)}
+.cal-day.sel-range{background:var(--purple-bg);color:var(--purple)}
+.cal-day.today{font-weight:700;text-decoration:underline}
+/* Ferie badge nel card */
+.ferie-applied{background:var(--purple-bg);border:1px solid var(--purple-b);border-radius:var(--rs);padding:.75rem;margin-top:.75rem;font-size:13px;color:var(--purple);display:flex;justify-content:space-between;align-items:center}
 /* Modale ferie */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;display:flex;align-items:center;justify-content:center;padding:1.5rem}
 .modal{background:var(--surface);border-radius:var(--r);padding:1.5rem;width:100%;max-width:380px;box-shadow:0 8px 32px rgba(0,0,0,.2)}
@@ -117,23 +133,23 @@ input[type=checkbox]{accent-color:var(--text);cursor:pointer}
   <div id="sto-detail-box"></div>
 </div>
 
-<!-- MODALE FERIE -->
+<!-- MODALE FERIE con calendario range -->
 <div class="overlay hidden" id="ferie-overlay" onclick="if(event.target===this)closeFerie()">
-  <div class="modal">
-    <h3>🏖️ Calcola ferie / sostituzioni</h3>
-    <div class="modal-row"><label>Dal</label><input type="date" id="ferie-from" oninput="calcFeriePreview()"></div>
-    <div class="modal-row"><label>Al</label><input type="date" id="ferie-to" oninput="calcFeriePreview()"></div>
-    <div id="ferie-preview" style="font-size:13px;color:var(--muted);margin-top:.5rem;min-height:20px"></div>
-    <div class="modal-footer">
+  <div class="modal" onclick="event.stopPropagation()" style="max-width:360px">
+    <h3 style="margin-bottom:1rem">🏖️ Ferie / sostituzioni</h3>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:.75rem">Tocca inizio periodo, poi fine periodo</div>
+    <div id="ferie-cal" style="user-select:none"></div>
+    <div id="ferie-preview" style="font-size:13px;color:var(--muted);margin-top:.75rem;min-height:20px;text-align:center"></div>
+    <div class="modal-footer" style="margin-top:1rem">
       <button class="btn" onclick="closeFerie()">Annulla</button>
-      <button class="btn btn-p" onclick="applyFerie()">Applica</button>
+      <button class="btn btn-p" id="ferie-apply-btn" onclick="applyFerie()" disabled>Applica</button>
     </div>
   </div>
 </div>
 
 <div class="hdr">
   <div class="hdr-icon">💶</div>
-  <div style="flex:1"><h1>Leo — Liquidazione</h1><p>InternoUno · Contabilità dipendente</p></div>
+  <div style="flex:1"><h1>Leo</h1><p>InternoUno · Contabilità dipendente</p></div>
 </div>
 
 <div class="tabs">
@@ -209,6 +225,10 @@ input[type=checkbox]{accent-color:var(--text);cursor:pointer}
     </div>
     <div class="wk-list" id="wk-list"></div>
     <div id="wk-periodo-note" style="font-size:11px;color:var(--faint);text-align:center;margin-top:.5rem"></div>
+    <div class="ferie-applied hidden" id="ferie-applied-box">
+      <span id="ferie-applied-label">🏖️</span>
+      <button class="btn" onclick="resetFerie()" style="padding:3px 8px;font-size:12px">✕</button>
+    </div>
   </div>
 
   <!-- STEP 4 voci -->
@@ -661,96 +681,67 @@ function generaPDF(idx){
   const righeContanti=cashList.map(r=>`
     <tr><td>${r.data}</td><td>${r.nome}</td><td class="right">${fmtEur(r.imp)}</td></tr>`).join('');
 
-  // Weekend con date
   const wkDates=(s.wkDateSel||[]);
-  const wkLabel=s.wkTot>0
-    ? `Weekend / festività — ${s.wkN||0} gg × €60${wkDates.length?'<div class="detail">'+wkDates.join(', ')+'</div>':''}`
-    : '';
+  const wkDetail=wkDates.length?wkDates.join(' · '):(s.wkN||0)+' giorni × €60';
 
-  // Ferie con date
-  const ferieLabel=s.ferie>0
-    ? `Ferie / sostituzioni${s.ferieDal&&s.ferieAl?' dal '+s.ferieDal.split('-').reverse().join('/')+' al '+s.ferieAl.split('-').reverse().join('/'):''}${s.ferieGiorni?' ('+s.ferieGiorni+'gg × €30)':''}`
-    : '';
-
-  const vociSpese=[
-    s.wkTot>0?`<tr><td>${wkLabel}</td><td class="right">− ${fmtEur(s.wkTot)}</td></tr>`:'',
-    s.sp>0?`<tr><td>Spesa B&B</td><td class="right">− ${fmtEur(s.sp)}</td></tr>`:'',
-    s.man>0?`<tr><td>Manutenzione</td><td class="right">− ${fmtEur(s.man)}</td></tr>`:'',
-    s.bab>0?`<tr><td>Babbo / Mamma</td><td class="right">− ${fmtEur(s.bab)}</td></tr>`:'',
-    s.ferie>0?`<tr><td>${ferieLabel}</td><td class="right">− ${fmtEur(s.ferie)}</td></tr>`:'',
-    s.stip>0?`<tr><td>Stipendio</td><td class="right">− ${fmtEur(s.stip)}</td></tr>`:'',
-  ].filter(Boolean).join('');
+  const ferieDetail=s.ferie>0&&s.ferieDal&&s.ferieAl
+    ? `dal ${s.ferieDal.split('-').reverse().join('/')} al ${s.ferieAl.split('-').reverse().join('/')}${s.ferieGiorni?' ('+s.ferieGiorni+'gg × €30)':''}`
+    : s.ferieGiorni?`${s.ferieGiorni}gg × €30`:'';
 
   const html=`<!DOCTYPE html>
-<html lang="it"><head><meta charset="UTF-8">
-<title>Liquidazione Leo - ${periodoClean}</title>
+<html lang="it"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Leo · ${periodoClean}</title>
 <style>
-body{font-family:-apple-system,sans-serif;max-width:480px;margin:2rem auto;padding:1.5rem;color:#1a1a1a;font-size:14px}
-h1{font-size:20px;font-weight:700;margin-bottom:.25rem}
-.sub{font-size:12px;color:#666;margin-bottom:1.5rem;line-height:1.6}
-h2{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#888;margin:1.5rem 0 .5rem;padding-bottom:.25rem;border-bottom:1px solid #eee}
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;max-width:480px;margin:0 auto;padding:1.5rem;color:#1a1a1a;font-size:14px;background:#fff}
+h1{font-size:18px;font-weight:700;margin-bottom:.2rem}
+.sub{font-size:12px;color:#888;margin-bottom:1.5rem;line-height:1.6}
+h2{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#aaa;margin:1.5rem 0 .5rem;padding-bottom:.3rem;border-bottom:1px solid #eee}
 table{width:100%;border-collapse:collapse;font-size:13px}
-td{padding:7px 0;border-bottom:1px solid #f0f0f0;vertical-align:top}
-tr:last-child td{border-bottom:none}
-.right{text-align:right;white-space:nowrap;font-weight:500}
-.detail{font-size:11px;color:#888;margin-top:3px;line-height:1.5}
-.tot-row td{padding-top:10px;font-weight:700;font-size:14px;border-top:2px solid #1a1a1a;border-bottom:none}
-.saldo{margin-top:1.5rem;padding:1.25rem;border-radius:10px;text-align:center}
-.saldo.pos{background:#e8f5ee;border:1px solid #a8d9b8}
-.saldo.neg{background:#fdf0f0;border:1px solid #f0b8b8}
-.sl{font-size:12px;font-weight:600;margin-bottom:.25rem}
-.saldo.pos .sl{color:#1a7a4a}
-.saldo.neg .sl{color:#b83232}
-.sa{font-size:34px;font-weight:700}
-.saldo.pos .sa{color:#1a7a4a}
-.saldo.neg .sa{color:#b83232}
-.foot{margin-top:2rem;font-size:11px;color:#bbb;text-align:center}
+td{padding:8px 0;border-bottom:1px solid #f5f5f5;vertical-align:top;line-height:1.4}
+.right{text-align:right;white-space:nowrap;padding-left:12px}
+.detail{font-size:11px;color:#aaa;margin-top:3px}
+.tot td{padding-top:12px;font-weight:700;border-top:1.5px solid #1a1a1a;border-bottom:none}
+.saldo{margin-top:1.5rem;padding:1.25rem;border-radius:12px;text-align:center}
+.pos{background:#e8f5ee;border:1px solid #a8d9b8}
+.neg{background:#fdf0f0;border:1px solid #f0b8b8}
+.sl{font-size:12px;font-weight:600;margin-bottom:.3rem}
+.pos .sl{color:#1a7a4a}.neg .sl{color:#b83232}
+.sa{font-size:36px;font-weight:700;line-height:1}
+.pos .sa{color:#1a7a4a}.neg .sa{color:#b83232}
+.foot{margin-top:2rem;font-size:11px;color:#ccc;text-align:center}
 </style></head><body>
-<h1>Liquidazione Leo</h1>
-<div class="sub">
-  Periodo: <strong>${periodoClean}</strong><br>
-  Generato il ${new Date().toLocaleDateString('it-IT',{day:'2-digit',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'})}
-</div>
+<h1>Leo · Resoconto</h1>
+<div class="sub">Periodo: <strong>${periodoClean}</strong><br>
+${new Date().toLocaleDateString('it-IT',{day:'2-digit',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'})}</div>
 
 <h2>Contanti incassati</h2>
-<table>
-  <tbody>${righeContanti}</tbody>
-  <tfoot><tr class="tot-row"><td>Totale contanti</td><td class="right">${fmtEur(s.totContanti||0)}</td></tr></tfoot>
-</table>
+<table><tbody>${righeContanti}</tbody>
+<tfoot><tr class="tot"><td>Totale</td><td class="right">${fmtEur(s.totContanti||0)}</td></tr></tfoot></table>
 
 <h2>Da pagare a Leo</h2>
-<table>
-  <tbody>${vociSpese}</tbody>
-  <tfoot><tr class="tot-row"><td>Totale da pagare</td><td class="right">− ${fmtEur(s.daMe||0)}</td></tr></tfoot>
-</table>
+<table><tbody>
+${s.wkTot>0?`<tr><td>Weekend / festività<div class="detail">${wkDetail}</div></td><td class="right">− ${fmtEur(s.wkTot)}</td></tr>`:''}
+${s.sp>0?`<tr><td>Spesa B&B</td><td class="right">− ${fmtEur(s.sp)}</td></tr>`:''}
+${s.man>0?`<tr><td>Manutenzione</td><td class="right">− ${fmtEur(s.man)}</td></tr>`:''}
+${s.bab>0?`<tr><td>Babbo / Mamma</td><td class="right">− ${fmtEur(s.bab)}</td></tr>`:''}
+${s.ferie>0?`<tr><td>Ferie / sostituzioni${ferieDetail?'<div class="detail">'+ferieDetail+'</div>':''}</td><td class="right">− ${fmtEur(s.ferie)}</td></tr>`:''}
+${s.stip>0?`<tr><td>Stipendio</td><td class="right">− ${fmtEur(s.stip)}</td></tr>`:''}
+</tbody>
+<tfoot><tr class="tot"><td>Totale da pagare</td><td class="right">− ${fmtEur(s.daMe||0)}</td></tr></tfoot></table>
 
 <div class="saldo ${pos?'pos':'neg'}">
   <div class="sl">${pos?'📥 Filippo riceve da Leo':'📤 Filippo dà a Leo'}</div>
   <div class="sa">${fmtEur(Math.abs(s.saldo||0))}</div>
 </div>
-
-<div class="foot">InternoUno · Liquidazione dipendente</div>
+<div class="foot">InternoUno</div>
 </body></html>`;
 
-  // Prova condivisione nativa iOS (WhatsApp, Mail ecc.)
-  if(navigator.share){
-    const blob=new Blob([html],{type:'text/html'});
-    const file=new File([blob],`liquidazione-leo-${periodoClean.replace(/\//g,'-')}.html`,{type:'text/html'});
-    // iOS preferisce PDF — genera via print su nuova finestra con condivisione
-    const win=window.open('','_blank');
-    win.document.write(html);
-    win.document.close();
-    // Aspetta che carichi poi apri condivisione
-    setTimeout(()=>{
-      try{ win.navigator.share({title:'Liquidazione Leo',text:'Riepilogo liquidazione periodo '+periodoClean}); }
-      catch(e){ win.print(); }
-    },600);
-  } else {
-    const win=window.open('','_blank');
-    win.document.write(html);
-    win.document.close();
-    setTimeout(()=>win.print(),500);
-  }
+  // Apri in nuova tab senza stampa automatica
+  // Su iOS usa poi il pulsante condivisione Safari (□↑) per WhatsApp/salva PDF
+  const win=window.open('','_blank');
+  win.document.write(html);
+  win.document.close();
 }
 
 // ---------- STORICO ----------
@@ -928,52 +919,98 @@ async function delSto(idx){
   _cache=hist; renderSto(hist);
 }
 
-// ---------- FERIE ----------
+// ---------- FERIE — calendario range ----------
+let calYear=new Date().getFullYear(), calMonth=new Date().getMonth();
+let ferieStart=null, ferieEnd=null, ferieStep=0;
+
 function openFerie(){
+  ferieStart=S.ferieDal?new Date(S.ferieDal):null;
+  ferieEnd=S.ferieAl?new Date(S.ferieAl):null;
+  ferieStep=ferieEnd?2:ferieStart?1:0;
+  if(S.fileDate){calYear=S.fileDate.getFullYear();calMonth=S.fileDate.getMonth();}
+  document.getElementById('ferie-apply-btn').disabled=!(ferieStart&&ferieEnd);
+  renderCal();
   document.getElementById('ferie-overlay').classList.remove('hidden');
-  // Pre-imposta date dal periodo corrente se disponibile
-  if(S.periodStart) document.getElementById('ferie-from').value=toISO(S.periodStart);
-  if(S.periodEnd) document.getElementById('ferie-to').value=toISO(S.periodEnd);
-  calcFeriePreview();
 }
-function closeFerie(){
-  document.getElementById('ferie-overlay').classList.add('hidden');
+function closeFerie(){document.getElementById('ferie-overlay').classList.add('hidden');}
+
+function renderCal(){
+  const mesi=['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+  const dows=['Lu','Ma','Me','Gi','Ve','Sa','Do'];
+  const firstDay=new Date(calYear,calMonth,1);
+  const lastDay=new Date(calYear,calMonth+1,0);
+  const startDow=(firstDay.getDay()+6)%7;
+  let html=`<div class="cal-nav">
+    <button onclick="calPrev()">‹</button>
+    <span>${mesi[calMonth]} ${calYear}</span>
+    <button onclick="calNext()">›</button>
+  </div><div class="cal-grid">
+  ${dows.map(d=>`<div class="cal-dow">${d}</div>`).join('')}`;
+  for(let i=0;i<startDow;i++) html+=`<div></div>`;
+  for(let d=1;d<=lastDay.getDate();d++){
+    const date=new Date(calYear,calMonth,d);
+    const dw=date.getDay();
+    const isWk=dw===0||dw===6;
+    const isHoliday=isHol(date);
+    const isToday=date.toDateString()===new Date().toDateString();
+    let cls='cal-day';
+    if(isWk) cls+=' wk';
+    if(isHoliday) cls+=' hol';
+    if(isToday) cls+=' today';
+    if(ferieStart&&date.toDateString()===ferieStart.toDateString()) cls+=' sel-start';
+    else if(ferieEnd&&date.toDateString()===ferieEnd.toDateString()) cls+=' sel-end';
+    else if(ferieStart&&ferieEnd&&date>ferieStart&&date<ferieEnd) cls+=' sel-range';
+    html+=`<div class="${cls}" onclick="calDayClick(${calYear},${calMonth},${d})">${d}</div>`;
+  }
+  html+='</div>';
+  document.getElementById('ferie-cal').innerHTML=html;
+  updateFeriePreview();
 }
-function calcFeriePreview(){
-  const f=document.getElementById('ferie-from').value;
-  const t=document.getElementById('ferie-to').value;
+function calPrev(){calMonth--;if(calMonth<0){calMonth=11;calYear--;}renderCal();}
+function calNext(){calMonth++;if(calMonth>11){calMonth=0;calYear++;}renderCal();}
+
+function calDayClick(y,m,d){
+  const date=new Date(y,m,d);
+  if(ferieStep===0||ferieStep===2){ferieStart=date;ferieEnd=null;ferieStep=1;}
+  else if(ferieStep===1){
+    if(date<ferieStart){ferieEnd=ferieStart;ferieStart=date;}
+    else{ferieEnd=date;}
+    ferieStep=2;
+  }
+  document.getElementById('ferie-apply-btn').disabled=!(ferieStart&&ferieEnd);
+  renderCal();
+}
+
+function updateFeriePreview(){
   const prev=document.getElementById('ferie-preview');
-  if(!f||!t){prev.textContent='';return;}
-  const start=new Date(f), end=new Date(t);
-  if(start>end){prev.textContent='⚠️ Data inizio dopo data fine';return;}
-  // Conta giorni non festivi e non weekend
-  let n=0; const cur=new Date(start);
-  while(cur<=end){
-    const dow=cur.getDay();
-    if(dow!==0&&dow!==6&&!isHol(cur)) n++;
-    cur.setDate(cur.getDate()+1);
-  }
-  const tot=n*30;
-  prev.innerHTML=`<strong>${n} giorni lavorativi</strong> × €30 = <strong style="color:var(--purple)">${fmtEur(tot)}</strong>`;
-  return {n, tot};
+  if(!ferieStart){prev.textContent='Tocca il primo giorno';return;}
+  if(!ferieEnd){prev.textContent='Ora tocca l\'ultimo giorno';return;}
+  let n=0;const cur=new Date(ferieStart);
+  while(cur<=ferieEnd){const dw=cur.getDay();if(dw!==0&&dw!==6&&!isHol(cur))n++;cur.setDate(cur.getDate()+1);}
+  prev.innerHTML=`<strong>${fmtDate(ferieStart)} — ${fmtDate(ferieEnd)}</strong><br>${n} giorni lavorativi × €30 = <strong style="color:var(--purple)">${fmtEur(n*30)}</strong>`;
 }
+
 function applyFerie(){
-  const f=document.getElementById('ferie-from').value;
-  const t=document.getElementById('ferie-to').value;
-  if(!f||!t) return;
-  const start=new Date(f), end=new Date(t);
-  let n=0; const cur=new Date(start);
-  while(cur<=end){
-    const dow=cur.getDay();
-    if(dow!==0&&dow!==6&&!isHol(cur)) n++;
-    cur.setDate(cur.getDate()+1);
-  }
+  if(!ferieStart||!ferieEnd) return;
+  let n=0;const cur=new Date(ferieStart);
+  while(cur<=ferieEnd){const dw=cur.getDay();if(dw!==0&&dw!==6&&!isHol(cur))n++;cur.setDate(cur.getDate()+1);}
   const tot=n*30;
   document.getElementById('v-ferie').value=tot;
   document.getElementById('ferie-giorni-label').textContent=`(${n}gg × €30)`;
-  // Salva date in S per il PDF
-  S.ferieDal=f; S.ferieAl=t;
+  S.ferieDal=toISO(ferieStart);S.ferieAl=toISO(ferieEnd);S.ferieGiorni=n;
+  const lbl=`🏖️ Ferie ${fmtDate(ferieStart)} — ${fmtDate(ferieEnd)} · ${n}gg × €30 = ${fmtEur(tot)}`;
+  document.getElementById('ferie-applied-label').textContent=lbl;
+  document.getElementById('ferie-applied-box').classList.remove('hidden');
   closeFerie();
+  calcSaldo();
+}
+
+function resetFerie(){
+  S.ferieDal=null;S.ferieAl=null;S.ferieGiorni=0;
+  ferieStart=null;ferieEnd=null;ferieStep=0;
+  document.getElementById('v-ferie').value=0;
+  document.getElementById('ferie-giorni-label').textContent='';
+  document.getElementById('ferie-applied-box').classList.add('hidden');
   calcSaldo();
 }
 
