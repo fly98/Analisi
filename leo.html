@@ -737,11 +737,36 @@ ${s.stip>0?`<tr><td>Stipendio</td><td class="right">− ${fmtEur(s.stip)}</td></
 <div class="foot">InternoUno</div>
 </body></html>`;
 
-  // Apri in nuova tab senza stampa automatica
-  // Su iOS usa poi il pulsante condivisione Safari (□↑) per WhatsApp/salva PDF
-  const win=window.open('','_blank');
-  win.document.write(html);
-  win.document.close();
+  // Apri in iframe nascosto e stampa → su iOS Safari il menu stampa
+  // ha "Salva come PDF" e da lì si può condividere su WhatsApp
+  const iframe=document.createElement('iframe');
+  iframe.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;border:none;z-index:9999;background:#fff';
+  iframe.srcdoc=html;
+  document.body.appendChild(iframe);
+  iframe.onload=()=>{
+    // Aggiungi pulsante chiudi sopra il contenuto
+    const closeBtn=iframe.contentDocument.createElement('button');
+    closeBtn.textContent='✕ Chiudi';
+    closeBtn.style.cssText='position:fixed;top:12px;right:12px;z-index:999;padding:8px 16px;background:#1a1a1a;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;font-family:-apple-system,sans-serif';
+    closeBtn.onclick=()=>document.body.removeChild(iframe);
+    iframe.contentDocument.body.appendChild(closeBtn);
+    // Pulsante condividi/stampa
+    const shareBtn=iframe.contentDocument.createElement('button');
+    shareBtn.textContent='⬆️ Condividi / Salva PDF';
+    shareBtn.style.cssText='position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:999;padding:12px 24px;background:#1a7a4a;color:#fff;border:none;border-radius:20px;font-size:14px;cursor:pointer;font-family:-apple-system,sans-serif;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.2)';
+    shareBtn.onclick=()=>{
+      if(iframe.contentWindow.navigator.share){
+        // Crea blob HTML e condividi come file
+        const blob=new Blob([html],{type:'text/html'});
+        const file=new File([blob],`leo-${periodoClean.replace(/[\/\s]/g,'-')}.html`,{type:'text/html'});
+        iframe.contentWindow.navigator.share({files:[file],title:'Leo · Resoconto '+periodoClean})
+          .catch(()=>iframe.contentWindow.print());
+      } else {
+        iframe.contentWindow.print();
+      }
+    };
+    iframe.contentDocument.body.appendChild(shareBtn);
+  };
 }
 
 // ---------- STORICO ----------
