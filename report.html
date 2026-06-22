@@ -187,7 +187,10 @@ async function fetchRicavi(anno) {
 
   const mesi = [];
   for (let m = primoMese; m <= ultimoMese; m++) {
-    const from = `${anno}-${String(m).padStart(2,'0')}-01`;
+    // Partiamo 7 giorni prima per catturare soggiorni con checkin fine mese precedente
+    const fromD = new Date(anno, m - 1, 1);
+    fromD.setDate(fromD.getDate() - 7);
+    const from = fromD.toISOString().slice(0, 10);
     const lastDay = new Date(anno, m, 0).getDate();
     const to = `${anno}-${String(m).padStart(2,'0')}-${String(lastDay).padStart(2,'0')}`;
     mesi.push({ from, to, mese: m });
