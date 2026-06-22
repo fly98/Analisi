@@ -62,10 +62,10 @@ async function cercaEmailBooking(bookingId, env) {
     const telefono = telMatch ? telMatch[1].trim() : null;
     if (!nome && !telefono) return null;
 
-    // nell'email Amenitiz il formato è "Cognome Nome" -> invertiamo
+    // nell'email Amenitiz il formato è "Cognome Nome" -> primo token = cognome, resto = nome
     const parti = nome ? nome.trim().split(" ") : [];
-    const firstName = parti.slice(0, -1).join(" ") || parti[0] || "";
-    const lastName = parti.length > 1 ? parti[parti.length - 1] : "";
+    const lastName = parti[0] || "";
+    const firstName = parti.slice(1).join(" ") || "";
     return {first_name: firstName, last_name: lastName, phone: telefono};
   } catch(e) {
     return null;
