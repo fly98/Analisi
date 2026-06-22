@@ -76,6 +76,13 @@ tr.total-row td{font-weight:600;background:var(--card2);border-top:1px solid var
 @media(max-width:660px){
   .kpi-grid{grid-template-columns:1fr 1fr;}
 }
+/* Year selector */
+.year-selector{display:flex;align-items:center;gap:10px;padding:12px 2px 4px;}
+.year-sel-label{font-size:.72rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;}
+#year-chips{display:flex;gap:6px;flex-wrap:wrap;}
+.year-chip{padding:5px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--card);font-family:'DM Mono',monospace;font-size:.75rem;font-weight:500;color:var(--muted);cursor:pointer;transition:all .15s;}
+.year-chip.active{color:white;border-color:transparent;}
+.year-chip:active{opacity:.7;}
 </style>
 </head>
 <body>
@@ -91,6 +98,12 @@ tr.total-row td{font-weight:600;background:var(--card2);border-top:1px solid var
 
 <div id="app">
   <div class="status-bar" id="status-bar"></div>
+
+  <!-- ===== SELEZIONE ANNI ===== -->
+  <div class="year-selector" id="year-selector">
+    <span class="year-sel-label">Anni:</span>
+    <div id="year-chips"></div>
+  </div>
 
   <!-- ===== SEZIONE 1: RICAVI ===== -->
   <div class="section-title">Ricavi da Amenitiz — confronto anni</div>
@@ -139,6 +152,7 @@ const MESI_FULL = ['','Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','L
 // Anno di inizio dati Amenitiz
 const PRIMO_ANNO = 2023;
 const PRIMO_MESE_PRIMO_ANNO = 7; // luglio 2023
+const TUTTI_GLI_ANNI = [2023, 2024, 2025, 2026];
 
 // Colori per anno
 const ANNO_COLORS = {
@@ -148,11 +162,12 @@ const ANNO_COLORS = {
   2026: '#af52de',
 };
 
-let datiRicavi = {}; // { anno: { mensile: {...}, totalBookings, totalNotti } }
-let datiWindow = {}; // { anno: { totalPrenotazioni, totalRicavi, totalNotti, perMese: {...} } }
+let datiRicavi = {};
+let datiWindow = {};
 let activeTab = 'eur';
 let charts = {};
 let oggi, curYear, curMonth, curDay;
+let anniSelezionati = []; // anni attivi selezionati dall'utente
 
 function fmtE(v) {
   return v.toLocaleString('it-IT', {minimumFractionDigits:0, maximumFractionDigits:0}) + ' €';
@@ -234,6 +249,42 @@ async function fetchWindow(anno) {
   return { perMese, totalPrenotazioni, totalRicavi, totalNotti };
 }
 
+function initYearChips() {
+  oggi = new Date();
+  curYear = oggi.getFullYear();
+  curMonth = oggi.getMonth() + 1;
+  curDay = oggi.getDate();
+
+  // Default: anno corrente + anno precedente
+  anniSelezionati = [curYear - 1, curYear];
+
+  const container = document.getElementById('year-chips');
+  container.innerHTML = '';
+  for (const a of TUTTI_GLI_ANNI) {
+    const chip = document.createElement('button');
+    chip.className = 'year-chip' + (anniSelezionati.includes(a) ? ' active' : '');
+    chip.textContent = a;
+    chip.style.background = anniSelezionati.includes(a) ? ANNO_COLORS[a] : '';
+    chip.onclick = () => toggleAnno(a, chip);
+    container.appendChild(chip);
+  }
+}
+
+function toggleAnno(anno, chip) {
+  if (anniSelezionati.includes(anno)) {
+    if (anniSelezionati.length <= 1) return; // almeno 1 anno sempre attivo
+    anniSelezionati = anniSelezionati.filter(a => a !== anno);
+    chip.classList.remove('active');
+    chip.style.background = '';
+  } else {
+    anniSelezionati.push(anno);
+    anniSelezionati.sort();
+    chip.classList.add('active');
+    chip.style.background = ANNO_COLORS[anno] || '#86868b';
+  }
+  loadAll();
+}
+
 async function loadAll() {
   const btn = document.getElementById('load-btn');
   btn.disabled = true;
@@ -244,38 +295,26 @@ async function loadAll() {
   curMonth = oggi.getMonth() + 1;
   curDay = oggi.getDate();
 
-  // Aggiorna label cutoff
-  document.getElementById('cutoff-label').textContent =
-    `${curDay} ${MESI_FULL[curMonth]}`;
+  document.getElementById('cutoff-label').textContent = `${curDay} ${MESI_FULL[curMonth]}`;
 
-  // Prorata notice
   const pn = document.getElementById('prorata-notice');
   pn.className = 'prorata-notice show';
-  pn.textContent = `⚡ Anno corrente (${curYear}): dati fino al ${curDay} ${MESI_FULL[curMonth]}. Il confronto con gli anni precedenti usa lo stesso giorno per omogeneità.`;
+  pn.textContent = `⚡ Anno corrente (${curYear}): dati fino al ${curDay} ${MESI_FULL[curMonth]}. Mesi futuri = prenotazioni già acquisite.`;
 
-  // Anni da caricare
-  const anni = [];
-  for (let a = PRIMO_ANNO; a <= curYear; a++) anni.push(a);
-
+  const anni = anniSelezionati;
   datiRicavi = {};
   datiWindow = {};
 
   try {
-    setStatus(`Caricamento ricavi per ${anni.length} anni…`);
-
-    // Carica ricavi in parallelo
-    const ricaviResults = await Promise.all(anni.map(a => fetchRicavi(a).then(d => [a, d])));
-    for (const [a, d] of ricaviResults) datiRicavi[a] = d;
-
-    setStatus(`Caricamento booking window…`);
-
-    // Carica window in parallelo
-    const windowResults = await Promise.all(anni.map(a => fetchWindow(a).then(d => [a, d])));
-    for (const [a, d] of windowResults) datiWindow[a] = d;
-
+    setStatus(`Caricamento ${anni.length} anni…`);
+    const [ricaviRes, windowRes] = await Promise.all([
+      Promise.all(anni.map(a => fetchRicavi(a).then(d => [a, d]))),
+      Promise.all(anni.map(a => fetchWindow(a).then(d => [a, d])))
+    ]);
+    for (const [a, d] of ricaviRes) datiRicavi[a] = d;
+    for (const [a, d] of windowRes) datiWindow[a] = d;
     hideStatus();
     renderAll();
-
   } catch(e) {
     setStatus('Errore: ' + e.message, true);
   }
@@ -300,7 +339,7 @@ function renderAll() {
 // SEZIONE RICAVI
 // ============================================================
 function renderRicavi() {
-  const anni = Object.keys(datiRicavi).map(Number).sort();
+  const anni = anniSelezionati.slice().sort();
   const curAnno = curYear;
 
   // Tutti i mesi presenti in almeno un anno
@@ -457,7 +496,7 @@ function renderRicavi() {
 // SEZIONE BOOKING WINDOW
 // ============================================================
 function renderWindow() {
-  const anni = Object.keys(datiWindow).map(Number).sort();
+  const anni = anniSelezionati.slice().sort();
   const curAnno = curYear;
 
   // KPI: totali prenotazioni future per anno
@@ -579,7 +618,7 @@ function renderWindow() {
 }
 
 // Auto-carica al primo accesso
-window.addEventListener('DOMContentLoaded', loadAll);
+window.addEventListener('DOMContentLoaded', () => { initYearChips(); loadAll(); });
 </script>
 </body>
 </html>
