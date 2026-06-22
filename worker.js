@@ -62,9 +62,10 @@ async function cercaEmailBooking(bookingId, env) {
     const telefono = telMatch ? telMatch[1].trim() : null;
     if (!nome && !telefono) return null;
 
-    const parti = nome ? nome.split(" ") : [];
-    const lastName = parti[0] || "";
-    const firstName = parti.slice(1).join(" ") || "";
+    // nell'email Amenitiz il formato è "Cognome Nome" -> invertiamo
+    const parti = nome ? nome.trim().split(" ") : [];
+    const firstName = parti.slice(0, -1).join(" ") || parti[0] || "";
+    const lastName = parti.length > 1 ? parti[parti.length - 1] : "";
     return {first_name: firstName, last_name: lastName, phone: telefono};
   } catch(e) {
     return null;
