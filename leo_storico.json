@@ -1,6 +1,50 @@
 {
   "sessioni": [
     {
+      "id": 1782158031889,
+      "dataSalvataggio": "2026-06-22T19:53:51.889Z",
+      "periodo": "04/06/2026 - 22/06/2026",
+      "periodoWk": "04/06/2026 - 22/06/2026",
+      "cashIds": [
+        "05/06/2026|Lorenzo Esposito|50",
+        "05/06/2026|Monica Barbone|30",
+        "13/06/2026|Rosa De Lorenzo|40",
+        "14/06/2026|LIQUN XIE|20",
+        "17/06/2026|DOMENICA DE OLIVEIRA FARIA|10",
+        "17/06/2026|PATRICIA BARROS|10",
+        "17/06/2026|PATRICIA BARROS|-10",
+        "17/06/2026|Pietro Milano|20",
+        "18/06/2026|MARCELO JOSE GUELFI|30",
+        "18/06/2026|Andrew Sinclair|20",
+        "18/06/2026|Laura Turcan|90",
+        "21/06/2026|Giulia Leonardi|20",
+        "22/06/2026|Michela Castellano|50"
+      ],
+      "cash": 380,
+      "stripe": 0,
+      "totContanti": 380,
+      "wkTot": 360,
+      "wkN": 6,
+      "wkDateSel": [
+        "06/06/2026",
+        "07/06/2026",
+        "13/06/2026",
+        "14/06/2026",
+        "20/06/2026",
+        "21/06/2026"
+      ],
+      "sp": 0,
+      "man": 0,
+      "bab": 0,
+      "ferie": 0,
+      "stip": 0,
+      "spTot": 0,
+      "daMe": 360,
+      "saldo": 20,
+      "ferieDal": null,
+      "ferieAl": null
+    },
+    {
       "id": 1748944800000,
       "dataSalvataggio": "2026-06-03T11:43:00.000Z",
       "periodo": "14/05/2026 - 03/06/2026",
