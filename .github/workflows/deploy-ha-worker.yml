@@ -1,0 +1,20 @@
+name: Deploy HA Worker
+
+on:
+  push:
+    paths:
+      - 'ha_worker.js'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Deploy to Cloudflare Workers
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CF_API_TOKEN }}
+          accountId: ${{ secrets.CF_ACCOUNT_ID }}
+          command: deploy ha_worker.js --name ha-worker --compatibility-date 2024-01-01
