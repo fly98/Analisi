@@ -1,0 +1,2392 @@
+{
+  "timestamp": "2026-06-22T23:33:00.061Z",
+  "total": 794,
+  "lights": [
+    {
+      "id": "light.giardino_grande",
+      "name": "Giardino Grande",
+      "state": "off",
+      "brightness": null
+    },
+    {
+      "id": "light.giardino_piccola",
+      "name": "Giardino Piccola",
+      "state": "off",
+      "brightness": null
+    },
+    {
+      "id": "light.bambine_scrivania",
+      "name": "Bambine scrivania",
+      "state": "off",
+      "brightness": null
+    },
+    {
+      "id": "light.bambine_tavolo",
+      "name": "Bambine tavolo",
+      "state": "off",
+      "brightness": null
+    },
+    {
+      "id": "light.tavolo_cucina",
+      "name": "Tavolo Cucina",
+      "state": "off",
+      "brightness": null
+    },
+    {
+      "id": "light.mobile_cucina",
+      "name": "Mobile Cucina",
+      "state": "off",
+      "brightness": null
+    },
+    {
+      "id": "light.giardino_patio_socket_1",
+      "name": "Patio",
+      "state": "off",
+      "brightness": null
+    },
+    {
+      "id": "light.luce_tavolo",
+      "name": "Luce tavolo",
+      "state": "off",
+      "brightness": null
+    },
+    {
+      "id": "light.lampada_tv",
+      "name": "Lampada tv",
+      "state": "off",
+      "brightness": null
+    },
+    {
+      "id": "light.hue_play_gradient_lightstrip_1",
+      "name": "Striscia Tv",
+      "state": "off",
+      "brightness": null
+    },
+    {
+      "id": "light.piantana_alessia",
+      "name": "Piantana Alessia",
+      "state": "off",
+      "brightness": null
+    },
+    {
+      "id": "light.luce_filippo",
+      "name": "Luce Filippo",
+      "state": "off",
+      "brightness": null
+    },
+    {
+      "id": "light.luna",
+      "name": "Luna",
+      "state": "off",
+      "brightness": null
+    },
+    {
+      "id": "light.luce_letto",
+      "name": "Luce letto",
+      "state": "off",
+      "brightness": null
+    },
+    {
+      "id": "light.ikea3",
+      "name": "Ikea3",
+      "state": "off",
+      "brightness": null
+    },
+    {
+      "id": "light.ikea1",
+      "name": "Ikea1",
+      "state": "off",
+      "brightness": null
+    },
+    {
+      "id": "light.osram",
+      "name": "Quadro",
+      "state": "unavailable",
+      "brightness": null
+    },
+    {
+      "id": "light.scrivania",
+      "name": "Scrivania",
+      "state": "off",
+      "brightness": null
+    },
+    {
+      "id": "light.muro",
+      "name": "Muro",
+      "state": "unavailable",
+      "brightness": null
+    },
+    {
+      "id": "light.ikea2",
+      "name": "Ikea2",
+      "state": "off",
+      "brightness": null
+    },
+    {
+      "id": "light.lampada_divano",
+      "name": "Lampada divano",
+      "state": "off",
+      "brightness": null
+    },
+    {
+      "id": "light.luce_mena",
+      "name": "Luce Mena",
+      "state": "off",
+      "brightness": null
+    },
+    {
+      "id": "light.camera",
+      "name": "Camera",
+      "state": "off",
+      "brightness": null
+    },
+    {
+      "id": "light.alessia",
+      "name": "Alessia",
+      "state": "off",
+      "brightness": null
+    },
+    {
+      "id": "light.salone",
+      "name": "Salone",
+      "state": "off",
+      "brightness": null
+    },
+    {
+      "id": "light.pranzo",
+      "name": "Pranzo",
+      "state": "off",
+      "brightness": null
+    },
+    {
+      "id": "light.lavanderia",
+      "name": "lavanderia",
+      "state": "off",
+      "brightness": null
+    },
+    {
+      "id": "light.faretto",
+      "name": "Faretto",
+      "state": "unavailable",
+      "brightness": null
+    },
+    {
+      "id": "light.faretto2",
+      "name": "Faretto2",
+      "state": "unavailable",
+      "brightness": null
+    },
+    {
+      "id": "light.comodino",
+      "name": "Comodino",
+      "state": "off",
+      "brightness": null
+    },
+    {
+      "id": "light.wellis_spa_light_1",
+      "name": "Wellis Spa Light 1",
+      "state": "off",
+      "brightness": null
+    },
+    {
+      "id": "light.led_viola_3",
+      "name": "light.led_viola_3",
+      "state": "unavailable",
+      "brightness": null
+    }
+  ],
+  "switches": [
+    {
+      "id": "switch.sonoff_10003ec98f",
+      "name": "Ventola salone",
+      "state": "unavailable"
+    },
+    {
+      "id": "switch.sonoff_1000debf8e",
+      "name": "Cancello",
+      "state": "off"
+    },
+    {
+      "id": "switch.sonoff_1001264840",
+      "name": "Giardino Grande",
+      "state": "off"
+    },
+    {
+      "id": "switch.sonoff_10003cf6d8",
+      "name": "Giardino Piccola",
+      "state": "off"
+    },
+    {
+      "id": "switch.sonoff_10003d6929",
+      "name": "Ventola Viola",
+      "state": "on"
+    },
+    {
+      "id": "switch.hue_motion_sensor_1_motion",
+      "name": "Hue motion sensor 1 Sensore di movimento abilitato",
+      "state": "on"
+    },
+    {
+      "id": "switch.hue_motion_sensor_1_illuminance",
+      "name": "Hue motion sensor 1 Sensore di luce abilitato",
+      "state": "on"
+    },
+    {
+      "id": "switch.automation_zanzare_camera",
+      "name": "Hue Bridge Automation: Zanzare Camera ",
+      "state": "off"
+    },
+    {
+      "id": "switch.automation_hue_smart_salone",
+      "name": "Hue Bridge Automation: Hue Smart Salone",
+      "state": "on"
+    },
+    {
+      "id": "switch.automation_entertainment_room_end_behavior",
+      "name": "Hue Bridge Automation: Entertainment room end behavior",
+      "state": "on"
+    },
+    {
+      "id": "switch.automation_coming_home",
+      "name": "Hue Bridge Automation: Coming home",
+      "state": "off"
+    },
+    {
+      "id": "switch.automation_leaving_home",
+      "name": "Hue Bridge Automation: Leaving home",
+      "state": "off"
+    },
+    {
+      "id": "switch.automation_hue_dimmer_camera",
+      "name": "Hue Bridge Automation: Hue dimmer Camera",
+      "state": "on"
+    },
+    {
+      "id": "switch.aria_condizionata",
+      "name": "Aria Condizionata",
+      "state": "unknown"
+    },
+    {
+      "id": "switch.tavolo_cucina",
+      "name": "Tavolo Cucina",
+      "state": "off"
+    },
+    {
+      "id": "switch.mobile_cucina",
+      "name": "Mobile Cucina",
+      "state": "off"
+    },
+    {
+      "id": "switch.bambine_tavolo",
+      "name": "Bambine tavolo",
+      "state": "off"
+    },
+    {
+      "id": "switch.bambine_scrivania",
+      "name": "Bambine scrivania",
+      "state": "off"
+    },
+    {
+      "id": "switch.camera2",
+      "name": "Camera2",
+      "state": "off"
+    },
+    {
+      "id": "switch.lavanderia_auto_update_enabled",
+      "name": "lavanderia Auto-update enabled",
+      "state": "on"
+    },
+    {
+      "id": "switch.asciugatrice_wrinkle_prevent",
+      "name": "Asciugatrice Wrinkle prevent",
+      "state": "off"
+    },
+    {
+      "id": "switch.quadro_socket",
+      "name": "Zanzare Salone Presa",
+      "state": "off"
+    },
+    {
+      "id": "switch.presa2_socket",
+      "name": "Ventola Giardino Presa",
+      "state": "off"
+    },
+    {
+      "id": "switch.tenda_inverso",
+      "name": "Tenda Inverso",
+      "state": "on"
+    },
+    {
+      "id": "switch.niovapresa2_socket_1",
+      "name": "Patio",
+      "state": "off"
+    },
+    {
+      "id": "switch.tenda_salone_inverso",
+      "name": "Tenda Salone Inverso",
+      "state": "on"
+    },
+    {
+      "id": "switch.luci_scale_campaldino_socket_1",
+      "name": "Luci scale Campaldino  Socket 1",
+      "state": "off"
+    },
+    {
+      "id": "switch.camera_non_disturbare",
+      "name": "Camera Non disturbare",
+      "state": "on"
+    },
+    {
+      "id": "switch.viola_non_disturbare",
+      "name": "Viola Non disturbare",
+      "state": "off"
+    },
+    {
+      "id": "switch.salone_non_disturbare",
+      "name": "Salone Non disturbare",
+      "state": "off"
+    },
+    {
+      "id": "switch.tv_salone_non_disturbare",
+      "name": "Alexa tv salotto Non disturbare",
+      "state": "off"
+    },
+    {
+      "id": "switch.tv_cucina_non_disturbare",
+      "name": "Tv Cucina Non disturbare",
+      "state": "unavailable"
+    },
+    {
+      "id": "switch.alexa_giardino_non_disturbare",
+      "name": "Alexa Giardino Non disturbare",
+      "state": "off"
+    },
+    {
+      "id": "switch.cucina_non_disturbare",
+      "name": "Cucina Non disturbare",
+      "state": "off"
+    },
+    {
+      "id": "switch.echo_bagno_piccolo_non_disturbare",
+      "name": "Echo Bagno Piccolo Non disturbare",
+      "state": "off"
+    },
+    {
+      "id": "switch.echo_alessia_non_disturbare",
+      "name": "Echo Alessia Non disturbare",
+      "state": "off"
+    },
+    {
+      "id": "switch.casa_siren_2",
+      "name": "Casa Allarme Siren",
+      "state": "off"
+    },
+    {
+      "id": "switch.casa_panic_police_2",
+      "name": "Casa Allarme Panic - Police",
+      "state": "off"
+    },
+    {
+      "id": "switch.casa_panic_fire_2",
+      "name": "Casa Allarme Panic - Fire",
+      "state": "off"
+    },
+    {
+      "id": "switch.sirena_esterna_12967_2",
+      "name": "Sirena esterna 12967",
+      "state": "off"
+    },
+    {
+      "id": "switch.camera_cucina_live_stream",
+      "name": "Camera Cucina Live Stream",
+      "state": "off"
+    },
+    {
+      "id": "switch.camera_cucina_event_stream",
+      "name": "Camera Cucina Event Stream",
+      "state": "off"
+    },
+    {
+      "id": "switch.camera_cucina_siren_2",
+      "name": "Camera Cucina Siren",
+      "state": "off"
+    },
+    {
+      "id": "switch.camera_cucina_motion_detection",
+      "name": "Camera Cucina Motion Detection",
+      "state": "on"
+    },
+    {
+      "id": "switch.camera_cucina_motion_warning",
+      "name": "Camera Cucina Motion Warning",
+      "state": "off"
+    },
+    {
+      "id": "switch.fly_smart_timer_smart_watering_program",
+      "name": "Fly Smart Timer Smart Watering program",
+      "state": "unavailable"
+    },
+    {
+      "id": "switch.fly_smart_timer_smart_watering_program_2",
+      "name": "Fly Smart Timer Smart Watering program",
+      "state": "unavailable"
+    },
+    {
+      "id": "switch.fly_smart_timer_smart_watering_program_3",
+      "name": "Fly Smart Timer Smart Watering program",
+      "state": "unavailable"
+    },
+    {
+      "id": "switch.fly_smart_timer_smart_watering_program_4",
+      "name": "Fly Smart Timer Smart Watering program",
+      "state": "unavailable"
+    },
+    {
+      "id": "switch.fly_smart_timer_smart_watering_program_5",
+      "name": "Fly Smart Timer Smart Watering program",
+      "state": "unavailable"
+    },
+    {
+      "id": "switch.sonoff_100107c438",
+      "name": "switch.sonoff_100107c438",
+      "state": "unavailable"
+    },
+    {
+      "id": "switch.fly_smart_timer_smart_watering_program_6",
+      "name": "Fly Smart Timer Smart Watering program",
+      "state": "unavailable"
+    },
+    {
+      "id": "switch.fly_smart_timer_smart_watering_program_7",
+      "name": "Fly Smart Timer Smart Watering program",
+      "state": "unavailable"
+    },
+    {
+      "id": "switch.fly_smart_timer_smart_watering_program_8",
+      "name": "Fly Smart Timer Smart Watering program",
+      "state": "unavailable"
+    },
+    {
+      "id": "switch.shellyswitch25_e098068cf9f2_channel_2",
+      "name": "shellyswitch25-E098068CF9F2 channel 2",
+      "state": "unavailable"
+    },
+    {
+      "id": "switch.sirena_esterna_12967",
+      "name": "Sirena esterna 12967",
+      "state": "unavailable"
+    },
+    {
+      "id": "switch.chirps",
+      "name": "Chirps",
+      "state": "unavailable"
+    },
+    {
+      "id": "switch.trucco_viola",
+      "name": "switch.trucco_viola",
+      "state": "unavailable"
+    },
+    {
+      "id": "switch.automation_hue_motion_sensor_1",
+      "name": "Automation: Hue motion sensor 1",
+      "state": "unavailable"
+    },
+    {
+      "id": "switch.led_viola_auto_update_enabled_2",
+      "name": "Auto-update enabled",
+      "state": "unavailable"
+    },
+    {
+      "id": "switch.led_viola_smooth_transitions_2",
+      "name": "Smooth transitions",
+      "state": "unavailable"
+    },
+    {
+      "id": "switch.general",
+      "name": "switch.general",
+      "state": "unavailable"
+    }
+  ],
+  "sensors": [
+    {
+      "id": "sensor.backup_backup_manager_state",
+      "name": "Backup Backup Manager state",
+      "state": "idle",
+      "unit": null
+    },
+    {
+      "id": "sensor.backup_next_scheduled_automatic_backup",
+      "name": "Backup Next scheduled automatic backup",
+      "state": "unknown",
+      "unit": null
+    },
+    {
+      "id": "sensor.backup_last_successful_automatic_backup",
+      "name": "Backup Last successful automatic backup",
+      "state": "unknown",
+      "unit": null
+    },
+    {
+      "id": "sensor.backup_last_attempted_automatic_backup",
+      "name": "Backup Last attempted automatic backup",
+      "state": "unknown",
+      "unit": null
+    },
+    {
+      "id": "sensor.sun_next_dawn",
+      "name": "Sun Prossima alba",
+      "state": "2026-06-23T02:58:32+00:00",
+      "unit": null
+    },
+    {
+      "id": "sensor.sun_next_dusk",
+      "name": "Sun Prossimo crepuscolo",
+      "state": "2026-06-23T19:25:47+00:00",
+      "unit": null
+    },
+    {
+      "id": "sensor.sun_next_midnight",
+      "name": "Sun Prossima mezzanotte",
+      "state": "2026-06-23T23:12:25+00:00",
+      "unit": null
+    },
+    {
+      "id": "sensor.sun_next_noon",
+      "name": "Sun Prossimo mezzogiorno",
+      "state": "2026-06-23T11:12:05+00:00",
+      "unit": null
+    },
+    {
+      "id": "sensor.sun_next_rising",
+      "name": "Sun Prossima levata",
+      "state": "2026-06-23T03:33:30+00:00",
+      "unit": null
+    },
+    {
+      "id": "sensor.sun_next_setting",
+      "name": "Sun Prossimo tramonto",
+      "state": "2026-06-23T18:50:50+00:00",
+      "unit": null
+    },
+    {
+      "id": "sensor.shellycucina_channel_2_energy_cost_2",
+      "name": "sensor Cost",
+      "state": "unknown",
+      "unit": "EUR"
+    },
+    {
+      "id": "sensor.flyphone_activity_2",
+      "name": "FlyPhoneAir FlyPhone Activity",
+      "state": "Unknown",
+      "unit": null
+    },
+    {
+      "id": "sensor.flyphone_battery_level_2",
+      "name": "FlyPhoneAir FlyPhone Battery Level",
+      "state": "100",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.flyphone_battery_state_2",
+      "name": "FlyPhoneAir FlyPhone Battery State",
+      "state": "Not Charging",
+      "unit": null
+    },
+    {
+      "id": "sensor.flyphone_storage_2",
+      "name": "FlyPhoneAir FlyPhone Storage",
+      "state": "17.69",
+      "unit": "% available"
+    },
+    {
+      "id": "sensor.flyphone_ssid_2",
+      "name": "FlyPhoneAir FlyPhone SSID",
+      "state": "Not Connected",
+      "unit": null
+    },
+    {
+      "id": "sensor.flyphone_bssid_2",
+      "name": "FlyPhoneAir FlyPhone BSSID",
+      "state": "Not Connected",
+      "unit": null
+    },
+    {
+      "id": "sensor.flyphone_connection_type_2",
+      "name": "FlyPhoneAir FlyPhone Connection Type",
+      "state": "Wi-Fi",
+      "unit": null
+    },
+    {
+      "id": "sensor.flyphone_sim_1_2",
+      "name": "FlyPhoneAir FlyPhone SIM 1",
+      "state": "--",
+      "unit": null
+    },
+    {
+      "id": "sensor.flyphone_sim_2_2",
+      "name": "FlyPhoneAir FlyPhone SIM 2",
+      "state": "--",
+      "unit": null
+    },
+    {
+      "id": "sensor.flyphone_geocoded_location_2",
+      "name": "FlyPhoneAir FlyPhone Geocoded Location",
+      "state": "Via Bagnone 27\n00139 Roma Lazio\nItalia",
+      "unit": null
+    },
+    {
+      "id": "sensor.flyphone_last_update_trigger_2",
+      "name": "FlyPhoneAir FlyPhone Last Update Trigger",
+      "state": "Signaled",
+      "unit": null
+    },
+    {
+      "id": "sensor.flyphone_app_version",
+      "name": "FlyPhoneAir FlyPhone App Version",
+      "state": "2026.1.1",
+      "unit": null
+    },
+    {
+      "id": "sensor.flyphone_location_permission",
+      "name": "FlyPhoneAir FlyPhone Location permission",
+      "state": "Authorized Always",
+      "unit": null
+    },
+    {
+      "id": "sensor.flyphone_audio_output",
+      "name": "FlyPhoneAir FlyPhone Audio Output",
+      "state": "",
+      "unit": null
+    },
+    {
+      "id": "sensor.flyphone_distance_2",
+      "name": "FlyPhoneAir FlyPhone Distance",
+      "state": "1040",
+      "unit": "m"
+    },
+    {
+      "id": "sensor.flyphone_floors_ascended_2",
+      "name": "FlyPhoneAir FlyPhone Floors Ascended",
+      "state": "3",
+      "unit": "floors"
+    },
+    {
+      "id": "sensor.flyphone_floors_descended_2",
+      "name": "FlyPhoneAir FlyPhone Floors Descended",
+      "state": "0",
+      "unit": "floors"
+    },
+    {
+      "id": "sensor.flyphone_steps_2",
+      "name": "FlyPhoneAir FlyPhone Steps",
+      "state": "1393",
+      "unit": "steps"
+    },
+    {
+      "id": "sensor.flyphone_average_active_pace_2",
+      "name": "FlyPhoneAir FlyPhone Average Active Pace",
+      "state": "0",
+      "unit": "m/s"
+    },
+    {
+      "id": "sensor.flyphoneair_activity",
+      "name": "FlyPhoneAir Activity",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.flyphoneair_battery_state",
+      "name": "FlyPhoneAir Battery State",
+      "state": "Not Charging",
+      "unit": null
+    },
+    {
+      "id": "sensor.flyphoneair_storage",
+      "name": "FlyPhoneAir Storage",
+      "state": "8.15",
+      "unit": "% available"
+    },
+    {
+      "id": "sensor.flyphoneair_ssid",
+      "name": "FlyPhoneAir SSID",
+      "state": "Not Connected",
+      "unit": null
+    },
+    {
+      "id": "sensor.flyphoneair_bssid",
+      "name": "FlyPhoneAir BSSID",
+      "state": "Not Connected",
+      "unit": null
+    },
+    {
+      "id": "sensor.flyphoneair_connection_type",
+      "name": "FlyPhoneAir Connection Type",
+      "state": "Wi-Fi",
+      "unit": null
+    },
+    {
+      "id": "sensor.flyphoneair_sim_1",
+      "name": "FlyPhoneAir SIM 1",
+      "state": "--",
+      "unit": null
+    },
+    {
+      "id": "sensor.flyphoneair_sim_2",
+      "name": "FlyPhoneAir SIM 2",
+      "state": "--",
+      "unit": null
+    },
+    {
+      "id": "sensor.flyphoneair_geocoded_location",
+      "name": "FlyPhoneAir Geocoded Location",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.flyphoneair_last_update_trigger",
+      "name": "FlyPhoneAir Last Update Trigger",
+      "state": "Signaled",
+      "unit": null
+    },
+    {
+      "id": "sensor.flyphoneair_app_version",
+      "name": "FlyPhoneAir App Version",
+      "state": "2026.4.1",
+      "unit": null
+    },
+    {
+      "id": "sensor.flyphoneair_location_permission",
+      "name": "FlyPhoneAir Location permission",
+      "state": "Not determined",
+      "unit": null
+    },
+    {
+      "id": "sensor.flyphoneair_audio_output",
+      "name": "FlyPhoneAir Audio Output",
+      "state": "Built-in Speaker",
+      "unit": null
+    },
+    {
+      "id": "sensor.flyphoneair_floors_descended",
+      "name": "FlyPhoneAir Floors Descended",
+      "state": "unavailable",
+      "unit": "floors"
+    },
+    {
+      "id": "sensor.flyphoneair_distance",
+      "name": "FlyPhoneAir Distance",
+      "state": "unavailable",
+      "unit": "m"
+    },
+    {
+      "id": "sensor.flyphoneair_steps",
+      "name": "FlyPhoneAir Steps",
+      "state": "unavailable",
+      "unit": "steps"
+    },
+    {
+      "id": "sensor.flyphoneair_floors_ascended",
+      "name": "FlyPhoneAir Floors Ascended",
+      "state": "unavailable",
+      "unit": "floors"
+    },
+    {
+      "id": "sensor.flyphoneair_battery_level",
+      "name": "FlyPhoneAir Battery Level",
+      "state": "85",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.flyphoneair_average_active_pace",
+      "name": "FlyPhoneAir Average Active Pace",
+      "state": "1",
+      "unit": "m/s"
+    },
+    {
+      "id": "sensor.flypadm4_activity",
+      "name": "FlyPadM4 Activity",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.flypadm4_connection_type",
+      "name": "FlyPadM4 Connection Type",
+      "state": "Wi-Fi",
+      "unit": null
+    },
+    {
+      "id": "sensor.flypadm4_geocoded_location",
+      "name": "FlyPadM4 Geocoded Location",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.flypadm4_last_update_trigger",
+      "name": "FlyPadM4 Last Update Trigger",
+      "state": "Signaled",
+      "unit": null
+    },
+    {
+      "id": "sensor.flypadm4_app_version",
+      "name": "FlyPadM4 App Version",
+      "state": "2026.4.1",
+      "unit": null
+    },
+    {
+      "id": "sensor.flypadm4_location_permission",
+      "name": "FlyPadM4 Location permission",
+      "state": "Not determined",
+      "unit": null
+    },
+    {
+      "id": "sensor.flypadm4_audio_output",
+      "name": "FlyPadM4 Audio Output",
+      "state": "Built-in Speaker",
+      "unit": null
+    },
+    {
+      "id": "sensor.flypadm4_battery_state",
+      "name": "FlyPadM4 Battery State",
+      "state": "Not Charging",
+      "unit": null
+    },
+    {
+      "id": "sensor.flypadm4_battery_level",
+      "name": "FlyPadM4 Battery Level",
+      "state": "50",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.flypadm4_storage",
+      "name": "FlyPadM4 Storage",
+      "state": "11.87",
+      "unit": "% available"
+    },
+    {
+      "id": "sensor.flypadm4_ssid",
+      "name": "FlyPadM4 SSID",
+      "state": "Not Connected",
+      "unit": null
+    },
+    {
+      "id": "sensor.flypadm4_bssid",
+      "name": "FlyPadM4 BSSID",
+      "state": "Not Connected",
+      "unit": null
+    },
+    {
+      "id": "sensor.flyphone_battery_level",
+      "name": "FlyPhone Battery Level",
+      "state": "55",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.flyphone_sim_1",
+      "name": "FlyPhone SIM 1",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.flyphone_sim_2",
+      "name": "FlyPhone SIM 2",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.flyphone_geocoded_location",
+      "name": "FlyPhone Geocoded Location",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.flyphone_last_update_trigger",
+      "name": "FlyPhone Last Update Trigger",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.flyphone_audio_output_2",
+      "name": "FlyPhone Audio Output",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.flyphone_app_version_2",
+      "name": "FlyPhone App Version",
+      "state": "2026.4.1",
+      "unit": null
+    },
+    {
+      "id": "sensor.flyphone_location_permission_2",
+      "name": "FlyPhone Location permission",
+      "state": "Not determined",
+      "unit": null
+    },
+    {
+      "id": "sensor.flyphone_battery_state",
+      "name": "FlyPhone Battery State",
+      "state": "Not Charging",
+      "unit": null
+    },
+    {
+      "id": "sensor.flyphone_storage",
+      "name": "FlyPhone Storage",
+      "state": "unavailable",
+      "unit": "% available"
+    },
+    {
+      "id": "sensor.flyphone_ssid",
+      "name": "FlyPhone SSID",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.flyphone_connection_type",
+      "name": "FlyPhone Connection Type",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.flyphone_bssid",
+      "name": "FlyPhone BSSID",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.flypadm4_2_battery_level",
+      "name": "FlyPadM4-2 Battery Level",
+      "state": "85",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.flypadm4_2_geocoded_location",
+      "name": "FlyPadM4-2 Geocoded Location",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.flypadm4_2_last_update_trigger",
+      "name": "FlyPadM4-2 Last Update Trigger",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.flypadm4_2_battery_state",
+      "name": "FlyPadM4-2 Battery State",
+      "state": "Not Charging",
+      "unit": null
+    },
+    {
+      "id": "sensor.flypadm4_2_storage",
+      "name": "FlyPadM4-2 Storage",
+      "state": "unavailable",
+      "unit": "% available"
+    },
+    {
+      "id": "sensor.flypadm4_2_bssid",
+      "name": "FlyPadM4-2 BSSID",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.flypadm4_2_ssid",
+      "name": "FlyPadM4-2 SSID",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.flypadm4_2_app_version",
+      "name": "FlyPadM4-2 App Version",
+      "state": "2026.4.1",
+      "unit": null
+    },
+    {
+      "id": "sensor.flypadm4_2_location_permission",
+      "name": "FlyPadM4-2 Location permission",
+      "state": "Authorized Always",
+      "unit": null
+    },
+    {
+      "id": "sensor.flypadm4_2_audio_output",
+      "name": "FlyPadM4-2 Audio Output",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.flypadm4_2_connection_type",
+      "name": "FlyPadM4-2 Connection Type",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.flyphoneair_sim_1_2",
+      "name": "FlyPhoneAir SIM 1",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.flyphoneair_bssid_2",
+      "name": "FlyPhoneAir BSSID",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.flyphoneair_ssid_2",
+      "name": "FlyPhoneAir SSID",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.flyphoneair_battery_state_2",
+      "name": "FlyPhoneAir Battery State",
+      "state": "Not Charging",
+      "unit": null
+    },
+    {
+      "id": "sensor.flyphoneair_battery_level_2",
+      "name": "FlyPhoneAir Battery Level",
+      "state": "95",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.flyphoneair_storage_2",
+      "name": "FlyPhoneAir Storage",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.flyphoneair_sim_2_2",
+      "name": "FlyPhoneAir SIM 2",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.flyphoneair_geocoded_location_2",
+      "name": "FlyPhoneAir Geocoded Location",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.flyphoneair_last_update_trigger_2",
+      "name": "FlyPhoneAir Last Update Trigger",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.flyphoneair_app_version_2",
+      "name": "FlyPhoneAir App Version",
+      "state": "2026.4.1",
+      "unit": null
+    },
+    {
+      "id": "sensor.flyphoneair_location_permission_2",
+      "name": "FlyPhoneAir Location permission",
+      "state": "Authorized Always",
+      "unit": null
+    },
+    {
+      "id": "sensor.flyphoneair_audio_output_2",
+      "name": "FlyPhoneAir Audio Output",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.flyphoneair_connection_type_2",
+      "name": "FlyPhoneAir Connection Type",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.flypad_battery_level",
+      "name": "FlyPad Battery Level",
+      "state": "60",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.flypad_geocoded_location",
+      "name": "FlyPad Geocoded Location",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.flypad_last_update_trigger",
+      "name": "FlyPad Last Update Trigger",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.flypad_app_version",
+      "name": "FlyPad App Version",
+      "state": "2026.6.0",
+      "unit": null
+    },
+    {
+      "id": "sensor.flypad_battery_state",
+      "name": "FlyPad Battery State",
+      "state": "Not Charging",
+      "unit": null
+    },
+    {
+      "id": "sensor.flypad_connection_type",
+      "name": "FlyPad Connection Type",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.flypad_audio_output",
+      "name": "FlyPad Audio Output",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.flypad_ssid",
+      "name": "FlyPad SSID",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.flypad_bssid",
+      "name": "FlyPad BSSID",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.flypad_location_permission",
+      "name": "FlyPad Location permission",
+      "state": "Authorized Always",
+      "unit": null
+    },
+    {
+      "id": "sensor.flypad_storage",
+      "name": "FlyPad Storage",
+      "state": "unavailable",
+      "unit": "% available"
+    },
+    {
+      "id": "sensor.flyphoneair3_battery_level",
+      "name": "FlyPhoneAir3 Battery Level",
+      "state": "30",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.flyphoneair3_sim_2",
+      "name": "FlyPhoneAir3 SIM 2",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.flyphoneair3_sim_1",
+      "name": "FlyPhoneAir3 SIM 1",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.flyphoneair3_geocoded_location",
+      "name": "FlyPhoneAir3 Geocoded Location",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.flyphoneair3_last_update_trigger",
+      "name": "FlyPhoneAir3 Last Update Trigger",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.flyphoneair3_app_version",
+      "name": "FlyPhoneAir3 App Version",
+      "state": "2026.6.0",
+      "unit": null
+    },
+    {
+      "id": "sensor.flyphoneair3_location_permission",
+      "name": "FlyPhoneAir3 Location permission",
+      "state": "Authorized Always",
+      "unit": null
+    },
+    {
+      "id": "sensor.flyphoneair3_audio_output",
+      "name": "FlyPhoneAir3 Audio Output",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.flyphoneair3_storage",
+      "name": "FlyPhoneAir3 Storage",
+      "state": "unavailable",
+      "unit": "% available"
+    },
+    {
+      "id": "sensor.flyphoneair3_ssid",
+      "name": "FlyPhoneAir3 SSID",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.flyphoneair3_battery_state",
+      "name": "FlyPhoneAir3 Battery State",
+      "state": "Not Charging",
+      "unit": null
+    },
+    {
+      "id": "sensor.flyphoneair3_connection_type",
+      "name": "FlyPhoneAir3 Connection Type",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.flyphoneair3_bssid",
+      "name": "FlyPhoneAir3 BSSID",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.hue_motion_sensor_1_temperature",
+      "name": "Hue motion sensor 1 Temperatura",
+      "state": "25.0",
+      "unit": "°C"
+    },
+    {
+      "id": "sensor.hue_motion_sensor_1_illuminance",
+      "name": "Hue motion sensor 1 Illuminamento",
+      "state": "0",
+      "unit": "lx"
+    },
+    {
+      "id": "sensor.hue_motion_sensor_1_battery",
+      "name": "Hue motion sensor 1 Batteria",
+      "state": "28",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.hue_dimmer_switch_2_battery",
+      "name": "Hue dimmer Camera Batteria",
+      "state": "100",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.hue_smart_salone_battery",
+      "name": "Hue Smart Salone Batteria",
+      "state": "1",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.hue_smart_button_1_battery",
+      "name": "Hue Smart button 1 Batteria",
+      "state": "1",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.hue_dimmer_switch_1_battery",
+      "name": "Hue dimmer Alessia Batteria",
+      "state": "57",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.tavolo_cucina_potenza",
+      "name": "Tavolo Cucina Potenza",
+      "state": "0",
+      "unit": "W"
+    },
+    {
+      "id": "sensor.mobile_cucina_potenza",
+      "name": "Mobile Cucina Potenza",
+      "state": "0",
+      "unit": "W"
+    },
+    {
+      "id": "sensor.tavolo_cucina_tensione",
+      "name": "Tavolo Cucina Tensione",
+      "state": "0",
+      "unit": "V"
+    },
+    {
+      "id": "sensor.mobile_cucina_tensione",
+      "name": "Mobile Cucina Tensione",
+      "state": "0",
+      "unit": "V"
+    },
+    {
+      "id": "sensor.tavolo_cucina_corrente",
+      "name": "Tavolo Cucina Corrente",
+      "state": "0",
+      "unit": "mA"
+    },
+    {
+      "id": "sensor.mobile_cucina_corrente",
+      "name": "Mobile Cucina Corrente",
+      "state": "0",
+      "unit": "mA"
+    },
+    {
+      "id": "sensor.tavolo_cucina_energia",
+      "name": "Tavolo Cucina Energia",
+      "state": "0.0",
+      "unit": "kWh"
+    },
+    {
+      "id": "sensor.mobile_cucina_energia",
+      "name": "Mobile Cucina Energia",
+      "state": "0.0",
+      "unit": "kWh"
+    },
+    {
+      "id": "sensor.chiudi_divano_batteria",
+      "name": "Chiudi Divano Batteria",
+      "state": "100",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.hub_2_fb_temperatura",
+      "name": "Hub 2 FB Temperatura",
+      "state": "26.4",
+      "unit": "°C"
+    },
+    {
+      "id": "sensor.hub_2_fb_umidita",
+      "name": "Hub 2 FB Umidità",
+      "state": "68",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.sensore_di_presenza_cucina_batteria",
+      "name": "Sensore di presenza cucina Batteria",
+      "state": "100",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.sensore_di_presenza_cucina_light_level",
+      "name": "Sensore di presenza cucina Light level",
+      "state": "1",
+      "unit": null
+    },
+    {
+      "id": "sensor.apri_divano_batteria",
+      "name": "Apri Divano Batteria",
+      "state": "100",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.lavanderia_signal_level",
+      "name": "lavanderia Signal level",
+      "state": "1",
+      "unit": null
+    },
+    {
+      "id": "sensor.cancello_batteria",
+      "name": "Cancello Batteria",
+      "state": "78",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.cancello_ultima_attivita",
+      "name": "Cancello Ultima attività",
+      "state": "2026-06-22T20:43:08+00:00",
+      "unit": null
+    },
+    {
+      "id": "sensor.cancello_ultimo_ding",
+      "name": "Cancello Ultimo ding",
+      "state": "2026-06-22T18:30:38+00:00",
+      "unit": null
+    },
+    {
+      "id": "sensor.cancello_ultimo_movimento",
+      "name": "Cancello Ultimo movimento",
+      "state": "2026-06-22T20:43:08+00:00",
+      "unit": null
+    },
+    {
+      "id": "sensor.cancello_doorbell_volume",
+      "name": "Cancello Volume campanello",
+      "state": "8",
+      "unit": null
+    },
+    {
+      "id": "sensor.cancello_mic_volume",
+      "name": "Cancello Volume microfono",
+      "state": "11",
+      "unit": null
+    },
+    {
+      "id": "sensor.cancello_voice_volume",
+      "name": "Cancello Volume voce",
+      "state": "11",
+      "unit": null
+    },
+    {
+      "id": "sensor.netatmo_casa_temperature",
+      "name": "Casa Temperatura",
+      "state": "25.1",
+      "unit": "°C"
+    },
+    {
+      "id": "sensor.netatmo_casa_pressure",
+      "name": "Casa Pressione atmosferica",
+      "state": "1017.7",
+      "unit": "mbar"
+    },
+    {
+      "id": "sensor.netatmo_casa_humidity",
+      "name": "Casa Umidità",
+      "state": "70.8",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.netatmo_casa_rain",
+      "name": "Casa Precipitazione",
+      "state": "0.0",
+      "unit": "mm"
+    },
+    {
+      "id": "sensor.netatmo_casa_rain_today",
+      "name": "Casa Precipitazioni oggi",
+      "state": "0.0",
+      "unit": "mm"
+    },
+    {
+      "id": "sensor.netatmo_casa_wind_strength",
+      "name": "Casa Velocità del vento",
+      "state": "4.7",
+      "unit": "km/h"
+    },
+    {
+      "id": "sensor.termostato_battery_percent_2",
+      "name": "Termostato Batteria",
+      "state": "75",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.netatmo_la_mia_abitazione_interno_temperature",
+      "name": "Termometro Camera Temperatura",
+      "state": "27.1",
+      "unit": "°C"
+    },
+    {
+      "id": "sensor.netatmo_la_mia_abitazione_interno_co2",
+      "name": "Termometro Camera Anidride carbonica",
+      "state": "1044",
+      "unit": "ppm"
+    },
+    {
+      "id": "sensor.netatmo_la_mia_abitazione_interno_pressure",
+      "name": "Termometro Camera Pressione atmosferica",
+      "state": "1022.9",
+      "unit": "mbar"
+    },
+    {
+      "id": "sensor.netatmo_la_mia_abitazione_interno_noise",
+      "name": "Termometro Camera Noise",
+      "state": "43",
+      "unit": "dB"
+    },
+    {
+      "id": "sensor.netatmo_la_mia_abitazione_interno_humidity",
+      "name": "Termometro Camera Umidità",
+      "state": "77",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.netatmo_la_mia_abitazione_interno_esterno_temperature",
+      "name": "Termomentro Giardino Temperatura",
+      "state": "23.5",
+      "unit": "°C"
+    },
+    {
+      "id": "sensor.netatmo_la_mia_abitazione_interno_esterno_humidity",
+      "name": "Termomentro Giardino Umidità",
+      "state": "77",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.netatmo_la_mia_abitazione_interno_esterno_battery_percent",
+      "name": "Termomentro Giardino Batteria",
+      "state": "59",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.tv_cucina_canale_tv",
+      "name": "tv cucina Canale TV",
+      "state": "",
+      "unit": null
+    },
+    {
+      "id": "sensor.tv_cucina_nome_del_canale_tv",
+      "name": "tv cucina Nome del canale TV",
+      "state": "cU8hhdYp3F.Duplecast",
+      "unit": null
+    },
+    {
+      "id": "sensor.tv_salone_energia",
+      "name": "Tv Salone Energia",
+      "state": "0.0",
+      "unit": "kWh"
+    },
+    {
+      "id": "sensor.tv_salone_potenza",
+      "name": "Tv Salone Potenza",
+      "state": "0",
+      "unit": "W"
+    },
+    {
+      "id": "sensor.tv_salone_energy_difference",
+      "name": "Tv Salone Energy difference",
+      "state": "0.001769444",
+      "unit": "kWh"
+    },
+    {
+      "id": "sensor.tv_salone_energia_elettrica",
+      "name": "Tv Salone Energia elettrica",
+      "state": "0.0",
+      "unit": "kWh"
+    },
+    {
+      "id": "sensor.tv_salone_energy_saved",
+      "name": "Tv Salone Energy saved",
+      "state": "0.0",
+      "unit": "kWh"
+    },
+    {
+      "id": "sensor.tv_salone_canale_tv",
+      "name": "Tv Salone Canale TV",
+      "state": "",
+      "unit": null
+    },
+    {
+      "id": "sensor.tv_salone_nome_del_canale_tv",
+      "name": "Tv Salone Nome del canale TV",
+      "state": "org.tizen.netflix-app",
+      "unit": null
+    },
+    {
+      "id": "sensor.asciugatrice_machine_state",
+      "name": "Asciugatrice Machine state",
+      "state": "stop",
+      "unit": null
+    },
+    {
+      "id": "sensor.asciugatrice_job_state",
+      "name": "Asciugatrice Job state",
+      "state": "none",
+      "unit": null
+    },
+    {
+      "id": "sensor.asciugatrice_completion_time",
+      "name": "Asciugatrice Completion time",
+      "state": "2026-06-22T15:21:22+00:00",
+      "unit": null
+    },
+    {
+      "id": "sensor.asciugatrice_energia",
+      "name": "Asciugatrice Energia",
+      "state": "28.3",
+      "unit": "kWh"
+    },
+    {
+      "id": "sensor.asciugatrice_potenza",
+      "name": "Asciugatrice Potenza",
+      "state": "0",
+      "unit": "W"
+    },
+    {
+      "id": "sensor.asciugatrice_energy_difference",
+      "name": "Asciugatrice Energy difference",
+      "state": "0.0",
+      "unit": "kWh"
+    },
+    {
+      "id": "sensor.asciugatrice_energia_elettrica",
+      "name": "Asciugatrice Energia elettrica",
+      "state": "0.0",
+      "unit": "kWh"
+    },
+    {
+      "id": "sensor.asciugatrice_energy_saved",
+      "name": "Asciugatrice Energy saved",
+      "state": "0.0",
+      "unit": "kWh"
+    },
+    {
+      "id": "sensor.patio_energia_totale",
+      "name": "Patio Energia totale",
+      "state": "0",
+      "unit": "kWh"
+    },
+    {
+      "id": "sensor.luci_scale_campaldino_energia_totale",
+      "name": "Luci scale Campaldino  Energia totale",
+      "state": "0.004",
+      "unit": "kWh"
+    },
+    {
+      "id": "sensor.viola_illuminamento",
+      "name": "Viola Illuminamento",
+      "state": "9.0",
+      "unit": "lx"
+    },
+    {
+      "id": "sensor.cucina_illuminamento",
+      "name": "Cucina Illuminamento",
+      "state": "12.0",
+      "unit": "lx"
+    },
+    {
+      "id": "sensor.echo_bagno_piccolo_illuminamento",
+      "name": "Echo Bagno Piccolo Illuminamento",
+      "state": "0.0",
+      "unit": "lx"
+    },
+    {
+      "id": "sensor.echo_alessia_illuminamento",
+      "name": "Echo Alessia Illuminamento",
+      "state": "115.0",
+      "unit": "lx"
+    },
+    {
+      "id": "sensor.camera_prossima_sveglia",
+      "name": "Camera Prossima sveglia",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.viola_prossima_sveglia",
+      "name": "Viola Prossima sveglia",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.salone_prossima_sveglia",
+      "name": "Salone Prossima sveglia",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.tv_salone_prossima_sveglia",
+      "name": "Alexa tv salotto Prossima sveglia",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.tv_cucina_prossima_sveglia",
+      "name": "Tv Cucina Prossima sveglia",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.alexa_giardino_prossima_sveglia",
+      "name": "Alexa Giardino Prossima sveglia",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.cucina_prossima_sveglia",
+      "name": "Cucina Prossima sveglia",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.echo_bagno_piccolo_prossima_sveglia",
+      "name": "Echo Bagno Piccolo Prossima sveglia",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.echo_alessia_prossima_sveglia",
+      "name": "Echo Alessia Prossima sveglia",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.camera_prossimo_promemoria",
+      "name": "Camera Prossimo promemoria",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.viola_prossimo_promemoria",
+      "name": "Viola Prossimo promemoria",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.salone_prossimo_promemoria",
+      "name": "Salone Prossimo promemoria",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.tv_salone_prossimo_promemoria",
+      "name": "Alexa tv salotto Prossimo promemoria",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.tv_cucina_prossimo_promemoria",
+      "name": "Tv Cucina Prossimo promemoria",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.alexa_giardino_prossimo_promemoria",
+      "name": "Alexa Giardino Prossimo promemoria",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.cucina_prossimo_promemoria",
+      "name": "Cucina Prossimo promemoria",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.echo_bagno_piccolo_prossimo_promemoria",
+      "name": "Echo Bagno Piccolo Prossimo promemoria",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.echo_alessia_prossimo_promemoria",
+      "name": "Echo Alessia Prossimo promemoria",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.camera_prossimo_timer",
+      "name": "Camera Prossimo timer",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.viola_prossimo_timer",
+      "name": "Viola Prossimo timer",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.salone_prossimo_timer",
+      "name": "Salone Prossimo timer",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.tv_salone_prossimo_timer",
+      "name": "Alexa tv salotto Prossimo timer",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.tv_cucina_prossimo_timer",
+      "name": "Tv Cucina Prossimo timer",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.alexa_giardino_prossimo_timer",
+      "name": "Alexa Giardino Prossimo timer",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.cucina_prossimo_timer",
+      "name": "Cucina Prossimo timer",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.echo_bagno_piccolo_prossimo_timer",
+      "name": "Echo Bagno Piccolo Prossimo timer",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.echo_alessia_prossimo_timer",
+      "name": "Echo Alessia Prossimo timer",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.casa_base_station_info_2",
+      "name": "Casa Base Station Info",
+      "state": "ok",
+      "unit": null
+    },
+    {
+      "id": "sensor.casa_allarme_info_2",
+      "name": "Casa Allarme Info",
+      "state": "all-clear",
+      "unit": null
+    },
+    {
+      "id": "sensor.porta_cucina_info",
+      "name": "Porta Cucina Info",
+      "state": "ok",
+      "unit": null
+    },
+    {
+      "id": "sensor.porta_cucina_battery",
+      "name": "Porta Cucina Battery",
+      "state": "100",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.casa_range_extender_info_2",
+      "name": "Casa Range Extender Info",
+      "state": "error",
+      "unit": null
+    },
+    {
+      "id": "sensor.casa_range_extender_battery_2",
+      "name": "Casa Range Extender Battery",
+      "state": "90",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.movimento_salone_info",
+      "name": "Movimento Salone Info",
+      "state": "ok",
+      "unit": null
+    },
+    {
+      "id": "sensor.movimento_salone_battery",
+      "name": "Movimento Salone Battery",
+      "state": "75",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.porta_salone_info_2",
+      "name": "Porta Salone Info",
+      "state": "ok",
+      "unit": null
+    },
+    {
+      "id": "sensor.porta_salone_battery_2",
+      "name": "Porta Salone Battery",
+      "state": "100",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.porta_salone_2_info_2",
+      "name": "Porta Salone 2 Info",
+      "state": "ok",
+      "unit": null
+    },
+    {
+      "id": "sensor.porta_salone_2_battery_2",
+      "name": "Porta Salone 2 Battery",
+      "state": "100",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.porta_viola_info_2",
+      "name": "Porta Viola Info",
+      "state": "ok",
+      "unit": null
+    },
+    {
+      "id": "sensor.porta_viola_battery_2",
+      "name": "Porta Viola Battery",
+      "state": "100",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.porta_ingresso_info",
+      "name": "Porta Ingresso Info",
+      "state": "ok",
+      "unit": null
+    },
+    {
+      "id": "sensor.porta_ingresso_battery",
+      "name": "Porta Ingresso Battery",
+      "state": "100",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.movimento_ingresso_info",
+      "name": "Movimento ingresso Info",
+      "state": "ok",
+      "unit": null
+    },
+    {
+      "id": "sensor.movimento_ingresso_battery",
+      "name": "Movimento ingresso Battery",
+      "state": "90",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.porta_alessia_info_2",
+      "name": "Porta Alessia  Info",
+      "state": "ok",
+      "unit": null
+    },
+    {
+      "id": "sensor.porta_alessia_battery_2",
+      "name": "Porta Alessia  Battery",
+      "state": "100",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.porta_camera_info_2",
+      "name": "Porta Camera Info",
+      "state": "ok",
+      "unit": null
+    },
+    {
+      "id": "sensor.porta_camera_battery_2",
+      "name": "Porta Camera Battery",
+      "state": "100",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.sirena_esterna_12967_info_2",
+      "name": "Sirena esterna 12967 Info",
+      "state": "ok",
+      "unit": null
+    },
+    {
+      "id": "sensor.sirena_esterna_12967_battery_2",
+      "name": "Sirena esterna 12967 Battery",
+      "state": "100",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.camera_cucina_info",
+      "name": "Camera Cucina Info",
+      "state": "2026-06-22T23:31:14+00:00",
+      "unit": null
+    },
+    {
+      "id": "sensor.camera_cucina_wireless",
+      "name": "Camera Cucina Wireless",
+      "state": "unknown",
+      "unit": "dBm"
+    },
+    {
+      "id": "sensor.cancello_battery",
+      "name": "Cancello Battery",
+      "state": "78",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.cancello_info",
+      "name": "Cancello Info",
+      "state": "2026-06-22T23:30:22+00:00",
+      "unit": null
+    },
+    {
+      "id": "sensor.cancello_wireless",
+      "name": "Cancello Wireless",
+      "state": "-28",
+      "unit": "dBm"
+    },
+    {
+      "id": "sensor.fly_smart_timer_battery_level",
+      "name": "Fly Smart Timer battery level",
+      "state": "unavailable",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.termostato_battery_percent",
+      "name": "Termostato Battery Percent",
+      "state": "unavailable",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.sonoff_abc800980e",
+      "name": "Hue go 1",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.sonoff_abc800980f",
+      "name": "Muro",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.sonoff_abc8009810",
+      "name": "Luce letto",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.sonoff_abc8009811",
+      "name": "Scrivania",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.sonoff_abc8009812",
+      "name": "Lampada tv",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.sonoff_abc8009813",
+      "name": "Lampada divano",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.sonoff_abc8009814",
+      "name": "Ikea1",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.sonoff_abc8009815",
+      "name": "Ikea2",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.sonoff_abc8009816",
+      "name": "Ikea3",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.sonoff_abc8009817",
+      "name": "Luce tavolo",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.sonoff_abc8009818",
+      "name": "Fontana",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.shellyswitch25_e098068cf9f2_channel_1_power",
+      "name": "shellyswitch25-E098068CF9F2 channel 1 Power",
+      "state": "unavailable",
+      "unit": "W"
+    },
+    {
+      "id": "sensor.shellyswitch25_e098068cf9f2_channel_1_energy",
+      "name": "shellyswitch25-E098068CF9F2 channel 1 Energy",
+      "state": "unavailable",
+      "unit": "kWh"
+    },
+    {
+      "id": "sensor.shellyswitch25_e098068cf9f2_channel_2_power",
+      "name": "shellyswitch25-E098068CF9F2 channel 2 Power",
+      "state": "unavailable",
+      "unit": "W"
+    },
+    {
+      "id": "sensor.shellyswitch25_e098068cf9f2_channel_2_energy",
+      "name": "shellyswitch25-E098068CF9F2 channel 2 Energy",
+      "state": "unavailable",
+      "unit": "kWh"
+    },
+    {
+      "id": "sensor.casa_base_station_info",
+      "name": "Casa Base Station Info",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.ring_contact_sensor_41332_info",
+      "name": "Porta Cucina Info",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.ring_contact_sensor_41332_battery",
+      "name": "Porta Cucina Battery",
+      "state": "unavailable",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.ring_motion_sensor_41988_info",
+      "name": "Movimento Salone Info",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.ring_motion_sensor_41988_battery",
+      "name": "Movimento Salone Battery",
+      "state": "unavailable",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.casa_range_extender_info",
+      "name": "Casa Range Extender Info",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.ring_keypad_35228_info",
+      "name": "Tastierino dell'ingresso Info",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.casa_range_extender_battery",
+      "name": "Casa Range Extender Battery",
+      "state": "unavailable",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.tastierino_dell_ingresso_battery",
+      "name": "Tastierino dell'ingresso Battery",
+      "state": "unavailable",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.porta_salone_info",
+      "name": "Porta Salone Info",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.porta_salone_battery",
+      "name": "Porta Salone Battery",
+      "state": "unavailable",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.sirena_esterna_12967_info",
+      "name": "Sirena esterna 12967 Info",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.sirena_esterna_12967_battery",
+      "name": "Sirena esterna 12967 Battery",
+      "state": "unavailable",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.ingresso_principale_info",
+      "name": "Ingresso principale Info",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.ingresso_principale_battery",
+      "name": "Ingresso principale Battery",
+      "state": "unavailable",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.porta_salone_2_info",
+      "name": "Porta salone 2 Info",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.porta_salone_2_battery",
+      "name": "Porta salone 2 Battery",
+      "state": "unavailable",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.porta_camera_info",
+      "name": "Porta Camera Info",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.porta_camera_battery",
+      "name": "Porta Camera Battery",
+      "state": "unavailable",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.porta_casa_info",
+      "name": "Porta Casa Info",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.porta_casa_battery",
+      "name": "Porta Casa Battery",
+      "state": "unavailable",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.porta_viola_info",
+      "name": "Porta Viola Info",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.porta_viola_battery",
+      "name": "Porta Viola Battery",
+      "state": "unavailable",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.porta_alessia_info",
+      "name": "Porta Alessia  Info",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.porta_alessia_battery",
+      "name": "Porta Alessia  Battery",
+      "state": "unavailable",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.shellycucina_channel_2_energy_cost",
+      "name": "sensor Cost",
+      "state": "unavailable",
+      "unit": "EUR"
+    },
+    {
+      "id": "sensor.portone_battery",
+      "name": "Battery",
+      "state": "unavailable",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.portone_info",
+      "name": "Info",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.portone_wireless",
+      "name": "Wireless",
+      "state": "unavailable",
+      "unit": "dBm"
+    },
+    {
+      "id": "sensor.ring_keypad_35228_info_2",
+      "name": "Ring Keypad 35228 Info",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.ring_keypad_35228_info_3",
+      "name": "Info",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.led_viola_signal_level_2",
+      "name": "Signal Level",
+      "state": "unavailable",
+      "unit": "dBm"
+    },
+    {
+      "id": "sensor.trucco_viola_signal_level",
+      "name": "Signal Level",
+      "state": "unavailable",
+      "unit": "dBm"
+    },
+    {
+      "id": "sensor.ingresso_batteria",
+      "name": "Batteria",
+      "state": "unavailable",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.ingresso_ultima_attivita",
+      "name": "Ultima attività",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.ingresso_ultimo_ding",
+      "name": "Ultimo ding",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.ingresso_ultimo_movimento",
+      "name": "Ultimo movimento",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.ingresso_doorbell_volume",
+      "name": "Doorbell volume",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.ingresso_mic_volume",
+      "name": "Mic volume",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.ingresso_voice_volume",
+      "name": "Voice volume",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.led_viola_signal_level_3",
+      "name": "Signal level",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.mena_zona",
+      "name": "Mena Zona",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.backup_state",
+      "name": "Backup State",
+      "state": "backed_up",
+      "unit": null
+    }
+  ],
+  "climate": [
+    {
+      "id": "climate.aria_condizionata",
+      "name": "Aria Condizionata",
+      "state": "off",
+      "temp": null,
+      "target": 24
+    },
+    {
+      "id": "climate.salone",
+      "name": "Termostato",
+      "state": "off",
+      "temp": 26.5,
+      "target": null
+    },
+    {
+      "id": "climate.wellis_spa_thermostat_1",
+      "name": "Weelis Jupiter Spa",
+      "state": "heat",
+      "temp": 30.5,
+      "target": 23.5
+    }
+  ],
+  "persons": [
+    {
+      "id": "person.filippo",
+      "name": "Filippo",
+      "state": "home"
+    },
+    {
+      "id": "person.mena",
+      "name": "Mena",
+      "state": "home"
+    },
+    {
+      "id": "person.viola",
+      "name": "viola",
+      "state": "home"
+    },
+    {
+      "id": "person.filippo_2",
+      "name": "FILIPPO",
+      "state": "home"
+    },
+    {
+      "id": "person.alessia",
+      "name": "Alessia",
+      "state": "home"
+    }
+  ]
+}
