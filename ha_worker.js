@@ -2,6 +2,7 @@ export default {
   async fetch(request, env) {
     const HA_URL = env.HA_BASE_URL
     const TOKEN = env.HA_TOKEN
+    const GH_PAT = env.GITHUB_PAT
 
     const url = new URL(request.url)
     const path = url.pathname
@@ -24,11 +25,49 @@ export default {
 
     try {
       if (!HA_URL || !TOKEN) {
-        return new Response(JSON.stringify({ error: 'Secrets HA_BASE_URL o HA_TOKEN mancanti' }), {
+        return new Response(JSON.stringify({ error: 'Secrets mancanti', HA_URL: !!HA_URL, TOKEN: !!TOKEN }), {
           status: 500, headers: corsHeaders
         })
       }
 
+      // GET /debug - chiama HA e salva risposta raw su GitHub
+      if (path === '/debug') {
+        const resp = await fetch(`${HA_URL}/api/states`, { headers: haHeaders })
+        const text = await resp.text()
+        const debugData = {
+          timestamp: new Date().toISOString(),
+          ha_url: HA_URL,
+          http_status: resp.status,
+          body_length: text.length,
+          body_preview: text.substring(0, 500),
+          headers_sent: { Authorization: 'Bearer [REDACTED]', 'Content-Type': 'application/json' }
+        }
+
+        // Salva su GitHub
+        if (GH_PAT) {
+          const ghUrl = 'https://api.github.com/repos/fly98/Analisi/contents/ha_debug.json'
+          const shaResp = await fetch(ghUrl, {
+            headers: { 'Authorization': `Bearer ${GH_PAT}` }
+          })
+          let sha = ''
+          if (shaResp.ok) {
+            const shaData = await shaResp.json()
+            sha = shaData.sha
+          }
+          const content = btoa(JSON.stringify(debugData, null, 2))
+          const putBody = { message: 'ha debug ' + debugData.timestamp, content, branch: 'main' }
+          if (sha) putBody.sha = sha
+          await fetch(ghUrl, {
+            method: 'PUT',
+            headers: { 'Authorization': `Bearer ${GH_PAT}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify(putBody)
+          })
+        }
+
+        return new Response(JSON.stringify(debugData), { headers: corsHeaders })
+      }
+
+      // GET /lights
       if (path === '/lights' && request.method === 'GET') {
         const resp = await fetch(`${HA_URL}/api/states`, { headers: haHeaders })
         const states = await resp.json()
@@ -44,6 +83,7 @@ export default {
         return new Response(JSON.stringify(lights), { headers: corsHeaders })
       }
 
+      // GET /states
       if (path === '/states' && request.method === 'GET') {
         const domain = url.searchParams.get('domain')
         const resp = await fetch(`${HA_URL}/api/states`, { headers: haHeaders })
@@ -54,6 +94,7 @@ export default {
         return new Response(JSON.stringify(filtered), { headers: corsHeaders })
       }
 
+      // POST /call
       if (path === '/call' && request.method === 'POST') {
         const body = await request.json()
         const { domain, service, entity_id, data } = body
@@ -67,6 +108,7 @@ export default {
         return new Response(JSON.stringify({ ok: true, result }), { headers: corsHeaders })
       }
 
+      // GET /health
       if (path === '/' || path === '/health') {
         const resp = await fetch(`${HA_URL}/api/`, { headers: haHeaders })
         const result = await resp.json()
@@ -78,7 +120,7 @@ export default {
       })
 
     } catch (err) {
-      return new Response(JSON.stringify({ error: err.message }), {
+      return new Response(JSON.stringify({ error: err.message, stack: err.stack }), {
         status: 500, headers: corsHeaders
       })
     }
