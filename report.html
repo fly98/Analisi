@@ -109,6 +109,11 @@ tr.total-row td{font-weight:600;background:var(--card2);border-top:1px solid var
   <div class="section-title">Ricavi da Amenitiz — confronto anni</div>
   <div class="prorata-notice" id="prorata-notice"></div>
 
+  <div class="tab-row">
+    <button class="tab-btn active" id="tab-eur" onclick="switchTab('eur',this)">Ricavi €</button>
+    <button class="tab-btn" id="tab-tax" onclick="switchTab('tax',this)">Tassa soggiorno</button>
+  </div>
+
 
 
   <div class="kpi-grid" id="kpi-ricavi"></div>
@@ -361,7 +366,8 @@ function renderRicavi() {
     const isCur = a === curAnno;
     const col = ANNO_COLORS[a] || '#86868b';
     const label = isCur ? `${a} (fino al ${curDay}/${curMonth})` : String(a);
-    const val = activeTab === 'eur' ? fmtE(totR) : activeTab === 'pren' ? totP + ' pren.' : totN + ' notti';
+    const totTax = Object.values(d.mensile || {}).reduce((s,m) => s + (m.cityTax||0), 0);
+    const val = activeTab === 'tax' ? fmtE(totTax) : fmtE(totR);
     kpiHtml += `<div class="kpi-card" style="border-top:3px solid ${col}">
       <div class="kpi-label">${label}</div>
       <div class="kpi-value" style="color:${col}">${val}</div>
@@ -386,8 +392,8 @@ function renderRicavi() {
       const isProv = entry && entry.provvisorio;
       if (!entry) { vals.push(null); bgColors.push('transparent'); borderColors.push('transparent'); borderWidths.push(0); continue; }
       if (activeTab === 'eur') vals.push(entry.ricavi);
-      else if (activeTab === 'pren') vals.push(entry.prenotazioni);
-      else vals.push(entry.notti);
+      else if (activeTab === 'tax') vals.push(entry.cityTax || 0);
+      else vals.push(entry.ricavi);
       // Mesi provvisori: più trasparenti e bordo tratteggiato
       const alpha = isProv ? '44' : (a === curAnno ? 'dd' : '88');
       bgColors.push(col + alpha);
@@ -407,8 +413,8 @@ function renderRicavi() {
   });
 
   // Update chart title
-  const titles = { eur: 'Ricavi €', pren: 'Prenotazioni', notti: 'Notti vendute' };
-  document.getElementById('chart-r-title').textContent = `${titles[activeTab]} per mese — confronto anni`;
+  const titles = { eur: 'Ricavi €', tax: 'Tassa di soggiorno €' };
+  document.getElementById('chart-r-title').textContent = `${titles[activeTab] || 'Ricavi €'} per mese — confronto anni`;
   document.getElementById('chart-r-sub').textContent = `Dati da luglio 2023. Mesi futuri = provvisorio con prenotazioni attuali (barre chiare).`;
 
   // Legend
@@ -467,9 +473,8 @@ function renderRicavi() {
       const entry = (datiRicavi[a].mensile || {})[key];
       if (!entry) return null;
       hasAny = true;
-      if (activeTab === 'eur') { totals[a] += entry.ricavi; return fmtE(entry.ricavi); }
-      if (activeTab === 'pren') { totals[a] += entry.prenotazioni; return entry.prenotazioni; }
-      totals[a] += entry.notti; return entry.notti;
+      if (activeTab === 'tax') { totals[a] += entry.cityTax||0; return fmtE(entry.cityTax||0); }
+      totals[a] += entry.ricavi; return fmtE(entry.ricavi);
     });
     if (!hasAny) continue;
     html += `<tr><td>${meseLbl}</td>`;
@@ -485,7 +490,7 @@ function renderRicavi() {
   html += '<tr class="total-row"><td>Totale</td>';
   html += anni.map((a,i) => {
     const bold = a === curAnno ? 'style="font-weight:700"' : '';
-    const v = activeTab === 'eur' ? fmtE(totals[a]) : fmtN(totals[a]);
+    const v = fmtE(totals[a]);
     return `<td ${bold}>${v}</td>`;
   }).join('');
   html += '</tr></tbody>';
