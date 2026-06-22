@@ -270,99 +270,135 @@ function parolaCamera(tipo,let,lng){
   return `${w} ${let}`;                      // es. "camera R"
 }
 
-function msgCampaldino(nome,iso,c,lng){
+function fmtOspiti(n, lng){
+  const m={it:`${n} person${n===1?"a":"e"}`,en:`${n} guest${n===1?"":"s"}`,es:`${n} persona${n===1?"":"s"}`,fr:`${n} personne${n===1?"":"s"}`,de:`${n} Person${n===1?"":"en"}`,pt:`${n} pessoa${n===1?"":"s"}`,zh:`${n}人`};
+  return m[lng]||`${n} guests`;
+}
+
+function testoExtraCamere(camereExtra, lng){
+  if(!camereExtra||!camereExtra.length) return "";
+  return camereExtra.map(e=>{
+    const rn=e.rn;
+    const adulti=e.adulti;
+    const info=CAMPALDINO[rn];
+    const num=LORENZO[rn]||rn;
+    const lbl=info?info.let:num;
+    const pos=info?(POS[info.pos]&&POS[info.pos][lng]||POS[info.pos].en):null;
+    const ospiti=fmtOspiti(adulti,lng);
+    if(info&&pos){
+      const etich=parolaCamera(info.tipo,info.let,lng);
+      const T={
+        it:`La *${etich}* (${ospiti}) ${pos}.`,
+        en:`Your *${etich}* (${ospiti}) ${pos}.`,
+        es:`Su *${etich}* (${ospiti}) ${pos}.`,
+        fr:`Votre *${etich}* (${ospiti}) ${pos}.`,
+        de:`Ihr *${etich}* (${ospiti}) ${pos}.`,
+        pt:`O seu *${etich}* (${ospiti}) ${pos}.`,
+        zh:`您的 *${etich}*（${ospiti}）${pos}。`
+      };
+      return T[lng]||T.en;
+    }
+    return "";
+  }).filter(Boolean).join("\n");
+}
+
+function msgCampaldino(nome,iso,c,lng,adultiPrima=0,camereExtra=[]){
   const d=dataBreve(iso);
   const etich=parolaCamera(c.tipo,c.let,lng);
   const descr=(POS[c.pos]&&POS[c.pos][lng])||POS[c.pos].en;
+  const extraTesto=testoExtraCamere(camereExtra,lng);
+  const etichConOspiti=adultiPrima>0?`${etich} (${fmtOspiti(adultiPrima,lng)})`:etich;
   const T={
 it:`Buongiorno${nome?" "+nome:""}! 😊
 Sono Filippo di *InternoUno*. La contatto per la sua prenotazione del ${d}.
 Gestendo più strutture, non disponiamo di una reception fissa, quindi le invio le istruzioni per accedere comodamente in autonomia:
-All'arrivo in Via Campaldino, inserisca nella cassetta sulla sinistra della porta d'ingresso il codice *3044 + tasto B* (in basso a destra) e troverà all'interno le chiavi. La sua *${etich}* ${descr}.
+All'arrivo in Via Campaldino, inserisca nella cassetta sulla sinistra della porta d'ingresso il codice *3044 + tasto B* (in basso a destra) e troverà all'interno le chiavi. La sua *${etichConOspiti}* ${descr}.${extraTesto?"\n"+extraTesto:""}
 Il check-in è possibile dalle *13:00*. Potrebbe indicarmi a che ora pensa di arrivare, così possiamo organizzarci al meglio?
 Per qualsiasi necessità sono disponibile su WhatsApp o telefonicamente. A presto! 🏠`,
 en:`Good morning${nome?", "+nome:""}! 😊
 I am Filippo from *InternoUno*. I am contacting you about your booking for ${d}.
 As we manage multiple properties, we do not have a fixed reception, so I am sending you the check-in instructions:
-Upon arrival at Via Campaldino, enter code *3044 + button B* (bottom right) in the key box on the left of the entrance door — the keys are inside. Your *${etich}* ${descr}.
+Upon arrival at Via Campaldino, enter code *3044 + button B* (bottom right) in the key box on the left of the entrance door — the keys are inside. Your *${etichConOspiti}* ${descr}.${extraTesto?"\n"+extraTesto:""}
 Check-in is available from *1:00 PM*. Could you let me know what time you plan to arrive, so we can organize accordingly?
 For any need I am available on WhatsApp or by phone. See you soon! 🏠`,
 es:`¡Buenos días${nome?", "+nome:""}! 😊
 Soy Filippo de *InternoUno*. Le escribo en relación con su reserva del ${d}.
 Gestionando varias propiedades, no disponemos de una recepción fija, por lo que le envío las instrucciones para acceder cómodamente de forma autónoma:
-Al llegar a Via Campaldino, introduzca en la caja de llaves a la izquierda de la puerta de entrada el código *3044 + botón B* (abajo a la derecha) y encontrará las llaves dentro. Su *${etich}* ${descr}.
+Al llegar a Via Campaldino, introduzca en la caja de llaves a la izquierda de la puerta de entrada el código *3044 + botón B* (abajo a la derecha) y encontrará las llaves dentro. Su *${etichConOspiti}* ${descr}.${extraTesto?"\\n"+extraTesto:""}
 El check-in está disponible a partir de las *13:00*. ¿Podría indicarme a qué hora piensa llegar, para organizarnos mejor?
 Para cualquier necesidad estoy disponible por WhatsApp o teléfono. ¡Hasta pronto! 🏠`,
 fr:`Bonjour${nome?" "+nome:""} ! 😊
 Je suis Filippo de *InternoUno*. Je vous contacte au sujet de votre réservation du ${d}.
 Gérant plusieurs établissements, nous n'avons pas de réception fixe, je vous envoie donc les instructions pour accéder en toute autonomie :
-À votre arrivée à Via Campaldino, saisissez dans la boîte à clés à gauche de la porte d'entrée le code *3044 + bouton B* (en bas à droite) et vous trouverez les clés à l'intérieur. Votre *${etich}* ${descr}.
+À votre arrivée à Via Campaldino, saisissez dans la boîte à clés à gauche de la porte d'entrée le code *3044 + bouton B* (en bas à droite) et vous trouverez les clés à l'intérieur. Votre *${etichConOspiti}* ${descr}.${extraTesto?"\\n"+extraTesto:""}
 Le check-in est possible à partir de *13h00*. Pourriez-vous m'indiquer à quelle heure vous pensez arriver, afin de mieux nous organiser ?
 Pour tout besoin je suis disponible sur WhatsApp ou par téléphone. À bientôt ! 🏠`,
 de:`Guten Tag${nome?" "+nome:""}! 😊
 Ich bin Filippo von *InternoUno*. Ich kontaktiere Sie bezüglich Ihrer Buchung vom ${d}.
 Da wir mehrere Unterkünfte verwalten, haben wir keine feste Rezeption. Daher sende ich Ihnen die Anweisungen für den selbstständigen Zugang:
-Bei der Ankunft in der Via Campaldino geben Sie im Schlüsselkasten links neben der Eingangstür den Code *3044 + Taste B* (unten rechts) ein, darin finden Sie die Schlüssel. Ihr *${etich}* ${descr}.
+Bei der Ankunft in der Via Campaldino geben Sie im Schlüsselkasten links neben der Eingangstür den Code *3044 + Taste B* (unten rechts) ein, darin finden Sie die Schlüssel. Ihr *${etichConOspiti}* ${descr}.${extraTesto?"\\n"+extraTesto:""}
 Der Check-in ist ab *13:00 Uhr* möglich. Könnten Sie mir mitteilen, um wie viel Uhr Sie ankommen möchten, damit wir uns besser organisieren können?
 Für alle Anliegen bin ich über WhatsApp oder telefonisch erreichbar. Bis bald! 🏠`,
 pt:`Bom dia${nome?", "+nome:""}! 😊
 Sou o Filippo do *InternoUno*. Contacto-o(a) acerca da sua reserva de ${d}.
 Gerindo várias estruturas, não dispomos de uma receção fixa, por isso envio-lhe as instruções para aceder de forma autónoma:
-À chegada em Via Campaldino, introduza na caixa de chaves à esquerda da porta de entrada o código *3044 + botão B* (em baixo à direita) e encontrará as chaves lá dentro. O seu *${etich}* ${descr}.
+À chegada em Via Campaldino, introduza na caixa de chaves à esquerda da porta de entrada o código *3044 + botão B* (em baixo à direita) e encontrará as chaves lá dentro. O seu *${etichConOspiti}* ${descr}.${extraTesto?"\\n"+extraTesto:""}
 O check-in está disponível a partir das *13:00*. Poderia indicar-me a que horas pensa chegar, para nos organizarmos melhor?
 Para qualquer necessidade estou disponível no WhatsApp ou por telefone. Até breve! 🏠`,
 zh:`您好${nome?"，"+nome:""}！😊
 我是 InternoUno 的 Filippo。关于您 ${d} 的预订与您联系。
 由于我们管理多家住宿，没有固定前台，因此提前向您发送自助入住说明：
-抵达 Via Campaldino 后，在入口门左侧的钥匙箱中输入密码 *3044 + B 键*（右下方），即可取到钥匙。您的 *${etich}*，${descr}。
+抵达 Via Campaldino 后，在入口门左侧的钥匙箱中输入密码 *3044 + B 键*（右下方），即可取到钥匙。您的 *${etichConOspiti}*，${descr}。${extraTesto?"\\n"+extraTesto:""}
 入住时间为 *13:00* 起。能否告知您大约几点到达，以便我们更好地安排？
 如有任何需要，可通过 WhatsApp 或电话联系我。期待您的到来！🏠`,
   };
   return T[lng]||T.en;
 }
 
-function msgLorenzo(nome,iso,num,lng){
+function msgLorenzo(nome,iso,num,lng,adultiPrima=0,camereExtra=[]){
   const d=dataBreve(iso); const link="https://www.interno1.it/it/pagina/check-in";
+  const extraTesto=testoExtraCamere(camereExtra,lng);
+  const numConOspiti=adultiPrima>0?`${num} (${fmtOspiti(adultiPrima,lng)})`:num;
   const T={
 it:`Buongiorno${nome?" "+nome:""}! 😊
 Sono Filippo di *InternoUno Deluxe*. La contatto per la sua prenotazione del ${d}.
-Gestendo più strutture, non disponiamo di una reception fissa, quindi le invio le istruzioni per accedere comodamente in autonomia alla *camera ${num}*:
+Gestendo più strutture, non disponiamo di una reception fissa, quindi le invio le istruzioni per accedere comodamente in autonomia alla *camera ${numConOspiti}*:
 👉 ${link}
 Il check-in è possibile dalle *13:00*. Potrebbe indicarmi a che ora pensa di arrivare, così possiamo organizzarci al meglio?
 Per qualsiasi necessità sono disponibile su WhatsApp o telefonicamente. A presto! 🏠`,
 en:`Good morning${nome?", "+nome:""}! 😊
 I am Filippo from *InternoUno Deluxe*. I am contacting you about your booking for ${d}.
-As we manage multiple properties, we do not have a fixed reception, so I am sending you the check-in instructions for *room ${num}*:
+As we manage multiple properties, we do not have a fixed reception, so I am sending you the check-in instructions for *room ${numConOspiti}*:
 👉 ${link}
 Check-in is available from *1:00 PM*. Could you let me know what time you plan to arrive, so we can organize accordingly?
 For any need I am available on WhatsApp or by phone. See you soon! 🏠`,
 es:`¡Buenos días${nome?", "+nome:""}! 😊
 Soy Filippo de *InternoUno Deluxe*. Le escribo en relación con su reserva del ${d}.
-Gestionando varias propiedades, no disponemos de una recepción fija, por lo que le envío las instrucciones para acceder cómodamente de forma autónoma a la *habitación ${num}*:
+Gestionando varias propiedades, no disponemos de una recepción fija, por lo que le envío las instrucciones para acceder cómodamente de forma autónoma a la *habitación ${numConOspiti}*:
 👉 ${link}
 El check-in está disponible a partir de las *13:00*. ¿Podría indicarme a qué hora piensa llegar, para organizarnos mejor?
 Para cualquier necesidad estoy disponible por WhatsApp o teléfono. ¡Hasta pronto! 🏠`,
 fr:`Bonjour${nome?" "+nome:""} ! 😊
 Je suis Filippo de *InternoUno Deluxe*. Je vous contacte au sujet de votre réservation du ${d}.
-Gérant plusieurs établissements, nous n'avons pas de réception fixe, je vous envoie donc les instructions pour accéder en toute autonomie à la *chambre ${num}* :
+Gérant plusieurs établissements, nous n'avons pas de réception fixe, je vous envoie donc les instructions pour accéder en toute autonomie à la *chambre ${numConOspiti}* :
 👉 ${link}
 Le check-in est possible à partir de *13h00*. Pourriez-vous m'indiquer à quelle heure vous pensez arriver, afin de mieux nous organiser ?
 Pour tout besoin je suis disponible sur WhatsApp ou par téléphone. À bientôt ! 🏠`,
 de:`Guten Tag${nome?" "+nome:""}! 😊
 Ich bin Filippo von *InternoUno Deluxe*. Ich kontaktiere Sie bezüglich Ihrer Buchung vom ${d}.
-Da wir mehrere Unterkünfte verwalten, haben wir keine feste Rezeption. Daher sende ich Ihnen die Anweisungen für den selbstständigen Zugang zu *Zimmer ${num}*:
+Da wir mehrere Unterkünfte verwalten, haben wir keine feste Rezeption. Daher sende ich Ihnen die Anweisungen für den selbstständigen Zugang zu *Zimmer ${numConOspiti}*:
 👉 ${link}
 Der Check-in ist ab *13:00 Uhr* möglich. Könnten Sie mir mitteilen, um wie viel Uhr Sie ankommen möchten, damit wir uns besser organisieren können?
 Für alle Anliegen bin ich über WhatsApp oder telefonisch erreichbar. Bis bald! 🏠`,
 pt:`Bom dia${nome?", "+nome:""}! 😊
 Sou o Filippo do *InternoUno Deluxe*. Contacto-o(a) acerca da sua reserva de ${d}.
-Gerindo várias estruturas, não dispomos de uma receção fixa, por isso envio-lhe as instruções para aceder de forma autónoma ao *quarto ${num}*:
+Gerindo várias estruturas, não dispomos de uma receção fixa, por isso envio-lhe as instruções para aceder de forma autónoma ao *quarto ${numConOspiti}*:
 👉 ${link}
 O check-in está disponível a partir das *13:00*. Poderia indicar-me a que horas pensa chegar, para nos organizarmos melhor?
 Para qualquer necessidade estou disponível no WhatsApp ou por telefone. Até breve! 🏠`,
 zh:`您好${nome?"，"+nome:""}！😊
 我是 InternoUno Deluxe 的 Filippo。关于您 ${d} 的预订与您联系。
-由于我们管理多家住宿，没有固定前台，因此提前向您发送 *${num} 号房间* 的自助入住说明：
+由于我们管理多家住宿，没有固定前台，因此提前向您发送 *${numConOspiti} 号房间* 的自助入住说明：
 👉 ${link}
 入住时间为 *13:00* 起。能否告知您大约几点到达，以便我们更好地安排？
 如有任何需要，可通过 WhatsApp 或电话联系我。期待您的到来！🏠`,
@@ -495,14 +531,22 @@ function render(iso,bookings){
     const nomeMsg = (mismatch || guestFallback) ? "" : nome;
 
     // prima camera: struttura, testo, colore accent
+    // per multi-camera: costruisci array camere extra con adulti
+    const isMulti = rooms.length > 1;
+    const camereExtra = isMulti ? rooms.slice(1).map(r => ({
+      rn: r.individual_room_name||"",
+      adulti: r.adults||0
+    })) : [];
+    const adultiRoom0 = rooms[0] ? (rooms[0].adults||0) : 0;
+
     if(CAMPALDINO[roomName]){
       const c=CAMPALDINO[roomName];
       accent=c.col; roomLabel=c.let; struttura="Via Campaldino";
-      testo=msgCampaldino(nomeMsg,iso,c,lng);
+      testo=msgCampaldino(nomeMsg,iso,c,lng,isMulti?adultiRoom0:0,camereExtra);
     }else{
       const num=LORENZO[roomName]||roomName;
       accent="#5c6b52"; roomLabel=num; struttura="Lorenzo il Magnifico"; isLorenzo=true;
-      testo=msgLorenzo(nomeMsg,iso,num,lng);
+      testo=msgLorenzo(nomeMsg,iso,num,lng,isMulti?adultiRoom0:0,camereExtra);
     }
 
     // badge per tutte le camere
