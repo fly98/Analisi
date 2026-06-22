@@ -37,7 +37,48 @@
       "spTot": 550,
       "daMe": 1715,
       "saldo": -666.36
+    },
+    {
+      "id": 1747144380000,
+      "dataSalvataggio": "2026-05-13T16:33:00.000Z",
+      "periodo": "30/04/2026 - 13/05/2026",
+      "periodoWk": "30/04/2026 - 13/05/2026",
+      "cashIds": [
+        "30/04/2026|Maria Gonima|10.0",
+        "01/05/2026|Hai Yan LI|20.0",
+        "01/05/2026|Hernan Garcia|15.0",
+        "03/05/2026|Yevheniya Lysohor|10.0",
+        "04/05/2026|Yaina Castillo|60.0",
+        "04/05/2026|Nicola Tronco|10.0",
+        "04/05/2026|VALERYIA KHALTURYNA|428.03",
+        "07/05/2026|NINO SHAINIDZE|60.0",
+        "08/05/2026|HANG LYU|10.0",
+        "09/05/2026|JIAMAN HONG|5.0",
+        "09/05/2026|Antonio Schifano|100.0",
+        "10/05/2026|Daniela Rosaria Tortora|213.05",
+        "10/05/2026|francesco fanfoni|10.0",
+        "13/05/2026|Bona Jamile|20.0"
+      ],
+      "cash": 971.08,
+      "stripe": 0,
+      "totContanti": 971.08,
+      "wkTot": 300,
+      "wkN": 5,
+      "wkDateSel": [
+        "01/05/2026",
+        "02/05/2026",
+        "03/05/2026",
+        "09/05/2026",
+        "10/05/2026"
+      ],
+      "sp": 107,
+      "man": 150,
+      "bab": 600,
+      "ferie": 0,
+      "stip": 0,
+      "spTot": 857,
+      "daMe": 1157,
+      "saldo": -185.92
     }
-  ],
-  "sha": "c3c09b6f913b4b6466e3ebbacde4775d1cfa2683"
+  ]
 }
