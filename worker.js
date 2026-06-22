@@ -229,6 +229,8 @@ export default {
       if (action === "reportRicavi") {
         const from = url.searchParams.get("from");
         const to = url.searchParams.get("to");
+        const year = url.searchParams.get("year");
+        const month = url.searchParams.get("month");
         if (!from || !to) return new Response(JSON.stringify({ error: "Parametri from e to obbligatori" }), {
           status: 400, headers: { ...CORS, "Content-Type": "application/json" },
         });
