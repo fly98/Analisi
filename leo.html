@@ -94,6 +94,12 @@ tr.dup td{opacity:.4}
 @keyframes spin{to{transform:rotate(360deg)}}
 .spin{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--text);border-radius:50%;animation:spin .6s linear infinite;display:inline-block}
 .hidden{display:none!important}
+/* Tastierino */
+.npk{font-size:22px;font-weight:500;padding:14px;border-radius:var(--rs);border:1px solid var(--border);background:var(--surface);cursor:pointer;color:var(--text);transition:background .1s}
+.npk:active{background:var(--bg)}
+/* Campi importo */
+.imp-field{width:130px;padding:7px 10px;border:1px solid var(--border-s);border-radius:var(--rs);font-size:14px;background:#fff;color:var(--text);text-align:right;cursor:pointer}
+.imp-field:focus{outline:none;border-color:var(--text)}
 /* Calendario ferie */
 .cal-nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem}
 .cal-nav button{background:none;border:none;font-size:18px;cursor:pointer;padding:4px 8px;color:var(--text)}
@@ -127,6 +133,32 @@ input[type=checkbox]{accent-color:var(--text);cursor:pointer}
 </style>
 </head>
 <body>
+
+<!-- TASTIERINO NUMERICO -->
+<div class="overlay hidden" id="numpad-overlay" onclick="if(event.target===this)closeNumpad()">
+  <div class="modal" style="max-width:300px;padding:1.25rem" onclick="event.stopPropagation()">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
+      <span id="numpad-label" style="font-size:13px;font-weight:600;color:var(--muted)"></span>
+      <button class="btn" onclick="closeNumpad()" style="padding:3px 10px">✕</button>
+    </div>
+    <div id="numpad-display" style="font-size:32px;font-weight:600;text-align:right;padding:.5rem .75rem;background:var(--bg);border-radius:var(--rs);margin-bottom:.75rem;min-height:52px;letter-spacing:.02em">0</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+      <button class="npk" onclick="npPress('7')">7</button>
+      <button class="npk" onclick="npPress('8')">8</button>
+      <button class="npk" onclick="npPress('9')">9</button>
+      <button class="npk" onclick="npPress('4')">4</button>
+      <button class="npk" onclick="npPress('5')">5</button>
+      <button class="npk" onclick="npPress('6')">6</button>
+      <button class="npk" onclick="npPress('1')">1</button>
+      <button class="npk" onclick="npPress('2')">2</button>
+      <button class="npk" onclick="npPress('3')">3</button>
+      <button class="npk" onclick="npPress(',')">.</button>
+      <button class="npk" onclick="npPress('0')">0</button>
+      <button class="npk" onclick="npDel()" style="font-size:18px">⌫</button>
+    </div>
+    <button class="btn btn-p" onclick="npConfirm()" style="width:100%;margin-top:.75rem;padding:12px;font-size:16px">✓ Conferma</button>
+  </div>
+</div>
 
 <!-- MODALE DETTAGLIO STORICO -->
 <div class="overlay hidden" id="sto-detail-overlay" onclick="closeStoDetail()">
@@ -234,16 +266,16 @@ input[type=checkbox]{accent-color:var(--text);cursor:pointer}
   <!-- STEP 4 voci -->
   <div class="card">
     <div class="ct"><span class="sn">4</span>Voci da pagare</div>
-    <div class="ir"><label>🛒 Spesa B&B</label><input type="number" id="v-sp" value="0" min="0" step="0.01" oninput="calcSaldo()"><span class="hint">€</span></div>
-    <div class="ir"><label>🔧 Manutenzione</label><input type="number" id="v-man" value="0" min="0" step="0.01" oninput="calcSaldo()"><span class="hint">€</span></div>
-    <div class="ir"><label>👤 Babbo</label><input type="number" id="v-bab" value="0" min="0" step="0.01" oninput="calcSaldo()"><span class="hint">€</span></div>
+    <div class="ir"><label>🛒 Spesa B&B</label><input type="text" inputmode="decimal" id="v-sp" value="" placeholder="0" class="imp-field" onfocus="openNumpad(this,'Spesa B&B')"><span class="hint">€</span></div>
+    <div class="ir"><label>🔧 Manutenzione</label><input type="text" inputmode="decimal" id="v-man" value="" placeholder="0" class="imp-field" onfocus="openNumpad(this,'Manutenzione')"><span class="hint">€</span></div>
+    <div class="ir"><label>👤 Babbo</label><input type="text" inputmode="decimal" id="v-bab" value="" placeholder="0" class="imp-field" onfocus="openNumpad(this,'Babbo')"><span class="hint">€</span></div>
     <hr class="dvd">
     <div class="ir">
       <label>🏖️ Ferie <span id="ferie-giorni-label" style="font-size:11px;color:var(--purple)"></span></label>
-      <input type="number" id="v-ferie" value="0" min="0" step="0.01" oninput="calcSaldo()">
+      <input type="text" inputmode="decimal" id="v-ferie" value="" placeholder="0" class="imp-field" onfocus="openNumpad(this,'Ferie')">
       <span class="hint">€</span>
     </div>
-    <div class="ir"><label>💰 Stipendio</label><input type="number" id="v-stip" value="0" min="0" step="0.01" oninput="calcSaldo()"><span class="hint">€</span></div>
+    <div class="ir"><label>💰 Stipendio</label><input type="text" inputmode="decimal" id="v-stip" value="" placeholder="0" class="imp-field" onfocus="openNumpad(this,'Stipendio')"><span class="hint">€</span></div>
     <div id="stip-info" style="font-size:12px;color:var(--faint);margin-left:160px;margin-top:-.4rem"></div>
   </div>
 
@@ -610,7 +642,7 @@ function setupStip(){
     cur.setMonth(cur.getMonth()+1);
   }
   const n=mesi.length, tot=n*STIP_DEF;
-  document.getElementById('v-stip').value=tot;
+  document.getElementById('v-stip').value=tot>0?String(tot):'';
   const names=mesi.map(m=>m.toLocaleDateString('it-IT',{month:'long',year:'numeric'})).join(', ');
   document.getElementById('stip-info').textContent=n>0?`${n} mese${n>1?'i':''}: ${names} · ${n}×€${STIP_DEF} = ${fmtEur(tot)}`:'Nessun 1° del mese nel periodo';
   calcSaldo();
@@ -944,6 +976,44 @@ async function delSto(idx){
   _cache=hist; renderSto(hist);
 }
 
+// ---------- TASTIERINO NUMERICO ----------
+let _npTarget=null, _npVal='';
+
+function openNumpad(input, label){
+  _npTarget=input;
+  _npVal=input.value||'';
+  document.getElementById('numpad-label').textContent=label;
+  document.getElementById('numpad-display').textContent=_npVal||'0';
+  document.getElementById('numpad-overlay').classList.remove('hidden');
+  input.blur();
+}
+function closeNumpad(){
+  document.getElementById('numpad-overlay').classList.add('hidden');
+  _npTarget=null;
+}
+function npPress(c){
+  if(c===','||c==='.'){
+    if(_npVal.includes('.')) return;
+    if(!_npVal) _npVal='0';
+    _npVal+='.';
+  } else {
+    if(_npVal==='0') _npVal=c;
+    else _npVal+=c;
+  }
+  document.getElementById('numpad-display').textContent=_npVal||'0';
+}
+function npDel(){
+  _npVal=_npVal.slice(0,-1);
+  document.getElementById('numpad-display').textContent=_npVal||'0';
+}
+function npConfirm(){
+  if(_npTarget){
+    _npTarget.value=_npVal||'';
+    calcSaldo();
+  }
+  closeNumpad();
+}
+
 // ---------- FERIE — calendario range ----------
 let calYear=new Date().getFullYear(), calMonth=new Date().getMonth();
 let ferieStart=null, ferieEnd=null, ferieStep=0;
@@ -1020,7 +1090,7 @@ function applyFerie(){
   let n=0;const cur=new Date(ferieStart);
   while(cur<=ferieEnd){const dw=cur.getDay();if(dw!==0&&dw!==6&&!isHol(cur))n++;cur.setDate(cur.getDate()+1);}
   const tot=n*30;
-  document.getElementById('v-ferie').value=tot;
+  document.getElementById('v-ferie').value=tot>0?String(tot):'';
   document.getElementById('ferie-giorni-label').textContent=`(${n}gg × €30)`;
   S.ferieDal=toISO(ferieStart);S.ferieAl=toISO(ferieEnd);S.ferieGiorni=n;
   const lbl=`🏖️ Ferie ${fmtDate(ferieStart)} — ${fmtDate(ferieEnd)} · ${n}gg × €30 = ${fmtEur(tot)}`;
@@ -1033,7 +1103,7 @@ function applyFerie(){
 function resetFerie(){
   S.ferieDal=null;S.ferieAl=null;S.ferieGiorni=0;
   ferieStart=null;ferieEnd=null;ferieStep=0;
-  document.getElementById('v-ferie').value=0;
+  document.getElementById('v-ferie').value='';
   document.getElementById('ferie-giorni-label').textContent='';
   document.getElementById('ferie-applied-box').classList.add('hidden');
   calcSaldo();
