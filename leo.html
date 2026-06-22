@@ -345,21 +345,22 @@ function parseRows(rows){
       }
     }
 
-    // Sezione contanti
-    if(c0==='Contanti' && (r[1]===''||r[1]===null) && r[3]===null){ section='cash'; continue; }
+    // Sezione contanti — header: r[0]='Contanti', r[1]='' o null, r[3]='' o null
+    if(c0==='Contanti' && !r[3]){ section='cash'; continue; }
     if(c0==='Contanti - Totale'){ section=null; continue; }
 
-    // Sezione stripe
-    if(c0==='Stripe' && (r[1]===''||r[1]===null) && r[3]===null){ section='stripe'; continue; }
+    // Sezione stripe — stesso pattern
+    if(c0==='Stripe' && !r[3]){ section='stripe'; continue; }
     if(c0==='Stripe - Totale'){ section=null; continue; }
 
     // Fine pagamenti offline
     if(c0==='TOTALE PAGAMENTI OFFLINE'||c0==='TOTALE PAGAMENTI REGISTRATI') break;
 
     if(section==='cash'||section==='stripe'){
-      // La riga ha dati: col[1]=data, col[3]=cliente, col[4]=camera, col[6]=prenotazione, col[8]=importo
-      const dateRaw = r[1];
-      const cliente = r[3]!=null?String(r[3]).trim():'';
+      // Righe dati: r[0]='Contanti'|null, r[1]=data, r[3]=cliente, r[4]=camera, r[6]=prenotazione, r[8]=importo
+      // Cerca la data in r[1] o r[2] (a volte Amenitiz mette datetime in r[2])
+      const dateRaw = r[1] || r[2];
+      const cliente = r[3]!=null&&r[3]!==''?String(r[3]).trim():'';
       const camera = r[4]!=null?String(r[4]).split(' - ')[0].trim():'';
       const pren = r[6]!=null?String(r[6]).trim():'';
       const importo = parseFloat(r[8]);
