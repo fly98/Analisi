@@ -275,7 +275,9 @@ export default {
           // Pro-rata: distribuisci l'importo per ogni notte del soggiorno
           for (let d = new Date(cin); d < cout; d.setDate(d.getDate() + 1)) {
             const mese = d.toISOString().slice(0, 7);
-            // Includi solo se il mese è nel range richiesto
+            // Includi solo i mesi dell'anno target (evita contaminazione da mesi adiacenti)
+            const annoMese = parseInt(mese.slice(0,4));
+            if (year && annoMese !== parseInt(year)) continue;
             if (mese < from.slice(0,7) || mese > to.slice(0,7)) continue;
             if (!mensile[mese]) mensile[mese] = { ricavi: 0, prenotazioni: 0, notti: 0 };
             mensile[mese].ricavi += importoTot / totNotti;
