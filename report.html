@@ -139,7 +139,6 @@ tr.total-row td{font-weight:600;background:var(--card2);border-top:1px solid var
   <div class="tab-row" style="margin-top:14px">
     <button class="tab-btn active" id="tab-w-prorata" onclick="switchWindowTab('prorata',this)">Pro-rata €</button>
     <button class="tab-btn" id="tab-w-amenitiz" onclick="switchWindowTab('amenitiz',this)">Logica Amenitiz</button>
-    <button class="tab-btn" id="tab-w-citytax" onclick="switchWindowTab('citytax',this)">Tassa soggiorno</button>
   </div>
 
   <div class="chart-card">
@@ -268,9 +267,10 @@ async function fetchWindow(anno) {
     totalRicavi += res.totalRicavi || 0;
     totalNotti += res.totalNotti || 0;
     for (const [k, v] of Object.entries(res.perMese || {})) {
-      if (!perMese[k]) perMese[k] = { prenotazioni: 0, ricavi: 0, notti: 0 };
+      if (!perMese[k]) perMese[k] = { prenotazioni: 0, ricavi: 0, ricaviAmenitiz: 0, notti: 0 };
       perMese[k].prenotazioni += v.prenotazioni || 0;
       perMese[k].ricavi += v.ricavi || 0;
+      perMese[k].ricaviAmenitiz += v.ricaviAmenitiz || 0;
       perMese[k].notti += v.notti || 0;
     }
   }
@@ -360,7 +360,7 @@ function switchTab(tab, btn) {
 
 function switchWindowTab(tab, btn) {
   activeWindowTab = tab;
-  document.querySelectorAll('#tab-w-prorata, #tab-w-amenitiz, #tab-w-citytax').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('#tab-w-prorata, #tab-w-amenitiz').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   renderWindow();
 }
@@ -545,7 +545,7 @@ function renderWindow() {
     const isCur = a === curAnno;
     const label = `${a} — al ${curDay}/${curMonth}`;
     const totWRic = Object.values(d.perMese||{}).reduce((s,m) =>
-      s + (activeWindowTab==='amenitiz' ? m.ricaviAmenitiz||0 : activeWindowTab==='citytax' ? m.cityTax||0 : m.ricavi||0), 0);
+      s + (activeWindowTab==='amenitiz' ? m.ricaviAmenitiz||0 : m.ricavi||0), 0);
     kpiHtml += `<div class="kpi-card" style="border-top:3px solid ${col}">
       <div class="kpi-label">${label}</div>
       <div class="kpi-value" style="color:${col}">${d.totalPrenotazioni} pren.</div>
@@ -565,8 +565,7 @@ function renderWindow() {
       const key = `${a}-${String(m).padStart(2,'0')}`;
       const entry = (datiWindow[a].perMese || {})[key];
       if (!entry) { vals.push(null); continue; }
-      const wVal = activeWindowTab === 'amenitiz' ? entry.ricaviAmenitiz||0 :
-                   activeWindowTab === 'citytax' ? entry.cityTax||0 : entry.ricavi||0;
+      const wVal = activeWindowTab === 'amenitiz' ? entry.ricaviAmenitiz||0 : entry.ricavi||0;
       vals.push(wVal);
     }
     return {
@@ -606,8 +605,7 @@ function renderWindow() {
               const key = `${a}-${String(m).padStart(2,'0')}`;
               const entry = (datiWindow[parseInt(a)].perMese || {})[key];
               if (!entry) return null;
-              const label = activeWindowTab === 'amenitiz' ? 'Amenitiz' :
-                              activeWindowTab === 'citytax' ? 'City tax' : 'Pro-rata';
+              const label = activeWindowTab === 'amenitiz' ? 'Amenitiz' : 'Pro-rata';
               return ` ${a} (${label}): ${fmtE(v)}`;
             }
           }
@@ -647,8 +645,7 @@ function renderWindow() {
       const a = anni[i];
       const bold = a === curAnno ? 'style="font-weight:600"' : '';
       if (!entry) return `<td><span class="c-muted">—</span></td>`;
-      const wv = activeWindowTab==='amenitiz' ? entry.ricaviAmenitiz||0 :
-                 activeWindowTab==='citytax' ? entry.cityTax||0 : entry.ricavi||0;
+      const wv = activeWindowTab==='amenitiz' ? entry.ricaviAmenitiz||0 : entry.ricavi||0;
       return `<td ${bold}>${entry.prenotazioni} · ${fmtE(wv)}</td>`;
     }).join('');
     html += '</tr>';
@@ -658,8 +655,7 @@ function renderWindow() {
   html += anni.map(a => {
     const bold = a === curAnno ? 'style="font-weight:700"' : '';
     const totV = Object.values(datiWindow[a]?.perMese||{}).reduce((s,m) =>
-      s + (activeWindowTab==='amenitiz' ? m.ricaviAmenitiz||0 :
-           activeWindowTab==='citytax' ? m.cityTax||0 : m.ricavi||0), 0);
+      s + (activeWindowTab==='amenitiz' ? m.ricaviAmenitiz||0 : m.ricavi||0), 0);
     return `<td ${bold}>${totPren[a]} · ${fmtE(totV)}</td>`;
   }).join('');
   html += '</tr></tbody>';
