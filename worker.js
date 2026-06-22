@@ -342,7 +342,6 @@ export default {
         const includeCancelled = url.searchParams.get("include_cancelled") === "true";
         const futuri = allBookings.filter(b => {
           const s = (b.status || "").toLowerCase();
-          // Se include_cancelled=true, teniamo tutto (snapshot storico)
           if (!includeCancelled && (s === "cancelled" || s === "canceled")) return false;
           return (b.checkin || "") > futureFrom;
         });
@@ -350,20 +349,35 @@ export default {
         let totalRicavi = 0;
         let totalNotti = 0;
         for (const b of futuri) {
-          const mese = (b.checkin || "").slice(0, 7);
-          const importo = parseFloat(b.total_amount_after_tax) || 0;
           const cin = new Date(b.checkin);
           const cout = new Date(b.checkout);
-          const notti = Math.max(0, Math.round((cout - cin) / 86400000));
-          if (!perMese[mese]) perMese[mese] = { prenotazioni: 0, ricavi: 0, notti: 0 };
-          perMese[mese].prenotazioni++;
-          perMese[mese].ricavi += importo;
-          perMese[mese].notti += notti;
-          totalRicavi += importo;
-          totalNotti += notti;
+          const totNotti = Math.max(1, Math.round((cout - cin) / 86400000));
+          const importoTot = parseFloat(b.total_amount_after_tax) || 0;
+          const adults = b.adults || 1;
+          const cityTaxTot = adults * Math.min(totNotti, 10) * 5;
+
+          // Logica Amenitiz: importo intero al mese di checkin
+          const meseCheckin = (b.checkin || "").slice(0, 7);
+          if (!perMese[meseCheckin]) perMese[meseCheckin] = { prenotazioni: 0, ricavi: 0, ricaviAmenitiz: 0, notti: 0, cityTax: 0 };
+          perMese[meseCheckin].prenotazioni++;
+          perMese[meseCheckin].ricaviAmenitiz += importoTot;
+          perMese[meseCheckin].notti += totNotti;
+          totalRicavi += importoTot;
+          totalNotti += totNotti;
+
+          // Logica pro-rata: distribuisci per notte su ogni mese
+          for (let d = new Date(cin); d < cout; d.setDate(d.getDate() + 1)) {
+            const mese = d.toISOString().slice(0, 7);
+            if (!perMese[mese]) perMese[mese] = { prenotazioni: 0, ricavi: 0, ricaviAmenitiz: 0, notti: 0, cityTax: 0 };
+            perMese[mese].ricavi += importoTot / totNotti;
+            const notteIdx = Math.round((new Date(d) - cin) / 86400000);
+            if (notteIdx < 10) perMese[mese].cityTax += cityTaxTot / Math.min(totNotti, 10);
+          }
         }
         for (const k of Object.keys(perMese)) {
           perMese[k].ricavi = Math.round(perMese[k].ricavi * 100) / 100;
+          perMese[k].ricaviAmenitiz = Math.round(perMese[k].ricaviAmenitiz * 100) / 100;
+          perMese[k].cityTax = Math.round((perMese[k].cityTax || 0) * 100) / 100;
         }
         return new Response(JSON.stringify({
           createdFrom, createdTo, futureFrom,
