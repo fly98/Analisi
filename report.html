@@ -248,7 +248,7 @@ async function fetchWindow(anno) {
 
   const results = await Promise.all(mesi.map(async ({ from, to }) => {
     // include_cancelled=true passa al Worker che NON filtra i cancelled
-    const r = await fetch(`${WORKER}?action=reportWindow&created_from=${from}&created_to=${to}&future_from=${cutoff}&include_cancelled=true`);
+    const r = await fetch(`${WORKER}?action=reportWindow&created_from=${from}&created_to=${to}&future_from=${cutoff}`);
     if (!r.ok) return { perMese: {}, totalPrenotazioni: 0, totalRicavi: 0, totalNotti: 0 };
     return r.json();
   }));
