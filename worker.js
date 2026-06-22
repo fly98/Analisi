@@ -56,14 +56,8 @@ async function cercaEmailBooking(bookingId, env) {
       testo = atob(msgData.payload.body.data.replace(/-/g, "+").replace(/_/g, "/"));
     }
 
-    const nomeMatch = testo.match(/Nome:\s*
-?
-([^
-]+)/);
-    const telMatch = testo.match(/Telefono\s*
-?
-([^
-]+)/);
+    const nomeMatch = testo.match(new RegExp("Nome:\\s*\\r?\\n([^\\r\\n]+)"));
+    const telMatch = testo.match(new RegExp("Telefono\\s*\\r?\\n([^\\r\\n]+)"));
     const nome = nomeMatch ? nomeMatch[1].trim() : null;
     const telefono = telMatch ? telMatch[1].trim() : null;
     if (!nome && !telefono) return null;
