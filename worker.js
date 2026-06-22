@@ -241,6 +241,15 @@ export default {
           const rb = (b.rooms && b.rooms[0] && b.rooms[0].individual_room_name) || "";
           return (order[ra] ?? 99) - (order[rb] ?? 99);
         });
+        if (env.GMAIL_CLIENT_ID) {
+          await Promise.all(attivi.map(async (b) => {
+            const bk = b.booker || {};
+            if (!bk.first_name && !bk.last_name) {
+              const datiEmail = await cercaEmailBooking(b.booking_id, env);
+              if (datiEmail) { b.booker = { ...bk, ...datiEmail }; b._from_email = true; }
+            }
+          }));
+        }
         return new Response(JSON.stringify({ oggi, count: attivi.length, bookings: attivi }), {
           headers: { ...CORS, "Content-Type": "application/json" }
         });
