@@ -13,30 +13,49 @@
   .name { font-size: 1rem; }
   .bri { font-size: 0.8rem; color: #aaa; }
   #status { color: #aaa; margin: 10px 0; }
-  button { background: #e94560; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 1rem; }
+  #raw { background: #0a0a1a; border-radius: 8px; padding: 12px; font-size: 0.75rem; color: #88f; white-space: pre-wrap; word-break: break-all; margin-top: 16px; display: none; }
+  button { background: #e94560; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 1rem; margin-right: 8px; }
+  .sec { background: #444; }
 </style>
 </head>
 <body>
 <h1>💡 Home Assistant — Luci</h1>
 <button onclick="loadLights()">Aggiorna</button>
+<button class="sec" onclick="toggleRaw()">Debug</button>
 <div id="status">Caricamento...</div>
 <div id="lights"></div>
+<div id="raw"></div>
 
 <script>
 const WORKER = 'https://ha-worker.f-castiglioni.workers.dev'
+let lastRaw = ''
+
+function toggleRaw() {
+  const el = document.getElementById('raw')
+  el.style.display = el.style.display === 'none' ? 'block' : 'none'
+}
 
 async function loadLights() {
   document.getElementById('status').textContent = 'Caricamento...'
   document.getElementById('lights').innerHTML = ''
   try {
     const resp = await fetch(WORKER + '/lights')
-    const lights = await resp.json()
+    const text = await resp.text()
+    lastRaw = text
+    document.getElementById('raw').textContent = 'HTTP ' + resp.status + '\n\n' + text
 
-    const on = lights.filter(l => l.state === 'on')
-    const off = lights.filter(l => l.state === 'off')
+    const data = JSON.parse(text)
+
+    if (!Array.isArray(data)) {
+      document.getElementById('status').textContent = '⚠️ Errore dal worker: ' + (data.error || JSON.stringify(data))
+      return
+    }
+
+    const on = data.filter(l => l.state === 'on')
+    const off = data.filter(l => l.state === 'off')
 
     document.getElementById('status').textContent =
-      `Totale: ${lights.length} luci — Accese: ${on.length} — Spente: ${off.length}`
+      `Totale: ${data.length} luci — Accese: ${on.length} — Spente: ${off.length}`
 
     const container = document.getElementById('lights')
 
@@ -55,6 +74,8 @@ async function loadLights() {
     }
   } catch(e) {
     document.getElementById('status').textContent = 'Errore: ' + e.message
+    document.getElementById('raw').textContent = lastRaw || 'nessuna risposta'
+    document.getElementById('raw').style.display = 'block'
   }
 }
 
