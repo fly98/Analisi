@@ -129,7 +129,6 @@ input[type=checkbox]{accent-color:var(--text);cursor:pointer}
 <div class="hdr">
   <div class="hdr-icon">💶</div>
   <div style="flex:1"><h1>Leo — Liquidazione</h1><p>InternoUno · Contabilità dipendente</p></div>
-  <span class="ferie-badge" onclick="openFerie()">🏖️ Ferie</span>
 </div>
 
 <div class="tabs">
@@ -158,14 +157,8 @@ input[type=checkbox]{accent-color:var(--text);cursor:pointer}
       <div class="manual-btn" onclick="document.getElementById('file-in').click()">📁 Carica file manualmente</div>
     </label>
     <div id="fetch-err" class="alert a-err hidden"></div>
-    <div class="periodo-box" id="periodo-box" style="display:none">
-      <div class="periodo-l">Periodo rilevato · puoi correggerlo:</div>
-      <div class="periodo-inputs">
-        <input type="date" id="p-from">
-        <span style="color:var(--muted);font-size:13px">→</span>
-        <input type="date" id="p-to">
-        <button class="btn" onclick="ricalcola()">Ricalcola</button>
-      </div>
+    <div id="ferie-btn-box" style="display:none;margin-top:.75rem;padding-top:.75rem;border-top:1px solid var(--border)">
+      <button onclick="openFerie()" style="width:100%;padding:10px;background:#f4eef8;color:#5a1a7a;border:1px solid #c4a8d8;border-radius:var(--rs);font-size:14px;font-weight:500;cursor:pointer">🏖️ Calcola ferie / sostituzioni</button>
     </div>
   </div>
 
@@ -333,6 +326,7 @@ function resetReport(){
   document.getElementById('fetch-err').classList.add('hidden');
   document.getElementById('card-cash').classList.add('hidden');
   document.getElementById('card-wk').classList.add('hidden');
+  document.getElementById('ferie-btn-box').style.display='none';
   document.getElementById('periodo-box').style.display='none';
   S={cashRows:[],stripeRows:[],dupIds:[],wkDays:[],periodStart:null,periodEnd:null,wkStart:null,loaded:false};
   calcSaldo();
@@ -451,6 +445,7 @@ async function checkDupsAndRender(){
   S.loaded=true;
   document.getElementById('card-cash').classList.remove('hidden');
   document.getElementById('card-wk').classList.remove('hidden');
+  document.getElementById('ferie-btn-box').style.display='';
 }
 
 function ricalcola(){
