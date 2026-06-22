@@ -13,6 +13,70 @@ const CORS = {
   "Access-Control-Max-Age": "86400",
 };
 
+async function cercaEmailBooking(bookingId, env) {
+  try {
+    const tokenResp = await fetch("https://oauth2.googleapis.com/token", {
+      method: "POST",
+      headers: {"Content-Type": "application/x-www-form-urlencoded"},
+      body: new URLSearchParams({
+        client_id: env.GMAIL_CLIENT_ID,
+        client_secret: env.GMAIL_CLIENT_SECRET,
+        refresh_token: env.GMAIL_REFRESH_TOKEN,
+        grant_type: "refresh_token",
+      }),
+    });
+    const tokenData = await tokenResp.json();
+    if (!tokenData.access_token) return null;
+    const accessToken = tokenData.access_token;
+
+    const query = encodeURIComponent(`subject:[${bookingId}] Nuova prenotazione`);
+    const searchResp = await fetch(
+      `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${query}&maxResults=1`,
+      {headers: {Authorization: `Bearer ${accessToken}`}}
+    );
+    const searchData = await searchResp.json();
+    if (!searchData.messages || !searchData.messages[0]) return null;
+
+    const msgId = searchData.messages[0].id;
+    const msgResp = await fetch(
+      `https://gmail.googleapis.com/gmail/v1/users/me/messages/${msgId}?format=full`,
+      {headers: {Authorization: `Bearer ${accessToken}`}}
+    );
+    const msgData = await msgResp.json();
+
+    let testo = "";
+    const parts = msgData.payload?.parts || [msgData.payload];
+    for (const part of parts) {
+      if (part?.mimeType === "text/plain" && part?.body?.data) {
+        testo = atob(part.body.data.replace(/-/g, "+").replace(/_/g, "/"));
+        break;
+      }
+    }
+    if (!testo && msgData.payload?.body?.data) {
+      testo = atob(msgData.payload.body.data.replace(/-/g, "+").replace(/_/g, "/"));
+    }
+
+    const nomeMatch = testo.match(/Nome:\s*
+?
+([^
+]+)/);
+    const telMatch = testo.match(/Telefono\s*
+?
+([^
+]+)/);
+    const nome = nomeMatch ? nomeMatch[1].trim() : null;
+    const telefono = telMatch ? telMatch[1].trim() : null;
+    if (!nome && !telefono) return null;
+
+    const parti = nome ? nome.split(" ") : [];
+    const lastName = parti[0] || "";
+    const firstName = parti.slice(1).join(" ") || "";
+    return {first_name: firstName, last_name: lastName, phone: telefono};
+  } catch(e) {
+    return null;
+  }
+}
+
 async function amenitizGet(path, env) {
   const resp = await fetch(`${BASE}${path}`, {
     headers: {
