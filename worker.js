@@ -260,7 +260,6 @@ export default {
         const mensile = {};
         let totalBookings = 0;
         let totalNotti = 0;
-        // Set per evitare duplicati (stesso booking_id può apparire in chunk diversi)
         const seen = new Set();
         for (const b of allBookings) {
           const s = (b.status || "").toLowerCase();
@@ -273,28 +272,33 @@ export default {
           const cout = new Date(b.checkout);
           const totNotti = Math.max(1, Math.round((cout - cin) / 86400000));
           const importoTot = parseFloat(b.total_amount_after_tax) || 0;
+          const adults = b.adults || 1;
+          const cityTaxNotti = Math.min(totNotti, 10);
+          const cityTaxTot = adults * cityTaxNotti * 5;
           totalNotti += totNotti;
-          // Pro-rata: distribuisci l'importo per ogni notte del soggiorno
           for (let d = new Date(cin); d < cout; d.setDate(d.getDate() + 1)) {
             const mese = d.toISOString().slice(0, 7);
-            // Filtra solo il mese target (year+month) per evitare contaminazione cross-mese
             const annoMese = parseInt(mese.slice(0,4));
             const numMese = parseInt(mese.slice(5,7));
             if (year && annoMese !== parseInt(year)) continue;
             if (month && numMese !== parseInt(month)) continue;
-            if (!mensile[mese]) mensile[mese] = { ricavi: 0, prenotazioni: 0, notti: 0 };
+            if (!mensile[mese]) mensile[mese] = { ricavi: 0, prenotazioni: 0, notti: 0, cityTax: 0 };
             mensile[mese].ricavi += importoTot / totNotti;
             mensile[mese].notti++;
+            const notteIdx = Math.round((new Date(d) - cin) / 86400000);
+            if (notteIdx < 10) mensile[mese].cityTax += cityTaxTot / cityTaxNotti;
           }
-          // Conta la prenotazione nel mese del checkin (per conteggio prenotazioni)
           const meseCin = b.checkin.slice(0, 7);
-          if (meseCin >= from.slice(0,7) && meseCin <= to.slice(0,7)) {
-            if (!mensile[meseCin]) mensile[meseCin] = { ricavi: 0, prenotazioni: 0, notti: 0 };
+          const annoMeseCin = parseInt(meseCin.slice(0,4));
+          const numMeseCin = parseInt(meseCin.slice(5,7));
+          if ((!year || annoMeseCin === parseInt(year)) && (!month || numMeseCin === parseInt(month))) {
+            if (!mensile[meseCin]) mensile[meseCin] = { ricavi: 0, prenotazioni: 0, notti: 0, cityTax: 0 };
             mensile[meseCin].prenotazioni++;
           }
         }
         for (const k of Object.keys(mensile)) {
           mensile[k].ricavi = Math.round(mensile[k].ricavi * 100) / 100;
+          mensile[k].cityTax = Math.round((mensile[k].cityTax || 0) * 100) / 100;
         }
         return new Response(JSON.stringify({ from, to, totalBookings, totalNotti, mensile }), {
           headers: { ...CORS, "Content-Type": "application/json" },
