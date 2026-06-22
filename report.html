@@ -96,11 +96,7 @@ tr.total-row td{font-weight:600;background:var(--card2);border-top:1px solid var
   <div class="section-title">Ricavi da Amenitiz — confronto anni</div>
   <div class="prorata-notice" id="prorata-notice"></div>
 
-  <div class="tab-row">
-    <button class="tab-btn active" id="tab-eur" onclick="switchTab('eur',this)">Ricavi €</button>
-    <button class="tab-btn" id="tab-pren" onclick="switchTab('pren',this)">Prenotazioni</button>
-    <button class="tab-btn" id="tab-notti" onclick="switchTab('notti',this)">Notti vendute</button>
-  </div>
+
 
   <div class="kpi-grid" id="kpi-ricavi"></div>
 
@@ -179,44 +175,24 @@ function isoDate(d) {
 }
 
 async function fetchRicavi(anno) {
-  // Grafico 1: tutti i 12 mesi (passati=consuntivo, futuri=provvisorio con pren. attuali)
-  // Per anni passati: solo mesi con dati (da luglio 2023)
-  // Per anno corrente: mesi passati + futuri con checkin già prenotati
+  // Una sola chiamata per anno — range -7gg per catturare soggiorni cross-mese
+  // Il pro-rata viene fatto nel Worker
   const primoMese = (anno === PRIMO_ANNO) ? PRIMO_MESE_PRIMO_ANNO : 1;
-  const ultimoMese = 12; // sempre tutti i mesi — futuri avranno prenotazioni già acquisite
+  const fromD = new Date(anno, primoMese - 1, 1);
+  fromD.setDate(fromD.getDate() - 7);
+  const from = fromD.toISOString().slice(0, 10);
+  const to = (anno === curYear) ? isoDate(oggi) : `${anno}-12-31`;
 
-  const mesi = [];
-  for (let m = primoMese; m <= ultimoMese; m++) {
-    // Partiamo 7 giorni prima per catturare soggiorni con checkin fine mese precedente
-    const fromD = new Date(anno, m - 1, 1);
-    fromD.setDate(fromD.getDate() - 7);
-    const from = fromD.toISOString().slice(0, 10);
-    const lastDay = new Date(anno, m, 0).getDate();
-    const to = `${anno}-${String(m).padStart(2,'0')}-${String(lastDay).padStart(2,'0')}`;
-    mesi.push({ from, to, mese: m });
+  const r = await fetch(`${WORKER}?action=reportRicavi&from=${from}&to=${to}&year=${anno}`);
+  if (!r.ok) throw new Error(`reportRicavi ${anno}: HTTP ${r.status}`);
+  const d = await r.json();
+
+  // Marca mesi futuri come provvisori
+  const oggi_key = `${curYear}-${String(curMonth).padStart(2,'0')}`;
+  for (const key of Object.keys(d.mensile || {})) {
+    d.mensile[key].provvisorio = key >= oggi_key;
   }
-
-  const results = await Promise.all(mesi.map(async ({ from, to, mese }) => {
-    const r = await fetch(`${WORKER}?action=reportRicavi&from=${from}&to=${to}`);
-    if (!r.ok) return { mensile: {}, totalBookings: 0, totalNotti: 0 };
-    const d = await r.json();
-    // Marca i mesi futuri come provvisori
-    const key = `${anno}-${String(mese).padStart(2,'0')}`;
-    const oggi_key = `${curYear}-${String(curMonth).padStart(2,'0')}`;
-    if (d.mensile && d.mensile[key]) {
-      d.mensile[key].provvisorio = (anno > curYear) || (anno === curYear && key >= oggi_key);
-    }
-    return d;
-  }));
-
-  const mensile = {};
-  let totalBookings = 0, totalNotti = 0;
-  for (const res of results) {
-    totalBookings += res.totalBookings || 0;
-    totalNotti += res.totalNotti || 0;
-    Object.assign(mensile, res.mensile || {});
-  }
-  return { mensile, totalBookings, totalNotti };
+  return d;
 }
 
 async function fetchWindow(anno) {
@@ -510,7 +486,7 @@ function renderWindow() {
     for (let m = 1; m <= 12; m++) {
       const key = `${a}-${String(m).padStart(2,'0')}`;
       const entry = (datiWindow[a].perMese || {})[key];
-      vals.push(entry ? entry.prenotazioni : null);
+      vals.push(entry ? entry.ricavi : null);
     }
     return {
       label: String(a),
@@ -549,14 +525,14 @@ function renderWindow() {
               const key = `${a}-${String(m).padStart(2,'0')}`;
               const entry = (datiWindow[parseInt(a)].perMese || {})[key];
               if (!entry) return null;
-              return [` ${a}: ${v} pren.`, `  ${fmtE(entry.ricavi)} · ${entry.notti} notti`];
+              return ` ${a}: ${fmtE(v)}`;
             }
           }
         }
       },
       scales: {
         x: { grid: { display: false }, border: { display: false } },
-        y: { grid: { color: '#f2f2f7' }, border: { display: false }, ticks: { stepSize: 1 } }
+        y: { grid: { color: '#f2f2f7' }, border: { display: false }, ticks: { callback: v => (v/1000).toFixed(0)+'k' } }
       },
       layout: { padding: { top: 10 } }
     }
