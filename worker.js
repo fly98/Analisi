@@ -258,22 +258,35 @@ export default {
         const mensile = {};
         let totalBookings = 0;
         let totalNotti = 0;
+        // Set per evitare duplicati (stesso booking_id può apparire in chunk diversi)
+        const seen = new Set();
         for (const b of allBookings) {
           const s = (b.status || "").toLowerCase();
           if (s === "cancelled" || s === "canceled") continue;
+          if (seen.has(b.booking_id)) continue;
+          seen.add(b.booking_id);
           totalBookings++;
-          const checkin = b.checkin || "";
-          if (!checkin) continue;
-          const mese = checkin.slice(0, 7);
-          const importo = parseFloat(b.total_amount_after_tax) || 0;
+          if (!b.checkin || !b.checkout) continue;
           const cin = new Date(b.checkin);
           const cout = new Date(b.checkout);
-          const notti = Math.max(0, Math.round((cout - cin) / 86400000));
-          if (!mensile[mese]) mensile[mese] = { ricavi: 0, prenotazioni: 0, notti: 0 };
-          mensile[mese].ricavi += importo;
-          mensile[mese].prenotazioni++;
-          mensile[mese].notti += notti;
-          totalNotti += notti;
+          const totNotti = Math.max(1, Math.round((cout - cin) / 86400000));
+          const importoTot = parseFloat(b.total_amount_after_tax) || 0;
+          totalNotti += totNotti;
+          // Pro-rata: distribuisci l'importo per ogni notte del soggiorno
+          for (let d = new Date(cin); d < cout; d.setDate(d.getDate() + 1)) {
+            const mese = d.toISOString().slice(0, 7);
+            // Includi solo se il mese è nel range richiesto
+            if (mese < from.slice(0,7) || mese > to.slice(0,7)) continue;
+            if (!mensile[mese]) mensile[mese] = { ricavi: 0, prenotazioni: 0, notti: 0 };
+            mensile[mese].ricavi += importoTot / totNotti;
+            mensile[mese].notti++;
+          }
+          // Conta la prenotazione nel mese del checkin (per conteggio prenotazioni)
+          const meseCin = b.checkin.slice(0, 7);
+          if (meseCin >= from.slice(0,7) && meseCin <= to.slice(0,7)) {
+            if (!mensile[meseCin]) mensile[meseCin] = { ricavi: 0, prenotazioni: 0, notti: 0 };
+            mensile[meseCin].prenotazioni++;
+          }
         }
         for (const k of Object.keys(mensile)) {
           mensile[k].ricavi = Math.round(mensile[k].ricavi * 100) / 100;
