@@ -13,65 +13,6 @@ const CORS = {
   "Access-Control-Max-Age": "86400",
 };
 
-async function cercaEmailBooking(bookingId, env) {
-  try {
-    const tokenResp = await fetch("https://oauth2.googleapis.com/token", {
-      method: "POST",
-      headers: {"Content-Type": "application/x-www-form-urlencoded"},
-      body: new URLSearchParams({
-        client_id: env.GMAIL_CLIENT_ID,
-        client_secret: env.GMAIL_CLIENT_SECRET,
-        refresh_token: env.GMAIL_REFRESH_TOKEN,
-        grant_type: "refresh_token",
-      }),
-    });
-    const tokenData = await tokenResp.json();
-    if (!tokenData.access_token) return null;
-    const accessToken = tokenData.access_token;
-
-    const query = encodeURIComponent(`subject:[${bookingId}] Nuova prenotazione`);
-    const searchResp = await fetch(
-      `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${query}&maxResults=1`,
-      {headers: {Authorization: `Bearer ${accessToken}`}}
-    );
-    const searchData = await searchResp.json();
-    if (!searchData.messages || !searchData.messages[0]) return null;
-
-    const msgId = searchData.messages[0].id;
-    const msgResp = await fetch(
-      `https://gmail.googleapis.com/gmail/v1/users/me/messages/${msgId}?format=full`,
-      {headers: {Authorization: `Bearer ${accessToken}`}}
-    );
-    const msgData = await msgResp.json();
-
-    let testo = "";
-    const parts = msgData.payload?.parts || [msgData.payload];
-    for (const part of parts) {
-      if (part?.mimeType === "text/plain" && part?.body?.data) {
-        testo = atob(part.body.data.replace(/-/g, "+").replace(/_/g, "/"));
-        break;
-      }
-    }
-    if (!testo && msgData.payload?.body?.data) {
-      testo = atob(msgData.payload.body.data.replace(/-/g, "+").replace(/_/g, "/"));
-    }
-
-    const nomeMatch = testo.match(new RegExp("Nome:\\s*\\r?\\n([^\\r\\n]+)"));
-    const telMatch = testo.match(new RegExp("Telefono\\s*\\r?\\n([^\\r\\n]+)"));
-    const nome = nomeMatch ? nomeMatch[1].trim() : null;
-    const telefono = telMatch ? telMatch[1].trim() : null;
-    if (!nome && !telefono) return null;
-
-    // nell'email Amenitiz il formato è "Cognome Nome" -> primo token = cognome, resto = nome
-    const parti = nome ? nome.trim().split(" ") : [];
-    const lastName = parti[0] || "";
-    const firstName = parti.slice(1).join(" ") || "";
-    return {first_name: firstName, last_name: lastName, phone: telefono};
-  } catch(e) {
-    return null;
-  }
-}
-
 async function amenitizGet(path, env) {
   const resp = await fetch(`${BASE}${path}`, {
     headers: {
@@ -184,7 +125,6 @@ export default {
         const orari = {};
         for (const key of list.keys) {
           const val = await env.ARRIVI_KV.get(key.name);
-          // estrai booking_id dalla chiave: orario_DATE_BOOKINGID
           const bookingId = key.name.replace(prefix, "");
           orari[bookingId] = val;
         }
@@ -239,7 +179,7 @@ export default {
         return new Response(await resp.text(), { headers: { ...CORS, "Content-Type": "application/json" } });
       }
 
-      // ── IN CASA: prenotazioni con checkin in range e checkout > oggi ──
+      // ── IN CASA ──
       if (action === "incasa") {
         const oggi = new Date().toISOString().slice(0,10);
         const da = new Date();
@@ -267,6 +207,191 @@ export default {
         });
       }
 
+
+      // ── DEBUG: testa chiamata Amenitiz e ritorna errore raw ──
+      if (action === "debug422") {
+        const from = url.searchParams.get("from") || "2025-01-01";
+        const to = url.searchParams.get("to") || "2025-01-07";
+        const resp = await amenitizGet(
+          `/bookings/checkin?from=${from}&to=${to}&hotel_id=${HOTEL_UUID}`, env
+        );
+        const body = await resp.text();
+        return new Response(JSON.stringify({ 
+          status: resp.status, 
+          ok: resp.ok,
+          headers: Object.fromEntries(resp.headers),
+          body: body.slice(0, 2000)
+        }), { headers: { ...CORS, "Content-Type": "application/json" } });
+      }
+
+            // ── REPORT RICAVI: fetch mese per mese per evitare il limite 422 dell'API ──
+      // ?action=reportRicavi&from=YYYY-MM-DD&to=YYYY-MM-DD
+      if (action === "reportRicavi") {
+        const from = url.searchParams.get("from");
+        const to = url.searchParams.get("to");
+        const year = url.searchParams.get("year");
+        const month = url.searchParams.get("month");
+        if (!from || !to) return new Response(JSON.stringify({ error: "Parametri from e to obbligatori" }), {
+          status: 400, headers: { ...CORS, "Content-Type": "application/json" },
+        });
+
+        // Chunk mensili in parallelo (l'API non accetta range > 1 mese)
+        function getMonthChunks(f, t) {
+          const res = [], end = new Date(t);
+          let cur = new Date(f);
+          while (cur <= end) {
+            const y = cur.getFullYear(), m = cur.getMonth();
+            const s = new Date(Math.max(cur, new Date(f)));
+            const e = new Date(Math.min(new Date(y, m+1, 0), end));
+            const fmt = d => d.toISOString().slice(0,10);
+            res.push({ from: fmt(s), to: fmt(e) });
+            cur = new Date(y, m+1, 1);
+          }
+          return res;
+        }
+        const chunks = getMonthChunks(from, to);
+        const fetched = await Promise.all(chunks.map(c =>
+          amenitizGet(`/bookings/checkin?from=${c.from}&to=${c.to}&hotel_id=${HOTEL_UUID}`, env)
+            .then(async r => { const d = await r.json(); return Array.isArray(d) ? d : []; })
+            .catch(() => [])
+        ));
+        const allBookings = fetched.flat();
+
+        const mensile = {};
+        let totalBookings = 0;
+        let totalNotti = 0;
+        const seen = new Set();
+        for (const b of allBookings) {
+          const s = (b.status || "").toLowerCase();
+          if (s === "cancelled" || s === "canceled") continue;
+          if (seen.has(b.booking_id)) continue;
+          seen.add(b.booking_id);
+          totalBookings++;
+          if (!b.checkin || !b.checkout) continue;
+          const cin = new Date(b.checkin);
+          const cout = new Date(b.checkout);
+          const totNotti = Math.max(1, Math.round((cout - cin) / 86400000));
+          const importoTot = parseFloat(b.total_amount_after_tax) || 0;
+          const adults = b.adults || 1;
+          const cityTaxNotti = Math.min(totNotti, 10);
+          const cityTaxTot = adults * cityTaxNotti * 5;
+          totalNotti += totNotti;
+          for (let d = new Date(cin); d < cout; d.setDate(d.getDate() + 1)) {
+            const mese = d.toISOString().slice(0, 7);
+            const annoMese = parseInt(mese.slice(0,4));
+            const numMese = parseInt(mese.slice(5,7));
+            if (year && annoMese !== parseInt(year)) continue;
+            if (month && numMese !== parseInt(month)) continue;
+            if (!mensile[mese]) mensile[mese] = { ricavi: 0, ricaviAmenitiz: 0, prenotazioni: 0, notti: 0, cityTax: 0 };
+            mensile[mese].ricavi += importoTot / totNotti;
+            mensile[mese].notti++;
+            const notteIdx = Math.round((new Date(d) - cin) / 86400000);
+            if (notteIdx < 10) mensile[mese].cityTax += cityTaxTot / cityTaxNotti;
+          }
+          const meseCin = b.checkin.slice(0, 7);
+          const annoMeseCin = parseInt(meseCin.slice(0,4));
+          const numMeseCin = parseInt(meseCin.slice(5,7));
+          if ((!year || annoMeseCin === parseInt(year)) && (!month || numMeseCin === parseInt(month))) {
+            if (!mensile[meseCin]) mensile[meseCin] = { ricavi: 0, ricaviAmenitiz: 0, prenotazioni: 0, notti: 0, cityTax: 0 };
+            mensile[meseCin].prenotazioni++;
+            mensile[meseCin].ricaviAmenitiz += importoTot; // importo intero al mese checkin
+          }
+        }
+        for (const k of Object.keys(mensile)) {
+          mensile[k].ricavi = Math.round(mensile[k].ricavi * 100) / 100;
+          mensile[k].ricaviAmenitiz = Math.round((mensile[k].ricaviAmenitiz || 0) * 100) / 100;
+          mensile[k].cityTax = Math.round((mensile[k].cityTax || 0) * 100) / 100;
+        }
+        return new Response(JSON.stringify({ from, to, totalBookings, totalNotti, mensile }), {
+          headers: { ...CORS, "Content-Type": "application/json" },
+        });
+      }
+
+      // ── REPORT WINDOW: prenotazioni create entro cutoff con checkin futuro ──
+      // ?action=reportWindow&created_from=YYYY-MM-DD&created_to=YYYY-MM-DD&future_from=YYYY-MM-DD
+      if (action === "reportWindow") {
+        const createdFrom = url.searchParams.get("created_from");
+        const createdTo   = url.searchParams.get("created_to");
+        const futureFrom  = url.searchParams.get("future_from");
+        if (!createdFrom || !createdTo || !futureFrom) {
+          return new Response(JSON.stringify({ error: "Parametri created_from, created_to, future_from obbligatori" }), {
+            status: 400, headers: { ...CORS, "Content-Type": "application/json" },
+          });
+        }
+
+        // Chunk mensili in parallelo
+        function getMonthChunks(f, t) {
+          const res = [], end = new Date(t);
+          let cur = new Date(f);
+          while (cur <= end) {
+            const y = cur.getFullYear(), m = cur.getMonth();
+            const s = new Date(Math.max(cur, new Date(f)));
+            const e = new Date(Math.min(new Date(y, m+1, 0), end));
+            const fmt = d => d.toISOString().slice(0,10);
+            res.push({ from: fmt(s), to: fmt(e) });
+            cur = new Date(y, m+1, 1);
+          }
+          return res;
+        }
+        const chunks = getMonthChunks(createdFrom, createdTo);
+        const fetched = await Promise.all(chunks.map(c =>
+          amenitizGet(`/bookings/created?from=${c.from}&to=${c.to}&hotel_id=${HOTEL_UUID}`, env)
+            .then(async r => { const d = await r.json(); return Array.isArray(d) ? d : []; })
+            .catch(() => [])
+        ));
+        const allBookings = fetched.flat();
+
+        const includeCancelled = url.searchParams.get("include_cancelled") === "true";
+        const futuri = allBookings.filter(b => {
+          const s = (b.status || "").toLowerCase();
+          if (!includeCancelled && (s === "cancelled" || s === "canceled")) return false;
+          return (b.checkin || "") > futureFrom;
+        });
+        const perMese = {};
+        let totalRicavi = 0;
+        let totalNotti = 0;
+        for (const b of futuri) {
+          const cin = new Date(b.checkin);
+          const cout = new Date(b.checkout);
+          const totNotti = Math.max(1, Math.round((cout - cin) / 86400000));
+          const importoTot = parseFloat(b.total_amount_after_tax) || 0;
+          const adults = b.adults || 1;
+          const cityTaxTot = adults * Math.min(totNotti, 10) * 5;
+
+          // Logica Amenitiz: importo intero al mese di checkin
+          const meseCheckin = (b.checkin || "").slice(0, 7);
+          if (!perMese[meseCheckin]) perMese[meseCheckin] = { prenotazioni: 0, ricavi: 0, ricaviAmenitiz: 0, notti: 0, cityTax: 0 };
+          perMese[meseCheckin].prenotazioni++;
+          perMese[meseCheckin].ricaviAmenitiz += importoTot;
+          perMese[meseCheckin].notti += totNotti;
+          totalRicavi += importoTot;
+          totalNotti += totNotti;
+
+          // Logica pro-rata: distribuisci per notte su ogni mese
+          for (let d = new Date(cin); d < cout; d.setDate(d.getDate() + 1)) {
+            const mese = d.toISOString().slice(0, 7);
+            if (!perMese[mese]) perMese[mese] = { prenotazioni: 0, ricavi: 0, ricaviAmenitiz: 0, notti: 0, cityTax: 0 };
+            perMese[mese].ricavi += importoTot / totNotti;
+            const notteIdx = Math.round((new Date(d) - cin) / 86400000);
+            if (notteIdx < 10) perMese[mese].cityTax += cityTaxTot / Math.min(totNotti, 10);
+          }
+        }
+        for (const k of Object.keys(perMese)) {
+          perMese[k].ricavi = Math.round(perMese[k].ricavi * 100) / 100;
+          perMese[k].ricaviAmenitiz = Math.round(perMese[k].ricaviAmenitiz * 100) / 100;
+          perMese[k].cityTax = Math.round((perMese[k].cityTax || 0) * 100) / 100;
+        }
+        return new Response(JSON.stringify({
+          createdFrom, createdTo, futureFrom,
+          totalPrenotazioni: futuri.length,
+          totalRicavi: Math.round(totalRicavi * 100) / 100,
+          totalNotti,
+          perMese
+        }), {
+          headers: { ...CORS, "Content-Type": "application/json" },
+        });
+      }
+
       // ── ARRIVI (comportamento originale) ──
       let date = url.searchParams.get("date");
       if (!date) {
@@ -283,21 +408,6 @@ export default {
         const s = (b.status || "").toLowerCase();
         return s !== "cancelled" && s !== "canceled";
       });
-
-      // per prenotazioni con booker null, cerca nome e telefono nell'email di conferma
-      if (env.GMAIL_CLIENT_ID) {
-        await Promise.all(attivi.map(async b => {
-          const bk = b.booker || {};
-          if (!bk.first_name && !bk.last_name) {
-            const datiEmail = await cercaEmailBooking(b.booking_id, env);
-            if (datiEmail) {
-              b.booker = { ...bk, ...datiEmail };
-              b._from_email = true;
-            }
-          }
-        }));
-      }
-
       return new Response(JSON.stringify({ date, count: attivi.length, bookings: attivi }), {
         headers: { ...CORS, "Content-Type": "application/json" },
       });
