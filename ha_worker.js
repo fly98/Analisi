@@ -23,6 +23,70 @@ export default {
       return new Response(null, { headers: corsHeaders })
     }
 
+    // GET /dump - salva tutti gli stati HA su GitHub e ritorna summary
+    if (path === '/dump') {
+      try {
+        const resp = await fetch(`${HA_URL}/api/states`, {
+          headers: { 'Authorization': `Bearer ${TOKEN}` }
+        })
+        const states = await resp.json()
+        const summary = {
+          timestamp: new Date().toISOString(),
+          total: states.length,
+          lights: states.filter(e => e.entity_id.startsWith('light.')).map(e => ({
+            id: e.entity_id,
+            name: e.attributes.friendly_name || e.entity_id,
+            state: e.state,
+            brightness: e.attributes.brightness || null
+          })),
+          switches: states.filter(e => e.entity_id.startsWith('switch.')).map(e => ({
+            id: e.entity_id,
+            name: e.attributes.friendly_name || e.entity_id,
+            state: e.state
+          })),
+          sensors: states.filter(e => e.entity_id.startsWith('sensor.')).map(e => ({
+            id: e.entity_id,
+            name: e.attributes.friendly_name || e.entity_id,
+            state: e.state,
+            unit: e.attributes.unit_of_measurement || null
+          })),
+          climate: states.filter(e => e.entity_id.startsWith('climate.')).map(e => ({
+            id: e.entity_id,
+            name: e.attributes.friendly_name || e.entity_id,
+            state: e.state,
+            temp: e.attributes.current_temperature || null,
+            target: e.attributes.temperature || null
+          })),
+          persons: states.filter(e => e.entity_id.startsWith('person.')).map(e => ({
+            id: e.entity_id,
+            name: e.attributes.friendly_name || e.entity_id,
+            state: e.state
+          }))
+        }
+
+        // Salva su GitHub
+        if (GH_PAT) {
+          const ghUrl = 'https://api.github.com/repos/fly98/Analisi/contents/ha_states.json'
+          const shaResp = await fetch(ghUrl, { headers: { 'Authorization': `Bearer ${GH_PAT}` } })
+          let sha = ''
+          if (shaResp.ok) { const d = await shaResp.json(); sha = d.sha }
+          const content = btoa(unescape(encodeURIComponent(JSON.stringify(summary, null, 2))))
+          const putBody = { message: 'ha dump ' + summary.timestamp, content, branch: 'main' }
+          if (sha) putBody.sha = sha
+          const pr = await fetch(ghUrl, {
+            method: 'PUT',
+            headers: { 'Authorization': `Bearer ${GH_PAT}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify(putBody)
+          })
+          summary.github_save = pr.status
+        }
+
+        return new Response(JSON.stringify(summary, null, 2), { headers: corsHeaders })
+      } catch(e) {
+        return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders })
+      }
+    }
+
     // GET /ip - scopre IP uscita Cloudflare e testa con httpbin
     if (path === '/ip') {
       try {
