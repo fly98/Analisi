@@ -23,6 +23,25 @@ export default {
       return new Response(null, { headers: corsHeaders })
     }
 
+    // GET /ip - scopre IP uscita Cloudflare e testa con httpbin
+    if (path === '/ip') {
+      try {
+        const r = await fetch('https://httpbin.org/ip')
+        const data = await r.json()
+        // Prova anche una richiesta senza token per vedere cosa risponde HA
+        const haR = await fetch(`${HA_URL}/api/`)
+        const haT = await haR.text()
+        return new Response(JSON.stringify({
+          cloudflare_exit_ip: data.origin,
+          ha_no_auth_status: haR.status,
+          ha_no_auth_body: haT.substring(0, 100),
+          ha_url_used: HA_URL
+        }), { headers: corsHeaders })
+      } catch(e) {
+        return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders })
+      }
+    }
+
     // GET /test - prova ogni endpoint HA e salva tutto su GitHub
     if (path === '/test') {
       const results = {}
