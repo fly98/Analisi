@@ -298,6 +298,7 @@ async function fetchReport(){
     for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
     document.getElementById('mail-fn').textContent=d.filename;
     document.getElementById('mail-dt').textContent='Mail del '+new Date(d.msgDate).toLocaleDateString('it-IT',{day:'2-digit',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    S.fileDate = new Date(d.msgDate); // data+ora esatta del file
     document.getElementById('mail-ok').classList.remove('hidden');
     btn.classList.add('hidden');
     processXlsx(bytes.buffer);
@@ -315,6 +316,7 @@ function manualUpload(inp){
   const f=inp.files[0]; if(!f) return;
   document.getElementById('mail-fn').textContent=f.name;
   document.getElementById('mail-dt').textContent='Caricato manualmente';
+  S.fileDate = new Date(); // upload manuale = ora corrente
   document.getElementById('mail-ok').classList.remove('hidden');
   document.getElementById('fetch-btn').classList.add('hidden');
   const rd=new FileReader();
@@ -426,7 +428,7 @@ async function checkDupsAndRender(){
   (hist.sessioni||[]).forEach(s=>(s.cashIds||[]).forEach(id=>allIds.add(id)));
   S.dupIds=[...S.cashRows,...S.stripeRows].filter(r=>allIds.has(r.id)).map(r=>r.id);
 
-  // Periodo weekend: da giorno dopo ultimo incontro a OGGI
+  // Periodo weekend: da giorno dopo ultimo incontro a data+ora del file
   const sessioni=hist.sessioni||[];
   if(sessioni.length>0){
     const last=new Date(sessioni[0].dataSalvataggio);
@@ -435,9 +437,10 @@ async function checkDupsAndRender(){
   } else {
     S.wkStart=S.periodStart||new Date();
   }
-  // Fine sempre oggi
-  const oggi=new Date(); oggi.setHours(0,0,0,0);
-  S.wkEnd=oggi;
+  // Fine = data del file (mail o upload), non oggi
+  const fileEnd = S.fileDate ? new Date(S.fileDate) : new Date();
+  fileEnd.setHours(0,0,0,0); // solo la data, non l'ora
+  S.wkEnd=fileEnd;
 
   computeWk();
   renderCash();
