@@ -507,7 +507,7 @@ function renderCash(){
   const dw=document.getElementById('dup-warn');
   if(dups>0){dw.textContent=`⚠️ ${dups} pagament${dups>1?'i':'o'} già contabilizzat${dups>1?'i':'o'} — deselezionat${dups>1?'i':'o'}.`;dw.classList.remove('hidden');}
   else dw.classList.add('hidden');
-  document.getElementById('period-badge').textContent=S.periodStart&&S.periodEnd?fmtDate(S.periodStart)+' → '+fmtDate(S.periodEnd):'';
+  document.getElementById('period-badge').textContent=S.periodStart&&S.fileDate?fmtDate(S.periodStart)+' - '+fmtDate(S.fileDate):'';
   onCashCheck();
 }
 
@@ -668,8 +668,8 @@ async function salva(){
   const nuova={
     id:Date.now(),
     dataSalvataggio:new Date().toISOString(),
-    periodo:S.periodStart&&S.periodEnd?fmtDate(S.periodStart)+' → '+fmtDate(S.periodEnd):'',
-    periodoWk:S.wkStart&&S.wkEnd?fmtDate(S.wkStart)+' → '+fmtDate(S.wkEnd):'',
+    periodo:S.periodStart&&S.fileDate?fmtDate(S.periodStart)+' - '+fmtDate(S.fileDate):'',
+    periodoWk:S.wkStart&&S.wkEnd?fmtDate(S.wkStart)+' - '+fmtDate(S.wkEnd):'',
     cashIds,
     ...S.lastCalc
   };
