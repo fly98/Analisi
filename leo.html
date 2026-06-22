@@ -112,6 +112,11 @@ input[type=checkbox]{accent-color:var(--text);cursor:pointer}
 </head>
 <body>
 
+<!-- MODALE DETTAGLIO STORICO -->
+<div class="overlay hidden" id="sto-detail-overlay" onclick="closeStoDetail()">
+  <div id="sto-detail-box"></div>
+</div>
+
 <!-- MODALE FERIE -->
 <div class="overlay hidden" id="ferie-overlay" onclick="if(event.target===this)closeFerie()">
   <div class="modal">
@@ -695,23 +700,76 @@ function renderSto(hist){
   if(ss.length===0){list.innerHTML='';empty.classList.remove('hidden');return;}
   empty.classList.add('hidden');
   list.innerHTML=ss.map((s,i)=>`
-    <div class="st-item">
+    <div class="st-item" onclick="openStoDetail(${i})" style="cursor:pointer">
       <div style="flex:1">
         <div style="font-weight:600;margin-bottom:2px">${s.periodo||'Periodo non specificato'}</div>
         <div style="font-size:12px;color:var(--muted)">
           Salvato il ${new Date(s.dataSalvataggio).toLocaleDateString('it-IT',{day:'2-digit',month:'long',year:'numeric'})}
-          · ${(s.cashIds||[]).length} pagamenti contabilizzati
-          ${s.periodoWk?'<br>Weekend: '+s.periodoWk:''}
+          · ${(s.cashIds||[]).length} pagamenti
         </div>
         <div class="st-badges">
           <span class="badge b-info">💵 ${fmtEur(s.totContanti||0)}</span>
-          <span class="badge b-warn">📅 ${fmtEur(s.wkTot||0)} (${s.wkN||0}gg)</span>
-          ${s.saldo>=0?`<span class="badge b-ok">📥 Ricevi ${fmtEur(Math.abs(s.saldo))}</span>`:`<span class="badge b-err">📤 Dai ${fmtEur(Math.abs(s.saldo))}</span>`}
+          <span class="badge b-warn">📅 ${fmtEur(s.wkTot||0)}</span>
+          ${s.ferie?`<span class="badge b-purple">🏖️ ${fmtEur(s.ferie)}</span>`:''}
+          ${s.saldo>=0?`<span class="badge b-ok">📥 ${fmtEur(Math.abs(s.saldo))}</span>`:`<span class="badge b-err">📤 ${fmtEur(Math.abs(s.saldo))}</span>`}
         </div>
       </div>
-      <button class="btn btn-d" onclick="delSto(${i})" style="flex-shrink:0">🗑</button>
+      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+        <span style="font-size:18px;color:var(--faint)">›</span>
+        <button class="btn btn-d" onclick="event.stopPropagation();delSto(${i})">🗑</button>
+      </div>
     </div>
   `).join('');
+}
+
+function openStoDetail(idx){
+  const hist=_cache||{sessioni:[]};
+  const s=hist.sessioni[idx];
+  if(!s) return;
+  const box=document.getElementById('sto-detail-box');
+  const pos=s.saldo>=0;
+  box.innerHTML=`
+    <div class="modal" style="max-width:460px" onclick="event.stopPropagation()">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+        <h3 style="font-size:15px;font-weight:600">${s.periodo||'Sessione'}</h3>
+        <button class="btn" onclick="closeStoDetail()" style="padding:4px 10px">✕</button>
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:1rem">
+        Salvato il ${new Date(s.dataSalvataggio).toLocaleDateString('it-IT',{day:'2-digit',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'})}
+        ${s.periodoWk?'<br>Weekend: '+s.periodoWk:''}
+      </div>
+      <table style="width:100%;font-size:13px;border-collapse:collapse">
+        <tr style="border-bottom:1px solid var(--border)">
+          <td style="padding:7px 0;color:var(--muted)">💵 Contanti incassati</td>
+          <td style="padding:7px 0;text-align:right;font-weight:600">${fmtEur(s.totContanti||0)}</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border)">
+          <td style="padding:7px 0;color:var(--muted)">📅 Weekend / festività (${s.wkN||0} gg)</td>
+          <td style="padding:7px 0;text-align:right;font-weight:600">− ${fmtEur(s.wkTot||0)}</td>
+        </tr>
+        ${s.sp?`<tr style="border-bottom:1px solid var(--border)"><td style="padding:7px 0;color:var(--muted)">🛒 Spesa B&B</td><td style="padding:7px 0;text-align:right;font-weight:600">− ${fmtEur(s.sp)}</td></tr>`:''}
+        ${s.man?`<tr style="border-bottom:1px solid var(--border)"><td style="padding:7px 0;color:var(--muted)">🔧 Manutenzione</td><td style="padding:7px 0;text-align:right;font-weight:600">− ${fmtEur(s.man)}</td></tr>`:''}
+        ${s.bab?`<tr style="border-bottom:1px solid var(--border)"><td style="padding:7px 0;color:var(--muted)">👤 Babbo / Mamma</td><td style="padding:7px 0;text-align:right;font-weight:600">− ${fmtEur(s.bab)}</td></tr>`:''}
+        ${s.ferie?`<tr style="border-bottom:1px solid var(--border)"><td style="padding:7px 0;color:var(--muted)">🏖️ Ferie / sostituzioni</td><td style="padding:7px 0;text-align:right;font-weight:600">− ${fmtEur(s.ferie)}</td></tr>`:''}
+        <tr style="border-bottom:1px solid var(--border)">
+          <td style="padding:7px 0;color:var(--muted)">💰 Stipendio</td>
+          <td style="padding:7px 0;text-align:right;font-weight:600">− ${fmtEur(s.stip||0)}</td>
+        </tr>
+        <tr>
+          <td style="padding:10px 0;font-weight:600">Totale da pagare</td>
+          <td style="padding:10px 0;text-align:right;font-weight:600">− ${fmtEur(s.daMe||0)}</td>
+        </tr>
+      </table>
+      <div style="margin-top:.75rem;padding:1rem;border-radius:var(--rs);text-align:center;background:${pos?'var(--green-bg)':'var(--red-bg)'};border:1px solid ${pos?'var(--green-b)':'var(--red-b)'}">
+        <div style="font-size:12px;font-weight:600;color:${pos?'var(--green)':'var(--red)'};margin-bottom:4px">${pos?'📥 Hai ricevuto':'📤 Hai dato'}</div>
+        <div style="font-size:28px;font-weight:700;color:${pos?'var(--green)':'var(--red)'}">${fmtEur(Math.abs(s.saldo||0))}</div>
+      </div>
+    </div>
+  `;
+  document.getElementById('sto-detail-overlay').classList.remove('hidden');
+}
+function closeStoDetail(){
+  document.getElementById('sto-detail-overlay').classList.add('hidden');
 }
 
 async function delSto(idx){
