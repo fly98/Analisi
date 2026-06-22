@@ -158,9 +158,11 @@ input[type=checkbox]{accent-color:var(--text);cursor:pointer}
       <span id="fi">📬</span><span id="fl">Recupera ultima mail Amenitiz</span>
     </button>
     <div class="or">oppure</div>
-    <label><input type="file" id="file-in" accept=".xlsx" style="display:none" onchange="manualUpload(this)">
-      <div class="manual-btn" onclick="document.getElementById('file-in').click()">📁 Carica file manualmente</div>
-    </label>
+    <div style="position:relative">
+      <input type="file" id="file-in" accept=".xlsx" onchange="manualUpload(this)"
+        style="position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer;z-index:2">
+      <div class="manual-btn" style="pointer-events:none">📁 Carica file manualmente</div>
+    </div>
     <div id="fetch-err" class="alert a-err hidden"></div>
     <div id="ferie-btn-box" style="display:none;margin-top:.75rem;padding-top:.75rem;border-top:1px solid var(--border)">
       <button onclick="openFerie()" style="width:100%;padding:10px;background:#f4eef8;color:#5a1a7a;border:1px solid #c4a8d8;border-radius:var(--rs);font-size:14px;font-weight:500;cursor:pointer">🏖️ Calcola ferie / sostituzioni</button>
@@ -411,12 +413,6 @@ function parseRows(rows){
   S.stripeRows=stripeRows;
   S.periodStart=pStart||(cashRows[0]?.date||null);
   S.periodEnd=pEnd||(cashRows[cashRows.length-1]?.date||null);
-
-  if(S.periodStart&&S.periodEnd){
-    document.getElementById('p-from').value=toISO(S.periodStart);
-    document.getElementById('p-to').value=toISO(S.periodEnd);
-    document.getElementById('periodo-box').style.display='';
-  }
 
   checkDupsAndRender();
 }
