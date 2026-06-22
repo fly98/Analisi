@@ -421,7 +421,7 @@ function parseRows(rows){
       if(!cliente || isNaN(importo)) continue;
 
       const dateObj = toDate(dateRaw);
-      const id = (dateObj?fmtDate(dateObj):'?')+'|'+pren+'|'+importo;
+      const id = (dateObj?fmtDate(dateObj):'?')+'|'+cliente+'|'+importo;
 
       const row = { date:dateObj, cliente, camera, pren, importo, id };
       if(section==='cash') cashRows.push(row);
