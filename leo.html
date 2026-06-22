@@ -94,6 +94,15 @@ tr.dup td{opacity:.4}
 @keyframes spin{to{transform:rotate(360deg)}}
 .spin{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--text);border-radius:50%;animation:spin .6s linear infinite;display:inline-block}
 .hidden{display:none!important}
+/* Modale ferie */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;display:flex;align-items:center;justify-content:center;padding:1.5rem}
+.modal{background:var(--surface);border-radius:var(--r);padding:1.5rem;width:100%;max-width:380px;box-shadow:0 8px 32px rgba(0,0,0,.2)}
+.modal h3{font-size:15px;font-weight:600;margin-bottom:1rem}
+.modal-row{display:flex;align-items:center;gap:8px;margin-bottom:.75rem;font-size:14px}
+.modal-row label{min-width:80px;color:var(--muted)}
+.modal-row input[type=date]{flex:1;padding:7px 10px;border:1px solid var(--border-s);border-radius:var(--rs);font-size:14px;background:#fff}
+.modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:1.25rem}
+.ferie-badge{background:var(--purple-bg);color:var(--purple);border:1px solid var(--purple-b);border-radius:20px;font-size:11px;font-weight:500;padding:2px 8px;cursor:pointer;display:inline-flex;align-items:center;gap:4px}
 /* Sezione stripe */
 .stripe-section{margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border)}
 .stripe-title{font-size:12px;font-weight:600;color:var(--purple);margin-bottom:.75rem;display:flex;align-items:center;gap:6px}
@@ -103,9 +112,24 @@ input[type=checkbox]{accent-color:var(--text);cursor:pointer}
 </head>
 <body>
 
+<!-- MODALE FERIE -->
+<div class="overlay hidden" id="ferie-overlay" onclick="if(event.target===this)closeFerie()">
+  <div class="modal">
+    <h3>🏖️ Calcola ferie / sostituzioni</h3>
+    <div class="modal-row"><label>Dal</label><input type="date" id="ferie-from" oninput="calcFeriePreview()"></div>
+    <div class="modal-row"><label>Al</label><input type="date" id="ferie-to" oninput="calcFeriePreview()"></div>
+    <div id="ferie-preview" style="font-size:13px;color:var(--muted);margin-top:.5rem;min-height:20px"></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeFerie()">Annulla</button>
+      <button class="btn btn-p" onclick="applyFerie()">Applica</button>
+    </div>
+  </div>
+</div>
+
 <div class="hdr">
   <div class="hdr-icon">💶</div>
-  <div><h1>Leo — Liquidazione</h1><p>InternoUno · Contabilità dipendente</p></div>
+  <div style="flex:1"><h1>Leo — Liquidazione</h1><p>InternoUno · Contabilità dipendente</p></div>
+  <span class="ferie-badge" onclick="openFerie()">🏖️ Ferie</span>
 </div>
 
 <div class="tabs">
@@ -194,6 +218,11 @@ input[type=checkbox]{accent-color:var(--text);cursor:pointer}
     <div class="ir"><label>🔧 Manutenzione</label><input type="number" id="v-man" value="0" min="0" step="0.01" oninput="calcSaldo()"><span class="hint">€</span></div>
     <div class="ir"><label>👤 Babbo</label><input type="number" id="v-bab" value="0" min="0" step="0.01" oninput="calcSaldo()"><span class="hint">€</span></div>
     <hr class="dvd">
+    <div class="ir">
+      <label>🏖️ Ferie <span id="ferie-giorni-label" style="font-size:11px;color:var(--purple)"></span></label>
+      <input type="number" id="v-ferie" value="0" min="0" step="0.01" oninput="calcSaldo()">
+      <span class="hint">€</span>
+    </div>
     <div class="ir"><label>💰 Stipendio</label><input type="number" id="v-stip" value="0" min="0" step="0.01" oninput="calcSaldo()"><span class="hint">€</span></div>
     <div id="stip-info" style="font-size:12px;color:var(--faint);margin-left:160px;margin-top:-.4rem"></div>
   </div>
@@ -205,6 +234,7 @@ input[type=checkbox]{accent-color:var(--text);cursor:pointer}
       <div class="metric"><div class="ml">Contanti da consegnare</div><div class="mv" id="r-cash">€—</div></div>
       <div class="metric"><div class="ml">Weekend / festività</div><div class="mv" id="r-wk">€—</div></div>
       <div class="metric"><div class="ml">Spesa + manutenzione + babbo</div><div class="mv" id="r-sp">€—</div></div>
+      <div class="metric"><div class="ml">Ferie / sostituzioni</div><div class="mv" id="r-ferie">€—</div></div>
       <div class="metric"><div class="ml">Stipendio</div><div class="mv" id="r-stip">€—</div></div>
     </div>
     <div id="saldo-box"></div>
@@ -588,14 +618,16 @@ function calcSaldo(){
   const sp=parseFloat(document.getElementById('v-sp').value)||0;
   const man=parseFloat(document.getElementById('v-man').value)||0;
   const bab=parseFloat(document.getElementById('v-bab').value)||0;
+  const ferie=parseFloat(document.getElementById('v-ferie').value)||0;
   const stip=parseFloat(document.getElementById('v-stip').value)||0;
   const spTot=sp+man+bab;
-  const daMe=wkTot+spTot+stip;
+  const daMe=wkTot+spTot+ferie+stip;
   const saldo=totContanti-daMe;
 
   document.getElementById('r-cash').textContent=fmtEur(totContanti);
   document.getElementById('r-wk').textContent=fmtEur(wkTot);
   document.getElementById('r-sp').textContent=fmtEur(spTot);
+  document.getElementById('r-ferie').textContent=fmtEur(ferie);
   document.getElementById('r-stip').textContent=fmtEur(stip);
 
   const box=document.getElementById('saldo-box');
@@ -604,7 +636,7 @@ function calcSaldo(){
   } else {
     box.innerHTML=`<div class="saldo neg"><div class="sl">⬆️ Tu devi dargli</div><div class="sa">${fmtEur(Math.abs(saldo))}</div><div class="ss">${fmtEur(totContanti)} contanti − ${fmtEur(daMe)} da pagare</div></div>`;
   }
-  S.lastCalc={cash,stripe,totContanti,wkTot,wkN,sp,man,bab,stip,spTot,daMe,saldo};
+  S.lastCalc={cash,stripe,totContanti,wkTot,wkN,sp,man,bab,ferie,stip,spTot,daMe,saldo};
 }
 
 // ---------- STORICO ----------
@@ -690,6 +722,53 @@ async function delSto(idx){
   hist.sessioni.splice(idx,1);
   await fetch(WORKER+'?action=saveStorico',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(hist)});
   _cache=hist; renderSto(hist);
+}
+
+// ---------- FERIE ----------
+function openFerie(){
+  document.getElementById('ferie-overlay').classList.remove('hidden');
+  // Pre-imposta date dal periodo corrente se disponibile
+  if(S.periodStart) document.getElementById('ferie-from').value=toISO(S.periodStart);
+  if(S.periodEnd) document.getElementById('ferie-to').value=toISO(S.periodEnd);
+  calcFeriePreview();
+}
+function closeFerie(){
+  document.getElementById('ferie-overlay').classList.add('hidden');
+}
+function calcFeriePreview(){
+  const f=document.getElementById('ferie-from').value;
+  const t=document.getElementById('ferie-to').value;
+  const prev=document.getElementById('ferie-preview');
+  if(!f||!t){prev.textContent='';return;}
+  const start=new Date(f), end=new Date(t);
+  if(start>end){prev.textContent='⚠️ Data inizio dopo data fine';return;}
+  // Conta giorni non festivi e non weekend
+  let n=0; const cur=new Date(start);
+  while(cur<=end){
+    const dow=cur.getDay();
+    if(dow!==0&&dow!==6&&!isHol(cur)) n++;
+    cur.setDate(cur.getDate()+1);
+  }
+  const tot=n*30;
+  prev.innerHTML=`<strong>${n} giorni lavorativi</strong> × €30 = <strong style="color:var(--purple)">${fmtEur(tot)}</strong>`;
+  return {n, tot};
+}
+function applyFerie(){
+  const f=document.getElementById('ferie-from').value;
+  const t=document.getElementById('ferie-to').value;
+  if(!f||!t) return;
+  const start=new Date(f), end=new Date(t);
+  let n=0; const cur=new Date(start);
+  while(cur<=end){
+    const dow=cur.getDay();
+    if(dow!==0&&dow!==6&&!isHol(cur)) n++;
+    cur.setDate(cur.getDate()+1);
+  }
+  const tot=n*30;
+  document.getElementById('v-ferie').value=tot;
+  document.getElementById('ferie-giorni-label').textContent=`(${n}gg × €30)`;
+  closeFerie();
+  calcSaldo();
 }
 
 // ---------- UTILS ----------
