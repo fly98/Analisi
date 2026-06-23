@@ -1,0 +1,25 @@
+name: Deploy iCompta Worker
+
+on:
+  push:
+    paths:
+      - 'icompta_worker.js'
+      - 'icompta_wrangler.toml'
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Write wrangler.toml
+        run: cp icompta_wrangler.toml wrangler_icompta.toml
+      - name: Deploy with Wrangler
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CF_API_TOKEN }}
+          accountId: ${{ secrets.CF_ACCOUNT_ID }}
+          wranglerVersion: '3'
+          command: deploy --config wrangler_icompta.toml
