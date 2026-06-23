@@ -395,26 +395,53 @@ function renderSidebar() {
   const list = document.getElementById('accounts-list');
   list.innerHTML = '';
 
-  // Raggruppa accounts per gruppo
-  const groupMap = {};
-  for (const g of meta.groups) groupMap[g.id] = { ...g, accounts: [] };
+  // Ordine ESATTO da iCompta
+  // Prima gli standalone (senza gruppo), poi i gruppi nell'ordine corretto
+  const GROUP_ORDER = ['Attivo','Contanti','Famiglia','Banche','Investimenti'];
+  const ACCOUNT_ORDER = {
+    'Attivo': ['InternoUno','Risparmi'],
+    'Contanti': ['Cassa','Cassaforte'],
+    'Famiglia': ['Raffo','Conto casa','Babbo','Chiara'],
+    'Banche': ['InternoUno Banca','Banca Sella','Genius Unicredit','Leo','Ristrutturazione'],
+    'Investimenti': ['Fineco','Fideuram','Prestiti','Alessia','Viola','Sella cc','InternoRoma']
+  };
+
+  // Mappa gruppi per nome
+  const groupByName = {};
+  for (const g of meta.groups) groupByName[g.name] = { ...g, accounts: [] };
   const ungrouped = [];
 
   for (const acc of meta.accounts) {
     if (acc.hidden) continue;
-    if (acc.groupId && groupMap[acc.groupId]) {
-      groupMap[acc.groupId].accounts.push(acc);
-    } else {
-      ungrouped.push(acc);
+    if (acc.groupId) {
+      const grp = Object.values(groupByName).find(g => g.id === acc.groupId);
+      if (grp) { grp.accounts.push(acc); continue; }
     }
+    ungrouped.push(acc);
   }
 
-  // Ordine gruppi come in iCompta
-  const groupOrder = ['Banche','Attivo','Contanti','Famiglia','Investimenti'];
-  const groups = Object.values(groupMap).sort((a,b) => {
-    const ia = groupOrder.indexOf(a.name), ib = groupOrder.indexOf(b.name);
-    return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
-  });
+  // Ordina conti dentro ogni gruppo
+  for (const gName in groupByName) {
+    const order = ACCOUNT_ORDER[gName] || [];
+    groupByName[gName].accounts.sort((a,b) => {
+      const ia = order.indexOf(a.name), ib = order.indexOf(b.name);
+      return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+    });
+  }
+
+  const groups = GROUP_ORDER
+    .map(n => groupByName[n])
+    .filter(Boolean);
+
+  // Standalone prima (es. Operazioni future, Leo, Ristrutturazione se senza gruppo)
+  const standaloneFirst = ['Operazioni future'];
+  const standaloneLast = ['Leo','Ristrutturazione'];
+  const firstAccounts = ungrouped.filter(a => standaloneFirst.includes(a.name));
+  const lastAccounts = ungrouped.filter(a => !standaloneFirst.includes(a.name));
+
+  for (const acc of firstAccounts) {
+    if (!acc.hidden) list.appendChild(makeAccountRow(acc));
+  }
 
   for (const g of groups) {
     if (g.accounts.length === 0) continue;
@@ -440,8 +467,8 @@ function renderSidebar() {
     list.appendChild(gContainer);
   }
 
-  // Account senza gruppo
-  for (const acc of ungrouped) {
+  // Account senza gruppo (residui)
+  for (const acc of lastAccounts) {
     if (!acc.hidden) list.appendChild(makeAccountRow(acc));
   }
 
