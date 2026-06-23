@@ -6,15 +6,18 @@
 <title>iCompta — InternoUno</title>
 <style>
 :root {
-  --blue: #007AFF;
-  --green: #34C759;
-  --red: #FF3B30;
-  --gray1: #F2F2F7;
-  --gray2: #E5E5EA;
-  --gray3: #C7C7CC;
-  --gray4: #8E8E93;
-  --text: #1C1C1E;
+  --blue: #4F6BFF;
+  --blue2: #6C8AFF;
+  --green: #00C48C;
+  --red: #FF5C5C;
+  --orange: #FF9F43;
+  --gray1: #F4F6FB;
+  --gray2: #E8ECF4;
+  --gray3: #C5CEDF;
+  --gray4: #8896AB;
+  --text: #1A2340;
   --bg: #FFFFFF;
+  --sidebar-bg: #F8FAFF;
   --sidebar-w: 280px;
   --header-h: 52px;
 }
@@ -26,7 +29,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif
 #app { display: flex; height: 100vh; padding-top: env(safe-area-inset-top, 0); box-sizing: border-box; }
 body { padding-top: env(safe-area-inset-top, 0); }
 #sidebar { width: var(--sidebar-w); min-width: 180px; max-width: 420px;
-  background: var(--bg); border-right: 1px solid var(--gray2);
+  background: var(--sidebar-bg); border-right: 1px solid var(--gray2);
   display: flex; flex-direction: column; overflow: hidden;
   position: relative; user-select: none; }
 #sidebar-resizer { position: absolute; right: -3px; top: 0; bottom: 0; width: 6px;
@@ -36,19 +39,20 @@ body { padding-top: env(safe-area-inset-top, 0); }
 
 /* ── Header ── */
 .header { height: var(--header-h); display: flex; align-items: center; 
-  padding: 0 16px; gap: 12px; background: var(--bg);
-  border-bottom: 1px solid var(--gray2); flex-shrink: 0;
+  padding: 0 16px; gap: 12px; background: linear-gradient(135deg, #4F6BFF 0%, #6C8AFF 100%);
+  border-bottom: none; flex-shrink: 0;
   padding-top: env(safe-area-inset-top, 0); height: calc(var(--header-h) + env(safe-area-inset-top, 0)); }
-.header h1 { font-size: 17px; font-weight: 600; flex: 1; }
+.header h1 { font-size: 17px; font-weight: 600; flex: 1; color: white; }
 .header-actions { display: flex; gap: 8px; }
 
 /* ── Sidebar ── */
 #sidebar-header { padding: 12px 16px 8px; flex-shrink: 0; }
-#total-box { margin: 0 12px 10px; padding: 10px 14px; border-radius: 12px;
-  background: var(--blue); color: white; display: flex; align-items: center;
-  justify-content: space-between; flex-shrink: 0; }
-#total-box .total-label { font-size: 12px; font-weight: 600; opacity: 0.85; }
-#total-box .total-amount { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; }
+#total-box { margin: 0 12px 10px; padding: 14px 16px; border-radius: 14px;
+  background: linear-gradient(135deg, #4F6BFF 0%, #6C8AFF 100%); color: white;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0; box-shadow: 0 4px 16px rgba(79,107,255,0.3); }
+#total-box .total-label { font-size: 11px; font-weight: 700; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.5px; }
+#total-box .total-amount { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
 #sidebar-header h2 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
 .search-box { width: 100%; padding: 7px 12px; border-radius: 10px;
   background: var(--gray2); border: none; font-size: 14px; outline: none; }
@@ -59,13 +63,13 @@ body { padding-top: env(safe-area-inset-top, 0); }
 .group-row .chevron { font-size: 11px; margin-right: 6px; color: var(--gray4);
   transition: transform 0.2s; }
 .group-row.collapsed .chevron { transform: rotate(-90deg); }
-.group-name { font-size: 13px; font-weight: 600; flex: 1; color: var(--gray4); text-transform: uppercase; letter-spacing: 0.3px; }
+.group-name { font-size: 10px; font-weight: 800; flex: 1; color: var(--gray4); text-transform: uppercase; letter-spacing: 1px; }
 .group-balance { font-size: 13px; font-weight: 600; padding: 2px 8px; border-radius: 12px; }
 
 .account-row { display: flex; align-items: center; padding: 8px 16px 8px 32px;
   cursor: pointer; border-radius: 10px; margin: 1px 8px; transition: background 0.15s; }
-.account-row:hover { background: var(--gray1); }
-.account-row.active { background: var(--blue); }
+.account-row:hover { background: var(--gray2); }
+.account-row.active { background: linear-gradient(135deg, #4F6BFF, #6C8AFF); box-shadow: 0 2px 8px rgba(79,107,255,0.3); }
 .account-row.active .acc-name, .account-row.active .acc-balance { color: white !important; }
 .acc-icon { font-size: 16px; margin-right: 10px; }
 .acc-name { font-size: 14px; flex: 1; }
@@ -83,14 +87,14 @@ body { padding-top: env(safe-area-inset-top, 0); }
   display: flex; gap: 6px; align-items: center; flex-wrap: wrap; flex-shrink: 0; }
 .filter-chip { padding: 4px 12px; border-radius: 16px; font-size: 13px; font-weight: 500;
   border: none; cursor: pointer; background: var(--gray2); color: var(--text); transition: all 0.15s; }
-.filter-chip.active { background: var(--blue); color: white; }
+.filter-chip.active { background: linear-gradient(135deg, #4F6BFF, #6C8AFF); color: white; box-shadow: 0 2px 8px rgba(79,107,255,0.3); }
 .filter-sep { width: 1px; height: 20px; background: var(--gray2); }
 .filter-select { padding: 4px 10px; border-radius: 16px; font-size: 13px;
   border: 1px solid var(--gray2); background: var(--bg); outline: none; cursor: pointer; }
 #search-tx { flex: 1; min-width: 120px; padding: 5px 12px; border-radius: 16px;
   border: 1px solid var(--gray2); font-size: 13px; outline: none; }
-.btn-add { padding: 5px 14px; border-radius: 16px; background: var(--blue); color: white;
-  border: none; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.btn-add { padding: 6px 14px; border-radius: 16px; background: rgba(255,255,255,0.25); color: white;
+  border: 1px solid rgba(255,255,255,0.4); font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; backdrop-filter: blur(4px); }
 
 /* ── Transaction list ── */
 #tx-list-container { flex: 1; overflow-y: auto; }
@@ -105,9 +109,9 @@ body { padding-top: env(safe-area-inset-top, 0); }
 .tx-name { font-weight: 500; }
 .tx-category { font-size: 12px; color: var(--gray4); }
 .tx-status { font-size: 11px; font-weight: 600; padding: 2px 7px; border-radius: 8px; }
-.status-cleared { background: #E3F6E8; color: #27AE60; }
-.status-created { background: #EBF3FF; color: var(--blue); }
-.status-imported { background: #FFF3E0; color: #E67E22; }
+.status-cleared { background: #E0FBF2; color: #00A87A; font-weight: 700; }
+.status-created { background: #EEF1FF; color: #4F6BFF; font-weight: 700; }
+.status-imported { background: #FFF6EC; color: #E67E22; font-weight: 700; }
 .tx-amount { text-align: right; font-weight: 600; white-space: nowrap; }
 .amount-pos { color: var(--green); }
 .amount-neg { color: var(--red); }
@@ -226,7 +230,6 @@ body { padding-top: env(safe-area-inset-top, 0); }
   <div id="sidebar"><div id="sidebar-resizer"></div>
     <div id="sidebar-header">
       <h2>Conti</h2>
-      <input class="search-box" type="search" placeholder="Cerca..." oninput="filterAccounts(this.value)">
     </div>
     <div id="total-box">
       <span class="total-label">💰 Disponibile</span>
@@ -241,10 +244,10 @@ body { padding-top: env(safe-area-inset-top, 0); }
   <!-- Main -->
   <div id="main">
     <div class="header">
-      <button onclick="toggleSidebar()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--blue)">☰</button>
+      <button onclick="toggleSidebar()" style="background:none;border:none;font-size:20px;cursor:pointer;color:white">☰</button>
       <h1 id="main-title" style="font-size:15px">Tutte le transazioni</h1>
       <div class="header-actions">
-        <button onclick="openSettings()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--gray4);padding:4px 8px" title="Impostazioni">⚙️</button>
+        <button onclick="openSettings()" style="background:rgba(255,255,255,0.2);border:none;border-radius:8px;font-size:18px;cursor:pointer;color:white;padding:6px 10px" title="Impostazioni">⚙️</button>
         <button class="btn-add" onclick="openNewTx()">+ Nuova</button>
       </div>
     </div>
@@ -605,7 +608,7 @@ function makeAccountRow(acc) {
   row.className = 'account-row' + (acc.id === selectedAccountId ? ' active' : '');
   row.dataset.accId = acc.id;
   row.innerHTML = `
-    <span class="acc-icon">🏦</span>
+    <span class="acc-icon">${accIcon(acc.name)}</span>
     <span class="acc-name">${acc.name}</span>
     ${bal !== null ? `<span class="acc-balance ${balClass(bal)}">${fmt(bal)}</span>` : ''}
   `;
