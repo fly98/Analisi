@@ -518,6 +518,32 @@ async function loadBalances() {
 // ══════════════════════════════════════════════
 // SIDEBAR
 // ══════════════════════════════════════════════
+
+const ACCOUNT_ICONS = {
+  'InternoUno': '🏨',
+  'InternoUno Banca': '🏦',
+  'Risparmi': '🐷',
+  'Cassa': '💵',
+  'Cassaforte': '🔒',
+  'Raffo': '👤',
+  'Conto casa': '🏠',
+  'Babbo': '👴',
+  'Chiara': '👩',
+  'Banca Sella': '🏦',
+  'Genius Unicredit': '💳',
+  'Leo': '👷',
+  'Ristrutturazione': '🔨',
+  'Fineco': '📈',
+  'Fideuram': '📊',
+  'Prestiti': '💸',
+  'Alessia': '👧',
+  'Viola': '👧',
+  'Sella cc': '💳',
+  'InternoRoma': '🏘️',
+  'Operazioni future': '🔮',
+};
+function accIcon(name) { return ACCOUNT_ICONS[name] || '🏦'; }
+
 function renderSidebar() {
   const list = document.getElementById('accounts-list');
   list.innerHTML = '';
