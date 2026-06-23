@@ -375,7 +375,10 @@ async function loadStorico() {
   try {
     var d = await ghGet(ghCfg().file);
     if (d) {
-      var j = JSON.parse(decodeURIComponent(escape(atob(d.content.replace(/\n/g,'')))));
+      var raw = atob(d.content.replace(/\n/g,''));
+      var bytes = new Uint8Array(raw.length);
+      for (var bi=0;bi<raw.length;bi++) bytes[bi]=raw.charCodeAt(bi);
+      var j = JSON.parse(new TextDecoder('utf-8').decode(bytes));
       storico = new Set(j.keys || j.ids || []);
       el.textContent = '✓ ' + storico.size + ' chiavi';
     } else {
@@ -384,7 +387,10 @@ async function loadStorico() {
     }
     var rd = await ghGet('sella_regole.json');
     if (rd) {
-      var rj = JSON.parse(decodeURIComponent(escape(atob(rd.content.replace(/\n/g,'')))));
+      var raw2 = atob(rd.content.replace(/\n/g,''));
+      var bytes2 = new Uint8Array(raw2.length);
+      for (var bi2=0;bi2<raw2.length;bi2++) bytes2[bi2]=raw2.charCodeAt(bi2);
+      var rj = JSON.parse(new TextDecoder('utf-8').decode(bytes2));
       regole = Object.assign({}, REG_DEF, rj);
       localStorage.setItem('sella_reg', JSON.stringify(regole));
     }
@@ -398,19 +404,23 @@ async function loadStorico() {
 }
 
 async function saveStorico() {
+  var btn = document.getElementById('btnStor');
+  btn.disabled = false;
   var nuoveKeys = movimenti.filter(function(m) { return m.includi && !m.isDup; }).map(function(m) { return m.storKey; });
   var allKeys = Array.from(new Set(Array.from(storico).concat(nuoveKeys)));
+  var oldTxt = btn.innerHTML;
+  btn.innerHTML = '⏳ Salvataggio...';
   try {
-    document.getElementById('btnStor').disabled = true;
     var ex = await ghGet(ghCfg().file);
     await ghPut(ghCfg().file, JSON.stringify({ keys: allKeys, updated: new Date().toISOString() }, null, 2), ex ? ex.sha : undefined);
     nuoveKeys.forEach(function(k) { storico.add(k); });
     toast('Storico salvato: ' + allKeys.length + ' chiavi totali', 'ok');
     renderStorViewer();
   } catch(e) {
-    toast(e.message, 'err');
+    toast('Errore: ' + e.message, 'err');
   } finally {
-    document.getElementById('btnStor').disabled = false;
+    btn.innerHTML = oldTxt;
+    btn.disabled = false;
   }
 }
 
