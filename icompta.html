@@ -18,7 +18,7 @@
   --text: #1A2340;
   --bg: #FFFFFF;
   --sidebar-bg: #F8FAFF;
-  --sidebar-w: 280px;
+  --sidebar-w: 240px;
   --header-h: 52px;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -56,7 +56,8 @@ body { padding-top: env(safe-area-inset-top, 0); }
 #sidebar-header h2 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
 .search-box { width: 100%; padding: 7px 12px; border-radius: 10px;
   background: var(--gray2); border: none; font-size: 14px; outline: none; }
-#accounts-list { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 4px 0 12px; -webkit-overflow-scrolling: touch; }
+#accounts-list { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 4px 0 12px;
+  -webkit-overflow-scrolling: touch; overscroll-behavior: contain; min-height: 0; }
 
 .group-row { display: flex; align-items: center; padding: 6px 16px 4px;
   cursor: pointer; user-select: none; }
@@ -64,18 +65,18 @@ body { padding-top: env(safe-area-inset-top, 0); }
   transition: transform 0.2s; }
 .group-row.collapsed .chevron { transform: rotate(-90deg); }
 .group-name { font-size: 10px; font-weight: 800; flex: 1; color: var(--gray4); text-transform: uppercase; letter-spacing: 1px; }
-.group-balance { font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 10px;
-  min-width: 80px; text-align: right; flex-shrink: 0; }
+.group-balance { font-size: 12px; font-weight: 700; padding: 3px 0; border-radius: 10px;
+  width: 90px; text-align: center; flex-shrink: 0; display: inline-block; }
 
-.account-row { display: flex; align-items: center; padding: 7px 10px 7px 28px;
-  cursor: pointer; border-radius: 10px; margin: 1px 6px; transition: background 0.15s; gap: 6px; }
+.account-row { display: flex; align-items: center; padding: 6px 8px 6px 24px;
+  cursor: pointer; border-radius: 10px; margin: 1px 6px; transition: background 0.15s; gap: 4px; }
 .account-row:hover { background: var(--gray2); }
 .account-row.active { background: linear-gradient(135deg, #4F6BFF, #6C8AFF); box-shadow: 0 2px 8px rgba(79,107,255,0.3); }
 .account-row.active .acc-name, .account-row.active .acc-balance { color: white !important; }
 .acc-icon { font-size: 16px; margin-right: 10px; }
-.acc-name { font-size: 13px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.acc-balance { font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 10px;
-  min-width: 80px; text-align: right; flex-shrink: 0; }
+.acc-name { font-size: 13px; flex: 1; }
+.acc-balance { font-size: 12px; font-weight: 700; padding: 3px 0; border-radius: 10px;
+  width: 90px; text-align: center; flex-shrink: 0; display: inline-block; }
 .bal-pos { background: var(--green); color: white; }
 .bal-neg { background: var(--red); color: white; }
 .bal-zero { background: var(--gray3); color: white; }
