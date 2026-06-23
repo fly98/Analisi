@@ -295,6 +295,33 @@ ${stmtTrn}
       });
     }
 
+
+    // ── POST /api/restore ──────────────────────────────────────
+    if (path === '/api/restore' && method === 'POST') {
+      // Triggera GitHub Actions workflow che ricarica il backup nel KV
+      const ghPAT = env.GITHUB_PAT;
+      if (!ghPAT) return err('GITHUB_PAT non configurato', 500);
+
+      const triggerResp = await fetch(
+        'https://api.github.com/repos/fly98/Analisi/actions/workflows/restore-icompta-kv.yml/dispatches',
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${ghPAT}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ ref: 'main' })
+        }
+      );
+
+      if (triggerResp.status === 204) {
+        return json({ ok: true, message: 'Ripristino avviato — ci vorranno circa 2 minuti' });
+      } else {
+        const err_text = await triggerResp.text();
+        return err(`GitHub Actions error: ${triggerResp.status} ${err_text}`, 500);
+      }
+    }
+
     return err('Endpoint non trovato', 404);
   }
 };
