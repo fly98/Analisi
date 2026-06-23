@@ -325,12 +325,28 @@ function closeStoDetail() { document.getElementById('stoDetailOverlay').classLis
 async function delSto(idx) {
   if (!confirm('Eliminare questa sessione?')) return;
   if (!_stoCache) return;
-  _stoCache.sessioni.splice(idx,1);
+  var sess = _stoCache.sessioni[idx];
+  var keysToRemove = new Set((sess.movimenti||[]).map(function(m) {
+    return m.data + '|' + m.importo.toFixed(2) + '|' + (m.desc||'').substring(0,40);
+  }));
   try {
+    _stoCache.sessioni.splice(idx,1);
     var ex=await ghGet('sella_sessioni.json');
     await ghPut('sella_sessioni.json',JSON.stringify(_stoCache,null,2),ex?ex.sha:undefined);
-    renderSto(); toast('Sessione eliminata','ok');
-  } catch(e) { toast('Errore: '+e.message,'err'); }
+    var exStor=await ghGet(ghCfg().file);
+    if(exStor){
+      var rr=atob(exStor.content.replace(/\n/g,'')); var bb=new Uint8Array(rr.length);
+      for(var ii=0;ii<rr.length;ii++) bb[ii]=rr.charCodeAt(ii);
+      var sd=JSON.parse(new TextDecoder('utf-8').decode(bb));
+      var prima=sd.keys.length;
+      sd.keys=sd.keys.filter(function(k){return !keysToRemove.has(k);});
+      keysToRemove.forEach(function(k){storico.delete(k);});
+      await ghPut(ghCfg().file,JSON.stringify(sd,null,2),exStor.sha);
+      toast('Rimossa sessione e '+(prima-sd.keys.length)+' chiavi','ok');
+    } else { toast('Sessione eliminata','ok'); }
+    await loadStoTab();
+    if(movimenti.length) renderTable();
+  } catch(e){toast('Errore: '+e.message,'err');}
 }
 
 // ── STATE ──────────────────────────────────────────
