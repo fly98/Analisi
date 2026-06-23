@@ -252,7 +252,7 @@ tr.dup:hover td{opacity:.6}
   </div>
 
   <!-- DETAIL OVERLAY -->
-  <div class="overlay" id="stoDetailOverlay" onclick="if(event.target===this)closeStoDetail()">
+  <div class="overlay" id="stoDetailOverlay" style="display:none" onclick="if(event.target===this)closeStoDetail()">
     <div class="modal" style="max-width:560px">
       <div class="modal-hdr">
         <span id="stoDetailTitle">Dettaglio sessione</span>
@@ -996,11 +996,11 @@ function openStoDetail(idx) {
   }
   body += '</div>';
   document.getElementById('stoDetailBody').innerHTML = body;
-  document.getElementById('stoDetailOverlay').classList.add('open');
+  document.getElementById('stoDetailOverlay').style.display = 'flex';
 }
 
 function closeStoDetail() {
-  document.getElementById('stoDetailOverlay').classList.remove('open');
+  document.getElementById('stoDetailOverlay').style.display = 'none';
 }
 
 async function delSto(idx) {
@@ -1017,9 +1017,9 @@ async function delSto(idx) {
 </script>
 
 <!-- MODAL VERIFICA PARTITA DOPPIA -->
-<div class="overlay" id="ovVerifica" onclick="if(event.target===this)this.classList.remove('open')">
+<div class="overlay" id="ovVerifica" style="display:none" onclick="if(event.target===this)this.classList.remove('open')">
   <div class="modal" style="max-width:480px">
-    <div class="modal-hdr">⚖️ Verifica partita doppia <button class="modal-x" onclick="document.getElementById('ovVerifica').classList.remove('open')">×</button></div>
+    <div class="modal-hdr">⚖️ Verifica partita doppia <button class="modal-x" onclick="document.getElementById('ovVerifica').style.display = 'none'">×</button></div>
     <div id="verificaContent"></div>
   </div>
 </div>
