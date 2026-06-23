@@ -133,6 +133,7 @@ tr.dup:hover td{opacity:.6}
   <button class="tab active" onclick="switchTab('mov')">📋 Movimenti</button>
   <button class="tab" onclick="switchTab('eco')">📊 Conto Economico</button>
   <button class="tab" onclick="switchTab('reg')">🧠 Regole auto</button>
+  <button class="tab" onclick="switchTab('sto')">📚 Storico</button>
 </div>
 
 <!-- MODAL -->
@@ -236,6 +237,31 @@ tr.dup:hover td{opacity:.6}
       <tbody id="regBody"></tbody></table>
     </div>
   </div>
+  <!-- TAB STORICO -->
+  <div id="tabSto" style="display:none">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <span style="font-size:13px;font-weight:600;color:var(--muted)">SESSIONI IMPORTATE</span>
+      <span id="stoCnt" style="font-size:12px;color:var(--faint)"></span>
+    </div>
+    <div id="stoLoad" class="info" style="display:none">⏳ Caricamento...</div>
+    <div id="stoList"></div>
+    <div id="stoEmpty" style="display:none;text-align:center;padding:3rem;color:var(--faint)">
+      <div style="font-size:32px;margin-bottom:12px">📋</div>
+      Nessuna sessione salvata ancora.
+    </div>
+  </div>
+
+  <!-- DETAIL OVERLAY -->
+  <div class="overlay" id="stoDetailOverlay" onclick="if(event.target===this)closeStoDetail()">
+    <div class="modal" style="max-width:560px">
+      <div class="modal-hdr">
+        <span id="stoDetailTitle">Dettaglio sessione</span>
+        <button class="modal-x" onclick="closeStoDetail()">×</button>
+      </div>
+      <div id="stoDetailBody"></div>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -417,15 +443,44 @@ async function loadStorico() {
 async function saveStorico() {
   var btn = document.getElementById('btnStor');
   btn.disabled = false;
+  var inc = movimenti.filter(function(m) { return m.includi; });
   var nuoveKeys = movimenti.filter(function(m) { return m.includi && !m.isDup; }).map(function(m) { return m.storKey; });
   var allKeys = Array.from(new Set(Array.from(storico).concat(nuoveKeys)));
   var oldTxt = btn.innerHTML;
   btn.innerHTML = '⏳ Salvataggio...';
   try {
+    // Salva chiavi storico
     var ex = await ghGet(ghCfg().file);
     await ghPut(ghCfg().file, JSON.stringify({ keys: allKeys, updated: new Date().toISOString() }, null, 2), ex ? ex.sha : undefined);
     nuoveKeys.forEach(function(k) { storico.add(k); });
-    toast('Storico salvato: ' + allKeys.length + ' chiavi totali', 'ok');
+
+    // Salva sessione nello storico sessioni
+    var ent = inc.filter(function(m){return m.importo>0;}).reduce(function(s,m){return s+m.importo;},0);
+    var usc = inc.filter(function(m){return m.importo<0;}).reduce(function(s,m){return s+m.importo;},0);
+    var map = {};
+    inc.filter(function(m){return m.categoria;}).forEach(function(m){
+      if(!map[m.categoria]) map[m.categoria]=0; map[m.categoria]+=m.importo;
+    });
+    var sessione = {
+      id: Date.now(),
+      data: new Date().toISOString(),
+      file: document.getElementById('hdrSub').textContent,
+      nuovi: nuoveKeys.length,
+      totale: inc.length,
+      entrate: ent,
+      uscite: usc,
+      saldo: ent + usc,
+      categorie: map,
+      movimenti: inc.map(function(m){ return {data:m.dataOp, desc:m.desc, importo:m.importo, cat:m.categoria}; })
+    };
+    var sessFile = 'sella_sessioni.json';
+    var exSess = await ghGet(sessFile);
+    var sessData = exSess ? JSON.parse(decodeURIComponent(escape(atob(exSess.content.replace(/
+/g,''))))) : {sessioni:[]};
+    sessData.sessioni.unshift(sessione);
+    await ghPut(sessFile, JSON.stringify(sessData, null, 2), exSess ? exSess.sha : undefined);
+
+    toast('Salvato: ' + allKeys.length + ' chiavi, ' + nuoveKeys.length + ' nuovi movimenti', 'ok');
     renderStorViewer();
   } catch(e) {
     toast('Errore: ' + e.message, 'err');
@@ -821,15 +876,17 @@ function delReg(k) {
 // ── TABS ───────────────────────────────────────────
 function switchTab(t) {
   curTab = t;
-  var names = ['mov','eco','reg'];
+  var names = ['mov','eco','reg','sto'];
   document.querySelectorAll('.tab').forEach(function(el, i) {
     el.classList.toggle('active', names[i] === t);
   });
   document.getElementById('tabMov').style.display = t==='mov' ? 'block' : 'none';
   document.getElementById('tabEco').style.display = t==='eco' ? 'block' : 'none';
   document.getElementById('tabReg').style.display = t==='reg' ? 'block' : 'none';
+  document.getElementById('tabSto').style.display = t==='sto' ? 'block' : 'none';
   if (t==='eco') renderEco();
   if (t==='reg') renderReg();
+  if (t==='sto') loadStoTab();
 }
 
 // ── UTILS ──────────────────────────────────────────
@@ -857,6 +914,106 @@ function toast(msg, type) {
 }
 
 init();
+
+// ── STORICO SESSIONI ───────────────────────────────
+var _stoCache = null;
+
+async function loadStoTab() {
+  document.getElementById('stoLoad').style.display = 'block';
+  document.getElementById('stoList').innerHTML = '';
+  document.getElementById('stoEmpty').style.display = 'none';
+  _stoCache = null;
+  try {
+    var d = await ghGet('sella_sessioni.json');
+    if (d) {
+      var raw = atob(d.content.replace(/\n/g,''));
+      var bytes = new Uint8Array(raw.length);
+      for (var bi=0;bi<raw.length;bi++) bytes[bi]=raw.charCodeAt(bi);
+      _stoCache = JSON.parse(new TextDecoder('utf-8').decode(bytes));
+    } else {
+      _stoCache = {sessioni:[]};
+    }
+  } catch(e) { _stoCache = {sessioni:[]}; }
+  renderSto();
+}
+
+function renderSto() {
+  document.getElementById('stoLoad').style.display = 'none';
+  var ss = (_stoCache && _stoCache.sessioni) || [];
+  document.getElementById('stoCnt').textContent = ss.length + ' sessioni';
+  if (!ss.length) { document.getElementById('stoEmpty').style.display = 'block'; return; }
+  document.getElementById('stoEmpty').style.display = 'none';
+  document.getElementById('stoList').innerHTML = ss.map(function(s, i) {
+    var data = new Date(s.data).toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'});
+    var saldoCol = s.saldo >= 0 ? 'var(--green)' : 'var(--red)';
+    return '<div onclick="openStoDetail(' + i + ')" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);padding:12px 14px;margin-bottom:8px;cursor:pointer;display:flex;align-items:center;gap:12px" onmouseover="this.style.background=\'var(--bg)\'" onmouseout="this.style.background=\'var(--surface)\'">' +
+      '<div style="flex:1">' +
+        '<div style="font-weight:600;margin-bottom:3px">' + esc(s.file||'Importazione') + '</div>' +
+        '<div style="font-size:12px;color:var(--muted)">Salvato il ' + data + ' · ' + (s.nuovi||0) + ' nuovi su ' + (s.totale||0) + ' movimenti</div>' +
+      '</div>' +
+      '<div style="text-align:right;flex-shrink:0;margin-right:8px">' +
+        '<div style="font-weight:700;color:' + saldoCol + ';font-variant-numeric:tabular-nums">' + (s.saldo>=0?'+':'') + fmt(s.saldo||0) + ' €</div>' +
+        '<div style="font-size:11px;color:var(--faint)">saldo</div>' +
+      '</div>' +
+      '<button class="btn" onclick="event.stopPropagation();delSto(' + i + ')" style="font-size:12px;padding:4px 8px;color:var(--red);border-color:var(--red-b)">🗑</button>' +
+    '</div>';
+  }).join('');
+}
+
+function openStoDetail(idx) {
+  var s = (_stoCache && _stoCache.sessioni[idx]);
+  if (!s) return;
+  var data = new Date(s.data).toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  document.getElementById('stoDetailTitle').textContent = (s.file||'Importazione') + ' — ' + data;
+  var body = '<div style="font-size:13px">';
+  body += '<div style="display:flex;gap:20px;margin-bottom:14px;flex-wrap:wrap">';
+  body += '<div class="stat"><div class="stat-v pos">+' + fmt(s.entrate||0) + ' €</div><div class="stat-l">Entrate</div></div>';
+  body += '<div class="stat"><div class="stat-v neg">' + fmt(s.uscite||0) + ' €</div><div class="stat-l">Uscite</div></div>';
+  body += '<div class="stat"><div class="stat-v ' + (s.saldo>=0?'pos':'neg') + '">' + (s.saldo>=0?'+':'') + fmt(s.saldo||0) + ' €</div><div class="stat-l">Saldo</div></div>';
+  body += '<div class="stat"><div class="stat-v">' + (s.nuovi||0) + '</div><div class="stat-l">Nuovi</div></div>';
+  body += '</div>';
+  if (s.categorie && Object.keys(s.categorie).length) {
+    body += '<div class="sep"></div><div class="sec" style="margin-bottom:8px">Categorie iCompta</div>';
+    Object.entries(s.categorie).sort().forEach(function(e) {
+      var nome = e[0].indexOf(' : ') >= 0 ? e[0].split(' : ')[1] : e[0];
+      var impEco = -e[1];
+      body += '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:12px">';
+      body += '<span style="color:var(--muted)">' + esc(nome) + '</span>';
+      body += '<span style="color:' + (impEco<0?'var(--red)':'var(--green)') + ';font-variant-numeric:tabular-nums">' + (impEco>=0?'+':'') + fmt(impEco) + ' €</span></div>';
+    });
+  }
+  if (s.movimenti && s.movimenti.length) {
+    body += '<div class="sep"></div><div class="sec" style="margin-bottom:8px">Movimenti (' + s.movimenti.length + ')</div>';
+    body += '<div style="max-height:220px;overflow-y:auto">';
+    s.movimenti.forEach(function(m) {
+      body += '<div style="display:flex;align-items:center;padding:3px 0;border-bottom:1px solid var(--border);font-size:11px;gap:6px">';
+      body += '<span style="color:var(--faint);width:68px;flex-shrink:0">' + esc(m.data) + '</span>';
+      body += '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(m.desc) + '</span>';
+      body += '<span style="color:' + (m.importo>=0?'var(--green)':'var(--red)') + ';font-variant-numeric:tabular-nums;flex-shrink:0">' + (m.importo>=0?'+':'') + fmt(m.importo) + ' €</span>';
+      body += '</div>';
+    });
+    body += '</div>';
+  }
+  body += '</div>';
+  document.getElementById('stoDetailBody').innerHTML = body;
+  document.getElementById('stoDetailOverlay').classList.add('open');
+}
+
+function closeStoDetail() {
+  document.getElementById('stoDetailOverlay').classList.remove('open');
+}
+
+async function delSto(idx) {
+  if (!confirm('Eliminare questa sessione dallo storico?')) return;
+  if (!_stoCache) return;
+  _stoCache.sessioni.splice(idx, 1);
+  try {
+    var ex = await ghGet('sella_sessioni.json');
+    await ghPut('sella_sessioni.json', JSON.stringify(_stoCache, null, 2), ex ? ex.sha : undefined);
+    renderSto();
+    toast('Sessione eliminata', 'ok');
+  } catch(e) { toast('Errore: ' + e.message, 'err'); }
+}
 </script>
 
 <!-- MODAL VERIFICA PARTITA DOPPIA -->
