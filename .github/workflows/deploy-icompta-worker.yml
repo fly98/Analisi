@@ -14,12 +14,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Write wrangler.toml
-        run: cp icompta_wrangler.toml wrangler_icompta.toml
       - name: Deploy with Wrangler
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CF_API_TOKEN }}
           accountId: ${{ secrets.CF_ACCOUNT_ID }}
           wranglerVersion: '3'
-          command: deploy --config wrangler_icompta.toml
+          command: deploy icompta_worker.js --name icompta-worker --compatibility-date 2024-01-01 --no-bundle --kv-namespace ICOMPTA_KV:1d8d7db930004f9eaa73e17af65b0957
+
