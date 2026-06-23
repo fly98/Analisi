@@ -402,7 +402,11 @@ async function saveRegole(){
 }
 
 // ── SHA256 ─────────────────────────────────────────────
-async function sha256(s){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('').substring(0,16).toUpperCase();}
+function makeId(codice, importo){
+  // ID semplice: SELLA_CODICE_IMPORTO — leggibile, nessun hash, nessun mismatch
+  const imp = importo===Math.trunc(importo) ? String(Math.trunc(importo)) : importo.toFixed(2);
+  return `SELLA_${codice}_${imp}`;
+}
 
 // ── CSV PARSING ────────────────────────────────────────
 function parseCSVLine(line){const r=[];let c='',q=false;for(const ch of line){if(ch==='"'){q=!q;}else if(ch===','&&!q){r.push(c);c='';}else c+=ch;}r.push(c);return r;}
@@ -447,7 +451,7 @@ async function handleFile(file){
     const etich=c[9]?.replace(/"/g,'').trim()||'';
     if(!dataOp)continue;
     const importo=parseAmt(deb,cred);
-    const id='SELLA_'+(await sha256(`${codice}|${dataOp}|${importo}`));
+    const id=makeId(codice, importo);
     const isDup=storico.has(id);
     const{cat,src}=suggerisci(desc,etich);
     movimenti.push({id,isDup,importo,includi:!isDup,dataOp,dataVal,desc,etich,catSella,categoria:cat,catSrc:src,commento:''});
