@@ -24,9 +24,13 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif
 
 /* ── Layout ── */
 #app { display: flex; height: 100vh; }
-#sidebar { width: var(--sidebar-w); min-width: var(--sidebar-w);
+#sidebar { width: var(--sidebar-w); min-width: 180px; max-width: 420px;
   background: var(--bg); border-right: 1px solid var(--gray2);
-  display: flex; flex-direction: column; overflow: hidden; }
+  display: flex; flex-direction: column; overflow: hidden;
+  position: relative; user-select: none; }
+#sidebar-resizer { position: absolute; right: -3px; top: 0; bottom: 0; width: 6px;
+  cursor: col-resize; z-index: 10; background: transparent; }
+#sidebar-resizer:hover, #sidebar-resizer.dragging { background: var(--blue); opacity: 0.4; }
 #main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
 
 /* ── Header ── */
@@ -185,7 +189,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif
 
 <div id="app" style="display:none">
   <!-- Sidebar -->
-  <div id="sidebar">
+  <div id="sidebar"><div id="sidebar-resizer"></div>
     <div id="sidebar-header">
       <h2>Conti</h2>
       <input class="search-box" type="search" placeholder="Cerca..." oninput="filterAccounts(this.value)">
@@ -519,11 +523,15 @@ function fmt(v) {
 }
 
 function updateTotalBalance() {
-  if (!balances) return;
-  const total = Object.values(balances.accounts).reduce((s,v) => s+v, 0);
+  if (!balances || !meta) return;
+  // Solo conti con includedInTotal = true
+  const total = meta.accounts
+    .filter(a => a.includedInTotal)
+    .reduce((s, a) => s + (balances.accounts[a.id] || 0), 0);
+  const rounded = Math.round(total * 100) / 100;
   const el = document.getElementById('total-balance');
-  el.textContent = fmt(total);
-  el.className = 'acc-balance ' + balClass(total);
+  el.textContent = fmt(rounded);
+  el.className = 'acc-balance ' + balClass(rounded);
 }
 
 // ══════════════════════════════════════════════
@@ -830,6 +838,34 @@ function toggleSidebar() {
         await init(r);
       }
     } catch(e) { /* mostra login */ }
+  }
+})();
+
+// ── Sidebar resize ──────────────────────────────────────
+(function() {
+  const resizer = document.getElementById('sidebar-resizer');
+  const sidebar = document.getElementById('sidebar');
+  let startX, startW;
+
+  resizer.addEventListener('pointerdown', e => {
+    startX = e.clientX;
+    startW = sidebar.offsetWidth;
+    resizer.classList.add('dragging');
+    document.addEventListener('pointermove', onMove);
+    document.addEventListener('pointerup', onUp);
+    e.preventDefault();
+  });
+
+  function onMove(e) {
+    const dx = e.clientX - startX;
+    const newW = Math.min(420, Math.max(180, startW + dx));
+    sidebar.style.width = newW + 'px';
+  }
+
+  function onUp() {
+    resizer.classList.remove('dragging');
+    document.removeEventListener('pointermove', onMove);
+    document.removeEventListener('pointerup', onUp);
   }
 })();
 </script>
