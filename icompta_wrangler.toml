@@ -1,0 +1,7 @@
+name = "icompta-worker"
+main = "icompta_worker.js"
+compatibility_date = "2024-01-01"
+
+[[kv_namespaces]]
+binding = "ICOMPTA_KV"
+id = "1d8d7db930004f9eaa73e17af65b0957"
