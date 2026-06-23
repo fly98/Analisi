@@ -133,7 +133,6 @@ tr.dup:hover td{opacity:.6}
   <button class="tab active" onclick="switchTab('mov')">📋 Movimenti</button>
   <button class="tab" onclick="switchTab('eco')">📊 Conto Economico</button>
   <button class="tab" onclick="switchTab('reg')">🧠 Regole auto</button>
-  <button class="tab" onclick="switchTab('sto')">📚 Storico</button>
 </div>
 
 <!-- MODAL -->
@@ -237,125 +236,9 @@ tr.dup:hover td{opacity:.6}
       <tbody id="regBody"></tbody></table>
     </div>
   </div>
-  <!-- TAB STORICO -->
-  <div id="tabSto" style="display:none">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-      <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)">SESSIONI IMPORTATE</span>
-      <span id="stoCnt" style="font-size:12px;color:var(--faint)"></span>
-    </div>
-    <div id="stoLoad" class="info" style="display:none">⏳ Caricamento...</div>
-    <div id="stoList"></div>
-    <div id="stoEmpty" style="display:none;text-align:center;padding:3rem;color:var(--faint)">
-      <div style="font-size:32px;margin-bottom:12px">📋</div>
-      Nessuna sessione salvata ancora.
-    </div>
-  </div>
-
-</div>
-
-<!-- MODAL DETTAGLIO SESSIONE -->
-<div class="overlay" id="stoDetailOverlay" onclick="if(event.target===this)closeStoDetail()">
-  <div class="modal" style="max-width:560px">
-    <div class="modal-hdr">
-      <span id="stoDetailTitle">Dettaglio sessione</span>
-      <button class="modal-x" onclick="closeStoDetail()">×</button>
-    </div>
-    <div id="stoDetailBody"></div>
-  </div>
 </div>
 
 <script>
-
-// ── STORICO SESSIONI ───────────────────────────────
-var _stoCache = null;
-
-async function loadStoTab() {
-  document.getElementById('stoLoad').style.display = 'block';
-  document.getElementById('stoList').innerHTML = '';
-  document.getElementById('stoEmpty').style.display = 'none';
-  _stoCache = null;
-  try {
-    var d = await ghGet('sella_sessioni.json');
-    if (d) {
-      var r=atob(d.content.replace(/
-/g,'')); var b=new Uint8Array(r.length);
-      for(var i=0;i<r.length;i++) b[i]=r.charCodeAt(i);
-      _stoCache = JSON.parse(new TextDecoder('utf-8').decode(b));
-    } else { _stoCache = {sessioni:[]}; }
-  } catch(e) { _stoCache = {sessioni:[]}; }
-  renderSto();
-}
-
-function renderSto() {
-  document.getElementById('stoLoad').style.display = 'none';
-  var ss = (_stoCache && _stoCache.sessioni) || [];
-  document.getElementById('stoCnt').textContent = ss.length + ' sessioni';
-  if (!ss.length) { document.getElementById('stoEmpty').style.display='block'; return; }
-  document.getElementById('stoEmpty').style.display = 'none';
-  document.getElementById('stoList').innerHTML = ss.map(function(s,i) {
-    var data = new Date(s.data).toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'});
-    var col = s.saldo>=0 ? 'var(--green)' : 'var(--red)';
-    return '<div onclick="openStoDetail('+i+')" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);padding:12px 14px;margin-bottom:8px;cursor:pointer;display:flex;align-items:center;gap:12px">' +
-      '<div style="flex:1"><div style="font-weight:600;margin-bottom:3px">'+esc(s.file||'Importazione')+'</div>' +
-      '<div style="font-size:12px;color:var(--muted)">'+data+' · '+(s.nuovi||0)+' nuovi su '+(s.totale||0)+' movimenti</div></div>' +
-      '<div style="text-align:right;margin-right:8px"><div style="font-weight:700;color:'+col+';font-variant-numeric:tabular-nums">'+(s.saldo>=0?'+':'')+fmt(s.saldo||0)+' €</div><div style="font-size:11px;color:var(--faint)">saldo</div></div>' +
-      '<button class="btn" onclick="event.stopPropagation();delSto('+i+')" style="font-size:12px;padding:4px 8px;color:var(--red);border-color:var(--red-b)">🗑</button></div>';
-  }).join('');
-}
-
-function openStoDetail(idx) {
-  var s = _stoCache && _stoCache.sessioni[idx];
-  if (!s) return;
-  var data = new Date(s.data).toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
-  document.getElementById('stoDetailTitle').textContent = (s.file||'Importazione')+' — '+data;
-  var body = '<div style="font-size:13px">';
-  body += '<div style="display:flex;gap:20px;margin-bottom:14px;flex-wrap:wrap">';
-  body += '<div class="stat"><div class="stat-v pos">+'+fmt(s.entrate||0)+' €</div><div class="stat-l">Entrate</div></div>';
-  body += '<div class="stat"><div class="stat-v neg">'+fmt(s.uscite||0)+' €</div><div class="stat-l">Uscite</div></div>';
-  body += '<div class="stat"><div class="stat-v '+(s.saldo>=0?'pos':'neg')+'">'+(s.saldo>=0?'+':'')+fmt(s.saldo||0)+' €</div><div class="stat-l">Saldo</div></div>';
-  body += '<div class="stat"><div class="stat-v">'+(s.nuovi||0)+'</div><div class="stat-l">Nuovi</div></div>';
-  body += '</div>';
-  if (s.categorie && Object.keys(s.categorie).length) {
-    body += '<div class="sep"></div><div class="sec" style="margin-bottom:8px">Categorie iCompta</div>';
-    Object.entries(s.categorie).sort().forEach(function(e) {
-      var nome = e[0].indexOf(' : ')>=0 ? e[0].split(' : ')[1] : e[0];
-      var impEco = -e[1];
-      body += '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:12px">';
-      body += '<span style="color:var(--muted)">'+esc(nome)+'</span>';
-      body += '<span style="color:'+(impEco<0?'var(--red)':'var(--green)')+';font-variant-numeric:tabular-nums">'+(impEco>=0?'+':'')+fmt(impEco)+' €</span></div>';
-    });
-  }
-  if (s.movimenti && s.movimenti.length) {
-    body += '<div class="sep"></div><div class="sec" style="margin-bottom:8px">Movimenti ('+s.movimenti.length+')</div>';
-    body += '<div style="max-height:220px;overflow-y:auto">';
-    s.movimenti.forEach(function(m) {
-      body += '<div style="display:flex;align-items:center;padding:3px 0;border-bottom:1px solid var(--border);font-size:11px;gap:6px">';
-      body += '<span style="color:var(--faint);width:68px;flex-shrink:0">'+esc(m.data)+'</span>';
-      body += '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(m.desc)+'</span>';
-      body += '<span style="color:'+(m.importo>=0?'var(--green)':'var(--red)')+';font-variant-numeric:tabular-nums;flex-shrink:0">'+(m.importo>=0?'+':'')+fmt(m.importo)+' €</span></div>';
-    });
-    body += '</div>';
-  }
-  body += '</div>';
-  document.getElementById('stoDetailBody').innerHTML = body;
-  document.getElementById('stoDetailOverlay').classList.add('open');
-}
-
-function closeStoDetail() {
-  document.getElementById('stoDetailOverlay').classList.remove('open');
-}
-
-async function delSto(idx) {
-  if (!confirm('Eliminare questa sessione?')) return;
-  if (!_stoCache) return;
-  _stoCache.sessioni.splice(idx,1);
-  try {
-    var ex = await ghGet('sella_sessioni.json');
-    await ghPut('sella_sessioni.json', JSON.stringify(_stoCache,null,2), ex?ex.sha:undefined);
-    renderSto(); toast('Sessione eliminata','ok');
-  } catch(e) { toast('Errore: '+e.message,'err'); }
-}
-
 // ── STATE ──────────────────────────────────────────
 var movimenti = [];
 var storico = new Set();
@@ -542,35 +425,7 @@ async function saveStorico() {
     var ex = await ghGet(ghCfg().file);
     await ghPut(ghCfg().file, JSON.stringify({ keys: allKeys, updated: new Date().toISOString() }, null, 2), ex ? ex.sha : undefined);
     nuoveKeys.forEach(function(k) { storico.add(k); });
-    // Salva sessione
-    var ent = inc.filter(function(m){return m.importo>0;}).reduce(function(s,m){return s+m.importo;},0);
-    var usc = inc.filter(function(m){return m.importo<0;}).reduce(function(s,m){return s+m.importo;},0);
-    var mapCat = {};
-    inc.filter(function(m){return m.categoria;}).forEach(function(m){
-      if(!mapCat[m.categoria]) mapCat[m.categoria]=0; mapCat[m.categoria]+=m.importo;
-    });
-    var sess = {
-      id: Date.now(),
-      data: new Date().toISOString(),
-      file: document.getElementById('hdrSub').textContent,
-      nuovi: nuoveKeys.length,
-      totale: inc.length,
-      entrate: ent, uscite: usc, saldo: ent+usc,
-      categorie: mapCat,
-      movimenti: inc.map(function(m){return {data:m.dataOp,desc:m.desc,importo:m.importo,cat:m.categoria};})
-    };
-    var exSess = await ghGet('sella_sessioni.json');
-    var sessData = {sessioni:[]};
-    if (exSess) {
-      var r2=atob(exSess.content.replace(/
-/g,'')); var b2=new Uint8Array(r2.length);
-      for(var i2=0;i2<r2.length;i2++) b2[i2]=r2.charCodeAt(i2);
-      sessData = JSON.parse(new TextDecoder('utf-8').decode(b2));
-    }
-    sessData.sessioni.unshift(sess);
-    await ghPut('sella_sessioni.json', JSON.stringify(sessData,null,2), exSess?exSess.sha:undefined);
-
-    toast('Salvato: ' + allKeys.length + ' chiavi, ' + nuoveKeys.length + ' nuovi', 'ok');
+    toast('Storico salvato: ' + allKeys.length + ' chiavi totali', 'ok');
     renderStorViewer();
   } catch(e) {
     toast('Errore: ' + e.message, 'err');
@@ -966,17 +821,15 @@ function delReg(k) {
 // ── TABS ───────────────────────────────────────────
 function switchTab(t) {
   curTab = t;
-  var names = ['mov','eco','reg','sto'];
+  var names = ['mov','eco','reg'];
   document.querySelectorAll('.tab').forEach(function(el, i) {
     el.classList.toggle('active', names[i] === t);
   });
   document.getElementById('tabMov').style.display = t==='mov' ? 'block' : 'none';
   document.getElementById('tabEco').style.display = t==='eco' ? 'block' : 'none';
   document.getElementById('tabReg').style.display = t==='reg' ? 'block' : 'none';
-  document.getElementById('tabSto').style.display = t==='sto' ? 'block' : 'none';
   if (t==='eco') renderEco();
   if (t==='reg') renderReg();
-  if (t==='sto') loadStoTab();
 }
 
 // ── UTILS ──────────────────────────────────────────
