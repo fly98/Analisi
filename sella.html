@@ -398,6 +398,10 @@ var REG_DEF = {
   "decathlon":"Spese Interno1 : Spese Personali",
   "farmacia":"Spese Interno1 : Spese Personali"
 };
+// Chiavi fisse che non vengono mai sovrascritte dall'apprendimento
+// Solo questi pattern non vengono mai sovrascritti dall'apprendimento
+var REG_FIXED = new Set(['amazon', 'amzn']);
+
 
 // ── INIT ───────────────────────────────────────────
 function init() {
@@ -709,8 +713,8 @@ function setCat(i, v) {
   if (s) s.className = 'csel ' + (v ? 'man' : 'emp');
   if (v) {
     var words = movimenti[i].desc.toLowerCase().split(/\s+/).filter(function(w) { return w.length > 3; });
-    if (words[0] && !regole[words[0]]) {
-      regole[words[0]] = v;
+    if (words[0] && !REG_FIXED.has(words[0])) {
+      regole[words[0]] = v; // aggiorna sempre, anche se già esistente
       localStorage.setItem('sella_reg', JSON.stringify(regole));
     }
   }
