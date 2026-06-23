@@ -282,7 +282,7 @@ tr.dup:hover td{opacity:.65}
 
 <script>
 // ── STATE ──────────────────────────────────────────────
-let movimenti=[], storico=new Set(), regole={}, categorie=[], curTab='mov';
+let movimenti=[], storico=new Set(), regole={}, categorie=[], curTab="mov";
 
 const CAT_DEFAULT=[
   "Redditi : Redditi InternoUno e Deluxe","Altri redditi : Filippo","Altri redditi : Mamma","Altri redditi : Rimborsi",
@@ -357,7 +357,7 @@ async function loadStorico(){
   const el=document.getElementById('ghStatus'); el.innerHTML='<span class="spin"></span>';
   try{
     const d=await ghGet(ghCfg().file);
-    if(d){const j=JSON.parse(decodeURIComponent(escape(atob(d.content))));storico=new Set(j.ids||[]);el.textContent=`✓ ${storico.size} movimenti`;}
+    if(d){const j=JSON.parse(decodeURIComponent(escape(atob(d.content))));storico=new Set(j.keys||j.ids||[]);el.textContent=`✓ ${storico.size} movimenti`;}
     else{storico=new Set();el.textContent='⚠️ Nessuno storico';}
     const rd=await ghGet('sella_regole.json');
     if(rd){regole={...REG_DEFAULT,...JSON.parse(decodeURIComponent(escape(atob(rd.content))))};localStorage.setItem('sella_reg',JSON.stringify(regole));}
@@ -372,7 +372,7 @@ function renderStoricoViewer(){
   const list=document.getElementById('storicoList');
   const ids=[...storico];
   if(!ids.length){info.textContent='Storico vuoto.';list.style.display='none';return;}
-  info.textContent=`${ids.length} movimenti in storico. Questi verranno marcati come duplicati.`;
+  info.textContent=`${ids.length} chiavi in storico (data|importo). I movimenti già presenti verranno marcati come duplicati.`;
   list.style.display='block';
   list.innerHTML=ids.map(id=>`<div style="padding:1px 0;border-bottom:1px solid var(--border)">${id}</div>`).join('');
 }
@@ -386,12 +386,13 @@ function svuotaStorico(){
 }
 
 async function saveStorico(){
-  const ids=[...new Set([...storico,...movimenti.filter(m=>m.includi).map(m=>m.id)])];
+  const nuoveKeys=movimenti.filter(m=>m.includi&&!m.isDup).map(m=>m.storKey);
+  const keys=[...new Set([...storico,...nuoveKeys])];
   try{
     document.querySelector('.btn[onclick="saveStorico()"]').disabled=true;
     const ex=await ghGet(ghCfg().file);
-    await ghPut(ghCfg().file,JSON.stringify({ids,updated:new Date().toISOString()},null,2),ex?.sha);
-    ids.forEach(id=>storico.add(id)); toast(`Storico salvato: ${ids.length} ID`,'ok');
+    await ghPut(ghCfg().file,JSON.stringify({keys:keys,updated:new Date().toISOString()},null,2),ex?.sha);
+    nuoveKeys.forEach(k=>storico.add(k)); toast(`Storico salvato: ${keys.length} chiavi totali`,'ok');
   }catch(e){toast(e.message,'err');}
   finally{document.querySelector('.btn[onclick="saveStorico()"]').disabled=false;}
 }
@@ -451,10 +452,11 @@ async function handleFile(file){
     const etich=c[9]?.replace(/"/g,'').trim()||'';
     if(!dataOp)continue;
     const importo=parseAmt(deb,cred);
+    const storKey=`${dataOp}|${importo.toFixed(2)}`;
     const id=makeId(codice, importo);
-    const isDup=storico.has(id);
+    const isDup=storico.has(storKey);
     const{cat,src}=suggerisci(desc,etich);
-    movimenti.push({id,isDup,importo,includi:!isDup,dataOp,dataVal,desc,etich,catSella,categoria:cat,catSrc:src,commento:''});
+    movimenti.push({id,storKey,isDup,importo,includi:!isDup,dataOp,dataVal,desc,etich,catSella,categoria:cat,catSrc:src,commento:''});
   }
   document.getElementById('drop').style.display='none';
   document.getElementById('tabs').style.display='flex';
