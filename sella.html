@@ -322,32 +322,14 @@ function openStoDetail(idx) {
 
 function closeStoDetail() { document.getElementById('stoDetailOverlay').classList.remove('open'); }
 
-async async function delSto(idx) {
-  if (!confirm('Eliminare la sessione e rimuovere i movimenti dallo storico?')) return;
+async function delSto(idx) {
+  if (!confirm('Eliminare questa sessione?')) return;
   if (!_stoCache) return;
-  var sess = _stoCache.sessioni[idx];
-  var keysToRemove = new Set((sess.movimenti||[]).map(function(m) {
-    return m.data + '|' + m.importo.toFixed(2) + '|' + (m.desc||'').substring(0,40);
-  }));
+  _stoCache.sessioni.splice(idx,1);
   try {
-    _stoCache.sessioni.splice(idx,1);
-    var exSess = await ghGet('sella_sessioni.json');
-    await ghPut('sella_sessioni.json', JSON.stringify(_stoCache,null,2), exSess?exSess.sha:undefined);
-    var exStor = await ghGet(ghCfg().file);
-    if (exStor) {
-      var rr=atob(exStor.content.replace(/\n/g,'')); var bb=new Uint8Array(rr.length);
-      for(var ii=0;ii<rr.length;ii++) bb[ii]=rr.charCodeAt(ii);
-      var storData = JSON.parse(new TextDecoder('utf-8').decode(bb));
-      var before = storData.keys.length;
-      storData.keys = storData.keys.filter(function(k) { return !keysToRemove.has(k); });
-      keysToRemove.forEach(function(k) { storico.delete(k); });
-      await ghPut(ghCfg().file, JSON.stringify(storData,null,2), exStor.sha);
-      toast('Rimossa sessione e ' + (before - storData.keys.length) + ' chiavi', 'ok');
-    } else {
-      toast('Sessione eliminata', 'ok');
-    }
-    renderSto();
-    if (movimenti.length) renderTable();
+    var ex=await ghGet('sella_sessioni.json');
+    await ghPut('sella_sessioni.json',JSON.stringify(_stoCache,null,2),ex?ex.sha:undefined);
+    renderSto(); toast('Sessione eliminata','ok');
   } catch(e) { toast('Errore: '+e.message,'err'); }
 }
 
