@@ -4,7 +4,6 @@ on:
   push:
     paths:
       - 'icompta_worker.js'
-      - 'icompta_wrangler.toml'
     branches:
       - main
   workflow_dispatch:
@@ -14,11 +13,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Create wrangler config
+        run: |
+          cat > wrangler_icompta_deploy.toml << 'EOF'
+          name = "icompta-worker"
+          main = "icompta_worker.js"
+          compatibility_date = "2024-01-01"
+
+          [[kv_namespaces]]
+          binding = "ICOMPTA_KV"
+          id = "1d8d7db930004f9eaa73e17af65b0957"
+          EOF
       - name: Deploy with Wrangler
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CF_API_TOKEN }}
           accountId: ${{ secrets.CF_ACCOUNT_ID }}
           wranglerVersion: '3'
-          command: deploy icompta_worker.js --name icompta-worker --compatibility-date 2024-01-01 --no-bundle --kv-namespace ICOMPTA_KV:1d8d7db930004f9eaa73e17af65b0957
+          command: deploy --config wrangler_icompta_deploy.toml
 
