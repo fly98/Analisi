@@ -714,8 +714,12 @@ function setCat(i, v) {
   if (v) {
     var words = movimenti[i].desc.toLowerCase().split(/\s+/).filter(function(w) { return w.length > 3; });
     if (words[0] && !REG_FIXED.has(words[0])) {
-      regole[words[0]] = v; // aggiorna sempre, anche se già esistente
+      regole[words[0]] = v;
       localStorage.setItem('sella_reg', JSON.stringify(regole));
+      // Salva automaticamente su GitHub (fire & forget)
+      ghGet('sella_regole.json').then(function(ex) {
+        ghPut('sella_regole.json', JSON.stringify(regole, null, 2), ex ? ex.sha : undefined);
+      }).catch(function(){});
     }
   }
   updateStats();
