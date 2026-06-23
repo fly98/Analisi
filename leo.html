@@ -292,6 +292,7 @@ input[type=checkbox]{accent-color:var(--text);cursor:pointer}
     <div id="saldo-box"></div>
     <div style="display:flex;justify-content:flex-end;margin-top:1rem">
       <button class="btn btn-p" onclick="salva()">💾 Salva in storico</button>
+      <button class="btn" onclick="esportaICompta()" style="margin-left:8px">📊 Esporta iCompta</button>
     </div>
   </div>
 
@@ -882,6 +883,7 @@ function renderSto(hist){
       <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
         <span style="font-size:18px;color:var(--faint)">›</span>
         <button class="btn" onclick="event.stopPropagation();generaPDF(${i})" style="font-size:12px;padding:5px 10px">📄 PDF</button>
+        <button class="btn" onclick="event.stopPropagation();esportaIComptaSto(${i})" style="font-size:12px;padding:5px 10px">📊 iCompta</button>
         <button class="btn btn-d" onclick="event.stopPropagation();delSto(${i})">🗑</button>
       </div>
     </div>
@@ -1115,6 +1117,105 @@ function fmtEur(n){return '€'+Number(n).toLocaleString('it-IT',{minimumFractio
 function toISO(d){return d.toISOString().slice(0,10);}
 
 calcSaldo();
+
+// ── EXPORT iCOMPTA ─────────────────────────────────────────────
+function buildIComptaCSV(s) {
+  const hdr = 'Conto;ID;Stato;Data;Data valuta;Nome;Commento;Importo;Importo netto;Tasse;Percentuale tasse;Beneficiario;Tipo;Numero;Categoria;Investimento;Titoli;Azioni;Commissione;Links;Categoria tasse;Rapporto;Progetto;Non includere nei budget;Fattura;Non includere negli estratticonto;Non includerlo nel calcolo del bilancio medio del conto;Rimborso';
+
+  const oggi = s.dataSalvataggio
+    ? new Date(s.dataSalvataggio).toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'})
+    : new Date().toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'});
+  const periodo = s.periodo || '';
+
+  function riga(nome, importo, categoria, commento) {
+    if (!importo || importo === 0) return null;
+    // Partita doppia: segno opposto (redditi negativi, spese positive)
+    const imp = (-importo).toFixed(2);
+    return ['Attivo : InternoUno','','Creato',oggi,oggi,nome,commento||'',imp,
+      '','','','','','',categoria,
+      '','','','','','','100','','0','','0','0','0'].join(';');
+  }
+
+  const rows = [];
+
+  // Clienti (contanti + stripe) → Redditi
+  const totClienti = (s.totContanti||0) + (s.stripe||0);
+  if (totClienti) {
+    const cashDetail = (s.cashIds||[]).map(id => {
+      const p = id.split('|'); return (p[1]||'') + ' ' + (p[2]||'');
+    }).join(', ');
+    const r = riga('Clienti', totClienti, 'Redditi : Redditi InternoUno e Deluxe', 'cont ' + periodo + (cashDetail ? ' · ' + cashDetail.substring(0,100) : ''));
+    if (r) rows.push(r);
+  }
+
+  // Leo (stipendio settimane) → Pulizia
+  if (s.wkTot) {
+    const wkDetail = s.wkDateSel && s.wkDateSel.length ? s.wkDateSel.join(', ') : (s.wkN||0) + ' sett.';
+    const r = riga('Leo', s.wkTot, 'Spese Interno1 : Pulizia', 'stipendio ' + wkDetail);
+    if (r) rows.push(r);
+  }
+
+  // Ferie → Ferie
+  if (s.ferie) {
+    const ferieDetail = s.ferieDal && s.ferieAl ? s.ferieDal + ' - ' + s.ferieAl : '';
+    const r = riga('Leo', s.ferie, 'Spese Interno1 : Ferie', 'ferie ' + ferieDetail);
+    if (r) rows.push(r);
+  }
+
+  // Manutenzione → Manutenzione
+  if (s.man) {
+    const r = riga('Manutenzione', s.man, 'Spese Interno1 : Manutenzione', 'manutenzione ' + periodo);
+    if (r) rows.push(r);
+  }
+
+  // Spese personali → Spese Personali
+  if (s.sp) {
+    const r = riga('personali', s.sp, 'Spese Interno1 : Spese Personali', 'spese personali ' + periodo);
+    if (r) rows.push(r);
+  }
+
+  // Babbo escluso (lo inserisce manualmente)
+
+  if (!rows.length) { alert('Nessuna voce da esportare.'); return null; }
+  return '\uFEFF' + hdr + '\n' + rows.join('\n');
+}
+
+function esportaICompta() {
+  if (!S.loaded || !S.lastCalc) { alert('Calcola prima la liquidazione.'); return; }
+  const fakeSession = {
+    ...S.lastCalc,
+    dataSalvataggio: new Date().toISOString(),
+    periodo: S.periodStart && S.fileDate ? fmtDate(S.periodStart) + ' - ' + fmtDate(S.fileDate) : '',
+    cashIds: []
+  };
+  // Recupera cashIds dai checkbox selezionati
+  document.querySelectorAll('#cash-tbody input[type=checkbox]:checked').forEach(cb => {
+    const r = S.cashRows[parseInt(cb.dataset.i)];
+    fakeSession.cashIds.push((r.date?fmtDate(r.date):'?')+'|'+(r.cliente||'?')+'|'+r.importo);
+  });
+  document.querySelectorAll('#stripe-tbody input[type=checkbox]:checked').forEach(cb => {
+    const r = S.stripeRows[parseInt(cb.dataset.i)];
+    fakeSession.cashIds.push((r.date?fmtDate(r.date):'?')+'|'+(r.cliente||'?')+'|'+r.importo);
+  });
+  const csv = buildIComptaCSV(fakeSession);
+  if (!csv) return;
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv;charset=utf-8'}));
+  a.download = 'Leo_iCompta.csv';
+  a.click();
+}
+
+function esportaIComptaSto(idx) {
+  const hist = _cache || {sessioni:[]};
+  const s = hist.sessioni[idx];
+  if (!s) return;
+  const csv = buildIComptaCSV(s);
+  if (!csv) return;
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv;charset=utf-8'}));
+  a.download = 'Leo_iCompta_' + (s.periodo||'').replace(/[^a-zA-Z0-9]/g,'_') + '.csv';
+  a.click();
+}
 </script>
 </body>
 </html>
