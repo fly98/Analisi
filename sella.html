@@ -372,7 +372,7 @@ function renderStoricoViewer(){
   const list=document.getElementById('storicoList');
   const ids=[...storico];
   if(!ids.length){info.textContent='Storico vuoto.';list.style.display='none';return;}
-  info.textContent=`${ids.length} chiavi in storico (data|importo). I movimenti già presenti verranno marcati come duplicati.`;
+  info.textContent=`${ids.length} chiavi in storico (data|importo|descrizione). I movimenti già presenti verranno marcati come duplicati.`;
   list.style.display='block';
   list.innerHTML=ids.map(id=>`<div style="padding:1px 0;border-bottom:1px solid var(--border)">${id}</div>`).join('');
 }
@@ -452,7 +452,7 @@ async function handleFile(file){
     const etich=c[9]?.replace(/"/g,'').trim()||'';
     if(!dataOp)continue;
     const importo=parseAmt(deb,cred);
-    const storKey=`${dataOp}|${importo.toFixed(2)}`;
+    const storKey=`${dataOp}|${importo.toFixed(2)}|${desc.substring(0,40)}`;
     const id=makeId(codice, importo);
     const isDup=storico.has(storKey);
     const{cat,src}=suggerisci(desc,etich);
