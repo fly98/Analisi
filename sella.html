@@ -280,18 +280,24 @@ var REG_DEF = {
 
 // ── INIT ───────────────────────────────────────────
 function init() {
+  var DEF = { r: 'fly98/Analisi', f: 'sella_storico.json' };
   var cfg = localStorage.getItem('sella_cfg');
-  if (cfg) {
-    var c = JSON.parse(cfg);
-    if (c.t) document.getElementById('ghToken').value = c.t;
-    if (c.r) document.getElementById('ghRepo').value = c.r;
-    if (c.f) document.getElementById('ghFile').value = c.f;
+  var c = cfg ? JSON.parse(cfg) : {};
+  // Se non c'è il token, chiede una sola volta e lo salva
+  if (!c.t) {
+    var pat = prompt('Inserisci il GitHub PAT (verrà salvato localmente):');
+    if (pat) { c.t = pat.trim(); c.r = DEF.r; c.f = DEF.f; localStorage.setItem('sella_cfg', JSON.stringify(c)); }
   }
+  document.getElementById('ghToken').value = c.t || '';
+  document.getElementById('ghRepo').value = c.r || DEF.r;
+  document.getElementById('ghFile').value = c.f || DEF.f;
   var sc = localStorage.getItem('sella_cats');
   categorie = sc ? JSON.parse(sc) : CAT_DEF.slice();
   var sr = localStorage.getItem('sella_reg');
   regole = sr ? JSON.parse(sr) : JSON.parse(JSON.stringify(REG_DEF));
   renderCats();
+  // Carica storico automaticamente all'avvio
+  loadStorico();
 }
 
 // ── CONFIG ─────────────────────────────────────────
