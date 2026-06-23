@@ -122,6 +122,7 @@ tr.dup:hover td{opacity:.6}
   <div class="hdr-stats" id="hdrStats" style="display:none">
     <div class="stat"><div class="stat-v pos" id="sEnt">—</div><div class="stat-l">Entrate</div></div>
     <div class="stat"><div class="stat-v neg" id="sUsc">—</div><div class="stat-l">Uscite</div></div>
+    <div class="stat"><div class="stat-v" id="sSaldo">—</div><div class="stat-l">Saldo</div></div>
     <div class="stat"><div class="stat-v" id="sNuovi">—</div><div class="stat-l">Nuovi</div></div>
     <div class="stat"><div class="stat-v" id="sDup" style="color:var(--red)">—</div><div class="stat-l">Duplicati</div></div>
   </div>
@@ -185,11 +186,20 @@ tr.dup:hover td{opacity:.6}
       <button class="btn grn" onclick="exportBanca()">⬇️ OFX Banca</button>
       <button class="btn pri" onclick="exportEco()">⬇️ CSV Economico</button>
       <button class="btn" onclick="saveStorico()" id="btnStor">☁️ Salva storico</button>
-      <button class="btn" onclick="mostraVerifica()" style="background:var(--amber-bg);color:var(--amber);border-color:var(--amber-b)">⚖️ Verifica</button>
       <div class="badges">
         <span class="bdg new" id="bNew">—</span>
         <span class="bdg dup" id="bDup">—</span>
         <span class="bdg cat" id="bCat">—</span>
+      </div>
+    </div>
+    <!-- VERIFICA AUTOMATICA PARTITA DOPPIA -->
+    <div id="verificaBar" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);padding:10px 14px;margin-bottom:12px;font-size:12px">
+      <div style="display:flex;gap:24px;align-items:center;flex-wrap:wrap">
+        <span style="font-weight:600;color:var(--muted)">⚖️ Partita doppia</span>
+        <span>Banca: <strong id="vBanca">—</strong></span>
+        <span>Economico: <strong id="vEco">—</strong></span>
+        <span id="vDiff" style="font-weight:700"></span>
+        <span id="vNonCat" style="color:var(--amber)"></span>
       </div>
     </div>
     <div class="tbl-wrap">
@@ -607,13 +617,64 @@ function updateStats() {
   var cat = inc.filter(function(m) { return m.categoria; }).length;
   var ent = inc.filter(function(m) { return m.importo > 0; }).reduce(function(s,m) { return s+m.importo; }, 0);
   var usc = inc.filter(function(m) { return m.importo < 0; }).reduce(function(s,m) { return s+m.importo; }, 0);
+  var saldo = ent + usc;
+
   document.getElementById('sEnt').textContent = '+' + fmt(ent) + ' €';
   document.getElementById('sUsc').textContent = fmt(usc) + ' €';
+  var sEl = document.getElementById('sSaldo');
+  sEl.textContent = (saldo >= 0 ? '+' : '') + fmt(saldo) + ' €';
+  sEl.className = 'stat-v ' + (saldo >= 0 ? 'pos' : 'neg');
   document.getElementById('sNuovi').textContent = nuovi;
   document.getElementById('sDup').textContent = dup;
   document.getElementById('bNew').textContent = nuovi + ' nuovi';
   document.getElementById('bDup').textContent = dup + ' duplicati';
   document.getElementById('bCat').textContent = cat + '/' + inc.length + ' cat.';
+
+  // Verifica automatica partita doppia
+  aggiornaVerifica(inc, ent, usc, saldo);
+}
+
+function aggiornaVerifica(inc, ent, usc, nettoBanca) {
+  var bar = document.getElementById('verificaBar');
+  if (!inc.length) { bar.style.display = 'none'; return; }
+  bar.style.display = 'block';
+
+  // Aggregato economico (segno invertito)
+  var map = {};
+  inc.filter(function(m) { return m.categoria; }).forEach(function(m) {
+    if (!map[m.categoria]) map[m.categoria] = 0;
+    map[m.categoria] += m.importo;
+  });
+  var totEco = 0;
+  Object.values(map).forEach(function(v) { totEco += -v; });
+
+  var nonCat = inc.filter(function(m) { return !m.categoria; }).length;
+  var diff = nettoBanca + totEco;
+  var ok = Math.abs(diff) < 0.02 && nonCat === 0;
+
+  document.getElementById('vBanca').textContent = (nettoBanca>=0?'+':'') + fmt(nettoBanca) + ' €';
+  document.getElementById('vEco').textContent = (totEco>=0?'+':'') + fmt(totEco) + ' €';
+
+  var diffEl = document.getElementById('vDiff');
+  var nonCatEl = document.getElementById('vNonCat');
+
+  if (ok) {
+    diffEl.textContent = '✓ Bilanciata';
+    diffEl.style.color = 'var(--green)';
+    nonCatEl.textContent = '';
+    bar.style.borderColor = 'var(--green-b)';
+    bar.style.background = 'var(--green-bg)';
+  } else {
+    if (Math.abs(diff) > 0.02) {
+      diffEl.textContent = 'Diff: ' + (diff>=0?'+':'') + fmt(diff) + ' €';
+      diffEl.style.color = 'var(--red)';
+    } else {
+      diffEl.textContent = '';
+    }
+    nonCatEl.textContent = nonCat > 0 ? '⚠️ ' + nonCat + ' senza categoria' : '';
+    bar.style.borderColor = 'var(--amber-b)';
+    bar.style.background = 'var(--amber-bg)';
+  }
 }
 
 // ── ECONOMICO ──────────────────────────────────────
