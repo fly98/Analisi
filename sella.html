@@ -193,6 +193,12 @@ tr.dup:hover td{opacity:.65}
     </div>
 
     <div class="sep"></div>
+
+    <div class="sep"></div>
+    <div class="section-title">Storico movimenti</div>
+    <div id="storicoInfo" style="font-size:12px;color:var(--muted);margin-bottom:8px">Carica lo storico per vedere i dettagli.</div>
+    <div id="storicoList" style="max-height:140px;overflow-y:auto;background:var(--bg);border:1px solid var(--border);border-radius:var(--rs);padding:8px;font-size:11px;font-family:monospace;color:var(--muted);display:none"></div>
+    <div style="margin-top:8px"><button class="btn" onclick="svuotaStorico()" style="color:var(--red);border-color:var(--red-b);font-size:12px">🗑 Svuota storico locale</button></div>
     <div class="section-title">Categorie iCompta</div>
     <div class="cat-list" id="catList"></div>
     <div class="new-cat">
@@ -357,7 +363,26 @@ async function loadStorico(){
     if(rd){regole={...REG_DEFAULT,...JSON.parse(decodeURIComponent(escape(atob(rd.content))))};localStorage.setItem('sella_reg',JSON.stringify(regole));}
     if(movimenti.length)renderTable();
     toast(`Storico: ${storico.size} movimenti`,'ok');
+    renderStoricoViewer();
   }catch(e){el.textContent=`✗ ${e.message}`;toast(e.message,'err');}
+}
+
+function renderStoricoViewer(){
+  const info=document.getElementById('storicoInfo');
+  const list=document.getElementById('storicoList');
+  const ids=[...storico];
+  if(!ids.length){info.textContent='Storico vuoto.';list.style.display='none';return;}
+  info.textContent=`${ids.length} movimenti in storico. Questi verranno marcati come duplicati.`;
+  list.style.display='block';
+  list.innerHTML=ids.map(id=>`<div style="padding:1px 0;border-bottom:1px solid var(--border)">${id}</div>`).join('');
+}
+
+function svuotaStorico(){
+  if(!confirm(`Svuotare lo storico locale (${storico.size} ID)? Il file su GitHub non viene modificato.`))return;
+  storico=new Set();
+  renderStoricoViewer();
+  if(movimenti.length)renderTable();
+  toast('Storico locale svuotato','ok');
 }
 
 async function saveStorico(){
@@ -382,9 +407,17 @@ async function sha256(s){const b=await crypto.subtle.digest('SHA-256',new TextEn
 // ── CSV PARSING ────────────────────────────────────────
 function parseCSVLine(line){const r=[];let c='',q=false;for(const ch of line){if(ch==='"'){q=!q;}else if(ch===','&&!q){r.push(c);c='';}else c+=ch;}r.push(c);return r;}
 function parseAmt(deb,cred){
-  const d=deb?parseFloat(deb.replace(/[+\s,]/g,s=>s===','?'.':'')):0;
-  const c=cred?parseFloat(cred.replace(/[+\s,]/g,s=>s===','?'.':'')):0;
-  if(c>0)return c; if(d>0)return -d; return 0;
+  // Formato italiano: separatore migliaia=punto, decimale=virgola (es: +3.186,70)
+  function toF(s){
+    s=s.trim().replace(/[+\-]/g,'');
+    if(s.includes(',')) s=s.replace(/\./g,'').replace(',','.');
+    return parseFloat(s)||0;
+  }
+  const d=deb&&deb.trim()?toF(deb):0;
+  const c=cred&&cred.trim()?toF(cred):0;
+  if(cred&&cred.trim())return c;
+  if(deb&&deb.trim())return -d;
+  return 0;
 }
 function suggerisci(desc,etich){
   const d=(desc+' '+etich).toLowerCase();
