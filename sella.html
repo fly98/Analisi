@@ -955,6 +955,7 @@ function switchTab(t) {
   document.getElementById('tabReg').style.display = t==='reg' ? 'block' : 'none';
   if (t==='eco') renderEco();
   document.getElementById('tabSto').style.display = t==='sto' ? 'block' : 'none';
+  var dropEl = document.getElementById('drop'); if(dropEl) dropEl.style.display = t==='sto' ? 'none' : (movimenti.length ? 'none' : 'block');
   if (t==='reg') renderReg();
   if (t==='sto') loadStoTab();
 }
