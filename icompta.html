@@ -44,6 +44,11 @@ body { padding-top: env(safe-area-inset-top, 0); }
 
 /* ── Sidebar ── */
 #sidebar-header { padding: 12px 16px 8px; flex-shrink: 0; }
+#total-box { margin: 0 12px 10px; padding: 10px 14px; border-radius: 12px;
+  background: var(--blue); color: white; display: flex; align-items: center;
+  justify-content: space-between; flex-shrink: 0; }
+#total-box .total-label { font-size: 12px; font-weight: 600; opacity: 0.85; }
+#total-box .total-amount { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; }
 #sidebar-header h2 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
 .search-box { width: 100%; padding: 7px 12px; border-radius: 10px;
   background: var(--gray2); border: none; font-size: 14px; outline: none; }
@@ -195,13 +200,14 @@ body { padding-top: env(safe-area-inset-top, 0); }
       <h2>Conti</h2>
       <input class="search-box" type="search" placeholder="Cerca..." oninput="filterAccounts(this.value)">
     </div>
+    <div id="total-box">
+      <span class="total-label">💰 Disponibile</span>
+      <span class="total-amount" id="total-balance">—</span>
+    </div>
     <div id="accounts-list">
       <div id="loading" style="margin:40px auto"><div class="spinner"></div> Caricamento...</div>
     </div>
-    <div class="total-row">
-      <span class="total-label">Totale</span>
-      <span id="total-balance" class="acc-balance bal-zero">—</span>
-    </div>
+
   </div>
 
   <!-- Main -->
