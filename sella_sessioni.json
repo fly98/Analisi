@@ -1,3 +1,93 @@
 {
-  "sessioni": []
+  "sessioni": [
+    {
+      "id": 1782240661584,
+      "data": "2026-06-23T18:51:01.584Z",
+      "file": "ListaMovimentiConto.csv",
+      "nuovi": 12,
+      "totale": 12,
+      "entrate": 796.27,
+      "uscite": -235.70999999999998,
+      "saldo": 560.56,
+      "categorie": {
+        "Redditi : Redditi InternoUno e Deluxe": 796.27,
+        "Spese Interno1 : Ufficio": -122.31,
+        "Spese Interno1 : Spese Personali": -113.39999999999999
+      },
+      "movimenti": [
+        {
+          "data": "23/06/2026",
+          "desc": "BS 323978547168 2206",
+          "importo": 110,
+          "cat": "Redditi : Redditi InternoUno e Deluxe"
+        },
+        {
+          "data": "22/06/2026",
+          "desc": "ANTHROPIC +14152360599",
+          "importo": -38.25,
+          "cat": "Spese Interno1 : Ufficio"
+        },
+        {
+          "data": "22/06/2026",
+          "desc": "Airbnb DA AIRBNB PAYMENTS LUXEMBOURG S.A.",
+          "importo": 87.03,
+          "cat": "Redditi : Redditi InternoUno e Deluxe"
+        },
+        {
+          "data": "22/06/2026",
+          "desc": "ANTHROPIC +14152360599",
+          "importo": -20,
+          "cat": "Spese Interno1 : Ufficio"
+        },
+        {
+          "data": "21/06/2026",
+          "desc": "Pagamento permanenza Hotel Internouno Deluxe DA RISPOLI ROBERTA",
+          "importo": 579.24,
+          "cat": "Redditi : Redditi InternoUno e Deluxe"
+        },
+        {
+          "data": "21/06/2026",
+          "desc": "APPLE.COM/BILL 800915904",
+          "importo": -8.99,
+          "cat": "Spese Interno1 : Ufficio"
+        },
+        {
+          "data": "21/06/2026",
+          "desc": "BS 323978547168 2006",
+          "importo": 15,
+          "cat": "Redditi : Redditi InternoUno e Deluxe"
+        },
+        {
+          "data": "21/06/2026",
+          "desc": "WWWARUBAIT BIBBIENA",
+          "importo": -20.12,
+          "cat": "Spese Interno1 : Ufficio"
+        },
+        {
+          "data": "20/06/2026",
+          "desc": "AMAZON +18882796620",
+          "importo": -99.96,
+          "cat": "Spese Interno1 : Spese Personali"
+        },
+        {
+          "data": "20/06/2026",
+          "desc": "FARMACIA FILATTIERA ROMA RM",
+          "importo": -13.44,
+          "cat": "Spese Interno1 : Spese Personali"
+        },
+        {
+          "data": "20/06/2026",
+          "desc": "APPLE.COM/BILL 800915904",
+          "importo": -34.95,
+          "cat": "Spese Interno1 : Ufficio"
+        },
+        {
+          "data": "20/06/2026",
+          "desc": "BS 323978547368 1906",
+          "importo": 5,
+          "cat": "Redditi : Redditi InternoUno e Deluxe"
+        }
+      ]
+    }
+  ]
 }
