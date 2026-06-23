@@ -1129,8 +1129,7 @@ function buildIComptaCSV(s) {
 
   function riga(nome, importo, categoria, commento) {
     if (!importo || importo === 0) return null;
-    // Partita doppia: segno opposto (redditi negativi, spese positive)
-    const imp = (-importo).toFixed(2);
+    const imp = (-importo).toFixed(2); // partita doppia: segno opposto
     return ['Attivo : InternoUno','','Creato',oggi,oggi,nome,commento||'',imp,
       '','','','','','',categoria,
       '','','','','','','100','','0','','0','0','0'].join(';');
@@ -1138,48 +1137,52 @@ function buildIComptaCSV(s) {
 
   const rows = [];
 
-  // Clienti (contanti + stripe) → Redditi
+  // Clienti (contanti + stripe) → Redditi : Redditi InternoUno e Deluxe
   const totClienti = (s.totContanti||0) + (s.stripe||0);
   if (totClienti) {
-    const cashDetail = (s.cashIds||[]).map(id => {
-      const p = id.split('|'); return (p[1]||'') + ' ' + (p[2]||'');
-    }).join(', ');
-    const r = riga('Clienti', totClienti, 'Redditi : Redditi InternoUno e Deluxe', 'cont ' + periodo + (cashDetail ? ' · ' + cashDetail.substring(0,100) : ''));
+    const cashDetail = (s.cashIds||[]).map(id => id.split('|')[1]||'').join(', ');
+    const r = riga('Clienti', totClienti, 'Redditi : Redditi InternoUno e Deluxe',
+      'cont ' + periodo + (cashDetail ? ' · ' + cashDetail.substring(0,120) : ''));
     if (r) rows.push(r);
   }
 
-  // Leo (stipendio settimane) → Pulizia
+  // Weekend e festività → Spese Interno1 : Weekend
   if (s.wkTot) {
-    const wkDetail = s.wkDateSel && s.wkDateSel.length ? s.wkDateSel.join(', ') : (s.wkN||0) + ' sett.';
-    const r = riga('Leo', s.wkTot, 'Spese Interno1 : Pulizia', 'stipendio ' + wkDetail);
+    const wkDetail = s.wkDateSel && s.wkDateSel.length ? s.wkDateSel.join(', ') : (s.wkN||0) + ' giorni';
+    const r = riga('Leo', s.wkTot, 'Spese Interno1 : Weekend', 'weekend/festività ' + wkDetail);
     if (r) rows.push(r);
   }
 
-  // Ferie → Ferie
+  // Ferie → Spese Interno1 : Ferie
   if (s.ferie) {
     const ferieDetail = s.ferieDal && s.ferieAl ? s.ferieDal + ' - ' + s.ferieAl : '';
     const r = riga('Leo', s.ferie, 'Spese Interno1 : Ferie', 'ferie ' + ferieDetail);
     if (r) rows.push(r);
   }
 
-  // Manutenzione → Manutenzione
+  // Spesa B&B → Spese Interno1 : Prodotti Pulizia
+  if (s.sp) {
+    const r = riga('Leo', s.sp, 'Spese Interno1 : Prodotti Pulizia', 'spesa B&B ' + periodo);
+    if (r) rows.push(r);
+  }
+
+  // Manutenzione → Spese Interno1 : Manutenzione
   if (s.man) {
     const r = riga('Manutenzione', s.man, 'Spese Interno1 : Manutenzione', 'manutenzione ' + periodo);
     if (r) rows.push(r);
   }
 
-  // Spese personali → Spese Personali
-  if (s.sp) {
-    const r = riga('personali', s.sp, 'Spese Interno1 : Spese Personali', 'spese personali ' + periodo);
+  // Stipendio → Spese Interno1 : Pulizia
+  if (s.stip) {
+    const r = riga('Leo', s.stip, 'Spese Interno1 : Pulizia', 'stipendio ' + periodo);
     if (r) rows.push(r);
   }
 
-  // Babbo escluso (lo inserisce manualmente)
+  // Babbo → ignorato (inserito manualmente su altro conto)
 
   if (!rows.length) { alert('Nessuna voce da esportare.'); return null; }
   return '\uFEFF' + hdr + '\n' + rows.join('\n');
 }
-
 function esportaICompta() {
   if (!S.loaded || !S.lastCalc) { alert('Calcola prima la liquidazione.'); return; }
   const fakeSession = {
