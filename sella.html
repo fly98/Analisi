@@ -182,7 +182,7 @@ tr.dup:hover td{opacity:.6}
     <div class="act" id="actBar" style="display:none">
       <button class="btn" onclick="selAll(true)">✓ Tutti</button>
       <button class="btn" onclick="selAll(false)">✗ Escludi duplicati</button>
-      <button class="btn grn" onclick="exportBanca()">⬇️ CSV Banca</button>
+      <button class="btn grn" onclick="exportBanca()">⬇️ OFX Banca</button>
       <button class="btn pri" onclick="exportEco()">⬇️ CSV Economico</button>
       <button class="btn" onclick="saveStorico()" id="btnStor">☁️ Salva storico</button>
       <div class="badges">
@@ -636,19 +636,61 @@ function renderEco() {
   }).join('');
 }
 
-// ── EXPORT BANCA ───────────────────────────────────
+// ── EXPORT BANCA OFX ───────────────────────────────
 function exportBanca() {
   var inc = movimenti.filter(function(m) { return m.includi; });
   if (!inc.length) { toast('Nessun movimento selezionato', 'err'); return; }
-  var hdr = 'Conto;ID;Stato;Data;Data valuta;Nome;Commento;Importo;Importo netto;Tasse;Percentuale tasse;Beneficiario;Tipo;Numero;Categoria;Investimento;Titoli;Azioni;Commissione;Links;Categoria tasse;Rapporto;Progetto;Non includere nei budget;Fattura;Non includere negli estratticonto;Non includerlo nel calcolo del bilancio medio del conto;Rimborso';
-  var rows = inc.map(function(m) {
-    return ['Banche : InternoUno Banca', m.storKey, 'Creato',
-      m.dataOp, m.dataVal, csvE(m.desc), csvE(m.commento||''), m.importo.toFixed(2),
-      '','','','','','', csvE(m.categoria||m.catSella||''),
-      '','','','','','','100','','0','','0','0','0'].join(';');
-  });
-  dl('\uFEFF' + hdr + '\n' + rows.join('\n'), 'iCompta_BancaSella.csv');
-  toast(inc.length + ' movimenti esportati', 'ok');
+
+  function fmtDate(d) {
+    var p = d.split('/');
+    if (p.length < 3) return d;
+    return p[2] + p[1] + p[0] + '000000';
+  }
+  function xmlEsc(s) {
+    return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  var now = new Date();
+  var dtserver = now.getFullYear() + String(now.getMonth()+1).padStart(2,'0') + String(now.getDate()).padStart(2,'0') + '120000';
+  var dtstart = inc.length ? fmtDate(inc[inc.length-1].dataOp) : dtserver;
+  var dtend   = inc.length ? fmtDate(inc[0].dataOp) : dtserver;
+
+  var trns = inc.map(function(m) {
+    return '<STMTTRN>' +
+      '<TRNTYPE>' + (m.importo >= 0 ? 'CREDIT' : 'DEBIT') + '</TRNTYPE>' +
+      '<DTPOSTED>' + fmtDate(m.dataOp) + '</DTPOSTED>' +
+      '<TRNAMT>' + m.importo.toFixed(2) + '</TRNAMT>' +
+      '<FITID>' + xmlEsc(m.storKey).substring(0,36) + '</FITID>' +
+      '<NAME>' + xmlEsc(m.desc).substring(0,32) + '</NAME>' +
+      '<MEMO>' + xmlEsc(m.etich || m.catSella || '') + '</MEMO>' +
+      '</STMTTRN>';
+  }).join('\n');
+
+  var ofx = [
+    'OFXHEADER:100','DATA:OFXSGML','VERSION:102','SECURITY:NONE',
+    'ENCODING:UTF-8','CHARSET:NONE','COMPRESSION:NONE',
+    'OLDFILEUID:NONE','NEWFILEUID:NONE','',
+    '<OFX>',
+    '<SIGNONMSGSRSV1><SONRS>',
+    '<STATUS><CODE>0</CODE><SEVERITY>INFO</SEVERITY></STATUS>',
+    '<DTSERVER>' + dtserver + '</DTSERVER>',
+    '<LANGUAGE>ITA</LANGUAGE>',
+    '</SONRS></SIGNONMSGSRSV1>',
+    '<BANKMSGSRSV1><STMTTRNRS><TRNUID>1001</TRNUID><STMTRS>',
+    '<CURDEF>EUR</CURDEF>',
+    '<BANKACCTFROM><BANKID>03268</BANKID><ACCTID>InternoUno</ACCTID><ACCTTYPE>CHECKING</ACCTTYPE></BANKACCTFROM>',
+    '<BANKTRANLIST>',
+    '<DTSTART>' + dtstart + '</DTSTART>',
+    '<DTEND>' + dtend + '</DTEND>',
+    trns,
+    '</BANKTRANLIST>',
+    '<LEDGERBAL><BALAMT>0</BALAMT><DTASOF>' + dtserver + '</DTASOF></LEDGERBAL>',
+    '</STMTRS></STMTTRNRS></BANKMSGSRSV1>',
+    '</OFX>'
+  ].join('\n');
+
+  dl(ofx, 'iCompta_BancaSella.ofx', 'application/x-ofx');
+  toast(inc.length + ' movimenti esportati in OFX', 'ok');
 }
 
 // ── EXPORT ECONOMICO ───────────────────────────────
@@ -720,9 +762,9 @@ function esc(s) {
 }
 function csvE(s) { return String(s||'').replace(/;/g,','); }
 function fmt(n) { return n.toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2}); }
-function dl(content, name) {
+function dl(content, name, type) {
   var a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([content], {type:'text/csv;charset=utf-8'}));
+  a.href = URL.createObjectURL(new Blob([content], {type: type || 'text/csv;charset=utf-8'}));
   a.download = name;
   a.click();
 }
