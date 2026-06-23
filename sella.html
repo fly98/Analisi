@@ -704,13 +704,26 @@ function exportEco() {
   });
   var oggi = new Date().toLocaleDateString('it-IT', {day:'2-digit',month:'2-digit',year:'numeric'});
   var hdr = 'Conto;ID;Stato;Data;Data valuta;Nome;Commento;Importo;Importo netto;Tasse;Percentuale tasse;Beneficiario;Tipo;Numero;Categoria;Investimento;Titoli;Azioni;Commissione;Links;Categoria tasse;Rapporto;Progetto;Non includere nei budget;Fattura;Non includere negli estratticonto;Non includerlo nel calcolo del bilancio medio del conto;Rimborso';
+  // Costruisce il dettaglio per ogni categoria
+  var dettagli = {};
+  inc.forEach(function(m) {
+    if (!dettagli[m.categoria]) dettagli[m.categoria] = [];
+    // Prende le prime 2-3 parole della descrizione + importo
+    var shortDesc = m.desc.split(' ').slice(0,3).join(' ');
+    dettagli[m.categoria].push(shortDesc + ' ' + (m.importo >= 0 ? '+' : '') + m.importo.toFixed(2));
+  });
+
   var entries = Object.entries(map).sort();
   var rows = entries.map(function(e, i) {
     var cat = e[0], imp = e[1];
     var dEl = document.getElementById('ed' + i);
     var nEl = document.getElementById('en' + i);
     var data = dEl ? dEl.value : oggi;
-    var nota = nEl ? nEl.value : '';
+    var notaManuale = nEl ? nEl.value.trim() : '';
+    // Se c'è una nota manuale usa quella, altrimenti genera il dettaglio automatico
+    var nota = notaManuale || (dettagli[cat] || []).join(', ');
+    // Tronca a 200 chars per sicurezza
+    if (nota.length > 200) nota = nota.substring(0, 197) + '...';
     var nome = cat.indexOf(' : ') >= 0 ? cat.split(' : ')[1] : cat;
     return ['Attivo : InternoUno','','Creato',data,data,csvE(nome),csvE(nota),imp.toFixed(2),
       '','','','','','',csvE(cat),'','','','','','','100','','0','','0','0','0'].join(';');
