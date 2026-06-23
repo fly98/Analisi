@@ -178,6 +178,34 @@ body { padding-top: env(safe-area-inset-top, 0); }
   #tx-table th:nth-child(3), #tx-table td:nth-child(3),
   #tx-table th:nth-child(4), #tx-table td:nth-child(4) { display: none; }
 }
+
+/* ── Menu Impostazioni ── */
+.settings-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+  z-index: 200; display: flex; justify-content: flex-end; }
+.settings-panel { width: 320px; max-width: 90vw; background: var(--bg);
+  height: 100%; display: flex; flex-direction: column;
+  box-shadow: -4px 0 30px rgba(0,0,0,0.2); }
+.settings-header { padding: 20px; border-bottom: 1px solid var(--gray2);
+  display: flex; justify-content: space-between; align-items: center; }
+.settings-header h2 { font-size: 20px; font-weight: 700; }
+.settings-close { background: var(--gray2); border: none; border-radius: 50%;
+  width: 30px; height: 30px; font-size: 16px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; }
+.settings-body { flex: 1; overflow-y: auto; padding: 16px; }
+.settings-section { margin-bottom: 24px; }
+.settings-section-title { font-size: 11px; font-weight: 700; color: var(--gray4);
+  text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; padding: 0 4px; }
+.settings-item { display: flex; align-items: center; padding: 14px 16px;
+  background: var(--gray1); border-radius: 12px; margin-bottom: 8px;
+  cursor: pointer; transition: background 0.15s; gap: 12px; }
+.settings-item:hover { background: var(--gray2); }
+.settings-item .s-icon { font-size: 22px; width: 36px; text-align: center; }
+.settings-item .s-text { flex: 1; }
+.settings-item .s-label { font-size: 15px; font-weight: 600; }
+.settings-item .s-desc { font-size: 12px; color: var(--gray4); margin-top: 2px; }
+.settings-item .s-arrow { color: var(--gray3); font-size: 14px; }
+.settings-item.danger .s-label { color: var(--red); }
+.settings-item.danger .s-icon { filter: hue-rotate(0deg); }
 </style>
 </head>
 <body>
@@ -216,6 +244,7 @@ body { padding-top: env(safe-area-inset-top, 0); }
       <button onclick="toggleSidebar()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--blue)">☰</button>
       <h1 id="main-title" style="font-size:15px">Tutte le transazioni</h1>
       <div class="header-actions">
+        <button onclick="openSettings()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--gray4);padding:4px 8px" title="Impostazioni">⚙️</button>
         <button class="btn-add" onclick="openNewTx()">+ Nuova</button>
       </div>
     </div>
@@ -256,6 +285,90 @@ body { padding-top: env(safe-area-inset-top, 0); }
       </table>
     </div>
   </div>
+
+<!-- Settings Panel -->
+<div class="settings-overlay" id="settings-overlay" style="display:none" onclick="if(event.target===this)closeSettings()">
+  <div class="settings-panel">
+    <div class="settings-header">
+      <h2>⚙️ Impostazioni</h2>
+      <button class="settings-close" onclick="closeSettings()">✕</button>
+    </div>
+    <div class="settings-body">
+
+      <div class="settings-section">
+        <div class="settings-section-title">Import</div>
+        <div class="settings-item" onclick="alert('Prossimamente')">
+          <span class="s-icon">🏦</span>
+          <div class="s-text">
+            <div class="s-label">Import da Sella</div>
+            <div class="s-desc">Importa movimenti Banca Sella</div>
+          </div>
+          <span class="s-arrow">›</span>
+        </div>
+        <div class="settings-item" onclick="alert('Prossimamente')">
+          <span class="s-icon">👤</span>
+          <div class="s-text">
+            <div class="s-label">Import da Leo</div>
+            <div class="s-desc">Sincronizza pagamenti Leonardo</div>
+          </div>
+          <span class="s-arrow">›</span>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-section-title">Analisi</div>
+        <div class="settings-item" onclick="alert('Prossimamente')">
+          <span class="s-icon">📊</span>
+          <div class="s-text">
+            <div class="s-label">Grafici e report</div>
+            <div class="s-desc">Analisi entrate/uscite per categoria</div>
+          </div>
+          <span class="s-arrow">›</span>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-section-title">Avanzate</div>
+        <div class="settings-item" onclick="alert('Prossimamente')">
+          <span class="s-icon">🔐</span>
+          <div class="s-text">
+            <div class="s-label">Autenticazione Face ID</div>
+            <div class="s-desc">Sostituisci il token con Face ID / Touch ID</div>
+          </div>
+          <span class="s-arrow">›</span>
+        </div>
+        <div class="settings-item" onclick="exportOFX()">
+          <span class="s-icon">📤</span>
+          <div class="s-text">
+            <div class="s-label">Export OFX</div>
+            <div class="s-desc">Esporta per iCompta (periodo parallelo)</div>
+          </div>
+          <span class="s-arrow">›</span>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-section-title">Database</div>
+        <div class="settings-item danger" onclick="confirmRestore()">
+          <span class="s-icon">🔄</span>
+          <div class="s-text">
+            <div class="s-label">Ripristina database</div>
+            <div class="s-desc">Torna ai dati originali del 23/06/2026</div>
+          </div>
+          <span class="s-arrow" style="color:var(--red)">›</span>
+        </div>
+        <div class="settings-item danger" onclick="doLogout()">
+          <span class="s-icon">🚪</span>
+          <div class="s-text">
+            <div class="s-label">Esci</div>
+            <div class="s-desc">Cancella token e torna al login</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
 </div>
 
 <!-- Modal Tx -->
@@ -847,6 +960,60 @@ function toggleSidebar() {
     } catch(e) { /* mostra login */ }
   }
 })();
+
+
+// ── Settings ─────────────────────────────────────────────
+function openSettings() {
+  document.getElementById('settings-overlay').style.display = 'flex';
+}
+function closeSettings() {
+  document.getElementById('settings-overlay').style.display = 'none';
+}
+
+async function confirmRestore() {
+  const ok = confirm('⚠️ Ripristina database?\n\nTutte le modifiche fatte verranno cancellate.\nVerranno ripristinati i dati originali del 23/06/2026.\n\nCi vorranno circa 2 minuti.');
+  if (!ok) return;
+  closeSettings();
+  const btn = document.querySelector('.settings-item.danger');
+  try {
+    const r = await api('POST', '/api/restore');
+    if (r.ok) {
+      alert('✅ ' + r.message + '\n\nRicarica la pagina tra 2 minuti.');
+    } else {
+      alert('Errore: ' + (r.error || 'sconosciuto'));
+    }
+  } catch(e) {
+    alert('Errore: ' + e.message);
+  }
+}
+
+function doLogout() {
+  if (!confirm('Esci da iCompta?')) return;
+  localStorage.removeItem('icompta_token');
+  location.reload();
+}
+
+function exportOFX() {
+  if (!selectedAccountId || !meta) { alert('Seleziona prima un conto'); return; }
+  const acc = meta.accounts.find(a => a.id === selectedAccountId);
+  const from = prompt('Data inizio (YYYY-MM-DD):', new Date().getFullYear() + '-01-01');
+  if (!from) return;
+  const to = new Date().toISOString().slice(0,10);
+  const url = `${WORKER_URL}/api/export/ofx?accountId=${selectedAccountId}&from=${from}&to=${to}`;
+  const a = document.createElement('a');
+  a.href = url;
+  a.setAttribute('download', `icompta_${acc.name}_${from}_${to}.ofx`);
+  // Aggiungi auth header via fetch
+  fetch(url, { headers: { 'Authorization': `Bearer ${TOKEN}` }})
+    .then(r => r.blob())
+    .then(blob => {
+      const url2 = URL.createObjectURL(blob);
+      a.href = url2;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    });
+}
 
 // ── Sidebar resize ──────────────────────────────────────
 (function() {
