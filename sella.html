@@ -511,6 +511,7 @@ async function loadStorico() {
 async function saveStorico() {
   var btn = document.getElementById('btnStor');
   btn.disabled = false;
+  var inc = movimenti.filter(function(m) { return m.includi; });
   var nuoveKeys = movimenti.filter(function(m) { return m.includi && !m.isDup; }).map(function(m) { return m.storKey; });
   var allKeys = Array.from(new Set(Array.from(storico).concat(nuoveKeys)));
   var oldTxt = btn.innerHTML;
