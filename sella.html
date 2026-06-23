@@ -725,7 +725,8 @@ function exportEco() {
     // Tronca a 200 chars per sicurezza
     if (nota.length > 200) nota = nota.substring(0, 197) + '...';
     var nome = cat.indexOf(' : ') >= 0 ? cat.split(' : ')[1] : cat;
-    return ['Attivo : InternoUno','','Creato',data,data,csvE(nome),csvE(nota),imp.toFixed(2),
+    var impEco = -imp; // partita doppia: segno opposto rispetto al conto banca
+    return ['Attivo : InternoUno','','Creato',data,data,csvE(nome),csvE(nota),impEco.toFixed(2),
       '','','','','','',csvE(cat),'','','','','','','100','','0','','0','0','0'].join(';');
   });
   dl('\uFEFF' + hdr + '\n' + rows.join('\n'), 'iCompta_Economico.csv');
