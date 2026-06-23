@@ -129,7 +129,7 @@ tr.dup:hover td{opacity:.6}
   <button class="btn-cfg" onclick="openCfg()">⚙️</button>
 </div>
 
-<div class="tabs" id="tabs" style="display:none">
+<div class="tabs" id="tabs" style="display:flex">
   <button class="tab active" onclick="switchTab('mov')">📋 Movimenti</button>
   <button class="tab" onclick="switchTab('eco')">📊 Conto Economico</button>
   <button class="tab" onclick="switchTab('reg')">🧠 Regole auto</button>
@@ -650,7 +650,7 @@ async function handleFile(file) {
     });
   }
   document.getElementById('drop').style.display = 'none';
-  document.getElementById('tabs').style.display = 'flex';
+  // tabs già visibili
   document.getElementById('actBar').style.display = 'flex';
   document.getElementById('hdrStats').style.display = 'flex';
   document.getElementById('hdrSub').textContent = file.name;
