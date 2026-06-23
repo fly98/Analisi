@@ -185,6 +185,7 @@ tr.dup:hover td{opacity:.6}
       <button class="btn grn" onclick="exportBanca()">⬇️ OFX Banca</button>
       <button class="btn pri" onclick="exportEco()">⬇️ CSV Economico</button>
       <button class="btn" onclick="saveStorico()" id="btnStor">☁️ Salva storico</button>
+      <button class="btn" onclick="mostraVerifica()" style="background:var(--amber-bg);color:var(--amber);border-color:var(--amber-b)">⚖️ Verifica</button>
       <div class="badges">
         <span class="bdg new" id="bNew">—</span>
         <span class="bdg dup" id="bDup">—</span>
@@ -796,5 +797,13 @@ function toast(msg, type) {
 
 init();
 </script>
+
+<!-- MODAL VERIFICA PARTITA DOPPIA -->
+<div class="overlay" id="ovVerifica" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-hdr">⚖️ Verifica partita doppia <button class="modal-x" onclick="document.getElementById('ovVerifica').classList.remove('open')">×</button></div>
+    <div id="verificaContent"></div>
+  </div>
+</div>
 </body>
 </html>
