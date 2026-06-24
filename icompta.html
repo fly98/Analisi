@@ -96,7 +96,7 @@ body { padding-top: env(safe-area-inset-top, 0); }
 .total-label { font-size: 14px; font-weight: 600; flex: 1; }
 
 /* ── Filter bar ── */
-#filter-bar { display: none; padding: 8px 16px; background: var(--surface); border-bottom: 1px solid var(--border);
+#filter-bar { padding: 8px 16px; background: var(--surface); border-bottom: 1px solid var(--border);
   display: flex; gap: 6px; align-items: center; flex-wrap: wrap; flex-shrink: 0; }
 .filter-chip { padding: 4px 12px; border-radius: 6px; font-size: 13px; font-weight: 500;
   border: 1px solid var(--border); cursor: pointer; background: var(--surface); color: var(--muted); transition: all 0.15s; }
@@ -111,55 +111,46 @@ body { padding-top: env(safe-area-inset-top, 0); }
 
 /* ── Transaction list ── */
 #tx-list-container { flex: 1; overflow-y: auto; background: var(--surface); }
-
-/* Header colonne fisso */
-#tx-header { display: flex; flex-direction: row; align-items: center;
-  padding: 6px 16px; background: var(--bg); border-bottom: 1px solid var(--border-s);
-  position: sticky; top: 0; z-index: 3; gap: 0; }
-.txh-col { font-size: 11px; font-weight: 700; color: var(--faint);
+#tx-header { display: flex; flex-direction: row; align-items: center; padding: 6px 16px;
+  background: var(--bg); border-bottom: 1px solid var(--border-s);
+  position: sticky; top: 0; z-index: 3; }
+.txh { font-size: 11px; font-weight: 700; color: var(--faint);
   text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
-
-/* Righe TX */
 .tx-row { display: flex; flex-direction: row; align-items: center;
   padding: 8px 16px; border-bottom: 1px solid var(--border);
-  cursor: pointer; transition: background 0.1s; gap: 0; position: relative; }
+  cursor: pointer; transition: background 0.1s; position: relative; }
 .tx-row:hover { background: var(--blue-bg); }
 .tx-row:hover .tx-del { opacity: 1; }
-
-/* Colonne */
 .tx-c-date { width: 72px; flex-shrink: 0; font-size: 13px; color: var(--muted); }
 .tx-c-desc { flex: 1; min-width: 0; padding: 0 10px; }
-.tx-c-desc .tx-name { font-size: 14px; font-weight: 500; color: var(--text);
+.tx-c-desc .txn { font-size: 14px; font-weight: 500; color: var(--text);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.tx-c-desc .tx-sub { font-size: 12px; color: var(--muted); margin-top: 1px;
+.tx-c-desc .txs { font-size: 12px; color: var(--muted); margin-top: 1px;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.tx-c-cat { width: 140px; flex-shrink: 0; font-size: 12px; color: var(--muted);
+.tx-c-cat { width: 130px; flex-shrink: 0; font-size: 12px; color: var(--muted);
   padding: 0 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.tx-c-amt { width: 96px; flex-shrink: 0; text-align: right;
+.tx-c-amt { width: 100px; flex-shrink: 0; text-align: right;
   font-size: 14px; font-weight: 600; padding: 0 8px; white-space: nowrap; }
-.tx-c-bal { width: 104px; flex-shrink: 0; text-align: right;
+.tx-c-bal { width: 110px; flex-shrink: 0; text-align: right;
   font-size: 13px; color: var(--muted); padding: 0 8px; white-space: nowrap; }
 .tx-del { width: 28px; flex-shrink: 0; opacity: 0; transition: opacity 0.15s;
   display: flex; align-items: center; justify-content: center; }
 .tx-del button { width: 22px; height: 22px; border-radius: 50%;
   background: var(--red-bg); border: none; color: var(--red);
-  font-size: 13px; cursor: pointer; display: flex; align-items: center;
-  justify-content: center; padding: 0; line-height: 1; }
+  font-size: 12px; cursor: pointer; display: flex; align-items: center;
+  justify-content: center; padding: 0; }
 .tx-del button:hover { background: var(--red); color: white; }
-
-/* Intestazione mese */
-.tx-month-hdr { padding: 8px 16px 4px; background: var(--bg);
+.tx-month-hdr { padding: 7px 16px; background: var(--bg);
   border-bottom: 1px solid var(--border); display: flex; align-items: baseline; gap: 10px; }
-.tx-month-hdr .mh-label { font-size: 13px; font-weight: 700; color: var(--blue); }
-.tx-month-hdr .mh-count { font-size: 12px; color: var(--muted); }
-.tx-month-hdr .mh-total { font-size: 12px; color: var(--muted); margin-left: auto; }
-
+.tx-month-hdr .mhl { font-size: 13px; font-weight: 700; color: var(--blue); }
+.tx-month-hdr .mhc { font-size: 12px; color: var(--muted); }
+.tx-month-hdr .mht { font-size: 12px; color: var(--muted); margin-left: auto; }
 .amount-pos { color: var(--green); }
 .amount-neg { color: var(--red); }
 
 /* ── Date filter bar ── */
 #date-bar { padding: 6px 16px; display: flex; gap: 6px; flex-shrink: 0; align-items: center;
-  background: var(--surface); border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+  background: var(--surface); border-bottom: 1px solid var(--border); }
 .date-chip { padding: 3px 12px; border-radius: 6px; font-size: 13px; font-weight: 500;
   border: 1px solid var(--border); background: var(--surface); color: var(--muted);
   cursor: pointer; white-space: nowrap; transition: all 0.15s; }
@@ -303,10 +294,33 @@ body { padding-top: env(safe-area-inset-top, 0); }
       <button class="date-chip" onclick="setDatePreset('ytd',this)">Quest'anno</button>
       <button class="date-chip" onclick="setDatePreset('all',this)">Tutto</button>
       <input type="date" id="date-from" onchange="setDateCustom()">
-      <span style="color:var(--muted);font-size:13px">→</span>
+      <span style="color:var(--muted);font-size:13px;padding:0 4px">→</span>
       <input type="date" id="date-to" onchange="setDateCustom()">
     </div>
 
+      <button class="filter-chip" onclick="setAmountFilter('debit',this)">Debito</button>
+      <button class="filter-chip" onclick="setAmountFilter('credit',this)">Credito</button>
+      <div class="filter-sep"></div>
+      <select class="filter-select" id="cat-filter" onchange="applyCatFilter(this.value)">
+        <option value="">Categoria</option>
+      </select>
+      <input type="search" id="search-tx" placeholder="Cerca transazioni..." oninput="applySearch(this.value)">
+    </div>
+
+    <div id="tx-list-container">
+      <div id="tx-header">
+        <div class="txh tx-c-date">Data</div>
+        <div class="txh tx-c-desc" style="padding:0 10px">Descrizione</div>
+        <div class="txh tx-c-cat" style="padding:0 8px">Categoria</div>
+        <div class="txh tx-c-amt" style="text-align:right;padding:0 8px">Importo</div>
+        <div class="txh tx-c-bal" style="text-align:right;padding:0 8px">Saldo</div>
+        <div style="width:28px;flex-shrink:0"></div>
+      </div>
+      <div id="tx-body">
+        <div style="text-align:center;padding:40px;color:var(--muted)">Seleziona un conto dalla sidebar</div>
+      </div>
+    </div>
+  </div>
 
 <!-- Settings Panel -->
 <div class="settings-overlay" id="settings-overlay" style="display:none" onclick="if(event.target===this)closeSettings()">
@@ -459,9 +473,8 @@ let currentTxs = [];      // TX caricate per l'anno corrente
 let filteredTxs = [];     // TX dopo filtri
 let selectedAccountId = null;
 let selectedYear = new Date().getFullYear().toString();
-let txCache = {};      // cache TX per anno: {year: [txs]}
-let loadedYears = new Set(); // anni già caricati
-// Date range
+let txCache = {};
+let loadedYears = new Set();
 const _today = new Date().toISOString().slice(0,10);
 const _yearAgo = new Date(Date.now()-365*24*60*60*1000).toISOString().slice(0,10);
 let dateFrom = _yearAgo;
@@ -532,13 +545,18 @@ async function init(metaData) {
   // Carica saldi (in background)
   loadBalances();
 
-  // Carica TX dell'anno corrente
-  await loadYear(selectedYear);
+  // Seleziona InternoUno di default
+  setTimeout(async () => {
+    const acc = meta.accounts.find(a => a.name === 'InternoUno');
+    if (acc) await selectAccount(acc.id, acc.name);
+  }, 50);
 }
 
 async function loadBalances() {
   balances = await api('GET', '/api/balance');
   renderSidebar();
+  updateTotalBalance();
+  if (filteredTxs.length > 0) renderTxList();
 }
 
 // ══════════════════════════════════════════════
@@ -713,7 +731,6 @@ function updateTotalBalance() {
 // YEAR BAR
 // ══════════════════════════════════════════════
 function renderYearBar() {
-  // Inizializza date inputs
   const df = document.getElementById('date-from');
   const dt = document.getElementById('date-to');
   if (df) df.value = dateFrom;
@@ -725,17 +742,11 @@ async function setDatePreset(preset, btn) {
   btn.classList.add('active');
   const today = new Date().toISOString().slice(0,10);
   let from;
-  if (preset === '3m') {
-    from = new Date(Date.now()-90*24*60*60*1000).toISOString().slice(0,10);
-  } else if (preset === 'ytd') {
-    from = new Date().getFullYear() + '-01-01';
-  } else if (preset === 'all') {
-    from = (meta?.years?.[0] || '2001') + '-01-01';
-  } else { // 12m
-    from = new Date(Date.now()-365*24*60*60*1000).toISOString().slice(0,10);
-  }
-  dateFrom = from;
-  dateTo = today;
+  if (preset === '3m') from = new Date(Date.now()-90*24*60*60*1000).toISOString().slice(0,10);
+  else if (preset === 'ytd') from = new Date().getFullYear() + '-01-01';
+  else if (preset === 'all') from = (meta?.years?.[0] || '2001') + '-01-01';
+  else from = new Date(Date.now()-365*24*60*60*1000).toISOString().slice(0,10);
+  dateFrom = from; dateTo = today;
   document.getElementById('date-from').value = from;
   document.getElementById('date-to').value = today;
   await reloadTxForRange();
@@ -746,32 +757,23 @@ async function setDateCustom() {
   const to = document.getElementById('date-to').value;
   if (!from || !to) return;
   document.querySelectorAll('.date-chip').forEach(b => b.classList.remove('active'));
-  dateFrom = from;
-  dateTo = to;
+  dateFrom = from; dateTo = to;
   await reloadTxForRange();
 }
 
 async function reloadTxForRange() {
   if (!selectedAccountId) { applyFilters(); return; }
-  // Calcola anni da caricare
   const fromYear = parseInt(dateFrom.slice(0,4));
   const toYear = parseInt(dateTo.slice(0,4));
-  const yearsNeeded = [];
+  currentTxs = [];
   for (let y = toYear; y >= fromYear; y--) {
-    if (meta.years.includes(String(y))) yearsNeeded.push(String(y));
-  }
-  // Carica anni non ancora in memoria
-  for (const yr of yearsNeeded) {
-    if (!loadedYears.has(yr)) {
-      const txs = await api('GET', `/api/tx/${yr}`);
-      txCache[yr] = txs;
+    const yr = String(y);
+    if (!meta.years.includes(yr)) continue;
+    if (!txCache[yr]) {
+      txCache[yr] = await api('GET', `/api/tx/${yr}`);
       loadedYears.add(yr);
     }
-  }
-  // Ricostruisci currentTxs dagli anni nel range
-  currentTxs = [];
-  for (const yr of yearsNeeded) {
-    if (txCache[yr]) currentTxs.push(...txCache[yr]);
+    currentTxs.push(...txCache[yr]);
   }
   applyFilters();
 }
@@ -786,8 +788,7 @@ async function selectYear(y) {
 // ══════════════════════════════════════════════
 async function loadYear(year) {
   if (!txCache[year]) {
-    const txs = await api('GET', `/api/tx/${year}`);
-    txCache[year] = txs;
+    txCache[year] = await api('GET', `/api/tx/${year}`);
     loadedYears.add(year);
   }
   currentTxs = txCache[year];
@@ -852,7 +853,7 @@ function applyFilters() {
     txs = txs.filter(t => t.accountId === selectedAccountId);
   }
   // Filtra per data
-  txs = txs.filter(t => t.date >= dateFrom && t.date <= dateTo);
+  if (dateFrom) txs = txs.filter(t => t.date >= dateFrom && t.date <= dateTo);
 
   // Status filter
   if (currentFilter !== 'all') {
@@ -885,12 +886,13 @@ function applyFilters() {
 
 function renderTxList() {
   const body = document.getElementById('tx-body');
+  if (!body) return;
   if (filteredTxs.length === 0) {
     body.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">Nessuna transazione</div>';
     return;
   }
 
-  // Saldo progressivo: parto dal saldo attuale e risalgo
+  // Saldo progressivo dal saldo attuale
   const accBal = balances?.accounts?.[selectedAccountId] ?? null;
   const amounts = filteredTxs.map(tx => getTxAmount(tx));
   const runBal = [];
@@ -916,31 +918,25 @@ function renderTxList() {
       const [y,m] = month.split('-');
       const label = new Date(y, m-1, 1).toLocaleString('it-IT', {month:'long', year:'numeric'});
       const mTxs = filteredTxs.filter(t => t.date.startsWith(month));
-      const mSpese = mTxs.reduce((s,t) => { const a=getTxAmount(t); return a<0?s+Math.abs(a):s; },0);
+      const mOut = mTxs.reduce((s,t)=>{ const a=getTxAmount(t); return a<0?s+Math.abs(a):s; },0);
       const hdr = document.createElement('div');
       hdr.className = 'tx-month-hdr';
-      hdr.innerHTML = `
-        <span class="mh-label">${label}</span>
-        <span class="mh-count">${mTxs.length} transazioni</span>
-        <span class="mh-total">Uscite: ${fmt(-mSpese)}</span>`;
+      hdr.innerHTML = `<span class="mhl">${label}</span><span class="mhc">${mTxs.length} transazioni</span><span class="mht">Uscite: ${fmt(-mOut)}</span>`;
       body.appendChild(hdr);
     }
 
-    const catName = tx.splits?.map(s => getCatName(s.categoryId)).filter(Boolean).join(', ') || '';
-    const comment = tx.comment || tx.splits?.map(s=>s.comment).filter(Boolean).join(', ') || '';
+    const cat = tx.splits?.map(s=>getCatName(s.categoryId)).filter(Boolean).join(', ') || '';
+    const sub = tx.comment || tx.splits?.map(s=>s.comment).filter(Boolean).join(', ') || '';
     const dateStr = `${tx.date.slice(8,10)}/${tx.date.slice(5,7)}/${tx.date.slice(2,4)}`;
 
     const row = document.createElement('div');
     row.className = 'tx-row';
     row.innerHTML = `
       <div class="tx-c-date">${dateStr}</div>
-      <div class="tx-c-desc">
-        <div class="tx-name">${esc(tx.name||'')}</div>
-        ${comment ? `<div class="tx-sub">${esc(comment)}</div>` : ''}
-      </div>
-      <div class="tx-c-cat">${esc(catName)}</div>
+      <div class="tx-c-desc"><div class="txn">${esc(tx.name||'')}</div>${sub?`<div class="txs">${esc(sub)}</div>`:''}</div>
+      <div class="tx-c-cat">${esc(cat)}</div>
       <div class="tx-c-amt ${amount>=0?'amount-pos':'amount-neg'}">${fmt(amount)}</div>
-      <div class="tx-c-bal">${runBal[i]!==undefined ? fmt(runBal[i]) : '—'}</div>
+      <div class="tx-c-bal">${runBal[i]!==undefined?fmt(runBal[i]):'—'}</div>
       <div class="tx-del"><button onclick="event.stopPropagation();quickDelete('${tx.id}','${tx.date.slice(0,4)}')" title="Elimina">✕</button></div>`;
     row.addEventListener('click', () => openEditTx(tx));
     body.appendChild(row);
@@ -951,7 +947,6 @@ async function quickDelete(id, year) {
   if (!confirm('Eliminare questa transazione?')) return;
   const r = await api('DELETE', `/api/tx/${id}?year=${year}`);
   if (r.error) { alert('Errore: ' + r.error); return; }
-  // Rimuovi dalla cache e ricarica
   if (txCache[year]) txCache[year] = txCache[year].filter(t => t.id !== id);
   currentTxs = currentTxs.filter(t => t.id !== id);
   loadBalances();
