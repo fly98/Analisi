@@ -319,6 +319,21 @@ var icompta_worker_default = {
       return json(raw ? JSON.parse(raw) : {});
     }
 
+    // ── RICORRENZE GET ───────────────────────────────────────────────────────
+    if (path === "/api/ricorrenze" && method === "GET") {
+      const raw = await env.ICOMPTA_KV.get("icompta:ricorrenze");
+      return json(raw ? JSON.parse(raw) : []);
+    }
+
+    // ── RICORRENZE PUT (salva lista completa) ────────────────────────────────
+    if (path === "/api/ricorrenze" && method === "PUT") {
+      const body = await request.json();
+      const { ricorrenze } = body;
+      if (!Array.isArray(ricorrenze)) return err("ricorrenze deve essere array");
+      await env.ICOMPTA_KV.put("icompta:ricorrenze", JSON.stringify(ricorrenze));
+      return json({ ok: true });
+    }
+
     return err("Endpoint non trovato", 404);
   }
 };
