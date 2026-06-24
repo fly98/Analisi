@@ -473,8 +473,16 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif
   border:1px solid var(--gray2);cursor:default;
 }
 .acct-row.hidden-acc { opacity:.45; }
-.acct-drag { color:var(--gray3);cursor:grab;font-size:18px;flex-shrink:0;padding:4px 8px;border-radius:6px;touch-action:none; }
-.acct-drag:active { cursor:grabbing;color:var(--blue);background:var(--blue-bg); }
+.acct-drag { display:none; } /* nascosto - rimpiazzato da up/down */
+.acct-updown { display:flex;flex-direction:column;gap:1px;flex-shrink:0; }
+.acct-updown button { background:none;border:none;color:var(--gray3);cursor:pointer;font-size:12px;padding:2px 6px;border-radius:4px;line-height:1; }
+.acct-updown button:hover { color:var(--blue);background:var(--blue-bg); }
+.accts-section { margin-bottom:4px; }
+.accts-section-hdr { display:flex;align-items:center;gap:6px;padding:6px 4px 4px;
+  font-size:11px;font-weight:700;color:var(--gray4);text-transform:uppercase;letter-spacing:.5px; }
+.accts-section-hdr .grp-updown { display:flex;gap:2px; }
+.accts-section-hdr .grp-updown button { background:none;border:none;color:var(--gray3);cursor:pointer;font-size:11px;padding:2px 5px;border-radius:4px; }
+.accts-section-hdr .grp-updown button:hover { color:var(--blue);background:var(--blue-bg); }
 .acct-icon { font-size:18px;flex-shrink:0;width:24px;text-align:center; }
 .acct-name-input {
   flex:1;font-size:14px;font-weight:500;border:none;background:transparent;
@@ -925,32 +933,34 @@ function renderSidebar() {
 
   // Ordine dinamico: usa il campo index salvato nel meta (da gestione conti)
   // Gruppi ordinati per index
-  const sortedGroups = [...meta.groups].sort((a,b) => (a.index||0) - (b.index||0));
-
-  // Mappa gruppi per id
+  // Lista mista: gruppi + standalone ordinati per sidebarIndex
   const groupById = {};
-  for (const g of sortedGroups) groupById[g.id] = { ...g, accounts: [] };
-  const ungrouped = [];
+  for (const g of meta.groups) groupById[g.id] = { ...g, accounts: [] };
 
-  // Distribuisce i conti nei gruppi, ordinati per index
   const sortedAccounts = [...meta.accounts].sort((a,b) => (a.index||0) - (b.index||0));
+  const standaloneAccs = [];
   for (const acc of sortedAccounts) {
     if (acc.hidden) continue;
     if (acc.groupId && groupById[acc.groupId]) {
       groupById[acc.groupId].accounts.push(acc);
     } else {
-      ungrouped.push(acc);
+      standaloneAccs.push(acc);
     }
   }
 
-  const groups = sortedGroups.map(g => groupById[g.id]).filter(Boolean);
+  // Costruisce lista mista ordinata per sidebarIndex
+  const sections = [];
+  for (const g of meta.groups) sections.push({ type:'group', g, idx: g.sidebarIndex !== undefined ? g.sidebarIndex : (g.index||0)*10 });
+  for (const acc of standaloneAccs) sections.push({ type:'standalone', acc, idx: acc.sidebarIndex !== undefined ? acc.sidebarIndex : 1000 });
+  sections.sort((a,b) => a.idx - b.idx);
 
-  // Standalone senza gruppo
-  for (const acc of ungrouped) {
-    if (!acc.hidden) list.appendChild(makeAccountRow(acc));
+  for (const sec of sections) {
+    if (sec.type === 'standalone') {
+      list.appendChild(makeAccountRow(sec.acc));
+    }
   }
 
-  for (const g of groups) {
+  for (const sec of sections) { if (sec.type !== 'group') continue; const g = groupById[sec.g.id]; if (!g) continue;
     if (g.accounts.length === 0) continue;
     const gBal = balances?.groups?.[g.id] ?? null;
     
@@ -2485,9 +2495,13 @@ function closeAcctsMgmt() {
 function renderAcctsMgmt() {
   var body = document.getElementById('accts-body');
   body.innerHTML = '';
-
   var draft = _acctsDraft;
-  // Raggruppa conti per groupId
+
+  // Costruisce lista ordinata di sezioni: {type:'group'|'standalone', obj, accounts}
+  // Ogni gruppo e ogni standalone ha sidebarIndex
+  // Assegna sidebarIndex se mancante
+  draft.groups.forEach(function(g, i) { if (g.sidebarIndex === undefined) g.sidebarIndex = i * 10; });
+
   var grouped = {};
   var ungrouped = [];
   draft.groups.forEach(function(g) { grouped[g.id] = []; });
@@ -2495,50 +2509,88 @@ function renderAcctsMgmt() {
     if (acc.groupId && grouped[acc.groupId] !== undefined) {
       grouped[acc.groupId].push(acc);
     } else {
+      if (acc.sidebarIndex === undefined) acc.sidebarIndex = 1000 + (ungrouped.length * 10);
       ungrouped.push(acc);
     }
   });
 
-  // Standalone prima (senza gruppo)
-  if (ungrouped.length) {
-    var uHdr = document.createElement('div');
-    uHdr.className = 'accts-group-hdr';
-    uHdr.innerHTML = '<span style="flex:1">Standalone</span>';
-    body.appendChild(uHdr);
-    ungrouped.forEach(function(acc) { body.appendChild(makeAcctRow(acc)); });
-    var addBtn = makeAddAcctBtn(null);
-    body.appendChild(addBtn);
+  // Lista sezioni miste: gruppi + standalone, ordinate per sidebarIndex
+  var sections = [];
+  draft.groups.forEach(function(g) {
+    sections.push({ type:'group', g:g, accounts: grouped[g.id]||[] });
+  });
+  ungrouped.forEach(function(acc) {
+    sections.push({ type:'standalone', acc:acc });
+  });
+  sections.sort(function(a,b) {
+    var ia = a.type==='group' ? a.g.sidebarIndex : a.acc.sidebarIndex;
+    var ib = b.type==='group' ? b.g.sidebarIndex : b.acc.sidebarIndex;
+    return (ia||0) - (ib||0);
+  });
+
+  function moveSectionUp(idx) {
+    if (idx === 0) return;
+    var a = sections[idx-1], b = sections[idx];
+    var ia = a.type==='group' ? a.g.sidebarIndex : a.acc.sidebarIndex;
+    var ib = b.type==='group' ? b.g.sidebarIndex : b.acc.sidebarIndex;
+    if (a.type==='group') a.g.sidebarIndex = ib; else a.acc.sidebarIndex = ib;
+    if (b.type==='group') b.g.sidebarIndex = ia; else b.acc.sidebarIndex = ia;
+    renderAcctsMgmt();
+  }
+  function moveSectionDown(idx) {
+    if (idx >= sections.length-1) return;
+    moveSectionUp(idx+1);
   }
 
-  // Gruppi
-  draft.groups.forEach(function(g) {
-    var accs = grouped[g.id] || [];
+  sections.forEach(function(sec, idx) {
+    var udBtns = document.createElement('div');
+    udBtns.className = 'grp-updown';
+    var upBtn = document.createElement('button'); upBtn.textContent = '↑'; upBtn.title = 'Sposta su';
+    var dnBtn = document.createElement('button'); dnBtn.textContent = '↓'; dnBtn.title = 'Sposta giù';
+    (function(i){ upBtn.addEventListener('click', function(){moveSectionUp(i);}); })(idx);
+    (function(i){ dnBtn.addEventListener('click', function(){moveSectionDown(i);}); })(idx);
+    if (idx === 0) upBtn.style.opacity = '0.2';
+    if (idx === sections.length-1) dnBtn.style.opacity = '0.2';
+    udBtns.appendChild(upBtn); udBtns.appendChild(dnBtn);
 
-    var hdr = document.createElement('div');
-    hdr.className = 'accts-group-hdr';
-
-    var nameInput = document.createElement('input');
-    nameInput.className = 'accts-group-name-input';
-    nameInput.value = g.name;
-    nameInput.addEventListener('input', function() { g.name = this.value; });
-
-    var delGrpBtn = document.createElement('button');
-    delGrpBtn.className = 'acct-del';
-    delGrpBtn.title = 'Elimina gruppo (solo se vuoto)';
-    delGrpBtn.textContent = '✕';
-    delGrpBtn.addEventListener('click', function() {
-      if (accs.length > 0) { alert('Sposta prima tutti i conti dal gruppo'); return; }
-      _acctsDraft.groups = _acctsDraft.groups.filter(function(x) { return x.id !== g.id; });
-      renderAcctsMgmt();
-    });
-
-    hdr.appendChild(nameInput);
-    hdr.appendChild(delGrpBtn);
-    body.appendChild(hdr);
-
-    accs.forEach(function(acc) { body.appendChild(makeAcctRow(acc)); });
-    body.appendChild(makeAddAcctBtn(g.id));
+    if (sec.type === 'group') {
+      var g = sec.g;
+      var hdr = document.createElement('div');
+      hdr.className = 'accts-section-hdr';
+      var nameInput = document.createElement('input');
+      nameInput.className = 'accts-group-name-input';
+      nameInput.value = g.name;
+      nameInput.style.flex = '1';
+      nameInput.addEventListener('input', function() { g.name = this.value; });
+      var delGrpBtn = document.createElement('button');
+      delGrpBtn.className = 'acct-del'; delGrpBtn.title = 'Elimina gruppo (solo se vuoto)'; delGrpBtn.textContent = '✕';
+      delGrpBtn.addEventListener('click', function() {
+        var accs = grouped[g.id]||[];
+        if (accs.length > 0) { alert('Sposta prima tutti i conti dal gruppo'); return; }
+        _acctsDraft.groups = _acctsDraft.groups.filter(function(x){return x.id!==g.id;});
+        renderAcctsMgmt();
+      });
+      hdr.appendChild(udBtns); hdr.appendChild(nameInput); hdr.appendChild(delGrpBtn);
+      body.appendChild(hdr);
+      sec.accounts.forEach(function(acc) { body.appendChild(makeAcctRow(acc)); });
+      body.appendChild(makeAddAcctBtn(g.id));
+    } else {
+      // Standalone — riga account con bottoni up/down integrati
+      var row = makeAcctRow(sec.acc);
+      var ud2 = document.createElement('div');
+      ud2.className = 'acct-updown';
+      var u2 = document.createElement('button'); u2.textContent = '↑';
+      var d2 = document.createElement('button'); d2.textContent = '↓';
+      (function(i){ u2.addEventListener('click',function(){moveSectionUp(i);}); })(idx);
+      (function(i){ d2.addEventListener('click',function(){moveSectionDown(i);}); })(idx);
+      ud2.appendChild(u2); ud2.appendChild(d2);
+      row.insertBefore(ud2, row.firstChild);
+      body.appendChild(row);
+    }
   });
+
+  // Pulsante aggiungi standalone in fondo
+  body.appendChild(makeAddAcctBtn(null));
 }
 
 function makeAcctRow(acc) {
