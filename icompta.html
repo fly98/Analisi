@@ -1050,11 +1050,13 @@ function openNP(el){
     +'<button class="np-btn" onclick="nK(4)">4</button><button class="np-btn" onclick="nK(5)">5</button><button class="np-btn" onclick="nK(6)">6</button>'
     +'<button class="np-btn" onclick="nK(1)">1</button><button class="np-btn" onclick="nK(2)">2</button><button class="np-btn" onclick="nK(3)">3</button>'
     +'<button class="np-btn sign" onclick="nS()">+/-</button><button class="np-btn" onclick="nK(0)">0</button><button class="np-btn" onclick="nDot()">,</button>'
-    +'<button class="np-btn del" onclick="nBk()">DEL</button><button class="np-btn" onclick="nK('00')">00</button><button class="np-btn" onclick="nK('000')">000</button>'
+    +'<button class="np-btn del" onclick="nBk()">DEL</button><button class="np-btn" onclick="nK00()">00</button><button class="np-btn" onclick="nK000()">000</button>'
     +'</div><button class="np-btn ok" onclick="nOk()">Conferma</button></div>';
   ov.addEventListener('click',function(){var e=document.getElementById('np-ov');if(e)e.remove();});
   document.body.appendChild(ov);nU();
 }
+function nK00(){nK("00");}
+function nK000(){nK("000");}
 function nK(k){if(String(_nV).length<10)_nV+=String(k);nU();}
 function nDot(){if(!String(_nV).includes('.'))_nV+='.';nU();}
 function nBk(){_nV=String(_nV).slice(0,-1);nU();}
