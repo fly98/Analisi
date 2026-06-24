@@ -61,6 +61,20 @@ var icompta_worker_default = {
       return json(JSON.parse(meta));
     }
 
+    // ── META PUT (aggiorna accounts/groups) ──────────────────────────────────
+    if (path === "/api/meta" && method === "PUT") {
+      const body = await request.json();
+      const { accounts, groups } = body;
+      if (!accounts || !groups) return err("accounts e groups richiesti");
+      const raw = await env.ICOMPTA_KV.get("icompta:meta");
+      if (!raw) return err("Meta non trovato", 404);
+      const meta = JSON.parse(raw);
+      meta.accounts = accounts;
+      meta.groups = groups;
+      await env.ICOMPTA_KV.put("icompta:meta", JSON.stringify(meta));
+      return json({ ok: true });
+    }
+
     // ── TX GET per anno ─────────────────────────────────────────────────────
     const txYearMatch = path.match(/^\/api\/tx\/(\d{4})$/);
     if (txYearMatch && method === "GET") {
