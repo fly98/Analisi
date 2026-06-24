@@ -246,26 +246,6 @@ body { padding-top: env(safe-area-inset-top, 0); }
 .settings-item .s-arrow { color: var(--gray3); font-size: 14px; }
 .settings-item.danger .s-label { color: var(--red); }
 .settings-item.danger .s-icon { filter: hue-rotate(0deg); }
-
-/* Numpad */
-.amt-display{width:100%;padding:14px;border-radius:10px;border:2px solid var(--border);font-size:28px;font-weight:700;text-align:right;cursor:pointer;background:var(--surface);color:var(--text);margin-bottom:8px;box-sizing:border-box;min-height:60px;display:flex;align-items:center;justify-content:flex-end;}
-.amt-display.positive{color:var(--green);border-color:#a8d9b8;}
-.amt-display.negative{color:var(--red);border-color:#f0b8b8;}
-.amt-display.empty{color:var(--muted);font-size:15px;font-weight:400;}
-.np-ov{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:300;display:flex;align-items:flex-end;justify-content:center;}
-.np-panel{background:var(--surface);border-radius:20px 20px 0 0;padding:16px;width:100%;max-width:380px;}
-.np-disp{font-size:36px;font-weight:700;text-align:right;padding:8px 16px 16px;min-height:56px;}
-.np-disp.pos{color:var(--green);}
-.np-disp.neg{color:var(--red);}
-.np-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px;}
-.np-btn{padding:16px;border:none;border-radius:10px;font-size:20px;font-weight:600;cursor:pointer;background:var(--bg);color:var(--text);}
-.np-btn.sign{background:var(--amber-bg);color:var(--amber);}
-.np-btn.del{background:var(--red-bg);color:var(--red);}
-.np-btn.ok{background:var(--text);color:white;grid-column:span 3;padding:18px;font-size:18px;border-radius:12px;margin-top:4px;}
-.split-row{background:var(--bg);border-radius:10px;padding:12px;margin-bottom:8px;border:1.5px solid var(--border);}
-.split-row-bot{display:flex;gap:8px;align-items:center;margin-top:8px;}
-.split-row-bot select{flex:1;padding:10px;border-radius:8px;border:1.5px solid var(--border);font-size:14px;outline:none;background:var(--surface);color:var(--text);}
-.split-del{background:none;border:none;color:var(--red);font-size:20px;cursor:pointer;padding:4px 8px;}
 </style>
 </head>
 <body>
@@ -469,8 +449,6 @@ body { padding-top: env(safe-area-inset-top, 0); }
 </div>
 
 <script>
-window.onerror = function(msg, src, line, col, err) { alert("ERRORE JS\nRiga: " + line + "\n" + msg); return false; };
-
 // ══════════════════════════════════════════════
 // CONFIG
 // ══════════════════════════════════════════════
@@ -1020,50 +998,180 @@ function openEditTx(tx) {
   document.getElementById('tx-modal').style.display = 'flex';
 }
 
-function addSplit(split) {
-  split = split || null;
-  var container = document.getElementById('splits-container');
-  var catOptions = [...meta.categories].sort(function(a,b){return a.name.localeCompare(b.name);})
-    .map(function(c){return '<option value="'+c.id+'"'+(split&&split.categoryId===c.id?' selected':'')+'>'+esc(c.name)+'</option>';}).join('');
-  var amt = (split && split.amount != null) ? split.amount : null;
-  var cls = amt > 0 ? 'positive' : amt < 0 ? 'negative' : 'empty';
-  var txt = amt != null ? fmt(amt) : 'Tocca per inserire importo';
-  var row = document.createElement('div');
+function addSplit(split = null) {
+  const container = document.getElementById('splits-container');
+  const catOptions = [...meta.categories]
+    .sort((a,b) => a.name.localeCompare(b.name))
+    .map(c => `<option value="${c.id}" ${split?.categoryId === c.id ? 'selected' : ''}>${esc(c.name)}</option>`)
+    .join('');
+
+  const row = document.createElement('div');
   row.className = 'split-row';
-  row.dataset.amount = amt != null ? String(amt) : '';
-  row.innerHTML = '<div class="amt-display '+cls+'" onclick="openNP(this)">'+txt+'</div>'
-    + '<div class="split-row-bot"><select class="split-cat"><option value="">-- Categoria --</option>'+catOptions+'</select>'
-    + '<button class="split-del" onclick="this.closest(\'.split-row\').remove()">X</button></div>';
+  row.innerHTML = `
+    <input type="number" step="0.01" class="form-input split-amount" 
+      placeholder="Importo" value="${split?.amount ?? ''}">
+    <select class="form-input split-cat">
+      <option value="">— Categoria —</option>
+      ${catOptions}
+    </select>
+    <input type="text" class="form-input split-comment" 
+      placeholder="Note" value="${split?.comment ?? ''}" style="max-width:120px">
+    <button class="btn-icon" onclick="this.parentElement.remove()">✕</button>
+  `;
   container.appendChild(row);
 }
 
-var _nT=null,_nV='';
-function openNP(el){
-  _nT=el;
-  var cur=parseFloat(el.closest('.split-row').dataset.amount);
-  _nV=(!isNaN(cur)&&cur!==0)?String(Math.abs(cur)):'';
-  var neg=!isNaN(cur)&&cur<0;
-  var ov=document.createElement('div');
-  ov.className='np-ov';ov.id='np-ov';
-  ov.innerHTML='<div class="np-panel" id="np-p" data-neg="'+(neg?'1':'0')+'" onclick="event.stopPropagation()">'
-    +'<div class="np-disp" id="np-d"></div>'
-    +'<div class="np-grid">'
-    +'<button class="np-btn" onclick="nK(7)">7</button><button class="np-btn" onclick="nK(8)">8</button><button class="np-btn" onclick="nK(9)">9</button>'
-    +'<button class="np-btn" onclick="nK(4)">4</button><button class="np-btn" onclick="nK(5)">5</button><button class="np-btn" onclick="nK(6)">6</button>'
-    +'<button class="np-btn" onclick="nK(1)">1</button><button class="np-btn" onclick="nK(2)">2</button><button class="np-btn" onclick="nK(3)">3</button>'
-    +'<button class="np-btn sign" onclick="nS()">+/-</button><button class="np-btn" onclick="nK(0)">0</button><button class="np-btn" onclick="nDot()">,</button>'
-    +'<button class="np-btn del" onclick="nBk()">DEL</button><button class="np-btn" onclick="nK00()">00</button><button class="np-btn" onclick="nK000()">000</button>'
-    +'</div><button class="np-btn ok" onclick="nOk()">Conferma</button></div>';
-  ov.addEventListener('click',function(){var e=document.getElementById('np-ov');if(e)e.remove();});
-  document.body.appendChild(ov);nU();
+async function saveTx() {
+  const splits = [];
+  document.querySelectorAll('.split-row').forEach(row => {
+    const amount = parseFloat(row.querySelector('.split-amount').value);
+    const categoryId = row.querySelector('.split-cat').value || null;
+    const comment = row.querySelector('.split-comment').value || null;
+    if (!isNaN(amount)) splits.push({ amount, categoryId, comment });
+  });
+
+  const tx = {
+    id: editingTx?.id || null,
+    date: document.getElementById('tx-date').value,
+    name: document.getElementById('tx-name').value.trim(),
+    accountId: document.getElementById('tx-account').value,
+    status: document.getElementById('tx-status').value,
+    comment: document.getElementById('tx-comment').value.trim() || null,
+    useSumOfSplits: true,
+    amount: null,
+    splits
+  };
+
+  const result = await api('POST', '/api/tx', { tx });
+  if (result.error) { alert('Errore: ' + result.error); return; }
+
+  closeModal();
+  // Reload anno corrente
+  const year = tx.date.slice(0,4);
+  if (year !== selectedYear) await selectYear(year);
+  else await loadYear(selectedYear);
+  // Aggiorna saldi
+  loadBalances();
 }
-function nK00(){nK("00");}
-function nK000(){nK("000");}
-function nK(k){if(String(_nV).length<10)_nV+=String(k);nU();}
-function nDot(){if(!String(_nV).includes('.'))_nV+='.';nU();}
-function nBk(){_nV=String(_nV).slice(0,-1);nU();}
-function nS(){var p=document.getElementById('np-p');if(p)p.dataset.neg=p.dataset.neg==='1'?'0':'1';nU();}
-function nU(){var d=document.getElementById('np-d');if(!d)return;var neg=document.getElementById('np-p').dataset.neg==='1';d.textContent=(neg?'- ':'+ ')+(_nV||'0');d.className='np-disp '+(neg?'neg':'pos');}
-function nOk(){if(!_nT)return;var neg=document.getElementById('np-p').dataset.neg==='1';var v=parseFloat(_nV||'0');var f=neg?-Math.abs(v):Math.abs(v);var row=_nT.closest('.split-row');row.dataset.amount=String(f);_nT.className='amt-display '+(f>0?'positive':f<0?'negative':'empty');_nT.textContent=fmt(f);var e=document.getElementById('np-ov');if(e)e.remove();_nT=null;}
+
+async function deleteTx() {
+  if (!editingTx) return;
+  if (!confirm('Eliminare questa transazione?')) return;
+  const year = editingTx.date.slice(0,4);
+  const result = await api('DELETE', `/api/tx/${editingTx.id}?year=${year}`);
+  if (result.error) { alert('Errore: ' + result.error); return; }
+  closeModal();
+  await loadYear(selectedYear);
+  loadBalances();
+}
+
+function closeModal() {
+  document.getElementById('tx-modal').style.display = 'none';
+  editingTx = null;
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+// ══════════════════════════════════════════════
+// STARTUP
+// ══════════════════════════════════════════════
+(async () => {
+  if (TOKEN) {
+    try {
+      const r = await api('GET', '/api/meta');
+      if (!r.error) {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('app').style.display = 'flex';
+        await init(r);
+      }
+    } catch(e) { /* mostra login */ }
+  }
+})();
 
 
+// ── Settings ─────────────────────────────────────────────
+function openSettings() {
+  document.getElementById('settings-overlay').style.display = 'flex';
+}
+function closeSettings() {
+  document.getElementById('settings-overlay').style.display = 'none';
+}
+
+async function confirmRestore() {
+  const ok = confirm('⚠️ Ripristina database?\n\nTutte le modifiche fatte verranno cancellate.\nVerranno ripristinati i dati originali del 23/06/2026.\n\nCi vorranno circa 2 minuti.');
+  if (!ok) return;
+  closeSettings();
+  const btn = document.querySelector('.settings-item.danger');
+  try {
+    const r = await api('POST', '/api/restore');
+    if (r.ok) {
+      alert('✅ ' + r.message + '\n\nRicarica la pagina tra 2 minuti.');
+    } else {
+      alert('Errore: ' + (r.error || 'sconosciuto'));
+    }
+  } catch(e) {
+    alert('Errore: ' + e.message);
+  }
+}
+
+function doLogout() {
+  if (!confirm('Esci da iCompta?')) return;
+  localStorage.removeItem('icompta_token');
+  location.reload();
+}
+
+function exportOFX() {
+  if (!selectedAccountId || !meta) { alert('Seleziona prima un conto'); return; }
+  const acc = meta.accounts.find(a => a.id === selectedAccountId);
+  const from = prompt('Data inizio (YYYY-MM-DD):', new Date().getFullYear() + '-01-01');
+  if (!from) return;
+  const to = new Date().toISOString().slice(0,10);
+  const url = `${WORKER_URL}/api/export/ofx?accountId=${selectedAccountId}&from=${from}&to=${to}`;
+  const a = document.createElement('a');
+  a.href = url;
+  a.setAttribute('download', `icompta_${acc.name}_${from}_${to}.ofx`);
+  // Aggiungi auth header via fetch
+  fetch(url, { headers: { 'Authorization': `Bearer ${TOKEN}` }})
+    .then(r => r.blob())
+    .then(blob => {
+      const url2 = URL.createObjectURL(blob);
+      a.href = url2;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    });
+}
+
+// ── Sidebar resize ──────────────────────────────────────
+(function() {
+  const resizer = document.getElementById('sidebar-resizer');
+  const sidebar = document.getElementById('sidebar');
+  let startX, startW;
+
+  resizer.addEventListener('pointerdown', e => {
+    startX = e.clientX;
+    startW = sidebar.offsetWidth;
+    resizer.classList.add('dragging');
+    resizer.setPointerCapture(e.pointerId);
+    document.addEventListener('pointermove', onMove);
+    document.addEventListener('pointerup', onUp);
+    e.preventDefault();
+  });
+
+  function onMove(e) {
+    const dx = e.clientX - startX;
+    const newW = Math.min(420, Math.max(180, startW + dx));
+    sidebar.style.width = newW + 'px';
+  }
+
+  function onUp() {
+    resizer.classList.remove('dragging');
+    document.removeEventListener('pointermove', onMove);
+    document.removeEventListener('pointerup', onUp);
+  }
+})();
+</script>
+</body>
+</html>
