@@ -1235,11 +1235,39 @@ function renderTxList() {
 }
 
 async function quickDelete(id, year) {
-  if (!confirm('Eliminare questa transazione?')) return;
-  const r = await api('DELETE', `/api/tx/${id}?year=${year}`);
-  if (r.error) { alert('Errore: ' + r.error); return; }
-  if (txCache[year]) txCache[year] = txCache[year].filter(t => t.id !== id);
-  currentTxs = currentTxs.filter(t => t.id !== id);
+  // Trova la TX per vedere se ha una collegata
+  const txList = txCache[year] || currentTxs;
+  const tx = txList.find(t => t.id === id);
+  const linkedId = tx ? tx.linkedTxId : null;
+
+  if (linkedId) {
+    const choice = confirm('Questa transazione è un trasferimento collegato.\nOK = elimina entrambe\nAnnulla = elimina solo questa');
+    if (choice === null) return; // non dovrebbe mai succedere con confirm
+    // Elimina principale
+    const r = await api('DELETE', `/api/tx/${id}?year=${year}`);
+    if (r.error) { alert('Errore: ' + r.error); return; }
+    if (txCache[year]) txCache[year] = txCache[year].filter(t => t.id !== id);
+    currentTxs = currentTxs.filter(t => t.id !== id);
+    if (choice) {
+      // Elimina anche la collegata cercandola in tutti gli anni
+      for (const yr of (meta.years || [])) {
+        if (!txCache[yr]) { try { txCache[yr] = await api('GET', '/api/tx/' + yr); } catch(e) { continue; } }
+        const linked = (txCache[yr] || []).find(t => t.id === linkedId);
+        if (linked) {
+          await api('DELETE', `/api/tx/${linkedId}?year=${yr}`);
+          txCache[yr] = txCache[yr].filter(t => t.id !== linkedId);
+          currentTxs = currentTxs.filter(t => t.id !== linkedId);
+          break;
+        }
+      }
+    }
+  } else {
+    if (!confirm('Eliminare questa transazione?')) return;
+    const r = await api('DELETE', `/api/tx/${id}?year=${year}`);
+    if (r.error) { alert('Errore: ' + r.error); return; }
+    if (txCache[year]) txCache[year] = txCache[year].filter(t => t.id !== id);
+    currentTxs = currentTxs.filter(t => t.id !== id);
+  }
   loadBalances();
   applyFilters();
 }
