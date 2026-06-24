@@ -1,22 +1,27 @@
 {
-  "name": "InternoUno Arrivi",
-  "short_name": "InternoUno",
-  "description": "Gestione arrivi e check-in InternoUno",
-  "start_url": "arrivi.html",
+  "name": "iCompta — InternoUno",
+  "short_name": "Conti",
+  "description": "InternoUno Contabilità",
+  "start_url": "/Analisi/icompta.html",
+  "scope": "/Analisi/",
   "display": "standalone",
-  "background_color": "#f5f5f7",
-  "theme_color": "#f5f5f7",
-  "orientation": "portrait",
+  "background_color": "#1a1a2e",
+  "theme_color": "#1a1a2e",
+  "orientation": "any",
   "icons": [
     {
-      "src": "icon-192.png",
+      "src": "icons/icon-192.png",
       "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/png"
     },
     {
-      "src": "icon-512.png",
+      "src": "icons/icon-512.png",
       "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-1024.png",
+      "sizes": "1024x1024",
       "type": "image/png",
       "purpose": "any maskable"
     }
