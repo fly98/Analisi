@@ -2793,7 +2793,7 @@ function renderRecBody(){
     var freq=REC_FREQ[rec.frequenza], amt=parseFloat(rec.importo);
     var amtStr=(amt>=0?'+':'')+amt.toLocaleString('it-IT',{minimumFractionDigits:2})+' \u20ac';
     var amtColor=amt>=0?'var(--green)':'var(--red)';
-    var div=document.createElement('div'); div.className='rec-item'; div.style.cursor='pointer';
+    var div=document.createElement('div'); div.className='rec-item';
     div.innerHTML='<div class="rec-item-hdr">'+
       '<span style="font-size:16px">\u23f0</span>'+
       '<span class="rec-item-name">'+esc(rec.nome)+'</span>'+
@@ -2810,9 +2810,8 @@ function renderRecBody(){
       })():'')+
       '</div>';
     div.querySelector('.rec-item-del').addEventListener('click',(function(i){
-      return function(e){e.stopPropagation();if(!confirm('Eliminare?'))return;ricorrenze.splice(i,1);renderRecBody();};
+      return function(){if(!confirm('Eliminare?'))return;ricorrenze.splice(i,1);renderRecBody();};
     })(idx));
-    (function(i){ div.addEventListener('click', function(){ editRecForm(i); }); })(idx);
     body.appendChild(div);
   });
 }
