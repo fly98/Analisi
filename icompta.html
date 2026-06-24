@@ -554,7 +554,8 @@ async function init(metaData) {
 
 async function loadBalances() {
   balances = await api('GET', '/api/balance');
-  renderSidebar();
+  renderSidebar(); // aggiorna saldi nella sidebar
+  updateTotalBalance(); // aggiorna totale disponibile
 }
 
 // ══════════════════════════════════════════════
