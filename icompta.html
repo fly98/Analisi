@@ -157,7 +157,7 @@ body { padding-top: env(safe-area-inset-top, 0); }
 .date-chip.active { background: var(--text); color: white; border-color: var(--text); }
 #date-bar input[type=date] { padding: 3px 8px; border-radius: 6px; font-size: 13px;
   border: 1px solid var(--border); color: var(--text); background: var(--surface);
-  outline: none; width: 130px; }
+  outline: none; min-width: 140px; }
 
 /* ── Loading / Empty ── */
 #loading { display: flex; align-items: center; justify-content: center; flex: 1;
@@ -296,15 +296,7 @@ body { padding-top: env(safe-area-inset-top, 0); }
       <input type="date" id="date-from" onchange="setDateCustom()">
       <span style="color:var(--muted);font-size:13px;padding:0 4px">→</span>
       <input type="date" id="date-to" onchange="setDateCustom()">
-    </div>
-
-      <button class="filter-chip" onclick="setAmountFilter('debit',this)">Debito</button>
-      <button class="filter-chip" onclick="setAmountFilter('credit',this)">Credito</button>
-      <div class="filter-sep"></div>
-      <select class="filter-select" id="cat-filter" onchange="applyCatFilter(this.value)">
-        <option value="">Categoria</option>
-      </select>
-      <input type="search" id="search-tx" placeholder="Cerca transazioni..." oninput="applySearch(this.value)">
+    </div><input type="search" id="search-tx" placeholder="Cerca transazioni..." oninput="applySearch(this.value)">
     </div>
 
     <div id="tx-list-container">
