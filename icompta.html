@@ -429,104 +429,6 @@ body { padding-top: env(safe-area-inset-top, 0); }
 }
 #sella-import-btn:disabled { opacity:.4; cursor:default; }
 #sella-progress { font-size:13px; color:var(--muted); min-width:80px; text-align:right; }
-
-/* ── Modal Gestione Conti ── */
-#accts-overlay {
-  position:fixed;inset:0;z-index:8000;background:rgba(0,0,0,.45);
-  display:flex;align-items:flex-end;animation:npFadeIn .15s ease;
-}
-#accts-panel {
-  width:100%;max-width:560px;margin:0 auto;background:var(--surface);
-  border-radius:20px 20px 0 0;height:88vh;display:flex;flex-direction:column;
-  box-shadow:0 -4px 32px rgba(0,0,0,.2);animation:npSlideUp .22s ease;
-}
-#accts-panel-hdr {
-  padding:16px 20px 12px;border-bottom:1px solid var(--border);
-  display:flex;align-items:center;gap:10px;flex-shrink:0;
-}
-#accts-panel-hdr h3 { flex:1;font-size:18px;font-weight:700; }
-#accts-body { flex:1;overflow-y:auto;padding:12px 16px; }
-.accts-group-hdr {
-  display:flex;align-items:center;gap:8px;padding:8px 4px 4px;
-  font-size:11px;font-weight:700;color:var(--gray4);text-transform:uppercase;
-  letter-spacing:.5px;margin-top:8px;
-}
-.accts-group-hdr:first-child { margin-top:0; }
-.accts-group-name-input {
-  flex:1;font-size:11px;font-weight:700;color:var(--gray4);
-  text-transform:uppercase;letter-spacing:.5px;
-  border:none;background:transparent;outline:none;
-  border-bottom:1px solid transparent;
-  transition:border-color .15s;
-}
-.accts-group-name-input:focus { border-bottom-color:var(--blue); color:var(--text); text-transform:none; }
-.acct-row {
-  display:flex;align-items:center;gap:10px;padding:10px 8px;
-  border-radius:10px;margin-bottom:2px;background:var(--bg);
-  border:1px solid var(--gray2);cursor:default;
-}
-.acct-row.hidden-acc { opacity:.45; }
-.acct-drag { color:var(--gray3);cursor:grab;font-size:18px;flex-shrink:0;padding:4px 8px;border-radius:6px;touch-action:none; }
-.acct-drag:active { cursor:grabbing;color:var(--blue);background:var(--blue-bg); }
-.acct-icon { font-size:18px;flex-shrink:0;width:24px;text-align:center; }
-.acct-name-input {
-  flex:1;font-size:14px;font-weight:500;border:none;background:transparent;
-  outline:none;border-bottom:1.5px solid transparent;transition:border-color .15s;
-  min-width:0;
-}
-.acct-name-input:focus { border-bottom-color:var(--blue); }
-.acct-toggles { display:flex;gap:6px;flex-shrink:0;align-items:center; }
-.acct-toggle-btn {
-  font-size:11px;padding:3px 7px;border-radius:6px;border:1px solid var(--border);
-  background:var(--gray2);color:var(--muted);cursor:pointer;transition:all .15s;
-  white-space:nowrap;
-}
-.acct-toggle-btn.active { background:var(--blue-bg);border-color:var(--blue);color:var(--blue); }
-.acct-del { font-size:14px;color:var(--faint);cursor:pointer;flex-shrink:0;
-  padding:4px;border-radius:6px;border:none;background:none;transition:color .15s; }
-.acct-del:hover { color:var(--red); }
-.accts-add-btn {
-  display:flex;align-items:center;gap:8px;padding:10px 8px;border-radius:10px;
-  border:1.5px dashed var(--gray3);background:none;color:var(--muted);
-  font-size:13px;cursor:pointer;width:100%;margin-top:6px;
-  transition:border-color .15s,color .15s;
-}
-.accts-add-btn:hover { border-color:var(--blue);color:var(--blue); }
-#accts-footer {
-  padding:14px 16px calc(14px + env(safe-area-inset-bottom,0));
-  border-top:1px solid var(--border);display:flex;gap:8px;flex-shrink:0;
-}
-
-/* -- Ricorrenze -- */
-#rec-pending-box { display:none;margin:0 0 8px;border-radius:12px;border:1.5px solid var(--amber);background:var(--amber-bg);flex-shrink:0;overflow:hidden; }
-#rec-pending-hdr { display:flex;align-items:center;gap:8px;padding:10px 14px;cursor:pointer;user-select:none;-webkit-user-select:none; }
-#rec-pending-hdr h4 { flex:1;font-size:13px;font-weight:700;color:var(--amber); }
-#rec-pending-list { padding:0 8px 8px; }
-.rec-pending-row { display:flex;align-items:center;gap:8px;padding:8px;border-radius:8px;background:var(--surface);margin-bottom:4px;border:1px solid var(--border); }
-.rec-pending-info { flex:1;min-width:0; }
-.rec-pending-name { font-size:13px;font-weight:600;color:var(--text); }
-.rec-pending-sub  { font-size:11px;color:var(--muted);margin-top:1px; }
-.rec-btn-ok   { padding:5px 12px;border-radius:7px;border:none;background:var(--green);color:#fff;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap; }
-.rec-btn-skip { padding:5px 10px;border-radius:7px;border:1px solid var(--border);background:var(--bg);color:var(--muted);font-size:12px;cursor:pointer;white-space:nowrap; }
-.rec-btn-all  { padding:5px 12px;border-radius:7px;border:none;background:var(--green);color:#fff;font-size:12px;font-weight:700;cursor:pointer; }
-#rec-overlay { position:fixed;inset:0;z-index:8000;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;animation:npFadeIn .15s ease; }
-#rec-panel { width:100%;max-width:560px;margin:0 auto;background:var(--surface);border-radius:20px 20px 0 0;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 -4px 32px rgba(0,0,0,.2);animation:npSlideUp .22s ease; }
-#rec-panel-hdr { padding:16px 20px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0; }
-#rec-panel-hdr h3 { flex:1;font-size:18px;font-weight:700; }
-#rec-body { flex:1;overflow-y:auto;padding:12px 16px; }
-#rec-footer { padding:14px 16px calc(14px + env(safe-area-inset-bottom,0));border-top:1px solid var(--border);display:flex;gap:8px;flex-shrink:0; }
-.rec-item { border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:10px;background:var(--bg); }
-.rec-item-hdr { display:flex;align-items:center;gap:8px;margin-bottom:8px; }
-.rec-item-name { flex:1;font-size:14px;font-weight:600; }
-.rec-item-del { background:none;border:none;color:var(--faint);cursor:pointer;font-size:16px;padding:2px 6px; }
-.rec-item-del:hover { color:var(--red); }
-.rec-item-info { font-size:12px;color:var(--muted);display:flex;gap:12px;flex-wrap:wrap; }
-#rec-form { border:1.5px solid var(--blue);border-radius:12px;padding:14px;background:var(--blue-bg);margin-bottom:12px; }
-#rec-form h4 { font-size:14px;font-weight:700;margin-bottom:12px;color:var(--blue); }
-.rec-form-row { display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap; }
-.rec-form-row label { font-size:11px;color:var(--muted);margin-bottom:3px;display:block; }
-.rec-form-row .rf { flex:1;min-width:120px; }
-.rec-form-row input,.rec-form-row select { width:100%;padding:8px 10px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface);color:var(--text);font-size:14px;box-sizing:border-box; }
 </style>
 </head>
 <body>
@@ -556,11 +458,6 @@ body { padding-top: env(safe-area-inset-top, 0); }
       <div id="loading" style="margin:40px auto"><div class="spinner"></div> Caricamento...</div>
     </div>
 
-    <div style="padding:8px 12px;flex-shrink:0;border-top:1px solid var(--gray2)">
-      <button onclick="openAcctsMgmt()" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--muted);font-size:12px;cursor:pointer;display:flex;align-items:center;gap:6px;justify-content:center">
-        <span>⚙️</span> Gestisci conti
-      </button>
-    </div>
   </div>
   <div id="sidebar-overlay" onclick="closeSidebar()"></div>
 
@@ -586,15 +483,6 @@ body { padding-top: env(safe-area-inset-top, 0); }
     </div>
 
     <div id="tx-list-container">
-      <div id="rec-pending-box">
-        <div id="rec-pending-hdr" onclick="toggleRecPending()">
-          <span style="font-size:16px">⏰</span>
-          <h4 id="rec-pending-title">Transazioni programmate</h4>
-          <button class="rec-btn-all" onclick="event.stopPropagation();approvaAllRec()">✓ Approva tutte</button>
-          <span id="rec-pending-chevron" style="color:var(--amber);font-size:12px">▼</span>
-        </div>
-        <div id="rec-pending-list"></div>
-      </div>
       <div id="tx-header">
         <div class="txh tx-c-date">Data<div class="col-resizer" data-col="date"></div></div>
         <div class="txh tx-c-desc" style="padding:0 10px">Descrizione</div>
@@ -619,17 +507,6 @@ body { padding-top: env(safe-area-inset-top, 0); }
     </div>
     <div class="settings-body">
 
-      <div class="settings-section">
-        <div class="settings-section-title">Pianificazione</div>
-        <div class="settings-item" onclick="closeSettings();openRecModal()">
-          <span class="s-icon">⏰</span>
-          <div class="s-text">
-            <div class="s-label">Transazioni programmate</div>
-            <div class="s-desc">Gestisci ricorrenze automatiche</div>
-          </div>
-          <span class="s-arrow">›</span>
-        </div>
-      </div>
       <div class="settings-section">
         <div class="settings-section-title">Import</div>
         <div class="settings-item" onclick="closeSettings();openSellaImport()">
@@ -896,30 +773,51 @@ function renderSidebar() {
   const list = document.getElementById('accounts-list');
   list.innerHTML = '';
 
-  // Ordine dinamico: usa il campo index salvato nel meta (da gestione conti)
-  // Gruppi ordinati per index
-  const sortedGroups = [...meta.groups].sort((a,b) => (a.index||0) - (b.index||0));
+  // Ordine ESATTO da iCompta
+  // Prima gli standalone (senza gruppo), poi i gruppi nell'ordine corretto
+  const GROUP_ORDER = ['Attivo','Contanti','Famiglia','Banche','Investimenti'];
+  const ACCOUNT_ORDER = {
+    'Attivo': ['InternoUno','Risparmi'],
+    'Contanti': ['Cassa','Cassaforte'],
+    'Famiglia': ['Raffo','Conto casa','Babbo','Chiara'],
+    'Banche': ['InternoUno Banca','Banca Sella','Genius Unicredit','Leo','Ristrutturazione'],
+    'Investimenti': ['Fineco','Fideuram','Prestiti','Alessia','Viola','Sella cc','InternoRoma']
+  };
 
-  // Mappa gruppi per id
-  const groupById = {};
-  for (const g of sortedGroups) groupById[g.id] = { ...g, accounts: [] };
+  // Mappa gruppi per nome
+  const groupByName = {};
+  for (const g of meta.groups) groupByName[g.name] = { ...g, accounts: [] };
   const ungrouped = [];
 
-  // Distribuisce i conti nei gruppi, ordinati per index
-  const sortedAccounts = [...meta.accounts].sort((a,b) => (a.index||0) - (b.index||0));
-  for (const acc of sortedAccounts) {
+  for (const acc of meta.accounts) {
     if (acc.hidden) continue;
-    if (acc.groupId && groupById[acc.groupId]) {
-      groupById[acc.groupId].accounts.push(acc);
-    } else {
-      ungrouped.push(acc);
+    if (acc.groupId) {
+      const grp = Object.values(groupByName).find(g => g.id === acc.groupId);
+      if (grp) { grp.accounts.push(acc); continue; }
     }
+    ungrouped.push(acc);
   }
 
-  const groups = sortedGroups.map(g => groupById[g.id]).filter(Boolean);
+  // Ordina conti dentro ogni gruppo
+  for (const gName in groupByName) {
+    const order = ACCOUNT_ORDER[gName] || [];
+    groupByName[gName].accounts.sort((a,b) => {
+      const ia = order.indexOf(a.name), ib = order.indexOf(b.name);
+      return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+    });
+  }
 
-  // Standalone senza gruppo
-  for (const acc of ungrouped) {
+  const groups = GROUP_ORDER
+    .map(n => groupByName[n])
+    .filter(Boolean);
+
+  // Standalone prima (es. Operazioni future, Leo, Ristrutturazione se senza gruppo)
+  const standaloneFirst = ['Operazioni future'];
+  const standaloneLast = ['Leo','Ristrutturazione'];
+  const firstAccounts = ungrouped.filter(a => standaloneFirst.includes(a.name));
+  const lastAccounts = ungrouped.filter(a => !standaloneFirst.includes(a.name));
+
+  for (const acc of firstAccounts) {
     if (!acc.hidden) list.appendChild(makeAccountRow(acc));
   }
 
@@ -945,6 +843,11 @@ function renderSidebar() {
       gContainer.appendChild(makeAccountRow(acc));
     }
     list.appendChild(gContainer);
+  }
+
+  // Account senza gruppo (residui)
+  for (const acc of lastAccounts) {
+    if (!acc.hidden) list.appendChild(makeAccountRow(acc));
   }
 
   updateTotalBalance();
@@ -1647,7 +1550,6 @@ function closeSidebar() {
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('app').style.display = 'flex';
         await init(r);
-      await loadRicorrenze();
       }
     } catch(e) { /* mostra login */ }
   }
@@ -2385,598 +2287,6 @@ function sellaFinish(msg) {
   });
 })();
 
-// ════════════════════════════════════════════════════════
-// GESTIONE CONTI
-// ════════════════════════════════════════════════════════
-
-var _acctsDraft = null; // copia locale di {accounts, groups} in editing
-
-function openAcctsMgmt() {
-  // Deep copy di accounts e groups
-  _acctsDraft = {
-    accounts: JSON.parse(JSON.stringify(meta.accounts)),
-    groups:   JSON.parse(JSON.stringify(meta.groups))
-  };
-  renderAcctsMgmt();
-  document.getElementById('accts-overlay').style.display = 'flex';
-  closeSidebar();
-}
-
-function closeAcctsMgmt() {
-  document.getElementById('accts-overlay').style.display = 'none';
-  _acctsDraft = null;
-}
-
-function renderAcctsMgmt() {
-  var body = document.getElementById('accts-body');
-  body.innerHTML = '';
-
-  var draft = _acctsDraft;
-  // Raggruppa conti per groupId
-  var grouped = {};
-  var ungrouped = [];
-  draft.groups.forEach(function(g) { grouped[g.id] = []; });
-  draft.accounts.forEach(function(acc) {
-    if (acc.groupId && grouped[acc.groupId] !== undefined) {
-      grouped[acc.groupId].push(acc);
-    } else {
-      ungrouped.push(acc);
-    }
-  });
-
-  // Standalone prima (senza gruppo)
-  if (ungrouped.length) {
-    var uHdr = document.createElement('div');
-    uHdr.className = 'accts-group-hdr';
-    uHdr.innerHTML = '<span style="flex:1">Standalone</span>';
-    body.appendChild(uHdr);
-    ungrouped.forEach(function(acc) { body.appendChild(makeAcctRow(acc)); });
-    var addBtn = makeAddAcctBtn(null);
-    body.appendChild(addBtn);
-  }
-
-  // Gruppi
-  draft.groups.forEach(function(g) {
-    var accs = grouped[g.id] || [];
-
-    var hdr = document.createElement('div');
-    hdr.className = 'accts-group-hdr';
-
-    var nameInput = document.createElement('input');
-    nameInput.className = 'accts-group-name-input';
-    nameInput.value = g.name;
-    nameInput.addEventListener('input', function() { g.name = this.value; });
-
-    var delGrpBtn = document.createElement('button');
-    delGrpBtn.className = 'acct-del';
-    delGrpBtn.title = 'Elimina gruppo (solo se vuoto)';
-    delGrpBtn.textContent = '✕';
-    delGrpBtn.addEventListener('click', function() {
-      if (accs.length > 0) { alert('Sposta prima tutti i conti dal gruppo'); return; }
-      _acctsDraft.groups = _acctsDraft.groups.filter(function(x) { return x.id !== g.id; });
-      renderAcctsMgmt();
-    });
-
-    hdr.appendChild(nameInput);
-    hdr.appendChild(delGrpBtn);
-    body.appendChild(hdr);
-
-    accs.forEach(function(acc) { body.appendChild(makeAcctRow(acc)); });
-    body.appendChild(makeAddAcctBtn(g.id));
-  });
-}
-
-function makeAcctRow(acc) {
-  var row = document.createElement('div');
-  row.className = 'acct-row' + (acc.hidden ? ' hidden-acc' : '');
-  row.dataset.accId = acc.id;
-
-  // Drag handle
-  var drag = document.createElement('span');
-  drag.className = 'acct-drag';
-  drag.textContent = '⠿';
-  drag.title = 'Trascina per riordinare';
-
-  // Icona
-  var icon = document.createElement('span');
-  icon.className = 'acct-icon';
-  icon.textContent = accIcon(acc.name);
-
-  // Nome
-  var nameEl = document.createElement('input');
-  nameEl.className = 'acct-name-input';
-  nameEl.value = acc.name;
-  nameEl.addEventListener('input', function() { acc.name = this.value; });
-
-  // Toggle visibile
-  var visBtn = document.createElement('button');
-  visBtn.className = 'acct-toggle-btn' + (acc.hidden ? '' : ' active');
-  visBtn.textContent = acc.hidden ? 'Nascosto' : 'Visibile';
-  visBtn.title = 'Visibile nella sidebar';
-  visBtn.addEventListener('click', function() {
-    acc.hidden = !acc.hidden;
-    row.classList.toggle('hidden-acc', acc.hidden);
-    visBtn.textContent = acc.hidden ? 'Nascosto' : 'Visibile';
-    visBtn.classList.toggle('active', !acc.hidden);
-  });
-
-  // Toggle incluso nel totale
-  var totBtn = document.createElement('button');
-  totBtn.className = 'acct-toggle-btn' + (acc.includedInTotal ? ' active' : '');
-  totBtn.textContent = '∑';
-  totBtn.title = 'Incluso nel totale disponibile';
-  totBtn.addEventListener('click', function() {
-    acc.includedInTotal = !acc.includedInTotal;
-    totBtn.classList.toggle('active', acc.includedInTotal);
-  });
-
-  // Elimina
-  var delBtn = document.createElement('button');
-  delBtn.className = 'acct-del';
-  delBtn.textContent = '🗑';
-  delBtn.title = 'Elimina conto';
-  delBtn.addEventListener('click', function() {
-    var bal = balances && balances.accounts && balances.accounts[acc.id];
-    if (bal && Math.abs(bal) > 0.01) {
-      alert('Non puoi eliminare un conto con saldo non zero (' + fmt(bal) + ')');
-      return;
-    }
-    if (!confirm('Eliminare "' + acc.name + '"? Le transazioni rimarranno nel database.')) return;
-    _acctsDraft.accounts = _acctsDraft.accounts.filter(function(a) { return a.id !== acc.id; });
-    renderAcctsMgmt();
-  });
-
-  var toggles = document.createElement('div');
-  toggles.className = 'acct-toggles';
-  toggles.appendChild(visBtn);
-  toggles.appendChild(totBtn);
-  toggles.appendChild(delBtn);
-
-  row.appendChild(drag);
-  row.appendChild(icon);
-  row.appendChild(nameEl);
-  row.appendChild(toggles);
-
-  // Drag & drop per riordinare
-  _initAcctDrag(row, acc);
-
-  return row;
-}
-
-function makeAddAcctBtn(groupId) {
-  var btn = document.createElement('button');
-  btn.className = 'accts-add-btn';
-  btn.innerHTML = '<span>+</span> Aggiungi conto';
-  btn.addEventListener('click', function() { addAcct(groupId); });
-  return btn;
-}
-
-function addAcct(groupId) {
-  var name = prompt('Nome del nuovo conto:');
-  if (!name || !name.trim()) return;
-  var newAcc = {
-    id: 'ACC-' + Date.now(),
-    name: name.trim(),
-    type: 'CheckingAccount',
-    groupId: groupId || null,
-    groupName: groupId ? (_acctsDraft.groups.find(function(g){return g.id===groupId;})||{}).name : null,
-    hidden: false,
-    includedInTotal: true,
-    index: _acctsDraft.accounts.length,
-    comment: null,
-    number: null
-  };
-  _acctsDraft.accounts.push(newAcc);
-  renderAcctsMgmt();
-}
-
-function addAcctGroup() {
-  var name = prompt('Nome del nuovo gruppo:');
-  if (!name || !name.trim()) return;
-  _acctsDraft.groups.push({
-    id: 'GRP-' + Date.now(),
-    name: name.trim(),
-    index: _acctsDraft.groups.length
-  });
-  renderAcctsMgmt();
-}
-
-// Drag & drop semplice per riordinare conti
-var _dragSrc = null;
-function _initAcctDrag(row, acc) {
-  var handle = row.querySelector('.acct-drag');
-  handle.addEventListener('pointerdown', function(e) {
-    e.preventDefault();
-    _dragSrc = { row: row, acc: acc };
-    var pid = e.pointerId;
-    row.style.opacity = '0.5';
-    row.style.boxShadow = '0 4px 16px rgba(0,0,0,.15)';
-    row.style.zIndex = '10';
-    // Usa document per catturare anche quando il dito esce dall'handle
-    handle.setPointerCapture(pid);
-
-    function onMove(ev) {
-      if (ev.pointerId !== pid) return;
-      var el = document.elementFromPoint(ev.clientX, ev.clientY);
-      var target = el && el.closest('.acct-row');
-      if (target && target !== row) {
-        var body = document.getElementById('accts-body');
-        var allRows = Array.from(body.querySelectorAll('.acct-row'));
-        var srcIdx = allRows.indexOf(row);
-        var tgtIdx = allRows.indexOf(target);
-        if (srcIdx > tgtIdx) target.before(row);
-        else target.after(row);
-        _syncAcctOrder();
-      }
-    }
-    function onUp(ev) {
-      if (ev.pointerId !== pid) return;
-      row.style.opacity = '';
-      row.style.boxShadow = '';
-      row.style.zIndex = '';
-      _dragSrc = null;
-      handle.removeEventListener('pointermove', onMove);
-      handle.removeEventListener('pointerup', onUp);
-      handle.removeEventListener('pointercancel', onUp);
-    }
-    handle.addEventListener('pointermove', onMove);
-    handle.addEventListener('pointerup', onUp);
-    handle.addEventListener('pointercancel', onUp);
-  });
-}
-
-function _syncAcctOrder() {
-  var rows = Array.from(document.querySelectorAll('#accts-body .acct-row'));
-  rows.forEach(function(row, i) {
-    var acc = _acctsDraft.accounts.find(function(a){return a.id===row.dataset.accId;});
-    if (acc) acc.index = i;
-  });
-  _acctsDraft.accounts.sort(function(a,b){return (a.index||0)-(b.index||0);});
-}
-
-async function saveAcctsMgmt() {
-  var saveBtn = document.querySelector('#accts-footer button:last-child');
-  saveBtn.disabled = true;
-  saveBtn.textContent = 'Salvataggio...';
-  try {
-    var r = await api('PUT', '/api/meta', {
-      accounts: _acctsDraft.accounts,
-      groups:   _acctsDraft.groups
-    });
-    if (r && r.ok) {
-      // Aggiorna meta locale
-      meta.accounts = _acctsDraft.accounts;
-      meta.groups   = _acctsDraft.groups;
-      closeAcctsMgmt();
-      await loadBalances();
-      renderSidebar();
-    } else {
-      alert('Errore: ' + (r && r.error ? r.error : 'sconosciuto'));
-    }
-  } catch(e) {
-    alert('Errore: ' + e.message);
-  } finally {
-    saveBtn.disabled = false;
-    saveBtn.textContent = '\uD83D\uDCBE Salva';
-  }
-}
-
-// RICORRENZE
-var ricorrenze = [];
-var REC_FREQ = {
-  'giornaliera': { label:'Ogni giorno',    days:1    },
-  'settimanale': { label:'Ogni settimana', days:7    },
-  'mensile':     { label:'Ogni mese',      months:1  },
-  'bimestrale':  { label:'Ogni 2 mesi',    months:2  },
-  'trimestrale': { label:'Ogni 3 mesi',    months:3  },
-  'semestrale':  { label:'Ogni 6 mesi',    months:6  },
-  'annuale':     { label:'Ogni anno',      months:12 }
-};
-
-async function loadRicorrenze() {
-  try { var r=await api('GET','/api/ricorrenze'); ricorrenze=Array.isArray(r)?r:[]; }
-  catch(e) { ricorrenze=[]; }
-  checkRecPending();
-}
-
-function recNextDate(rec,from) {
-  var d=new Date(from+'T00:00:00'), f=REC_FREQ[rec.frequenza];
-  if(!f) return null;
-  if(f.days) d.setDate(d.getDate()+f.days);
-  else if(f.months) d.setMonth(d.getMonth()+f.months);
-  return d.toISOString().slice(0,10);
-}
-
-function recGetPending(rec) {
-  var today=new Date().toISOString().slice(0,10), pending=[], cur=rec.dataInizio;
-  var processed=new Set(rec.processed||[]), max=500;
-  while(cur<=today && max-->0) {
-    if(!processed.has(cur) && (!rec.dataFine||cur<=rec.dataFine)) pending.push(cur);
-    var next=recNextDate(rec,cur); if(!next||next===cur) break; cur=next;
-  }
-  return pending;
-}
-
-function checkRecPending() {
-  var box=document.getElementById('rec-pending-box'); if(!box) return;
-  var all=[];
-  ricorrenze.forEach(function(rec){recGetPending(rec).forEach(function(d){all.push({rec:rec,date:d});});});
-  all.sort(function(a,b){return a.date.localeCompare(b.date);});
-  if(!all.length){box.style.display='none';return;}
-  box.style.display='block';
-  document.getElementById('rec-pending-title').textContent=
-    all.length+' transazion'+(all.length===1?'e':'i')+' programmat'+(all.length===1?'a':'e');
-  var list=document.getElementById('rec-pending-list'); list.innerHTML='';
-  all.forEach(function(item){
-    var rec=item.rec, row=document.createElement('div'); row.className='rec-pending-row';
-    var acc=meta&&meta.accounts.find(function(a){return a.id===rec.accountId;});
-    var amt=parseFloat(rec.importo);
-    var amtStr=(amt>=0?'+':'')+amt.toLocaleString('it-IT',{minimumFractionDigits:2})+' \u20ac';
-    var amtColor=amt>=0?'var(--green)':'var(--red)';
-    row.innerHTML='<div class="rec-pending-info">'+
-      '<div class="rec-pending-name">'+esc(rec.nome)+'</div>'+
-      '<div class="rec-pending-sub">'+item.date+' \u00b7 '+(acc?esc(acc.name):'?')+'</div>'+
-      '</div><span style="font-weight:700;color:'+amtColor+';white-space:nowrap;font-size:13px">'+amtStr+'</span>';
-    var ok=document.createElement('button'); ok.className='rec-btn-ok'; ok.textContent='\u2713';
-    var sk=document.createElement('button'); sk.className='rec-btn-skip'; sk.textContent='\u2715';
-    (function(r,d){
-      ok.addEventListener('click',function(){approvaRec(r,d);});
-      sk.addEventListener('click',function(){saltaRec(r,d);});
-    })(rec,item.date);
-    row.appendChild(ok); row.appendChild(sk); list.appendChild(row);
-  });
-}
-
-function toggleRecPending(){
-  var l=document.getElementById('rec-pending-list'),c=document.getElementById('rec-pending-chevron');
-  var h=l.style.display==='none'; l.style.display=h?'':'none'; c.textContent=h?'\u25bc':'\u25b6';
-}
-
-async function approvaRec(rec,date){
-  var commento='Ricorrenza: '+(REC_FREQ[rec.frequenza]||{label:rec.frequenza}).label;
-  var tx={id:null,date:date,name:rec.nome,accountId:rec.accountId,status:'cleared',
-    comment:commento,useSumOfSplits:true,amount:null,linkedTxId:null,
-    splits:[{amount:parseFloat(rec.importo),categoryId:rec.categoryId||null,comment:null}]};
-  try{var r=await api('POST','/api/tx',{tx:tx});if(!r||!r.id){alert('Errore TX');return;}}
-  catch(e){alert('Errore: '+e.message);return;}
-  // Trasferimento: crea TX collegata sul secondo conto
-  if(rec.isTrasf&&rec.accountId2){
-    var txLinked={id:null,date:date,name:rec.nome,accountId:rec.accountId2,status:'cleared',
-      comment:commento,useSumOfSplits:true,amount:null,linkedTxId:r.id,
-      splits:[{amount:-parseFloat(rec.importo),categoryId:rec.categoryId||null,comment:null}]};
-    try{
-      var r2=await api('POST','/api/tx',{tx:txLinked});
-      if(r2&&r2.id){
-        // Aggiorna TX principale con linkedTxId
-        var txUpd=Object.assign({},tx,{id:r.id,linkedTxId:r2.id});
-        await api('POST','/api/tx',{tx:txUpd});
-      }
-    }catch(e){console.warn('Errore TX collegata:',e);}
-  }
-  if(!rec.processed)rec.processed=[];
-  rec.processed.push(date);
-  await saveRicorrenzeQuiet();
-  txCache={}; await loadBalances();
-  if(selectedAccountId){var a=meta.accounts.find(function(x){return x.id===selectedAccountId;});if(a)await selectAccount(a.id,a.name);}
-  checkRecPending();
-}
-
-async function saltaRec(rec,date){
-  if(!rec.processed)rec.processed=[];
-  rec.processed.push(date);
-  await saveRicorrenzeQuiet();
-  checkRecPending();
-}
-
-async function approvaAllRec(){
-  var all=[];
-  ricorrenze.forEach(function(r){recGetPending(r).forEach(function(d){all.push({rec:r,date:d});});});
-  all.sort(function(a,b){return a.date.localeCompare(b.date);});
-  for(var i=0;i<all.length;i++) await approvaRec(all[i].rec,all[i].date);
-}
-
-async function saveRicorrenzeQuiet(){
-  try{await api('PUT','/api/ricorrenze',{ricorrenze:ricorrenze});}catch(e){}
-}
-
-function openRecModal(){renderRecBody();document.getElementById('rec-overlay').style.display='flex';}
-function closeRecModal(){document.getElementById('rec-overlay').style.display='none';}
-
-function renderRecBody(){
-  var body=document.getElementById('rec-body'); body.innerHTML='';
-  if(!ricorrenze.length){
-    body.innerHTML='<div style="color:var(--faint);text-align:center;padding:30px 0;font-size:14px">Nessuna transazione programmata.<br>Premi + Nuova per aggiungerne una.</div>';
-    return;
-  }
-  ricorrenze.forEach(function(rec,idx){
-    var acc=meta&&meta.accounts.find(function(a){return a.id===rec.accountId;});
-    var freq=REC_FREQ[rec.frequenza], amt=parseFloat(rec.importo);
-    var amtStr=(amt>=0?'+':'')+amt.toLocaleString('it-IT',{minimumFractionDigits:2})+' \u20ac';
-    var amtColor=amt>=0?'var(--green)':'var(--red)';
-    var div=document.createElement('div'); div.className='rec-item';
-    div.innerHTML='<div class="rec-item-hdr">'+
-      '<span style="font-size:16px">\u23f0</span>'+
-      '<span class="rec-item-name">'+esc(rec.nome)+'</span>'+
-      '<span style="font-weight:700;color:'+amtColor+'">'+amtStr+'</span>'+
-      '<button class="rec-item-del" title="Elimina">&#128465;</button></div>'+
-      '<div class="rec-item-info">'+
-      '<span>&#127974; '+(acc?esc(acc.name):'?')+'</span>'+
-      '<span>Dal '+rec.dataInizio+'</span>'+
-      '<span>'+(freq?freq.label:rec.frequenza)+'</span>'+
-      (rec.dataFine?'<span>fino al '+rec.dataFine+'</span>':'')+
-      (rec.isTrasf&&rec.accountId2?(function(){
-        var a2=meta&&meta.accounts.find(function(a){return a.id===rec.accountId2;});
-        return '<span>→ '+(a2?esc(a2.name):'?')+'</span>';
-      })():'')+
-      '</div>';
-    div.querySelector('.rec-item-del').addEventListener('click',(function(i){
-      return function(){if(!confirm('Eliminare?'))return;ricorrenze.splice(i,1);renderRecBody();};
-    })(idx));
-    body.appendChild(div);
-  });
-}
-
-function editRecForm(idx) {
-  var rec = ricorrenze[idx];
-  if (!rec) return;
-  var body = document.getElementById('rec-body');
-  if (document.getElementById('rec-form')) { document.getElementById('rec-form').remove(); }
-
-  var cats = getVisibleCategories();
-  var catOpts = '<option value="">-- nessuna --</option>' +
-    cats.map(function(c){return '<option value="'+esc(c.id)+'"'+(rec.categoryId===c.id?' selected':'')+'>'+esc(c.name)+'</option>';}).join('');
-  var accOpts = (meta?meta.accounts:[]).filter(function(a){return !a.hidden;})
-    .map(function(a){return '<option value="'+esc(a.id)+'"'+(rec.accountId===a.id?' selected':'')+'>'+esc(a.name)+'</option>';}).join('');
-  var freqOpts = Object.keys(REC_FREQ).map(function(k){
-    return '<option value="'+k+'"'+(rec.frequenza===k?' selected':'')+'>'+REC_FREQ[k].label+'</option>';}).join('');
-  var trasfOn = rec.isTrasf && rec.accountId2;
-  var acc2Opts = (meta?meta.accounts:[]).filter(function(a){return !a.hidden;})
-    .map(function(a){return '<option value="'+esc(a.id)+'"'+(rec.accountId2===a.id?' selected':'')+'>'+esc(a.name)+'</option>';}).join('');
-
-  var form = document.createElement('div');
-  form.id = 'rec-form';
-  form.innerHTML =
-    '<h4>✏️ Modifica transazione programmata</h4>'+
-    '<div class="rec-form-row"><div class="rf"><label>Nome</label>'+
-    '<input id="rf-nome" type="text" value="'+esc(rec.nome)+'"></div></div>'+
-    '<div class="rec-form-row">'+
-    '<div class="rf"><label>Conto</label><select id="rf-acc">'+accOpts+'</select></div>'+
-    '<div class="rf"><label>Importo</label><input id="rf-amt" type="number" step="0.01" value="'+rec.importo+'"></div>'+
-    '</div><div class="rec-form-row">'+
-    '<div class="rf"><label>Categoria</label><select id="rf-cat">'+catOpts+'</select></div>'+
-    '<div class="rf"><label>Frequenza</label><select id="rf-freq">'+freqOpts+'</select></div>'+
-    '</div><div class="rec-form-row">'+
-    '<div class="rf"><label>Data inizio</label><input id="rf-start" type="date" value="'+rec.dataInizio+'"></div>'+
-    '<div class="rf"><label>Data fine (opz.)</label><input id="rf-end" type="date" value="'+(rec.dataFine||'')+'"></div>'+
-    '</div>'+
-    '<div class="rec-form-row" style="align-items:center">'+
-    '<div class="rf" style="display:flex;align-items:center;gap:8px">'+
-    '<label style="margin:0">Trasferimento</label>'+
-    '<button type="button" id="rf-trasf-tog" class="sella-tog '+(trasfOn?'on':'off')+'" onclick="toggleRecTrasf()"></button>'+
-    '</div>'+
-    '<div class="rf" id="rf-trasf-box" style="display:'+(trasfOn?'block':'none')+'"><label>Conto destinazione</label><select id="rf-acc2">'+acc2Opts+'</select></div>'+
-    '</div>'+
-    '<div style="display:flex;gap:8px;margin-top:10px">'+
-    '<button onclick="saveRecEdit('+idx+')" style="flex:2;padding:10px;border-radius:8px;border:none;background:var(--blue);color:#fff;font-weight:700;cursor:pointer">Salva modifiche</button>'+
-    '<button onclick="document.getElementById('rec-form').remove();renderRecBody()" style="flex:1;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);cursor:pointer">Annulla</button>'+
-    '</div>';
-
-  // Inserisce il form sopra la riga cliccata
-  var rows = body.querySelectorAll('.rec-item');
-  var targetRow = rows[idx];
-  if (targetRow) body.insertBefore(form, targetRow);
-  else body.insertBefore(form, body.firstChild);
-  document.getElementById('rf-nome').focus();
-}
-
-function saveRecEdit(idx) {
-  var nome  = document.getElementById('rf-nome').value.trim();
-  var accId = document.getElementById('rf-acc').value;
-  var amt   = document.getElementById('rf-amt').value;
-  var catId = document.getElementById('rf-cat').value;
-  var freq  = document.getElementById('rf-freq').value;
-  var start = document.getElementById('rf-start').value;
-  var end   = document.getElementById('rf-end').value;
-  var trasfOn = document.getElementById('rf-trasf-tog').classList.contains('on');
-  var acc2  = trasfOn ? document.getElementById('rf-acc2').value : null;
-  if (!nome)  { alert('Inserisci un nome'); return; }
-  if (!accId) { alert('Seleziona un conto'); return; }
-  if (!amt || isNaN(parseFloat(amt))) { alert('Importo non valido'); return; }
-  if (!start) { alert('Inserisci la data di inizio'); return; }
-  // Aggiorna mantenendo processed esistente
-  var old = ricorrenze[idx];
-  ricorrenze[idx] = {
-    id: old.id, nome: nome, accountId: accId,
-    importo: parseFloat(amt), categoryId: catId || null,
-    frequenza: freq, dataInizio: start, dataFine: end || null,
-    processed: old.processed || [],
-    isTrasf: trasfOn, accountId2: acc2 || null
-  };
-  document.getElementById('rec-form').remove();
-  renderRecBody();
-}
-
-function showRecForm(){
-  var body=document.getElementById('rec-body');
-  if(document.getElementById('rec-form')){document.getElementById('rec-form').remove();renderRecBody();return;}
-  var cats=getVisibleCategories();
-  var catOpts='<option value="">-- nessuna --</option>'+
-    cats.map(function(c){return '<option value="'+esc(c.id)+'">'+esc(c.name)+'</option>';}).join('');
-  var accOpts=(meta?meta.accounts:[]).filter(function(a){return !a.hidden;})
-    .map(function(a){return '<option value="'+esc(a.id)+'">'+esc(a.name)+'</option>';}).join('');
-  var freqOpts=Object.keys(REC_FREQ).map(function(k){
-    return '<option value="'+k+'">'+REC_FREQ[k].label+'</option>';}).join('');
-  var today=new Date().toISOString().slice(0,10);
-  var form=document.createElement('div'); form.id='rec-form';
-  form.innerHTML='<h4>+ Nuova transazione programmata</h4>'+
-    '<div class="rec-form-row"><div class="rf"><label>Nome</label>'+
-    '<input id="rf-nome" type="text" placeholder="Es. Affitto, Stipendio..."></div></div>'+
-    '<div class="rec-form-row">'+
-    '<div class="rf"><label>Conto</label><select id="rf-acc">'+accOpts+'</select></div>'+
-    '<div class="rf"><label>Importo (neg=uscita)</label><input id="rf-amt" type="number" step="0.01" placeholder="-500.00"></div>'+
-    '</div><div class="rec-form-row">'+
-    '<div class="rf"><label>Categoria</label><select id="rf-cat">'+catOpts+'</select></div>'+
-    '<div class="rf"><label>Frequenza</label><select id="rf-freq">'+freqOpts+'</select></div>'+
-    '</div><div class="rec-form-row">'+
-    '<div class="rf"><label>Data inizio</label><input id="rf-start" type="date" value="'+today+'"></div>'+
-    '<div class="rf"><label>Data fine (opz.)</label><input id="rf-end" type="date"></div>'+
-    '</div>'+
-    '<div class="rec-form-row" style="align-items:center">'+
-    '<div class="rf" style="display:flex;align-items:center;gap:8px">'+
-    '<label style="margin:0">Trasferimento</label>'+
-    '<button type="button" id="rf-trasf-tog" class="sella-tog off" onclick="toggleRecTrasf()" style="flex-shrink:0"></button>'+
-    '</div>'+
-    '<div class="rf" id="rf-trasf-box" style="display:none"><label>Conto destinazione</label><select id="rf-acc2">'+accOpts+'</select></div>'+
-    '</div>'+
-    '<div style="display:flex;gap:8px;margin-top:10px">'+
-    '<button onclick="submitRecForm()" style="flex:2;padding:10px;border-radius:8px;border:none;background:var(--blue);color:#fff;font-weight:700;cursor:pointer">Aggiungi</button>'+
-    '<button onclick="document.getElementById(\'rec-form\').remove();renderRecBody()" style="flex:1;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);cursor:pointer">Annulla</button>'+
-    '</div>';
-  body.insertBefore(form,body.firstChild);
-  document.getElementById('rf-nome').focus();
-}
-
-function toggleRecTrasf(){
-  var tog=document.getElementById('rf-trasf-tog');
-  var box=document.getElementById('rf-trasf-box');
-  var on=tog.classList.toggle('on'); tog.classList.toggle('off',!on);
-  box.style.display=on?'':'none';
-}
-
-function submitRecForm(){
-  var nome=document.getElementById('rf-nome').value.trim();
-  var accId=document.getElementById('rf-acc').value;
-  var amt=document.getElementById('rf-amt').value;
-  var catId=document.getElementById('rf-cat').value;
-  var freq=document.getElementById('rf-freq').value;
-  var start=document.getElementById('rf-start').value;
-  var end=document.getElementById('rf-end').value;
-  if(!nome){alert('Inserisci un nome');return;}
-  if(!accId){alert('Seleziona un conto');return;}
-  if(!amt||isNaN(parseFloat(amt))){alert('Importo non valido');return;}
-  if(!start){alert('Inserisci la data di inizio');return;}
-  var trasfOn=document.getElementById('rf-trasf-tog').classList.contains('on');
-  var acc2=trasfOn?document.getElementById('rf-acc2').value:null;
-  if(trasfOn&&!acc2){alert('Seleziona il conto destinazione');return;}
-  ricorrenze.push({id:'REC-'+Date.now(),nome:nome,accountId:accId,
-    importo:parseFloat(amt),categoryId:catId||null,frequenza:freq,
-    dataInizio:start,dataFine:end||null,processed:[],
-    isTrasf:trasfOn||false,accountId2:acc2||null});
-  document.getElementById('rec-form').remove();
-  renderRecBody();
-}
-
-async function saveRicorrenze(){
-  var btn=document.querySelector('#rec-footer button:last-child');
-  btn.disabled=true; btn.textContent='Salvataggio...';
-  try{
-    var r=await api('PUT','/api/ricorrenze',{ricorrenze:ricorrenze});
-    if(r&&r.ok){closeRecModal();checkRecPending();}
-    else alert('Errore salvataggio');
-  }catch(e){alert('Errore: '+e.message);}
-  finally{btn.disabled=false;btn.textContent='💾 Salva';}
-}
-
 </script>
 
 <!-- Modal Import Sella -->
@@ -3031,38 +2341,6 @@ async function saveRicorrenze(){
         <button id="sella-preview-btn" disabled onclick="sellaShowPreview()" style="flex:1;padding:13px;border-radius:12px;border:1.5px solid var(--blue);background:var(--blue-bg);color:var(--blue);font-size:15px;font-weight:700;cursor:pointer">👁️ Preview</button>
         <button id="sella-import-btn" disabled onclick="sellaDoImport()" style="flex:2;padding:13px;border-radius:12px;border:none;background:var(--blue);color:#fff;font-size:16px;font-weight:700;cursor:pointer">⬆️ Importa selezionati</button>
       </div>
-    </div>
-  </div>
-</div>
-
-<!-- Modal Gestione Conti -->
-<div id="accts-overlay" style="display:none" onclick="if(event.target===this)closeAcctsMgmt()">
-  <div id="accts-panel">
-    <div id="accts-panel-hdr">
-      <span style="font-size:22px">🏦</span>
-      <h3>Gestione Conti</h3>
-      <button onclick="closeAcctsMgmt()" style="background:var(--gray2);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:16px">✕</button>
-    </div>
-    <div id="accts-body"></div>
-    <div id="accts-footer">
-      <button onclick="addAcctGroup()" style="flex:1;padding:11px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);font-size:14px;cursor:pointer">+ Gruppo</button>
-      <button onclick="saveAcctsMgmt()" style="flex:2;padding:11px;border-radius:10px;border:none;background:var(--blue);color:#fff;font-size:15px;font-weight:700;cursor:pointer">💾 Salva</button>
-    </div>
-  </div>
-</div>
-
-<!-- Modal Ricorrenze -->
-<div id="rec-overlay" style="display:none" onclick="if(event.target===this)closeRecModal()">
-  <div id="rec-panel">
-    <div id="rec-panel-hdr">
-      <span style="font-size:22px">⏰</span>
-      <h3>Transazioni Programmate</h3>
-      <button onclick="closeRecModal()" style="background:var(--gray2);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:16px">✕</button>
-    </div>
-    <div id="rec-body"></div>
-    <div id="rec-footer">
-      <button onclick="showRecForm()" style="flex:1;padding:11px;border-radius:10px;border:1.5px solid var(--blue);background:var(--blue-bg);color:var(--blue);font-size:14px;font-weight:700;cursor:pointer">+ Nuova</button>
-      <button onclick="saveRicorrenze()" style="flex:2;padding:11px;border-radius:10px;border:none;background:var(--blue);color:#fff;font-size:15px;font-weight:700;cursor:pointer">💾 Salva</button>
     </div>
   </div>
 </div>
