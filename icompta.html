@@ -45,7 +45,7 @@ body { padding-top: env(safe-area-inset-top, 0); }
 #sidebar-resizer { position: absolute; right: -6px; top: 0; bottom: 0; width: 12px;
   cursor: col-resize; z-index: 10; background: transparent; touch-action: none; }
 #sidebar-resizer:hover, #sidebar-resizer.dragging { background: var(--blue); opacity: 0.5; border-radius: 4px; }
-#main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+#main { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: var(--surface); }
 
 /* ── Header ── */
 .header { height: var(--header-h); display: flex; align-items: center;
@@ -299,22 +299,20 @@ body { padding-top: env(safe-area-inset-top, 0); }
     </div>
 
     <div id="tx-list-container">
-      <table id="tx-table">
-        <thead>
-          <tr>
-            <th>Data</th>
-            <th>Descrizione</th>
-            <th>Categoria</th>
-            <th>Stato</th>
-            <th style="text-align:right">Importo</th>
-          </tr>
-        </thead>
-        <tbody id="tx-tbody">
-          <tr><td colspan="5" style="text-align:center;padding:40px;color:var(--gray4)">
-            Seleziona un conto dalla sidebar
-          </td></tr>
-        </tbody>
-      </table>
+      <div class="tx-header" id="tx-header">
+        <div class="tx-header-col" style="width:var(--col-date,90px);flex-shrink:0">Data</div>
+        <div class="tx-header-col resizable" style="flex:1;padding:0 8px">Descrizione</div>
+        <div class="tx-header-col resizable" id="col-cat-header" style="width:var(--col-cat,130px);flex-shrink:0;padding:0 8px">Categoria</div>
+        <div class="tx-header-col" style="width:var(--col-amount,100px);flex-shrink:0;text-align:right;padding:0 8px">Importo</div>
+        <div class="tx-header-col" style="width:var(--col-balance,110px);flex-shrink:0;text-align:right;padding:0 8px">Saldo</div>
+        <div style="width:28px;flex-shrink:0"></div>
+      </div>
+      <div id="tx-body">
+        <div style="text-align:center;padding:40px;color:var(--muted)">
+          Seleziona un conto dalla sidebar
+        </div>
+      </div>
+      <div id="load-more-indicator" style="display:none;text-align:center;padding:16px;color:var(--muted);font-size:13px"></div>
     </div>
   </div>
 
@@ -847,32 +845,89 @@ function applyFilters() {
 }
 
 function renderTxList() {
-  const tbody = document.getElementById('tx-tbody');
+  const body = document.getElementById('tx-body');
   if (filteredTxs.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--gray4)">
-      Nessuna transazione</td></tr>`;
+    body.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">Nessuna transazione</div>';
     return;
   }
 
-  tbody.innerHTML = '';
-  for (const tx of filteredTxs) {
-    const amount = getTxAmount(tx);
-    const catNames = tx.splits?.map(s => getCatName(s.categoryId)).filter(Boolean).join(', ') || '';
-    const statusLabel = { cleared:'Evaso', created:'In sospeso', imported:'Importato', planned:'Pianificato' }[tx.status] || tx.status;
-    const statusClass = `status-${tx.status}`;
+  // Calcola saldo cumulativo: partiamo dal saldo attuale e risaliamo
+  // Le tx sono ordinate data DESC, quindi il saldo diminuisce andando giù
+  const accBal = balances?.accounts?.[selectedAccountId] ?? null;
 
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td class="tx-date">${tx.date}</td>
-      <td><div class="tx-name">${esc(tx.name || '')}</div>
-          ${tx.comment ? `<div class="tx-category">${esc(tx.comment)}</div>` : ''}</td>
-      <td class="tx-category">${esc(catNames)}</td>
-      <td><span class="tx-status ${statusClass}">${statusLabel}</span></td>
-      <td class="tx-amount ${amount >= 0 ? 'amount-pos' : 'amount-neg'}">${fmt(amount)}</td>
-    `;
-    tr.addEventListener('click', () => openEditTx(tx));
-    tbody.appendChild(tr);
+  // Per il saldo progressivo, costruiamo dall'alto (più recente):
+  // saldo[i] = saldo attuale - somma degli importi delle TX più recenti di i
+  // Più semplice: calcoliamo i saldi partendo dal basso
+  const amounts = filteredTxs.map(tx => getTxAmount(tx));
+  const runningBalances = [];
+  if (accBal !== null) {
+    let running = accBal;
+    for (let i = 0; i < filteredTxs.length; i++) {
+      runningBalances[i] = running;
+      running -= amounts[i]; // rimuovo l'importo per ottenere il saldo prima di quella TX
+    }
   }
+
+  // Raggruppa per mese
+  body.innerHTML = '';
+  let currentMonth = null;
+  let monthTxCount = 0;
+  let monthEl = null;
+
+  for (let i = 0; i < filteredTxs.length; i++) {
+    const tx = filteredTxs[i];
+    const amount = amounts[i];
+    const month = tx.date.slice(0, 7); // YYYY-MM
+
+    // Intestazione mese
+    if (month !== currentMonth) {
+      // Calcola stats mese precedente se serve
+      currentMonth = month;
+      const [y, m] = month.split('-');
+      const monthLabel = new Date(y, m-1, 1).toLocaleString('it-IT', {month:'long', year:'numeric'});
+
+      // Conta TX del mese
+      const monthTxs = filteredTxs.filter(t => t.date.startsWith(month));
+      const monthSpese = monthTxs.reduce((s,t) => { const a=getTxAmount(t); return a<0?s+Math.abs(a):s; }, 0);
+
+      const hdr = document.createElement('div');
+      hdr.className = 'month-header';
+      hdr.innerHTML = `
+        <span class="month-label">${monthLabel}</span>
+        <span class="month-stats">${monthTxs.length} transazioni</span>
+        <span class="month-total">Spese: ${fmt(-monthSpese)}</span>
+      `;
+      body.appendChild(hdr);
+    }
+
+    const catNames = tx.splits?.map(s => getCatName(s.categoryId)).filter(Boolean).join(', ') || '';
+    const bal = runningBalances[i];
+    const comment = tx.comment || (tx.splits?.map(s=>s.comment).filter(Boolean).join(', ') || '');
+
+    const row = document.createElement('div');
+    row.className = 'tx-row';
+    row.innerHTML = `
+      <div class="tx-col-date">${tx.date.slice(5).replace('-','/')}</div>
+      <div class="tx-col-desc">
+        <div class="tx-name">${esc(tx.name || '')}</div>
+        ${comment ? `<div class="tx-comment">${esc(comment)}</div>` : ''}
+      </div>
+      <div class="tx-col-cat">${esc(catNames)}</div>
+      <div class="tx-col-amount ${amount >= 0 ? 'amount-pos' : 'amount-neg'}">${fmt(amount)}</div>
+      <div class="tx-col-balance">${bal !== null ? fmt(bal) : '—'}</div>
+      <div class="tx-delete"><button onclick="event.stopPropagation();quickDelete('${tx.id}','${tx.date.slice(0,4)}')">✕</button></div>
+    `;
+    row.addEventListener('click', () => openEditTx(tx));
+    body.appendChild(row);
+  }
+}
+
+async function quickDelete(id, year) {
+  if (!confirm('Eliminare questa transazione?')) return;
+  const result = await api('DELETE', `/api/tx/${id}?year=${year}`);
+  if (result.error) { alert('Errore: ' + result.error); return; }
+  await reloadForDateRange();
+  loadBalances();
 }
 
 function esc(s) {
