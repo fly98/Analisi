@@ -429,6 +429,73 @@ body { padding-top: env(safe-area-inset-top, 0); }
 }
 #sella-import-btn:disabled { opacity:.4; cursor:default; }
 #sella-progress { font-size:13px; color:var(--muted); min-width:80px; text-align:right; }
+
+/* ── Modal Gestione Conti ── */
+#accts-overlay {
+  position:fixed;inset:0;z-index:8000;background:rgba(0,0,0,.45);
+  display:flex;align-items:flex-end;animation:npFadeIn .15s ease;
+}
+#accts-panel {
+  width:100%;max-width:560px;margin:0 auto;background:var(--surface);
+  border-radius:20px 20px 0 0;height:88vh;display:flex;flex-direction:column;
+  box-shadow:0 -4px 32px rgba(0,0,0,.2);animation:npSlideUp .22s ease;
+}
+#accts-panel-hdr {
+  padding:16px 20px 12px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;flex-shrink:0;
+}
+#accts-panel-hdr h3 { flex:1;font-size:18px;font-weight:700; }
+#accts-body { flex:1;overflow-y:auto;padding:12px 16px; }
+.accts-group-hdr {
+  display:flex;align-items:center;gap:8px;padding:8px 4px 4px;
+  font-size:11px;font-weight:700;color:var(--gray4);text-transform:uppercase;
+  letter-spacing:.5px;margin-top:8px;
+}
+.accts-group-hdr:first-child { margin-top:0; }
+.accts-group-name-input {
+  flex:1;font-size:11px;font-weight:700;color:var(--gray4);
+  text-transform:uppercase;letter-spacing:.5px;
+  border:none;background:transparent;outline:none;
+  border-bottom:1px solid transparent;
+  transition:border-color .15s;
+}
+.accts-group-name-input:focus { border-bottom-color:var(--blue); color:var(--text); text-transform:none; }
+.acct-row {
+  display:flex;align-items:center;gap:10px;padding:10px 8px;
+  border-radius:10px;margin-bottom:2px;background:var(--bg);
+  border:1px solid var(--gray2);cursor:default;
+}
+.acct-row.hidden-acc { opacity:.45; }
+.acct-drag { color:var(--gray3);cursor:grab;font-size:16px;flex-shrink:0; }
+.acct-drag:active { cursor:grabbing; }
+.acct-icon { font-size:18px;flex-shrink:0;width:24px;text-align:center; }
+.acct-name-input {
+  flex:1;font-size:14px;font-weight:500;border:none;background:transparent;
+  outline:none;border-bottom:1.5px solid transparent;transition:border-color .15s;
+  min-width:0;
+}
+.acct-name-input:focus { border-bottom-color:var(--blue); }
+.acct-toggles { display:flex;gap:6px;flex-shrink:0;align-items:center; }
+.acct-toggle-btn {
+  font-size:11px;padding:3px 7px;border-radius:6px;border:1px solid var(--border);
+  background:var(--gray2);color:var(--muted);cursor:pointer;transition:all .15s;
+  white-space:nowrap;
+}
+.acct-toggle-btn.active { background:var(--blue-bg);border-color:var(--blue);color:var(--blue); }
+.acct-del { font-size:14px;color:var(--faint);cursor:pointer;flex-shrink:0;
+  padding:4px;border-radius:6px;border:none;background:none;transition:color .15s; }
+.acct-del:hover { color:var(--red); }
+.accts-add-btn {
+  display:flex;align-items:center;gap:8px;padding:10px 8px;border-radius:10px;
+  border:1.5px dashed var(--gray3);background:none;color:var(--muted);
+  font-size:13px;cursor:pointer;width:100%;margin-top:6px;
+  transition:border-color .15s,color .15s;
+}
+.accts-add-btn:hover { border-color:var(--blue);color:var(--blue); }
+#accts-footer {
+  padding:14px 16px calc(14px + env(safe-area-inset-bottom,0));
+  border-top:1px solid var(--border);display:flex;gap:8px;flex-shrink:0;
+}
 </style>
 </head>
 <body>
@@ -458,6 +525,11 @@ body { padding-top: env(safe-area-inset-top, 0); }
       <div id="loading" style="margin:40px auto"><div class="spinner"></div> Caricamento...</div>
     </div>
 
+    <div style="padding:8px 12px;flex-shrink:0;border-top:1px solid var(--gray2)">
+      <button onclick="openAcctsMgmt()" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--muted);font-size:12px;cursor:pointer;display:flex;align-items:center;gap:6px;justify-content:center">
+        <span>⚙️</span> Gestisci conti
+      </button>
+    </div>
   </div>
   <div id="sidebar-overlay" onclick="closeSidebar()"></div>
 
@@ -2287,6 +2359,273 @@ function sellaFinish(msg) {
   });
 })();
 
+// ════════════════════════════════════════════════════════
+// GESTIONE CONTI
+// ════════════════════════════════════════════════════════
+
+var _acctsDraft = null; // copia locale di {accounts, groups} in editing
+
+function openAcctsMgmt() {
+  // Deep copy di accounts e groups
+  _acctsDraft = {
+    accounts: JSON.parse(JSON.stringify(meta.accounts)),
+    groups:   JSON.parse(JSON.stringify(meta.groups))
+  };
+  renderAcctsMgmt();
+  document.getElementById('accts-overlay').style.display = 'flex';
+  closeSidebar();
+}
+
+function closeAcctsMgmt() {
+  document.getElementById('accts-overlay').style.display = 'none';
+  _acctsDraft = null;
+}
+
+function renderAcctsMgmt() {
+  var body = document.getElementById('accts-body');
+  body.innerHTML = '';
+
+  var draft = _acctsDraft;
+  // Raggruppa conti per groupId
+  var grouped = {};
+  var ungrouped = [];
+  draft.groups.forEach(function(g) { grouped[g.id] = []; });
+  draft.accounts.forEach(function(acc) {
+    if (acc.groupId && grouped[acc.groupId] !== undefined) {
+      grouped[acc.groupId].push(acc);
+    } else {
+      ungrouped.push(acc);
+    }
+  });
+
+  // Standalone prima (senza gruppo)
+  if (ungrouped.length) {
+    var uHdr = document.createElement('div');
+    uHdr.className = 'accts-group-hdr';
+    uHdr.innerHTML = '<span style="flex:1">Standalone</span>';
+    body.appendChild(uHdr);
+    ungrouped.forEach(function(acc) { body.appendChild(makeAcctRow(acc)); });
+    var addBtn = makeAddAcctBtn(null);
+    body.appendChild(addBtn);
+  }
+
+  // Gruppi
+  draft.groups.forEach(function(g) {
+    var accs = grouped[g.id] || [];
+
+    var hdr = document.createElement('div');
+    hdr.className = 'accts-group-hdr';
+
+    var nameInput = document.createElement('input');
+    nameInput.className = 'accts-group-name-input';
+    nameInput.value = g.name;
+    nameInput.addEventListener('input', function() { g.name = this.value; });
+
+    var delGrpBtn = document.createElement('button');
+    delGrpBtn.className = 'acct-del';
+    delGrpBtn.title = 'Elimina gruppo (solo se vuoto)';
+    delGrpBtn.textContent = '✕';
+    delGrpBtn.addEventListener('click', function() {
+      if (accs.length > 0) { alert('Sposta prima tutti i conti dal gruppo'); return; }
+      _acctsDraft.groups = _acctsDraft.groups.filter(function(x) { return x.id !== g.id; });
+      renderAcctsMgmt();
+    });
+
+    hdr.appendChild(nameInput);
+    hdr.appendChild(delGrpBtn);
+    body.appendChild(hdr);
+
+    accs.forEach(function(acc) { body.appendChild(makeAcctRow(acc)); });
+    body.appendChild(makeAddAcctBtn(g.id));
+  });
+}
+
+function makeAcctRow(acc) {
+  var row = document.createElement('div');
+  row.className = 'acct-row' + (acc.hidden ? ' hidden-acc' : '');
+  row.dataset.accId = acc.id;
+
+  // Drag handle
+  var drag = document.createElement('span');
+  drag.className = 'acct-drag';
+  drag.textContent = '⠿';
+  drag.title = 'Trascina per riordinare';
+
+  // Icona
+  var icon = document.createElement('span');
+  icon.className = 'acct-icon';
+  icon.textContent = accIcon(acc.name);
+
+  // Nome
+  var nameEl = document.createElement('input');
+  nameEl.className = 'acct-name-input';
+  nameEl.value = acc.name;
+  nameEl.addEventListener('input', function() { acc.name = this.value; });
+
+  // Toggle visibile
+  var visBtn = document.createElement('button');
+  visBtn.className = 'acct-toggle-btn' + (acc.hidden ? '' : ' active');
+  visBtn.textContent = acc.hidden ? 'Nascosto' : 'Visibile';
+  visBtn.title = 'Visibile nella sidebar';
+  visBtn.addEventListener('click', function() {
+    acc.hidden = !acc.hidden;
+    row.classList.toggle('hidden-acc', acc.hidden);
+    visBtn.textContent = acc.hidden ? 'Nascosto' : 'Visibile';
+    visBtn.classList.toggle('active', !acc.hidden);
+  });
+
+  // Toggle incluso nel totale
+  var totBtn = document.createElement('button');
+  totBtn.className = 'acct-toggle-btn' + (acc.includedInTotal ? ' active' : '');
+  totBtn.textContent = '∑';
+  totBtn.title = 'Incluso nel totale disponibile';
+  totBtn.addEventListener('click', function() {
+    acc.includedInTotal = !acc.includedInTotal;
+    totBtn.classList.toggle('active', acc.includedInTotal);
+  });
+
+  // Elimina
+  var delBtn = document.createElement('button');
+  delBtn.className = 'acct-del';
+  delBtn.textContent = '🗑';
+  delBtn.title = 'Elimina conto';
+  delBtn.addEventListener('click', function() {
+    var bal = balances && balances.accounts && balances.accounts[acc.id];
+    if (bal && Math.abs(bal) > 0.01) {
+      alert('Non puoi eliminare un conto con saldo non zero (' + fmt(bal) + ')');
+      return;
+    }
+    if (!confirm('Eliminare "' + acc.name + '"? Le transazioni rimarranno nel database.')) return;
+    _acctsDraft.accounts = _acctsDraft.accounts.filter(function(a) { return a.id !== acc.id; });
+    renderAcctsMgmt();
+  });
+
+  var toggles = document.createElement('div');
+  toggles.className = 'acct-toggles';
+  toggles.appendChild(visBtn);
+  toggles.appendChild(totBtn);
+  toggles.appendChild(delBtn);
+
+  row.appendChild(drag);
+  row.appendChild(icon);
+  row.appendChild(nameEl);
+  row.appendChild(toggles);
+
+  // Drag & drop per riordinare
+  _initAcctDrag(row, acc);
+
+  return row;
+}
+
+function makeAddAcctBtn(groupId) {
+  var btn = document.createElement('button');
+  btn.className = 'accts-add-btn';
+  btn.innerHTML = '<span>+</span> Aggiungi conto';
+  btn.addEventListener('click', function() { addAcct(groupId); });
+  return btn;
+}
+
+function addAcct(groupId) {
+  var name = prompt('Nome del nuovo conto:');
+  if (!name || !name.trim()) return;
+  var newAcc = {
+    id: 'ACC-' + Date.now(),
+    name: name.trim(),
+    type: 'CheckingAccount',
+    groupId: groupId || null,
+    groupName: groupId ? (_acctsDraft.groups.find(function(g){return g.id===groupId;})||{}).name : null,
+    hidden: false,
+    includedInTotal: true,
+    index: _acctsDraft.accounts.length,
+    comment: null,
+    number: null
+  };
+  _acctsDraft.accounts.push(newAcc);
+  renderAcctsMgmt();
+}
+
+function addAcctGroup() {
+  var name = prompt('Nome del nuovo gruppo:');
+  if (!name || !name.trim()) return;
+  _acctsDraft.groups.push({
+    id: 'GRP-' + Date.now(),
+    name: name.trim(),
+    index: _acctsDraft.groups.length
+  });
+  renderAcctsMgmt();
+}
+
+// Drag & drop semplice per riordinare conti
+var _dragSrc = null;
+function _initAcctDrag(row, acc) {
+  var handle = row.querySelector('.acct-drag');
+  handle.addEventListener('pointerdown', function(e) {
+    e.preventDefault();
+    _dragSrc = { row: row, acc: acc };
+    row.style.opacity = '0.5';
+    handle.setPointerCapture(e.pointerId);
+
+    function onMove(ev) {
+      var el = document.elementFromPoint(ev.clientX, ev.clientY);
+      var target = el && el.closest('.acct-row');
+      if (target && target !== row) {
+        var body = document.getElementById('accts-body');
+        var rows = Array.from(body.querySelectorAll('.acct-row'));
+        var srcIdx = rows.indexOf(row);
+        var tgtIdx = rows.indexOf(target);
+        if (srcIdx > tgtIdx) target.before(row);
+        else target.after(row);
+        // Aggiorna ordine in _acctsDraft
+        _syncAcctOrder();
+      }
+    }
+    function onUp() {
+      row.style.opacity = '';
+      _dragSrc = null;
+      handle.removeEventListener('pointermove', onMove);
+      handle.removeEventListener('pointerup', onUp);
+    }
+    handle.addEventListener('pointermove', onMove);
+    handle.addEventListener('pointerup', onUp);
+  });
+}
+
+function _syncAcctOrder() {
+  var rows = Array.from(document.querySelectorAll('#accts-body .acct-row'));
+  rows.forEach(function(row, i) {
+    var acc = _acctsDraft.accounts.find(function(a){return a.id===row.dataset.accId;});
+    if (acc) acc.index = i;
+  });
+  _acctsDraft.accounts.sort(function(a,b){return (a.index||0)-(b.index||0);});
+}
+
+async function saveAcctsMgmt() {
+  var saveBtn = document.querySelector('#accts-footer button:last-child');
+  saveBtn.disabled = true;
+  saveBtn.textContent = 'Salvataggio...';
+  try {
+    var r = await api('PUT', '/api/meta', {
+      accounts: _acctsDraft.accounts,
+      groups:   _acctsDraft.groups
+    });
+    if (r && r.ok) {
+      // Aggiorna meta locale
+      meta.accounts = _acctsDraft.accounts;
+      meta.groups   = _acctsDraft.groups;
+      closeAcctsMgmt();
+      await loadBalances();
+      renderSidebar();
+    } else {
+      alert('Errore: ' + (r && r.error ? r.error : 'sconosciuto'));
+    }
+  } catch(e) {
+    alert('Errore: ' + e.message);
+  } finally {
+    saveBtn.disabled = false;
+    saveBtn.textContent = '\uD83D\uDCBE Salva';
+  }
+}
+
 </script>
 
 <!-- Modal Import Sella -->
@@ -2341,6 +2680,22 @@ function sellaFinish(msg) {
         <button id="sella-preview-btn" disabled onclick="sellaShowPreview()" style="flex:1;padding:13px;border-radius:12px;border:1.5px solid var(--blue);background:var(--blue-bg);color:var(--blue);font-size:15px;font-weight:700;cursor:pointer">👁️ Preview</button>
         <button id="sella-import-btn" disabled onclick="sellaDoImport()" style="flex:2;padding:13px;border-radius:12px;border:none;background:var(--blue);color:#fff;font-size:16px;font-weight:700;cursor:pointer">⬆️ Importa selezionati</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Gestione Conti -->
+<div id="accts-overlay" style="display:none" onclick="if(event.target===this)closeAcctsMgmt()">
+  <div id="accts-panel">
+    <div id="accts-panel-hdr">
+      <span style="font-size:22px">🏦</span>
+      <h3>Gestione Conti</h3>
+      <button onclick="closeAcctsMgmt()" style="background:var(--gray2);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:16px">✕</button>
+    </div>
+    <div id="accts-body"></div>
+    <div id="accts-footer">
+      <button onclick="addAcctGroup()" style="flex:1;padding:11px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);font-size:14px;cursor:pointer">+ Gruppo</button>
+      <button onclick="saveAcctsMgmt()" style="flex:2;padding:11px;border-radius:10px;border:none;background:var(--blue);color:#fff;font-size:15px;font-weight:700;cursor:pointer">💾 Salva</button>
     </div>
   </div>
 </div>
