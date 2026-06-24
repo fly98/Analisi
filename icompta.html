@@ -896,51 +896,30 @@ function renderSidebar() {
   const list = document.getElementById('accounts-list');
   list.innerHTML = '';
 
-  // Ordine ESATTO da iCompta
-  // Prima gli standalone (senza gruppo), poi i gruppi nell'ordine corretto
-  const GROUP_ORDER = ['Attivo','Contanti','Famiglia','Banche','Investimenti'];
-  const ACCOUNT_ORDER = {
-    'Attivo': ['InternoUno','Risparmi'],
-    'Contanti': ['Cassa','Cassaforte'],
-    'Famiglia': ['Raffo','Conto casa','Babbo','Chiara'],
-    'Banche': ['InternoUno Banca','Banca Sella','Genius Unicredit','Leo','Ristrutturazione'],
-    'Investimenti': ['Fineco','Fideuram','Prestiti','Alessia','Viola','Sella cc','InternoRoma']
-  };
+  // Ordine dinamico: usa il campo index salvato nel meta (da gestione conti)
+  // Gruppi ordinati per index
+  const sortedGroups = [...meta.groups].sort((a,b) => (a.index||0) - (b.index||0));
 
-  // Mappa gruppi per nome
-  const groupByName = {};
-  for (const g of meta.groups) groupByName[g.name] = { ...g, accounts: [] };
+  // Mappa gruppi per id
+  const groupById = {};
+  for (const g of sortedGroups) groupById[g.id] = { ...g, accounts: [] };
   const ungrouped = [];
 
-  for (const acc of meta.accounts) {
+  // Distribuisce i conti nei gruppi, ordinati per index
+  const sortedAccounts = [...meta.accounts].sort((a,b) => (a.index||0) - (b.index||0));
+  for (const acc of sortedAccounts) {
     if (acc.hidden) continue;
-    if (acc.groupId) {
-      const grp = Object.values(groupByName).find(g => g.id === acc.groupId);
-      if (grp) { grp.accounts.push(acc); continue; }
+    if (acc.groupId && groupById[acc.groupId]) {
+      groupById[acc.groupId].accounts.push(acc);
+    } else {
+      ungrouped.push(acc);
     }
-    ungrouped.push(acc);
   }
 
-  // Ordina conti dentro ogni gruppo
-  for (const gName in groupByName) {
-    const order = ACCOUNT_ORDER[gName] || [];
-    groupByName[gName].accounts.sort((a,b) => {
-      const ia = order.indexOf(a.name), ib = order.indexOf(b.name);
-      return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
-    });
-  }
+  const groups = sortedGroups.map(g => groupById[g.id]).filter(Boolean);
 
-  const groups = GROUP_ORDER
-    .map(n => groupByName[n])
-    .filter(Boolean);
-
-  // Standalone prima (es. Operazioni future, Leo, Ristrutturazione se senza gruppo)
-  const standaloneFirst = ['Operazioni future'];
-  const standaloneLast = ['Leo','Ristrutturazione'];
-  const firstAccounts = ungrouped.filter(a => standaloneFirst.includes(a.name));
-  const lastAccounts = ungrouped.filter(a => !standaloneFirst.includes(a.name));
-
-  for (const acc of firstAccounts) {
+  // Standalone senza gruppo
+  for (const acc of ungrouped) {
     if (!acc.hidden) list.appendChild(makeAccountRow(acc));
   }
 
