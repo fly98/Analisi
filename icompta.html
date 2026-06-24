@@ -842,6 +842,8 @@ async function api(method, path, body) {
 // ══════════════════════════════════════════════
 async function init(metaData) {
   meta = metaData;
+  // Salva meta in cache locale
+  try { localStorage.setItem('icompta_meta', JSON.stringify(meta)); } catch(e) {}
   
   // Year bar
   renderYearBar();
@@ -858,6 +860,8 @@ async function init(metaData) {
 
 async function loadBalances() {
   balances = await api('GET', '/api/balance');
+  // Salva in cache locale per prossimo avvio
+  try { localStorage.setItem('icompta_balances', JSON.stringify(balances)); } catch(e) {}
   renderSidebar();
   updateTotalBalance();
   if (filteredTxs.length > 0) renderTxList();
@@ -1641,15 +1645,35 @@ function closeSidebar() {
 // ══════════════════════════════════════════════
 (async () => {
   if (TOKEN) {
+    // Mostra subito con dati cached se disponibili
+    const cachedMeta = (() => { try { const s=localStorage.getItem('icompta_meta'); return s?JSON.parse(s):null; } catch(e){return null;} })();
+    const cachedBal  = (() => { try { const s=localStorage.getItem('icompta_balances'); return s?JSON.parse(s):null; } catch(e){return null;} })();
+    if (cachedMeta && cachedBal) {
+      meta = cachedMeta;
+      balances = cachedBal;
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('app').style.display = 'flex';
+      renderYearBar();
+      renderSidebar();
+      updateTotalBalance();
+      // Seleziona InternoUno subito
+      const accCached = meta.accounts.find(a => a.name === 'InternoUno');
+      if (accCached) selectAccount(accCached.id, accCached.name);
+    }
+    // Poi ricarica dati reali dal server
     try {
       const r = await api('GET', '/api/meta');
       if (!r.error) {
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('app').style.display = 'flex';
+        if (!cachedMeta) {
+          document.getElementById('login-screen').style.display = 'none';
+          document.getElementById('app').style.display = 'flex';
+        }
         await init(r);
-      await loadRicorrenze();
+        await loadRicorrenze();
       }
-    } catch(e) { /* mostra login */ }
+    } catch(e) {
+      if (!cachedMeta) { /* mostra login */ }
+    }
   }
 })();
 
