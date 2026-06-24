@@ -246,6 +246,37 @@ body { padding-top: env(safe-area-inset-top, 0); }
 .settings-item .s-arrow { color: var(--gray3); font-size: 14px; }
 .settings-item.danger .s-label { color: var(--red); }
 .settings-item.danger .s-icon { filter: hue-rotate(0deg); }
+
+/* ── Modal TX ridisegnato ── */
+.split-row { background: var(--bg); border-radius: 10px; padding: 12px;
+  margin-bottom: 8px; border: 1.5px solid var(--border); }
+.split-amount-big { width: 100%; padding: 12px; border-radius: 8px;
+  border: 1.5px solid var(--border); font-size: 28px; font-weight: 700;
+  text-align: right; outline: none; color: var(--text); background: var(--surface);
+  margin-bottom: 8px; box-sizing: border-box; }
+.split-amount-big:focus { border-color: var(--blue); }
+.split-amount-big.positive { color: var(--green); }
+.split-amount-big.negative { color: var(--red); }
+.split-row-bottom { display: flex; gap: 8px; align-items: center; }
+.split-row-bottom select { flex: 1; padding: 8px 10px; border-radius: 8px;
+  border: 1.5px solid var(--border); font-size: 14px; outline: none;
+  background: var(--surface); color: var(--text); }
+.split-del { background: none; border: none; color: var(--red); font-size: 18px;
+  cursor: pointer; padding: 4px 8px; flex-shrink: 0; }
+.transfer-section { margin-top: 12px; border-radius: 10px;
+  border: 1.5px solid var(--border); overflow: hidden; }
+.transfer-header { padding: 10px 14px; display: flex; align-items: center;
+  gap: 10px; cursor: pointer; background: var(--bg); user-select: none; }
+.transfer-header span { font-size: 13px; font-weight: 600; color: var(--muted); flex: 1; }
+.t-toggle { width: 36px; height: 20px; background: var(--gray2);
+  border-radius: 10px; position: relative; transition: background 0.2s; flex-shrink: 0; }
+.t-toggle.on { background: var(--blue); }
+.t-toggle::after { content:''; position: absolute; width: 16px; height: 16px;
+  background: white; border-radius: 50%; top: 2px; left: 2px; transition: left 0.2s; }
+.t-toggle.on::after { left: 18px; }
+.transfer-body { padding: 12px 14px; display: none; border-top: 1px solid var(--border); background: var(--surface); }
+.transfer-body.open { display: block; }
+
 </style>
 </head>
 <body>
@@ -312,6 +343,147 @@ body { padding-top: env(safe-area-inset-top, 0); }
       </div>
     </div>
   </div>
+
+<!-- Settings Panel -->
+<div class="settings-overlay" id="settings-overlay" style="display:none" onclick="if(event.target===this)closeSettings()">
+  <div class="settings-panel">
+    <div class="settings-header">
+      <h2>⚙️ Impostazioni</h2>
+      <button class="settings-close" onclick="closeSettings()">✕</button>
+    </div>
+    <div class="settings-body">
+
+      <div class="settings-section">
+        <div class="settings-section-title">Import</div>
+        <div class="settings-item" onclick="alert('Prossimamente')">
+          <span class="s-icon">🏦</span>
+          <div class="s-text">
+            <div class="s-label">Import da Sella</div>
+            <div class="s-desc">Importa movimenti Banca Sella</div>
+          </div>
+          <span class="s-arrow">›</span>
+        </div>
+        <div class="settings-item" onclick="alert('Prossimamente')">
+          <span class="s-icon">👤</span>
+          <div class="s-text">
+            <div class="s-label">Import da Leo</div>
+            <div class="s-desc">Sincronizza pagamenti Leonardo</div>
+          </div>
+          <span class="s-arrow">›</span>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-section-title">Analisi</div>
+        <div class="settings-item" onclick="alert('Prossimamente')">
+          <span class="s-icon">📊</span>
+          <div class="s-text">
+            <div class="s-label">Grafici e report</div>
+            <div class="s-desc">Analisi entrate/uscite per categoria</div>
+          </div>
+          <span class="s-arrow">›</span>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-section-title">Avanzate</div>
+        <div class="settings-item" onclick="alert('Prossimamente')">
+          <span class="s-icon">🔐</span>
+          <div class="s-text">
+            <div class="s-label">Autenticazione Face ID</div>
+            <div class="s-desc">Sostituisci il token con Face ID / Touch ID</div>
+          </div>
+          <span class="s-arrow">›</span>
+        </div>
+        <div class="settings-item" onclick="exportOFX()">
+          <span class="s-icon">📤</span>
+          <div class="s-text">
+            <div class="s-label">Export OFX</div>
+            <div class="s-desc">Esporta per iCompta (periodo parallelo)</div>
+          </div>
+          <span class="s-arrow">›</span>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-section-title">Database</div>
+        <div class="settings-item danger" onclick="confirmRestore()">
+          <span class="s-icon">🔄</span>
+          <div class="s-text">
+            <div class="s-label">Ripristina database</div>
+            <div class="s-desc">Torna ai dati originali del 23/06/2026</div>
+          </div>
+          <span class="s-arrow" style="color:var(--red)">›</span>
+        </div>
+        <div class="settings-item danger" onclick="doLogout()">
+          <span class="s-icon">🚪</span>
+          <div class="s-text">
+            <div class="s-label">Esci</div>
+            <div class="s-desc">Cancella token e torna al login</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- Modal Tx -->
+<div class="modal-overlay" id="tx-modal" style="display:none" onclick="if(event.target===this)closeModal()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h3 id="modal-title">Nuova transazione</h3>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Data</label>
+          <input type="date" class="form-input" id="tx-date">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Conto</label>
+          <select class="form-input" id="tx-account"></select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Descrizione</label>
+        <input type="text" class="form-input" id="tx-name" placeholder="Es. Booking, Leo, Clienti...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Note</label>
+        <input type="text" class="form-input" id="tx-comment" placeholder="Opzionale">
+      </div>
+      <div class="form-group">
+        <label class="form-label" style="display:flex;justify-content:space-between;align-items:center">
+          <span>Importo e categoria</span>
+          <button class="btn-icon" onclick="addSplit()" style="font-size:12px;padding:3px 10px">+ Split</button>
+        </label>
+        <div id="splits-container"></div>
+      </div>
+      <div class="transfer-section">
+        <div class="transfer-header" onclick="toggleTransfer()">
+          <span>↔️ Trasferimento ad altro conto</span>
+          <div class="t-toggle" id="transfer-toggle"></div>
+        </div>
+        <div class="transfer-body" id="transfer-body">
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label">Conto di destinazione</label>
+            <select class="form-input" id="transfer-account">
+              <option value="">— Seleziona conto —</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-danger" id="btn-delete" onclick="deleteTx()" style="display:none">Elimina</button>
+        <button class="btn btn-secondary" onclick="closeModal()">Annulla</button>
+        <button class="btn btn-primary" onclick="saveTx()">Salva</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- Settings Panel -->
 <div class="settings-overlay" id="settings-overlay" style="display:none" onclick="if(event.target===this)closeSettings()">
@@ -969,6 +1141,109 @@ function openNewTx() {
   document.getElementById('splits-container').innerHTML = '';
   addSplit();
   
+  populateTransferAccounts(document.getElementById('tx-account').value);
+  document.getElementById('transfer-toggle').classList.remove('on');
+  document.getElementById('transfer-body').classList.remove('open');
+  document.getElementById('tx-modal').style.display = 'flex';
+}
+
+function openEditTx(tx) {
+  editingTx = tx;
+  document.getElementById('modal-title').textContent = 'Modifica transazione';
+  document.getElementById('btn-delete').style.display = 'block';
+  document.getElementById('tx-date').value = tx.date;
+  document.getElementById('tx-status').value = tx.status || 'created';
+  document.getElementById('tx-name').value = tx.name || '';
+  document.getElementById('tx-comment').value = tx.comment || '';
+
+  const sel = document.getElementById('tx-account');
+  sel.innerHTML = '';
+  for (const acc of meta.accounts.filter(a => !a.hidden)) {
+    const opt = document.createElement('option');
+    opt.value = acc.id;
+    opt.textContent = acc.name;
+    if (acc.id === tx.accountId) opt.selected = true;
+    sel.appendChild(opt);
+  }
+
+  const splits = tx.splits?.length > 0 ? tx.splits : [{ amount: tx.amount, categoryId: null, comment: '' }];
+  document.getElementById('splits-container').innerHTML = '';
+  for (const s of splits) addSplit(s);
+
+  document.getElementById('tx-modal').style.display = 'flex';
+}
+
+function addSplit(split = null) {
+  const container = document.getElementById('splits-container');
+  const catOptions = [...meta.categories]
+    .sort((a,b) => a.name.localeCompare(b.name))
+    .map(c => `<option value="${c.id}" ${split?.categoryId === c.id ? 'selected' : ''}>${esc(c.name)}</option>`)
+    .join('');
+  const amt = split?.amount ?? '';
+  const amtClass = amt > 0 ? 'positive' : amt < 0 ? 'negative' : '';
+  const row = document.createElement('div');
+  row.className = 'split-row';
+  row.innerHTML = `
+    <input type="number" step="0.01" class="split-amount-big ${amtClass}"
+      placeholder="0,00" value="${amt}"
+      oninput="this.className='split-amount-big '+(+this.value>0?'positive':+this.value<0?'negative':'')">
+    <div class="split-row-bottom">
+      <select class="split-cat">
+        <option value="">— Categoria —</option>
+        ${catOptions}
+      </select>
+      <input type="text" class="split-comment" placeholder="Note" value="${split?.comment ?? ''}"
+        style="width:120px;padding:8px;border-radius:8px;border:1.5px solid var(--border);font-size:14px;outline:none;">
+      <button class="split-del" onclick="this.closest('.split-row').remove()">✕</button>
+    </div>`;
+  container.appendChild(row);
+}
+
+function toggleTransfer() {
+  const t = document.getElementById('transfer-toggle');
+  const b = document.getElementById('transfer-body');
+  t.classList.toggle('on');
+  b.classList.toggle('open');
+}
+
+function populateTransferAccounts(excludeId) {
+  const sel = document.getElementById('transfer-account');
+  sel.innerHTML = '<option value="">— Seleziona conto —</option>';
+  meta.accounts.filter(a => !a.hidden && a.id !== excludeId).forEach(a => {
+    const opt = document.createElement('option');
+    opt.value = a.id; opt.textContent = a.name;
+    sel.appendChild(opt);
+  });
+}
+
+
+function openNewTx() {
+  editingTx = null;
+  document.getElementById('modal-title').textContent = 'Nuova transazione';
+  document.getElementById('btn-delete').style.display = 'none';
+  document.getElementById('tx-date').value = new Date().toISOString().slice(0,10);
+  document.getElementById('tx-status').value = 'created';
+  document.getElementById('tx-name').value = '';
+  document.getElementById('tx-comment').value = '';
+  
+  // Popola select conto
+  const sel = document.getElementById('tx-account');
+  sel.innerHTML = '';
+  for (const acc of meta.accounts.filter(a => !a.hidden)) {
+    const opt = document.createElement('option');
+    opt.value = acc.id;
+    opt.textContent = acc.name;
+    if (acc.id === selectedAccountId) opt.selected = true;
+    sel.appendChild(opt);
+  }
+
+  // Un split vuoto
+  document.getElementById('splits-container').innerHTML = '';
+  addSplit();
+  
+  populateTransferAccounts(document.getElementById('tx-account').value);
+  document.getElementById('transfer-toggle').classList.remove('on');
+  document.getElementById('transfer-body').classList.remove('open');
   document.getElementById('tx-modal').style.display = 'flex';
 }
 
@@ -1024,9 +1299,9 @@ function addSplit(split = null) {
 async function saveTx() {
   const splits = [];
   document.querySelectorAll('.split-row').forEach(row => {
-    const amount = parseFloat(row.querySelector('.split-amount').value);
+    const amount = parseFloat(row.querySelector('.split-amount-big').value);
     const categoryId = row.querySelector('.split-cat').value || null;
-    const comment = row.querySelector('.split-comment').value || null;
+    const comment = row.querySelector('.split-comment')?.value || null;
     if (!isNaN(amount)) splits.push({ amount, categoryId, comment });
   });
 
@@ -1035,7 +1310,7 @@ async function saveTx() {
     date: document.getElementById('tx-date').value,
     name: document.getElementById('tx-name').value.trim(),
     accountId: document.getElementById('tx-account').value,
-    status: document.getElementById('tx-status').value,
+    status: 'created',
     comment: document.getElementById('tx-comment').value.trim() || null,
     useSumOfSplits: true,
     amount: null,
