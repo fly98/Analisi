@@ -2079,7 +2079,10 @@ async function sellaDoImport() {
   _sellaImporting = false;
   document.getElementById('sella-progress').textContent='';
   txCache={};await loadBalances();
-  if(selectedAccountId)await selectAccount(selectedAccountId,selectedAccountName);
+  if(selectedAccountId){
+    var _acc=meta&&meta.accounts.find(function(a){return a.id===selectedAccountId;});
+    if(_acc)await selectAccount(_acc.id,_acc.name);
+  }
 
   if(!errCount) {
     sellaFinish(txBancaIds.length + ' TX banca + ' + txEcoIds.length + ' TX economico importate');
@@ -2163,7 +2166,10 @@ async function sellaRollback(sessionId, count) {
   var r = await api("DELETE", "/api/sella-log/" + sessionId);
   if (r && r.ok) {
     txCache = {}; await loadBalances();
-    if (selectedAccountId) await selectAccount(selectedAccountId, selectedAccountName);
+    if (selectedAccountId){
+      var _acc3=meta&&meta.accounts.find(function(a){return a.id===selectedAccountId;});
+      if(_acc3)await selectAccount(_acc3.id,_acc3.name);
+    }
     var msg = r.deleted > 0 ? r.deleted + " transazioni rimosse." : "Sessione rimossa.";
     sellaFinish(msg);
   } else {
