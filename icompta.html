@@ -469,6 +469,8 @@ body { padding-top: env(safe-area-inset-top, 0); }
 </div>
 
 <script>
+window.onerror = function(msg, src, line, col, err) { alert("ERRORE JS\nRiga: " + line + "\n" + msg); return false; };
+
 // ══════════════════════════════════════════════
 // CONFIG
 // ══════════════════════════════════════════════
