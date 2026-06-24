@@ -259,6 +259,46 @@ var icompta_worker_default = {
       }
     }
 
+    // ── SELLA REGOLE GET ─────────────────────────────────────────────────────
+    if (path === "/api/sella-regole" && method === "GET") {
+      const ghPAT = env.GITHUB_PAT;
+      if (!ghPAT) return err("GITHUB_PAT non configurato", 500);
+      const r = await fetch("https://api.github.com/repos/fly98/Analisi/contents/sella_regole.json", {
+        headers: { Authorization: `Bearer ${ghPAT}`, Accept: "application/vnd.github.v3+json" }
+      });
+      if (r.status === 404) return json({});
+      if (!r.ok) return err("GitHub error " + r.status, 502);
+      const d = await r.json();
+      const raw = atob(d.content.replace(/\n/g, ""));
+      try { return json(JSON.parse(raw)); }
+      catch(e) { return json({}); }
+    }
+
+    // ── SELLA REGOLE PUT ─────────────────────────────────────────────────────
+    if (path === "/api/sella-regole" && method === "PUT") {
+      const ghPAT = env.GITHUB_PAT;
+      if (!ghPAT) return err("GITHUB_PAT non configurato", 500);
+      const body = await request.json();
+      const { regole } = body;
+      if (!regole) return err("regole mancanti");
+      // Legge sha attuale
+      const getR = await fetch("https://api.github.com/repos/fly98/Analisi/contents/sella_regole.json", {
+        headers: { Authorization: `Bearer ${ghPAT}`, Accept: "application/vnd.github.v3+json" }
+      });
+      let sha = null;
+      if (getR.ok) { const gd = await getR.json(); sha = gd.sha; }
+      const content = btoa(unescape(encodeURIComponent(JSON.stringify(regole, null, 2))));
+      const putBody = { message: "iCompta: aggiorna sella_regole.json", content };
+      if (sha) putBody.sha = sha;
+      const putR = await fetch("https://api.github.com/repos/fly98/Analisi/contents/sella_regole.json", {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${ghPAT}`, "Content-Type": "application/json" },
+        body: JSON.stringify(putBody)
+      });
+      if (!putR.ok) return err("GitHub PUT error " + putR.status, 502);
+      return json({ ok: true });
+    }
+
     return err("Endpoint non trovato", 404);
   }
 };
