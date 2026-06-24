@@ -1,6 +1,46 @@
 {
   "sessioni": [
     {
+      "id": 1782309824646,
+      "data": "2026-06-24T14:03:44.646Z",
+      "file": "ListaMovimentiConto.csv",
+      "nuovi": 4,
+      "totale": 4,
+      "entrate": 28.52,
+      "uscite": -65.22,
+      "saldo": -36.7,
+      "categorie": {
+        "Spese Interno1 : Ufficio": -65.22,
+        "Spese Interno1 : Spese Personali": 28.52
+      },
+      "movimenti": [
+        {
+          "data": "24/06/2026",
+          "desc": "APPLE.COM/BILL 800915904",
+          "importo": -1.99,
+          "cat": "Spese Interno1 : Ufficio"
+        },
+        {
+          "data": "24/06/2026",
+          "desc": "ANTHROPIC +14152360599",
+          "importo": -38.25,
+          "cat": "Spese Interno1 : Ufficio"
+        },
+        {
+          "data": "24/06/2026",
+          "desc": "POS 2206 AMZN Mktp IT",
+          "importo": 28.52,
+          "cat": "Spese Interno1 : Spese Personali"
+        },
+        {
+          "data": "24/06/2026",
+          "desc": "NETFLIX.COM 18665797172",
+          "importo": -24.98,
+          "cat": "Spese Interno1 : Ufficio"
+        }
+      ]
+    },
+    {
       "id": 1782242727114,
       "data": "2026-06-23T19:25:27.114Z",
       "file": "ListaMovimentiConto.csv",
