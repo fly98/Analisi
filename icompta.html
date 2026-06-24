@@ -129,12 +129,16 @@ body { padding-top: env(safe-area-inset-top, 0); }
 .amount-pos { color: var(--green); }
 .amount-neg { color: var(--red); }
 
-/* ── Year selector ── */
-#year-bar { padding: 6px 16px; display: flex; gap: 4px; overflow-x: auto; flex-shrink: 0;
-  background: var(--surface); border-bottom: 1px solid var(--border); }
-.year-btn { padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 500;
-  border: 1px solid var(--border); background: var(--surface); color: var(--muted); cursor: pointer; white-space: nowrap; }
-.year-btn.active { background: var(--text); color: white; border-color: var(--text); }
+/* ── Date filter bar ── */
+#date-bar { padding: 6px 16px; display: flex; gap: 6px; flex-shrink: 0; align-items: center;
+  background: var(--surface); border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+.date-chip { padding: 3px 12px; border-radius: 6px; font-size: 13px; font-weight: 500;
+  border: 1px solid var(--border); background: var(--surface); color: var(--muted);
+  cursor: pointer; white-space: nowrap; transition: all 0.15s; }
+.date-chip.active { background: var(--text); color: white; border-color: var(--text); }
+#date-bar input[type=date] { padding: 3px 8px; border-radius: 6px; font-size: 13px;
+  border: 1px solid var(--border); color: var(--text); background: var(--surface);
+  outline: none; width: 130px; }
 
 /* ── Loading / Empty ── */
 #loading { display: flex; align-items: center; justify-content: center; flex: 1;
@@ -265,7 +269,15 @@ body { padding-top: env(safe-area-inset-top, 0); }
       </div>
     </div>
 
-    <div id="year-bar"></div>
+    <div id="date-bar">
+      <button class="date-chip active" onclick="setDatePreset('12m',this)">Ultimi 12 mesi</button>
+      <button class="date-chip" onclick="setDatePreset('3m',this)">3 mesi</button>
+      <button class="date-chip" onclick="setDatePreset('ytd',this)">Quest'anno</button>
+      <button class="date-chip" onclick="setDatePreset('all',this)">Tutto</button>
+      <input type="date" id="date-from" onchange="setDateCustom()">
+      <span style="color:var(--muted);font-size:13px">→</span>
+      <input type="date" id="date-to" onchange="setDateCustom()">
+    </div>
 
     <div id="filter-bar">
       <button class="filter-chip active" onclick="setFilter('all',this)">Tutti</button>
@@ -453,6 +465,11 @@ let currentTxs = [];      // TX caricate per l'anno corrente
 let filteredTxs = [];     // TX dopo filtri
 let selectedAccountId = null;
 let selectedYear = new Date().getFullYear().toString();
+// Date range
+const _today = new Date().toISOString().slice(0,10);
+const _yearAgo = new Date(Date.now()-365*24*60*60*1000).toISOString().slice(0,10);
+let dateFrom = _yearAgo;
+let dateTo = _today;
 let currentFilter = 'all';
 let amountFilter = null;
 let catFilter = '';
@@ -700,23 +717,46 @@ function updateTotalBalance() {
 // YEAR BAR
 // ══════════════════════════════════════════════
 function renderYearBar() {
-  const bar = document.getElementById('year-bar');
-  bar.innerHTML = '';
-  const years = [...(meta?.years || [])].reverse();
-  for (const y of years) {
-    const btn = document.createElement('button');
-    btn.className = 'year-btn' + (y === selectedYear ? ' active' : '');
-    btn.textContent = y;
-    btn.onclick = () => selectYear(y);
-    bar.appendChild(btn);
+  // Inizializza date inputs
+  const df = document.getElementById('date-from');
+  const dt = document.getElementById('date-to');
+  if (df) df.value = dateFrom;
+  if (dt) dt.value = dateTo;
+}
+
+function setDatePreset(preset, btn) {
+  document.querySelectorAll('.date-chip').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const today = new Date().toISOString().slice(0,10);
+  let from;
+  if (preset === '3m') {
+    from = new Date(Date.now()-90*24*60*60*1000).toISOString().slice(0,10);
+  } else if (preset === 'ytd') {
+    from = new Date().getFullYear() + '-01-01';
+  } else if (preset === 'all') {
+    from = '2001-01-01';
+  } else { // 12m
+    from = new Date(Date.now()-365*24*60*60*1000).toISOString().slice(0,10);
   }
+  dateFrom = from;
+  dateTo = today;
+  document.getElementById('date-from').value = from;
+  document.getElementById('date-to').value = today;
+  applyFilters();
+}
+
+function setDateCustom() {
+  const from = document.getElementById('date-from').value;
+  const to = document.getElementById('date-to').value;
+  if (!from || !to) return;
+  document.querySelectorAll('.date-chip').forEach(b => b.classList.remove('active'));
+  dateFrom = from;
+  dateTo = to;
+  applyFilters();
 }
 
 async function selectYear(y) {
   selectedYear = y;
-  document.querySelectorAll('.year-btn').forEach(b => {
-    b.classList.toggle('active', b.textContent === y);
-  });
   await loadYear(y);
 }
 
@@ -788,6 +828,8 @@ function applyFilters() {
   if (selectedAccountId) {
     txs = txs.filter(t => t.accountId === selectedAccountId);
   }
+  // Filtra per data
+  txs = txs.filter(t => t.date >= dateFrom && t.date <= dateTo);
 
   // Status filter
   if (currentFilter !== 'all') {
