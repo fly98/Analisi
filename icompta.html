@@ -545,8 +545,8 @@ async function init(metaData) {
   // Carica saldi (in background)
   loadBalances();
 
-  // Carica ultimi 12 mesi
-  await reloadForDateRange();
+  // Non caricare TX finché non si seleziona un conto
+  applyFilters();
 }
 
 async function loadBalances() {
@@ -810,7 +810,8 @@ function getCatName(catId) {
 function applyFilters() {
   let txs = [...currentTxs];
 
-  // Filtra per conto
+  // TX già filtrate per conto in reloadForDateRange
+  // (filtro residuo per sicurezza)
   if (selectedAccountId) {
     txs = txs.filter(t => t.accountId === selectedAccountId);
   }
