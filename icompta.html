@@ -131,6 +131,7 @@ body { padding-top: env(safe-area-inset-top, 0); }
   padding: 0 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .tx-c-amt { width: 100px; flex-shrink: 0; text-align: right;
   font-size: 14px; font-weight: 600; padding: 0 8px; white-space: nowrap; }
+.tx-c-trasf { width: 100px; flex-shrink: 0; font-size: 12px; color: var(--blue); padding: 0 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .tx-c-bal { width: 110px; flex-shrink: 0; text-align: right;
   font-size: 13px; color: var(--muted); padding: 0 8px; white-space: nowrap; }
 .tx-del { width: 28px; flex-shrink: 0; opacity: 0; transition: opacity 0.15s;
@@ -169,19 +170,19 @@ body { padding-top: env(safe-area-inset-top, 0); }
 /* ── Modal ── */
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4);
   display: flex; align-items: center; justify-content: center; z-index: 100; }
-.modal { background: var(--bg); border-radius: 16px; width: 500px; max-width: 95vw;
-  max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+.modal { background: var(--bg); border-radius: 16px; width: 540px; max-width: 96vw;
+  max-height: 92vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.25); }
 .modal-header { padding: 20px 20px 0; display: flex; justify-content: space-between; align-items: center; }
 .modal-header h3 { font-size: 18px; font-weight: 700; }
 .modal-close { background: none; border: none; font-size: 22px; cursor: pointer; color: var(--gray4); }
-.modal-body { padding: 16px 20px 20px; }
-.form-group { margin-bottom: 14px; }
-.form-label { font-size: 13px; font-weight: 600; color: var(--gray4); margin-bottom: 4px; display: block; }
+.modal-body { padding: 20px 24px 24px; }
+.form-group { margin-bottom: 16px; }
+.form-label { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 6px; display: block; }
 .form-input { width: 100%; padding: 10px 12px; border-radius: 10px;
   border: 1.5px solid var(--gray2); font-size: 15px; outline: none; transition: border-color 0.15s; }
 .form-input:focus { border-color: var(--blue); }
-.form-row { display: flex; gap: 12px; }
-.form-row .form-group { flex: 1; }
+.form-row { display: flex; gap: 12px; align-items: flex-start; }
+.form-row .form-group { flex: 1; min-width: 0; }
 .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px; }
 .btn { padding: 10px 20px; border-radius: 10px; font-size: 15px; font-weight: 600;
   border: none; cursor: pointer; }
@@ -246,6 +247,48 @@ body { padding-top: env(safe-area-inset-top, 0); }
 .settings-item .s-arrow { color: var(--gray3); font-size: 14px; }
 .settings-item.danger .s-label { color: var(--red); }
 .settings-item.danger .s-icon { filter: hue-rotate(0deg); }
+
+/* Trasferimento */
+.transfer-section { margin-top: 12px; border-radius: 10px;
+  border: 1.5px solid var(--border); overflow: hidden; }
+.transfer-header { padding: 12px 16px; display: flex; align-items: center;
+  gap: 12px; cursor: pointer; background: var(--bg); user-select: none; }
+.transfer-header span { font-size: 14px; font-weight: 600; color: var(--muted); flex: 1; }
+.t-toggle { width: 40px; height: 22px; background: var(--gray2);
+  border-radius: 11px; position: relative; transition: background 0.2s; flex-shrink: 0; }
+.t-toggle.on { background: var(--blue); }
+.t-toggle::after { content:''; position: absolute; width: 18px; height: 18px;
+  background: white; border-radius: 50%; top: 2px; left: 2px;
+  transition: left 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+.t-toggle.on::after { left: 20px; }
+.transfer-body { padding: 14px 16px; display: none;
+  border-top: 1px solid var(--border); background: var(--surface); }
+.transfer-body.open { display: block; }
+
+
+/* Dialogo custom */
+.custom-dialog-overlay { position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:400;
+  display:flex;align-items:center;justify-content:center; }
+.custom-dialog { background:var(--surface);border-radius:14px;padding:24px;
+  width:320px;max-width:90vw;box-shadow:0 8px 40px rgba(0,0,0,0.2); }
+.custom-dialog h4 { font-size:16px;font-weight:700;margin:0 0 8px; }
+.custom-dialog p { font-size:14px;color:var(--muted);margin:0 0 20px; }
+.custom-dialog-btns { display:flex;gap:8px;justify-content:flex-end; }
+.custom-dialog-btns button { padding:8px 18px;border-radius:8px;font-size:14px;
+  font-weight:600;cursor:pointer;border:none; }
+.btn-cancel-d { background:var(--gray2);color:var(--text); }
+.btn-no-d { background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-b,#f0d880) !important; }
+.btn-yes-d { background:var(--text);color:white; }
+
+
+/* Badge categoria */
+.cat-badge { display:inline-block; padding:2px 8px; border-radius:6px;
+  font-size:11px; font-weight:600; white-space:nowrap; }
+.cat-spesa { background:#fdf0f0; color:#b83232; border:1px solid #f0b8b8; }
+.cat-personali { background:#e8f5ee; color:#1a7a4a; border:1px solid #a8d9b8; }
+.cat-redditi { background:#eef4fd; color:#1a4a7a; border:1px solid #a8c4e8; }
+.cat-other { background:var(--gray2); color:var(--muted); }
+
 </style>
 </head>
 <body>
@@ -305,6 +348,7 @@ body { padding-top: env(safe-area-inset-top, 0); }
         <div class="txh tx-c-cat" style="padding:0 8px">Categoria</div>
         <div class="txh tx-c-amt" style="text-align:right;padding:0 8px">Importo</div>
         <div class="txh tx-c-bal" style="text-align:right;padding:0 8px">Saldo</div>
+        <div class="txh" style="width:100px;flex-shrink:0;padding:0 8px">Trasf.</div>
         <div style="width:28px;flex-shrink:0"></div>
       </div>
       <div id="tx-body" style="flex:1">
@@ -439,7 +483,22 @@ body { padding-top: env(safe-area-inset-top, 0); }
         </label>
         <div id="splits-container"></div>
       </div>
-      <div class="modal-actions">
+      <div class="transfer-section">
+        <div class="transfer-header" onclick="toggleTransfer()">
+          <span>↔️ Trasferimento ad altro conto</span>
+          <div class="t-toggle" id="transfer-toggle"></div>
+        </div>
+        <div class="transfer-body" id="transfer-body">
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label">Conto di destinazione</label>
+            <select class="form-input" id="transfer-account">
+              <option value="">— Seleziona conto —</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+            <div class="modal-actions">
         <button class="btn btn-danger" id="btn-delete" onclick="deleteTx()" style="display:none">Elimina</button>
         <button class="btn btn-secondary" onclick="closeModal()">Annulla</button>
         <button class="btn btn-primary" onclick="saveTx()">Salva</button>
@@ -915,9 +974,10 @@ function renderTxList() {
     row.innerHTML = `
       <div class="tx-c-date">${dateStr}</div>
       <div class="tx-c-desc"><div class="txn">${esc(tx.name||'')}</div>${sub?`<div class="txs">${esc(sub)}</div>`:''}</div>
-      <div class="tx-c-cat">${esc(cat)}</div>
+      <div class="tx-c-cat">${tx.splits&&tx.splits[0]?getCatBadge(tx.splits[0].categoryId):esc(cat)}</div>
       <div class="tx-c-amt ${amount>=0?'amount-pos':'amount-neg'}">${fmt(amount)}</div>
       <div class="tx-c-bal">${runBal[i]!==undefined?fmt(runBal[i]):'—'}</div>
+            <div class="tx-c-trasf">${getLinkedAccName(tx)}</div>
       <div class="tx-del"><button onclick="event.stopPropagation();quickDelete('${tx.id}','${tx.date.slice(0,4)}')" title="Elimina">✕</button></div>`;
     row.addEventListener('click', () => openEditTx(tx));
     body.appendChild(row);
@@ -969,6 +1029,8 @@ function openNewTx() {
   document.getElementById('splits-container').innerHTML = '';
   addSplit();
   
+  populateTransferAccounts(document.getElementById('tx-account').value);
+  resetTransfer();
   document.getElementById('tx-modal').style.display = 'flex';
 }
 
@@ -1000,24 +1062,47 @@ function openEditTx(tx) {
 
 function addSplit(split = null) {
   const container = document.getElementById('splits-container');
-  const catOptions = [...meta.categories]
-    .sort((a,b) => a.name.localeCompare(b.name))
-    .map(c => `<option value="${c.id}" ${split?.categoryId === c.id ? 'selected' : ''}>${esc(c.name)}</option>`)
-    .join('');
+  const visibleCats = getVisibleCategories();
+  const catOptions = visibleCats.map(c => `<option value="${c.id}" ${split?.categoryId === c.id ? 'selected' : ''}>${esc(c.name)}</option>`).join('');
 
   const row = document.createElement('div');
   row.className = 'split-row';
-  row.innerHTML = `
-    <input type="number" step="0.01" class="form-input split-amount" 
-      placeholder="Importo" value="${split?.amount ?? ''}">
-    <select class="form-input split-cat">
-      <option value="">— Categoria —</option>
-      ${catOptions}
-    </select>
-    <input type="text" class="form-input split-comment" 
-      placeholder="Note" value="${split?.comment ?? ''}" style="max-width:120px">
-    <button class="btn-icon" onclick="this.parentElement.remove()">✕</button>
-  `;
+  row.style.cssText = 'background:var(--bg);border-radius:10px;padding:12px;margin-bottom:8px;border:1.5px solid var(--border);';
+  
+  const amtVal = split?.amount ?? '';
+  const amtColor = amtVal > 0 ? 'var(--green)' : amtVal < 0 ? 'var(--red)' : 'var(--text)';
+  
+  // Campo importo — riga intera sopra
+  const amtInput = document.createElement('input');
+  amtInput.type = 'text';
+  amtInput.inputMode = 'decimal';
+  amtInput.className = 'form-input split-amount';
+  amtInput.placeholder = '0,00';
+  amtInput.value = amtVal;
+  amtInput.style.cssText = 'width:100%;font-size:26px;font-weight:700;text-align:right;padding:10px 14px;border-radius:8px;border:1.5px solid var(--border);outline:none;box-sizing:border-box;margin-bottom:10px;color:' + amtColor + ';background:var(--surface);transition:border-color 0.15s;';
+  amtInput.addEventListener('input', function() {
+    const v = parseFloat(this.value);
+    this.style.color = v > 0 ? 'var(--green)' : v < 0 ? 'var(--red)' : 'var(--text)';
+  });
+  
+  // Riga inferiore: categoria + elimina
+  const bottom = document.createElement('div');
+  bottom.style.cssText = 'display:flex;gap:8px;align-items:center;';
+  
+  const catSel = document.createElement('select');
+  catSel.className = 'form-input split-cat';
+  catSel.style.cssText = 'flex:1;font-size:14px;';
+  catSel.innerHTML = '<option value="">— Categoria —</option>' + catOptions;
+  
+  const delBtn = document.createElement('button');
+  delBtn.className = 'btn-icon';
+  delBtn.textContent = '✕';
+  delBtn.onclick = function() { row.remove(); };
+  
+  bottom.appendChild(catSel);
+  bottom.appendChild(delBtn);
+  row.appendChild(amtInput);
+  row.appendChild(bottom);
   container.appendChild(row);
 }
 
@@ -1026,7 +1111,7 @@ async function saveTx() {
   document.querySelectorAll('.split-row').forEach(row => {
     const amount = parseFloat(row.querySelector('.split-amount').value);
     const categoryId = row.querySelector('.split-cat').value || null;
-    const comment = row.querySelector('.split-comment').value || null;
+    const el = row.querySelector('.split-comment'); const comment = el ? el.value || null : null;
     if (!isNaN(amount)) splits.push({ amount, categoryId, comment });
   });
 
@@ -1039,29 +1124,146 @@ async function saveTx() {
     comment: document.getElementById('tx-comment').value.trim() || null,
     useSumOfSplits: true,
     amount: null,
+    linkedTxId: editingTx?.linkedTxId || null,
     splits
   };
 
   const result = await api('POST', '/api/tx', { tx });
   if (result.error) { alert('Errore: ' + result.error); return; }
 
+  // Trasferimento: crea TX collegata se toggle attivo
+  const tOn = document.getElementById('transfer-toggle').classList.contains('on');
+  const tAccId = document.getElementById('transfer-account').value;
+  if (tOn && tAccId && result && result.id) {
+    const total = splits.reduce((s, sp) => s + (sp.amount || 0), 0);
+    const srcName = meta.accounts.find(function(a) { return a.id === tx.accountId; })?.name || '';
+    const existingLinkedId = editingTx ? editingTx.linkedTxId : null;
+
+    if (existingLinkedId) {
+      // TX esistente con collegamento — chiedi conferma
+      const updateLinked = confirm('Questa transazione è collegata a un trasferimento.\nVuoi aggiornare anche la transazione collegata?');
+      if (updateLinked) {
+        // Cerca TX collegata in cache e KV
+        let linked = null;
+        for (const yr of Object.keys(txCache)) {
+          linked = (txCache[yr] || []).find(t => t.id === existingLinkedId);
+          if (linked) break;
+        }
+        if (!linked) {
+          for (const yr of (meta.years || [])) {
+            const txs = await api('GET', '/api/tx/' + yr);
+            linked = txs.find(t => t.id === existingLinkedId);
+            if (linked) { txCache[yr] = txs; break; }
+          }
+        }
+        if (linked) {
+          // Aggiorna importo inverso + sync note e categoria
+          const newAmt = -total;
+          const linkedCatId = splits[0]?.categoryId || null;
+          const updatedLinked = Object.assign({}, linked, {
+            date: tx.date,
+            name: tx.name,
+            comment: tx.comment,
+            splits: [{ amount: newAmt, categoryId: linkedCatId, comment: splits[0]?.comment || null }],
+            linkedTxId: result.id
+          });
+          await api('POST', '/api/tx', { tx: updatedLinked });
+          delete txCache[linked.date.slice(0,4)];
+          loadedYears.delete(linked.date.slice(0,4));
+        }
+      }
+    } else {
+      // Nuova TX di trasferimento — crea la collegata
+      const linkedCatId = splits[0]?.categoryId || null;
+      const linkedTx = {
+        id: null, date: tx.date, name: tx.name,
+        accountId: tAccId, status: 'created',
+        comment: tx.comment,
+        useSumOfSplits: true, amount: null,
+        linkedTxId: result.id,
+        splits: [{ amount: -total, categoryId: linkedCatId, comment: splits[0]?.comment || null }]
+      };
+      const linkedResult = await api('POST', '/api/tx', { tx: linkedTx });
+      if (linkedResult && linkedResult.id) {
+        // Aggiorna TX originale con linkedTxId
+        const txUpdate = Object.assign({}, tx, { id: result.id, linkedTxId: linkedResult.id });
+        await api('POST', '/api/tx', { tx: txUpdate });
+      }
+    }
+    delete txCache[tx.date.slice(0,4)];
+    loadedYears.delete(tx.date.slice(0,4));
+  }
+
   closeModal();
-  // Reload anno corrente
+  // Invalida cache per l'anno della TX e ricarica
   const year = tx.date.slice(0,4);
-  if (year !== selectedYear) await selectYear(year);
-  else await loadYear(selectedYear);
-  // Aggiorna saldi
+  delete txCache[year];
+  loadedYears.delete(year);
+  await reloadTxForRange();
   loadBalances();
 }
 
 async function deleteTx() {
   if (!editingTx) return;
-  if (!confirm('Eliminare questa transazione?')) return;
+  var deleteLinked = false;
+  if (editingTx.linkedTxId) {
+    if (!confirm('Eliminare questa transazione?')) return;
+    const _dd = await showLinkedDialog('Vuoi eliminare anche la transazione collegata?');
+    if (_dd === 'cancel') return;
+    deleteLinked = _dd === 'yes';
+    if (!deleteLinked) {
+      // Scollega la TX collegata prima di eliminare
+      await unlinkTx(editingTx.linkedTxId, editingTx.date.slice(0,4));
+    }
+  } else {
+    if (!confirm('Eliminare questa transazione?')) return;
+  }
   const year = editingTx.date.slice(0,4);
   const result = await api('DELETE', `/api/tx/${editingTx.id}?year=${year}`);
   if (result.error) { alert('Errore: ' + result.error); return; }
+
+  if (editingTx.linkedTxId) {
+    if (deleteLinked) {
+      // Cerca TX collegata in tutti gli anni caricati e nel KV
+      let linked = null;
+      for (const yr of Object.keys(txCache)) {
+        linked = txCache[yr].find(t => t.id === editingTx.linkedTxId);
+        if (linked) break;
+      }
+      if (!linked) {
+        // Cerca nel KV anno per anno
+        for (const yr of (meta.years || [])) {
+          const txs = await api('GET', `/api/tx/${yr}`);
+          linked = txs.find(t => t.id === editingTx.linkedTxId);
+          if (linked) break;
+        }
+      }
+      if (linked) {
+        await api('DELETE', `/api/tx/${linked.id}?year=${linked.date.slice(0,4)}`);
+        delete txCache[linked.date.slice(0,4)];
+        loadedYears.delete(linked.date.slice(0,4));
+      }
+    } else {
+      // Non elimina la collegata ma rimuove il linkedTxId da essa
+      let linked = null;
+      for (const yr of Object.keys(txCache)) {
+        linked = txCache[yr].find(t => t.id === editingTx.linkedTxId);
+        if (linked) break;
+      }
+      if (linked) {
+        const unlinked = Object.assign({}, linked, { linkedTxId: null });
+        await api('POST', '/api/tx', { tx: unlinked });
+        delete txCache[linked.date.slice(0,4)];
+        loadedYears.delete(linked.date.slice(0,4));
+      }
+    }
+  }
+
+  // Invalida cache e aggiorna lista
+  delete txCache[year];
+  loadedYears.delete(year);
   closeModal();
-  await loadYear(selectedYear);
+  await reloadTxForRange();
   loadBalances();
 }
 
@@ -1090,6 +1292,128 @@ function toggleSidebar() {
   }
 })();
 
+
+
+// ── Trasferimento ────────────────────────────────────────
+
+
+// Dialogo custom con Sì/No/Annulla
+function showLinkedDialog(message) {
+  return new Promise(resolve => {
+    const ov = document.createElement('div');
+    ov.className = 'custom-dialog-overlay';
+    const box = document.createElement('div');
+    box.className = 'custom-dialog';
+    const h = document.createElement('h4');
+    h.textContent = 'Trasferimento collegato';
+    const p = document.createElement('p');
+    p.textContent = message;
+    const btns = document.createElement('div');
+    btns.className = 'custom-dialog-btns';
+    const btnCancel = document.createElement('button');
+    btnCancel.className = 'btn-cancel-d';
+    btnCancel.textContent = 'Annulla';
+    btnCancel.onclick = () => { ov.remove(); resolve('cancel'); };
+    const btnNo = document.createElement('button');
+    btnNo.className = 'btn-no-d';
+    btnNo.textContent = 'No';
+    btnNo.onclick = () => { ov.remove(); resolve('no'); };
+    const btnYes = document.createElement('button');
+    btnYes.className = 'btn-yes-d';
+    btnYes.textContent = 'Si';
+    btnYes.onclick = () => { ov.remove(); resolve('yes'); };
+    btns.appendChild(btnCancel);
+    btns.appendChild(btnNo);
+    btns.appendChild(btnYes);
+    box.appendChild(h);
+    box.appendChild(p);
+    box.appendChild(btns);
+    ov.appendChild(box);
+    document.body.appendChild(ov);
+  });
+}
+
+async function unlinkTx(txId, year) {
+  // Rimuove linkedTxId da una TX
+  let tx = null;
+  for (const yr of Object.keys(txCache)) {
+    tx = (txCache[yr]||[]).find(t => t.id === txId);
+    if (tx) break;
+  }
+  if (!tx) {
+    for (const yr of (meta.years||[])) {
+      const txs = await api('GET', '/api/tx/'+yr);
+      tx = txs.find(t => t.id === txId);
+      if (tx) { txCache[yr]=txs; break; }
+    }
+  }
+  if (tx) {
+    const unlinked = Object.assign({}, tx, { linkedTxId: null });
+    await api('POST', '/api/tx', { tx: unlinked });
+    delete txCache[(tx.date||'').slice(0,4)];
+    loadedYears.delete((tx.date||'').slice(0,4));
+  }
+}
+
+
+function getCatBadge(catId) {
+  if (!catId || !meta) return '';
+  const cat = meta.categories.find(function(c) { return c.id === catId; });
+  if (!cat) return '';
+  const parent = meta.categories.find(function(c) { return c.id === cat.parentId; });
+  const parentName = parent ? parent.name : '';
+  var cls = 'cat-other';
+  if (cat.name === 'Spese Personali') cls = 'cat-personali';
+  else if (parentName === 'Spese Interno1') cls = 'cat-spesa';
+  else if (parentName === 'Redditi') cls = 'cat-redditi';
+  return '<span class="cat-badge ' + cls + '">' + esc(cat.name) + '</span>';
+}
+
+function getVisibleCategories() {
+  if (!meta) return [];
+  return meta.categories.filter(function(c) {
+    const parent = meta.categories.find(function(p) { return p.id === c.parentId; });
+    const parentName = parent ? parent.name : '';
+    return parentName === 'Spese Interno1' || parentName === 'Redditi';
+  }).sort(function(a,b) { return a.name.localeCompare(b.name); });
+}
+
+function getLinkedAccName(tx) {
+  if (!tx.linkedTxId) return '';
+  // Cerca TX collegata in tutti i cache
+  for (const yr of Object.keys(txCache)) {
+    const linked = (txCache[yr] || []).find(t => t.id === tx.linkedTxId);
+    if (linked) {
+      const acc = meta.accounts.find(a => a.id === linked.accountId);
+      return acc ? '→ ' + acc.name : '';
+    }
+  }
+  return '↔';
+}
+
+function toggleTransfer() {
+  document.getElementById('transfer-toggle').classList.toggle('on');
+  document.getElementById('transfer-body').classList.toggle('open');
+}
+
+function populateTransferAccounts(excludeId) {
+  const sel = document.getElementById('transfer-account');
+  sel.innerHTML = '<option value="">— Seleziona conto —</option>';
+  meta.accounts
+    .filter(a => !a.hidden && a.id !== excludeId)
+    .forEach(a => {
+      const opt = document.createElement('option');
+      opt.value = a.id;
+      opt.textContent = a.name;
+      sel.appendChild(opt);
+    });
+}
+
+function resetTransfer() {
+  document.getElementById('transfer-toggle').classList.remove('on');
+  document.getElementById('transfer-body').classList.remove('open');
+  document.getElementById('transfer-account').value = '';
+}
 
 // ── Settings ─────────────────────────────────────────────
 function openSettings() {
