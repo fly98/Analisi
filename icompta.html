@@ -534,9 +534,25 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif
 .rec-form-row label { font-size:11px;color:var(--muted);margin-bottom:3px;display:block; }
 .rec-form-row .rf { flex:1;min-width:120px; }
 .rec-form-row input,.rec-form-row select { width:100%;padding:8px 10px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface);color:var(--text);font-size:14px;box-sizing:border-box; }
+
+/* -- Pull to refresh -- */
+#ptr-indicator {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 9999;
+  display: flex; align-items: center; justify-content: center;
+  height: 0; overflow: hidden; background: var(--blue-bg);
+  transition: height 0.15s ease; pointer-events: none;
+}
+#ptr-indicator .ptr-icon {
+  font-size: 20px; transition: transform 0.3s ease; color: var(--blue);
+}
+#ptr-indicator.ptr-ready .ptr-icon { transform: rotate(180deg); }
+#ptr-indicator.ptr-loading .ptr-icon { animation: ptr-spin 0.6s linear infinite; }
+@keyframes ptr-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
+<div id="ptr-indicator"><span class="ptr-icon">↓</span></div>
+
 
 <div id="login-screen">
   <div class="login-card">
@@ -2971,6 +2987,61 @@ async function saveRicorrenze(){
   }catch(e){alert('Errore: '+e.message);}
   finally{btn.disabled=false;btn.textContent='💾 Salva';}
 }
+
+// -- Pull to refresh --
+(function() {
+  var startY = 0, currentY = 0, pulling = false, threshold = 70;
+  var indicator = document.getElementById('ptr-indicator');
+  if (!indicator) return;
+
+  document.addEventListener('touchstart', function(e) {
+    // Solo se siamo in cima alla pagina
+    if (window.scrollY === 0 && document.getElementById('app').style.display !== 'none') {
+      startY = e.touches[0].clientY;
+      pulling = true;
+    }
+  }, { passive: true });
+
+  document.addEventListener('touchmove', function(e) {
+    if (!pulling) return;
+    currentY = e.touches[0].clientY;
+    var delta = currentY - startY;
+    if (delta <= 0) { pulling = false; indicator.style.height = '0'; return; }
+    var h = Math.min(delta * 0.5, threshold);
+    indicator.style.height = h + 'px';
+    indicator.style.transition = 'none';
+    if (delta > threshold * 1.5) {
+      indicator.classList.add('ptr-ready');
+    } else {
+      indicator.classList.remove('ptr-ready');
+    }
+  }, { passive: true });
+
+  document.addEventListener('touchend', async function() {
+    if (!pulling) return;
+    pulling = false;
+    var delta = currentY - startY;
+    indicator.style.transition = '';
+    if (delta > threshold * 1.5) {
+      // Refresh!
+      indicator.classList.remove('ptr-ready');
+      indicator.classList.add('ptr-loading');
+      indicator.style.height = threshold + 'px';
+      try {
+        txCache = {};
+        await loadBalances();
+        if (selectedAccountId) {
+          var acc = meta && meta.accounts.find(function(a) { return a.id === selectedAccountId; });
+          if (acc) await selectAccount(acc.id, acc.name);
+        }
+      } catch(e) {}
+      indicator.classList.remove('ptr-loading');
+    }
+    indicator.style.height = '0';
+    indicator.classList.remove('ptr-ready');
+    startY = 0; currentY = 0;
+  });
+})();
 
 </script>
 
