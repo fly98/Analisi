@@ -110,22 +110,50 @@ body { padding-top: env(safe-area-inset-top, 0); }
   border: none; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
 
 /* ── Transaction list ── */
-#tx-list-container { flex: 1; overflow-y: auto; }
-#tx-table { width: 100%; border-collapse: collapse; }
-#tx-table thead th { position: sticky; top: 0; background: var(--bg); padding: 8px 16px;
-  text-align: left; font-size: 12px; font-weight: 600; color: var(--gray4);
-  text-transform: uppercase; letter-spacing: 0.3px; border-bottom: 1px solid var(--gray2); z-index: 1; }
-#tx-table tbody tr { border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.1s; }
-#tx-table tbody tr:hover { background: var(--blue-bg); }
-#tx-table td { padding: 10px 16px; font-size: 14px; }
-.tx-date { color: var(--gray4); font-size: 13px; white-space: nowrap; }
-.tx-name { font-weight: 500; }
-.tx-category { font-size: 12px; color: var(--gray4); }
-.tx-status { font-size: 11px; font-weight: 600; padding: 2px 7px; border-radius: 8px; }
-.status-cleared { background: var(--green-bg); color: var(--green); font-weight: 600; border: 1px solid #a8d9b8; }
-.status-created { background: var(--amber-bg); color: var(--amber); font-weight: 600; border: 1px solid #f0d880; }
-.status-imported { background: var(--blue-bg); color: var(--blue); font-weight: 600; border: 1px solid var(--blue-b); }
-.tx-amount { text-align: right; font-weight: 600; white-space: nowrap; }
+#tx-list-container { flex: 1; overflow-y: auto; background: var(--surface); }
+
+/* Header colonne fisso */
+#tx-header { display: flex; flex-direction: row; align-items: center;
+  padding: 6px 16px; background: var(--bg); border-bottom: 1px solid var(--border-s);
+  position: sticky; top: 0; z-index: 3; gap: 0; }
+.txh-col { font-size: 11px; font-weight: 700; color: var(--faint);
+  text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
+
+/* Righe TX */
+.tx-row { display: flex; flex-direction: row; align-items: center;
+  padding: 8px 16px; border-bottom: 1px solid var(--border);
+  cursor: pointer; transition: background 0.1s; gap: 0; position: relative; }
+.tx-row:hover { background: var(--blue-bg); }
+.tx-row:hover .tx-del { opacity: 1; }
+
+/* Colonne */
+.tx-c-date { width: 72px; flex-shrink: 0; font-size: 13px; color: var(--muted); }
+.tx-c-desc { flex: 1; min-width: 0; padding: 0 10px; }
+.tx-c-desc .tx-name { font-size: 14px; font-weight: 500; color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tx-c-desc .tx-sub { font-size: 12px; color: var(--muted); margin-top: 1px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tx-c-cat { width: 140px; flex-shrink: 0; font-size: 12px; color: var(--muted);
+  padding: 0 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tx-c-amt { width: 96px; flex-shrink: 0; text-align: right;
+  font-size: 14px; font-weight: 600; padding: 0 8px; white-space: nowrap; }
+.tx-c-bal { width: 104px; flex-shrink: 0; text-align: right;
+  font-size: 13px; color: var(--muted); padding: 0 8px; white-space: nowrap; }
+.tx-del { width: 28px; flex-shrink: 0; opacity: 0; transition: opacity 0.15s;
+  display: flex; align-items: center; justify-content: center; }
+.tx-del button { width: 22px; height: 22px; border-radius: 50%;
+  background: var(--red-bg); border: none; color: var(--red);
+  font-size: 13px; cursor: pointer; display: flex; align-items: center;
+  justify-content: center; padding: 0; line-height: 1; }
+.tx-del button:hover { background: var(--red); color: white; }
+
+/* Intestazione mese */
+.tx-month-hdr { padding: 8px 16px 4px; background: var(--bg);
+  border-bottom: 1px solid var(--border); display: flex; align-items: baseline; gap: 10px; }
+.tx-month-hdr .mh-label { font-size: 13px; font-weight: 700; color: var(--blue); }
+.tx-month-hdr .mh-count { font-size: 12px; color: var(--muted); }
+.tx-month-hdr .mh-total { font-size: 12px; color: var(--muted); margin-left: auto; }
+
 .amount-pos { color: var(--green); }
 .amount-neg { color: var(--red); }
 
@@ -295,22 +323,19 @@ body { padding-top: env(safe-area-inset-top, 0); }
     </div>
 
     <div id="tx-list-container">
-      <table id="tx-table">
-        <thead>
-          <tr>
-            <th>Data</th>
-            <th>Descrizione</th>
-            <th>Categoria</th>
-            <th>Stato</th>
-            <th style="text-align:right">Importo</th>
-          </tr>
-        </thead>
-        <tbody id="tx-tbody">
-          <tr><td colspan="5" style="text-align:center;padding:40px;color:var(--gray4)">
-            Seleziona un conto dalla sidebar
-          </td></tr>
-        </tbody>
-      </table>
+      <div id="tx-header">
+        <div class="txh-col tx-c-date">Data</div>
+        <div class="txh-col tx-c-desc" style="padding:0 10px">Descrizione</div>
+        <div class="txh-col tx-c-cat" style="padding:0 8px">Categoria</div>
+        <div class="txh-col tx-c-amt" style="text-align:right;padding:0 8px">Importo</div>
+        <div class="txh-col tx-c-bal" style="text-align:right;padding:0 8px">Saldo</div>
+        <div style="width:28px;flex-shrink:0"></div>
+      </div>
+      <div id="tx-body">
+        <div style="text-align:center;padding:40px;color:var(--muted)">
+          Seleziona un conto dalla sidebar
+        </div>
+      </div>
     </div>
   </div>
 
@@ -890,32 +915,78 @@ function applyFilters() {
 }
 
 function renderTxList() {
-  const tbody = document.getElementById('tx-tbody');
+  const body = document.getElementById('tx-body');
   if (filteredTxs.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--gray4)">
-      Nessuna transazione</td></tr>`;
+    body.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">Nessuna transazione</div>';
     return;
   }
 
-  tbody.innerHTML = '';
-  for (const tx of filteredTxs) {
-    const amount = getTxAmount(tx);
-    const catNames = tx.splits?.map(s => getCatName(s.categoryId)).filter(Boolean).join(', ') || '';
-    const statusLabel = { cleared:'Evaso', created:'In sospeso', imported:'Importato', planned:'Pianificato' }[tx.status] || tx.status;
-    const statusClass = `status-${tx.status}`;
-
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td class="tx-date">${tx.date.slice(8,10)}/${tx.date.slice(5,7)}/${tx.date.slice(2,4)}</td>
-      <td><div class="tx-name">${esc(tx.name || '')}</div>
-          ${tx.comment ? `<div class="tx-category">${esc(tx.comment)}</div>` : ''}</td>
-      <td class="tx-category">${esc(catNames)}</td>
-      <td><span class="tx-status ${statusClass}">${statusLabel}</span></td>
-      <td class="tx-amount ${amount >= 0 ? 'amount-pos' : 'amount-neg'}">${fmt(amount)}</td>
-    `;
-    tr.addEventListener('click', () => openEditTx(tx));
-    tbody.appendChild(tr);
+  // Saldo progressivo: parto dal saldo attuale e risalgo
+  const accBal = balances?.accounts?.[selectedAccountId] ?? null;
+  const amounts = filteredTxs.map(tx => getTxAmount(tx));
+  const runBal = [];
+  if (accBal !== null) {
+    let r = accBal;
+    for (let i = 0; i < filteredTxs.length; i++) {
+      runBal[i] = r;
+      r -= amounts[i];
+    }
   }
+
+  body.innerHTML = '';
+  let curMonth = null;
+
+  for (let i = 0; i < filteredTxs.length; i++) {
+    const tx = filteredTxs[i];
+    const amount = amounts[i];
+    const month = tx.date.slice(0,7);
+
+    // Intestazione mese
+    if (month !== curMonth) {
+      curMonth = month;
+      const [y,m] = month.split('-');
+      const label = new Date(y, m-1, 1).toLocaleString('it-IT', {month:'long', year:'numeric'});
+      const mTxs = filteredTxs.filter(t => t.date.startsWith(month));
+      const mSpese = mTxs.reduce((s,t) => { const a=getTxAmount(t); return a<0?s+Math.abs(a):s; },0);
+      const hdr = document.createElement('div');
+      hdr.className = 'tx-month-hdr';
+      hdr.innerHTML = `
+        <span class="mh-label">${label}</span>
+        <span class="mh-count">${mTxs.length} transazioni</span>
+        <span class="mh-total">Uscite: ${fmt(-mSpese)}</span>`;
+      body.appendChild(hdr);
+    }
+
+    const catName = tx.splits?.map(s => getCatName(s.categoryId)).filter(Boolean).join(', ') || '';
+    const comment = tx.comment || tx.splits?.map(s=>s.comment).filter(Boolean).join(', ') || '';
+    const dateStr = `${tx.date.slice(8,10)}/${tx.date.slice(5,7)}/${tx.date.slice(2,4)}`;
+
+    const row = document.createElement('div');
+    row.className = 'tx-row';
+    row.innerHTML = `
+      <div class="tx-c-date">${dateStr}</div>
+      <div class="tx-c-desc">
+        <div class="tx-name">${esc(tx.name||'')}</div>
+        ${comment ? `<div class="tx-sub">${esc(comment)}</div>` : ''}
+      </div>
+      <div class="tx-c-cat">${esc(catName)}</div>
+      <div class="tx-c-amt ${amount>=0?'amount-pos':'amount-neg'}">${fmt(amount)}</div>
+      <div class="tx-c-bal">${runBal[i]!==undefined ? fmt(runBal[i]) : '—'}</div>
+      <div class="tx-del"><button onclick="event.stopPropagation();quickDelete('${tx.id}','${tx.date.slice(0,4)}')" title="Elimina">✕</button></div>`;
+    row.addEventListener('click', () => openEditTx(tx));
+    body.appendChild(row);
+  }
+}
+
+async function quickDelete(id, year) {
+  if (!confirm('Eliminare questa transazione?')) return;
+  const r = await api('DELETE', `/api/tx/${id}?year=${year}`);
+  if (r.error) { alert('Errore: ' + r.error); return; }
+  // Rimuovi dalla cache e ricarica
+  if (txCache[year]) txCache[year] = txCache[year].filter(t => t.id !== id);
+  currentTxs = currentTxs.filter(t => t.id !== id);
+  loadBalances();
+  applyFilters();
 }
 
 function esc(s) {
