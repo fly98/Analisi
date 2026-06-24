@@ -465,6 +465,8 @@ let currentTxs = [];      // TX caricate per l'anno corrente
 let filteredTxs = [];     // TX dopo filtri
 let selectedAccountId = null;
 let selectedYear = new Date().getFullYear().toString();
+let txCache = {};      // cache TX per anno: {year: [txs]}
+let loadedYears = new Set(); // anni già caricati
 // Date range
 const _today = new Date().toISOString().slice(0,10);
 const _yearAgo = new Date(Date.now()-365*24*60*60*1000).toISOString().slice(0,10);
@@ -724,7 +726,7 @@ function renderYearBar() {
   if (dt) dt.value = dateTo;
 }
 
-function setDatePreset(preset, btn) {
+async function setDatePreset(preset, btn) {
   document.querySelectorAll('.date-chip').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   const today = new Date().toISOString().slice(0,10);
@@ -734,7 +736,7 @@ function setDatePreset(preset, btn) {
   } else if (preset === 'ytd') {
     from = new Date().getFullYear() + '-01-01';
   } else if (preset === 'all') {
-    from = '2001-01-01';
+    from = (meta?.years?.[0] || '2001') + '-01-01';
   } else { // 12m
     from = new Date(Date.now()-365*24*60*60*1000).toISOString().slice(0,10);
   }
@@ -742,16 +744,41 @@ function setDatePreset(preset, btn) {
   dateTo = today;
   document.getElementById('date-from').value = from;
   document.getElementById('date-to').value = today;
-  applyFilters();
+  await reloadTxForRange();
 }
 
-function setDateCustom() {
+async function setDateCustom() {
   const from = document.getElementById('date-from').value;
   const to = document.getElementById('date-to').value;
   if (!from || !to) return;
   document.querySelectorAll('.date-chip').forEach(b => b.classList.remove('active'));
   dateFrom = from;
   dateTo = to;
+  await reloadTxForRange();
+}
+
+async function reloadTxForRange() {
+  if (!selectedAccountId) { applyFilters(); return; }
+  // Calcola anni da caricare
+  const fromYear = parseInt(dateFrom.slice(0,4));
+  const toYear = parseInt(dateTo.slice(0,4));
+  const yearsNeeded = [];
+  for (let y = toYear; y >= fromYear; y--) {
+    if (meta.years.includes(String(y))) yearsNeeded.push(String(y));
+  }
+  // Carica anni non ancora in memoria
+  for (const yr of yearsNeeded) {
+    if (!loadedYears.has(yr)) {
+      const txs = await api('GET', `/api/tx/${yr}`);
+      txCache[yr] = txs;
+      loadedYears.add(yr);
+    }
+  }
+  // Ricostruisci currentTxs dagli anni nel range
+  currentTxs = [];
+  for (const yr of yearsNeeded) {
+    if (txCache[yr]) currentTxs.push(...txCache[yr]);
+  }
   applyFilters();
 }
 
@@ -764,20 +791,22 @@ async function selectYear(y) {
 // TX LOADING
 // ══════════════════════════════════════════════
 async function loadYear(year) {
-  showLoading(true);
-  currentTxs = await api('GET', `/api/tx/${year}`);
-  showLoading(false);
+  if (!txCache[year]) {
+    const txs = await api('GET', `/api/tx/${year}`);
+    txCache[year] = txs;
+    loadedYears.add(year);
+  }
+  currentTxs = txCache[year];
   applyFilters();
 }
 
 async function selectAccount(id, name) {
   selectedAccountId = id;
   document.getElementById('main-title').textContent = name;
-  // Update sidebar highlight
   document.querySelectorAll('.account-row').forEach(r => {
     r.classList.toggle('active', r.dataset.accId === id);
   });
-  applyFilters();
+  await reloadTxForRange();
 }
 
 // ══════════════════════════════════════════════
@@ -877,7 +906,7 @@ function renderTxList() {
 
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td class="tx-date">${tx.date}</td>
+      <td class="tx-date">${tx.date.slice(8,10)}/${tx.date.slice(5,7)}/${tx.date.slice(2,4)}</td>
       <td><div class="tx-name">${esc(tx.name || '')}</div>
           ${tx.comment ? `<div class="tx-category">${esc(tx.comment)}</div>` : ''}</td>
       <td class="tx-category">${esc(catNames)}</td>
