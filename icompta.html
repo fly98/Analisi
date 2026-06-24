@@ -588,6 +588,7 @@ const ACCOUNT_ICONS = {
 function accIcon(name) { return ACCOUNT_ICONS[name] || '🏦'; }
 
 function renderSidebar() {
+  try {
   const list = document.getElementById('accounts-list');
   list.innerHTML = '';
 
@@ -669,6 +670,7 @@ function renderSidebar() {
   }
 
   updateTotalBalance();
+  } catch(e) { console.error("renderSidebar error:", e); }
 }
 
 function makeAccountRow(acc) {
