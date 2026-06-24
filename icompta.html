@@ -947,11 +947,6 @@ function renderSidebar() {
     list.appendChild(gContainer);
   }
 
-  // Account senza gruppo (residui)
-  for (const acc of lastAccounts) {
-    if (!acc.hidden) list.appendChild(makeAccountRow(acc));
-  }
-
   updateTotalBalance();
 }
 
