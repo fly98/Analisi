@@ -307,37 +307,6 @@ body { padding-top: env(safe-area-inset-top, 0); }
       <input type="date" id="date-to" onchange="setDateCustom()">
     </div>
 
-    <div id="filter-bar">
-      <button class="filter-chip active" onclick="setFilter('all',this)">Tutti</button>
-      <button class="filter-chip" onclick="setFilter('cleared',this)">Evaso</button>
-      <button class="filter-chip" onclick="setFilter('created',this)">In sospeso</button>
-      <button class="filter-chip" onclick="setFilter('imported',this)">Importato</button>
-      <div class="filter-sep"></div>
-      <button class="filter-chip" onclick="setAmountFilter('debit',this)">Debito</button>
-      <button class="filter-chip" onclick="setAmountFilter('credit',this)">Credito</button>
-      <div class="filter-sep"></div>
-      <select class="filter-select" id="cat-filter" onchange="applyCatFilter(this.value)">
-        <option value="">Categoria</option>
-      </select>
-      <input type="search" id="search-tx" placeholder="Cerca transazioni..." oninput="applySearch(this.value)">
-    </div>
-
-    <div id="tx-list-container">
-      <div id="tx-header">
-        <div class="txh-col tx-c-date">Data</div>
-        <div class="txh-col tx-c-desc" style="padding:0 10px">Descrizione</div>
-        <div class="txh-col tx-c-cat" style="padding:0 8px">Categoria</div>
-        <div class="txh-col tx-c-amt" style="text-align:right;padding:0 8px">Importo</div>
-        <div class="txh-col tx-c-bal" style="text-align:right;padding:0 8px">Saldo</div>
-        <div style="width:28px;flex-shrink:0"></div>
-      </div>
-      <div id="tx-body">
-        <div style="text-align:center;padding:40px;color:var(--muted)">
-          Seleziona un conto dalla sidebar
-        </div>
-      </div>
-    </div>
-  </div>
 
 <!-- Settings Panel -->
 <div class="settings-overlay" id="settings-overlay" style="display:none" onclick="if(event.target===this)closeSettings()">
