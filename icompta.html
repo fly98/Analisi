@@ -45,7 +45,7 @@ body { padding-top: env(safe-area-inset-top, 0); }
 #sidebar-resizer { position: absolute; right: -6px; top: 0; bottom: 0; width: 12px;
   cursor: col-resize; z-index: 10; background: transparent; touch-action: none; }
 #sidebar-resizer:hover, #sidebar-resizer.dragging { background: var(--blue); opacity: 0.5; border-radius: 4px; }
-#main { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: var(--surface); }
+#main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
 
 /* ── Header ── */
 .header { height: var(--header-h); display: flex; align-items: center;
@@ -129,18 +129,12 @@ body { padding-top: env(safe-area-inset-top, 0); }
 .amount-pos { color: var(--green); }
 .amount-neg { color: var(--red); }
 
-/* ── Date filter bar ── */
-#date-filter-bar { padding: 8px 16px; display: flex; gap: 8px; align-items: center;
-  background: var(--surface); border-bottom: 1px solid var(--border); flex-shrink: 0; flex-wrap: wrap; }
-.date-chip { padding: 4px 12px; border-radius: 6px; font-size: 13px; font-weight: 500;
-  border: 1px solid var(--border); background: var(--surface); color: var(--muted);
-  cursor: pointer; white-space: nowrap; transition: all 0.15s; }
-.date-chip.active { background: var(--text); color: white; border-color: var(--text); }
-.date-range-inputs { display: flex; gap: 6px; align-items: center; }
-.date-range-inputs input { padding: 4px 8px; border-radius: 6px; border: 1px solid var(--border);
-  font-size: 13px; color: var(--text); background: var(--surface); outline: none; width: 120px; }
-.date-range-inputs span { color: var(--muted); font-size: 13px; }
-#load-more-indicator { text-align: center; padding: 16px; color: var(--muted); font-size: 13px; }
+/* ── Year selector ── */
+#year-bar { padding: 6px 16px; display: flex; gap: 4px; overflow-x: auto; flex-shrink: 0;
+  background: var(--surface); border-bottom: 1px solid var(--border); }
+.year-btn { padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 500;
+  border: 1px solid var(--border); background: var(--surface); color: var(--muted); cursor: pointer; white-space: nowrap; }
+.year-btn.active { background: var(--text); color: white; border-color: var(--text); }
 
 /* ── Loading / Empty ── */
 #loading { display: flex; align-items: center; justify-content: center; flex: 1;
@@ -271,17 +265,7 @@ body { padding-top: env(safe-area-inset-top, 0); }
       </div>
     </div>
 
-    <div id="date-filter-bar">
-      <button class="date-chip active" onclick="setDatePreset('12m', this)">Ultimi 12 mesi</button>
-      <button class="date-chip" onclick="setDatePreset('3m', this)">3 mesi</button>
-      <button class="date-chip" onclick="setDatePreset('ytd', this)">Quest'anno</button>
-      <button class="date-chip" onclick="setDatePreset('all', this)">Tutto</button>
-      <div class="date-range-inputs">
-        <input type="date" id="date-from" onchange="setDateCustom()">
-        <span>→</span>
-        <input type="date" id="date-to" onchange="setDateCustom()">
-      </div>
-    </div>
+    <div id="year-bar"></div>
 
     <div id="filter-bar">
       <button class="filter-chip active" onclick="setFilter('all',this)">Tutti</button>
@@ -299,20 +283,22 @@ body { padding-top: env(safe-area-inset-top, 0); }
     </div>
 
     <div id="tx-list-container">
-      <div class="tx-header" id="tx-header">
-        <div class="tx-header-col" style="width:var(--col-date,90px);flex-shrink:0">Data</div>
-        <div class="tx-header-col resizable" style="flex:1;padding:0 8px">Descrizione</div>
-        <div class="tx-header-col resizable" id="col-cat-header" style="width:var(--col-cat,130px);flex-shrink:0;padding:0 8px">Categoria</div>
-        <div class="tx-header-col" style="width:var(--col-amount,100px);flex-shrink:0;text-align:right;padding:0 8px">Importo</div>
-        <div class="tx-header-col" style="width:var(--col-balance,110px);flex-shrink:0;text-align:right;padding:0 8px">Saldo</div>
-        <div style="width:28px;flex-shrink:0"></div>
-      </div>
-      <div id="tx-body">
-        <div style="text-align:center;padding:40px;color:var(--muted)">
-          Seleziona un conto dalla sidebar
-        </div>
-      </div>
-      <div id="load-more-indicator" style="display:none;text-align:center;padding:16px;color:var(--muted);font-size:13px"></div>
+      <table id="tx-table">
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Descrizione</th>
+            <th>Categoria</th>
+            <th>Stato</th>
+            <th style="text-align:right">Importo</th>
+          </tr>
+        </thead>
+        <tbody id="tx-tbody">
+          <tr><td colspan="5" style="text-align:center;padding:40px;color:var(--gray4)">
+            Seleziona un conto dalla sidebar
+          </td></tr>
+        </tbody>
+      </table>
     </div>
   </div>
 
@@ -461,25 +447,17 @@ let TOKEN = localStorage.getItem('icompta_token') || '';
 // ══════════════════════════════════════════════
 // STATE
 // ══════════════════════════════════════════════
-let meta = null;
-let balances = null;
-let currentTxs = [];
-let filteredTxs = [];
+let meta = null;          // accounts, categories, groups, years
+let balances = null;      // {accounts: {id: amount}, groups: {id: amount}}
+let currentTxs = [];      // TX caricate per l'anno corrente
+let filteredTxs = [];     // TX dopo filtri
 let selectedAccountId = null;
+let selectedYear = new Date().getFullYear().toString();
 let currentFilter = 'all';
 let amountFilter = null;
 let catFilter = '';
 let searchQuery = '';
-let editingTx = null;
-// Date range
-const today = new Date();
-const oneYearAgo = new Date(today); oneYearAgo.setFullYear(today.getFullYear()-1);
-let dateFrom = oneYearAgo.toISOString().slice(0,10);
-let dateTo = today.toISOString().slice(0,10);
-let loadedYears = [];
-let allLoadedYears = new Set();
-let loadingMore = false;
-let oldestYearLoaded = null;
+let editingTx = null;     // TX in modifica
 
 // ══════════════════════════════════════════════
 // AUTH
@@ -535,27 +513,19 @@ async function init(metaData) {
     catSel.appendChild(opt);
   }
 
-  // Setup scroll infinito
-  setupInfiniteScroll();
+  // Year bar
+  renderYearBar();
 
-  // Inizializza date inputs
-  document.getElementById('date-from').value = dateFrom;
-  document.getElementById('date-to').value = dateTo;
-
-  // Mostra sidebar subito (senza saldi)
-  renderSidebar();
-  
-  // Carica saldi in background
+  // Carica saldi (in background)
   loadBalances();
 
-  // Non caricare TX finché non si seleziona un conto
-  applyFilters();
+  // Carica TX dell'anno corrente
+  await loadYear(selectedYear);
 }
 
 async function loadBalances() {
   balances = await api('GET', '/api/balance');
-  renderSidebar(); // aggiorna saldi nella sidebar
-  updateTotalBalance(); // aggiorna totale disponibile
+  renderSidebar();
 }
 
 // ══════════════════════════════════════════════
@@ -588,7 +558,6 @@ const ACCOUNT_ICONS = {
 function accIcon(name) { return ACCOUNT_ICONS[name] || '🏦'; }
 
 function renderSidebar() {
-  try {
   const list = document.getElementById('accounts-list');
   list.innerHTML = '';
 
@@ -670,7 +639,6 @@ function renderSidebar() {
   }
 
   updateTotalBalance();
-  } catch(e) { console.error("renderSidebar error:", e); }
 }
 
 function makeAccountRow(acc) {
@@ -816,8 +784,7 @@ function getCatName(catId) {
 function applyFilters() {
   let txs = [...currentTxs];
 
-  // TX già filtrate per conto in reloadForDateRange
-  // (filtro residuo per sicurezza)
+  // Filtra per conto
   if (selectedAccountId) {
     txs = txs.filter(t => t.accountId === selectedAccountId);
   }
@@ -852,89 +819,32 @@ function applyFilters() {
 }
 
 function renderTxList() {
-  const body = document.getElementById('tx-body');
+  const tbody = document.getElementById('tx-tbody');
   if (filteredTxs.length === 0) {
-    body.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">Nessuna transazione</div>';
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--gray4)">
+      Nessuna transazione</td></tr>`;
     return;
   }
 
-  // Calcola saldo cumulativo: partiamo dal saldo attuale e risaliamo
-  // Le tx sono ordinate data DESC, quindi il saldo diminuisce andando giù
-  const accBal = balances?.accounts?.[selectedAccountId] ?? null;
-
-  // Per il saldo progressivo, costruiamo dall'alto (più recente):
-  // saldo[i] = saldo attuale - somma degli importi delle TX più recenti di i
-  // Più semplice: calcoliamo i saldi partendo dal basso
-  const amounts = filteredTxs.map(tx => getTxAmount(tx));
-  const runningBalances = [];
-  if (accBal !== null) {
-    let running = accBal;
-    for (let i = 0; i < filteredTxs.length; i++) {
-      runningBalances[i] = running;
-      running -= amounts[i]; // rimuovo l'importo per ottenere il saldo prima di quella TX
-    }
-  }
-
-  // Raggruppa per mese
-  body.innerHTML = '';
-  let currentMonth = null;
-  let monthTxCount = 0;
-  let monthEl = null;
-
-  for (let i = 0; i < filteredTxs.length; i++) {
-    const tx = filteredTxs[i];
-    const amount = amounts[i];
-    const month = tx.date.slice(0, 7); // YYYY-MM
-
-    // Intestazione mese
-    if (month !== currentMonth) {
-      // Calcola stats mese precedente se serve
-      currentMonth = month;
-      const [y, m] = month.split('-');
-      const monthLabel = new Date(y, m-1, 1).toLocaleString('it-IT', {month:'long', year:'numeric'});
-
-      // Conta TX del mese
-      const monthTxs = filteredTxs.filter(t => t.date.startsWith(month));
-      const monthSpese = monthTxs.reduce((s,t) => { const a=getTxAmount(t); return a<0?s+Math.abs(a):s; }, 0);
-
-      const hdr = document.createElement('div');
-      hdr.className = 'month-header';
-      hdr.innerHTML = `
-        <span class="month-label">${monthLabel}</span>
-        <span class="month-stats">${monthTxs.length} transazioni</span>
-        <span class="month-total">Spese: ${fmt(-monthSpese)}</span>
-      `;
-      body.appendChild(hdr);
-    }
-
+  tbody.innerHTML = '';
+  for (const tx of filteredTxs) {
+    const amount = getTxAmount(tx);
     const catNames = tx.splits?.map(s => getCatName(s.categoryId)).filter(Boolean).join(', ') || '';
-    const bal = runningBalances[i];
-    const comment = tx.comment || (tx.splits?.map(s=>s.comment).filter(Boolean).join(', ') || '');
+    const statusLabel = { cleared:'Evaso', created:'In sospeso', imported:'Importato', planned:'Pianificato' }[tx.status] || tx.status;
+    const statusClass = `status-${tx.status}`;
 
-    const row = document.createElement('div');
-    row.className = 'tx-row';
-    row.innerHTML = `
-      <div class="tx-col-date">${tx.date.slice(5).replace('-','/')}</div>
-      <div class="tx-col-desc">
-        <div class="tx-name">${esc(tx.name || '')}</div>
-        ${comment ? `<div class="tx-comment">${esc(comment)}</div>` : ''}
-      </div>
-      <div class="tx-col-cat">${esc(catNames)}</div>
-      <div class="tx-col-amount ${amount >= 0 ? 'amount-pos' : 'amount-neg'}">${fmt(amount)}</div>
-      <div class="tx-col-balance">${bal !== null ? fmt(bal) : '—'}</div>
-      <div class="tx-delete"><button onclick="event.stopPropagation();quickDelete('${tx.id}','${tx.date.slice(0,4)}')">✕</button></div>
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="tx-date">${tx.date}</td>
+      <td><div class="tx-name">${esc(tx.name || '')}</div>
+          ${tx.comment ? `<div class="tx-category">${esc(tx.comment)}</div>` : ''}</td>
+      <td class="tx-category">${esc(catNames)}</td>
+      <td><span class="tx-status ${statusClass}">${statusLabel}</span></td>
+      <td class="tx-amount ${amount >= 0 ? 'amount-pos' : 'amount-neg'}">${fmt(amount)}</td>
     `;
-    row.addEventListener('click', () => openEditTx(tx));
-    body.appendChild(row);
+    tr.addEventListener('click', () => openEditTx(tx));
+    tbody.appendChild(tr);
   }
-}
-
-async function quickDelete(id, year) {
-  if (!confirm('Eliminare questa transazione?')) return;
-  const result = await api('DELETE', `/api/tx/${id}?year=${year}`);
-  if (result.error) { alert('Errore: ' + result.error); return; }
-  await reloadForDateRange();
-  loadBalances();
 }
 
 function esc(s) {
@@ -1049,7 +959,11 @@ async function saveTx() {
   if (result.error) { alert('Errore: ' + result.error); return; }
 
   closeModal();
-  await reloadForDateRange();
+  // Reload anno corrente
+  const year = tx.date.slice(0,4);
+  if (year !== selectedYear) await selectYear(year);
+  else await loadYear(selectedYear);
+  // Aggiorna saldi
   loadBalances();
 }
 
