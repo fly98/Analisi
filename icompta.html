@@ -129,12 +129,18 @@ body { padding-top: env(safe-area-inset-top, 0); }
 .amount-pos { color: var(--green); }
 .amount-neg { color: var(--red); }
 
-/* ── Year selector ── */
-#year-bar { padding: 6px 16px; display: flex; gap: 4px; overflow-x: auto; flex-shrink: 0;
-  background: var(--surface); border-bottom: 1px solid var(--border); }
-.year-btn { padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 500;
-  border: 1px solid var(--border); background: var(--surface); color: var(--muted); cursor: pointer; white-space: nowrap; }
-.year-btn.active { background: var(--text); color: white; border-color: var(--text); }
+/* ── Date filter bar ── */
+#date-filter-bar { padding: 8px 16px; display: flex; gap: 8px; align-items: center;
+  background: var(--surface); border-bottom: 1px solid var(--border); flex-shrink: 0; flex-wrap: wrap; }
+.date-chip { padding: 4px 12px; border-radius: 6px; font-size: 13px; font-weight: 500;
+  border: 1px solid var(--border); background: var(--surface); color: var(--muted);
+  cursor: pointer; white-space: nowrap; transition: all 0.15s; }
+.date-chip.active { background: var(--text); color: white; border-color: var(--text); }
+.date-range-inputs { display: flex; gap: 6px; align-items: center; }
+.date-range-inputs input { padding: 4px 8px; border-radius: 6px; border: 1px solid var(--border);
+  font-size: 13px; color: var(--text); background: var(--surface); outline: none; width: 120px; }
+.date-range-inputs span { color: var(--muted); font-size: 13px; }
+#load-more-indicator { text-align: center; padding: 16px; color: var(--muted); font-size: 13px; }
 
 /* ── Loading / Empty ── */
 #loading { display: flex; align-items: center; justify-content: center; flex: 1;
@@ -265,7 +271,17 @@ body { padding-top: env(safe-area-inset-top, 0); }
       </div>
     </div>
 
-    <div id="year-bar"></div>
+    <div id="date-filter-bar">
+      <button class="date-chip active" onclick="setDatePreset('12m', this)">Ultimi 12 mesi</button>
+      <button class="date-chip" onclick="setDatePreset('3m', this)">3 mesi</button>
+      <button class="date-chip" onclick="setDatePreset('ytd', this)">Quest'anno</button>
+      <button class="date-chip" onclick="setDatePreset('all', this)">Tutto</button>
+      <div class="date-range-inputs">
+        <input type="date" id="date-from" onchange="setDateCustom()">
+        <span>→</span>
+        <input type="date" id="date-to" onchange="setDateCustom()">
+      </div>
+    </div>
 
     <div id="filter-bar">
       <button class="filter-chip active" onclick="setFilter('all',this)">Tutti</button>
@@ -447,17 +463,25 @@ let TOKEN = localStorage.getItem('icompta_token') || '';
 // ══════════════════════════════════════════════
 // STATE
 // ══════════════════════════════════════════════
-let meta = null;          // accounts, categories, groups, years
-let balances = null;      // {accounts: {id: amount}, groups: {id: amount}}
-let currentTxs = [];      // TX caricate per l'anno corrente
-let filteredTxs = [];     // TX dopo filtri
+let meta = null;
+let balances = null;
+let currentTxs = [];
+let filteredTxs = [];
 let selectedAccountId = null;
-let selectedYear = new Date().getFullYear().toString();
 let currentFilter = 'all';
 let amountFilter = null;
 let catFilter = '';
 let searchQuery = '';
-let editingTx = null;     // TX in modifica
+let editingTx = null;
+// Date range
+const today = new Date();
+const oneYearAgo = new Date(today); oneYearAgo.setFullYear(today.getFullYear()-1);
+let dateFrom = oneYearAgo.toISOString().slice(0,10);
+let dateTo = today.toISOString().slice(0,10);
+let loadedYears = [];
+let allLoadedYears = new Set();
+let loadingMore = false;
+let oldestYearLoaded = null;
 
 // ══════════════════════════════════════════════
 // AUTH
@@ -513,14 +537,18 @@ async function init(metaData) {
     catSel.appendChild(opt);
   }
 
-  // Year bar
-  renderYearBar();
+  // Setup scroll infinito
+  setupInfiniteScroll();
+
+  // Inizializza date inputs
+  document.getElementById('date-from').value = dateFrom;
+  document.getElementById('date-to').value = dateTo;
 
   // Carica saldi (in background)
   loadBalances();
 
-  // Carica TX dell'anno corrente
-  await loadYear(selectedYear);
+  // Carica ultimi 12 mesi
+  await reloadForDateRange();
 }
 
 async function loadBalances() {
@@ -959,11 +987,7 @@ async function saveTx() {
   if (result.error) { alert('Errore: ' + result.error); return; }
 
   closeModal();
-  // Reload anno corrente
-  const year = tx.date.slice(0,4);
-  if (year !== selectedYear) await selectYear(year);
-  else await loadYear(selectedYear);
-  // Aggiorna saldi
+  await reloadForDateRange();
   loadBalances();
 }
 
