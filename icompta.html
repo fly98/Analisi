@@ -542,7 +542,10 @@ async function init(metaData) {
   document.getElementById('date-from').value = dateFrom;
   document.getElementById('date-to').value = dateTo;
 
-  // Carica saldi (in background)
+  // Mostra sidebar subito (senza saldi)
+  renderSidebar();
+  
+  // Carica saldi in background
   loadBalances();
 
   // Non caricare TX finché non si seleziona un conto
