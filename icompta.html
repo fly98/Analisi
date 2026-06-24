@@ -1807,7 +1807,7 @@ function sellaLearnRule(desc, catObj) {
 
 async function _sellaSaveRegole() {
   try {
-    await api('PUT', '/api/sella-regole', { regole: sellaRegole });
+    await api('POST', '/api/import', { key: 'icompta:sella_regole', data: sellaRegole });
   } catch(e) { console.warn('Salvataggio regole:', e); }
 }
 
@@ -2082,9 +2082,7 @@ async function sellaDoImport() {
   if(selectedAccountId)await selectAccount(selectedAccountId,selectedAccountName);
 
   if(!errCount) {
-    // Successo: mostra toast nella main UI e chiudi il modal
-    closeSellaImport();
-    sellaShowMainToast(txBancaIds.length+' TX banca + '+txEcoIds.length+' TX economico importate');
+    sellaFinish(txBancaIds.length + ' TX banca + ' + txEcoIds.length + ' TX economico importate');
   } else {
     // Errori parziali: torna alla drop zone con messaggio
     document.getElementById('sella-import-btn').disabled=false;
@@ -2137,39 +2135,58 @@ async function sellaLoadLog() {
   try{
     var sessions=await api('GET','/api/sella-log');
     if(!sessions||!sessions.length){logEl.innerHTML='<div style="color:var(--faint);font-size:13px;padding:8px 0">Nessuna importazione registrata</div>';return;}
-    logEl.innerHTML=sessions.map(function(s){
-      var tot = s.countBanca + s.countEco;
-      return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--gray2)">' +
-        '<div style="flex:1">' +
-          '<div style="font-size:14px;font-weight:600">' + esc(s.label||s.date) + '</div>' +
-          '<div style="font-size:12px;color:var(--muted);margin-top:2px">' + s.countBanca + ' TX banca &middot; ' + s.countEco + ' TX economico</div>' +
-        '</div>' +
-        '<button onclick="sellaRollback('' + esc(s.id) + '',' + tot + ')" ' +
-          'style="padding:6px 12px;border-radius:8px;border:1px solid var(--red);background:var(--red-bg);' +
-          'color:var(--red);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">' +
-          '&#128465; Rimuovi</button>' +
-        '</div>';
-    }).join('');
-  }catch(e){logEl.innerHTML='<div style="color:var(--red);font-size:13px;padding:8px 0">Errore caricamento log</div>';}
+    var frag = document.createDocumentFragment();
+    sessions.forEach(function(s) {
+      var row = document.createElement("div");
+      row.style.cssText = "display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--gray2)";
+      var info = document.createElement("div");
+      info.style.flex = "1";
+      info.innerHTML = "<div style=\"font-size:14px;font-weight:600\">" + esc(s.label||s.date) + "</div>"
+        + "<div style=\"font-size:12px;color:var(--muted);margin-top:2px\">" + s.countBanca + " TX banca &middot; " + s.countEco + " TX economico</div>";
+      var btn = document.createElement("button");
+      btn.style.cssText = "padding:6px 12px;border-radius:8px;border:1px solid var(--red);background:var(--red-bg);color:var(--red);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap";
+      btn.textContent = "🗑 Rimuovi";
+      (function(id, cnt) {
+        btn.addEventListener("click", function() { sellaRollback(id, cnt); });
+      })(s.id, s.countBanca + s.countEco);
+      row.appendChild(info);
+      row.appendChild(btn);
+      frag.appendChild(row);
+    });
+    logEl.innerHTML = "";
+    logEl.appendChild(frag);
+  } catch(e) { logEl.innerHTML = "<div style=\"color:var(--red);font-size:13px;padding:8px 0\">Errore caricamento log</div>"; }
 }
 
 async function sellaRollback(sessionId, count) {
-  if (!confirm('Rimuovere questa importazione?' + (count > 0 ? ' Verranno eliminate ' + count + ' transazioni.' : ''))) return;
-  var r = await api('DELETE', '/api/sella-log/' + sessionId);
+  if (!confirm("Rimuovere questa importazione?" + (count > 0 ? " Verranno eliminate " + count + " transazioni." : ""))) return;
+  var r = await api("DELETE", "/api/sella-log/" + sessionId);
   if (r && r.ok) {
-    txCache = {};
-    await loadBalances();
+    txCache = {}; await loadBalances();
     if (selectedAccountId) await selectAccount(selectedAccountId, selectedAccountName);
-    sellaLoadLog();
-    var msg = r.deleted > 0 ? r.deleted + ' transazioni rimosse.' : 'Sessione rimossa (TX già cancellate).';
-    sellaToast(msg, 'ok');
+    var msg = r.deleted > 0 ? r.deleted + " transazioni rimosse." : "Sessione rimossa.";
+    sellaFinish(msg);
   } else {
-    sellaToast('Errore: ' + (r && r.error ? r.error : 'sconosciuto'), 'err');
+    alert("Errore: " + (r && r.error ? r.error : "sconosciuto"));
   }
 }
 
-
-
+function sellaFinish(msg) {
+  // Chiudi preview (z-index 10000)
+  document.querySelectorAll('body > div').forEach(function(el) {
+    if (el.style.zIndex === '10000' || el.style.zIndex === 10000) el.remove();
+  });
+  // Chiudi modal Sella
+  document.getElementById('sella-overlay').style.display = 'none';
+  // Toast nella UI principale
+  var toast = document.createElement('div');
+  toast.style.cssText = 'position:fixed;bottom:30px;left:50%;transform:translateX(-50%);' +
+    'background:var(--green);color:#fff;padding:12px 24px;border-radius:12px;' +
+    'font-size:15px;font-weight:600;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.2);pointer-events:none';
+  toast.textContent = '\u2713 ' + msg;
+  document.body.appendChild(toast);
+  setTimeout(function() { toast.remove(); }, 3500);
+}
 </script>
 
 <!-- Modal Import Sella -->
