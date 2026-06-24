@@ -3028,12 +3028,7 @@ async function saveRicorrenze(){
       indicator.classList.add('ptr-loading');
       indicator.style.height = threshold + 'px';
       try {
-        txCache = {};
-        await loadBalances();
-        if (selectedAccountId) {
-          var acc = meta && meta.accounts.find(function(a) { return a.id === selectedAccountId; });
-          if (acc) await selectAccount(acc.id, acc.name);
-        }
+        window.location.reload();
       } catch(e) {}
       indicator.classList.remove('ptr-loading');
     }
