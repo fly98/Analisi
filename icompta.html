@@ -2601,8 +2601,25 @@ function makeAcctRow(acc) {
     renderAcctsMgmt();
   });
 
+  // Select gruppo
+  var grpSel = document.createElement('select');
+  grpSel.className = 'acct-toggle-btn';
+  grpSel.style.cssText = 'font-size:11px;padding:3px 6px;border-radius:6px;border:1px solid var(--border);background:var(--gray2);color:var(--muted);cursor:pointer;max-width:90px';
+  var grpOptStandalone = '<option value="">Standalone</option>';
+  var grpOpts = _acctsDraft.groups.map(function(g) {
+    return '<option value="'+g.id+'"'+(acc.groupId===g.id?' selected':'')+'>'+g.name+'</option>';
+  }).join('');
+  grpSel.innerHTML = grpOptStandalone + grpOpts;
+  grpSel.addEventListener('change', function() {
+    var newGrpId = grpSel.value || null;
+    acc.groupId = newGrpId;
+    acc.groupName = newGrpId ? (_acctsDraft.groups.find(function(g){return g.id===newGrpId;})||{}).name : null;
+    renderAcctsMgmt();
+  });
+
   var toggles = document.createElement('div');
   toggles.className = 'acct-toggles';
+  toggles.appendChild(grpSel);
   toggles.appendChild(visBtn);
   toggles.appendChild(totBtn);
   toggles.appendChild(delBtn);
