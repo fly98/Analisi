@@ -110,15 +110,15 @@ body { padding-top: env(safe-area-inset-top, 0); }
   border: none; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
 
 /* ── Transaction list ── */
-#tx-list-container { flex: 1; overflow-y: auto; background: var(--surface); }
+#tx-list-container { flex: 1; overflow-y: auto; background: var(--surface); display: block; }
 #tx-header { display: flex; flex-direction: row; align-items: center; padding: 6px 16px;
   background: var(--bg); border-bottom: 1px solid var(--border-s);
-  position: sticky; top: 0; z-index: 3; }
+  position: sticky; top: 0; z-index: 3; width: 100%; box-sizing: border-box; }
 .txh { font-size: 11px; font-weight: 700; color: var(--faint);
   text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
 .tx-row { display: flex; flex-direction: row; align-items: center;
   padding: 8px 16px; border-bottom: 1px solid var(--border);
-  cursor: pointer; transition: background 0.1s; position: relative; }
+  cursor: pointer; transition: background 0.1s; position: relative; width: 100%; box-sizing: border-box; }
 .tx-row:hover { background: var(--blue-bg); }
 .tx-row:hover .tx-del { opacity: 1; }
 .tx-c-date { width: 72px; flex-shrink: 0; font-size: 13px; color: var(--muted); }
