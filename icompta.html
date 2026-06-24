@@ -520,16 +520,6 @@ async function api(method, path, body) {
 async function init(metaData) {
   meta = metaData;
   
-  // Popola cat filter
-  const catSel = document.getElementById('cat-filter');
-  const sortedCats = [...meta.categories].sort((a,b) => a.name.localeCompare(b.name));
-  for (const c of sortedCats) {
-    const opt = document.createElement('option');
-    opt.value = c.id;
-    opt.textContent = c.name;
-    catSel.appendChild(opt);
-  }
-
   // Year bar
   renderYearBar();
 
