@@ -1402,23 +1402,7 @@ function addSplit(split = null) {
     .map(c => `<option value="${c.id}" ${split?.categoryId === c.id ? 'selected' : ''}>${esc(c.name)}</option>`)
     .join('');
 
-  const row = document.createElement('div');
-  row.className = 'split-row';
-  row.innerHTML = `
-    <input type="number" step="0.01" class="form-input split-amount" 
-      placeholder="Importo" value="${split?.amount ?? ''}">
-    <select class="form-input split-cat">
-      <option value="">— Categoria —</option>
-      ${catOptions}
-    </select>
-    <input type="text" class="form-input split-comment" 
-      placeholder="Note" value="${split?.comment ?? ''}" style="max-width:120px">
-    <button class="btn-icon" onclick="this.parentElement.remove()">✕</button>
-  `;
-  container.appendChild(row);
-}
-
-async function saveTx() {
+  async function saveTx() {
   const splits = [];
   document.querySelectorAll('.split-row').forEach(row => {
     const amount = parseFloat(row.dataset.amount);
