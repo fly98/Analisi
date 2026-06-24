@@ -1743,39 +1743,79 @@ function exportOFX() {
 // ════════════════════════════════════════════════════════
 
 var sellaMovimenti = [];
+var sellaRegole = {};
 
-var SELLA_REG = {
-  'booking.com':       'Redditi : Redditi InternoUno e Deluxe',
-  'amenitizpay':       'Redditi : Redditi InternoUno e Deluxe',
-  'airbnb':            'Redditi : Redditi InternoUno e Deluxe',
-  'anthropic':         'Spese Interno1 : Ufficio',
-  'pricelabs':         'Spese Interno1 : Ufficio',
-  'aruba':             'Spese Interno1 : Ufficio',
-  'amazon':            'Spese Interno1 : Spese Personali',
-  'apple.com':         'Spese Interno1 : Ufficio',
-  'netflix':           'Spese Interno1 : Spese Personali',
-  'fastweb':           'Spese Interno1 : Mclink',
-  'ae s.p.a':          'Spese Interno1 : Luce',
-  'acea':              'Spese Interno1 : Luce',
-  'pagopa':            'Spese Interno1 : Tasse',
-  'f24':               'Spese Interno1 : Tasse',
-  'eni':               'Spese Interno1 : Automobile',
-  'chiara castiglioni':'Spese Interno1 : Mutuo',
-  'rci banque':        'Spese Interno1 : Automobile',
-  'del carmen':        'Spese Interno1 : Pulizia',
-  'stipendio':         'Spese Interno1 : Pulizia',
-  'inventiva':         'Spese Interno1 : Promozione',
-  'paypal':            'Spese Interno1 : Spese Personali',
-  'decathlon':         'Spese Interno1 : Spese Personali',
-  'farmacia':          'Spese Interno1 : Spese Personali'
+var SELLA_REG_DEF = {
+  'booking.com':       { name:'Redditi InternoUno e Deluxe', id:'600FE5ED-A4B4-4876-A785-33627FFF0FDC' },
+  'amenitizpay':       { name:'Redditi InternoUno e Deluxe', id:'600FE5ED-A4B4-4876-A785-33627FFF0FDC' },
+  'airbnb':            { name:'Redditi InternoUno e Deluxe', id:'600FE5ED-A4B4-4876-A785-33627FFF0FDC' },
+  'anthropic':         { name:'Ufficio',    id:'9A16DCFB-93BB-42BC-881C-5FA0ED112DD3' },
+  'pricelabs':         { name:'Ufficio',    id:'9A16DCFB-93BB-42BC-881C-5FA0ED112DD3' },
+  'aruba':             { name:'Ufficio',    id:'9A16DCFB-93BB-42BC-881C-5FA0ED112DD3' },
+  'apple.com':         { name:'Ufficio',    id:'9A16DCFB-93BB-42BC-881C-5FA0ED112DD3' },
+  'amazon':            { name:'Spese varie',id:'7F6CE6A3-B783-4128-B459-18C4B82CD6DB' },
+  'amzn':              { name:'Spese varie',id:'7F6CE6A3-B783-4128-B459-18C4B82CD6DB' },
+  'netflix':           { name:'Spese varie',id:'7F6CE6A3-B783-4128-B459-18C4B82CD6DB' },
+  'paypal':            { name:'Spese varie',id:'7F6CE6A3-B783-4128-B459-18C4B82CD6DB' },
+  'decathlon':         { name:'Spese varie',id:'7F6CE6A3-B783-4128-B459-18C4B82CD6DB' },
+  'fastweb':           { name:'Mclink',     id:'020F36BB-BA4B-4B7F-8041-34C560316333' },
+  'ae s.p.a':          { name:'Luce',       id:'3C51A9B3-31D2-407C-BBAE-510A13C3A74A' },
+  'acea':              { name:'Luce',       id:'3C51A9B3-31D2-407C-BBAE-510A13C3A74A' },
+  'pagopa':            { name:'Tasse',      id:'973D0BE1-1ADD-4F91-B7AF-D782522DF829' },
+  'f24':               { name:'Tasse',      id:'973D0BE1-1ADD-4F91-B7AF-D782522DF829' },
+  'eni':               { name:'Automobile', id:'D9BDD4D6-6AFB-4CFB-AD86-3389A63C892A' },
+  'rci banque':        { name:'Automobile', id:'D9BDD4D6-6AFB-4CFB-AD86-3389A63C892A' },
+  'chiara castiglioni':{ name:'Mutuo',      id:'1B9EC661-5F9F-4735-86B6-B3D6D041B561' },
+  'del carmen':        { name:'Pulizia',    id:'4DE42F08-CBBE-43B4-8D4B-6C8FAB4D142F' },
+  'stipendio':         { name:'Pulizia',    id:'4DE42F08-CBBE-43B4-8D4B-6C8FAB4D142F' },
+  'inventiva':         { name:'Promozione', id:'43D39CC1-3996-49FA-BE94-F10A15069755' },
+  'farmacia':          { name:'Salute e benessere', id:'300751AD-A33F-4FA9-8923-6B2AFEDB0EC5' }
 };
+var SELLA_REG_FIXED = new Set(['amazon','amzn','booking.com','airbnb','amenitizpay']);
+
+function sellaCatFromName(catName) {
+  if (!catName || !meta) return null;
+  var cats = meta.categories;
+  var short = catName.indexOf(' : ') >= 0 ? catName.split(' : ').pop().trim() : catName;
+  for (var i = 0; i < cats.length; i++) {
+    if (cats[i].name === catName || cats[i].name === short) return { name: cats[i].name, id: cats[i].id };
+  }
+  return null;
+}
 
 function sellaGuessCategory(desc, etich) {
   var d = (desc + ' ' + (etich || '')).toLowerCase();
-  for (var k in SELLA_REG) {
-    if (d.indexOf(k) >= 0) return SELLA_REG[k];
+  for (var k in SELLA_REG_DEF) {
+    if (d.indexOf(k) >= 0) return SELLA_REG_DEF[k];
   }
-  return '';
+  for (var k in sellaRegole) {
+    if (d.indexOf(k.toLowerCase()) >= 0) {
+      var obj = sellaCatFromName(sellaRegole[k]);
+      if (obj) return obj;
+    }
+  }
+  return null;
+}
+
+function sellaLearnRule(desc, catObj) {
+  if (!catObj || !desc) return;
+  var words = desc.toLowerCase().split(/\s+/).filter(function(w) { return w.length > 3; });
+  if (!words[0] || SELLA_REG_FIXED.has(words[0]) || SELLA_REG_DEF[words[0]]) return;
+  sellaRegole[words[0]] = catObj.name;
+  _sellaSaveRegole();
+}
+
+async function _sellaSaveRegole() {
+  try {
+    await api('PUT', '/api/sella-regole', { regole: sellaRegole });
+  } catch(e) { console.warn('Salvataggio regole:', e); }
+}
+
+async function sellaLoadRegole() {
+  try {
+    var r = await api('GET', '/api/sella-regole');
+    if (r && !r.error) sellaRegole = r;
+  } catch(e) { console.warn('Regole:', e); }
 }
 
 function sellaParseCSVLine(line) {
@@ -1786,93 +1826,55 @@ function sellaParseCSVLine(line) {
     else if (ch === ',' && !q) { r.push(c); c = ''; }
     else { c += ch; }
   }
-  r.push(c);
-  return r;
+  r.push(c); return r;
 }
 
 function sellaParseAmt(deb, cred) {
-  function toF(s) {
-    s = s.trim().replace(/[+\-]/g, '');
-    if (s.indexOf(',') >= 0) { s = s.replace(/\./g, '').replace(',', '.'); }
-    return parseFloat(s) || 0;
-  }
-  var d  = (deb  && deb.trim())  ? toF(deb)  : 0;
-  var cr = (cred && cred.trim()) ? toF(cred) : 0;
-  if (cred && cred.trim()) return cr;
-  if (deb  && deb.trim())  return -d;
-  return 0;
+  function toF(s) { s=s.trim().replace(/[+\-]/g,''); if(s.indexOf(',')>=0){s=s.replace(/\./g,'').replace(',','.');} return parseFloat(s)||0; }
+  var d=(deb&&deb.trim())?toF(deb):0, cr=(cred&&cred.trim())?toF(cred):0;
+  if(cred&&cred.trim()) return cr; if(deb&&deb.trim()) return -d; return 0;
 }
 
-function sellaStorKey(dateISO, importo, desc) {
-  return dateISO + '|' + importo.toFixed(2) + '|' + (desc || '').substring(0, 40);
-}
-
-function sellaDateToISO(d) {
-  var p = d.split('/');
-  if (p.length === 3) return p[2] + '-' + p[1] + '-' + p[0];
-  return d;
-}
-
-function sellaCatNameToId(name) {
-  if (!name || !meta) return null;
-  var cats = meta.categories || [];
-  for (var i = 0; i < cats.length; i++) {
-    if (cats[i].name === name) return cats[i].id;
-  }
-  var short = name.indexOf(' : ') >= 0 ? name.split(' : ').pop().trim() : name;
-  for (var i = 0; i < cats.length; i++) {
-    if (cats[i].name === short) return cats[i].id;
-  }
-  return null;
-}
-
-function sellaGetAccId(name) {
-  if (!meta) return null;
-  for (var i = 0; i < meta.accounts.length; i++) {
-    if (meta.accounts[i].name === name) return meta.accounts[i].id;
-  }
-  return null;
-}
+function sellaStorKey(dateISO, importo, desc) { return dateISO+'|'+importo.toFixed(2)+'|'+(desc||'').substring(0,32); }
+function sellaDateToISO(d) { var p=d.split('/'); return p.length===3?p[2]+'-'+p[1]+'-'+p[0]:d; }
+function sellaGetAccId(name) { if(!meta)return null; for(var i=0;i<meta.accounts.length;i++){if(meta.accounts[i].name===name)return meta.accounts[i].id;} return null; }
 
 async function sellaGetExistingKeys() {
   var accId = sellaGetAccId('InternoUno Banca');
   if (!accId) return new Set();
   var keys = new Set();
-  var years = meta.years || [];
-  for (var yi = 0; yi < years.length; yi++) {
-    var yr = years[yi];
-    if (!txCache[yr]) {
-      try { txCache[yr] = await api('GET', '/api/tx/' + yr); } catch(e) { continue; }
-    }
-    var txs = txCache[yr] || [];
-    for (var ti = 0; ti < txs.length; ti++) {
-      var t = txs[ti];
-      if (t.accountId !== accId) continue;
-      keys.add(sellaStorKey(t.date, getTxAmount(t), t.name));
-    }
+  for (var yi = 0; yi < (meta.years||[]).length; yi++) {
+    var yr = meta.years[yi];
+    if (!txCache[yr]) { try { txCache[yr] = await api('GET', '/api/tx/'+yr); } catch(e) { continue; } }
+    (txCache[yr]||[]).forEach(function(t) {
+      if (t.accountId === accId) keys.add(sellaStorKey(t.date, getTxAmount(t), t.name.substring(0,32)));
+    });
   }
   return keys;
 }
 
-// ── UI ────────────────────────────────────────────────────────────────────────
-
-function openSellaImport() {
+async function openSellaImport() {
   sellaMovimenti = [];
-  document.getElementById('sella-drop').style.display = 'block';
-  document.getElementById('sella-table').style.display = 'none';
-  document.getElementById('sella-stats').style.display = 'none';
-  document.getElementById('sella-tbody').innerHTML = '';
-  document.getElementById('sella-progress').textContent = '';
-  document.getElementById('sella-import-btn').disabled = true;
-  document.getElementById('sella-import-btn').textContent = '\u2b06\ufe0f Importa selezionati';
-  document.getElementById('sella-overlay').style.display = 'flex';
-  // Carica e mostra lo storico
+  ['sella-table','sella-stats'].forEach(function(id){document.getElementById(id).style.display='none';});
+  document.getElementById('sella-total-box').style.display='none';
+  document.getElementById('sella-drop').style.display='block';
+  document.getElementById('sella-tbody').innerHTML='';
+  document.getElementById('sella-progress').textContent='Caricamento regole\u2026';
+  document.getElementById('sella-import-btn').disabled=true;
+  document.getElementById('sella-preview-btn').disabled=true;
+  document.getElementById('sella-overlay').style.display='flex';
+  // Blocca il drop finché le regole non sono caricate
+  var dropEl = document.getElementById('sella-drop');
+  dropEl.style.opacity='0.5'; dropEl.style.pointerEvents='none';
+  document.getElementById('sella-file-input').disabled=true;
+  await sellaLoadRegole();
+  dropEl.style.opacity=''; dropEl.style.pointerEvents='';
+  document.getElementById('sella-file-input').disabled=false;
+  document.getElementById('sella-progress').textContent='';
   sellaLoadLog();
 }
 
-function closeSellaImport() {
-  document.getElementById('sella-overlay').style.display = 'none';
-}
+function closeSellaImport() { document.getElementById('sella-overlay').style.display='none'; }
 
 function sellaOnDrop(e) {
   e.preventDefault();
@@ -1882,267 +1884,291 @@ function sellaOnDrop(e) {
 
 async function sellaHandleFile(file) {
   if (!file) return;
-  document.getElementById('sella-progress').textContent = 'Analisi\u2026';
-  document.getElementById('sella-import-btn').disabled = true;
-
-  var text = await file.text();
-  var lines = text.split('\n').filter(function(l) { return l.trim(); });
-  var existingKeys = await sellaGetExistingKeys();
-
-  sellaMovimenti = [];
-  for (var i = 1; i < lines.length; i++) {
-    var l = lines[i].trim();
-    if (!l || l.startsWith('"","","","",')) continue;
-    var c = sellaParseCSVLine(l);
-    if (c.length < 7) continue;
-    var dataOp  = c[1].replace(/"/g, '').trim();
-    var desc    = c[3].replace(/"/g, '').trim();
-    var deb     = c[5].replace(/"/g, '').trim();
-    var cred    = c[6].replace(/"/g, '').trim();
-    var etich   = (c[9] || '').replace(/"/g, '').trim();
-    if (!dataOp) continue;
-    var importo = sellaParseAmt(deb, cred);
-    var dateISO = sellaDateToISO(dataOp);
-    var storKey = sellaStorKey(dateISO, importo, desc);
-    var isDup   = existingKeys.has(storKey);
-    sellaMovimenti.push({
-      dateISO: dateISO, dataOp: dataOp, desc: desc, etich: etich,
-      importo: importo, storKey: storKey,
-      isDup: isDup, includi: !isDup,
-      catName: sellaGuessCategory(desc, etich)
-    });
+  document.getElementById('sella-progress').textContent='Analisi\u2026';
+  var lines=(await file.text()).split('\n').filter(function(l){return l.trim();});
+  var existingKeys=await sellaGetExistingKeys();
+  sellaMovimenti=[];
+  for (var i=1;i<lines.length;i++) {
+    var l=lines[i].trim();
+    if(!l||l.startsWith('"","","","",'))continue;
+    var c=sellaParseCSVLine(l);
+    if(c.length<7)continue;
+    var dataOp=c[1].replace(/"/g,'').trim(),desc=c[3].replace(/"/g,'').trim();
+    var deb=c[5].replace(/"/g,'').trim(),cred=c[6].replace(/"/g,'').trim();
+    var etich=(c[9]||'').replace(/"/g,'').trim();
+    if(!dataOp)continue;
+    var importo=sellaParseAmt(deb,cred),dateISO=sellaDateToISO(dataOp);
+    var storKey=sellaStorKey(dateISO,importo,desc.substring(0,32));
+    sellaMovimenti.push({dateISO:dateISO,dataOp:dataOp,desc:desc,etich:etich,
+      importo:importo,storKey:storKey,isDup:existingKeys.has(storKey),includi:!existingKeys.has(storKey),
+      catObj:sellaGuessCategory(desc,etich)});
   }
-
-  document.getElementById('sella-drop').style.display = 'none';
-  document.getElementById('sella-table').style.display = 'table';
+  document.getElementById('sella-drop').style.display='none';
+  document.getElementById('sella-table').style.display='table';
   sellaRenderTable(sellaMovimenti);
   sellaUpdateStats();
-  document.getElementById('sella-progress').textContent = '';
+  document.getElementById('sella-progress').textContent='';
 }
 
 function sellaRenderTable(movs) {
-  var tbody = document.getElementById('sella-tbody');
-  var rows = '';
-  for (var i = 0; i < movs.length; i++) {
-    var m = movs[i];
-    var amtCls = m.importo >= 0 ? 'sella-amt-pos' : 'sella-amt-neg';
-    var amtStr = (m.importo >= 0 ? '+' : '') +
-      m.importo.toLocaleString('it-IT', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' \u20ac';
-    var dupCls = m.isDup ? ' dup-row' : '';
-    var opts = '<option value="">-- nessuna --</option>';
-    if (meta && meta.categories) {
-      for (var ci = 0; ci < meta.categories.length; ci++) {
-        var cat = meta.categories[ci];
-        var sel = (cat.name === m.catName) ? ' selected' : '';
-        opts += '<option value="' + esc(cat.name) + '"' + sel + '>' + esc(cat.name) + '</option>';
-      }
+  var tbody=document.getElementById('sella-tbody'), rows='';
+  for (var i=0;i<movs.length;i++) {
+    var m=movs[i];
+    var amtCls=m.importo>=0?'sella-amt-pos':'sella-amt-neg';
+    var amtStr=(m.importo>=0?'+':'')+m.importo.toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2})+' \u20ac';
+    var opts='<option value="">-- nessuna --</option>';
+    var visCats = getVisibleCategories();
+    for(var ci=0;ci<visCats.length;ci++){
+      var cat=visCats[ci];
+      opts+='<option value="'+esc(cat.id)+'"'+(m.catObj&&cat.id===m.catObj.id?' selected':'')+'>'+esc(cat.name)+'</option>';
     }
-    rows += '<tr class="' + dupCls + '" id="sella-row-' + i + '">' +
-      '<td style="white-space:nowrap;color:var(--muted);font-size:12px">' + m.dataOp + '</td>' +
-      '<td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + esc(m.desc) + '">' + esc(m.desc) + '</td>' +
-      '<td class="' + amtCls + '" style="white-space:nowrap;text-align:right">' + amtStr + '</td>' +
-      '<td><select class="sella-cat-sel" onchange="sellaSetCat(' + i + ',this.value)">' + opts + '</select></td>' +
-      '<td style="text-align:center"><button class="sella-tog ' + (m.includi ? 'on' : 'off') +
-        '" onclick="sellaToggle(' + i + ')" title="' + (m.isDup ? 'Gi\u00e0 presente' : '') + '"></button></td>' +
+    rows+='<tr class="'+(m.isDup?' dup-row':'')+'" id="sella-row-'+i+'">'+
+      '<td style="white-space:nowrap;color:var(--muted);font-size:12px">'+m.dataOp+'</td>'+
+      '<td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+esc(m.desc)+'">'+esc(m.desc)+'</td>'+
+      '<td class="'+amtCls+'" style="white-space:nowrap;text-align:right">'+amtStr+'</td>'+
+      '<td><select class="sella-cat-sel" onchange="sellaSetCat('+i+',this.value)">'+opts+'</select></td>'+
+      '<td style="text-align:center"><button class="sella-tog '+(m.includi?'on':'off')+'" onclick="sellaToggle('+i+')" title="'+(m.isDup?'Gi\u00e0 presente':'')+'"></button></td>'+
       '</tr>';
   }
-  tbody.innerHTML = rows;
+  tbody.innerHTML=rows;
+  // Safari non rispetta sempre l'attributo "selected" iniettato via innerHTML —
+  // impostiamo il valore dei select esplicitamente dopo il render
+  for (var i=0;i<movs.length;i++) {
+    if (movs[i].catObj) {
+      var sel = tbody.querySelector('#sella-row-'+i+' .sella-cat-sel');
+      if (sel) sel.value = movs[i].catObj.id;
+    }
+  }
 }
 
-function sellaSetCat(i, val) {
-  sellaMovimenti[i].catName = val;
+function sellaSetCat(i, catId) {
+  if(catId&&meta){
+    var cat=meta.categories.find(function(c){return c.id===catId;});
+    sellaMovimenti[i].catObj=cat?{name:cat.name,id:cat.id}:null;
+    if(cat) sellaLearnRule(sellaMovimenti[i].desc,sellaMovimenti[i].catObj);
+  } else { sellaMovimenti[i].catObj=null; }
   sellaUpdateStats();
 }
 
 function sellaToggle(i) {
-  sellaMovimenti[i].includi = !sellaMovimenti[i].includi;
-  var row = document.getElementById('sella-row-' + i);
-  var btn = row ? row.querySelector('.sella-tog') : null;
-  if (btn) btn.className = 'sella-tog ' + (sellaMovimenti[i].includi ? 'on' : 'off');
+  sellaMovimenti[i].includi=!sellaMovimenti[i].includi;
+  var btn=document.querySelector('#sella-row-'+i+' .sella-tog');
+  if(btn) btn.className='sella-tog '+(sellaMovimenti[i].includi?'on':'off');
   sellaUpdateStats();
 }
 
 function sellaUpdateStats() {
-  var tot  = sellaMovimenti.length;
-  var inc  = sellaMovimenti.filter(function(m) { return m.includi; });
-  var dup  = sellaMovimenti.filter(function(m) { return m.isDup; }).length;
-  var nocat = inc.filter(function(m) { return !m.catName; }).length;
-  document.getElementById('ss-tot').textContent  = tot;
-  document.getElementById('ss-new').textContent  = inc.length;
-  document.getElementById('ss-dup').textContent  = dup;
-  document.getElementById('ss-cat').textContent  = nocat;
-  if (tot > 0) document.getElementById('sella-stats').style.display = 'flex';
-  var btn = document.getElementById('sella-import-btn');
-  btn.textContent = inc.length > 0
-    ? '\u2b06\ufe0f Importa ' + inc.length + ' moviment' + (inc.length === 1 ? 'o' : 'i')
-    : '\u2b06\ufe0f Importa selezionati';
-  btn.disabled = inc.length === 0;
+  var inc=sellaMovimenti.filter(function(m){return m.includi;});
+  document.getElementById('ss-tot').textContent=sellaMovimenti.length;
+  document.getElementById('ss-new').textContent=inc.length;
+  document.getElementById('ss-dup').textContent=sellaMovimenti.filter(function(m){return m.isDup;}).length;
+  document.getElementById('ss-cat').textContent=inc.filter(function(m){return !m.catObj;}).length;
+  if(sellaMovimenti.length) document.getElementById('sella-stats').style.display='flex';
+  var totalBox=document.getElementById('sella-total-box'), totalEl=document.getElementById('sella-total');
+  if(inc.length){
+    var t=inc.reduce(function(s,m){return s+m.importo;},0);
+    totalEl.textContent=(t>=0?'+':'')+t.toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2})+' \u20ac';
+    totalEl.style.color=t>=0?'var(--green)':'var(--red)';
+    totalBox.style.display='block';
+  } else { totalBox.style.display='none'; }
+  var iBtn=document.getElementById('sella-import-btn'), pBtn=document.getElementById('sella-preview-btn');
+  iBtn.textContent=inc.length?'\u2b06\ufe0f Importa '+inc.length+' moviment'+(inc.length===1?'o':'i'):'\u2b06\ufe0f Importa selezionati';
+  iBtn.disabled=pBtn.disabled=inc.length===0;
 }
 
-// ── IMPORT ────────────────────────────────────────────────────────────────────
+function sellaShowPreview() {
+  var inc=sellaMovimenti.filter(function(m){return m.includi;});
+  if(!inc.length) return;
+  var bycat={};
+  inc.forEach(function(m){
+    var k=m.catObj?m.catObj.id:'__nessuna__';
+    if(!bycat[k]) bycat[k]={catObj:m.catObj,total:0,count:0};
+    bycat[k].total+=m.importo; bycat[k].count++;
+  });
+  var bRows=inc.map(function(m){
+    var c=m.importo>=0?'color:var(--green)':'color:var(--red)';
+    var a=(m.importo>=0?'+':'')+m.importo.toLocaleString('it-IT',{minimumFractionDigits:2})+' \u20ac';
+    return '<tr style="border-bottom:1px solid var(--gray2)">'+
+      '<td style="font-size:12px;color:var(--muted);padding:5px 8px;white-space:nowrap">'+m.dataOp+'</td>'+
+      '<td style="font-size:13px;padding:5px 8px;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(m.desc)+'</td>'+
+      '<td style="font-size:13px;padding:5px 8px;text-align:right;white-space:nowrap;'+c+'">'+a+'</td>'+
+      '<td style="font-size:12px;color:var(--muted);padding:5px 8px">'+(m.catObj?esc(m.catObj.name):'<em>\u2014</em>')+'</td></tr>';
+  }).join('');
+  var eRows=Object.keys(bycat).map(function(k){
+    var agg=bycat[k]; var opp=-agg.total;
+    var c2=opp>=0?'color:var(--green)':'color:var(--red)';
+    var a2=(opp>=0?'+':'')+opp.toLocaleString('it-IT',{minimumFractionDigits:2})+' \u20ac';
+    return '<tr style="border-bottom:1px solid var(--gray2)">'+
+      '<td style="font-size:13px;padding:5px 8px">'+(agg.catObj?esc(agg.catObj.name):'<em>nessuna</em>')+'</td>'+
+      '<td style="font-size:12px;color:var(--muted);padding:5px 8px">'+agg.count+' movim.</td>'+
+      '<td style="font-size:13px;text-align:right;white-space:nowrap;padding:5px 8px;'+c2+'">'+a2+'</td></tr>';
+  }).join('');
+  var ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box';
+  ov.onclick=function(e){if(e.target===ov)ov.remove();};
+  ov.innerHTML=
+    '<div style="background:var(--surface);border-radius:16px;max-width:700px;width:100%;max-height:85vh;display:flex;flex-direction:column;overflow:hidden">'+
+    '<div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center">'+
+      '<h3 style="flex:1;font-size:17px;font-weight:700">Preview importazione</h3>'+
+      '<button onclick="this.closest(\'div\').parentElement.remove()" style="background:var(--gray2);border:none;border-radius:50%;width:28px;height:28px;cursor:pointer">\u2715</button>'+
+    '</div>'+
+    '<div style="flex:1;overflow-y:auto;padding:16px 20px">'+
+      '<div style="font-size:11px;font-weight:700;color:var(--gray4);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">&#127974; InternoUno Banca &mdash; '+inc.length+' TX</div>'+
+      '<table style="width:100%;border-collapse:collapse;margin-bottom:20px"><tbody>'+bRows+'</tbody></table>'+
+      '<div style="font-size:11px;font-weight:700;color:var(--gray4);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">&#128202; Attivo &middot; InternoUno &mdash; '+Object.keys(bycat).length+' TX aggregate</div>'+
+      '<table style="width:100%;border-collapse:collapse"><tbody>'+eRows+'</tbody></table>'+
+    '</div>'+
+    '<div style="padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:8px">'+
+      '<button onclick="this.closest(\'div\').parentElement.remove()" style="flex:1;padding:12px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);font-size:15px;cursor:pointer">Chiudi</button>'+
+      '<button onclick="this.closest(\'div\').parentElement.remove();sellaDoImport()" style="flex:2;padding:12px;border-radius:10px;border:none;background:var(--blue);color:#fff;font-size:15px;font-weight:700;cursor:pointer">\u2b06\ufe0f Importa ora</button>'+
+    '</div></div>';
+  document.body.appendChild(ov);
+}
+
+var _sellaImporting = false;
 
 async function sellaDoImport() {
-  var inc = sellaMovimenti.filter(function(m) { return m.includi; });
-  if (!inc.length) return;
+  if (_sellaImporting) return;  // blocco doppio click
+  var inc=sellaMovimenti.filter(function(m){return m.includi;});
+  if(!inc.length) return;
+  var bancaId=sellaGetAccId('InternoUno Banca'),ecoId=sellaGetAccId('InternoUno');
+  if(!bancaId||!ecoId){sellaToast('Account non trovato','err');return;}
 
-  var bancaId = sellaGetAccId('InternoUno Banca');
-  var ecoId   = sellaGetAccId('InternoUno');
-  if (!bancaId) { alert('Account "InternoUno Banca" non trovato'); return; }
-  if (!ecoId)   { alert('Account "InternoUno" non trovato'); return; }
+  _sellaImporting = true;
+  document.getElementById('sella-import-btn').disabled=true;
+  document.getElementById('sella-preview-btn').disabled=true;
 
-  var btn = document.getElementById('sella-import-btn');
-  btn.disabled = true;
-
-  var txBancaIds = [];   // id TX create su InternoUno Banca
-  var txEcoIds   = [];   // id TX create su InternoUno (economico)
-  var errCount   = 0;
-
-  // ── 1. TX su InternoUno Banca (una per riga) ─────────────────────────────
-  for (var i = 0; i < inc.length; i++) {
-    var m = inc[i];
-    document.getElementById('sella-progress').textContent =
-      'Banca ' + (i+1) + '/' + inc.length;
-    var catId = sellaCatNameToId(m.catName);
-    var tx = {
-      id: null, date: m.dateISO, name: m.desc,
-      accountId: bancaId, status: 'cleared',
-      comment: m.etich || null,
-      useSumOfSplits: true, amount: null, linkedTxId: null,
-      splits: [{ amount: m.importo, categoryId: catId, comment: null }]
-    };
-    try {
-      var r = await api('POST', '/api/tx', { tx: tx });
-      if (r && r.id) { txBancaIds.push(r.id); }
-      else { errCount++; }
-    } catch(e) { errCount++; }
+  var txBancaIds=[],txEcoIds=[],errCount=0;
+  for(var i=0;i<inc.length;i++){
+    var m=inc[i];
+    document.getElementById('sella-progress').textContent='Banca '+(i+1)+'/'+inc.length;
+    try{
+      var r=await api('POST','/api/tx',{tx:{id:null,date:m.dateISO,name:m.desc,accountId:bancaId,status:'cleared',
+        comment:m.etich||null,useSumOfSplits:true,amount:null,linkedTxId:null,
+        splits:[{amount:m.importo,categoryId:m.catObj?m.catObj.id:null,comment:null}]}});
+      if(r&&r.id)txBancaIds.push(r.id);else errCount++;
+    }catch(e){errCount++;}
   }
-
-  // ── 2. TX aggregate per categoria su InternoUno (economico) ─────────────
-  // Aggrega inclusi per categoria (importo opposto — partita doppia)
-  var bycat = {};
-  for (var i = 0; i < inc.length; i++) {
-    var m = inc[i];
-    var key = m.catName || '__nessuna__';
-    if (!bycat[key]) bycat[key] = { catName: m.catName, total: 0, dates: [], descs: [] };
-    bycat[key].total += m.importo;
-    bycat[key].dates.push(m.dateISO);
-    bycat[key].descs.push(m.desc);
-  }
-
-  var catKeys = Object.keys(bycat);
-  for (var ci = 0; ci < catKeys.length; ci++) {
-    var agg = bycat[catKeys[ci]];
-    document.getElementById('sella-progress').textContent =
-      'Eco ' + (ci+1) + '/' + catKeys.length;
-    // Data = ultima del gruppo (più recente)
+  var bycat={};
+  inc.forEach(function(m){
+    var k=m.catObj?m.catObj.id:'__nessuna__';
+    if(!bycat[k])bycat[k]={catObj:m.catObj,total:0,dates:[],descs:[]};
+    bycat[k].total+=m.importo;bycat[k].dates.push(m.dateISO);bycat[k].descs.push(m.desc);
+  });
+  var catKeys=Object.keys(bycat);
+  for(var ci=0;ci<catKeys.length;ci++){
+    var agg=bycat[catKeys[ci]];
+    document.getElementById('sella-progress').textContent='Eco '+(ci+1)+'/'+catKeys.length;
     agg.dates.sort();
-    var txDate = agg.dates[agg.dates.length - 1];
-    var catId  = sellaCatNameToId(agg.catName);
-    // Nome: prima categoria poi desc breve
-    var catShort = agg.catName
-      ? (agg.catName.indexOf(' : ') >= 0 ? agg.catName.split(' : ').pop().trim() : agg.catName)
-      : 'Varie';
-    var nota = 'Sella import ' + txDate.slice(0,7) + ' \u2014 ' + agg.descs.slice(0,3).join(', ');
-    if (nota.length > 120) nota = nota.substring(0, 117) + '\u2026';
-    var tx = {
-      id: null, date: txDate, name: catShort,
-      accountId: ecoId, status: 'cleared',
-      comment: nota,
-      useSumOfSplits: true, amount: null, linkedTxId: null,
-      splits: [{ amount: -agg.total, categoryId: catId, comment: null }]
-    };
-    try {
-      var r = await api('POST', '/api/tx', { tx: tx });
-      if (r && r.id) { txEcoIds.push(r.id); }
-      else { errCount++; }
-    } catch(e) { errCount++; }
+    var nota='Sella '+agg.dates[agg.dates.length-1].slice(0,7)+' \u2014 '+agg.descs.slice(0,3).join(', ');
+    if(nota.length>120)nota=nota.substring(0,117)+'\u2026';
+    try{
+      var r=await api('POST','/api/tx',{tx:{id:null,date:agg.dates[agg.dates.length-1],
+        name:agg.catObj?agg.catObj.name:'Varie',accountId:ecoId,status:'cleared',comment:nota,
+        useSumOfSplits:true,amount:null,linkedTxId:null,
+        splits:[{amount:-agg.total,categoryId:agg.catObj?agg.catObj.id:null,comment:null}]}});
+      if(r&&r.id)txEcoIds.push(r.id);else errCount++;
+    }catch(e){errCount++;}
+  }
+  var now=new Date();
+  var session={id:'sella-'+Date.now(),date:now.toISOString(),
+    label:'Sella '+now.toLocaleDateString('it-IT')+' '+now.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}),
+    countBanca:txBancaIds.length,countEco:txEcoIds.length,txBanca:txBancaIds,txEco:txEcoIds};
+  try{await api('POST','/api/sella-log',{session:session});}catch(e){}
+
+  _sellaImporting = false;
+  document.getElementById('sella-progress').textContent='';
+  txCache={};await loadBalances();
+  if(selectedAccountId)await selectAccount(selectedAccountId,selectedAccountName);
+
+  if(!errCount) {
+    // Successo: mostra toast nella main UI e chiudi il modal
+    closeSellaImport();
+    sellaShowMainToast(txBancaIds.length+' TX banca + '+txEcoIds.length+' TX economico importate');
+  } else {
+    // Errori parziali: torna alla drop zone con messaggio
+    document.getElementById('sella-import-btn').disabled=false;
+    document.getElementById('sella-preview-btn').disabled=false;
+    sellaToast(txBancaIds.length+' importate, '+errCount+' errori', 'err');
   }
 
-  // ── 3. Salva sessione nel log ─────────────────────────────────────────────
-  var sessionId = 'sella-' + Date.now();
-  var now = new Date();
-  var session = {
-    id: sessionId,
-    date: now.toISOString(),
-    label: 'Sella ' + now.toLocaleDateString('it-IT') + ' ' + now.toLocaleTimeString('it-IT', {hour:'2-digit', minute:'2-digit'}),
-    countBanca: txBancaIds.length,
-    countEco: txEcoIds.length,
-    txBanca: txBancaIds,
-    txEco: txEcoIds
-  };
-  try {
-    await api('POST', '/api/sella-log', { session: session });
-  } catch(e) { console.warn('Log non salvato:', e); }
-
-  // ── 4. Aggiorna UI ───────────────────────────────────────────────────────
-  document.getElementById('sella-progress').textContent = '';
-  btn.disabled = false;
-  txCache = {};
-  await loadBalances();
-  if (selectedAccountId) await selectAccount(selectedAccountId, selectedAccountName);
-
-  var msg = txBancaIds.length + ' TX banca + ' + txEcoIds.length + ' TX economico importate';
-  if (errCount) msg += ' (' + errCount + ' errori)';
-  alert(msg);
-
-  // Reset e mostra log aggiornato
-  sellaMovimenti = [];
-  document.getElementById('sella-table').style.display = 'none';
-  document.getElementById('sella-stats').style.display = 'none';
-  document.getElementById('sella-drop').style.display = 'block';
-  sellaUpdateStats();
-  sellaLoadLog();
+  sellaMovimenti=[];
+  ['sella-table','sella-stats'].forEach(function(id){document.getElementById(id).style.display='none';});
+  document.getElementById('sella-total-box').style.display='none';
+  document.getElementById('sella-drop').style.display='block';
+  sellaUpdateStats();sellaLoadLog();
 }
 
-// ── STORICO / ROLLBACK ────────────────────────────────────────────────────────
+// Toast dentro il modal Sella
+function sellaToast(msg, type) {
+  var el = document.getElementById('sella-toast');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'sella-toast';
+    el.style.cssText = 'position:absolute;bottom:90px;left:50%;transform:translateX(-50%);'+
+      'padding:10px 20px;border-radius:10px;font-size:14px;font-weight:600;'+
+      'white-space:nowrap;z-index:100;transition:opacity .3s;pointer-events:none';
+    document.getElementById('sella-panel').appendChild(el);
+  }
+  el.textContent = msg;
+  el.style.background = type === 'err' ? 'var(--red)' : 'var(--green)';
+  el.style.color = '#fff';
+  el.style.opacity = '1';
+  clearTimeout(el._t);
+  el._t = setTimeout(function(){ el.style.opacity='0'; }, 3000);
+}
+
+// Toast nella UI principale (dopo chiusura modal)
+function sellaShowMainToast(msg) {
+  var el = document.createElement('div');
+  el.style.cssText = 'position:fixed;bottom:30px;left:50%;transform:translateX(-50%);'+
+    'background:var(--green);color:#fff;padding:12px 24px;border-radius:12px;'+
+    'font-size:15px;font-weight:600;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.2);'+
+    'animation:npFadeIn .2s ease;pointer-events:none';
+  el.textContent = '\u2713 ' + msg;
+  document.body.appendChild(el);
+  setTimeout(function(){ el.remove(); }, 3500);
+}
 
 async function sellaLoadLog() {
-  var logEl = document.getElementById('sella-log-list');
-  if (!logEl) return;
-  logEl.innerHTML = '<div style="color:var(--faint);font-size:13px;padding:8px 0">Caricamento\u2026</div>';
-  try {
-    var sessions = await api('GET', '/api/sella-log');
-    if (!sessions || !sessions.length) {
-      logEl.innerHTML = '<div style="color:var(--faint);font-size:13px;padding:8px 0">Nessuna importazione registrata</div>';
-      return;
-    }
-    var rows = '';
-    for (var i = 0; i < sessions.length; i++) {
-      var s = sessions[i];
-      var dt = new Date(s.date).toLocaleString('it-IT', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
-      rows += '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--gray2)">' +
+  var logEl=document.getElementById('sella-log-list');
+  if(!logEl)return;
+  logEl.innerHTML='<div style="color:var(--faint);font-size:13px;padding:8px 0">Caricamento\u2026</div>';
+  try{
+    var sessions=await api('GET','/api/sella-log');
+    if(!sessions||!sessions.length){logEl.innerHTML='<div style="color:var(--faint);font-size:13px;padding:8px 0">Nessuna importazione registrata</div>';return;}
+    logEl.innerHTML=sessions.map(function(s){
+      var tot = s.countBanca + s.countEco;
+      return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--gray2)">' +
         '<div style="flex:1">' +
-          '<div style="font-size:14px;font-weight:600">' + esc(s.label || dt) + '</div>' +
-          '<div style="font-size:12px;color:var(--muted);margin-top:2px">' +
-            s.countBanca + ' TX banca &middot; ' + s.countEco + ' TX economico' +
-          '</div>' +
+          '<div style="font-size:14px;font-weight:600">' + esc(s.label||s.date) + '</div>' +
+          '<div style="font-size:12px;color:var(--muted);margin-top:2px">' + s.countBanca + ' TX banca &middot; ' + s.countEco + ' TX economico</div>' +
         '</div>' +
-        '<button onclick="sellaRollback(\'' + esc(s.id) + '\',' + (s.countBanca + s.countEco) + ')" ' +
+        '<button onclick="sellaRollback('' + esc(s.id) + '',' + tot + ')" ' +
           'style="padding:6px 12px;border-radius:8px;border:1px solid var(--red);background:var(--red-bg);' +
           'color:var(--red);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">' +
-          '\uD83D\uDDD1\uFE0F Rimuovi' +
-        '</button>' +
-      '</div>';
-    }
-    logEl.innerHTML = rows;
-  } catch(e) {
-    logEl.innerHTML = '<div style="color:var(--red);font-size:13px;padding:8px 0">Errore caricamento log</div>';
-  }
+          '&#128465; Rimuovi</button>' +
+        '</div>';
+    }).join('');
+  }catch(e){logEl.innerHTML='<div style="color:var(--red);font-size:13px;padding:8px 0">Errore caricamento log</div>';}
 }
 
 async function sellaRollback(sessionId, count) {
-  if (!confirm('Rimuovere questa importazione? Verranno eliminate ' + count + ' transazioni.')) return;
+  if (!confirm('Rimuovere questa importazione?' + (count > 0 ? ' Verranno eliminate ' + count + ' transazioni.' : ''))) return;
   var r = await api('DELETE', '/api/sella-log/' + sessionId);
   if (r && r.ok) {
-    alert(r.deleted + ' transazioni rimosse.');
     txCache = {};
     await loadBalances();
     if (selectedAccountId) await selectAccount(selectedAccountId, selectedAccountName);
     sellaLoadLog();
+    var msg = r.deleted > 0 ? r.deleted + ' transazioni rimosse.' : 'Sessione rimossa (TX già cancellate).';
+    sellaToast(msg, 'ok');
   } else {
-    alert('Errore durante la rimozione: ' + (r && r.error ? r.error : 'sconosciuto'));
+    sellaToast('Errore: ' + (r && r.error ? r.error : 'sconosciuto'), 'err');
   }
 }
+
+
 
 </script>
 
@@ -2189,9 +2215,15 @@ async function sellaRollback(sessionId, count) {
       </div>
 
     </div>
-    <div id="sella-footer">
-      <div id="sella-progress"></div>
-      <button id="sella-import-btn" disabled onclick="sellaDoImport()">⬆️ Importa selezionati</button>
+    <div id="sella-footer" style="flex-direction:column;gap:8px">
+      <div style="display:flex;align-items:center;gap:12px;width:100%">
+        <div id="sella-total-box" style="display:none;flex:1"><span style="font-size:11px;font-weight:700;color:var(--gray4);text-transform:uppercase;letter-spacing:.5px">Totale selezionati</span><div id="sella-total" style="font-size:22px;font-weight:700;margin-top:2px"></div></div>
+        <div id="sella-progress" style="font-size:13px;color:var(--muted);margin-left:auto"></div>
+      </div>
+      <div style="display:flex;gap:8px;width:100%">
+        <button id="sella-preview-btn" disabled onclick="sellaShowPreview()" style="flex:1;padding:13px;border-radius:12px;border:1.5px solid var(--blue);background:var(--blue-bg);color:var(--blue);font-size:15px;font-weight:700;cursor:pointer">👁️ Preview</button>
+        <button id="sella-import-btn" disabled onclick="sellaDoImport()" style="flex:2;padding:13px;border-radius:12px;border:none;background:var(--blue);color:#fff;font-size:16px;font-weight:700;cursor:pointer">⬆️ Importa selezionati</button>
+      </div>
     </div>
   </div>
 </div>
