@@ -299,6 +299,12 @@ var icompta_worker_default = {
       return json({ ok: true });
     }
 
+    // ── SELLA REGOLE ─────────────────────────────────────────────────────────
+    if (path === "/api/sella-regole" && method === "GET") {
+      const raw = await env.ICOMPTA_KV.get("icompta:sella_regole");
+      return json(raw ? JSON.parse(raw) : {});
+    }
+
     return err("Endpoint non trovato", 404);
   }
 };
