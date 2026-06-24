@@ -33,10 +33,11 @@
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
-  background: var(--gray1); color: var(--text); height: 100vh; overflow: hidden; }
+  background: var(--gray1); color: var(--text); height: 100vh; height: 100dvh; overflow: hidden; }
 
 /* ── Layout ── */
-#app { display: flex; height: 100vh; padding-top: env(safe-area-inset-top, 0); box-sizing: border-box; }
+#hamburger-btn { display: none; }
+#app { display: flex; height: 100vh; height: 100dvh; padding-top: env(safe-area-inset-top, 0); box-sizing: border-box; }
 body { padding-top: env(safe-area-inset-top, 0); }
 #sidebar { width: var(--sidebar-w); min-width: 180px; max-width: 420px;
   background: var(--sidebar-bg); border-right: 1px solid var(--gray2);
@@ -121,19 +122,26 @@ body { padding-top: env(safe-area-inset-top, 0); }
   cursor: pointer; transition: background 0.1s; position: relative; width: 100%; box-sizing: border-box; }
 .tx-row:hover { background: var(--blue-bg); }
 .tx-row:hover .tx-del { opacity: 1; }
-.tx-c-date { width: 72px; flex-shrink: 0; font-size: 13px; color: var(--muted); }
-.tx-c-desc { flex: 1; min-width: 0; padding: 0 10px; }
+.tx-c-date { width: var(--col-date,72px); flex-shrink: 0; font-size: 13px; color: var(--muted); position: relative; }
+.tx-c-desc { flex: 1; min-width: 60px; padding: 0 10px; overflow: hidden; }
 .tx-c-desc .txn { font-size: 14px; font-weight: 500; color: var(--text);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .tx-c-desc .txs { font-size: 12px; color: var(--muted); margin-top: 1px;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.tx-c-cat { width: 130px; flex-shrink: 0; font-size: 12px; color: var(--muted);
-  padding: 0 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.tx-c-amt { width: 100px; flex-shrink: 0; text-align: right;
-  font-size: 14px; font-weight: 600; padding: 0 8px; white-space: nowrap; }
-.tx-c-trasf { width: 100px; flex-shrink: 0; font-size: 12px; color: var(--blue); padding: 0 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.tx-c-bal { width: 110px; flex-shrink: 0; text-align: right;
-  font-size: 13px; color: var(--muted); padding: 0 8px; white-space: nowrap; }
+.tx-c-cat { width: var(--col-cat,130px); flex-shrink: 0; font-size: 12px; color: var(--muted);
+  padding: 0 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; position: relative; }
+.tx-c-amt { width: var(--col-amt,100px); flex-shrink: 0; text-align: right;
+  font-size: 14px; font-weight: 600; padding: 0 8px; white-space: nowrap; position: relative; }
+.tx-c-trasf { width: var(--col-trasf,100px); flex-shrink: 0; font-size: 12px; color: var(--blue); padding: 0 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; position: relative; }
+.tx-c-bal { width: var(--col-bal,110px); flex-shrink: 0; text-align: right;
+  font-size: 13px; color: var(--muted); padding: 0 8px; white-space: nowrap; position: relative; }
+/* Handle resize colonne */
+.col-resizer { position: absolute; right: 0; top: 0; bottom: 0; width: 8px;
+  cursor: col-resize; z-index: 5; user-select: none; -webkit-user-select: none;
+  display: flex; align-items: center; justify-content: center; }
+.col-resizer::after { content: ''; display: block; width: 2px; height: 14px;
+  background: var(--gray3); border-radius: 2px; transition: background 0.15s, height 0.15s; }
+.col-resizer:hover::after, .col-resizer.dragging::after { background: var(--blue); height: 100%; opacity: 0.7; }
 .tx-del { width: 28px; flex-shrink: 0; opacity: 0; transition: opacity 0.15s;
   display: flex; align-items: center; justify-content: center; }
 .tx-del button { width: 22px; height: 22px; border-radius: 50%;
@@ -212,9 +220,12 @@ body { padding-top: env(safe-area-inset-top, 0); }
 
 /* ── Responsive ── */
 @media (max-width: 768px) {
-  #sidebar { position: fixed; left: -100%; top: 0; height: 100vh; z-index: 50;
-    transition: left 0.3s; width: 300px; }
+  #hamburger-btn { display: block !important; }
+  #sidebar { position: fixed; left: -100%; top: 0; height: 100vh; height: 100dvh; z-index: 500;
+    transition: left 0.3s; width: 85vw; max-width: 320px; }
   #sidebar.open { left: 0; }
+  #sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 499; }
+  #sidebar.open ~ #sidebar-overlay, #sidebar-overlay.visible { display: block; }
   .header { padding: 0 12px; }
   #tx-table th:nth-child(3), #tx-table td:nth-child(3),
   #tx-table th:nth-child(4), #tx-table td:nth-child(4) { display: none; }
@@ -448,11 +459,12 @@ body { padding-top: env(safe-area-inset-top, 0); }
     </div>
 
   </div>
+  <div id="sidebar-overlay" onclick="closeSidebar()"></div>
 
   <!-- Main -->
   <div id="main">
     <div class="header">
-      <button onclick="toggleSidebar()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted)">☰</button>
+      <button id="hamburger-btn" onclick="toggleSidebar()" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--text);padding:4px 8px">☰</button>
       <h1 id="main-title" style="font-size:15px">Tutte le transazioni</h1>
       <div class="header-actions">
         <button onclick="openSettings()" style="background:none;border:1px solid var(--border);border-radius:8px;font-size:16px;cursor:pointer;color:var(--muted);padding:5px 10px" title="Impostazioni">⚙️</button>
@@ -472,12 +484,12 @@ body { padding-top: env(safe-area-inset-top, 0); }
 
     <div id="tx-list-container">
       <div id="tx-header">
-        <div class="txh tx-c-date">Data</div>
+        <div class="txh tx-c-date">Data<div class="col-resizer" data-col="date"></div></div>
         <div class="txh tx-c-desc" style="padding:0 10px">Descrizione</div>
-        <div class="txh tx-c-cat" style="padding:0 8px">Categoria</div>
-        <div class="txh tx-c-amt" style="text-align:right;padding:0 8px">Importo</div>
-        <div class="txh tx-c-bal" style="text-align:right;padding:0 8px">Saldo</div>
-        <div class="txh" style="width:100px;flex-shrink:0;padding:0 8px">Trasf.</div>
+        <div class="txh tx-c-cat" style="padding:0 8px">Categoria<div class="col-resizer" data-col="cat"></div></div>
+        <div class="txh tx-c-amt" style="text-align:right;padding:0 8px">Importo<div class="col-resizer" data-col="amt"></div></div>
+        <div class="txh tx-c-bal" style="text-align:right;padding:0 8px">Saldo<div class="col-resizer" data-col="bal"></div></div>
+        <div class="txh tx-c-trasf" style="padding:0 8px">Trasf.<div class="col-resizer" data-col="trasf"></div></div>
         <div style="width:28px;flex-shrink:0"></div>
       </div>
       <div id="tx-body" style="flex:1">
@@ -967,6 +979,7 @@ async function loadYear(year) {
 async function selectAccount(id, name) {
   selectedAccountId = id;
   document.getElementById('main-title').textContent = name;
+  closeSidebar(); // chiudi sidebar su mobile dopo selezione
   document.querySelectorAll('.account-row').forEach(r => {
     r.classList.toggle('active', r.dataset.accId === id);
   });
@@ -1514,7 +1527,16 @@ function closeModal() {
 }
 
 function toggleSidebar() {
-  document.getElementById('sidebar').classList.toggle('open');
+  var sidebar = document.getElementById('sidebar');
+  var overlay = document.getElementById('sidebar-overlay');
+  var isOpen = sidebar.classList.toggle('open');
+  if (overlay) overlay.classList.toggle('visible', isOpen);
+}
+
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  var overlay = document.getElementById('sidebar-overlay');
+  if (overlay) overlay.classList.remove('visible');
 }
 
 // ══════════════════════════════════════════════
@@ -2193,6 +2215,78 @@ function sellaFinish(msg) {
   document.body.appendChild(toast);
   setTimeout(function() { toast.remove(); }, 3500);
 }
+// ── Resize colonne TX ────────────────────────────────────────────────────────
+(function() {
+  var COLS = { date: 72, cat: 130, amt: 100, bal: 110, trasf: 100 };
+  var MIN  = { date: 50, cat: 60,  amt: 70,  bal: 70,  trasf: 60  };
+
+  function loadColWidths() {
+    try {
+      var saved = localStorage.getItem('icompta_col_widths');
+      if (saved) Object.assign(COLS, JSON.parse(saved));
+    } catch(e) {}
+    applyColWidths();
+  }
+
+  function applyColWidths() {
+    var root = document.documentElement;
+    Object.keys(COLS).forEach(function(k) {
+      root.style.setProperty('--col-' + k, COLS[k] + 'px');
+    });
+  }
+
+  function saveColWidths() {
+    try { localStorage.setItem('icompta_col_widths', JSON.stringify(COLS)); } catch(e) {}
+  }
+
+  function initColResizers() {
+    document.querySelectorAll('.col-resizer').forEach(function(handle) {
+      handle.addEventListener('pointerdown', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var col     = handle.dataset.col;
+        var startX  = e.clientX;
+        var startW  = COLS[col];
+        handle.classList.add('dragging');
+        handle.setPointerCapture(e.pointerId);
+
+        function onMove(ev) {
+          var delta = ev.clientX - startX;
+          var newW  = Math.max(MIN[col], startW + delta);
+          COLS[col] = Math.round(newW);
+          document.documentElement.style.setProperty('--col-' + col, COLS[col] + 'px');
+        }
+        function onUp() {
+          handle.classList.remove('dragging');
+          handle.removeEventListener('pointermove', onMove);
+          handle.removeEventListener('pointerup', onUp);
+          saveColWidths();
+        }
+        handle.addEventListener('pointermove', onMove);
+        handle.addEventListener('pointerup', onUp);
+      });
+    });
+  }
+
+  // Double click su handle = reset larghezza colonna
+  document.addEventListener('dblclick', function(e) {
+    var handle = e.target.closest('.col-resizer');
+    if (!handle) return;
+    var col = handle.dataset.col;
+    var defaults = { date: 72, cat: 130, amt: 100, bal: 110, trasf: 100 };
+    if (defaults[col]) {
+      COLS[col] = defaults[col];
+      document.documentElement.style.setProperty('--col-' + col, COLS[col] + 'px');
+      saveColWidths();
+    }
+  });
+
+  document.addEventListener('DOMContentLoaded', function() {
+    loadColWidths();
+    initColResizers();
+  });
+})();
+
 </script>
 
 <!-- Modal Import Sella -->
