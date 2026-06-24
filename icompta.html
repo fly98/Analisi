@@ -2759,12 +2759,26 @@ function toggleRecPending(){
 }
 
 async function approvaRec(rec,date){
+  var commento='Ricorrenza: '+(REC_FREQ[rec.frequenza]||{label:rec.frequenza}).label;
   var tx={id:null,date:date,name:rec.nome,accountId:rec.accountId,status:'cleared',
-    comment:'Ricorrenza: '+(REC_FREQ[rec.frequenza]||{label:rec.frequenza}).label,
-    useSumOfSplits:true,amount:null,linkedTxId:null,
+    comment:commento,useSumOfSplits:true,amount:null,linkedTxId:null,
     splits:[{amount:parseFloat(rec.importo),categoryId:rec.categoryId||null,comment:null}]};
   try{var r=await api('POST','/api/tx',{tx:tx});if(!r||!r.id){alert('Errore TX');return;}}
   catch(e){alert('Errore: '+e.message);return;}
+  // Trasferimento: crea TX collegata sul secondo conto
+  if(rec.isTrasf&&rec.accountId2){
+    var txLinked={id:null,date:date,name:rec.nome,accountId:rec.accountId2,status:'cleared',
+      comment:commento,useSumOfSplits:true,amount:null,linkedTxId:r.id,
+      splits:[{amount:-parseFloat(rec.importo),categoryId:rec.categoryId||null,comment:null}]};
+    try{
+      var r2=await api('POST','/api/tx',{tx:txLinked});
+      if(r2&&r2.id){
+        // Aggiorna TX principale con linkedTxId
+        var txUpd=Object.assign({},tx,{id:r.id,linkedTxId:r2.id});
+        await api('POST','/api/tx',{tx:txUpd});
+      }
+    }catch(e){console.warn('Errore TX collegata:',e);}
+  }
   if(!rec.processed)rec.processed=[];
   rec.processed.push(date);
   await saveRicorrenzeQuiet();
@@ -2816,6 +2830,10 @@ function renderRecBody(){
       '<span>Dal '+rec.dataInizio+'</span>'+
       '<span>'+(freq?freq.label:rec.frequenza)+'</span>'+
       (rec.dataFine?'<span>fino al '+rec.dataFine+'</span>':'')+
+      (rec.isTrasf&&rec.accountId2?(function(){
+        var a2=meta&&meta.accounts.find(function(a){return a.id===rec.accountId2;});
+        return '<span>→ '+(a2?esc(a2.name):'?')+'</span>';
+      })():'')+
       '</div>';
     div.querySelector('.rec-item-del').addEventListener('click',(function(i){
       return function(){if(!confirm('Eliminare?'))return;ricorrenze.splice(i,1);renderRecBody();};
@@ -2848,12 +2866,27 @@ function showRecForm(){
     '</div><div class="rec-form-row">'+
     '<div class="rf"><label>Data inizio</label><input id="rf-start" type="date" value="'+today+'"></div>'+
     '<div class="rf"><label>Data fine (opz.)</label><input id="rf-end" type="date"></div>'+
-    '</div><div style="display:flex;gap:8px;margin-top:10px">'+
+    '</div>'+
+    '<div class="rec-form-row" style="align-items:center">'+
+    '<div class="rf" style="display:flex;align-items:center;gap:8px">'+
+    '<label style="margin:0">Trasferimento</label>'+
+    '<button type="button" id="rf-trasf-tog" class="sella-tog off" onclick="toggleRecTrasf()" style="flex-shrink:0"></button>'+
+    '</div>'+
+    '<div class="rf" id="rf-trasf-box" style="display:none"><label>Conto destinazione</label><select id="rf-acc2">'+accOpts+'</select></div>'+
+    '</div>'+
+    '<div style="display:flex;gap:8px;margin-top:10px">'+
     '<button onclick="submitRecForm()" style="flex:2;padding:10px;border-radius:8px;border:none;background:var(--blue);color:#fff;font-weight:700;cursor:pointer">Aggiungi</button>'+
     '<button onclick="document.getElementById(\'rec-form\').remove();renderRecBody()" style="flex:1;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);cursor:pointer">Annulla</button>'+
     '</div>';
   body.insertBefore(form,body.firstChild);
   document.getElementById('rf-nome').focus();
+}
+
+function toggleRecTrasf(){
+  var tog=document.getElementById('rf-trasf-tog');
+  var box=document.getElementById('rf-trasf-box');
+  var on=tog.classList.toggle('on'); tog.classList.toggle('off',!on);
+  box.style.display=on?'':'none';
 }
 
 function submitRecForm(){
@@ -2868,9 +2901,13 @@ function submitRecForm(){
   if(!accId){alert('Seleziona un conto');return;}
   if(!amt||isNaN(parseFloat(amt))){alert('Importo non valido');return;}
   if(!start){alert('Inserisci la data di inizio');return;}
+  var trasfOn=document.getElementById('rf-trasf-tog').classList.contains('on');
+  var acc2=trasfOn?document.getElementById('rf-acc2').value:null;
+  if(trasfOn&&!acc2){alert('Seleziona il conto destinazione');return;}
   ricorrenze.push({id:'REC-'+Date.now(),nome:nome,accountId:accId,
     importo:parseFloat(amt),categoryId:catId||null,frequenza:freq,
-    dataInizio:start,dataFine:end||null,processed:[]});
+    dataInizio:start,dataFine:end||null,processed:[],
+    isTrasf:trasfOn||false,accountId2:acc2||null});
   document.getElementById('rec-form').remove();
   renderRecBody();
 }
@@ -2883,7 +2920,7 @@ async function saveRicorrenze(){
     if(r&&r.ok){closeRecModal();checkRecPending();}
     else alert('Errore salvataggio');
   }catch(e){alert('Errore: '+e.message);}
-  finally{btn.disabled=false;btn.textContent='&#128190; Salva';}
+  finally{btn.disabled=false;btn.textContent='💾 Salva';}
 }
 
 </script>
@@ -2971,7 +3008,7 @@ async function saveRicorrenze(){
     <div id="rec-body"></div>
     <div id="rec-footer">
       <button onclick="showRecForm()" style="flex:1;padding:11px;border-radius:10px;border:1.5px solid var(--blue);background:var(--blue-bg);color:var(--blue);font-size:14px;font-weight:700;cursor:pointer">+ Nuova</button>
-      <button onclick="saveRicorrenze()" style="flex:2;padding:11px;border-radius:10px;border:none;background:var(--blue);color:#fff;font-size:15px;font-weight:700;cursor:pointer">&#128190; Salva</button>
+      <button onclick="saveRicorrenze()" style="flex:2;padding:11px;border-radius:10px;border:none;background:var(--blue);color:#fff;font-size:15px;font-weight:700;cursor:pointer">💾 Salva</button>
     </div>
   </div>
 </div>
