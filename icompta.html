@@ -110,7 +110,7 @@ body { padding-top: env(safe-area-inset-top, 0); }
   border: none; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
 
 /* ── Transaction list ── */
-#tx-list-container { flex: 1; overflow-y: auto; background: var(--surface); display: block; }
+#tx-list-container { flex: 1; overflow-y: auto; background: var(--surface); display: flex; flex-direction: column; }
 #tx-header { display: flex; flex-direction: row; align-items: center; padding: 6px 16px;
   background: var(--bg); border-bottom: 1px solid var(--border-s);
   position: sticky; top: 0; z-index: 3; width: 100%; box-sizing: border-box; }
@@ -307,7 +307,7 @@ body { padding-top: env(safe-area-inset-top, 0); }
         <div class="txh tx-c-bal" style="text-align:right;padding:0 8px">Saldo</div>
         <div style="width:28px;flex-shrink:0"></div>
       </div>
-      <div id="tx-body">
+      <div id="tx-body" style="flex:1">
         <div style="text-align:center;padding:40px;color:var(--muted)">Seleziona un conto dalla sidebar</div>
       </div>
     </div>
