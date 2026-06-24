@@ -247,22 +247,32 @@ body { padding-top: env(safe-area-inset-top, 0); }
 .settings-item.danger .s-label { color: var(--red); }
 .settings-item.danger .s-icon { filter: hue-rotate(0deg); }
 
-/* ── Modal TX ridisegnato ── */
-.split-row { background: var(--bg); border-radius: 10px; padding: 12px;
-  margin-bottom: 8px; border: 1.5px solid var(--border); }
-.split-amount-big { width: 100%; padding: 12px; border-radius: 8px;
-  border: 1.5px solid var(--border); font-size: 28px; font-weight: 700;
-  text-align: right; outline: none; color: var(--text); background: var(--surface);
-  margin-bottom: 8px; box-sizing: border-box; }
-.split-amount-big:focus { border-color: var(--blue); }
-.split-amount-big.positive { color: var(--green); }
-.split-amount-big.negative { color: var(--red); }
-.split-row-bottom { display: flex; gap: 8px; align-items: center; }
-.split-row-bottom select { flex: 1; padding: 8px 10px; border-radius: 8px;
-  border: 1.5px solid var(--border); font-size: 14px; outline: none;
-  background: var(--surface); color: var(--text); }
-.split-del { background: none; border: none; color: var(--red); font-size: 18px;
-  cursor: pointer; padding: 4px 8px; flex-shrink: 0; }
+/* ── Numpad importo ── */
+.amt-display { width: 100%; padding: 14px 16px; border-radius: 10px;
+  border: 2px solid var(--border); font-size: 28px; font-weight: 700;
+  text-align: right; cursor: pointer; background: var(--surface);
+  color: var(--text); margin-bottom: 8px; box-sizing: border-box;
+  min-height: 60px; display: flex; align-items: center; justify-content: flex-end; }
+.amt-display:hover { border-color: var(--blue); }
+.amt-display.positive { color: var(--green); border-color: #a8d9b8; }
+.amt-display.negative { color: var(--red); border-color: #f0b8b8; }
+.amt-display.empty { color: var(--muted); }
+.numpad-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.3);
+  z-index: 300; display: flex; align-items: flex-end; justify-content: center; }
+.numpad-panel { background: var(--surface); border-radius: 20px 20px 0 0;
+  padding: 16px; width: 100%; max-width: 380px; box-shadow: 0 -8px 40px rgba(0,0,0,0.2); }
+.numpad-display { font-size: 36px; font-weight: 700; text-align: right;
+  padding: 8px 16px 16px; min-height: 56px; }
+.numpad-display.positive { color: var(--green); }
+.numpad-display.negative { color: var(--red); }
+.numpad-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 8px; }
+.numpad-btn { padding: 16px; border: none; border-radius: 10px; font-size: 20px;
+  font-weight: 600; cursor: pointer; background: var(--bg); color: var(--text); }
+.numpad-btn:active { background: var(--gray2); }
+.numpad-btn.sign { background: var(--amber-bg); color: var(--amber); }
+.numpad-btn.del { background: var(--red-bg); color: var(--red); }
+.numpad-btn.confirm { background: var(--text); color: white; grid-column: span 3;
+  padding: 18px; font-size: 18px; border-radius: 12px; }
 .transfer-section { margin-top: 12px; border-radius: 10px;
   border: 1.5px solid var(--border); overflow: hidden; }
 .transfer-header { padding: 10px 14px; display: flex; align-items: center;
@@ -274,45 +284,16 @@ body { padding-top: env(safe-area-inset-top, 0); }
 .t-toggle::after { content:''; position: absolute; width: 16px; height: 16px;
   background: white; border-radius: 50%; top: 2px; left: 2px; transition: left 0.2s; }
 .t-toggle.on::after { left: 18px; }
-.transfer-body { padding: 12px 14px; display: none; border-top: 1px solid var(--border); background: var(--surface); }
+.transfer-body { padding: 12px 14px; display: none; border-top: 1px solid var(--border); }
 .transfer-body.open { display: block; }
-
-
-/* ── Numpad importo ── */
-.amt-display { width: 100%; padding: 14px 16px; border-radius: 10px;
-  border: 2px solid var(--border); font-size: 32px; font-weight: 700;
-  text-align: right; cursor: pointer; background: var(--surface);
-  color: var(--text); margin-bottom: 8px; box-sizing: border-box;
-  transition: border-color 0.15s; min-height: 64px; display: flex;
-  align-items: center; justify-content: flex-end; }
-.amt-display:hover { border-color: var(--blue); }
-.amt-display.positive { color: var(--green); border-color: #a8d9b8; }
-.amt-display.negative { color: var(--red); border-color: #f0b8b8; }
-.amt-display.empty { color: var(--muted); }
-
-.numpad-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.3);
-  z-index: 300; display: flex; align-items: flex-end; justify-content: center; }
-.numpad-panel { background: var(--surface); border-radius: 20px 20px 0 0;
-  padding: 16px; width: 100%; max-width: 400px; box-shadow: 0 -8px 40px rgba(0,0,0,0.2); }
-.numpad-display { font-size: 36px; font-weight: 700; text-align: right;
-  padding: 8px 16px 16px; color: var(--text); min-height: 56px; }
-.numpad-display.positive { color: var(--green); }
-.numpad-display.negative { color: var(--red); }
-.numpad-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 8px; }
-.numpad-btn { padding: 16px; border: none; border-radius: 10px; font-size: 20px;
-  font-weight: 600; cursor: pointer; background: var(--bg); color: var(--text);
-  transition: background 0.1s; }
-.numpad-btn:active { background: var(--gray2); }
-.numpad-btn.sign { background: var(--amber-bg); color: var(--amber); }
-.numpad-btn.del { background: var(--red-bg); color: var(--red); font-size: 18px; }
-.numpad-btn.confirm { background: var(--text); color: white; grid-column: span 3;
-  padding: 18px; font-size: 18px; border-radius: 12px; }
-.split-row-bottom { display: flex; gap: 8px; align-items: center; }
+.split-row { background: var(--bg); border-radius: 10px; padding: 12px;
+  margin-bottom: 8px; border: 1.5px solid var(--border); }
+.split-row-bottom { display: flex; gap: 8px; align-items: center; margin-top: 8px; }
 .split-row-bottom select { flex: 1; padding: 10px; border-radius: 8px;
   border: 1.5px solid var(--border); font-size: 14px; outline: none;
   background: var(--surface); color: var(--text); }
-.split-del { background: none; border: none; color: var(--red); font-size: 20px;
-  cursor: pointer; padding: 4px 8px; flex-shrink: 0; }
+.split-del { background: none; border: none; color: var(--red);
+  font-size: 20px; cursor: pointer; padding: 4px 8px; flex-shrink: 0; }
 
 </style>
 </head>
@@ -1216,13 +1197,12 @@ function addSplit(split = null) {
     .sort((a,b) => a.name.localeCompare(b.name))
     .map(c => `<option value="${c.id}" ${split?.categoryId === c.id ? 'selected' : ''}>${esc(c.name)}</option>`)
     .join('');
-  const amt = split?.amount ?? null;
+  const amt = (split && split.amount !== undefined && split.amount !== null) ? split.amount : null;
   const amtClass = amt > 0 ? 'positive' : amt < 0 ? 'negative' : 'empty';
-  const amtText = amt !== null && amt !== '' ? fmt(amt) : '0,00 €';
-
+  const amtText = amt !== null ? fmt(amt) : 'Tocca per inserire importo';
   const row = document.createElement('div');
   row.className = 'split-row';
-  row.dataset.amount = amt ?? '';
+  row.dataset.amount = amt !== null ? String(amt) : '';
   row.innerHTML = `
     <div class="amt-display ${amtClass}" onclick="openNumpad(this)">${amtText}</div>
     <div class="split-row-bottom">
@@ -1230,102 +1210,87 @@ function addSplit(split = null) {
         <option value="">— Categoria —</option>
         ${catOptions}
       </select>
-      <button class="split-del" onclick="this.closest('.split-row').remove()" title="Rimuovi">✕</button>
+      <button class="split-del" onclick="this.closest('.split-row').remove()">✕</button>
     </div>`;
   container.appendChild(row);
 }
 
-// ── Numpad ───────────────────────────────────────────────
 let _numpadTarget = null;
 let _numpadValue = '';
 
-function openNumpad(displayEl) {
-  _numpadTarget = displayEl;
-  const row = displayEl.closest('.split-row');
-  const current = row.dataset.amount;
-  _numpadValue = current ? String(Math.abs(parseFloat(current))) : '';
-  const isNeg = current && parseFloat(current) < 0;
-
-  const overlay = document.createElement('div');
-  overlay.className = 'numpad-overlay';
-  overlay.id = 'numpad-overlay';
-  overlay.innerHTML = `
-    <div class="numpad-panel" onclick="event.stopPropagation()">
-      <div class="numpad-display" id="numpad-disp">${_numpadValue || '0'}</div>
-      <div class="numpad-grid">
-        <button class="numpad-btn" onclick="numpadKey('7')">7</button>
-        <button class="numpad-btn" onclick="numpadKey('8')">8</button>
-        <button class="numpad-btn" onclick="numpadKey('9')">9</button>
-        <button class="numpad-btn" onclick="numpadKey('4')">4</button>
-        <button class="numpad-btn" onclick="numpadKey('5')">5</button>
-        <button class="numpad-btn" onclick="numpadKey('6')">6</button>
-        <button class="numpad-btn" onclick="numpadKey('1')">1</button>
-        <button class="numpad-btn" onclick="numpadKey('2')">2</button>
-        <button class="numpad-btn" onclick="numpadKey('3')">3</button>
-        <button class="numpad-btn sign" onclick="numpadToggleSign()">+/−</button>
-        <button class="numpad-btn" onclick="numpadKey('0')">0</button>
-        <button class="numpad-btn" onclick="numpadKey(',')">.</button>
-        <button class="numpad-btn del" onclick="numpadKey('del')">⌫</button>
-        <button class="numpad-btn" onclick="numpadKey('00')">00</button>
-        <button class="numpad-btn" onclick="numpadKey('000')">000</button>
-      </div>
-      <button class="numpad-btn confirm" onclick="numpadConfirm()">✓ Conferma</button>
-    </div>`;
-  overlay.addEventListener('click', () => closeNumpad());
-  document.body.appendChild(overlay);
-  if (isNeg) overlay.querySelector('.numpad-panel').dataset.neg = '1';
-  updateNumpadDisplay();
+function openNumpad(el) {
+  _numpadTarget = el;
+  const row = el.closest('.split-row');
+  const cur = parseFloat(row.dataset.amount);
+  _numpadValue = (!isNaN(cur) && cur !== 0) ? String(Math.abs(cur)) : '';
+  const isNeg = !isNaN(cur) && cur < 0;
+  const ov = document.createElement('div');
+  ov.className = 'numpad-overlay'; ov.id = 'numpad-overlay';
+  ov.innerHTML = `<div class="numpad-panel" data-neg="${isNeg?1:0}" onclick="event.stopPropagation()">
+    <div class="numpad-display" id="np-disp"></div>
+    <div class="numpad-grid">
+      <button class="numpad-btn" onclick="npKey('7')">7</button>
+      <button class="numpad-btn" onclick="npKey('8')">8</button>
+      <button class="numpad-btn" onclick="npKey('9')">9</button>
+      <button class="numpad-btn" onclick="npKey('4')">4</button>
+      <button class="numpad-btn" onclick="npKey('5')">5</button>
+      <button class="numpad-btn" onclick="npKey('6')">6</button>
+      <button class="numpad-btn" onclick="npKey('1')">1</button>
+      <button class="numpad-btn" onclick="npKey('2')">2</button>
+      <button class="numpad-btn" onclick="npKey('3')">3</button>
+      <button class="numpad-btn sign" onclick="npSign()">+/−</button>
+      <button class="numpad-btn" onclick="npKey('0')">0</button>
+      <button class="numpad-btn" onclick="npKey('.')">.</button>
+      <button class="numpad-btn del" onclick="npKey('del')">⌫</button>
+      <button class="numpad-btn" onclick="npKey('00')">00</button>
+      <button class="numpad-btn" onclick="npKey('000')">000</button>
+    </div>
+    <button class="numpad-btn confirm" onclick="npConfirm()">✓ Conferma</button>
+  </div>`;
+  ov.addEventListener('click', () => { const e = document.getElementById('numpad-overlay'); if(e) e.remove(); });
+  document.body.appendChild(ov);
+  npUpdate();
 }
 
-function numpadKey(k) {
-  if (k === 'del') { _numpadValue = _numpadValue.slice(0,-1); }
-  else if (k === ',') { if (!_numpadValue.includes('.')) _numpadValue += '.'; }
+function npKey(k) {
+  if (k==='del') _numpadValue = _numpadValue.slice(0,-1);
+  else if (k==='.') { if (!_numpadValue.includes('.')) _numpadValue += '.'; }
   else { if (_numpadValue.length < 10) _numpadValue += k; }
-  updateNumpadDisplay();
+  npUpdate();
 }
 
-function numpadToggleSign() {
-  const panel = document.querySelector('.numpad-panel');
-  panel.dataset.neg = panel.dataset.neg === '1' ? '0' : '1';
-  updateNumpadDisplay();
+function npSign() {
+  const p = document.querySelector('.numpad-panel');
+  if (p) p.dataset.neg = p.dataset.neg==='1' ? '0' : '1';
+  npUpdate();
 }
 
-function updateNumpadDisplay() {
-  const disp = document.getElementById('numpad-disp');
-  if (!disp) return;
-  const panel = document.querySelector('.numpad-panel');
-  const isNeg = panel?.dataset.neg === '1';
-  const val = _numpadValue || '0';
-  disp.textContent = (isNeg ? '−' : '+') + ' ' + val;
-  disp.className = 'numpad-display ' + (isNeg ? 'negative' : 'positive');
+function npUpdate() {
+  const d = document.getElementById('np-disp'); if (!d) return;
+  const p = document.querySelector('.numpad-panel');
+  const neg = p && p.dataset.neg==='1';
+  const v = _numpadValue || '0';
+  d.textContent = (neg ? '− ' : '+ ') + v;
+  d.className = 'numpad-display ' + (neg ? 'negative' : 'positive');
 }
 
-function numpadConfirm() {
+function npConfirm() {
   if (!_numpadTarget) return;
-  const panel = document.querySelector('.numpad-panel');
-  const isNeg = panel?.dataset.neg === '1';
-  const val = parseFloat(_numpadValue || '0');
-  const final = isNeg ? -Math.abs(val) : Math.abs(val);
+  const p = document.querySelector('.numpad-panel');
+  const neg = p && p.dataset.neg==='1';
+  const v = parseFloat(_numpadValue || '0');
+  const final = neg ? -Math.abs(v) : Math.abs(v);
   const row = _numpadTarget.closest('.split-row');
-  row.dataset.amount = final;
-  const cls = final > 0 ? 'positive' : final < 0 ? 'negative' : 'empty';
-  _numpadTarget.className = 'amt-display ' + cls;
+  row.dataset.amount = String(final);
+  _numpadTarget.className = 'amt-display ' + (final>0?'positive':final<0?'negative':'empty');
   _numpadTarget.textContent = fmt(final);
-  closeNumpad();
-}
-
-function closeNumpad() {
-  const el = document.getElementById('numpad-overlay');
-  if (el) el.remove();
+  const ov = document.getElementById('numpad-overlay'); if(ov) ov.remove();
   _numpadTarget = null;
 }
 
-
 function toggleTransfer() {
-  const t = document.getElementById('transfer-toggle');
-  const b = document.getElementById('transfer-body');
-  t.classList.toggle('on');
-  b.classList.toggle('open');
+  document.getElementById('transfer-toggle').classList.toggle('on');
+  document.getElementById('transfer-body').classList.toggle('open');
 }
 
 function populateTransferAccounts(excludeId) {
@@ -1333,225 +1298,8 @@ function populateTransferAccounts(excludeId) {
   sel.innerHTML = '<option value="">— Seleziona conto —</option>';
   meta.accounts.filter(a => !a.hidden && a.id !== excludeId).forEach(a => {
     const opt = document.createElement('option');
-    opt.value = a.id; opt.textContent = a.name;
-    sel.appendChild(opt);
+    opt.value = a.id; opt.textContent = a.name; sel.appendChild(opt);
   });
 }
 
 
-function openNewTx() {
-  editingTx = null;
-  document.getElementById('modal-title').textContent = 'Nuova transazione';
-  document.getElementById('btn-delete').style.display = 'none';
-  document.getElementById('tx-date').value = new Date().toISOString().slice(0,10);
-  document.getElementById('tx-status').value = 'created';
-  document.getElementById('tx-name').value = '';
-  document.getElementById('tx-comment').value = '';
-  
-  // Popola select conto
-  const sel = document.getElementById('tx-account');
-  sel.innerHTML = '';
-  for (const acc of meta.accounts.filter(a => !a.hidden)) {
-    const opt = document.createElement('option');
-    opt.value = acc.id;
-    opt.textContent = acc.name;
-    if (acc.id === selectedAccountId) opt.selected = true;
-    sel.appendChild(opt);
-  }
-
-  // Un split vuoto
-  document.getElementById('splits-container').innerHTML = '';
-  addSplit();
-  
-  populateTransferAccounts(document.getElementById('tx-account').value);
-  document.getElementById('transfer-toggle').classList.remove('on');
-  document.getElementById('transfer-body').classList.remove('open');
-  document.getElementById('tx-modal').style.display = 'flex';
-}
-
-function openEditTx(tx) {
-  editingTx = tx;
-  document.getElementById('modal-title').textContent = 'Modifica transazione';
-  document.getElementById('btn-delete').style.display = 'block';
-  document.getElementById('tx-date').value = tx.date;
-  document.getElementById('tx-status').value = tx.status || 'created';
-  document.getElementById('tx-name').value = tx.name || '';
-  document.getElementById('tx-comment').value = tx.comment || '';
-
-  const sel = document.getElementById('tx-account');
-  sel.innerHTML = '';
-  for (const acc of meta.accounts.filter(a => !a.hidden)) {
-    const opt = document.createElement('option');
-    opt.value = acc.id;
-    opt.textContent = acc.name;
-    if (acc.id === tx.accountId) opt.selected = true;
-    sel.appendChild(opt);
-  }
-
-  const splits = tx.splits?.length > 0 ? tx.splits : [{ amount: tx.amount, categoryId: null, comment: '' }];
-  document.getElementById('splits-container').innerHTML = '';
-  for (const s of splits) addSplit(s);
-
-  document.getElementById('tx-modal').style.display = 'flex';
-}
-
-function addSplit(split = null) {
-  const container = document.getElementById('splits-container');
-  const catOptions = [...meta.categories]
-    .sort((a,b) => a.name.localeCompare(b.name))
-    .map(c => `<option value="${c.id}" ${split?.categoryId === c.id ? 'selected' : ''}>${esc(c.name)}</option>`)
-    .join('');
-
-  async function saveTx() {
-  const splits = [];
-  document.querySelectorAll('.split-row').forEach(row => {
-    const amount = parseFloat(row.dataset.amount);
-    const categoryId = row.querySelector('.split-cat').value || null;
-    if (!isNaN(amount)) splits.push({ amount, categoryId, comment: null });
-  });
-
-  const tx = {
-    id: editingTx?.id || null,
-    date: document.getElementById('tx-date').value,
-    name: document.getElementById('tx-name').value.trim(),
-    accountId: document.getElementById('tx-account').value,
-    status: 'created',
-    comment: document.getElementById('tx-comment').value.trim() || null,
-    useSumOfSplits: true,
-    amount: null,
-    splits
-  };
-
-  const result = await api('POST', '/api/tx', { tx });
-  if (result.error) { alert('Errore: ' + result.error); return; }
-
-  closeModal();
-  // Reload anno corrente
-  const year = tx.date.slice(0,4);
-  if (year !== selectedYear) await selectYear(year);
-  else await loadYear(selectedYear);
-  // Aggiorna saldi
-  loadBalances();
-}
-
-async function deleteTx() {
-  if (!editingTx) return;
-  if (!confirm('Eliminare questa transazione?')) return;
-  const year = editingTx.date.slice(0,4);
-  const result = await api('DELETE', `/api/tx/${editingTx.id}?year=${year}`);
-  if (result.error) { alert('Errore: ' + result.error); return; }
-  closeModal();
-  await loadYear(selectedYear);
-  loadBalances();
-}
-
-function closeModal() {
-  document.getElementById('tx-modal').style.display = 'none';
-  editingTx = null;
-}
-
-function toggleSidebar() {
-  document.getElementById('sidebar').classList.toggle('open');
-}
-
-// ══════════════════════════════════════════════
-// STARTUP
-// ══════════════════════════════════════════════
-(async () => {
-  if (TOKEN) {
-    try {
-      const r = await api('GET', '/api/meta');
-      if (!r.error) {
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('app').style.display = 'flex';
-        await init(r);
-      }
-    } catch(e) { /* mostra login */ }
-  }
-})();
-
-
-// ── Settings ─────────────────────────────────────────────
-function openSettings() {
-  document.getElementById('settings-overlay').style.display = 'flex';
-}
-function closeSettings() {
-  document.getElementById('settings-overlay').style.display = 'none';
-}
-
-async function confirmRestore() {
-  const ok = confirm('⚠️ Ripristina database?\n\nTutte le modifiche fatte verranno cancellate.\nVerranno ripristinati i dati originali del 23/06/2026.\n\nCi vorranno circa 2 minuti.');
-  if (!ok) return;
-  closeSettings();
-  const btn = document.querySelector('.settings-item.danger');
-  try {
-    const r = await api('POST', '/api/restore');
-    if (r.ok) {
-      alert('✅ ' + r.message + '\n\nRicarica la pagina tra 2 minuti.');
-    } else {
-      alert('Errore: ' + (r.error || 'sconosciuto'));
-    }
-  } catch(e) {
-    alert('Errore: ' + e.message);
-  }
-}
-
-function doLogout() {
-  if (!confirm('Esci da iCompta?')) return;
-  localStorage.removeItem('icompta_token');
-  location.reload();
-}
-
-function exportOFX() {
-  if (!selectedAccountId || !meta) { alert('Seleziona prima un conto'); return; }
-  const acc = meta.accounts.find(a => a.id === selectedAccountId);
-  const from = prompt('Data inizio (YYYY-MM-DD):', new Date().getFullYear() + '-01-01');
-  if (!from) return;
-  const to = new Date().toISOString().slice(0,10);
-  const url = `${WORKER_URL}/api/export/ofx?accountId=${selectedAccountId}&from=${from}&to=${to}`;
-  const a = document.createElement('a');
-  a.href = url;
-  a.setAttribute('download', `icompta_${acc.name}_${from}_${to}.ofx`);
-  // Aggiungi auth header via fetch
-  fetch(url, { headers: { 'Authorization': `Bearer ${TOKEN}` }})
-    .then(r => r.blob())
-    .then(blob => {
-      const url2 = URL.createObjectURL(blob);
-      a.href = url2;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    });
-}
-
-// ── Sidebar resize ──────────────────────────────────────
-(function() {
-  const resizer = document.getElementById('sidebar-resizer');
-  const sidebar = document.getElementById('sidebar');
-  let startX, startW;
-
-  resizer.addEventListener('pointerdown', e => {
-    startX = e.clientX;
-    startW = sidebar.offsetWidth;
-    resizer.classList.add('dragging');
-    resizer.setPointerCapture(e.pointerId);
-    document.addEventListener('pointermove', onMove);
-    document.addEventListener('pointerup', onUp);
-    e.preventDefault();
-  });
-
-  function onMove(e) {
-    const dx = e.clientX - startX;
-    const newW = Math.min(420, Math.max(180, startW + dx));
-    sidebar.style.width = newW + 'px';
-  }
-
-  function onUp() {
-    resizer.classList.remove('dragging');
-    document.removeEventListener('pointermove', onMove);
-    document.removeEventListener('pointerup', onUp);
-  }
-})();
-</script>
-</body>
-</html>
