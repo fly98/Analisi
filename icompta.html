@@ -466,8 +466,8 @@ body { padding-top: env(safe-area-inset-top, 0); }
   border:1px solid var(--gray2);cursor:default;
 }
 .acct-row.hidden-acc { opacity:.45; }
-.acct-drag { color:var(--gray3);cursor:grab;font-size:16px;flex-shrink:0; }
-.acct-drag:active { cursor:grabbing; }
+.acct-drag { color:var(--gray3);cursor:grab;font-size:18px;flex-shrink:0;padding:4px 8px;border-radius:6px;touch-action:none; }
+.acct-drag:active { cursor:grabbing;color:var(--blue);background:var(--blue-bg); }
 .acct-icon { font-size:18px;flex-shrink:0;width:24px;text-align:center; }
 .acct-name-input {
   flex:1;font-size:14px;font-weight:500;border:none;background:transparent;
@@ -2614,31 +2614,40 @@ function _initAcctDrag(row, acc) {
   handle.addEventListener('pointerdown', function(e) {
     e.preventDefault();
     _dragSrc = { row: row, acc: acc };
+    var pid = e.pointerId;
     row.style.opacity = '0.5';
-    handle.setPointerCapture(e.pointerId);
+    row.style.boxShadow = '0 4px 16px rgba(0,0,0,.15)';
+    row.style.zIndex = '10';
+    // Usa document per catturare anche quando il dito esce dall'handle
+    handle.setPointerCapture(pid);
 
     function onMove(ev) {
+      if (ev.pointerId !== pid) return;
       var el = document.elementFromPoint(ev.clientX, ev.clientY);
       var target = el && el.closest('.acct-row');
       if (target && target !== row) {
         var body = document.getElementById('accts-body');
-        var rows = Array.from(body.querySelectorAll('.acct-row'));
-        var srcIdx = rows.indexOf(row);
-        var tgtIdx = rows.indexOf(target);
+        var allRows = Array.from(body.querySelectorAll('.acct-row'));
+        var srcIdx = allRows.indexOf(row);
+        var tgtIdx = allRows.indexOf(target);
         if (srcIdx > tgtIdx) target.before(row);
         else target.after(row);
-        // Aggiorna ordine in _acctsDraft
         _syncAcctOrder();
       }
     }
-    function onUp() {
+    function onUp(ev) {
+      if (ev.pointerId !== pid) return;
       row.style.opacity = '';
+      row.style.boxShadow = '';
+      row.style.zIndex = '';
       _dragSrc = null;
       handle.removeEventListener('pointermove', onMove);
       handle.removeEventListener('pointerup', onUp);
+      handle.removeEventListener('pointercancel', onUp);
     }
     handle.addEventListener('pointermove', onMove);
     handle.addEventListener('pointerup', onUp);
+    handle.addEventListener('pointercancel', onUp);
   });
 }
 
