@@ -776,20 +776,15 @@ select.form-input { height: 42px; }
       <button class="modal-close" onclick="closeModal()">×</button>
     </div>
     <div class="modal-body">
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Data</label>
-          <input type="date" class="form-input" id="tx-date">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Stato</label>
-          <select class="form-input" id="tx-status">
-            <option value="created">In sospeso</option>
-            <option value="cleared">Evaso</option>
-            <option value="imported">Importato</option>
-          </select>
-        </div>
+      <div class="form-group">
+        <label class="form-label">Data</label>
+        <input type="date" class="form-input" id="tx-date">
       </div>
+      <select id="tx-status" style="display:none">
+        <option value="created">In sospeso</option>
+        <option value="cleared">Evaso</option>
+        <option value="imported">Importato</option>
+      </select>
       <div class="form-group">
         <label class="form-label">Descrizione</label>
         <input type="text" class="form-input" id="tx-name" placeholder="Es. Booking, Leo, Clienti...">
