@@ -1122,59 +1122,132 @@ function toISO(d){return d.toISOString().slice(0,10);}
 
 calcSaldo();
 
-function buildIComptaCSV(s) {
-  const hdr = 'Conto;ID;Stato;Data;Data valuta;Nome;Commento;Importo;Importo netto;Tasse;Percentuale tasse;Beneficiario;Tipo;Numero;Categoria;Investimento;Titoli;Azioni;Commissione;Links;Categoria tasse;Rapporto;Progetto;Non includere nei budget;Fattura;Non includere negli estratticonto;Non includerlo nel calcolo del bilancio medio del conto;Rimborso';
+// ── Import diretto su iCompta ────────────────────────────────────────────────
+const ICOMPTA_WORKER = 'https://icompta-worker.f-castiglioni.workers.dev';
+
+// ID categorie iCompta
+const IC_CATS = {
+  clienti:     '600FE5ED-A4B4-4876-A785-33627FFF0FDC',
+  weekend:     null, // trovato dinamicamente da nome
+  ferie:       null,
+  pulizia:     '4DE42F08-CBBE-43B4-8D4B-6C8FAB4D142F',
+  manutenzione:null,
+  prodottiPulizia: null
+};
+
+async function iComptaApi(method, path, body) {
+  const token = localStorage.getItem('icompta_token');
+  if (!token) throw new Error('Token iCompta non trovato. Apri prima iCompta e accedi.');
+  const opts = {
+    method, headers: {
+      'Authorization': 'Bearer ' + token,
+      'Content-Type': 'application/json',
+      'Origin': 'https://fly98.github.io'
+    }
+  };
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(ICOMPTA_WORKER + path, opts);
+  if (!r.ok) throw new Error('Errore ' + r.status);
+  return r.json();
+}
+
+function iComptaMakeTx(date, name, amount, catId, comment, accountId) {
+  return {
+    id: null, date, name, accountId, status: 'cleared',
+    comment: comment || '', useSumOfSplits: true, amount: null, linkedTxId: null,
+    splits: [{ amount, categoryId: catId || null, comment: null }]
+  };
+}
+
+async function buildIComptaTx(s) {
+  // Legge meta per trovare conti e categorie
+  const meta = await iComptaApi('GET', '/api/meta');
+  const findAcc = name => (meta.accounts.find(a => a.name === name) || {}).id;
+  const findCat = name => {
+    for (const g of (meta.categories || [])) {
+      const c = (g.categories || []).find(c => c.name === name);
+      if (c) return c.id;
+    }
+    return null;
+  };
+
+  const accInterno = findAcc('InternoUno');
+  const accBabbo   = findAcc('Babbo');
+  if (!accInterno) throw new Error('Conto InternoUno non trovato');
+
+  const catClienti     = '600FE5ED-A4B4-4876-A785-33627FFF0FDC';
+  const catWeekend     = findCat('Weekend')     || findCat('weekend');
+  const catFerie       = findCat('Ferie')       || findCat('ferie');
+  const catPulizia     = '4DE42F08-CBBE-43B4-8D4B-6C8FAB4D142F';
+  const catManutenzione= findCat('Manutenzione')|| findCat('manutenzione');
+
   const dataSal = s.dataSalvataggio ? new Date(s.dataSalvataggio) : new Date();
-  const oggi = dataSal.toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'});
-  const labelData = 'Importazione LEO del ' + oggi;
+  const dateISO = dataSal.toISOString().slice(0,10);
+  const oggiLabel = dataSal.toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'});
   const mesiIT = ['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
-  const mesePre = new Date(dataSal.getFullYear(), dataSal.getMonth() - 1, 1);
+  const mesePre = new Date(dataSal.getFullYear(), dataSal.getMonth()-1, 1);
   const labelStip = 'stipendio ' + mesiIT[mesePre.getMonth()] + ' ' + mesePre.getFullYear();
 
-  function rigaReddito(nome, importo, categoria, commento) {
-    if (!importo || importo === 0) return null;
-    const imp = (-Math.abs(importo)).toFixed(2);
-    return ['Attivo : InternoUno','','Creato',oggi,oggi,nome,commento||'',imp,'','','','','','',categoria,'','','','','','','100','','0','','0','0','0'].join(';');
-  }
-  function rigaSpesa(nome, importo, categoria, commento) {
-    if (!importo || importo === 0) return null;
-    const imp = Math.abs(importo).toFixed(2);
-    return ['Attivo : InternoUno','','Creato',oggi,oggi,nome,commento||'',imp,'','','','','','',categoria,'','','','','','','100','','0','','0','0','0'].join(';');
-  }
-
-  const rows = [];
+  const txs = [];
   const totClienti = (s.totContanti||0) + (s.stripe||0);
-  if (totClienti) { const r=rigaReddito('Clienti',totClienti,'Redditi : Redditi InternoUno e Deluxe',labelData); if(r) rows.push(r); }
-  if (s.wkTot) { const wkDetail=s.wkDateSel&&s.wkDateSel.length?s.wkDateSel.join(', '):(s.wkN||0)+' giorni'; const r=rigaSpesa('Weekend',s.wkTot,'Spese Interno1 : Weekend','weekend/festività: '+wkDetail); if(r) rows.push(r); }
-  if (s.ferie) { const fd=s.ferieDal&&s.ferieAl?'ferie: '+s.ferieDal+' - '+s.ferieAl:'ferie'; const r=rigaSpesa('Ferie',s.ferie,'Spese Interno1 : Ferie',fd); if(r) rows.push(r); }
-  if (s.sp) { const r=rigaSpesa('Spesa Leo',s.sp,'Spese Interno1 : Prodotti Pulizia',labelData); if(r) rows.push(r); }
-  if (s.man) { const r=rigaSpesa('Manutenzione Leo',s.man,'Spese Interno1 : Manutenzione',labelData); if(r) rows.push(r); }
-  if (s.stip) { const r=rigaSpesa('Stipendio Leo',s.stip,'Spese Interno1 : Pulizia',labelStip); if(r) rows.push(r); }
+  if (totClienti)
+    txs.push(iComptaMakeTx(dateISO,'Clienti',-Math.abs(totClienti),catClienti,'Importazione LEO del '+oggiLabel,accInterno));
+  if (s.wkTot) {
+    const wkDetail = s.wkDateSel&&s.wkDateSel.length ? s.wkDateSel.join(', ') : (s.wkN||0)+' giorni';
+    txs.push(iComptaMakeTx(dateISO,'Weekend',Math.abs(s.wkTot),catWeekend,'weekend/festività: '+wkDetail,accInterno));
+  }
+  if (s.ferie) {
+    const fd = s.ferieDal&&s.ferieAl ? 'ferie: '+s.ferieDal+' - '+s.ferieAl : 'ferie';
+    txs.push(iComptaMakeTx(dateISO,'Ferie',Math.abs(s.ferie),catFerie,fd,accInterno));
+  }
+  if (s.sp)
+    txs.push(iComptaMakeTx(dateISO,'Spesa Leo',Math.abs(s.sp),catPulizia,'Importazione LEO del '+oggiLabel,accInterno));
+  if (s.man)
+    txs.push(iComptaMakeTx(dateISO,'Manutenzione Leo',Math.abs(s.man),catManutenzione,'Importazione LEO del '+oggiLabel,accInterno));
+  if (s.stip)
+    txs.push(iComptaMakeTx(dateISO,'Stipendio Leo',Math.abs(s.stip),catPulizia,labelStip,accInterno));
+  if (s.bab && accBabbo)
+    txs.push(iComptaMakeTx(dateISO,'Babbo',Math.abs(s.bab),null,'Importazione LEO del '+oggiLabel,accBabbo));
 
-  if (!rows.length) { alert('Nessuna voce da esportare.'); return null; }
-  return '\uFEFF' + hdr + '\n' + rows.join('\n');
+  return txs;
 }
 
-function esportaICompta() {
+async function esportaICompta() {
   if (!S.loaded || !S.lastCalc) { alert('Calcola prima la liquidazione.'); return; }
-  const fakeSession = {...S.lastCalc, dataSalvataggio: new Date().toISOString(), cashIds: []};
-  const csv = buildIComptaCSV(fakeSession);
-  if (!csv) return;
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv;charset=utf-8'}));
-  a.download = 'Leo_iCompta.csv'; a.click();
+  const fakeSession = {...S.lastCalc, dataSalvataggio: new Date().toISOString()};
+  await _doExportICompta(fakeSession);
 }
 
-function esportaIComptaSto(idx) {
+async function esportaIComptaSto(idx) {
   const hist = _cache || {sessioni:[]};
   const s = hist.sessioni[idx];
   if (!s) return;
-  const csv = buildIComptaCSV(s);
-  if (!csv) return;
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv;charset=utf-8'}));
-  a.download = 'Leo_iCompta_' + (s.periodo||'').replace(/[^a-zA-Z0-9]/g,'_') + '.csv';
-  a.click();
+  await _doExportICompta(s);
+}
+
+async function _doExportICompta(s) {
+  const btn = event && event.currentTarget;
+  if (btn) { btn.disabled = true; btn.textContent = '⏳...'; }
+  try {
+    const txs = await buildIComptaTx(s);
+    if (!txs.length) { alert('Nessuna voce da esportare.'); return; }
+
+    // Preview
+    const lines = txs.map(t => (t.splits[0].amount>0?'+':'')+t.splits[0].amount.toFixed(2)+'€ '+t.name).join('\n');
+    if (!confirm('Importare su iCompta?\n\n'+lines+'\n\nConfermi?')) return;
+
+    // Crea TX
+    let ok = 0;
+    for (const tx of txs) {
+      const r = await iComptaApi('POST', '/api/tx', {tx});
+      if (r && r.id) ok++;
+    }
+    alert('✅ '+ok+' transazioni create su iCompta!');
+  } catch(e) {
+    alert('Errore: '+e.message);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '📊 iCompta'; }
+  }
 }
 </script>
 </body>
