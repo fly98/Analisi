@@ -698,6 +698,14 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif
           </div>
           <span class="s-arrow">›</span>
         </div>
+        <div class="settings-item" onclick="closeSettings();openSellaPersonaleImport()">
+          <span class="s-icon" style="background:#e8f5ee"><svg viewBox="0 0 24 24" fill="none" stroke="#1a7a4a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></span>
+          <div class="s-text">
+            <div class="s-label">Import Sella Personale</div>
+            <div class="s-desc">Importa movimenti conto personale</div>
+          </div>
+          <span class="s-arrow">›</span>
+        </div>
       </div>
 
       <div class="settings-section">
@@ -3439,6 +3447,160 @@ async function deleteBackup(b, btn) {
   } catch(e) { alert('Errore: ' + e.message); btn.disabled = false; }
 }
 
+// ── IMPORT SELLA PERSONALE ──────────────────────────────
+var sellapMovimenti = [];
+var SELLAP_ACC_NAME = 'Banca Sella';
+var SELLAP_LOG_KEY = 'icompta:sellap_log';
+
+async function openSellaPersonaleImport() {
+  sellapMovimenti = [];
+  document.getElementById('sellap-overlay').style.display = 'flex';
+  document.getElementById('sellap-table').style.display = 'none';
+  document.getElementById('sellap-stats').style.display = 'none';
+  document.getElementById('sellap-tbody').innerHTML = '';
+  document.getElementById('sellap-progress').textContent = '';
+  document.getElementById('sellap-import-btn').disabled = true;
+  document.getElementById('sellap-drop').style.display = 'block';
+}
+function closeSellaPImport() { document.getElementById('sellap-overlay').style.display = 'none'; }
+function sellapOnDrop(e) {
+  e.preventDefault();
+  document.getElementById('sellap-drop').classList.remove('drag');
+  if (e.dataTransfer.files[0]) sellapHandleFile(e.dataTransfer.files[0]);
+}
+
+async function sellapGetExistingKeys() {
+  var accId = sellaGetAccId(SELLAP_ACC_NAME);
+  if (!accId) return new Set();
+  var keys = new Set();
+  for (var yi = 0; yi < (meta.years||[]).length; yi++) {
+    var yr = meta.years[yi];
+    if (!txCache[yr]) { try { txCache[yr] = await api('GET', '/api/tx/'+yr); } catch(e) { continue; } }
+    (txCache[yr]||[]).forEach(function(t) {
+      if (t.accountId === accId) keys.add(sellaStorKey(t.date, getTxAmount(t), t.name.substring(0,32)));
+    });
+  }
+  return keys;
+}
+
+async function sellapHandleFile(file) {
+  if (!file) return;
+  document.getElementById('sellap-progress').textContent = 'Analisi\u2026';
+  var lines = (await file.text()).split('\n').filter(function(l){ return l.trim(); });
+  var existingKeys = await sellapGetExistingKeys();
+  sellapMovimenti = [];
+  for (var i = 1; i < lines.length; i++) {
+    var l = lines[i].trim();
+    if (!l || l.startsWith('"","","","","')) continue;
+    var c = sellaParseCSVLine(l);
+    if (c.length < 7) continue;
+    var codice = c[0].replace(/"/g,'').trim();
+    var dataOp = c[1].replace(/"/g,'').trim();
+    var desc   = c[3].replace(/"/g,'').trim();
+    var deb    = c[5].replace(/"/g,'').trim();
+    var cred   = c[6].replace(/"/g,'').trim();
+    if (!dataOp) continue;
+    var importo = sellaParseAmt(deb, cred);
+    var dateISO = sellaDateToISO(dataOp);
+    var storKey = sellaStorKey(dateISO, importo, desc.substring(0,32));
+    sellapMovimenti.push({
+      codice: codice, dateISO: dateISO, dataOp: dataOp, desc: desc,
+      importo: importo, storKey: storKey,
+      isDup: existingKeys.has(storKey),
+      includi: !existingKeys.has(storKey),
+      catObj: sellaGuessCategory(desc, '')
+    });
+  }
+  document.getElementById('sellap-drop').style.display = 'none';
+  document.getElementById('sellap-table').style.display = 'table';
+  sellapRenderTable();
+  sellapUpdateStats();
+  document.getElementById('sellap-progress').textContent = '';
+}
+
+function sellapRenderTable() {
+  var tbody = document.getElementById('sellap-tbody'), rows = '';
+  for (var i = 0; i < sellapMovimenti.length; i++) {
+    var m = sellapMovimenti[i];
+    var amtCls = m.importo >= 0 ? 'sella-amt-pos' : 'sella-amt-neg';
+    var amtStr = (m.importo >= 0 ? '+' : '') + m.importo.toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2}) + ' \u20ac';
+    var opts = '<option value="">-- nessuna --</option>';
+    var visCats = getVisibleCategories();
+    for (var ci = 0; ci < visCats.length; ci++) {
+      var cat = visCats[ci];
+      opts += '<option value="'+esc(cat.id)+'"'+(m.catObj&&cat.id===m.catObj.id?' selected':'')+'>'+esc(cat.name)+'</option>';
+    }
+    rows += '<tr style="'+(m.isDup?'opacity:.45;text-decoration:line-through':'')+'" id="sellap-row-'+i+'">'+
+      '<td style="white-space:nowrap;color:var(--muted);font-size:12px;padding:6px 8px">'+m.dataOp+'</td>'+
+      '<td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:6px 8px" title="'+esc(m.desc)+'">'+esc(m.desc)+'</td>'+
+      '<td class="'+amtCls+'" style="white-space:nowrap;text-align:right;padding:6px 8px">'+amtStr+'</td>'+
+      '<td style="padding:4px 8px"><select class="sella-cat-sel" onchange="sellapSetCat('+i+',this.value)">'+opts+'</select></td>'+
+      '<td style="text-align:center;padding:6px 8px"><button class="sella-tog '+(m.includi?'on':'off')+'" onclick="sellapToggle('+i+')" title="'+(m.isDup?'Gi\u00e0 presente':'')+'"></button></td>'+
+      '</tr>';
+  }
+  tbody.innerHTML = rows;
+  for (var i = 0; i < sellapMovimenti.length; i++) {
+    if (sellapMovimenti[i].catObj) {
+      var sel = tbody.querySelector('#sellap-row-'+i+' .sella-cat-sel');
+      if (sel) sel.value = sellapMovimenti[i].catObj.id;
+    }
+  }
+}
+
+function sellapSetCat(i, catId) {
+  if (catId && meta) {
+    var cat = meta.categories.find(function(c){ return c.id === catId; });
+    sellapMovimenti[i].catObj = cat ? {name:cat.name,id:cat.id} : null;
+  } else { sellapMovimenti[i].catObj = null; }
+  sellapUpdateStats();
+}
+function sellapToggle(i) {
+  sellapMovimenti[i].includi = !sellapMovimenti[i].includi;
+  var btn = document.querySelector('#sellap-row-'+i+' .sella-tog');
+  if (btn) btn.className = 'sella-tog '+(sellapMovimenti[i].includi?'on':'off');
+  sellapUpdateStats();
+}
+function sellapUpdateStats() {
+  var inc = sellapMovimenti.filter(function(m){ return m.includi; });
+  document.getElementById('sp-tot').textContent = sellapMovimenti.length;
+  document.getElementById('sp-new').textContent = inc.length;
+  document.getElementById('sp-dup').textContent = sellapMovimenti.filter(function(m){ return m.isDup; }).length;
+  if (sellapMovimenti.length) document.getElementById('sellap-stats').style.display = 'flex';
+  var iBtn = document.getElementById('sellap-import-btn');
+  iBtn.textContent = inc.length ? '\u2b06\ufe0f Importa '+inc.length+' moviment'+(inc.length===1?'o':'i') : '\u2b06\ufe0f Importa selezionati';
+  iBtn.disabled = inc.length === 0;
+}
+
+async function sellapDoImport() {
+  var inc = sellapMovimenti.filter(function(m){ return m.includi; });
+  if (!inc.length) return;
+  var accId = sellaGetAccId(SELLAP_ACC_NAME);
+  if (!accId) { alert('Conto "'+SELLAP_ACC_NAME+'" non trovato'); return; }
+  var btn = document.getElementById('sellap-import-btn');
+  btn.disabled = true; btn.textContent = '\u23f3 Importazione\u2026';
+  var ok = 0, errs = 0;
+  var yr = new Date().getFullYear().toString();
+  for (var i = 0; i < inc.length; i++) {
+    var m = inc[i];
+    btn.textContent = '\u23f3 ' + (i+1) + '/' + inc.length + '\u2026';
+    var tx = { id:null, date:m.dateISO, name:m.desc, accountId:accId,
+      status:'cleared', comment:'', useSumOfSplits:true, amount:null, linkedTxId:null,
+      splits:[{amount:m.importo, categoryId:m.catObj?m.catObj.id:null, comment:null}] };
+    try {
+      var res = await api('POST', '/api/tx', {tx:tx});
+      if (res && res.id) {
+        ok++;
+        if (!txCache[m.dateISO.slice(0,4)]) txCache[m.dateISO.slice(0,4)] = [];
+        txCache[m.dateISO.slice(0,4)].push({...tx, id:res.id});
+      }
+    } catch(e) { errs++; }
+  }
+  txCache = {}; await loadBalances();
+  if (selectedAccountId) { var a=meta.accounts.find(function(x){return x.id===selectedAccountId;}); if(a) await selectAccount(a.id,a.name); }
+  alert('\u2705 Importati '+ok+' movimenti'+(errs?' (\u26a0\ufe0f '+errs+' errori)':''));
+  closeSellaPImport();
+}
+
 </script>
 
 <!-- Modal Import Sella -->
@@ -3501,6 +3663,52 @@ async function deleteBackup(b, btn) {
         <button id="sella-preview-btn" disabled onclick="sellaShowPreview()" style="flex:1;padding:13px;border-radius:12px;border:1.5px solid var(--blue);background:var(--blue-bg);color:var(--blue);font-size:15px;font-weight:700;cursor:pointer">👁️ Preview</button>
         <button id="sella-import-btn" disabled onclick="sellaDoImport()" style="flex:2;padding:13px;border-radius:12px;border:none;background:var(--blue);color:#fff;font-size:16px;font-weight:700;cursor:pointer">⬆️ Importa selezionati</button>
       </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Modal Import Sella Personale -->
+<div id="sellap-overlay" style="display:none" onclick="if(event.target===this)closeSellaPImport()">
+  <div id="sella-panel" style="max-height:90vh">
+    <div id="sella-panel-header">
+      <span style="font-size:22px">💳</span>
+      <h3>Import Sella Personale</h3>
+      <button onclick="closeSellaPImport()" style="background:var(--gray2);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:16px">✕</button>
+    </div>
+    <div id="sellap-body" style="flex:1;overflow-y:auto;padding:16px">
+      <div id="sellap-drop"
+        ondragover="event.preventDefault();this.classList.add('drag')"
+        ondragleave="this.classList.remove('drag')"
+        ondrop="sellapOnDrop(event)"
+        onclick="document.getElementById('sellap-file-input').click()"
+        style="border:2px dashed var(--border);border-radius:12px;padding:28px;text-align:center;cursor:pointer;margin-bottom:12px">
+        <h4 style="font-size:15px;font-weight:600;margin-bottom:6px">📂 Carica CSV Sella Personale</h4>
+        <p style="font-size:13px;color:var(--muted)">Trascina il file qui oppure clicca per selezionarlo</p>
+        <p style="font-size:11px;margin-top:8px;color:var(--faint)">Formato: ListaMovimentiConto-*.csv</p>
+      </div>
+      <input type="file" id="sellap-file-input" accept=".csv" style="display:none" onchange="sellapHandleFile(this.files[0])">
+      <div id="sellap-stats" style="display:none;gap:12px;margin-bottom:14px;flex-wrap:wrap;flex-direction:row">
+        <div class="sella-stat"><div class="sella-stat-n" id="sp-tot">0</div><div class="sella-stat-lbl">Totale</div></div>
+        <div class="sella-stat"><div class="sella-stat-n" id="sp-new" style="color:var(--green)">0</div><div class="sella-stat-lbl">Nuovi</div></div>
+        <div class="sella-stat"><div class="sella-stat-n" id="sp-dup" style="color:var(--faint)">0</div><div class="sella-stat-lbl">Già presenti</div></div>
+      </div>
+      <div id="sellap-table-wrap">
+        <table id="sellap-table" style="display:none;width:100%;border-collapse:collapse;font-size:13px">
+          <thead><tr>
+            <th style="text-align:left;padding:6px 8px;border-bottom:1px solid var(--border);color:var(--muted);font-size:11px">Data</th>
+            <th style="text-align:left;padding:6px 8px;border-bottom:1px solid var(--border);color:var(--muted);font-size:11px">Descrizione</th>
+            <th style="text-align:right;padding:6px 8px;border-bottom:1px solid var(--border);color:var(--muted);font-size:11px">Importo</th>
+            <th style="text-align:left;padding:6px 8px;border-bottom:1px solid var(--border);color:var(--muted);font-size:11px">Categoria</th>
+            <th style="text-align:center;padding:6px 8px;border-bottom:1px solid var(--border);color:var(--muted);font-size:11px">✓</th>
+          </tr></thead>
+          <tbody id="sellap-tbody"></tbody>
+        </table>
+      </div>
+      <div id="sellap-progress" style="font-size:13px;color:var(--muted);padding:4px 0"></div>
+    </div>
+    <div style="padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px;flex-shrink:0">
+      <button id="sellap-import-btn" disabled onclick="sellapDoImport()" style="flex:1;padding:13px;border-radius:12px;border:none;background:var(--blue);color:#fff;font-size:15px;font-weight:700;cursor:pointer">⬆️ Importa selezionati</button>
     </div>
   </div>
 </div>
