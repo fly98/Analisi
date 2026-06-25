@@ -320,6 +320,14 @@ var icompta_worker_default = {
     }
 
     // ── RICORRENZE GET ───────────────────────────────────────────────────────
+    // ── IMPORT LOG GET (log generici: Leo, ecc.) ─────────────────────────────
+    if (path === "/api/import-log" && method === "GET") {
+      const key = url.searchParams.get("key");
+      if (!key || !key.startsWith("icompta:")) return err("Key non valida");
+      const raw = await env.ICOMPTA_KV.get(key);
+      return json(raw ? JSON.parse(raw) : []);
+    }
+
     if (path === "/api/ricorrenze" && method === "GET") {
       const raw = await env.ICOMPTA_KV.get("icompta:ricorrenze");
       return json(raw ? JSON.parse(raw) : []);
