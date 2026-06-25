@@ -1,31 +1,6 @@
 {
   "sessioni": [
     {
-      "id": 1782349151467,
-      "dataSalvataggio": "2026-06-25T00:59:11.467Z",
-      "periodo": "22/06/2026 - 24/06/2026",
-      "periodoWk": "24/06/2026 - 24/06/2026",
-      "cashIds": [
-        "24/06/2026|Deborah Costantino|165.1"
-      ],
-      "cash": 165.1,
-      "stripe": 0,
-      "totContanti": 165.1,
-      "wkTot": 0,
-      "wkN": 0,
-      "wkDateSel": [],
-      "sp": 0,
-      "man": 0,
-      "bab": 0,
-      "ferie": 0,
-      "stip": 0,
-      "spTot": 0,
-      "daMe": 0,
-      "saldo": 165.1,
-      "ferieDal": null,
-      "ferieAl": null
-    },
-    {
       "id": 1782224389815,
       "dataSalvataggio": "2026-06-23T14:19:49.815Z",
       "periodo": "04/06/2026 - 23/06/2026",
@@ -152,5 +127,6 @@
       "daMe": 1157,
       "saldo": -185.92
     }
-  ]
+  ],
+  "sha": "0acc21fd8a1d31a417648978f80dead60e149a74"
 }
