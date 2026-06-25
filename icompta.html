@@ -545,8 +545,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif
 .rec-item { border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:10px;background:var(--bg); }
 .rec-item-hdr { display:flex;align-items:center;gap:8px;margin-bottom:8px; }
 .rec-item-name { flex:1;font-size:14px;font-weight:600; }
-.rec-item-edit { background:none;border:none;color:var(--faint);cursor:pointer;font-size:15px;padding:2px 6px; }
-.rec-item-edit:hover { color:var(--blue); }
 .rec-item-del { background:none;border:none;color:var(--faint);cursor:pointer;font-size:16px;padding:2px 6px; }
 .rec-item-del:hover { color:var(--red); }
 .rec-item-info { font-size:12px;color:var(--muted);display:flex;gap:12px;flex-wrap:wrap; }
@@ -2978,7 +2976,6 @@ function renderRecBody(){
       '<span style="font-size:16px">\u23f0</span>'+
       '<span class="rec-item-name">'+esc(rec.nome)+'</span>'+
       '<span style="font-weight:700;color:'+amtColor+'">'+amtStr+'</span>'+
-      '<button class="rec-item-edit" title="Modifica">&#9998;</button>'+
       '<button class="rec-item-del" title="Elimina">&#128465;</button></div>'+
       '<div class="rec-item-info">'+
       '<span>&#127974; '+(acc?esc(acc.name):'?')+'</span>'+
@@ -2990,70 +2987,11 @@ function renderRecBody(){
         return '<span>→ '+(a2?esc(a2.name):'?')+'</span>';
       })():'')+
       '</div>';
-    div.querySelector('.rec-item-edit').addEventListener('click',(function(i){
-      return function(e){e.stopPropagation();editRecForm(i);};
-    })(idx));
     div.querySelector('.rec-item-del').addEventListener('click',(function(i){
       return function(){if(!confirm('Eliminare?'))return;ricorrenze.splice(i,1);renderRecBody();};
     })(idx));
     body.appendChild(div);
   });
-}
-
-function editRecForm(idx) {
-  var rec = ricorrenze[idx];
-  if (!rec) return;
-  var body = document.getElementById('rec-body');
-  if (document.getElementById('rec-form')) document.getElementById('rec-form').remove();
-  var cats = getVisibleCategories();
-  var catOpts = '<option value="">-- nessuna --</option>'+cats.map(function(c){return '<option value="'+esc(c.id)+'"'+(rec.categoryId===c.id?' selected':'')+'>'+esc(c.name)+'</option>';}).join('');
-  var accOpts = (meta?meta.accounts:[]).filter(function(a){return !a.hidden;}).map(function(a){return '<option value="'+esc(a.id)+'"'+(rec.accountId===a.id?' selected':'')+'>'+esc(a.name)+'</option>';}).join('');
-  var freqOpts = Object.keys(REC_FREQ).map(function(k){return '<option value="'+k+'"'+(rec.frequenza===k?' selected':'')+'>'+REC_FREQ[k].label+'</option>';}).join('');
-  var trasfOn = rec.isTrasf && rec.accountId2;
-  var acc2Opts = (meta?meta.accounts:[]).filter(function(a){return !a.hidden;}).map(function(a){return '<option value="'+esc(a.id)+'"'+(rec.accountId2===a.id?' selected':'')+'>'+esc(a.name)+'</option>';}).join('');
-  var form = document.createElement('div'); form.id = 'rec-form';
-  form.innerHTML =
-    '<h4>✏️ Modifica transazione programmata</h4>'+
-    '<div class="rec-form-row"><div class="rf"><label>Nome</label><input id="rf-nome" type="text" value="'+esc(rec.nome)+'"></div></div>'+
-    '<div class="rec-form-row"><div class="rf"><label>Conto</label><select id="rf-acc">'+accOpts+'</select></div>'+
-    '<div class="rf"><label>Importo</label><input id="rf-amt" type="number" step="0.01" value="'+rec.importo+'"></div></div>'+
-    '<div class="rec-form-row"><div class="rf"><label>Categoria</label><select id="rf-cat">'+catOpts+'</select></div>'+
-    '<div class="rf"><label>Frequenza</label><select id="rf-freq">'+freqOpts+'</select></div></div>'+
-    '<div class="rec-form-row"><div class="rf"><label>Data inizio</label><input id="rf-start" type="date" value="'+rec.dataInizio+'"></div>'+
-    '<div class="rf"><label>Data fine (opz.)</label><input id="rf-end" type="date" value="'+(rec.dataFine||'')+'"></div></div>'+
-    '<div class="rec-form-row" style="align-items:center">'+
-    '<div class="rf" style="display:flex;align-items:center;gap:8px"><label style="margin:0">Trasferimento</label>'+
-    '<button type="button" id="rf-trasf-tog" class="sella-tog '+(trasfOn?'on':'off')+'" onclick="toggleRecTrasf()"></button></div>'+
-    '<div class="rf" id="rf-trasf-box" style="display:'+(trasfOn?'block':'none')+'"><label>Conto dest.</label><select id="rf-acc2">'+acc2Opts+'</select></div></div>'+
-    '<div style="display:flex;gap:8px;margin-top:10px">'+
-    '<button onclick="saveRecEdit('+idx+')" style="flex:2;padding:10px;border-radius:8px;border:none;background:var(--blue);color:#fff;font-weight:700;cursor:pointer">Salva modifiche</button>'+
-    '<button onclick="document.getElementById('rec-form').remove();renderRecBody()" style="flex:1;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);cursor:pointer">Annulla</button></div>';
-  var rows = body.querySelectorAll('.rec-item');
-  if (rows[idx]) body.insertBefore(form, rows[idx]);
-  else body.insertBefore(form, body.firstChild);
-  document.getElementById('rf-nome').focus();
-}
-
-function saveRecEdit(idx) {
-  var nome=document.getElementById('rf-nome').value.trim();
-  var accId=document.getElementById('rf-acc').value;
-  var amt=document.getElementById('rf-amt').value;
-  var catId=document.getElementById('rf-cat').value;
-  var freq=document.getElementById('rf-freq').value;
-  var start=document.getElementById('rf-start').value;
-  var end=document.getElementById('rf-end').value;
-  var trasfOn=document.getElementById('rf-trasf-tog').classList.contains('on');
-  var acc2=trasfOn?document.getElementById('rf-acc2').value:null;
-  if(!nome){alert('Inserisci un nome');return;}
-  if(!accId){alert('Seleziona un conto');return;}
-  if(!amt||isNaN(parseFloat(amt))){alert('Importo non valido');return;}
-  if(!start){alert('Inserisci la data di inizio');return;}
-  var old=ricorrenze[idx];
-  ricorrenze[idx]={id:old.id,nome:nome,accountId:accId,importo:parseFloat(amt),categoryId:catId||null,
-    frequenza:freq,dataInizio:start,dataFine:end||null,processed:old.processed||[],
-    isTrasf:trasfOn,accountId2:acc2||null};
-  document.getElementById('rec-form').remove();
-  renderRecBody();
 }
 
 function showRecForm(){
