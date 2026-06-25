@@ -3596,8 +3596,8 @@ async function sellapDoImport() {
   for (var i = 0; i < inc.length; i++) {
     var m = inc[i];
     btn.textContent = '\u23f3 ' + (i+1) + '/' + inc.length + '\u2026';
-    var tx = { id:null, date:m.dateISO, name:m.desc, accountId:accId,
-      status:'cleared', comment:'', useSumOfSplits:true, amount:null, linkedTxId:null,
+    var tx = { id:null, date:m.dateISO, name:m.codice, accountId:accId,
+      status:'cleared', comment:m.desc, useSumOfSplits:true, amount:null, linkedTxId:null,
       splits:[{amount:m.importo, categoryId:m.catObj?m.catObj.id:null, comment:null}] };
     try {
       var res = await api('POST', '/api/tx', {tx:tx});
