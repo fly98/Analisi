@@ -191,11 +191,13 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif
 .modal-header h3 { font-size: 18px; font-weight: 700; }
 .modal-close { background: none; border: none; font-size: 22px; cursor: pointer; color: var(--gray4); }
 .modal-body { padding: 20px 24px 24px; }
-.form-group { margin-bottom: 16px; }
-.form-label { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 6px; display: block; }
+.form-group { margin-bottom: 14px; }
+.form-label { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 5px; display: block; }
 .form-input { width: 100%; padding: 10px 12px; border-radius: 10px;
-  border: 1.5px solid var(--gray2); font-size: 15px; outline: none; transition: border-color 0.15s; }
-.form-input:focus { border-color: var(--blue); }
+  border: 1.5px solid var(--gray2); font-size: 15px; outline: none; transition: border-color 0.15s;
+  min-height: 42px; background: var(--surface); color: var(--text); }
+.form-input:focus { border-color: var(--blue); background: #fff; }
+select.form-input { height: 42px; }
 .form-row { display: flex; gap: 12px; align-items: flex-start; }
 .form-row .form-group { flex: 1; min-width: 0; }
 .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px; }
@@ -791,7 +793,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif
       </div>
       <div class="form-group">
         <label class="form-label">Note</label>
-        <input type="text" class="form-input" id="tx-comment" placeholder="Opzionale">
+        <textarea class="form-input" id="tx-comment" placeholder="Opzionale" rows="3" style="resize:vertical;min-height:72px;font-family:inherit;line-height:1.5"></textarea>
       </div>
       <div class="form-group">
         <label class="form-label" style="display:flex;justify-content:space-between">
