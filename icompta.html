@@ -3351,12 +3351,19 @@ async function sellaAutoDownload() {
   var MAC_URL = WORKER_URL + '/api/sella-auto';
   try {
     btn.innerHTML = '<span>\u23f3</span> <span>Download in corso (~40 sec)...</span>';
-    var resp = await fetch(MAC_URL, { signal: AbortSignal.timeout(120000) });
+    // Usa api() che aggiunge automaticamente il token Bearer
+    var result = await api('GET', '/api/sella-auto');
+    if (result && result.error) throw new Error(result.error);
+    // api() restituisce JSON ma il CSV è testo — chiama direttamente fetch con token
+    var TOKEN = localStorage.getItem('icompta_token');
+    var resp = await fetch(MAC_URL, {
+      headers: { 'Authorization': 'Bearer ' + TOKEN },
+      signal: AbortSignal.timeout(120000)
+    });
     if (!resp.ok) throw new Error('Errore server Mac: ' + resp.status);
     var csvText = await resp.text();
     if (!csvText || csvText.length < 10) throw new Error('CSV vuoto o non valido');
     btn.innerHTML = '<span>\u2705</span> <span>CSV ricevuto, analisi...</span>';
-    // Processa come se fosse un file caricato manualmente
     var blob = new Blob([csvText], {type:'text/csv'});
     var file = new File([blob], resp.headers.get('X-Filename') || 'Sella_auto.csv', {type:'text/csv'});
     await sellaHandleFile(file);
