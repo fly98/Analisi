@@ -1717,6 +1717,7 @@ function closeSidebar() {
         }
         await init(r);
         await loadRicorrenze();
+        await _setSidebarOrder();
       }
     } catch(e) {
       if (!cachedMeta) { /* mostra login */ }
@@ -3050,6 +3051,23 @@ async function saveRicorrenze(){
   finally{btn.disabled=false;btn.textContent='💾 Salva';}
 }
 
+
+async function _setSidebarOrder() {
+  if (meta.groups.some(function(g){ return g.sidebarIndex !== undefined; })) return;
+  var GROUP_ORDER = ['Attivo','Contanti','Famiglia','Banche','Investimenti'];
+  var SA = { 'Operazioni future':0, 'Leo':10, 'Viola':11, 'Alessia':12 };
+  meta.groups.forEach(function(g){
+    var i=GROUP_ORDER.indexOf(g.name); g.sidebarIndex=i>=0?i+1:99;
+  });
+  meta.accounts.forEach(function(acc){
+    if(!acc.groupId) acc.sidebarIndex=SA[acc.name]!==undefined?SA[acc.name]:9;
+  });
+  try {
+    await api('PUT','/api/meta',{accounts:meta.accounts,groups:meta.groups});
+    try{localStorage.setItem('icompta_meta',JSON.stringify(meta));}catch(e){}
+    renderSidebar();
+  } catch(e){console.warn('Ordine sidebar:',e);}
+}
 
 </script>
 
