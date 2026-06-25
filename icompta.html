@@ -940,14 +940,13 @@ function renderSidebar() {
   for (const acc of standaloneAccs) sections.push({ type:'standalone', acc, idx: acc.sidebarIndex !== undefined ? acc.sidebarIndex : 1000 });
   sections.sort((a,b) => a.idx - b.idx);
 
-  // standalone intercalati con i gruppi nel loop principale sotto
-
   for (const sec of sections) {
     if (sec.type === 'standalone') {
       list.appendChild(makeAccountRow(sec.acc));
-      continue;
     }
-    const g = groupById[sec.g.id]; if (!g) continue;
+  }
+
+  for (const sec of sections) { if (sec.type !== 'group') continue; const g = groupById[sec.g.id]; if (!g) continue;
     if (g.accounts.length === 0) continue;
     const gBal = balances?.groups?.[g.id] ?? null;
     
@@ -2502,112 +2501,195 @@ function renderAcctsMgmt() {
   body.innerHTML = '';
   var draft = _acctsDraft;
 
-  // Costruisce mappa gruppi
-  var grpById = {};
-  draft.groups.forEach(function(g){ grpById[g.id] = []; });
-  draft.accounts.forEach(function(acc){
-    if (acc.groupId && grpById[acc.groupId] !== undefined) grpById[acc.groupId].push(acc);
+  // Costruisce lista ordinata di sezioni: {type:'group'|'standalone', obj, accounts}
+  // Ogni gruppo e ogni standalone ha sidebarIndex
+  // Assegna sidebarIndex se mancante
+  draft.groups.forEach(function(g, i) { if (g.sidebarIndex === undefined) g.sidebarIndex = i * 10; });
+
+  var grouped = {};
+  var ungrouped = [];
+  draft.groups.forEach(function(g) { grouped[g.id] = []; });
+  draft.accounts.forEach(function(acc) {
+    if (acc.groupId && grouped[acc.groupId] !== undefined) {
+      grouped[acc.groupId].push(acc);
+    } else {
+      // sidebarIndex già inizializzato in openAcctsMgmt
+      ungrouped.push(acc);
+    }
   });
 
-  // Lista sezioni nell'ordine sidebarIndex (già normalizzato in openAcctsMgmt)
+  // Lista sezioni miste: gruppi + standalone, ordinate per sidebarIndex
   var sections = [];
-  draft.groups.forEach(function(g){
-    sections.push({type:'group', obj:g, si: g.sidebarIndex||0});
+  draft.groups.forEach(function(g) {
+    sections.push({ type:'group', g:g, accounts: grouped[g.id]||[] });
   });
-  draft.accounts.filter(function(a){ return !a.groupId || !grpById[a.groupId]; }).forEach(function(a){
-    sections.push({type:'standalone', obj:a, si: a.sidebarIndex||0});
+  ungrouped.forEach(function(acc) {
+    sections.push({ type:'standalone', acc:acc });
   });
-  sections.sort(function(a,b){ return a.si - b.si; });
+  sections.sort(function(a,b) {
+    var ia = a.type==='group' ? a.g.sidebarIndex : a.acc.sidebarIndex;
+    var ib = b.type==='group' ? b.g.sidebarIndex : b.acc.sidebarIndex;
+    return (ia||0) - (ib||0);
+  });
 
-  function swapSections(i, j) {
-    var tmp = sections[i].si;
-    sections[i].obj.sidebarIndex = sections[j].si;
-    sections[j].obj.sidebarIndex = tmp;
-    sections[i].si = sections[i].obj.sidebarIndex;
-    sections[j].si = sections[j].obj.sidebarIndex;
+  function moveSectionUp(idx) {
+    if (idx === 0) return;
+    var a = sections[idx-1], b = sections[idx];
+    var ia = a.type==='group' ? a.g.sidebarIndex : a.acc.sidebarIndex;
+    var ib = b.type==='group' ? b.g.sidebarIndex : b.acc.sidebarIndex;
+    if (a.type==='group') a.g.sidebarIndex = ib; else a.acc.sidebarIndex = ib;
+    if (b.type==='group') b.g.sidebarIndex = ia; else b.acc.sidebarIndex = ia;
     renderAcctsMgmt();
   }
-
-  function makeUD(idx) {
-    var ud = document.createElement('div');
-    ud.style.cssText = 'display:flex;flex-direction:column;gap:1px;flex-shrink:0';
-    var u = document.createElement('button');
-    u.textContent = '↑'; u.style.cssText = 'background:none;border:none;color:var(--gray3);cursor:pointer;font-size:13px;padding:1px 6px;border-radius:4px;line-height:1';
-    var d = document.createElement('button');
-    d.textContent = '↓'; d.style.cssText = 'background:none;border:none;color:var(--gray3);cursor:pointer;font-size:13px;padding:1px 6px;border-radius:4px;line-height:1';
-    if (idx === 0) u.style.opacity = '0.2';
-    if (idx === sections.length-1) d.style.opacity = '0.2';
-    u.addEventListener('click', (function(i){ return function(){ if(i>0) swapSections(i,i-1); }; })(idx));
-    d.addEventListener('click', (function(i){ return function(){ if(i<sections.length-1) swapSections(i,i+1); }; })(idx));
-    ud.appendChild(u); ud.appendChild(d);
-    return ud;
-  }
-
-  function makeAcctUD(accArr, accIdx) {
-    var ud = document.createElement('div');
-    ud.style.cssText = 'display:flex;flex-direction:column;gap:1px;flex-shrink:0';
-    var u = document.createElement('button');
-    u.textContent = '↑'; u.style.cssText = 'background:none;border:none;color:var(--gray3);cursor:pointer;font-size:13px;padding:1px 6px;border-radius:4px;line-height:1';
-    var d = document.createElement('button');
-    d.textContent = '↓'; d.style.cssText = 'background:none;border:none;color:var(--gray3);cursor:pointer;font-size:13px;padding:1px 6px;border-radius:4px;line-height:1';
-    if (accIdx === 0) u.style.opacity = '0.2';
-    if (accIdx === accArr.length-1) d.style.opacity = '0.2';
-    u.addEventListener('click', (function(arr, i){ return function(){
-      if(i===0) return;
-      var t=arr[i]; arr[i]=arr[i-1]; arr[i-1]=t;
-      // aggiorna index
-      arr.forEach(function(a,idx){ a.index=idx; });
-      renderAcctsMgmt();
-    }; })(accArr, accIdx));
-    d.addEventListener('click', (function(arr, i){ return function(){
-      if(i>=arr.length-1) return;
-      var t=arr[i]; arr[i]=arr[i+1]; arr[i+1]=t;
-      arr.forEach(function(a,idx){ a.index=idx; });
-      renderAcctsMgmt();
-    }; })(accArr, accIdx));
-    ud.appendChild(u); ud.appendChild(d);
-    return ud;
+  function moveSectionDown(idx) {
+    if (idx >= sections.length-1) return;
+    moveSectionUp(idx+1);
   }
 
   sections.forEach(function(sec, idx) {
+    var udBtns = document.createElement('div');
+    udBtns.className = 'grp-updown';
+    var upBtn = document.createElement('button'); upBtn.textContent = '↑'; upBtn.title = 'Sposta su';
+    var dnBtn = document.createElement('button'); dnBtn.textContent = '↓'; dnBtn.title = 'Sposta giù';
+    (function(i){ upBtn.addEventListener('click', function(){moveSectionUp(i);}); })(idx);
+    (function(i){ dnBtn.addEventListener('click', function(){moveSectionDown(i);}); })(idx);
+    if (idx === 0) upBtn.style.opacity = '0.2';
+    if (idx === sections.length-1) dnBtn.style.opacity = '0.2';
+    udBtns.appendChild(upBtn); udBtns.appendChild(dnBtn);
+
     if (sec.type === 'group') {
-      var g = sec.obj;
-      var accs = grpById[g.id] || [];
-      // Header gruppo con ↑↓ sezione
+      var g = sec.g;
       var hdr = document.createElement('div');
       hdr.className = 'accts-section-hdr';
-      hdr.appendChild(makeUD(idx));
       var nameInput = document.createElement('input');
       nameInput.className = 'accts-group-name-input';
-      nameInput.value = g.name; nameInput.style.flex = '1';
-      nameInput.addEventListener('input', function(){ g.name = this.value; });
-      var delBtn = document.createElement('button');
-      delBtn.className = 'acct-del'; delBtn.textContent = '✕'; delBtn.title = 'Elimina (solo se vuoto)';
-      delBtn.addEventListener('click', function(){
-        if ((grpById[g.id]||[]).length > 0) { alert('Sposta prima tutti i conti dal gruppo'); return; }
-        _acctsDraft.groups = _acctsDraft.groups.filter(function(x){ return x.id !== g.id; });
+      nameInput.value = g.name;
+      nameInput.style.flex = '1';
+      nameInput.addEventListener('input', function() { g.name = this.value; });
+      var delGrpBtn = document.createElement('button');
+      delGrpBtn.className = 'acct-del'; delGrpBtn.title = 'Elimina gruppo (solo se vuoto)'; delGrpBtn.textContent = '✕';
+      delGrpBtn.addEventListener('click', function() {
+        var accs = grouped[g.id]||[];
+        if (accs.length > 0) { alert('Sposta prima tutti i conti dal gruppo'); return; }
+        _acctsDraft.groups = _acctsDraft.groups.filter(function(x){return x.id!==g.id;});
         renderAcctsMgmt();
       });
-      hdr.appendChild(nameInput); hdr.appendChild(delBtn);
+      hdr.appendChild(udBtns); hdr.appendChild(nameInput); hdr.appendChild(delGrpBtn);
       body.appendChild(hdr);
-      // Conti del gruppo con ↑↓ interno
-      accs.forEach(function(acc, ai){
-        var row = makeAcctRow(acc);
-        row.insertBefore(makeAcctUD(accs, ai), row.firstChild);
-        body.appendChild(row);
-      });
+      sec.accounts.forEach(function(acc) { body.appendChild(makeAcctRow(acc)); });
       body.appendChild(makeAddAcctBtn(g.id));
     } else {
-      // Standalone con ↑↓ sezione
-      var row = makeAcctRow(sec.obj);
-      row.insertBefore(makeUD(idx), row.firstChild);
+      // Standalone — riga account con bottoni up/down integrati
+      var row = makeAcctRow(sec.acc);
+      var ud2 = document.createElement('div');
+      ud2.className = 'acct-updown';
+      var u2 = document.createElement('button'); u2.textContent = '↑';
+      var d2 = document.createElement('button'); d2.textContent = '↓';
+      (function(i){ u2.addEventListener('click',function(){moveSectionUp(i);}); })(idx);
+      (function(i){ d2.addEventListener('click',function(){moveSectionDown(i);}); })(idx);
+      ud2.appendChild(u2); ud2.appendChild(d2);
+      row.insertBefore(ud2, row.firstChild);
       body.appendChild(row);
     }
   });
 
+  // Pulsante aggiungi standalone in fondo
   body.appendChild(makeAddAcctBtn(null));
 }
 
+function makeAcctRow(acc) {
+  var row = document.createElement('div');
+  row.className = 'acct-row' + (acc.hidden ? ' hidden-acc' : '');
+  row.dataset.accId = acc.id;
+
+  // Drag handle
+  var drag = document.createElement('span');
+  drag.className = 'acct-drag';
+  drag.textContent = '⠿';
+  drag.title = 'Trascina per riordinare';
+
+  // Icona
+  var icon = document.createElement('span');
+  icon.className = 'acct-icon';
+  icon.textContent = accIcon(acc.name);
+
+  // Nome
+  var nameEl = document.createElement('input');
+  nameEl.className = 'acct-name-input';
+  nameEl.value = acc.name;
+  nameEl.addEventListener('input', function() { acc.name = this.value; });
+
+  // Toggle visibile
+  var visBtn = document.createElement('button');
+  visBtn.className = 'acct-toggle-btn' + (acc.hidden ? '' : ' active');
+  visBtn.textContent = acc.hidden ? 'Nascosto' : 'Visibile';
+  visBtn.title = 'Visibile nella sidebar';
+  visBtn.addEventListener('click', function() {
+    acc.hidden = !acc.hidden;
+    row.classList.toggle('hidden-acc', acc.hidden);
+    visBtn.textContent = acc.hidden ? 'Nascosto' : 'Visibile';
+    visBtn.classList.toggle('active', !acc.hidden);
+  });
+
+  // Toggle incluso nel totale
+  var totBtn = document.createElement('button');
+  totBtn.className = 'acct-toggle-btn' + (acc.includedInTotal ? ' active' : '');
+  totBtn.textContent = '∑';
+  totBtn.title = 'Incluso nel totale disponibile';
+  totBtn.addEventListener('click', function() {
+    acc.includedInTotal = !acc.includedInTotal;
+    totBtn.classList.toggle('active', acc.includedInTotal);
+  });
+
+  // Elimina
+  var delBtn = document.createElement('button');
+  delBtn.className = 'acct-del';
+  delBtn.textContent = '🗑';
+  delBtn.title = 'Elimina conto';
+  delBtn.addEventListener('click', function() {
+    var bal = balances && balances.accounts && balances.accounts[acc.id];
+    if (bal && Math.abs(bal) > 0.01) {
+      alert('Non puoi eliminare un conto con saldo non zero (' + fmt(bal) + ')');
+      return;
+    }
+    if (!confirm('Eliminare "' + acc.name + '"? Le transazioni rimarranno nel database.')) return;
+    _acctsDraft.accounts = _acctsDraft.accounts.filter(function(a) { return a.id !== acc.id; });
+    renderAcctsMgmt();
+  });
+
+  // Select gruppo
+  var grpSel = document.createElement('select');
+  grpSel.className = 'acct-toggle-btn';
+  grpSel.style.cssText = 'font-size:11px;padding:3px 6px;border-radius:6px;border:1px solid var(--border);background:var(--gray2);color:var(--muted);cursor:pointer;max-width:90px';
+  var grpOptStandalone = '<option value="">Standalone</option>';
+  var grpOpts = _acctsDraft.groups.map(function(g) {
+    return '<option value="'+g.id+'"'+(acc.groupId===g.id?' selected':'')+'>'+g.name+'</option>';
+  }).join('');
+  grpSel.innerHTML = grpOptStandalone + grpOpts;
+  grpSel.addEventListener('change', function() {
+    var newGrpId = grpSel.value || null;
+    acc.groupId = newGrpId;
+    acc.groupName = newGrpId ? (_acctsDraft.groups.find(function(g){return g.id===newGrpId;})||{}).name : null;
+    renderAcctsMgmt();
+  });
+
+  var toggles = document.createElement('div');
+  toggles.className = 'acct-toggles';
+  toggles.appendChild(grpSel);
+  toggles.appendChild(visBtn);
+  toggles.appendChild(totBtn);
+  toggles.appendChild(delBtn);
+
+  row.appendChild(drag);
+  row.appendChild(icon);
+  row.appendChild(nameEl);
+  row.appendChild(toggles);
+
+  // Drag & drop per riordinare
+  _initAcctDrag(row, acc);
+
+  return row;
+}
 
 function makeAddAcctBtn(groupId) {
   var btn = document.createElement('button');
