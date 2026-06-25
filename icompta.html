@@ -600,6 +600,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif
       <input type="date" id="date-from" onchange="setDateCustom()">
       <span style="color:var(--muted);font-size:13px;padding:0 4px">→</span>
       <input type="date" id="date-to" onchange="setDateCustom()">
+      <input id="search-tx" type="search" placeholder="Cerca..." oninput="applySearch(this.value)" style="margin-left:auto">
     </div>
 
     <div id="tx-list-container">
