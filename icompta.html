@@ -3492,17 +3492,12 @@ async function sellapGetExistingKeys() {
   var yr = String(new Date().getFullYear());
   try {
     var txs = await api('GET', '/api/tx/'+yr);
-    var bancaTxs = txs.filter(function(t){ return t.accountId === accId; });
     txs.forEach(function(t) {
       if (t.accountId === accId) {
-        var k = sellaStorKey(t.date, getTxAmount(t), t.name.substring(0,32));
-        keys.add(k);
+        keys.add(sellaStorKey(t.date, getTxAmount(t), t.name.substring(0,32)));
       }
     });
-    // Mostra debug su iPad
-    var sample = Array.from(keys).slice(0,3).join('\n');
-    alert('DEBUG DB:\n' + bancaTxs.length + ' TX su Banca Sella\nEsempio chiavi:\n' + sample);
-  } catch(e) { alert('ERRORE: ' + e.message); }
+  } catch(e) {}
   return keys;
 }
 
@@ -3534,10 +3529,6 @@ async function sellapHandleFile(file) {
       catObj: sellaGuessCategory(desc, '')
     });
   }
-  // Debug: mostra prime chiavi CSV vs match
-  var csvSample = sellapMovimenti.slice(0,3).map(function(m){ return m.storKey; }).join('\n');
-  var dupCount = sellapMovimenti.filter(function(m){ return m.isDup; }).length;
-  alert('DEBUG CSV:\n' + sellapMovimenti.length + ' righe\n' + dupCount + ' duplicati\nEsempio chiavi CSV:\n' + csvSample);
   document.getElementById('sellap-drop').style.display = 'none';
   document.getElementById('sellap-table').style.display = 'table';
   sellapRenderTable();
