@@ -1,6 +1,65 @@
 {
   "sessioni": [
     {
+      "id": 1782408489872,
+      "data": "2026-06-25T17:28:09.872Z",
+      "file": "Sella_2026-06-25.csv",
+      "nuovi": 7,
+      "totale": 7,
+      "entrate": 1219.55,
+      "uscite": -105.38,
+      "saldo": 1114.17,
+      "categorie": {
+        "Redditi : Redditi InternoUno e Deluxe": 1219.55,
+        "Spese Interno1 : Mclink": -69.2,
+        "Spese Interno1 : Spese Personali": -36.18
+      },
+      "movimenti": [
+        {
+          "data": "25/06/2026",
+          "desc": "AmenitizPay D3Q2W6 DA Stripe Technology Europe Ltd",
+          "importo": 1219.55,
+          "cat": "Redditi : Redditi InternoUno e Deluxe"
+        },
+        {
+          "data": "25/06/2026",
+          "desc": "ADDEBITO FASTWEB 2026-M018670952 SDD 9351819",
+          "importo": -0.5,
+          "cat": "Spese Interno1 : Mclink"
+        },
+        {
+          "data": "25/06/2026",
+          "desc": "FASTWEB SpA ADDEBITO FASTWEB 2026-M018670952 SDD 9351819",
+          "importo": -34.1,
+          "cat": "Spese Interno1 : Mclink"
+        },
+        {
+          "data": "25/06/2026",
+          "desc": "ADDEBITO FASTWEB 2026-M018637671 SDD 9350637",
+          "importo": -0.5,
+          "cat": "Spese Interno1 : Mclink"
+        },
+        {
+          "data": "25/06/2026",
+          "desc": "FASTWEB SpA ADDEBITO FASTWEB 2026-M018637671 SDD 9350637",
+          "importo": -34.1,
+          "cat": "Spese Interno1 : Mclink"
+        },
+        {
+          "data": "24/06/2026",
+          "desc": "IL CHIOSCHETTO ROMA RM",
+          "importo": -3.5,
+          "cat": "Spese Interno1 : Spese Personali"
+        },
+        {
+          "data": "24/06/2026",
+          "desc": "SUPERMERCATO EUROSPIN ROMA RM",
+          "importo": -32.68,
+          "cat": "Spese Interno1 : Spese Personali"
+        }
+      ]
+    },
+    {
       "id": 1782309824646,
       "data": "2026-06-24T14:03:44.646Z",
       "file": "ListaMovimentiConto.csv",
