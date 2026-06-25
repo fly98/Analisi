@@ -3484,15 +3484,22 @@ function sellapOnDrop(e) {
 
 async function sellapGetExistingKeys() {
   var accId = sellaGetAccId(SELLAP_ACC_NAME);
-  if (!accId) return new Set();
+  if (!accId) { console.warn('SELLAP: conto non trovato:', SELLAP_ACC_NAME); return new Set(); }
+  console.log('SELLAP accId:', accId);
   var keys = new Set();
-  for (var yi = 0; yi < (meta.years||[]).length; yi++) {
-    var yr = meta.years[yi];
-    if (!txCache[yr]) { try { txCache[yr] = await api('GET', '/api/tx/'+yr); } catch(e) { continue; } }
-    (txCache[yr]||[]).forEach(function(t) {
-      if (t.accountId === accId) keys.add(sellaStorKey(t.date, getTxAmount(t), t.name.substring(0,32)));
+  // Forza rilettura anno corrente
+  var yr = String(new Date().getFullYear());
+  try {
+    var txs = await api('GET', '/api/tx/'+yr);
+    txs.forEach(function(t) {
+      if (t.accountId === accId) {
+        var k = sellaStorKey(t.date, getTxAmount(t), t.name.substring(0,32));
+        keys.add(k);
+        console.log('SELLAP existing key:', k);
+      }
     });
-  }
+  } catch(e) { console.error('SELLAP fetch error:', e); }
+  console.log('SELLAP total keys:', keys.size);
   return keys;
 }
 
@@ -3515,7 +3522,8 @@ async function sellapHandleFile(file) {
     if (!dataOp) continue;
     var importo = sellaParseAmt(deb, cred);
     var dateISO = sellaDateToISO(dataOp);
-    var storKey = sellaStorKey(dateISO, importo, desc.substring(0,32));
+    var storKey = sellaStorKey(dateISO, importo, codice.substring(0,32));
+    console.log('CSV key:', storKey);
     sellapMovimenti.push({
       codice: codice, dateISO: dateISO, dataOp: dataOp, desc: desc,
       importo: importo, storKey: storKey,
