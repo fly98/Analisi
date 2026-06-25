@@ -381,6 +381,15 @@ select.form-input { height: 42px; }
   box-shadow:0 -4px 32px rgba(0,0,0,.2);
   animation:npSlideUp .22s ease;
 }
+#sellap-overlay {
+  position:fixed; inset:0; z-index:9000;
+  background:rgba(0,0,0,.45); display:flex; align-items:flex-end;
+}
+#sellap-panel-header {
+  padding:18px 20px 14px; border-bottom:1px solid var(--border);
+  display:flex; align-items:center; gap:12px; flex-shrink:0;
+}
+#sellap-panel-header h3 { flex:1; font-size:18px; font-weight:700; }
 #sellap-panel  {
   width:100%; max-width:720px; margin:0 auto;
   background:var(--surface); border-radius:20px 20px 0 0;
@@ -3675,7 +3684,7 @@ async function sellapDoImport() {
 <!-- Modal Import Sella Personale -->
 <div id="sellap-overlay" style="display:none" onclick="if(event.target===this)closeSellaPImport()">
   <div id="sellap-panel" style="max-height:90vh">
-    <div id="sella-panel-header">
+    <div id="sellap-panel-header">
       <span style="font-size:22px">💳</span>
       <h3>Import Sella Personale</h3>
       <button onclick="closeSellaPImport()" style="background:var(--gray2);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:16px">✕</button>
