@@ -321,6 +321,22 @@ var icompta_worker_default = {
 
     // ── RICORRENZE GET ───────────────────────────────────────────────────────
     // ── IMPORT LOG GET (log generici: Leo, ecc.) ─────────────────────────────
+    // ── SELLA AUTO: proxy verso Mac locale ───────────────────────────────────
+    if (path === "/api/sella-auto" && method === "GET") {
+      const MAC_URL = "http://fly98.duckdns.org:3456/sella-csv";
+      try {
+        const r = await fetch(MAC_URL, { signal: AbortSignal.timeout(120000) });
+        if (!r.ok) return err("Mac error: " + r.status, 502);
+        const csv = await r.text();
+        const filename = r.headers.get("X-Filename") || "Sella_auto.csv";
+        return new Response(csv, {
+          headers: { ...CORS, "Content-Type": "text/csv; charset=utf-8", "X-Filename": filename }
+        });
+      } catch(e) {
+        return err("Mac non raggiungibile: " + e.message, 502);
+      }
+    }
+
     if (path === "/api/import-log" && method === "GET") {
       const key = url.searchParams.get("key");
       if (!key || !key.startsWith("icompta:")) return err("Key non valida");
