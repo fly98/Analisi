@@ -3351,10 +3351,6 @@ async function sellaAutoDownload() {
   var MAC_URL = WORKER_URL + '/api/sella-auto';
   try {
     btn.innerHTML = '<span>\u23f3</span> <span>Download in corso (~40 sec)...</span>';
-    // Usa api() che aggiunge automaticamente il token Bearer
-    var result = await api('GET', '/api/sella-auto');
-    if (result && result.error) throw new Error(result.error);
-    // api() restituisce JSON ma il CSV è testo — chiama direttamente fetch con token
     var TOKEN = localStorage.getItem('icompta_token');
     var resp = await fetch(MAC_URL, {
       headers: { 'Authorization': 'Bearer ' + TOKEN },
