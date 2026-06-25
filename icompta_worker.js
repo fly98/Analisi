@@ -337,6 +337,57 @@ var icompta_worker_default = {
       }
     }
 
+    // ── BACKUP ────────────────────────────────────────────────────────────────
+    // GET  /api/backup/list        → lista backup esistenti
+    // POST /api/backup/create      → crea backup anno corrente
+    // POST /api/backup/restore     → ripristina backup { key }
+    // DELETE /api/backup/delete    → elimina backup { key }
+
+    if (path === "/api/backup/list" && method === "GET") {
+      const list = await env.ICOMPTA_KV.list({ prefix: "backup:" });
+      const backups = await Promise.all(list.keys.map(async k => {
+        const raw = await env.ICOMPTA_KV.get(k.name);
+        if (!raw) return null;
+        const d = JSON.parse(raw);
+        return { key: k.name, date: d.date, year: d.year, txCount: d.txCount, metaSize: d.metaSize };
+      }));
+      return json(backups.filter(Boolean).sort((a,b) => b.date.localeCompare(a.date)));
+    }
+
+    if (path === "/api/backup/create" && method === "POST") {
+      const now = new Date();
+      const year = now.getFullYear();
+      const dateStr = now.toISOString().slice(0,16).replace('T',' ');
+      const key = `backup:${now.toISOString().slice(0,10)}T${now.toISOString().slice(11,16)}:${year}`;
+      const metaRaw = await env.ICOMPTA_KV.get(`icompta:meta`);
+      const txRaw   = await env.ICOMPTA_KV.get(`icompta:tx:${year}`);
+      const txData  = txRaw ? JSON.parse(txRaw) : [];
+      const payload = JSON.stringify({
+        date: dateStr, year, txCount: txData.length,
+        metaSize: metaRaw ? metaRaw.length : 0,
+        meta: metaRaw, tx: txRaw
+      });
+      await env.ICOMPTA_KV.put(key, payload);
+      return json({ ok: true, key, txCount: txData.length, date: dateStr });
+    }
+
+    if (path === "/api/backup/restore" && method === "POST") {
+      const body = await request.json();
+      const raw = await env.ICOMPTA_KV.get(body.key);
+      if (!raw) return err("Backup non trovato", 404);
+      const d = JSON.parse(raw);
+      if (d.meta) await env.ICOMPTA_KV.put("icompta:meta", d.meta);
+      if (d.tx)   await env.ICOMPTA_KV.put(`icompta:tx:${d.year}`, d.tx);
+      return json({ ok: true, year: d.year, txCount: d.txCount });
+    }
+
+    if (path === "/api/backup/delete" && method === "DELETE") {
+      const body = await request.json();
+      if (!body.key || !body.key.startsWith("backup:")) return err("Key non valida");
+      await env.ICOMPTA_KV.delete(body.key);
+      return json({ ok: true });
+    }
+
     if (path === "/api/import-log" && method === "GET") {
       const key = url.searchParams.get("key");
       if (!key || !key.startsWith("icompta:")) return err("Key non valida");
