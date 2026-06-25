@@ -1177,7 +1177,11 @@ function applyFilters() {
     txs = txs.filter(t =>
       (t.name || '').toLowerCase().includes(searchQuery) ||
       (t.comment || '').toLowerCase().includes(searchQuery) ||
-      t.splits?.some(s => (s.comment || '').toLowerCase().includes(searchQuery))
+      t.splits?.some(s =>
+        (s.comment || '').toLowerCase().includes(searchQuery) ||
+        getCatName(s.categoryId).toLowerCase().includes(searchQuery)
+      ) ||
+      String(Math.abs(getTxAmount(t))).includes(searchQuery)
     );
   }
 
