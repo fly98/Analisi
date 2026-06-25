@@ -2468,6 +2468,24 @@ function openAcctsMgmt() {
     accounts: JSON.parse(JSON.stringify(meta.accounts)),
     groups:   JSON.parse(JSON.stringify(meta.groups))
   };
+
+  // Inizializza sidebarIndex consecutivi (0,1,2,3...) nell'ordine attuale
+  // usando lo stesso algoritmo di renderSidebar
+  var _grpById = {};
+  _acctsDraft.groups.forEach(function(g){ _grpById[g.id] = g; });
+  var _standalone = _acctsDraft.accounts.filter(function(a){ return !a.groupId || !_grpById[a.groupId]; });
+
+  var _allSec = [];
+  _acctsDraft.groups.forEach(function(g){
+    _allSec.push({type:'g', obj:g, idx: g.sidebarIndex !== undefined ? g.sidebarIndex : (g.index||0)*10});
+  });
+  _standalone.forEach(function(a){
+    _allSec.push({type:'a', obj:a, idx: a.sidebarIndex !== undefined ? a.sidebarIndex : 999});
+  });
+  _allSec.sort(function(a,b){ return a.idx - b.idx; });
+  // Riassegna indici consecutivi puliti
+  _allSec.forEach(function(s, i){ s.obj.sidebarIndex = i; });
+
   renderAcctsMgmt();
   document.getElementById('accts-overlay').style.display = 'flex';
   closeSidebar();
@@ -2495,7 +2513,7 @@ function renderAcctsMgmt() {
     if (acc.groupId && grouped[acc.groupId] !== undefined) {
       grouped[acc.groupId].push(acc);
     } else {
-      if (acc.sidebarIndex === undefined) acc.sidebarIndex = 1000 + (ungrouped.length * 10);
+      // sidebarIndex già inizializzato in openAcctsMgmt
       ungrouped.push(acc);
     }
   });
