@@ -437,6 +437,18 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif
 #sella-import-btn:disabled { opacity:.4; cursor:default; }
 #sella-progress { font-size:13px; color:var(--muted); min-width:80px; text-align:right; }
 
+/* ── Modal dettaglio sessione Sella ── */
+#sella-detail-overlay { position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.45);display:flex;align-items:flex-end; }
+#sella-detail-panel { width:100%;max-width:560px;margin:0 auto;background:var(--surface);border-radius:20px 20px 0 0;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 -4px 32px rgba(0,0,0,.2); }
+#sella-detail-hdr { padding:14px 18px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0; }
+#sella-detail-hdr h4 { flex:1;font-size:16px;font-weight:700; }
+#sella-detail-body { flex:1;overflow-y:auto;padding:10px 16px; }
+.sella-tx-row { display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--gray2);font-size:13px; }
+.sella-tx-row:last-child { border-bottom:none; }
+.sella-tx-date { color:var(--muted);white-space:nowrap;min-width:52px; }
+.sella-tx-name { flex:1;font-weight:500;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+.sella-tx-amt { font-weight:600;white-space:nowrap; }
+
 /* ── Modal Gestione Conti ── */
 #accts-overlay {
   position:fixed;inset:0;z-index:8000;background:rgba(0,0,0,.45);
@@ -2343,6 +2355,12 @@ async function sellaLoadLog() {
       info.style.flex = "1";
       info.innerHTML = "<div style=\"font-size:14px;font-weight:600\">" + esc(s.label||s.date) + "</div>"
         + "<div style=\"font-size:12px;color:var(--muted);margin-top:2px\">" + s.countBanca + " TX banca &middot; " + s.countEco + " TX economico</div>";
+      var detBtn = document.createElement("button");
+      detBtn.style.cssText = "padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:12px;cursor:pointer;white-space:nowrap";
+      detBtn.textContent = "👁 Dettagli";
+      (function(sess) {
+        detBtn.addEventListener("click", function() { openSellaDetail(sess); });
+      })(s);
       var btn = document.createElement("button");
       btn.style.cssText = "padding:6px 12px;border-radius:8px;border:1px solid var(--red);background:var(--red-bg);color:var(--red);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap";
       btn.textContent = "🗑 Rimuovi";
@@ -2350,6 +2368,7 @@ async function sellaLoadLog() {
         btn.addEventListener("click", function() { sellaRollback(id, cnt); });
       })(s.id, s.countBanca + s.countEco);
       row.appendChild(info);
+      row.appendChild(detBtn);
       row.appendChild(btn);
       frag.appendChild(row);
     });
@@ -3074,6 +3093,56 @@ async function _setSidebarOrder() {
   } catch(e){console.warn('Ordine sidebar:',e);}
 }
 
+async function openSellaDetail(s) {
+  document.getElementById('sella-detail-title').textContent = s.label || s.date;
+  var body = document.getElementById('sella-detail-body');
+  body.innerHTML = '<div style="color:var(--faint);font-size:13px;padding:16px 0;text-align:center">Caricamento…</div>';
+  document.getElementById('sella-detail-overlay').style.display = 'flex';
+
+  var allIds = (s.txBanca||[]).concat(s.txEco||[]);
+  if (!allIds.length) { body.innerHTML = '<div style="color:var(--faint);font-size:13px;padding:16px 0;text-align:center">Nessuna transazione salvata</div>'; return; }
+
+  // Cerca le TX in tutti gli anni del cache
+  var found = [];
+  var years = meta && meta.years ? meta.years : [new Date().getFullYear().toString()];
+  for (var yi=0; yi<years.length; yi++) {
+    var yr = years[yi];
+    if (!txCache[yr]) { try { txCache[yr] = await api('GET', '/api/tx/' + yr); } catch(e) { continue; } }
+    (txCache[yr]||[]).forEach(function(t) {
+      if (allIds.indexOf(t.id) >= 0) found.push(t);
+    });
+    if (found.length === allIds.length) break;
+  }
+
+  if (!found.length) { body.innerHTML = '<div style="color:var(--faint);font-size:13px;padding:16px 0;text-align:center">Transazioni non trovate (potrebbero essere state eliminate)</div>'; return; }
+
+  found.sort(function(a,b){ return a.date.localeCompare(b.date); });
+
+  var bancaTx = found.filter(function(t){ return (s.txBanca||[]).indexOf(t.id)>=0; });
+  var ecoTx   = found.filter(function(t){ return (s.txEco||[]).indexOf(t.id)>=0; });
+
+  function mkSection(title, txs) {
+    if (!txs.length) return '';
+    var rows = txs.map(function(t) {
+      var amt = t.splits && t.splits[0] ? t.splits[0].amount : 0;
+      var color = amt >= 0 ? 'var(--green)' : 'var(--red)';
+      var d = t.date ? t.date.slice(8,10)+'/'+t.date.slice(5,7) : '';
+      return '<div class="sella-tx-row">' +
+        '<span class="sella-tx-date">'+d+'</span>' +
+        '<span class="sella-tx-name">'+esc(t.name||'')+'</span>' +
+        '<span class="sella-tx-amt" style="color:'+color+'">'+fmt(amt)+'</span>' +
+        '</div>';
+    }).join('');
+    return '<div style="font-size:11px;font-weight:700;color:var(--gray4);text-transform:uppercase;letter-spacing:.5px;padding:10px 0 4px">'+title+'</div>' + rows;
+  }
+
+  body.innerHTML = mkSection('Conto Banca ('+bancaTx.length+')', bancaTx) + mkSection('Conto Economico ('+ecoTx.length+')', ecoTx);
+}
+
+function closeStellaDetail() {
+  document.getElementById('sella-detail-overlay').style.display = 'none';
+}
+
 </script>
 
 <!-- Modal Import Sella -->
@@ -3161,6 +3230,18 @@ async function _setSidebarOrder() {
       <button onclick="showRecForm()" style="flex:1;padding:11px;border-radius:10px;border:1.5px solid var(--blue);background:var(--blue-bg);color:var(--blue);font-size:14px;font-weight:700;cursor:pointer">+ Nuova</button>
       <button onclick="saveRicorrenze()" style="flex:2;padding:11px;border-radius:10px;border:none;background:var(--blue);color:#fff;font-size:15px;font-weight:700;cursor:pointer">💾 Salva</button>
     </div>
+  </div>
+</div>
+
+<!-- Modal dettaglio sessione Sella -->
+<div id="sella-detail-overlay" style="display:none" onclick="if(event.target===this)closeStellaDetail()">
+  <div id="sella-detail-panel">
+    <div id="sella-detail-hdr">
+      <span style="font-size:18px">🏦</span>
+      <h4 id="sella-detail-title">Importazione</h4>
+      <button onclick="closeStellaDetail()" style="background:var(--gray2);border:none;border-radius:50%;width:28px;height:28px;cursor:pointer;font-size:14px">✕</button>
+    </div>
+    <div id="sella-detail-body"></div>
   </div>
 </div>
 </body>
