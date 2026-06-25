@@ -478,11 +478,14 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif
 .acct-updown button { background:none;border:none;color:var(--gray3);cursor:pointer;font-size:12px;padding:2px 6px;border-radius:4px;line-height:1; }
 .acct-updown button:hover { color:var(--blue);background:var(--blue-bg); }
 .accts-section { margin-bottom:4px; }
-.accts-section-hdr { display:flex;align-items:center;gap:6px;padding:6px 4px 4px;
+.accts-group-box { border:1.5px solid var(--gray2);border-radius:12px;padding:8px;margin-bottom:6px;background:var(--bg); }
+.accts-section-hdr { display:flex;align-items:center;gap:6px;padding:4px 4px 6px;
   font-size:11px;font-weight:700;color:var(--gray4);text-transform:uppercase;letter-spacing:.5px; }
 .accts-section-hdr .grp-updown { display:flex;gap:2px; }
 .accts-section-hdr .grp-updown button { background:none;border:none;color:var(--gray3);cursor:pointer;font-size:11px;padding:2px 5px;border-radius:4px; }
 .accts-section-hdr .grp-updown button:hover { color:var(--blue);background:var(--blue-bg); }
+/* Conti dentro gruppo leggermente rientrati */
+.accts-group-box .acct-row { margin-left:4px; }
 .acct-icon { font-size:18px;flex-shrink:0;width:24px;text-align:center; }
 .acct-name-input {
   flex:1;font-size:14px;font-weight:500;border:none;background:transparent;
@@ -2589,14 +2592,17 @@ function renderAcctsMgmt() {
         renderAcctsMgmt();
       });
       hdr.appendChild(nameInput); hdr.appendChild(delBtn);
-      body.appendChild(hdr);
+      var box = document.createElement('div');
+      box.className = 'accts-group-box';
+      box.appendChild(hdr);
       // Conti del gruppo con ↑↓ interno
       accs.forEach(function(acc, ai){
         var row = makeAcctRow(acc);
         row.insertBefore(makeAcctUD(accs, ai), row.firstChild);
-        body.appendChild(row);
+        box.appendChild(row);
       });
-      body.appendChild(makeAddAcctBtn(g.id));
+      box.appendChild(makeAddAcctBtn(g.id));
+      body.appendChild(box);
     } else {
       // Standalone con ↑↓ sezione
       var row = makeAcctRow(sec.obj);
