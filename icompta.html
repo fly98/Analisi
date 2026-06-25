@@ -209,8 +209,7 @@ select.form-input { height: 42px; }
 
 /* ── Split rows in modal ── */
 .split-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
-.split-row input { flex: 0 0 110px; min-width: 80px; }
-.split-row select { flex: 1; }
+.split-row input { flex: 1; }
 .btn-icon { background: var(--gray2); border: none; border-radius: 8px; 
   padding: 6px 10px; cursor: pointer; font-size: 14px; }
 
@@ -777,9 +776,19 @@ select.form-input { height: 42px; }
       <button class="modal-close" onclick="closeModal()">×</button>
     </div>
     <div class="modal-body">
-      <div class="form-group">
-        <label class="form-label">Data</label>
-        <input type="date" class="form-input" id="tx-date">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Data</label>
+          <input type="date" class="form-input" id="tx-date">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Stato</label>
+          <select class="form-input" id="tx-status">
+            <option value="created">In sospeso</option>
+            <option value="cleared">Evaso</option>
+            <option value="imported">Importato</option>
+          </select>
+        </div>
       </div>
       <div class="form-group">
         <label class="form-label">Descrizione</label>
@@ -1340,7 +1349,7 @@ function openNewTx() {
   document.getElementById('modal-title').textContent = 'Nuova transazione';
   document.getElementById('btn-delete').style.display = 'none';
   document.getElementById('tx-date').value = new Date().toISOString().slice(0,10);
-  'cleared' = 'created';
+  document.getElementById('tx-status').value = 'created';
   document.getElementById('tx-name').value = '';
   document.getElementById('tx-comment').value = '';
   
@@ -1369,7 +1378,7 @@ function openEditTx(tx) {
   document.getElementById('modal-title').textContent = 'Modifica transazione';
   document.getElementById('btn-delete').style.display = 'block';
   document.getElementById('tx-date').value = tx.date;
-  'cleared' = tx.status || 'created';
+  document.getElementById('tx-status').value = tx.status || 'created';
   document.getElementById('tx-name').value = tx.name || '';
   document.getElementById('tx-comment').value = tx.comment || '';
 
@@ -1562,7 +1571,7 @@ async function saveTx() {
     date: document.getElementById('tx-date').value,
     name: document.getElementById('tx-name').value.trim(),
     accountId: document.getElementById('tx-account').value,
-    status: 'cleared',
+    status: document.getElementById('tx-status').value,
     comment: document.getElementById('tx-comment').value.trim() || null,
     useSumOfSplits: true,
     amount: null,
