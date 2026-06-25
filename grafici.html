@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>InternoUno · Grafici</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #f2f2f7; --card: #fff; --text: #1c1c1e; --muted: #86868b;
+    --border: #e5e5ea; --radius: 14px; --shadow: 0 1px 4px rgba(0,0,0,.08);
+    --blue: #007aff; --green: #34c759; --red: #ff3b30; --orange: #ff9500;
+    --purple: #af52de;
+  }
+  @media(prefers-color-scheme:dark){
+    :root{ --bg:#1c1c1e; --card:#2c2c2e; --text:#f2f2f7; --muted:#8e8e93; --border:#3a3a3c; --shadow:0 1px 4px rgba(0,0,0,.3); }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+  .header { background: var(--card); border-bottom: 1px solid var(--border); padding: 14px 16px; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 10; }
+  .header h1 { font-size: 17px; font-weight: 700; flex: 1; }
+  .back-btn { background: none; border: none; color: var(--blue); font-size: 15px; cursor: pointer; padding: 4px 0; }
+  .tabs { display: flex; background: var(--card); border-bottom: 1px solid var(--border); }
+  .tab-btn { flex: 1; padding: 12px; border: none; background: none; font-size: 14px; font-weight: 600; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; transition: all .15s; }
+  .tab-btn.active { color: var(--blue); border-bottom-color: var(--blue); }
+  .tab-content { display: none; padding: 12px 14px; }
+  .tab-content.active { display: block; }
+  .chart-card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 14px; margin-bottom: 10px; }
+  .chart-title { font-size: 14px; font-weight: 700; margin-bottom: 2px; }
+  .chart-sub { font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+  .chart-wrap { position: relative; height: 240px; }
+  .chart-wrap.tall { height: 280px; }
+  .kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+  .kpi-card { background: var(--card); border-radius: var(--radius); padding: 12px 14px; box-shadow: var(--shadow); }
+  .kpi-label { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+  .kpi-value { font-size: 20px; font-weight: 700; }
+  .kpi-value.green { color: var(--green); }
+  .kpi-value.red { color: var(--red); }
+  .kpi-value.blue { color: var(--blue); }
+  .kpi-delta { font-size: 11px; margin-top: 2px; color: var(--muted); }
+  .kpi-delta.up { color: var(--green); }
+  .kpi-delta.down { color: var(--red); }
+  .seg-ctrl { display: flex; background: var(--border); border-radius: 8px; padding: 2px; margin-bottom: 10px; }
+  .seg-btn { flex: 1; padding: 6px; border: none; background: none; border-radius: 6px; font-size: 13px; cursor: pointer; color: var(--muted); font-weight: 500; }
+  .seg-btn.active { background: var(--card); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.1); font-weight: 700; }
+  .ctrl-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+  .ctrl-row select { padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); color: var(--text); font-size: 13px; }
+  .section-title { font-size: 13px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin: 16px 0 8px; }
+  .prorata-notice { display: none; background: rgba(255,149,0,.12); border-radius: 8px; padding: 8px 12px; font-size: 12px; color: var(--orange); margin-bottom: 8px; }
+  .prorata-notice.show { display: block; }
+  .status-bar { display: none; padding: 10px 14px; background: var(--blue); color: #fff; font-size: 13px; border-radius: 8px; margin-bottom: 10px; }
+  .status-bar.show { display: block; }
+  .status-bar.error { background: var(--red); }
+  .year-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+  .year-chip { padding: 5px 14px; border-radius: 20px; border: 1.5px solid var(--border); background: none; font-size: 13px; font-weight: 600; color: var(--muted); cursor: pointer; }
+  .year-chip.active { color: #fff; }
+  .data-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .data-table th { text-align: right; padding: 6px 8px; color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--border); }
+  .data-table th:first-child { text-align: left; }
+  .data-table td { text-align: right; padding: 6px 8px; border-bottom: 1px solid var(--border); }
+  .data-table td:first-child { text-align: left; }
+  .data-table tr.total-row td { font-weight: 700; border-top: 2px solid var(--border); }
+  .c-muted { color: var(--muted); }
+  .loading-msg { text-align: center; padding: 40px; color: var(--muted); font-size: 14px; }
+  .ai-section { background: var(--card); border-radius: var(--radius); padding: 14px; margin-top: 10px; box-shadow: var(--shadow); }
+  .ai-section h3 { font-size: 14px; font-weight: 700; margin-bottom: 10px; }
+  .ai-output { font-size: 13px; line-height: 1.6; color: var(--text); padding: 10px; background: var(--bg); border-radius: 8px; min-height: 60px; }
+  .ai-output.loading { color: var(--muted); font-style: italic; }
+  .ai-output.error { color: var(--red); }
+  .ai-btn { padding: 8px 16px; border-radius: 8px; border: none; background: var(--blue); color: #fff; font-size: 13px; font-weight: 700; cursor: pointer; margin-top: 8px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <button class="back-btn" onclick="history.back()">‹ Indietro</button>
+  <h1>📊 Grafici & Report</h1>
+</div>
+
+<div class="tabs">
+  <button class="tab-btn active" onclick="showTab('finanziario',this)">💰 Finanziario</button>
+  <button class="tab-btn" onclick="showTab('prenotazioni',this)">🏨 Prenotazioni</button>
+</div>
+
+<!-- ═══════════════════ TAB FINANZIARIO ═══════════════════ -->
+<div id="tab-finanziario" class="tab-content active">
+  <div style="padding:12px 0 4px">
+    <div class="seg-ctrl">
+      <button class="seg-btn active" onclick="setMode('mese',this)">Mese</button>
+      <button class="seg-btn" onclick="setMode('range',this)">Range</button>
+      <button class="seg-btn" onclick="setMode('anno',this)">Anno</button>
+    </div>
+    <div class="ctrl-row">
+      <div id="ctrl-mese" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <select id="sel-mese">
+          <option value="1">Gennaio</option><option value="2">Febbraio</option><option value="3">Marzo</option>
+          <option value="4">Aprile</option><option value="5">Maggio</option><option value="6">Giugno</option>
+          <option value="7">Luglio</option><option value="8">Agosto</option><option value="9">Settembre</option>
+          <option value="10">Ottobre</option><option value="11">Novembre</option><option value="12">Dicembre</option>
+        </select>
+      </div>
+      <div id="ctrl-range" style="display:none;gap:8px;flex-wrap:wrap;align-items:center">
+        <select id="sel-range-from">
+          <option value="1">Gen</option><option value="2">Feb</option><option value="3">Mar</option>
+          <option value="4">Apr</option><option value="5">Mag</option><option value="6">Giu</option>
+          <option value="7">Lug</option><option value="8">Ago</option><option value="9">Set</option>
+          <option value="10">Ott</option><option value="11">Nov</option><option value="12">Dic</option>
+        </select>
+        <span style="color:var(--muted)">→</span>
+        <select id="sel-range-to">
+          <option value="1">Gen</option><option value="2">Feb</option><option value="3">Mar</option>
+          <option value="4">Apr</option><option value="5">Mag</option><option value="6">Giu</option>
+          <option value="7">Lug</option><option value="8">Ago</option><option value="9">Set</option>
+          <option value="10">Ott</option><option value="11">Nov</option><option value="12">Dic</option>
+        </select>
+      </div>
+      <select id="sel-anno" onchange="render()" style="margin-left:auto"></select>
+    </div>
+    <div class="ctrl-row">
+      <span style="font-size:12px;color:var(--muted)">Confronto:</span>
+      <div class="seg-ctrl" style="margin:0;flex:1">
+        <button class="seg-btn active" onclick="setYoY(0,this)">Solo</button>
+        <button class="seg-btn" onclick="setYoY(3,this)">3 anni</button>
+        <button class="seg-btn" onclick="setYoY(5,this)">5 anni</button>
+      </div>
+    </div>
+    <div class="prorata-notice" id="prorata-notice"></div>
+    <div id="status-fin" class="status-bar"></div>
+    <div id="kpi-grid" class="kpi-grid"><div class="loading-msg">Caricamento dati...</div></div>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-title" id="ricavi-chart-title">Ricavi</div>
+    <div class="chart-sub" id="ricavi-chart-sub"></div>
+    <div class="chart-wrap"><canvas id="chart-ricavi"></canvas></div>
+  </div>
+  <div class="chart-card">
+    <div class="chart-title" id="costi-chart-title">Costi</div>
+    <div class="chart-sub" id="costi-chart-sub"></div>
+    <div class="chart-wrap"><canvas id="chart-costi"></canvas></div>
+  </div>
+  <div class="chart-card">
+    <div class="chart-title">Margine operativo</div>
+    <div class="chart-wrap"><canvas id="chart-margine"></canvas></div>
+  </div>
+
+  <div class="section-title">Composizione</div>
+  <div class="chart-card">
+    <div class="chart-title">Ricavi per categoria</div>
+    <div class="chart-sub" id="cat-ricavi-sub"></div>
+    <div class="chart-wrap"><canvas id="chart-cat-ricavi"></canvas></div>
+  </div>
+  <div class="chart-card">
+    <div class="chart-title">Costi per categoria</div>
+    <div class="chart-sub" id="cat-costi-sub"></div>
+    <div class="chart-wrap"><canvas id="chart-cat-costi"></canvas></div>
+  </div>
+
+  <div class="section-title">Dettaglio categorie</div>
+  <div class="chart-card" style="overflow-x:auto">
+    <div class="chart-title">Ricavi per categoria</div>
+    <table class="data-table" id="table-ricavi"></table>
+  </div>
+  <div class="chart-card" style="overflow-x:auto">
+    <div class="chart-title">Costi per categoria</div>
+    <table class="data-table" id="table-costi"></table>
+  </div>
+
+  <div class="ai-section">
+    <h3>✦ Analisi AI</h3>
+    <div id="ai-output" class="ai-output">Seleziona un periodo e clicca "Analizza" per ricevere un commento sull'andamento.</div>
+    <button class="ai-btn" onclick="runAnalysis()" id="ai-btn">✦ Analizza con AI</button>
+  </div>
+</div>
+
+<!-- ═══════════════════ TAB PRENOTAZIONI ═══════════════════ -->
+<div id="tab-prenotazioni" class="tab-content">
+  <div style="padding:8px 0">
+    <div class="year-chips" id="year-chips"></div>
+    <div id="cutoff-label" style="font-size:12px;color:var(--muted);margin-bottom:8px"></div>
+    <div class="prorata-notice" id="prorata-notice-pren"></div>
+    <div id="status-pren" class="status-bar"></div>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-title" id="chart-r-title">Ricavi mensili per anno</div>
+    <div class="chart-sub" id="chart-r-sub">In caricamento…</div>
+    <div class="chart-wrap tall"><canvas id="chart-ricavi-am"></canvas></div>
+  </div>
+  <div class="chart-card">
+    <div class="chart-title">Tassa soggiorno</div>
+    <div class="chart-wrap"><canvas id="chart-tassa"></canvas></div>
+  </div>
+
+  <div class="section-title">Booking window</div>
+  <div class="chart-card">
+    <div class="chart-title">Prenotazioni future per mese di arrivo</div>
+    <div class="chart-sub" id="chart-w-sub">Quante prenotazioni erano già in casa a questa data dell'anno</div>
+    <div class="chart-wrap tall"><canvas id="chart-window"></canvas></div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════════════════════════
+const ICOMPTA_WORKER = 'https://icompta-worker.f-castiglioni.workers.dev';
+const ARRIVI_WORKER  = 'https://little-shadow-145e.f-castiglioni.workers.dev';
+
+const MESI_IT    = ['','Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+const MESI_SHORT = ['','Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
+
+const PRIMO_ANNO = 2023;
+const PRIMO_MESE_PRIMO_ANNO = 7;
+const TUTTI_GLI_ANNI = [2023,2024,2025,2026];
+const ANNO_COLORS = {2023:'#ff9500',2024:'#34c759',2025:'#007aff',2026:'#af52de'};
+
+const PAL = ['#007aff','#34c759','#ff9500','#ff3b30','#af52de','#5ac8fa','#ff2d55','#30b0c7','#ffcc00','#4cd964','#5856d6','#ff6b35'];
+
+// ── Tab ──────────────────────────────────────────────────
+function showTab(id, btn) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  btn.classList.add('active');
+  if (id === 'prenotazioni' && !_prenLoaded) loadPrenotazioni();
+}
+
+// ══════════════════════════════════════════════════════════
+// FINANZIARIO — legge TX dal conto InternoUno
+// ══════════════════════════════════════════════════════════
+let RAW = [], availAnni = [], mode = 'mese', yoyCount = 0;
+let charts_fin = {};
+
+async function iComptaApi(path) {
+  const token = localStorage.getItem('icompta_token');
+  if (!token) throw new Error('Token iCompta non trovato — apri iCompta prima');
+  const r = await fetch(ICOMPTA_WORKER + path, {
+    headers: { 'Authorization': 'Bearer ' + token }
+  });
+  if (!r.ok) throw new Error('Errore API: ' + r.status);
+  return r.json();
+}
+
+function cleanCat(c) {
+  if (!c) return 'Altro';
+  if (c.includes('Redditi'))       return 'Redditi';
+  if (c.includes('Commissioni'))   return 'Commissioni';
+  if (c.includes('Tasse') && !c.includes('Soggiorno')) return 'Tasse e imposte';
+  if (c.includes('Pulizia'))       return 'Pulizia';
+  if (c.includes('Stipendio'))     return 'Stipendio';
+  if (c.includes('Manutenzione'))  return 'Manutenzione';
+  if (c.includes('Mutuo'))         return 'Mutuo';
+  if (c.includes('Luce'))          return 'Luce';
+  if (c.includes('Automobile'))    return 'Automobile';
+  if (c.includes('Ufficio'))       return 'Ufficio';
+  if (c.includes('Weekend'))       return 'Weekend';
+  if (c.includes('Mclink') || c.includes('Internet')) return 'Internet';
+  if (c.includes('Promozione'))    return 'Promozione';
+  if (c.includes('Salute'))        return 'Salute';
+  return 'Altro';
+}
+
+async function loadFinanziario() {
+  const statusEl = document.getElementById('status-fin');
+  statusEl.textContent = 'Caricamento transazioni...';
+  statusEl.className = 'status-bar show';
+  try {
+    const meta = await iComptaApi('/api/meta');
+    const acc = meta.accounts.find(a => a.name === 'InternoUno');
+    if (!acc) throw new Error('Conto InternoUno non trovato');
+    const years = meta.years || ['2023','2024','2025','2026'];
+    RAW = [];
+    for (const yr of years) {
+      statusEl.textContent = 'Caricamento ' + yr + '...';
+      const txs = await iComptaApi('/api/tx/' + yr);
+      for (const tx of txs) {
+        if (tx.accountId !== acc.id) continue;
+        const splits = tx.splits || [];
+        for (const sp of splits) {
+          if (!sp.amount || sp.amount === 0) continue;
+          const d = tx.date || '';
+          const parts = d.split('-');
+          if (parts.length !== 3) continue;
+          const anno = parseInt(parts[0]);
+          const mese = parseInt(parts[1]);
+          const giorno = parseInt(parts[2]);
+          const catName = getCatNameById(meta, sp.categoryId);
+          RAW.push({
+            anno, mese, giorno,
+            importo: sp.amount,
+            cat: cleanCat(catName),
+            tipo: sp.amount < 0 ? 'ricavo' : 'costo',
+            nome: tx.name || '',
+            commento: tx.comment || ''
+          });
+        }
+      }
+    }
+    availAnni = [...new Set(RAW.map(r => r.anno))].sort();
+    statusEl.className = 'status-bar';
+    // Imposta defaults
+    const today = new Date();
+    const selAnno = document.getElementById('sel-anno');
+    selAnno.innerHTML = '';
+    [...availAnni].reverse().forEach(a => {
+      const o = document.createElement('option');
+      o.value = a; o.textContent = a;
+      if (a === today.getFullYear()) o.selected = true;
+      selAnno.appendChild(o);
+    });
+    document.getElementById('sel-mese').value = today.getMonth() + 1;
+    render();
+  } catch(e) {
+    statusEl.textContent = 'Errore: ' + e.message;
+    statusEl.className = 'status-bar show error';
+  }
+}
+
+function getCatNameById(meta, catId) {
+  if (!catId || !meta.categories) return '';
+  const c = meta.categories.find(c => c.id === catId);
+  return c ? c.name : '';
+}
+
+function setMode(m, btn) {
+  mode = m;
+  document.querySelectorAll('.seg-ctrl .seg-btn').forEach(b => { if(b.closest('#ctrl-row-mode')) b.classList.remove('active'); });
+  btn.classList.add('active');
+  document.getElementById('ctrl-mese').style.display  = m==='mese'  ? 'flex' : 'none';
+  document.getElementById('ctrl-range').style.display = m==='range' ? 'flex' : 'none';
+  render();
+}
+function setYoY(n, btn) {
+  yoyCount = n;
+  btn.closest('.seg-ctrl').querySelectorAll('.seg-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+
+function aggregate(anno, m1, m2, dayCap) {
+  let ricavi=0, costi=0;
+  const catR={}, catC={};
+  for (const r of RAW) {
+    if (r.anno!==anno||r.mese<m1||r.mese>m2) continue;
+    if (dayCap!==null && r.mese===m2 && r.giorno>dayCap) continue;
+    if (r.tipo==='ricavo') { const v=Math.abs(r.importo); ricavi+=v; catR[r.cat]=(catR[r.cat]||0)+v; }
+    else { costi+=r.importo; catC[r.cat]=(catC[r.cat]||0)+r.importo; }
+  }
+  return { ricavi: Math.round(ricavi*100)/100, costi: Math.round(costi*100)/100, catRicavi: catR, catCosti: catC };
+}
+
+function fmtE(v) { return v.toLocaleString('it-IT',{minimumFractionDigits:0,maximumFractionDigits:0})+' €'; }
+function pctStr(a,b) { if(!b)return''; const p=((a-b)/b*100).toFixed(1); return(p>=0?'+':'')+p+'% vs '+(parseInt(document.getElementById('sel-anno').value)-1); }
+function dc(a,b,inv) { if(!b)return''; const up=a>=b; return inv?(up?'down':'up'):(up?'up':'down'); }
+
+function render() {
+  if (!RAW.length) return;
+  const today=new Date(), curYear=today.getFullYear(), curMonth=today.getMonth()+1, curDay=today.getDate();
+  const refAnno=parseInt(document.getElementById('sel-anno').value);
+  let m1,m2;
+  if (mode==='mese') { m1=m2=parseInt(document.getElementById('sel-mese').value); }
+  else if (mode==='range') { m1=parseInt(document.getElementById('sel-range-from').value); m2=parseInt(document.getElementById('sel-range-to').value); if(m2<m1)m2=m1; }
+  else { m1=1; m2=12; }
+  const prorata = refAnno===curYear && m2>=curMonth;
+  const dayCap  = prorata ? curDay : null;
+  const notice  = document.getElementById('prorata-notice');
+  if (prorata) { notice.className='prorata-notice show'; notice.textContent=`⚡ Confronto limitato al giorno ${curDay} per tutti gli anni.`; }
+  else { notice.className='prorata-notice'; }
+  let years=[refAnno];
+  if (yoyCount>0) for(let i=1;i<=yoyCount;i++){const y=refAnno-i;if(availAnni.includes(y))years.push(y);}
+  years=years.sort((a,b)=>a-b);
+  const results={};
+  years.forEach(y=>{ results[y]=aggregate(y,m1,m2,prorata&&y===curYear?curDay:null); });
+  const ref=results[refAnno], prev=results[refAnno-1]||null;
+  const marg=ref.ricavi-ref.costi, margP=prev?prev.ricavi-prev.costi:null;
+  const pl=m1===m2?`${MESI_IT[m1]} ${refAnno}`:`${MESI_SHORT[m1]}–${MESI_SHORT[m2]} ${refAnno}`;
+  const dt=prorata?` al ${curDay}/${m2}`:'';
+  document.getElementById('kpi-grid').innerHTML=`
+    <div class="kpi-card"><div class="kpi-label">Ricavi — ${pl}${dt}</div><div class="kpi-value green">${fmtE(ref.ricavi)}</div>${prev?`<div class="kpi-delta ${dc(ref.ricavi,prev.ricavi,false)}">${pctStr(ref.ricavi,prev.ricavi)}</div>`:''}</div>
+    <div class="kpi-card"><div class="kpi-label">Costi — ${pl}${dt}</div><div class="kpi-value red">${fmtE(ref.costi)}</div>${prev?`<div class="kpi-delta ${dc(ref.costi,prev.costi,true)}">${pctStr(ref.costi,prev.costi)}</div>`:''}</div>
+    <div class="kpi-card"><div class="kpi-label">Margine</div><div class="kpi-value ${marg>=0?'green':'red'}">${marg>=0?'+':''}${fmtE(marg)}</div>${margP!==null?`<div class="kpi-delta ${marg>=margP?'up':'down'}">${pctStr(marg,margP)}</div>`:''}</div>
+    <div class="kpi-card"><div class="kpi-label">Margine %</div><div class="kpi-value blue">${ref.ricavi>0?((marg/ref.ricavi)*100).toFixed(1)+'%':'—'}</div></div>`;
+  const labels=years.map(String);
+  const rD=years.map(y=>results[y].ricavi), cD=years.map(y=>results[y].costi), mD=years.map(y=>results[y].ricavi-results[y].costi);
+  const rC=years.map(y=>y===refAnno?'#34c759':'rgba(52,199,89,0.28)');
+  const cC=years.map(y=>y===refAnno?'#ff3b30':'rgba(255,59,48,0.28)');
+  const mC=mD.map((v,i)=>{const r=years[i]===refAnno;return v>=0?(r?'#007aff':'rgba(0,122,255,0.28)'):(r?'#ff3b30':'rgba(255,59,48,0.28)');});
+  const dlPlugin={id:'dl',afterDatasetsDraw(chart){const{ctx,data,chartArea:{top}}=chart;ctx.save();data.datasets.forEach((ds,di)=>{chart.getDatasetMeta(di).data.forEach((bar,idx)=>{const v=ds.data[idx];if(!v&&v!==0)return;const l=Math.abs(v)>=1000?(Math.abs(v)/1000).toFixed(1)+'k':Math.abs(v).toFixed(0);ctx.font='600 10px -apple-system,sans-serif';ctx.fillStyle='#86868b';ctx.textAlign='center';ctx.textBaseline='bottom';const y=bar.y-4;ctx.fillText((v<0?'−':'')+l,bar.x,y<top+12?top+12:y);});});ctx.restore();}};
+  Chart.defaults.font.family='-apple-system,sans-serif';Chart.defaults.color='#86868b';Chart.defaults.font.size=11;
+  const sub=prorata?`Dati al giorno ${curDay} per tutti gli anni`:`${m1===m2?MESI_IT[m1]:MESI_SHORT[m1]+'–'+MESI_SHORT[m2]} · ${years[0]}–${refAnno}`;
+  function makeBar(id,data,colors,tid,sid,ttxt){
+    if(charts_fin[id])charts_fin[id].destroy();
+    if(tid)document.getElementById(tid).textContent=ttxt;
+    if(sid)document.getElementById(sid).textContent=sub;
+    charts_fin[id]=new Chart(document.getElementById(id),{type:'bar',data:{labels,datasets:[{data,backgroundColor:colors,borderRadius:5,borderSkipped:false}]},plugins:[dlPlugin],options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>'  '+fmtE(Math.abs(ctx.raw))}}},scales:{x:{grid:{display:false},border:{display:false}},y:{grid:{color:'rgba(0,0,0,.06)'},border:{display:false},ticks:{callback:v=>(v/1000).toFixed(0)+'k'}}},layout:{padding:{top:20}}}});
+  }
+  makeBar('chart-ricavi',rD,rC,'ricavi-chart-title','ricavi-chart-sub',`Ricavi — ${m1===m2?MESI_SHORT[m1]:MESI_SHORT[m1]+'–'+MESI_SHORT[m2]} · confronto anni`);
+  makeBar('chart-costi',cD,cC,'costi-chart-title','costi-chart-sub',`Costi — ${m1===m2?MESI_SHORT[m1]:MESI_SHORT[m1]+'–'+MESI_SHORT[m2]} · confronto anni`);
+  if(charts_fin['chart-margine'])charts_fin['chart-margine'].destroy();
+  charts_fin['chart-margine']=new Chart(document.getElementById('chart-margine'),{type:'bar',data:{labels,datasets:[{data:mD,backgroundColor:mC,borderRadius:5,borderSkipped:false}]},plugins:[dlPlugin],options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>'  '+fmtE(ctx.raw)}}},scales:{x:{grid:{display:false},border:{display:false}},y:{grid:{color:'rgba(0,0,0,.06)'},border:{display:false},ticks:{callback:v=>(v>=0?'':'−')+(Math.abs(v)/1000).toFixed(0)+'k'}}},layout:{padding:{top:20}}}});
+  function makePie(id,catObj,sid,sub){
+    if(charts_fin[id])charts_fin[id].destroy();
+    if(sid)document.getElementById(sid).textContent=sub;
+    const e=Object.entries(catObj).filter(([,v])=>v>5).sort((a,b)=>b[1]-a[1]);
+    if(!e.length)return;
+    charts_fin[id]=new Chart(document.getElementById(id),{type:'doughnut',data:{labels:e.map(([k])=>k),datasets:[{data:e.map(([,v])=>Math.round(v)),backgroundColor:PAL,borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{boxWidth:10,font:{size:10},padding:6}},tooltip:{callbacks:{label:ctx=>` ${ctx.label}: ${fmtE(ctx.raw)}`}}}}});
+  }
+  makePie('chart-cat-ricavi',ref.catRicavi,'cat-ricavi-sub',`${refAnno} — ${pl}`);
+  makePie('chart-cat-costi',ref.catCosti,'cat-costi-sub',`${refAnno} — ${pl}`);
+  function buildTable(id,isR){
+    const allC=new Set();years.forEach(y=>Object.keys(isR?results[y].catRicavi:results[y].catCosti).forEach(k=>allC.add(k)));
+    const cats=[...allC].sort((a,b)=>((isR?results[refAnno].catRicavi[b]:results[refAnno].catCosti[b])||0)-((isR?results[refAnno].catRicavi[a]:results[refAnno].catCosti[a])||0));
+    const dy=years.slice(-4);
+    let h=`<thead><tr><th>Categoria</th>${dy.map(y=>`<th>${y}</th>`).join('')}</tr></thead><tbody>`;
+    cats.forEach(cat=>{
+      const vals=dy.map(y=>(isR?results[y].catRicavi[cat]:results[y].catCosti[cat])||0);
+      if(vals.every(v=>v===0))return;
+      h+=`<tr><td>${cat}</td>${dy.map((y,i)=>`<td ${y===refAnno?'style="font-weight:600"':''}>${vals[i]>0?fmtE(vals[i]):'<span class="c-muted">—</span>'}</td>`).join('')}</tr>`;
+    });
+    const tots=dy.map(y=>Object.values(isR?results[y].catRicavi:results[y].catCosti).reduce((s,v)=>s+v,0));
+    h+=`<tr class="total-row"><td>Totale</td>${tots.map((v,i)=>`<td ${dy[i]===refAnno?'style="font-weight:700"':''}>${fmtE(Math.round(v))}</td>`).join('')}</tr></tbody>`;
+    document.getElementById(id).innerHTML=h;
+  }
+  buildTable('table-ricavi',true);
+  buildTable('table-costi',false);
+}
+
+// ── AI Analysis ──────────────────────────────────────────
+async function runAnalysis() {
+  if (!RAW.length) return;
+  const btn=document.getElementById('ai-btn'), out=document.getElementById('ai-output');
+  btn.disabled=true; out.className='ai-output loading'; out.textContent='Analisi in corso…';
+  const today=new Date(), curYear=today.getFullYear(), curMonth=today.getMonth()+1, curDay=today.getDate();
+  const refAnno=parseInt(document.getElementById('sel-anno').value);
+  let m1,m2;
+  if(mode==='mese'){m1=m2=parseInt(document.getElementById('sel-mese').value);}
+  else if(mode==='range'){m1=parseInt(document.getElementById('sel-range-from').value);m2=parseInt(document.getElementById('sel-range-to').value);}
+  else{m1=1;m2=12;}
+  const prorata=refAnno===curYear&&m2>=curMonth;
+  let years=[refAnno];
+  for(let i=1;i<=3;i++){const y=refAnno-i;if(availAnni.includes(y))years.push(y);}
+  years=years.sort((a,b)=>a-b);
+  const results={};
+  years.forEach(y=>{results[y]=aggregate(y,m1,m2,prorata&&y===curYear?curDay:null);});
+  const ref=results[refAnno];
+  let yoyTable='';
+  years.forEach(y=>{const r=results[y];const m=r.ricavi-r.costi;yoyTable+=`\n- ${y}: Ricavi ${fmtE(r.ricavi)} | Costi ${fmtE(r.costi)} | Margine ${fmtE(m)}`;});
+  const pl=m1===m2?`${MESI_IT[m1]} ${refAnno}`:`${MESI_SHORT[m1]}–${MESI_SHORT[m2]} ${refAnno}`;
+  const prompt=`Sei un consulente finanziario che analizza i dati di InternoUno, un B&B con circa 10 camere a Roma.\n\nPeriodo: ${pl}${prorata?` (dati al giorno ${curDay})`:''}.\n\nConfronto storico:${yoyTable}\n\nPrincipali ricavi ${refAnno}:\n${Object.entries(ref.catRicavi).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([k,v])=>`- ${k}: ${fmtE(v)}`).join('\n')}\n\nPrincipali costi ${refAnno}:\n${Object.entries(ref.catCosti).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([k,v])=>`- ${k}: ${fmtE(v)}`).join('\n')}\n\nFornisci un'analisi concisa (max 150 parole) in italiano su andamento, anomalie e margine. Tono professionale, testo fluido.`;
+  try {
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':'','anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:400,messages:[{role:'user',content:prompt}]})});
+    const d=await r.json();
+    out.className='ai-output';
+    out.textContent=d.content?.[0]?.text||'Nessuna risposta';
+  } catch(e){out.className='ai-output error';out.textContent='Errore: '+e.message;}
+  finally{btn.disabled=false;}
+}
+
+// ══════════════════════════════════════════════════════════
+// PRENOTAZIONI — dati Amenitiz da worker arrivi
+// ══════════════════════════════════════════════════════════
+let _prenLoaded=false, datiRicavi={}, datiWindow={}, charts_pren={}, anniSelezionati=[];
+let oggi_p, curYear_p, curMonth_p, curDay_p;
+
+function initYearChips() {
+  oggi_p=new Date(); curYear_p=oggi_p.getFullYear(); curMonth_p=oggi_p.getMonth()+1; curDay_p=oggi_p.getDate();
+  anniSelezionati=[curYear_p-1,curYear_p];
+  const container=document.getElementById('year-chips');
+  container.innerHTML='';
+  for(const a of TUTTI_GLI_ANNI){
+    const chip=document.createElement('button');
+    chip.className='year-chip'+(anniSelezionati.includes(a)?' active':'');
+    chip.textContent=a;
+    chip.style.background=anniSelezionati.includes(a)?ANNO_COLORS[a]:'';
+    chip.onclick=()=>toggleAnno(a,chip);
+    container.appendChild(chip);
+  }
+}
+
+function toggleAnno(anno,chip){
+  if(anniSelezionati.includes(anno)){if(anniSelezionati.length<=1)return;anniSelezionati=anniSelezionati.filter(a=>a!==anno);chip.classList.remove('active');chip.style.background='';}
+  else{anniSelezionati.push(anno);anniSelezionati.sort();chip.classList.add('active');chip.style.background=ANNO_COLORS[anno]||'#86868b';}
+  loadPrenotazioniData();
+}
+
+async function loadPrenotazioni() {
+  _prenLoaded=true;
+  initYearChips();
+  await loadPrenotazioniData();
+}
+
+async function fetchRicavi(anno) {
+  const primoMese=(anno===PRIMO_ANNO)?PRIMO_MESE_PRIMO_ANNO:1;
+  const oggiKey=`${curYear_p}-${String(curMonth_p).padStart(2,'0')}`;
+  const mesi=[];
+  for(let m=primoMese;m<=12;m++){
+    const fromD=new Date(anno,m-1,1);fromD.setDate(fromD.getDate()-7);
+    const from=fromD.toISOString().slice(0,10);
+    const lastDay=new Date(anno,m,0).getDate();
+    const to=`${anno}-${String(m).padStart(2,'0')}-${String(lastDay).padStart(2,'0')}`;
+    const meseKey=`${anno}-${String(m).padStart(2,'0')}`;
+    mesi.push({from,to,meseKey,m});
+  }
+  const results=await Promise.all(mesi.map(async({from,to,meseKey,m})=>{
+    const r=await fetch(`${ARRIVI_WORKER}?action=reportRicavi&from=${from}&to=${to}&year=${anno}&month=${m}`);
+    if(!r.ok)return{mensile:{}};
+    const d=await r.json();
+    if(d.mensile&&d.mensile[meseKey])d.mensile[meseKey].provvisorio=meseKey>=oggiKey;
+    return d;
+  }));
+  const mensile={};let totalBookings=0,totalNotti=0;
+  for(const res of results){totalBookings+=res.totalBookings||0;totalNotti+=res.totalNotti||0;Object.assign(mensile,res.mensile||{});}
+  return{mensile,totalBookings,totalNotti};
+}
+
+async function fetchWindow(anno) {
+  const primoMese=(anno===PRIMO_ANNO)?PRIMO_MESE_PRIMO_ANNO:1;
+  const cutoff=`${anno}-${String(curMonth_p).padStart(2,'0')}-${String(curDay_p).padStart(2,'0')}`;
+  const mesi=[];
+  for(let m=primoMese;m<=curMonth_p;m++){
+    const from=`${anno}-${String(m).padStart(2,'0')}-01`;
+    const lastDay=new Date(anno,m,0).getDate();
+    const toDay=(m===curMonth_p)?curDay_p:lastDay;
+    const to=`${anno}-${String(m).padStart(2,'0')}-${String(toDay).padStart(2,'0')}`;
+    mesi.push({from,to});
+  }
+  const results=await Promise.all(mesi.map(async({from,to})=>{
+    const r=await fetch(`${ARRIVI_WORKER}?action=reportWindow&created_from=${from}&created_to=${to}&future_from=${cutoff}`);
+    if(!r.ok)return{perMese:{},totalPrenotazioni:0,totalRicavi:0,totalNotti:0};
+    return r.json();
+  }));
+  const perMese={};let totalPrenotazioni=0,totalRicavi=0,totalNotti=0;
+  for(const res of results){
+    totalPrenotazioni+=res.totalPrenotazioni||0;totalRicavi+=res.totalRicavi||0;totalNotti+=res.totalNotti||0;
+    for(const[k,v]of Object.entries(res.perMese||{})){
+      if(!perMese[k])perMese[k]={prenotazioni:0,ricavi:0,ricaviAmenitiz:0,notti:0};
+      perMese[k].prenotazioni+=v.prenotazioni||0;perMese[k].ricavi+=v.ricavi||0;perMese[k].ricaviAmenitiz+=v.ricaviAmenitiz||0;perMese[k].notti+=v.notti||0;
+    }
+  }
+  return{perMese,totalPrenotazioni,totalRicavi,totalNotti};
+}
+
+async function loadPrenotazioniData() {
+  const statusEl=document.getElementById('status-pren');
+  statusEl.textContent='Caricamento dati Amenitiz…';statusEl.className='status-bar show';
+  oggi_p=new Date();curYear_p=oggi_p.getFullYear();curMonth_p=oggi_p.getMonth()+1;curDay_p=oggi_p.getDate();
+  document.getElementById('cutoff-label').textContent=`Snapshot al ${curDay_p} ${MESI_IT[curMonth_p]}`;
+  const pn=document.getElementById('prorata-notice-pren');
+  pn.className='prorata-notice show';
+  pn.textContent=`⚡ Anno corrente (${curYear_p}): dati fino al ${curDay_p} ${MESI_IT[curMonth_p]}.`;
+  try {
+    const anni=anniSelezionati;
+    datiRicavi={};datiWindow={};
+    const[ricaviRes,windowRes]=await Promise.all([
+      Promise.all(anni.map(a=>fetchRicavi(a).then(d=>[a,d]))),
+      Promise.all(anni.map(a=>fetchWindow(a).then(d=>[a,d])))
+    ]);
+    for(const[a,d]of ricaviRes)datiRicavi[a]=d;
+    for(const[a,d]of windowRes)datiWindow[a]=d;
+    statusEl.className='status-bar';
+    renderPrenotazioni();
+  } catch(e){statusEl.textContent='Errore: '+e.message;statusEl.className='status-bar show error';}
+}
+
+function renderPrenotazioni() {
+  const anni=anniSelezionati;
+  const MESI_LABELS=MESI_SHORT.slice(1);
+  // Grafico ricavi mensili
+  const datasetsR=anni.map(a=>{
+    const d=datiRicavi[a]||{mensile:{}};
+    const data=MESI_LABELS.map((_,i)=>{
+      const k=`${a}-${String(i+1).padStart(2,'0')}`;
+      return d.mensile[k]?Math.round((d.mensile[k].ricaviProrata||d.mensile[k].ricaviEur||0)):null;
+    });
+    return{label:String(a),data,backgroundColor:ANNO_COLORS[a]||'#007aff',borderRadius:4,borderSkipped:false};
+  });
+  if(charts_pren['ricavi-am'])charts_pren['ricavi-am'].destroy();
+  charts_pren['ricavi-am']=new Chart(document.getElementById('chart-ricavi-am'),{type:'bar',data:{labels:MESI_LABELS,datasets:datasetsR},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{boxWidth:10}}},scales:{x:{grid:{display:false},border:{display:false}},y:{grid:{color:'rgba(0,0,0,.06)'},border:{display:false},ticks:{callback:v=>(v/1000).toFixed(0)+'k'}}},layout:{padding:{top:10}}}});
+  // Grafico tassa soggiorno
+  const datasetsT=anni.map(a=>{
+    const d=datiRicavi[a]||{mensile:{}};
+    const data=MESI_LABELS.map((_,i)=>{
+      const k=`${a}-${String(i+1).padStart(2,'0')}`;
+      return d.mensile[k]?Math.round(d.mensile[k].tassaSoggiorno||0):null;
+    });
+    return{label:String(a),data,backgroundColor:ANNO_COLORS[a]||'#007aff',borderRadius:4,borderSkipped:false};
+  });
+  if(charts_pren['tassa'])charts_pren['tassa'].destroy();
+  charts_pren['tassa']=new Chart(document.getElementById('chart-tassa'),{type:'bar',data:{labels:MESI_LABELS,datasets:datasetsT},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{boxWidth:10}}},scales:{x:{grid:{display:false},border:{display:false}},y:{grid:{color:'rgba(0,0,0,.06)'},border:{display:false}}},layout:{padding:{top:10}}}});
+  // Grafico booking window
+  const mesiWindow=[];
+  for(let m=1;m<=12;m++)mesiWindow.push(`${curYear_p}-${String(m).padStart(2,'0')}`);
+  const datasetsW=anni.map(a=>{
+    const d=datiWindow[a]||{perMese:{}};
+    const data=mesiWindow.map(k=>d.perMese[k]?(d.perMese[k].prenotazioni||0):null);
+    return{label:String(a),data,backgroundColor:ANNO_COLORS[a]||'#007aff',borderRadius:4,borderSkipped:false};
+  });
+  if(charts_pren['window'])charts_pren['window'].destroy();
+  charts_pren['window']=new Chart(document.getElementById('chart-window'),{type:'bar',data:{labels:MESI_LABELS,datasets:datasetsW},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{boxWidth:10}}},scales:{x:{grid:{display:false},border:{display:false}},y:{grid:{color:'rgba(0,0,0,.06)'},border:{display:false}}},layout:{padding:{top:10}}}});
+}
+
+// ── Startup ──────────────────────────────────────────────
+loadFinanziario();
+</script>
+</body>
+</html>
