@@ -3348,7 +3348,7 @@ async function sellaAutoDownload() {
   var btn = document.getElementById('sella-auto-btn');
   btn.disabled = true;
   btn.innerHTML = '<span>\u23f3</span> <span>Connessione al Mac...</span>';
-  var MAC_URL = 'http://fly98.duckdns.org:3456/sella-csv';
+  var MAC_URL = WORKER_URL + '/api/sella-auto';
   try {
     btn.innerHTML = '<span>\u23f3</span> <span>Download in corso (~40 sec)...</span>';
     var resp = await fetch(MAC_URL, { signal: AbortSignal.timeout(120000) });
