@@ -3344,6 +3344,31 @@ async function leoRollback(entry,btn) {
   } catch(e){alert('Errore: '+e.message);btn.disabled=false;btn.textContent='\uD83D\uDDD1 Elimina';}
 }
 
+async function sellaAutoDownload() {
+  var btn = document.getElementById('sella-auto-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span>\u23f3</span> <span>Connessione al Mac...</span>';
+  var MAC_URL = 'http://fly98.duckdns.org:3456/sella-csv';
+  try {
+    btn.innerHTML = '<span>\u23f3</span> <span>Download in corso (~40 sec)...</span>';
+    var resp = await fetch(MAC_URL, { signal: AbortSignal.timeout(120000) });
+    if (!resp.ok) throw new Error('Errore server Mac: ' + resp.status);
+    var csvText = await resp.text();
+    if (!csvText || csvText.length < 10) throw new Error('CSV vuoto o non valido');
+    btn.innerHTML = '<span>\u2705</span> <span>CSV ricevuto, analisi...</span>';
+    // Processa come se fosse un file caricato manualmente
+    var blob = new Blob([csvText], {type:'text/csv'});
+    var file = new File([blob], resp.headers.get('X-Filename') || 'Sella_auto.csv', {type:'text/csv'});
+    await sellaHandleFile(file);
+  } catch(e) {
+    var msg = e.name === 'TimeoutError' ? 'Timeout — il Mac non risponde entro 2 minuti' : e.message;
+    alert('Errore: ' + msg);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<span>\uD83D\uDCE5</span> <span>Scarica automaticamente da Sella</span>';
+  }
+}
+
 </script>
 
 <!-- Modal Import Sella -->
@@ -3355,6 +3380,14 @@ async function leoRollback(entry,btn) {
       <button onclick="closeSellaImport()" style="background:var(--gray2);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:16px">✕</button>
     </div>
     <div id="sella-panel-body">
+      <button id="sella-auto-btn" onclick="sellaAutoDownload()" style="width:100%;padding:12px;border-radius:10px;border:none;background:var(--blue);color:#fff;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:8px">
+        <span>📥</span> <span>Scarica automaticamente da Sella</span>
+      </button>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <div style="flex:1;height:1px;background:var(--border)"></div>
+        <span style="font-size:12px;color:var(--faint)">oppure</span>
+        <div style="flex:1;height:1px;background:var(--border)"></div>
+      </div>
       <div id="sella-drop"
         ondragover="event.preventDefault();this.classList.add('drag')"
         ondragleave="this.classList.remove('drag')"
