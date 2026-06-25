@@ -3484,22 +3484,25 @@ function sellapOnDrop(e) {
 
 async function sellapGetExistingKeys() {
   var accId = sellaGetAccId(SELLAP_ACC_NAME);
-  if (!accId) { console.warn('SELLAP: conto non trovato:', SELLAP_ACC_NAME); return new Set(); }
-  console.log('SELLAP accId:', accId);
+  if (!accId) {
+    alert('DEBUG: conto "' + SELLAP_ACC_NAME + '" non trovato!\nConti disponibili: ' + (meta.accounts||[]).map(function(a){return a.name;}).join(', '));
+    return new Set();
+  }
   var keys = new Set();
-  // Forza rilettura anno corrente
   var yr = String(new Date().getFullYear());
   try {
     var txs = await api('GET', '/api/tx/'+yr);
+    var bancaTxs = txs.filter(function(t){ return t.accountId === accId; });
     txs.forEach(function(t) {
       if (t.accountId === accId) {
         var k = sellaStorKey(t.date, getTxAmount(t), t.name.substring(0,32));
         keys.add(k);
-        console.log('SELLAP existing key:', k);
       }
     });
-  } catch(e) { console.error('SELLAP fetch error:', e); }
-  console.log('SELLAP total keys:', keys.size);
+    // Mostra debug su iPad
+    var sample = Array.from(keys).slice(0,3).join('\n');
+    alert('DEBUG DB:\n' + bancaTxs.length + ' TX su Banca Sella\nEsempio chiavi:\n' + sample);
+  } catch(e) { alert('ERRORE: ' + e.message); }
   return keys;
 }
 
@@ -3523,7 +3526,6 @@ async function sellapHandleFile(file) {
     var importo = sellaParseAmt(deb, cred);
     var dateISO = sellaDateToISO(dataOp);
     var storKey = sellaStorKey(dateISO, importo, codice.substring(0,32));
-    console.log('CSV key:', storKey);
     sellapMovimenti.push({
       codice: codice, dateISO: dateISO, dataOp: dataOp, desc: desc,
       importo: importo, storKey: storKey,
@@ -3532,6 +3534,10 @@ async function sellapHandleFile(file) {
       catObj: sellaGuessCategory(desc, '')
     });
   }
+  // Debug: mostra prime chiavi CSV vs match
+  var csvSample = sellapMovimenti.slice(0,3).map(function(m){ return m.storKey; }).join('\n');
+  var dupCount = sellapMovimenti.filter(function(m){ return m.isDup; }).length;
+  alert('DEBUG CSV:\n' + sellapMovimenti.length + ' righe\n' + dupCount + ' duplicati\nEsempio chiavi CSV:\n' + csvSample);
   document.getElementById('sellap-drop').style.display = 'none';
   document.getElementById('sellap-table').style.display = 'table';
   sellapRenderTable();
