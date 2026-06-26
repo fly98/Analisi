@@ -1,6 +1,47 @@
 {
   "sessioni": [
     {
+      "id": 1782475834136,
+      "data": "2026-06-26T12:10:34.136Z",
+      "file": "ListaMovimentiConto-2.csv",
+      "nuovi": 4,
+      "totale": 4,
+      "entrate": 2876.62,
+      "uscite": -200,
+      "saldo": 2676.62,
+      "categorie": {
+        "Spese Interno1 : Manutenzione": -80,
+        "Redditi : Redditi InternoUno e Deluxe": 2876.62,
+        "Spese Interno1 : Spese Personali": -120
+      },
+      "movimenti": [
+        {
+          "data": "26/06/2026",
+          "desc": "AIR TEAM SRL UNIPERSON ROMA",
+          "importo": -80,
+          "cat": "Spese Interno1 : Manutenzione"
+        },
+        {
+          "data": "26/06/2026",
+          "desc": "NO.7v0W2FaKUbudh3zh/ID.87702 DA Booking.com B.V.",
+          "importo": 1612.97,
+          "cat": "Redditi : Redditi InternoUno e Deluxe"
+        },
+        {
+          "data": "26/06/2026",
+          "desc": "NO.ndO9FlY8P3ZCOvvW/ID.542357 DA Booking.com B.V.",
+          "importo": 1263.65,
+          "cat": "Redditi : Redditi InternoUno e Deluxe"
+        },
+        {
+          "data": "25/06/2026",
+          "desc": "ZEROZERO100 ROMA RM",
+          "importo": -120,
+          "cat": "Spese Interno1 : Spese Personali"
+        }
+      ]
+    },
+    {
       "id": 1782408489872,
       "data": "2026-06-25T17:28:09.872Z",
       "file": "Sella_2026-06-25.csv",
