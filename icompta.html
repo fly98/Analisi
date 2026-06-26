@@ -3850,6 +3850,41 @@ async function sellapAutoDownload() {
 
 <script>
 
+
+// ── STUB funzioni titoli (semplificate) ──────────────────────────────────────
+var titoliState = { strumenti: {}, carico: 0 };
+function aggiornaBilancesTitoli() {
+  if (!balances) return;
+  if (!balances.accounts) balances.accounts = {};
+  balances.accounts['ACC-FINECO-INV'] = Math.round(calcolaValoreMercato('fineco-inv') * 100) / 100;
+}
+function calcolaValoreMercato(contoId) {
+  const strumenti = titoliState.strumenti[contoId] || [];
+  return strumenti.reduce((sum, s) => {
+    return sum + (s.tipo === 'PCT' ? (s.quantita * (s.prezzoAttuale || s.pmc)) / 100 : s.quantita * (s.prezzoAttuale || s.pmc));
+  }, 0);
+}
+function loadContiTitoli() {
+  // Carica strumenti da localStorage
+  var cached = localStorage.getItem('titoli_strumenti_fineco-inv');
+  if (cached) titoliState.strumenti['fineco-inv'] = JSON.parse(cached);
+  aggiornaBilancesTitoli();
+  return Promise.resolve();
+}
+function showTxView() {
+  var sv = document.getElementById('strumenti-view');
+  if (sv) sv.style.display = 'none';
+  var els = ['date-bar','rec-pending-box','tx-header','tx-body'];
+  els.forEach(function(id) { var el = document.getElementById(id); if (el) el.style.display = ''; });
+}
+function renderInvestimentiSidebar() {}
+function renderContiTitoliSidebar() {
+  aggiornaBilancesTitoli();
+  if (meta) renderSidebar();
+}
+function toggleInvestimentiGroup() {}
+function openEditCarico() {}
+
 function openFinecoImportModal() {
   document.getElementById('modal-fineco-import').style.display = 'flex';
 }
