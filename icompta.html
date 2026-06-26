@@ -3854,7 +3854,19 @@ var titoliState = { strumenti: {}, carico: 0 };
 function aggiornaBilancesTitoli() {
   if (!balances) return;
   if (!balances.accounts) balances.accounts = {};
+  if (!balances.groups) balances.groups = {};
+  // Inietta valore mercato Fineco Investimenti
   balances.accounts['ACC-FINECO-INV'] = Math.round(calcolaValoreMercato('fineco-inv') * 100) / 100;
+  // Ricalcola totale gruppo GRP-CONTI-TITOLI sommando tutti i suoi conti
+  if (meta && meta.accounts) {
+    var totCT = 0;
+    for (var a of meta.accounts) {
+      if (a.groupId === 'GRP-CONTI-TITOLI') {
+        totCT += balances.accounts[a.id] || 0;
+      }
+    }
+    balances.groups['GRP-CONTI-TITOLI'] = Math.round(totCT * 100) / 100;
+  }
 }
 function calcolaValoreMercato(contoId) {
   const strumenti = titoliState.strumenti[contoId] || [];
