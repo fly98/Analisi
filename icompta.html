@@ -4483,9 +4483,6 @@ async function handleImportMovimentiCC(e) {
 
     var dedupKey = dateISO + '|' + amount + '|' + desc.substring(0, 30);
 
-    // Escludi movimenti titoli (compravendite) — non sono movimenti del CC
-    if (desc.match(/^Compravendita Titoli/i)) continue;
-
     var tx = { date: dateISO, accountId: 'ACC-FINECO-CC', name: desc, amount: amount, status: 'cleared' };
 
     if (existingKeys.has(dedupKey) || seenKeys.has(dedupKey)) {
