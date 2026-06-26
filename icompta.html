@@ -747,6 +747,22 @@ select.form-input { height: 42px; }
           </div>
           <span class="s-arrow">›</span>
         </div>
+        <div class="settings-item" onclick="closeSettings();finecoAutoCC()">
+          <span class="s-icon" style="background:#e8f0fe"><svg viewBox="0 0 24 24" fill="none" stroke="#1a4aaa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M4.93 4.93a10 10 0 0 0 0 14.14"/></svg></span>
+          <div class="s-text">
+            <div class="s-label">🤖 Auto Fineco CC</div>
+            <div class="s-desc">Scarica e importa automaticamente via Playwright</div>
+          </div>
+          <span class="s-arrow">›</span>
+        </div>
+        <div class="settings-item" onclick="closeSettings();finecoAutoPortafoglio()">
+          <span class="s-icon" style="background:#e8f0fe"><svg viewBox="0 0 24 24" fill="none" stroke="#1a4aaa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M4.93 4.93a10 10 0 0 0 0 14.14"/></svg></span>
+          <div class="s-text">
+            <div class="s-label">🤖 Auto Fineco Investimenti</div>
+            <div class="s-desc">Scarica e aggiorna portafoglio titoli via Playwright</div>
+          </div>
+          <span class="s-arrow">›</span>
+        </div>
         <div class="settings-item" onclick="closeSettings();openSellaPersonaleImport()">
           <span class="s-icon" style="background:#e8f5ee"><svg viewBox="0 0 24 24" fill="none" stroke="#1a7a4a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></span>
           <div class="s-text">
@@ -4387,6 +4403,76 @@ async function aggiornaPrezziConto() {
 }
 
 // Import XLS Fineco — file input nascosto
+// ── FINECO AUTO (Playwright) ─────────────────────────────────────────────────
+async function finecoAutoCC() {
+  var toast = document.createElement('div');
+  toast.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#1a1a2e;color:#fff;padding:12px 20px;border-radius:10px;z-index:9999;font-size:13px;font-weight:600';
+  toast.textContent = '🤖 Avvio Playwright Fineco CC... (può richiedere 1-2 min)';
+  document.body.appendChild(toast);
+  try {
+    const r = await fetch(WORKER_URL + '/api/fineco-conto-auto', {
+      headers: { 'Authorization': 'Bearer ' + TOKEN }
+    });
+    if (!r.ok) { toast.textContent = '❌ Errore: ' + r.status; setTimeout(() => toast.remove(), 4000); return; }
+    const buf = await r.arrayBuffer();
+    toast.textContent = '📊 File ricevuto, elaboro...';
+    // Processa come handleImportMovimentiCC ma da ArrayBuffer
+    if (typeof XLSX === 'undefined') {
+      await new Promise(function(resolve, reject) {
+        var s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+        s.onload = resolve; s.onerror = reject;
+        document.head.appendChild(s);
+      });
+    }
+    // Crea file finto per riusare la logica esistente
+    var fakeFile = new File([buf], 'fineco-conto-auto.xlsx', {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    var fakeEvent = { target: { files: [fakeFile] } };
+    toast.remove();
+    // Apri il conto CC e mostra preview
+    selectAccount('ACC-FINECO-CC', 'Fineco CC');
+    await new Promise(r => setTimeout(r, 300));
+    await handleImportMovimentiCC(fakeEvent);
+  } catch(e) {
+    toast.textContent = '❌ ' + e.message;
+    setTimeout(() => toast.remove(), 4000);
+  }
+}
+
+async function finecoAutoPortafoglio() {
+  var toast = document.createElement('div');
+  toast.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#1a1a2e;color:#fff;padding:12px 20px;border-radius:10px;z-index:9999;font-size:13px;font-weight:600';
+  toast.textContent = '🤖 Avvio Playwright Fineco Portafoglio... (può richiedere 1-2 min)';
+  document.body.appendChild(toast);
+  try {
+    const r = await fetch(WORKER_URL + '/api/fineco-portafoglio-auto', {
+      headers: { 'Authorization': 'Bearer ' + TOKEN }
+    });
+    if (!r.ok) { toast.textContent = '❌ Errore: ' + r.status; setTimeout(() => toast.remove(), 4000); return; }
+    const buf = await r.arrayBuffer();
+    toast.textContent = '📊 File ricevuto, elaboro...';
+    if (typeof XLSX === 'undefined') {
+      await new Promise(function(resolve, reject) {
+        var s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+        s.onload = resolve; s.onerror = reject;
+        document.head.appendChild(s);
+      });
+    }
+    var fakeFile = new File([buf], 'fineco-auto.xlsx', {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    var fakeEvent = { target: { files: [fakeFile] } };
+    toast.remove();
+    // Apri Fineco Investimenti e processa
+    selectStrumenti('fineco-inv', 'Fineco Investimenti');
+    _contoCorrenteId = 'fineco-inv';
+    await new Promise(r => setTimeout(r, 300));
+    await handleXLSImport(fakeEvent);
+  } catch(e) {
+    toast.textContent = '❌ ' + e.message;
+    setTimeout(() => toast.remove(), 4000);
+  }
+}
+
 // ── IMPORT MOVIMENTI FINECO CC ────────────────────────────────────────────────
 var _finecoPreviewData = []; // righe parsate pronte per import
 
