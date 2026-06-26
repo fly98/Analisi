@@ -739,27 +739,11 @@ select.form-input { height: 42px; }
           </div>
           <span class="s-arrow">›</span>
         </div>
-        <div class="settings-item" onclick="closeSettings();selectAccount('ACC-FINECO-CC','Fineco CC');setTimeout(openImportMovimentiCC,100)">
+        <div class="settings-item" onclick="closeSettings();openFinecoImportModal()">
           <span class="s-icon" style="background:#e8f0fe"><svg viewBox="0 0 24 24" fill="none" stroke="#1a4aaa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="11" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"/></svg></span>
           <div class="s-text">
-            <div class="s-label">Import movimenti Fineco CC</div>
-            <div class="s-desc">Importa estratto conto Fineco (XLSX)</div>
-          </div>
-          <span class="s-arrow">›</span>
-        </div>
-        <div class="settings-item" onclick="closeSettings();finecoAutoCC()">
-          <span class="s-icon" style="background:#e8f0fe"><svg viewBox="0 0 24 24" fill="none" stroke="#1a4aaa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M4.93 4.93a10 10 0 0 0 0 14.14"/></svg></span>
-          <div class="s-text">
-            <div class="s-label">🤖 Auto Fineco CC</div>
-            <div class="s-desc">Scarica e importa automaticamente via Playwright</div>
-          </div>
-          <span class="s-arrow">›</span>
-        </div>
-        <div class="settings-item" onclick="closeSettings();finecoAutoPortafoglio()">
-          <span class="s-icon" style="background:#e8f0fe"><svg viewBox="0 0 24 24" fill="none" stroke="#1a4aaa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M4.93 4.93a10 10 0 0 0 0 14.14"/></svg></span>
-          <div class="s-text">
-            <div class="s-label">🤖 Auto Fineco Investimenti</div>
-            <div class="s-desc">Scarica e aggiorna portafoglio titoli via Playwright</div>
+            <div class="s-label">Import Fineco</div>
+            <div class="s-desc">Investimenti e Conto Corrente — auto o da file</div>
           </div>
           <span class="s-arrow">›</span>
         </div>
@@ -4403,6 +4387,18 @@ async function aggiornaPrezziConto() {
 }
 
 // Import XLS Fineco — file input nascosto
+function openFinecoImportModal() {
+  document.getElementById('modal-fineco-import').style.display = 'flex';
+}
+function closeFinecoImportModal() {
+  document.getElementById('modal-fineco-import').style.display = 'none';
+}
+function openImportXLSCurrent_inv() {
+  selectStrumenti('fineco-inv', 'Fineco Investimenti');
+  _contoCorrenteId = 'fineco-inv';
+  setTimeout(function() { openImportXLS('fineco-inv'); }, 300);
+}
+
 // ── FINECO AUTO (Playwright) ─────────────────────────────────────────────────
 async function finecoAutoCC() {
   var toast = document.createElement('div');
@@ -4787,6 +4783,48 @@ async function handleXLSImport(e) {
     <div style="padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:10px;flex-shrink:0">
       <button onclick="closeFinecoPreview()" style="flex:1;padding:12px;border-radius:10px;border:1px solid var(--border);background:none;cursor:pointer;font-size:14px;color:var(--muted)">Annulla</button>
       <button id="fineco-confirm-btn" onclick="confermImportFinecoCC()" style="flex:2;padding:12px;border-radius:10px;border:none;background:var(--blue);color:#fff;font-size:14px;font-weight:700;cursor:pointer">⬆️ Importa selezionate</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Import Fineco -->
+<div id="modal-fineco-import" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:950;align-items:center;justify-content:center" onclick="if(event.target===this)closeFinecoImportModal()">
+  <div style="background:var(--bg);border-radius:20px;padding:24px;width:min(440px,95vw);box-shadow:0 8px 40px rgba(0,0,0,.2)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <div style="font-size:16px;font-weight:700">Import Fineco</div>
+      <button onclick="closeFinecoImportModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted)">✕</button>
+    </div>
+
+    <!-- Investimenti -->
+    <div style="margin-bottom:16px">
+      <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">📊 Investimenti</div>
+      <div style="display:flex;gap:8px">
+        <button onclick="closeFinecoImportModal();finecoAutoPortafoglio()"
+          style="flex:1;padding:11px;border-radius:10px;border:1.5px solid var(--blue);background:var(--blue);color:#fff;font-size:13px;font-weight:600;cursor:pointer">
+          🤖 Auto Playwright
+        </button>
+        <button onclick="closeFinecoImportModal();openImportXLSCurrent_inv()"
+          style="flex:1;padding:11px;border-radius:10px;border:1.5px solid var(--border);background:none;font-size:13px;font-weight:600;cursor:pointer;color:var(--text)">
+          📂 Da file XLS
+        </button>
+      </div>
+    </div>
+
+    <div style="border-top:1px solid var(--border);margin:16px 0"></div>
+
+    <!-- Conto Corrente -->
+    <div>
+      <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">🏧 Conto Corrente</div>
+      <div style="display:flex;gap:8px">
+        <button onclick="closeFinecoImportModal();finecoAutoCC()"
+          style="flex:1;padding:11px;border-radius:10px;border:1.5px solid var(--blue);background:var(--blue);color:#fff;font-size:13px;font-weight:600;cursor:pointer">
+          🤖 Auto Playwright
+        </button>
+        <button onclick="closeFinecoImportModal();selectAccount('ACC-FINECO-CC','Fineco CC');setTimeout(openImportMovimentiCC,300)"
+          style="flex:1;padding:11px;border-radius:10px;border:1.5px solid var(--border);background:none;font-size:13px;font-weight:600;cursor:pointer;color:var(--text)">
+          📂 Da file XLSX
+        </button>
+      </div>
     </div>
   </div>
 </div>
