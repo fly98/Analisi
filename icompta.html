@@ -4007,7 +4007,8 @@ function renderInvestimentiSidebar() {
   const carico = titoliState.carico;
   // Confronta con totale gruppo Investimenti dal balance worker
   const grpInv = '1DF2AF6F-CF4C-4B67-BFF5-4EE707BC483D';
-  const totMercato = (balances && balances.groups && balances.groups[grpInv]) || calcolaTotaleContiTitoli();
+  const grpVal = balances && balances.groups && balances.groups[grpInv];
+  const totMercato = grpVal != null ? grpVal : calcolaTotaleContiTitoli();
   const pl = totMercato - carico;
   const plPct = carico > 0 ? (pl / carico * 100) : 0;
 
