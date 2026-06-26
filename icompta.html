@@ -4353,17 +4353,18 @@ async function handleXLSImport(e) {
 
   if (strumenti.length === 0) { alert('Nessuno strumento trovato nel file'); return; }
 
-  // Salva
+  // Salva subito in localStorage (non blocca)
   var importBtnXls = document.querySelector('[onclick="openImportXLSCurrent()"]');
   if (importBtnXls) { importBtnXls.textContent = '⏳ Salvataggio...'; importBtnXls.disabled = true; }
   lsSet('strumenti_' + _contoCorrenteId, strumenti);
-  await titoliApi('PUT', '/api/titoli/strumenti/' + _contoCorrenteId, { strumenti });
   titoliState.strumenti[_contoCorrenteId] = strumenti;
   aggiornaBilancesTitoli();
-  renderSidebar();
+  if (meta) renderSidebar();
   renderStrumentiView(_contoCorrenteId);
-  renderInvestimentiSidebar();
   if (importBtnXls) { importBtnXls.textContent = '📂 Importa XLS Fineco'; importBtnXls.disabled = false; }
+  // Salva su worker in background (non blocca UI)
+  titoliApi('PUT', '/api/titoli/strumenti/' + _contoCorrenteId, { strumenti })
+    .catch(function(e) { console.warn('Worker save failed:', e); });
   alert('✅ Importati ' + strumenti.length + ' strumenti');
 }
 </script>
