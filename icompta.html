@@ -3957,7 +3957,7 @@ async function loadContiTitoli() {
 
   // Inietta balance calcolati in balances.accounts così renderSidebar li mostra correttamente
   aggiornaBilancesTitoli();
-  renderSidebar();
+  if (meta) renderSidebar(); // solo se meta è caricato
   renderInvestimentiSidebar();
 }
 
@@ -4388,7 +4388,7 @@ async function aggiornaPrezziConto() {
     const updated = await api('GET', '/api/titoli/strumenti/' + contoId);
     titoliState.strumenti[contoId] = Array.isArray(updated) ? updated : [];
     aggiornaBilancesTitoli();
-    renderSidebar();
+    if (meta) renderSidebar();
     renderStrumentiView(contoId);
     renderInvestimentiSidebar();
     btn.textContent = '✅ ' + (res.aggiornati || 0) + ' aggiornati';
@@ -4773,7 +4773,7 @@ async function handleXLSImport(e) {
   await titoliApi('PUT', '/api/titoli/strumenti/' + _contoCorrenteId, { strumenti });
   titoliState.strumenti[_contoCorrenteId] = strumenti;
   aggiornaBilancesTitoli();
-  renderSidebar();
+  if (meta) renderSidebar();
   renderStrumentiView(_contoCorrenteId);
   renderInvestimentiSidebar();
   if (importBtnXls) { importBtnXls.textContent = '📂 Importa XLS Fineco'; importBtnXls.disabled = false; }
