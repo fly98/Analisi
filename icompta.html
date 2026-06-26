@@ -622,25 +622,6 @@ select.form-input { height: 42px; }
       <div id="loading" style="margin:40px auto"><div class="spinner"></div> Caricamento...</div>
     </div>
 
-    <!-- SEZIONE INVESTIMENTI (valore carico + P&L) -->
-    <div id="investimenti-section" style="border-top:1px solid var(--gray2);padding:6px 0">
-      <div class="group-row" onclick="toggleInvestimentiGroup()" id="inv-group-row" data-group-id="__inv__">
-        <span class="chevron">▼</span>
-        <span class="group-name">📈 Investimenti</span>
-        <span class="acc-balance bal-pos" id="inv-carico-total">—</span>
-      </div>
-      <div id="inv-group-container">
-        <div class="account-row" onclick="openEditCarico()" style="cursor:pointer">
-          <span class="acc-icon">💼</span>
-          <span class="acc-name" style="flex:1">Valore di carico</span>
-          <span class="acc-balance" id="inv-carico-val">—</span>
-        </div>
-        <div style="padding:2px 14px 4px 36px">
-          <span id="inv-pl-badge" style="font-size:11px;font-weight:600;display:none"></span>
-        </div>
-      </div>
-    </div>
-
     <div style="padding:8px 12px;flex-shrink:0;border-top:1px solid var(--gray2)">
       <button onclick="openAcctsMgmt()" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--muted);font-size:12px;cursor:pointer;display:flex;align-items:center;gap:6px;justify-content:center">
         <span>⚙️</span> Gestisci conti
@@ -1031,22 +1012,47 @@ function renderSidebar() {
 
   for (const sec of sections) { if (sec.type !== 'group') continue; const g = groupById[sec.g.id]; if (!g) continue;
     if (g.accounts.length === 0) continue;
+
+    // Prima del gruppo Conti Titoli: inserisci sezione Investimenti — Valore di carico
+    if (g.id === 'GRP-CONTI-TITOLI') {
+      var invSection = document.createElement('div');
+      invSection.id = 'investimenti-section';
+      invSection.style.cssText = 'border-top:1px solid var(--gray2);padding:6px 0';
+      invSection.innerHTML =
+        '<div class="group-row" id="inv-group-row" data-group-id="__inv__">' +
+          '<span class="chevron">▼</span>' +
+          '<span class="group-name">📈 Investimenti</span>' +
+          '<span class="acc-balance bal-pos" id="inv-carico-total">—</span>' +
+        '</div>' +
+        '<div id="inv-group-container">' +
+          '<div class="account-row" onclick="openEditCarico()" style="cursor:pointer">' +
+            '<span class="acc-icon">💼</span>' +
+            '<span class="acc-name" style="flex:1">Valore di carico</span>' +
+            '<span class="acc-balance" id="inv-carico-val">—</span>' +
+          '</div>' +
+          '<div style="padding:2px 14px 4px 36px">' +
+            '<span id="inv-pl-badge" style="font-size:11px;font-weight:600;display:none"></span>' +
+          '</div>' +
+        '</div>';
+      invSection.querySelector('#inv-group-row').addEventListener('click', toggleInvestimentiGroup);
+      list.appendChild(invSection);
+    }
+
     const gBal = balances?.groups?.[g.id] ?? null;
-    
     const gRow = document.createElement('div');
     gRow.className = 'group-row';
     gRow.dataset.groupId = g.id;
-    gRow.innerHTML = `
-      <span class="chevron">▼</span>
-      <span class="group-name">${g.name}</span>
-      ${gBal !== null ? `<span class="acc-balance ${balClass(gBal)}">${fmt(gBal)}</span>` : ''}
-    `;
+    // Conti Titoli: non mostrare il balance del gruppo (è display-only)
+    const showBal = g.id !== 'GRP-CONTI-TITOLI';
+    gRow.innerHTML =
+      '<span class="chevron">▼</span>' +
+      '<span class="group-name">' + g.name + '</span>' +
+      (showBal && gBal !== null ? '<span class="acc-balance ' + balClass(gBal) + '">' + fmt(gBal) + '</span>' : '');
     gRow.addEventListener('click', () => toggleGroup(g.id));
     list.appendChild(gRow);
 
     const gContainer = document.createElement('div');
     gContainer.dataset.group = g.id;
-
     for (const acc of g.accounts) {
       gContainer.appendChild(makeAccountRow(acc));
     }
@@ -3975,13 +3981,19 @@ function calcolaValoreMercato(contoId) {
 }
 
 function calcolaTotaleContiTitoli() {
-  let tot = 0;
-  for (const c of titoliState.contiMeta) {
-    if (c.tipo === 'portafoglio') tot += calcolaValoreMercato(c.id);
-    else if (c.tipo === 'cc') {
-      // ACC-FINECO-CC è un conto normale — prende il balance dal worker
-      var bal = balances && balances.accounts && balances.accounts['ACC-FINECO-CC'];
-      tot += (bal != null ? bal : (titoliState.saldi[c.id] || 0));
+  // Somma TUTTI i conti nel gruppo GRP-CONTI-TITOLI
+  // = Fineco Investimenti (mercato) + Fineco CC (balance TX) + Fideuram (balance TX)
+  var tot = 0;
+  if (!meta || !meta.accounts) return tot;
+  for (var acc of meta.accounts) {
+    if (acc.groupId !== 'GRP-CONTI-TITOLI') continue;
+    if (acc.id === 'ACC-FINECO-INV') {
+      // Fineco Investimenti: valore di mercato calcolato
+      tot += calcolaValoreMercato('fineco-inv');
+    } else {
+      // Tutti gli altri (Fineco CC, Fideuram, ecc.): balance normale dal worker
+      var bal = balances && balances.accounts && balances.accounts[acc.id];
+      if (bal != null) tot += bal;
     }
   }
   return tot;
