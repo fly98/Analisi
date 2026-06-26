@@ -3905,7 +3905,7 @@ function renderStrumentiView(contoId) {
   if (!view) return;
 
   var toolbar = '<div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">' +
-    '<button onclick="openImportXLSCurrent()" style="padding:7px 14px;border-radius:8px;border:1px solid var(--border);background:none;cursor:pointer;font-size:13px;color:var(--muted)">📂 Importa XLS Fineco</button>' +
+    '<button id="btn-import-xls-fineco" onclick="openImportXLSCurrent()" style="padding:7px 14px;border-radius:8px;border:1px solid var(--border);background:none;cursor:pointer;font-size:13px;color:var(--muted)">📂 Importa XLS Fineco</button>' +
     '<button id="btn-aggiorna-prezzi" onclick="aggiornaPrezziConto()" style="padding:7px 14px;border-radius:8px;border:none;background:var(--blue);color:#fff;font-size:13px;font-weight:600;cursor:pointer">🔄 Aggiorna prezzi</button>' +
     '</div>';
 
@@ -4356,7 +4356,7 @@ async function handleXLSImport(e) {
   if (strumenti.length === 0) { alert('Nessuno strumento trovato nel file'); return; }
 
   // Salva subito in localStorage (non blocca)
-  var importBtnXls = document.querySelector('[onclick="openImportXLSCurrent()"]');
+  var importBtnXls = document.getElementById('btn-import-xls-fineco');
   if (importBtnXls) { importBtnXls.textContent = '⏳ Salvataggio...'; importBtnXls.disabled = true; }
   lsSet('strumenti_' + _contoCorrenteId, strumenti);
   titoliState.strumenti[_contoCorrenteId] = strumenti;
