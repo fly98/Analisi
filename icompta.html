@@ -1004,18 +1004,19 @@ function renderSidebar() {
   for (const acc of standaloneAccs) sections.push({ type:'standalone', acc, idx: acc.sidebarIndex !== undefined ? acc.sidebarIndex : 1000 });
   sections.sort((a,b) => a.idx - b.idx);
 
+  // Loop unico ordinato per sidebarIndex
   for (const sec of sections) {
     if (sec.type === 'standalone') {
       list.appendChild(makeAccountRow(sec.acc));
+      continue;
     }
-  }
+    // type === 'group'
+    const g = groupById[sec.g.id];
+    if (!g || g.accounts.length === 0) continue;
 
-  for (const sec of sections) { if (sec.type !== 'group') continue; const g = groupById[sec.g.id]; if (!g) continue;
-    if (g.accounts.length === 0) continue;
-
-    // Prima del gruppo Conti Titoli: inserisci sezione Investimenti — Valore di carico
+    // Prima di Conti Titoli: inserisci sezione Investimenti
     if (g.id === 'GRP-CONTI-TITOLI') {
-      var invSection = document.createElement('div');
+      const invSection = document.createElement('div');
       invSection.id = 'investimenti-section';
       invSection.style.cssText = 'border-top:1px solid var(--gray2);padding:6px 0';
       invSection.innerHTML =
@@ -1039,11 +1040,10 @@ function renderSidebar() {
     }
 
     const gBal = balances?.groups?.[g.id] ?? null;
+    const showBal = g.id !== 'GRP-CONTI-TITOLI';
     const gRow = document.createElement('div');
     gRow.className = 'group-row';
     gRow.dataset.groupId = g.id;
-    // Conti Titoli: non mostrare il balance del gruppo (è display-only)
-    const showBal = g.id !== 'GRP-CONTI-TITOLI';
     gRow.innerHTML =
       '<span class="chevron">▼</span>' +
       '<span class="group-name">' + g.name + '</span>' +
