@@ -4014,21 +4014,8 @@ function calcolaValoreCarico() {
 function renderInvestimentiSidebar() {
   const carico = titoliState.carico;
   // Confronta con totale gruppo Investimenti dal balance worker
-  // Somma tutti i conti nei gruppi Investimenti + Conti Titoli, account per account
-  var totMercato = 0;
-  if (balances && balances.accounts && meta && meta.accounts) {
-    for (var _a of meta.accounts) {
-      var inGrpInv = _a.groupId === '1DF2AF6F-CF4C-4B67-BFF5-4EE707BC483D';
-      var inGrpCT  = _a.groupId === 'GRP-CONTI-TITOLI';
-      if (!inGrpInv && !inGrpCT) continue;
-      if (_a.id === 'ACC-FINECO-INV') {
-        // Fineco Investimenti: usa valore di mercato calcolato dagli strumenti
-        totMercato += calcolaValoreMercato('fineco-inv');
-      } else {
-        totMercato += balances.accounts[_a.id] || 0;
-      }
-    }
-  }
+  // P&L = totale Conti Titoli (già calcolato in aggiornaBilancesTitoli) - valore di carico
+  const totMercato = (balances && balances.groups && balances.groups['GRP-CONTI-TITOLI']) || 0;
   const pl = totMercato - carico;
   const plPct = carico > 0 ? (pl / carico * 100) : 0;
 
