@@ -4006,9 +4006,22 @@ function calcolaValoreCarico() {
 function renderInvestimentiSidebar() {
   const carico = titoliState.carico;
   // Confronta con totale gruppo Investimenti dal balance worker
-  const grpInv = '1DF2AF6F-CF4C-4B67-BFF5-4EE707BC483D';
-  const grpVal = balances && balances.groups && balances.groups[grpInv];
-  const totMercato = grpVal != null ? grpVal : calcolaTotaleContiTitoli();
+  // Somma tutti i conti di investimento: gruppo Investimenti + tutti i conti in GRP-CONTI-TITOLI
+  var totMercato = 0;
+  if (balances && balances.groups) {
+    // Gruppo Investimenti principale
+    totMercato += balances.groups['1DF2AF6F-CF4C-4B67-BFF5-4EE707BC483D'] || 0;
+    // Conti in GRP-CONTI-TITOLI (Fideuram, Fineco CC, ecc.)
+    if (meta && meta.accounts) {
+      for (var _a of meta.accounts) {
+        if (_a.groupId === 'GRP-CONTI-TITOLI' && _a.id !== 'ACC-FINECO-INV') {
+          totMercato += (balances.accounts && balances.accounts[_a.id]) || 0;
+        }
+      }
+    }
+    // Fineco Investimenti: valore di mercato calcolato
+    totMercato += calcolaValoreMercato('fineco-inv');
+  }
   const pl = totMercato - carico;
   const plPct = carico > 0 ? (pl / carico * 100) : 0;
 
