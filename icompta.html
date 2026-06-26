@@ -1101,11 +1101,12 @@ function fmt(v) {
 
 function updateTotalBalance() {
   if (!balances || !meta) return;
-  // Solo conti con includedInTotal = true
+  // Conti con includedInTotal = true + valore di carico investimenti
   const total = meta.accounts
     .filter(a => a.includedInTotal)
     .reduce((s, a) => s + (balances.accounts[a.id] || 0), 0);
-  const rounded = Math.round(total * 100) / 100;
+  const carico = titoliState.carico || 0;
+  const rounded = Math.round((total + carico) * 100) / 100;
   const el = document.getElementById('total-balance');
   el.textContent = fmt(rounded);
   el.className = 'acc-balance ' + balClass(rounded);
