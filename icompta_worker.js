@@ -337,6 +337,32 @@ var icompta_worker_default = {
       }
     }
 
+    if (path === "/api/fineco-portafoglio-auto" && method === "GET") {
+      const MAC_URL = "http://fly98.duckdns.org:3456/fineco-portafoglio";
+      try {
+        const r = await fetch(MAC_URL, { signal: AbortSignal.timeout(120000) });
+        if (!r.ok) return err("Mac error: " + r.status, 502);
+        const buf = await r.arrayBuffer();
+        const filename = r.headers.get("X-Filename") || "Fineco_auto.xlsx";
+        return new Response(buf, {
+          headers: { ...CORS, "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "X-Filename": filename }
+        });
+      } catch(e) { return err("Mac non raggiungibile: " + e.message, 502); }
+    }
+
+    if (path === "/api/fineco-conto-auto" && method === "GET") {
+      const MAC_URL = "http://fly98.duckdns.org:3456/fineco-conto";
+      try {
+        const r = await fetch(MAC_URL, { signal: AbortSignal.timeout(120000) });
+        if (!r.ok) return err("Mac error: " + r.status, 502);
+        const buf = await r.arrayBuffer();
+        const filename = r.headers.get("X-Filename") || "FinecoConto_auto.xlsx";
+        return new Response(buf, {
+          headers: { ...CORS, "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "X-Filename": filename }
+        });
+      } catch(e) { return err("Mac non raggiungibile: " + e.message, 502); }
+    }
+
     if (path === "/api/sella-auto" && method === "GET") {
       const MAC_URL = "http://fly98.duckdns.org:3456/sella-csv";
       try {
