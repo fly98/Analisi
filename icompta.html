@@ -130,7 +130,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif
 .tx-row:hover { background: var(--blue-bg); }
 .tx-row:hover .tx-del { opacity: 1; }
 .tx-c-date { width: var(--col-date,72px); flex-shrink: 0; font-size: 13px; color: var(--muted); position: relative; }
-.tx-c-desc { width: var(--col-desc,220px); flex-shrink: 0; min-width: 60px; padding: 0 10px; overflow: hidden; }
+.tx-c-desc { flex: 1; min-width: 60px; padding: 0 10px; overflow: hidden; }
 .tx-c-desc .txn { font-size: 14px; font-weight: 500; color: var(--text);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .tx-c-desc .txs { font-size: 12px; color: var(--muted); margin-top: 1px;
@@ -665,7 +665,7 @@ select.form-input { height: 42px; }
       </div>
       <div id="tx-header">
         <div class="txh tx-c-date">Data<div class="col-resizer" data-col="date"></div></div>
-        <div class="txh tx-c-desc" style="padding:0 10px;position:relative">Descrizione<div class="col-resizer" data-col="desc"></div></div>
+        <div class="txh tx-c-desc" style="padding:0 10px">Descrizione</div>
         <div class="txh tx-c-cat" style="padding:0 8px">Categoria<div class="col-resizer" data-col="cat"></div></div>
         <div class="txh tx-c-amt" style="text-align:right;padding:0 8px">Importo<div class="col-resizer" data-col="amt"></div></div>
         <div class="txh tx-c-bal" style="text-align:right;padding:0 8px">Saldo<div class="col-resizer" data-col="bal"></div></div>
@@ -2447,7 +2447,7 @@ function sellaFinish(msg) {
 }
 // ── Resize colonne TX ────────────────────────────────────────────────────────
 (function() {
-  var COLS = { date: 72, desc: 220, cat: 130, amt: 100, bal: 110, trasf: 100 };
+  var COLS = { date: 72, cat: 130, amt: 100, bal: 110, trasf: 100 };
   var MIN  = { date: 50, cat: 60,  amt: 70,  bal: 70,  trasf: 60  };
 
   function loadColWidths() {
@@ -2503,7 +2503,7 @@ function sellaFinish(msg) {
     var handle = e.target.closest('.col-resizer');
     if (!handle) return;
     var col = handle.dataset.col;
-    var defaults = { date: 72, desc: 220, cat: 130, amt: 100, bal: 110, trasf: 100 };
+    var defaults = { date: 72, cat: 130, amt: 100, bal: 110, trasf: 100 };
     if (defaults[col]) {
       COLS[col] = defaults[col];
       document.documentElement.style.setProperty('--col-' + col, COLS[col] + 'px');
