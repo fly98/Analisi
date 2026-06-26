@@ -424,6 +424,115 @@ var icompta_worker_default = {
       return json({ ok: true });
     }
 
+    // ── CONTI TITOLI ─────────────────────────────────────────────────────────
+    // Struttura KV separata, non tocca meta/accounts/groups esistenti
+    // icompta:investimenti:carico      → { valore: number }
+    // icompta:conti_titoli:meta        → { conti: [{id, nome, tipo}] }
+    // icompta:fineco:strumenti         → [{id, nome, isin, tipo, quantita, pmc, prezzoAttuale, fontePrezzo, tassazione, cedolaLorda, valoreScadenza, scadenza}]
+    // icompta:fineco:cc:saldo          → { saldo: number, aggiornato: string }
+
+    // GET /api/titoli/carico — legge valore di carico investimenti
+    if (path === "/api/titoli/carico" && method === "GET") {
+      const raw = await env.ICOMPTA_KV.get("icompta:investimenti:carico");
+      return json(raw ? JSON.parse(raw) : { valore: 0 });
+    }
+
+    // PUT /api/titoli/carico — salva valore di carico investimenti
+    if (path === "/api/titoli/carico" && method === "PUT") {
+      const body = await request.json();
+      if (body.valore == null) return err("valore richiesto");
+      await env.ICOMPTA_KV.put("icompta:investimenti:carico", JSON.stringify({ valore: Number(body.valore) }));
+      return json({ ok: true });
+    }
+
+    // GET /api/titoli/strumenti/:contoId — legge strumenti di un conto
+    if (path.match(/^\/api\/titoli\/strumenti\/(.+)$/) && method === "GET") {
+      const contoId = path.match(/^\/api\/titoli\/strumenti\/(.+)$/)[1];
+      const raw = await env.ICOMPTA_KV.get(`icompta:${contoId}:strumenti`);
+      return json(raw ? JSON.parse(raw) : []);
+    }
+
+    // PUT /api/titoli/strumenti/:contoId — salva lista strumenti
+    if (path.match(/^\/api\/titoli\/strumenti\/(.+)$/) && method === "PUT") {
+      const contoId = path.match(/^\/api\/titoli\/strumenti\/(.+)$/)[1];
+      const body = await request.json();
+      if (!Array.isArray(body.strumenti)) return err("strumenti deve essere array");
+      await env.ICOMPTA_KV.put(`icompta:${contoId}:strumenti`, JSON.stringify(body.strumenti));
+      return json({ ok: true });
+    }
+
+    // GET /api/titoli/cc/:contoId — legge saldo conto corrente broker
+    if (path.match(/^\/api\/titoli\/cc\/(.+)$/) && method === "GET") {
+      const contoId = path.match(/^\/api\/titoli\/cc\/(.+)$/)[1];
+      const raw = await env.ICOMPTA_KV.get(`icompta:${contoId}:cc`);
+      return json(raw ? JSON.parse(raw) : { saldo: 0, aggiornato: null });
+    }
+
+    // PUT /api/titoli/cc/:contoId — salva saldo conto corrente broker
+    if (path.match(/^\/api\/titoli\/cc\/(.+)$/) && method === "PUT") {
+      const contoId = path.match(/^\/api\/titoli\/cc\/(.+)$/)[1];
+      const body = await request.json();
+      if (body.saldo == null) return err("saldo richiesto");
+      await env.ICOMPTA_KV.put(`icompta:${contoId}:cc`, JSON.stringify({
+        saldo: Number(body.saldo),
+        aggiornato: new Date().toISOString().slice(0, 10)
+      }));
+      return json({ ok: true });
+    }
+
+    // GET /api/titoli/meta — legge configurazione conti titoli
+    if (path === "/api/titoli/meta" && method === "GET") {
+      const raw = await env.ICOMPTA_KV.get("icompta:conti_titoli:meta");
+      return json(raw ? JSON.parse(raw) : { conti: [] });
+    }
+
+    // PUT /api/titoli/meta — salva configurazione conti titoli
+    if (path === "/api/titoli/meta" && method === "PUT") {
+      const body = await request.json();
+      if (!body.conti) return err("conti richiesto");
+      await env.ICOMPTA_KV.put("icompta:conti_titoli:meta", JSON.stringify({ conti: body.conti }));
+      return json({ ok: true });
+    }
+
+    // GET /api/titoli/prezzi/:contoId — aggiorna prezzi di mercato via Yahoo/Borsa Italiana
+    if (path.match(/^\/api\/titoli\/prezzi\/(.+)$/) && method === "GET") {
+      const contoId = path.match(/^\/api\/titoli\/prezzi\/(.+)$/)[1];
+      const raw = await env.ICOMPTA_KV.get(`icompta:${contoId}:strumenti`);
+      if (!raw) return json({ ok: true, aggiornati: 0 });
+      const strumenti = JSON.parse(raw);
+      let aggiornati = 0;
+      for (const s of strumenti) {
+        if (!s.fontePrezzo || s.fontePrezzo === "manuale") continue;
+        try {
+          const [tipo, codice] = s.fontePrezzo.split(":");
+          let prezzo = null;
+          if (tipo === "yahoo") {
+            const r = await fetch("https://query1.finance.yahoo.com/v8/finance/chart/" + encodeURIComponent(codice), { headers: { "User-Agent": "Mozilla/5.0" } });
+            const d = await r.json();
+            prezzo = d?.chart?.result?.[0]?.meta?.regularMarketPrice;
+          } else if (tipo === "borsa") {
+            const r = await fetch("https://www.borsaitaliana.it/borsa/obbligazioni/mot/btp/scheda/" + codice + ".html?lang=it", { headers: { "User-Agent": "Mozilla/5.0" } });
+            const html = await r.text();
+            const m = html.match(/Prezzo di riferimento[\s\S]*?([0-9]{1,3}(?:\.[0-9]{3})*,[0-9]{2})/i);
+            if (m) prezzo = Number(m[1].replace(/\./g, "").replace(",", "."));
+          } else if (tipo === "eurotlx") {
+            const r = await fetch("https://www.borsaitaliana.it/borsa/obbligazioni/eurotlx/scheda/" + codice + "-ETLX.html?lang=it", { headers: { "User-Agent": "Mozilla/5.0" } });
+            const html = await r.text();
+            const m = html.match(/Prezzo di riferimento[\s\S]*?([0-9]{1,3}(?:\.[0-9]{3})*,[0-9]{2})/i);
+            if (m) prezzo = Number(m[1].replace(/\./g, "").replace(",", "."));
+          } else if (tipo === "sedex") {
+            const r = await fetch("https://www.borsaitaliana.it/borsa/cw-e-certificates/scheda/" + codice + "-SEDX.html?lang=it", { headers: { "User-Agent": "Mozilla/5.0" } });
+            const html = await r.text();
+            const m = html.match(/Prezzo di riferimento[\s\S]*?([0-9]{1,4}(?:\.[0-9]{3})*,[0-9]{2})/i);
+            if (m) prezzo = Number(m[1].replace(/\./g, "").replace(",", "."));
+          }
+          if (prezzo && prezzo > 0) { s.prezzoAttuale = Number(prezzo); aggiornati++; }
+        } catch(e) { /* ignora errori singolo strumento */ }
+      }
+      await env.ICOMPTA_KV.put(`icompta:${contoId}:strumenti`, JSON.stringify(strumenti));
+      return json({ ok: true, aggiornati, totale: strumenti.length });
+    }
+
     return err("Endpoint non trovato", 404);
   }
 };
