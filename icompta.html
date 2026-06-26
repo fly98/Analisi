@@ -3958,10 +3958,18 @@ async function loadContiTitoli() {
 function aggiornaBilancesTitoli() {
   if (!balances) balances = { accounts: {}, groups: {} };
   if (!balances.accounts) balances.accounts = {};
-  // Fineco Investimenti: valore di mercato
+  if (!balances.groups) balances.groups = {};
+  // Fineco Investimenti: valore di mercato calcolato dagli strumenti
   balances.accounts['ACC-FINECO-INV'] = Math.round(calcolaValoreMercato('fineco-inv') * 100) / 100;
-  // Fineco CC: balance già presente dal worker, non sovrascrivere se > 0
-  // (viene popolato dall'import movimenti)
+  // Ricalcola totale gruppo GRP-CONTI-TITOLI sommando tutti i suoi account
+  if (meta && meta.accounts) {
+    var totCT = 0;
+    for (var a of meta.accounts) {
+      if (a.groupId !== 'GRP-CONTI-TITOLI') continue;
+      totCT += balances.accounts[a.id] || 0;
+    }
+    balances.groups['GRP-CONTI-TITOLI'] = Math.round(totCT * 100) / 100;
+  }
 }
 
 function calcolaValoreMercato(contoId) {
@@ -4006,21 +4014,20 @@ function calcolaValoreCarico() {
 function renderInvestimentiSidebar() {
   const carico = titoliState.carico;
   // Confronta con totale gruppo Investimenti dal balance worker
-  // Somma tutti i conti di investimento: gruppo Investimenti + tutti i conti in GRP-CONTI-TITOLI
+  // Somma tutti i conti nei gruppi Investimenti + Conti Titoli, account per account
   var totMercato = 0;
-  if (balances && balances.groups) {
-    // Gruppo Investimenti principale
-    totMercato += balances.groups['1DF2AF6F-CF4C-4B67-BFF5-4EE707BC483D'] || 0;
-    // Conti in GRP-CONTI-TITOLI (Fideuram, Fineco CC, ecc.)
-    if (meta && meta.accounts) {
-      for (var _a of meta.accounts) {
-        if (_a.groupId === 'GRP-CONTI-TITOLI' && _a.id !== 'ACC-FINECO-INV') {
-          totMercato += (balances.accounts && balances.accounts[_a.id]) || 0;
-        }
+  if (balances && balances.accounts && meta && meta.accounts) {
+    for (var _a of meta.accounts) {
+      var inGrpInv = _a.groupId === '1DF2AF6F-CF4C-4B67-BFF5-4EE707BC483D';
+      var inGrpCT  = _a.groupId === 'GRP-CONTI-TITOLI';
+      if (!inGrpInv && !inGrpCT) continue;
+      if (_a.id === 'ACC-FINECO-INV') {
+        // Fineco Investimenti: usa valore di mercato calcolato dagli strumenti
+        totMercato += calcolaValoreMercato('fineco-inv');
+      } else {
+        totMercato += balances.accounts[_a.id] || 0;
       }
     }
-    // Fineco Investimenti: valore di mercato calcolato
-    totMercato += calcolaValoreMercato('fineco-inv');
   }
   const pl = totMercato - carico;
   const plPct = carico > 0 ? (pl / carico * 100) : 0;
