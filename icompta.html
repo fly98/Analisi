@@ -4748,17 +4748,14 @@ async function handleXLSImport(e) {
 
   if (strumenti.length === 0) { alert('Nessuno strumento trovato nel file'); return; }
 
-  // Salva
-  var importBtnXls = document.querySelector('[onclick="openImportXLSCurrent()"]');
-  if (importBtnXls) { importBtnXls.textContent = '⏳ Salvataggio...'; importBtnXls.disabled = true; }
-  lsSet('strumenti_' + _contoCorrenteId, strumenti);
-  await titoliApi('PUT', '/api/titoli/strumenti/' + _contoCorrenteId, { strumenti });
+  // Salva — aggiorna stato PRIMA di render
   titoliState.strumenti[_contoCorrenteId] = strumenti;
+  lsSet('strumenti_' + _contoCorrenteId, strumenti);
+  titoliApi('PUT', '/api/titoli/strumenti/' + _contoCorrenteId, { strumenti }).catch(function(){});
   aggiornaBilancesTitoli();
-  renderSidebar();
+  if (meta) renderSidebar();
+  updateTotalBalance();
   renderStrumentiView(_contoCorrenteId);
-  renderInvestimentiSidebar();
-  if (importBtnXls) { importBtnXls.textContent = '📂 Importa XLS Fineco'; importBtnXls.disabled = false; }
   var totC = strumenti.reduce(function(s,x) { return s + (x.tipo==='PCT'?(x.quantita*x.pmc)/100:x.quantita*x.pmc); }, 0);
   var totF = strumenti.reduce(function(s,x) { return s + (x.valoreFineco||0); }, 0);
   var pl   = totF - totC;
