@@ -1446,11 +1446,7 @@ function openEditTx(tx) {
 
 function addSplit(split = null) {
   const container = document.getElementById('splits-container');
-  const visibleCats = getVisibleCategories();
-  const catOptions = visibleCats.map(c => {
-    const sel = split?.categoryId === c.id ? ' selected' : '';
-    return '<option value="' + c.id + '"' + sel + '>' + esc(c.name) + '</option>';
-  }).join('');
+  const catOptions = buildCatOptions(split?.categoryId || null);
 
   const row = document.createElement('div');
   row.className = 'split-row';
@@ -1905,8 +1901,33 @@ function getCatBadge(catId) {
 function getVisibleCategories() {
   if (!meta) return [];
   return meta.categories.filter(function(c) {
-    return c.hidden !== true; // mostra tutte tranne quelle marcate hidden
+    return c.hidden !== true;
   }).sort(function(a,b) { return a.name.localeCompare(b.name); });
+}
+
+function buildCatOptions(selectedId, prefix) {
+  if (!meta) return '';
+  prefix = prefix || '<option value="">-- nessuna --</option>';
+  var cats = meta.categories.filter(function(c) { return c.hidden !== true; });
+  var allIds = new Set(cats.map(function(c) { return c.id; }));
+  var roots = cats.filter(function(c) {
+    return !c.parentId || !allIds.has(c.parentId);
+  }).sort(function(a,b) { return a.name.localeCompare(b.name); });
+
+  var opts = prefix;
+  roots.forEach(function(r) {
+    var sel = r.id === selectedId ? ' selected' : '';
+    var label = (r.icon ? r.icon + ' ' : '') + r.name;
+    opts += '<option value="' + esc(r.id) + '"' + sel + '>' + esc(label) + '</option>';
+    var children = cats.filter(function(c) { return c.parentId === r.id; })
+      .sort(function(a,b) { return a.name.localeCompare(b.name); });
+    children.forEach(function(c) {
+      var csel = c.id === selectedId ? ' selected' : '';
+      var clabel = (c.icon ? c.icon + ' ' : '') + c.name;
+      opts += '<option value="' + esc(c.id) + '"' + csel + '>   › ' + esc(clabel) + '</option>';
+    });
+  });
+  return opts;
 }
 
 function getLinkedAccName(tx) {
@@ -2206,12 +2227,7 @@ function sellaRenderTable(movs) {
     var m=movs[i];
     var amtCls=m.importo>=0?'sella-amt-pos':'sella-amt-neg';
     var amtStr=(m.importo>=0?'+':'')+m.importo.toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2})+' \u20ac';
-    var opts='<option value="">-- nessuna --</option>';
-    var visCats = getVisibleCategories();
-    for(var ci=0;ci<visCats.length;ci++){
-      var cat=visCats[ci];
-      opts+='<option value="'+esc(cat.id)+'"'+(m.catObj&&cat.id===m.catObj.id?' selected':'')+'>'+esc(cat.name)+'</option>';
-    }
+    var opts = buildCatOptions(m.catObj ? m.catObj.id : null);
     rows+='<tr class="'+(m.isDup?' dup-row':'')+'" id="sella-row-'+i+'">'+
       '<td style="white-space:nowrap;color:var(--muted);font-size:12px">'+m.dataOp+'</td>'+
       '<td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+esc(m.desc)+'">'+esc(m.desc)+'</td>'+
@@ -3079,8 +3095,7 @@ function showRecForm(){
   var body=document.getElementById('rec-body');
   if(document.getElementById('rec-form')){document.getElementById('rec-form').remove();renderRecBody();return;}
   var cats=getVisibleCategories();
-  var catOpts='<option value="">-- nessuna --</option>'+
-    cats.map(function(c){return '<option value="'+esc(c.id)+'">'+esc(c.name)+'</option>';}).join('');
+  var catOpts = buildCatOptions(null);
   var accOpts=(meta?meta.accounts:[]).filter(function(a){return !a.hidden;})
     .map(function(a){return '<option value="'+esc(a.id)+'">'+esc(a.name)+'</option>';}).join('');
   var freqOpts=Object.keys(REC_FREQ).map(function(k){
@@ -3587,12 +3602,7 @@ function sellapRenderTable() {
     var m = sellapMovimenti[i];
     var amtCls = m.importo >= 0 ? 'sella-amt-pos' : 'sella-amt-neg';
     var amtStr = (m.importo >= 0 ? '+' : '') + m.importo.toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2}) + ' \u20ac';
-    var opts = '<option value="">-- nessuna --</option>';
-    var visCats = getVisibleCategories();
-    for (var ci = 0; ci < visCats.length; ci++) {
-      var cat = visCats[ci];
-      opts += '<option value="'+esc(cat.id)+'"'+(m.catObj&&cat.id===m.catObj.id?' selected':'')+'>'+esc(cat.name)+'</option>';
-    }
+    var opts = buildCatOptions(m.catObj ? m.catObj.id : null);
     rows += '<tr style="'+(m.isDup?'opacity:.45;text-decoration:line-through':'')+'" id="sellap-row-'+i+'">'+
       '<td style="white-space:nowrap;color:var(--muted);font-size:12px;padding:6px 8px">'+m.dataOp+'</td>'+
       '<td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:6px 8px" title="'+esc(m.desc)+'">'+esc(m.desc)+'</td>'+
@@ -4064,15 +4074,23 @@ function openEditCategoria(catId) {
 function _fillParentSelect(selectedParentId) {
   var sel = document.getElementById('cat-edit-parent');
   var allIds = new Set(meta.categories.map(function(c) { return c.id; }));
-  // Root = senza parentId O con parentId che non esiste (stessa logica dell'albero)
-  var cats = meta.categories.filter(function(c) {
+  var roots = meta.categories.filter(function(c) {
     return !c.parentId || !allIds.has(c.parentId);
+  }).sort(function(a,b) { return a.name.localeCompare(b.name); });
+
+  var opts = '<option value="">— Categoria radice —</option>';
+  roots.forEach(function(r) {
+    var rSel = r.id === selectedParentId ? ' selected' : '';
+    opts += '<option value="' + r.id + '"' + rSel + '>' + (r.icon?r.icon+' ':'') + esc(r.name) + '</option>';
+    // Sottocategorie indentate
+    var children = meta.categories.filter(function(c) { return c.parentId === r.id; })
+      .sort(function(a,b) { return a.name.localeCompare(b.name); });
+    children.forEach(function(c) {
+      var cSel = c.id === selectedParentId ? ' selected' : '';
+      opts += '<option value="' + c.id + '"' + cSel + '>   └ ' + (c.icon?c.icon+' ':'') + esc(c.name) + '</option>';
+    });
   });
-  cats.sort(function(a,b) { return a.name.localeCompare(b.name); });
-  sel.innerHTML = '<option value="">— Categoria radice —</option>' +
-    cats.map(function(c) {
-      return '<option value="' + c.id + '"' + (c.id===selectedParentId?' selected':'') + '>' + (c.icon?c.icon+' ':'') + esc(c.name) + '</option>';
-    }).join('');
+  sel.innerHTML = opts;
 }
 
 function selectCatColor(el, color) {
@@ -4127,28 +4145,28 @@ async function toggleCategoriaHidden(catId) {
 function deleteCategoriaById(catId) {
   var cat = meta.categories.find(function(c) { return c.id === catId; });
   var nTx = _catCounts[catId] || 0;
-  deleteCategoria(catId, cat ? cat.name : catId, nTx);
-}
-
-async function deleteCategoria(catId, catName, nTx) {
-  if (nTx > 0) {
-    alert('Non puoi eliminare ' + catName + ' perche ha ' + nTx + ' transazioni. Usa Unisci per spostare le TX verso unaltra categoria prima.');
-    return;
-  }
-  // Controlla se ha sottocategorie
   var hasChildren = meta.categories.some(function(c) { return c.parentId === catId; });
   if (hasChildren) {
-    alert('Non puoi eliminare ' + catName + ' perche ha sottocategorie. Elimina prima le sottocategorie.');
+    alert('Non puoi eliminare "' + (cat?cat.name:catId) + '" perche ha sottocategorie. Elimina prima le sottocategorie.');
     return;
   }
-  if (!confirm('Elimina la categoria "' + catName + '"?')) return;
+  if (nTx > 0) {
+    openMergeCategoria(catId, true); // ha TX: apri modal sposta
+  } else {
+    deleteCategoriaDirectly(catId); // no TX: elimina subito
+  }
+}
+
+async function deleteCategoriaDirectly(catId) {
   meta.categories = meta.categories.filter(function(c) { return c.id !== catId; });
   try {
     await api('PUT', '/api/meta', { accounts: meta.accounts, groups: meta.groups, categories: meta.categories });
-    renderCategorieTree();
-  } catch(e) {
-    alert('Errore: ' + e.message);
-  }
+    renderCategorieTree(); // rimane aperta
+  } catch(e) { alert('Errore: ' + e.message); }
+}
+
+async function deleteCategoria(catId, catName, nTx) {
+  deleteCategoriaById(catId);
 }
 
 var _mergeFromId = null;
@@ -4184,12 +4202,14 @@ async function confirmCatMerge() {
   if (!toId) return;
   try {
     var res = await api('POST', '/api/categories/merge', { fromId: _mergeFromId, toId: toId });
-    // Aggiorna meta locale
+    // Aggiorna conteggi locali
+    _catCounts[toId] = (_catCounts[toId]||0) + (_catCounts[_mergeFromId]||0);
+    delete _catCounts[_mergeFromId];
     meta.categories = meta.categories.filter(function(c) { return c.id !== _mergeFromId; });
     closeCatMerge();
-    closeCategorieModal();
-    alert('✅ Spostate ' + (res.updated||0) + ' transazioni. Ricaricamento...');
-    location.reload();
+    // NON chiudere gestione categorie — rimane aperta
+    renderCategorieTree();
+    alert('Spostate ' + (res.updated||0) + ' transazioni.');
   } catch(e) {
     alert('Errore: ' + e.message);
   }
