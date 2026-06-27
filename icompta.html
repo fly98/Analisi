@@ -4536,12 +4536,43 @@ function openImportXLS(contoId) {
 async function handleXLSImport(e) {
   const file = e.target.files[0];
   if (!file) return;
-  if (typeof XLSX === 'undefined') { alert('❌ Libreria XLSX non disponibile — usa il bottone Auto'); return; }
-  const buf = await file.arrayBuffer();
-  const wb = XLSX.read(buf, { type: 'array' });
-  const ws = wb.Sheets[wb.SheetNames[0]];
-  const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null });
-  await parseEImportaStrumenti(rows);
+  
+  try {
+    // Prova prima con XLSX locale (Chrome/Desktop)
+    if (typeof XLSX !== 'undefined') {
+      const buf = await file.arrayBuffer();
+      const wb = XLSX.read(new Uint8Array(buf), { type: 'array' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null });
+      if (rows && rows.length > 2) {
+        await parseEImportaStrumenti(rows);
+        return;
+      }
+    }
+  } catch(e) { /* fallback al worker */ }
+  
+  // Fallback: invia al worker per il parsing (iPad Safari)
+  try {
+    const buf = await file.arrayBuffer();
+    const bytes = new Uint8Array(buf);
+    let binary = '';
+    for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+    const b64 = btoa(binary);
+    
+    const btn = document.getElementById('btn-import-xls-fineco');
+    if (btn) btn.textContent = '⏳ Invio al server...';
+    
+    const res = await fetch(WORKER_URL + '/api/parse-xls-fineco', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + TOKEN, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ base64: b64 })
+    });
+    const data = await res.json();
+    if (!data.ok || !data.rows) { alert('❌ Errore server: ' + (data.error||'sconosciuto')); return; }
+    await parseEImportaStrumenti(data.rows);
+  } catch(err) {
+    alert('❌ Errore import: ' + err.message);
+  }
 }
 
 // Funzione placeholder — il resto di handleXLSImport è stato spostato in parseEImportaStrumenti
