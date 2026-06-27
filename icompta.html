@@ -612,9 +612,10 @@ select.form-input { height: 42px; }
   /* Lista TX: scroll orizzontale sul wrapper — header e body si muovono INSIEME */
   #tx-scroll-wrap {
     overflow-x: auto !important;
-    overflow-y: auto !important;
+    overflow-y: visible !important;
     -webkit-overflow-scrolling: touch;
     flex: 1;
+    min-height: 0;
   }
   #tx-header {
     min-width: 580px;
@@ -710,7 +711,7 @@ select.form-input { height: 42px; }
 
     <div id="tx-list-container">
       <!-- View Fineco Investimenti — mostrata al posto delle TX -->
-      <div id="strumenti-view" style="display:none;padding:20px;flex:1;overflow-y:auto">
+      <div id="strumenti-view" style="display:none;padding:20px;flex:1;overflow-y:auto;min-height:0">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
           <span id="fineco-inv-info" style="font-size:11px;color:var(--muted)"></span>
           <button onclick="openFinecoInvModal()" style="padding:4px 10px;border-radius:8px;border:1px solid var(--border);background:none;cursor:pointer;color:var(--muted);font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:4px">Aggiorna <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="2,3 5,7 8,3"/></svg></button>
@@ -726,7 +727,7 @@ select.form-input { height: 42px; }
         </div>
         <div id="rec-pending-list"></div>
       </div>
-      <div id="tx-scroll-wrap" style="flex:1;display:flex;flex-direction:column;overflow:hidden">
+      <div id="tx-scroll-wrap" style="flex:1;display:flex;flex-direction:column;min-height:0">
         <div id="tx-header">
           <div class="txh tx-c-date">Data<div class="col-resizer" data-col="date"></div></div>
           <div class="txh tx-c-desc" style="padding:0 10px">Descrizione</div>
