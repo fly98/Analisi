@@ -4202,7 +4202,12 @@ async function saveCatEdit() {
 async function toggleCategoriaHidden(catId) {
   var cat = meta.categories.find(function(c) { return c.id === catId; });
   if (!cat) return;
-  cat.hidden = !cat.hidden;
+  var newHidden = !cat.hidden;
+  cat.hidden = newHidden;
+  // Applica ai figli
+  meta.categories.forEach(function(c) {
+    if (c.parentId === catId) c.hidden = newHidden;
+  });
   try {
     await api('PUT', '/api/meta', { accounts: meta.accounts, groups: meta.groups, categories: meta.categories });
     renderCategorieTree();
@@ -4212,23 +4217,31 @@ async function toggleCategoriaHidden(catId) {
 function deleteCategoriaById(catId) {
   var cat = meta.categories.find(function(c) { return c.id === catId; });
   var nTx = _catCounts[catId] || 0;
-  var hasChildren = meta.categories.some(function(c) { return c.parentId === catId; });
-  if (hasChildren) {
-    alert('Non puoi eliminare "' + (cat?cat.name:catId) + '" perche ha sottocategorie. Elimina prima le sottocategorie.');
+  var children = meta.categories.filter(function(c) { return c.parentId === catId; });
+  var childrenWithTx = children.filter(function(c) { return (_catCounts[c.id]||0) > 0; });
+
+  if (childrenWithTx.length > 0) {
+    // Alcune figlie hanno TX — non si può eliminare
+    alert('Non puoi eliminare "' + (cat?cat.name:catId) + '" perche alcune sottocategorie hanno transazioni. Spostale prima.');
     return;
   }
+
   if (nTx > 0) {
-    openMergeCategoria(catId, true); // ha TX: apri modal sposta
+    // La madre ha TX: apri modal sposta (che poi elimina)
+    openMergeCategoria(catId, true);
   } else {
-    deleteCategoriaDirectly(catId); // no TX: elimina subito
+    // Nessuna TX: elimina madre + tutte le figlie senza TX
+    var idsToDelete = [catId].concat(children.map(function(c){ return c.id; }));
+    deleteCategoriaDirectly(idsToDelete);
   }
 }
 
-async function deleteCategoriaDirectly(catId) {
-  meta.categories = meta.categories.filter(function(c) { return c.id !== catId; });
+async function deleteCategoriaDirectly(catIds) {
+  var ids = Array.isArray(catIds) ? catIds : [catIds];
+  meta.categories = meta.categories.filter(function(c) { return ids.indexOf(c.id) === -1; });
   try {
     await api('PUT', '/api/meta', { accounts: meta.accounts, groups: meta.groups, categories: meta.categories });
-    renderCategorieTree(); // rimane aperta
+    renderCategorieTree();
   } catch(e) { alert('Errore: ' + e.message); }
 }
 
