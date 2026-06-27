@@ -3932,10 +3932,7 @@ function renderStrumentiView() {
 
   // Toolbar con input file diretto (funziona su iPad Safari)
   var toolbar = '<div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">' +
-    '<label style="padding:7px 14px;border-radius:8px;border:1px solid var(--border);cursor:pointer;font-size:13px;color:var(--muted);display:inline-flex;align-items:center;gap:6px">' +
-    '📂 Importa XLS Fineco' +
-    '<input type="file" accept=".xls,.xlsx" style="display:none" onchange="handleXLSImport(event)">' +
-    '</label>' +
+    '<label for="fineco-xls-input" style="padding:7px 14px;border-radius:8px;border:1px solid var(--border);cursor:pointer;font-size:13px;color:var(--muted);display:inline-flex;align-items:center;gap:6px">📂 Importa XLS Fineco</label>' +
     '</div>';
 
   if (strumenti.length === 0) {
@@ -4523,5 +4520,13 @@ async function handleXLSImport(e) {
     </div>
   </div>
 </div>
+<input type="file" id="fineco-xls-input" accept=".xls,.xlsx" style="display:none">
+<script>
+document.getElementById('fineco-xls-input').addEventListener('change', function(e) {
+  handleXLSImport(e);
+  // Reset per permettere reimport dello stesso file
+  this.value = '';
+});
+</script>
 </body>
 </html>
