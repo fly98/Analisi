@@ -4175,10 +4175,31 @@ var _finecoTabAttivo = 'tutti';
 function _saveFinecoStrumenti(s) {
   _finecoStrumenti = s;
   try { localStorage.setItem('fineco_inv', JSON.stringify(s)); } catch(e) {}
+  // Salva anche su KV (persistente, sopravvive a reset localStorage)
+  titoliApi('PUT', '/api/titoli/strumenti/fineco-inv', { strumenti: s })
+    .catch(function(e) { console.warn('KV save failed:', e); });
 }
 function _initFinecoStrumenti() {
   if (_finecoStrumenti.length > 0) return;
   try { var r = localStorage.getItem('fineco_inv'); if (r) _finecoStrumenti = JSON.parse(r); } catch(e) {}
+}
+
+async function _initFinecoStrumentiAsync() {
+  if (_finecoStrumenti.length > 0) return;
+  // Prima prova localStorage
+  try { var r = localStorage.getItem('fineco_inv'); if (r) { _finecoStrumenti = JSON.parse(r); } } catch(e) {}
+  // Se ancora vuoto, carica da KV
+  if (_finecoStrumenti.length === 0) {
+    try {
+      var res = await titoliApi('GET', '/api/titoli/strumenti/fineco-inv');
+      if (res.ok && Array.isArray(res.data) && res.data.length > 0) {
+        _finecoStrumenti = res.data;
+        try { localStorage.setItem('fineco_inv', JSON.stringify(res.data)); } catch(e) {}
+        var date = localStorage.getItem('fineco_inv_date');
+        if (!date) localStorage.setItem('fineco_inv_date', '(da KV)');
+      }
+    } catch(e) {}
+  }
 }
 
 function calcolaValoreMercato(id) {
@@ -4196,7 +4217,11 @@ function aggiornaBilancesTitoli() {
     balances.groups['GRP-CONTI-TITOLI'] = Math.round(t*100)/100;
   }
 }
-function loadContiTitoli() { _initFinecoStrumenti(); aggiornaBilancesTitoli(); return Promise.resolve(); }
+function loadContiTitoli() {
+  _initFinecoStrumenti();
+  aggiornaBilancesTitoli();
+  return _initFinecoStrumentiAsync().then(function() { aggiornaBilancesTitoli(); });
+}
 // showTxView definita prima
 function renderInvestimentiSidebar(){}
 function renderContiTitoliSidebar(){ aggiornaBilancesTitoli(); if(meta) renderSidebar(); }
@@ -4219,8 +4244,15 @@ function selectStrumenti(contoId, nome) {
   ['date-bar','rec-pending-box','tx-header','tx-body'].forEach(function(id){var e=document.getElementById(id);if(e)e.style.display='none';});
   document.getElementById('strumenti-view').style.display = 'block';
   aggiornaBottoneImport();
-  _initFinecoStrumenti();
+  _initFinecoStrumenti(); // sync: carica da localStorage subito
   renderStrumentiView();
+  // Poi async: se localStorage vuoto carica da KV e aggiorna
+  _initFinecoStrumentiAsync().then(function() {
+    aggiornaBilancesTitoli();
+    if (meta) renderSidebar();
+    updateTotalBalance();
+    renderStrumentiView();
+  });
 }
 
 function renderStrumentiView() {
