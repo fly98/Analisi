@@ -609,29 +609,24 @@ select.form-input { height: 42px; }
   #date-bar input[type=date] { width: 86px; font-size: 11px; padding: 3px 4px; }
   #btn-import-contestuale { font-size: 11px !important; padding: 4px 7px !important; }
 
-  /* Bottone + Nuova: fisso in basso a destra */
-  .btn-add { position: fixed !important; bottom: 24px; right: 16px; z-index: 500;
-    border-radius: 50% !important; width: 50px !important; height: 50px !important;
-    font-size: 22px !important; padding: 0 !important;
-    display: inline-flex !important; align-items: center; justify-content: center;
-    box-shadow: 0 4px 20px rgba(0,0,0,.3); }
+  /* Lista TX: scroll orizzontale, tutte le colonne visibili */
+  #tx-body { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  #tx-header { min-width: 600px; }
+  .tx-row { min-width: 600px; }
 
-  /* Nascondi colonne Saldo e Trasf. */
-  .tx-c-bal  { display: none !important; }
-  .tx-c-trasf { display: none !important; }
-
-  /* Descrizione: testo completo, no troncamento */
-  .tx-c-desc .txn { white-space: normal !important; font-size: 13px; }
-  .tx-c-desc .txs { white-space: nowrap; font-size: 11px; }
-
-  /* Importo compatto */
-  .tx-c-amt { width: 85px !important; font-size: 13px !important; }
+  /* Descrizione più larga */
+  .tx-c-desc { min-width: 180px !important; }
+  .tx-c-desc .txn { font-size: 13px; }
+  .tx-c-desc .txs { font-size: 11px; }
 
   /* Data compatta */
   .tx-c-date { width: 58px !important; font-size: 11px !important; }
 
+  /* Importo compatto */
+  .tx-c-amt { width: 85px !important; font-size: 13px !important; }
+
   /* Categoria badge piccolo */
-  .cat-badge { font-size: 10px !important; padding: 1px 5px !important; max-width: 90px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .cat-badge { font-size: 10px !important; padding: 1px 5px !important; max-width: 100px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 }
 </style>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
