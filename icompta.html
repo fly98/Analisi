@@ -3879,7 +3879,7 @@ function calcolaValoreMercato(contoId) {
 }
 function loadContiTitoli() {
   try {
-    var cached = localStorage.getItem('titoli_strumenti_fineco-inv');
+    var cached = localStorage.getItem('titoli_strumenti_v2_fineco-inv');
     if (cached) {
       var strumenti = JSON.parse(cached);
       // Migrazione: vecchi dati usavano prezzoAttuale, ora usiamo prezzoFineco/prezzoOnline
@@ -4058,7 +4058,7 @@ async function aggiornaPrezziConto() {
         var ex = existing.find(function(e) { return e.id === su.id || e.isin === su.isin; });
         if (ex) ex.prezzoOnline = su.prezzoAttuale || su.prezzoOnline || null;
       });
-      localStorage.setItem('titoli_strumenti_' + contoId, JSON.stringify(existing));
+      localStorage.setItem('titoli_strumenti_v2_' + contoId, JSON.stringify(existing));
     }
     aggiornaBilancesTitoli();
     if (meta) renderSidebar();
@@ -4475,7 +4475,7 @@ async function handleXLSImport(e) {
   if (strumenti.length === 0) { alert('Nessuno strumento trovato nel file'); return; }
 
   // Salva in localStorage e aggiorna UI
-  lsSet('strumenti_' + _contoCorrenteId, strumenti);
+  lsSet('strumenti_v2_' + _contoCorrenteId, strumenti);
   titoliState.strumenti[_contoCorrenteId] = strumenti;
   aggiornaBilancesTitoli();
   if (meta) renderSidebar();
