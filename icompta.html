@@ -4388,16 +4388,20 @@ function openImportXLS(contoId) {
 
 async function handleXLSImport(e) {
   const file = e.target.files[0];
-  if (!file) return;
+  if (!file) { alert('Nessun file selezionato'); return; }
+  alert('📂 File selezionato: ' + file.name + ' (' + Math.round(file.size/1024) + ' KB)\nCaricamento libreria...');
   // Legge XLS con SheetJS (caricato lazy se non presente)
   if (typeof XLSX === 'undefined') {
-    await new Promise(function(resolve, reject) {
-      var s = document.createElement('script');
-      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
-      s.onload = resolve; s.onerror = reject;
-      document.head.appendChild(s);
-    });
+    try {
+      await new Promise(function(resolve, reject) {
+        var s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+        s.onload = resolve; s.onerror = reject;
+        document.head.appendChild(s);
+      });
+    } catch(e) { alert('❌ Errore caricamento libreria XLS: ' + e.message); return; }
   }
+  alert('✅ Libreria pronta, leggo il file...');
   const buf = await file.arrayBuffer();
   const wb = XLSX.read(buf, { type: 'array' });
   const ws = wb.Sheets[wb.SheetNames[0]];
