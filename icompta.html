@@ -593,6 +593,7 @@ select.form-input { height: 42px; }
 .leo-log-label { font-size:14px;font-weight:600; }
 .leo-log-sub { font-size:12px;color:var(--muted);margin-top:2px; }
 </style>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
 
@@ -3849,6 +3850,25 @@ async function sellapAutoDownload() {
 <script>
 
 
+// ── DEBUG CONSOLE ────────────────────────────────────────────────────────────
+function dbg(msg, col) {
+  var el = document.getElementById('icompta-debug');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'icompta-debug';
+    el.style.cssText = 'position:fixed;bottom:0;left:0;right:0;max-height:180px;overflow-y:auto;background:#111;color:#0f0;font-family:monospace;font-size:11px;padding:6px 8px;z-index:9999;border-top:2px solid #0f0';
+    el.innerHTML = '<b style="color:#fff">🐛 Debug</b> <button onclick="this.parentNode.remove()" style="float:right;background:none;border:none;color:#aaa;cursor:pointer;font-size:14px">✕</button><br>';
+    document.body.appendChild(el);
+  }
+  var d = document.createElement('div');
+  d.style.color = col||'#0f0';
+  d.textContent = new Date().toLocaleTimeString('it-IT') + ' ' + msg;
+  el.appendChild(d);
+  el.scrollTop = el.scrollHeight;
+}
+window.onerror = function(m,s,l,c,e) { dbg('❌ '+m+' L'+l, '#f55'); return false; };
+window.addEventListener('unhandledrejection', function(e) { dbg('❌ Promise: '+(e.reason&&e.reason.message||e.reason), '#f80'); });
+
 // ── FINECO INVESTIMENTI ──────────────────────────────────────────────────────
 
 var _finecoStrumenti = [];
@@ -3990,24 +4010,6 @@ function renderStrumentiView() {
 
   view.innerHTML = toolbar + tabsHtml + boxHtml + tableHtml;
 }
-
-function dbg(msg, col) {
-  var el = document.getElementById('icompta-debug');
-  if (!el) {
-    el = document.createElement('div');
-    el.id = 'icompta-debug';
-    el.style.cssText = 'position:fixed;bottom:0;left:0;right:0;max-height:200px;overflow-y:auto;background:#000;color:#0f0;font-family:monospace;font-size:11px;padding:6px;z-index:9999;border-top:2px solid #0f0';
-    el.innerHTML = '<div style="color:#fff;font-weight:bold">Debug <button onclick="document.getElementById('icompta-debug').remove()" style="float:right;background:none;border:none;color:#fff;cursor:pointer">✕</button></div>';
-    document.body.appendChild(el);
-  }
-  var line = document.createElement('div');
-  line.style.color = col||'#0f0';
-  line.textContent = new Date().toLocaleTimeString('it-IT') + ' ' + msg;
-  el.appendChild(line);
-  el.scrollTop = el.scrollHeight;
-}
-window.onerror = function(msg,src,line) { dbg('ERROR: '+msg+' ('+line+')', '#f00'); };
-window.onunhandledrejection = function(e) { dbg('PROMISE: '+(e.reason&&e.reason.message||e.reason), '#f80'); };
 
 async function handleXLSImport(e) {
   dbg('handleXLSImport chiamata');
@@ -4355,95 +4357,6 @@ function openImportXLS(contoId) {
   }
   inp.value = '';
   inp.click();
-}
-
-async function handleXLSImport(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  // Legge XLS con SheetJS (caricato lazy se non presente)
-  if (typeof XLSX === 'undefined') {
-    await new Promise(function(resolve, reject) {
-      var s = document.createElement('script');
-      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
-      s.onload = resolve; s.onerror = reject;
-      document.head.appendChild(s);
-    });
-  }
-  const buf = await file.arrayBuffer();
-  const wb = XLSX.read(buf, { type: 'array' });
-  const ws = wb.Sheets[wb.SheetNames[0]];
-  const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null });
-
-  // Trova riga header (contiene "ISIN")
-  let headerIdx = -1;
-  for (let i = 0; i < rows.length; i++) {
-    if (rows[i] && rows[i].some(function(c) { return c && String(c).trim() === 'ISIN'; })) {
-      headerIdx = i; break;
-    }
-  }
-  if (headerIdx === -1) { alert('Formato XLS non riconosciuto — riga ISIN non trovata'); return; }
-
-  const header = rows[headerIdx].map(function(c) { return c ? String(c).trim() : ''; });
-  const iCol   = header.indexOf('ISIN');
-  const nCol   = header.indexOf('Titolo') !== -1 ? header.indexOf('Titolo') : 0;
-  const qCol   = header.findIndex(function(h) { return h.includes('Quant') || h === 'Quantità'; });
-  const pmcCol = header.findIndex(function(h) { return h.includes('carico') && h.includes('medio'); });
-  const pxCol  = header.findIndex(function(h) { return h.includes('mercato') && h.includes('P.zo'); });
-  const tipCol = header.indexOf('Strumento');
-  const symCol = header.indexOf('Simbolo');
-
-  const FONTE_MAP = {
-    'VWCE.MI': 'yahoo:VWCE.MI', 'CSNDX.MI': 'yahoo:CSNDX.MI',
-    'SGLN.MI': 'yahoo:SGLN.MI', 'XEON.MI': 'yahoo:XEON.MI',
-    'T56539.MOT': 'borsa:IT0005565392-MOTX', 'BT19_C.MOT': 'borsa:IT0005532715-MOTX',
-    'T58347.MOT': 'borsa:IT0005583478-MOTX', 'T67201.MOT': 'borsa:IT0005672016-MOTX',
-    'T43319.MOT': 'borsa:IT0005433195-MOTX', '552117.MOT': 'borsa:IT0005521171-MOTX',
-    'JCRJUF.TX': 'eurotlx:IT0005595597', 'JC63O9.TX': 'eurotlx:XS2982322609',
-    '563460.MOT': 'borsa:IT0005634602-MOTX', 'I09995.MI': 'sedex:XS2793188462'
-  };
-  const TASS_MAP = {
-    'IT0005565392': 0.125, 'IT0005532715': 0.125, 'IT0005583478': 0.125,
-    'IT0005672016': 0.125, 'IT0005433195': 0.125, 'IT0005521171': 0.26,
-    'IT0005595597': 0.26, 'XS2982322609': 0.26, 'IT0005634602': 0.125,
-    'XS2793188462': 0.26
-  };
-
-  const strumenti = [];
-  for (let i = headerIdx + 1; i < rows.length; i++) {
-    const r = rows[i];
-    if (!r || !r[iCol]) continue;
-    const isin = String(r[iCol]).trim();
-    if (!isin || isin === 'N/A' || isin.length < 5) continue;
-    const nome = nCol >= 0 && r[nCol] ? String(r[nCol]).trim() : isin;
-    const qty  = qCol >= 0 ? (parseFloat(r[qCol]) || 0) : 0;
-    const pmc  = pmcCol >= 0 ? (parseFloat(r[pmcCol]) || 0) : 0;
-    const px   = pxCol >= 0 ? (parseFloat(r[pxCol]) || pmc) : pmc;
-    const sym  = symCol >= 0 && r[symCol] ? String(r[symCol]).trim() : '';
-    const tipRaw = tipCol >= 0 && r[tipCol] ? String(r[tipCol]).trim() : '';
-    const tipo = tipRaw === 'Obbligazione' ? 'PCT' : 'UNIT';
-    strumenti.push({
-      id: isin + '_' + qty,
-      nome: nome, isin: isin, tipo: tipo, quantita: qty,
-      pmc: pmc, prezzoAttuale: px,
-      fontePrezzo: FONTE_MAP[sym] || 'manuale',
-      tassazione: TASS_MAP[isin] || 0.26,
-      cedolaLorda: 0, valoreScadenza: tipo === 'PCT' ? qty : 0, scadenza: ''
-    });
-  }
-
-  if (strumenti.length === 0) { alert('Nessuno strumento trovato nel file'); return; }
-
-  // Salva in localStorage e aggiorna UI
-  lsSet('strumenti_' + _contoCorrenteId, strumenti);
-  titoliState.strumenti[_contoCorrenteId] = strumenti;
-  aggiornaBilancesTitoli();
-  if (meta) renderSidebar();
-  updateTotalBalance();
-  renderStrumentiView(_contoCorrenteId); // ricrea il DOM incluso il bottone
-  // Salva su worker in background
-  titoliApi('PUT', '/api/titoli/strumenti/' + _contoCorrenteId, { strumenti })
-    .catch(function(e) { console.warn('Worker save failed:', e); });
-  alert('✅ Importati ' + strumenti.length + ' strumenti');
 }
 </script>
 
