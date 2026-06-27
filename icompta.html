@@ -254,6 +254,7 @@ select.form-input { height: 42px; }
   display: flex; align-items: center; justify-content: center; }
 .settings-body { flex: 1; overflow-y: auto; padding: 16px; }
 .settings-section { margin-bottom: 4px; }
+.cat-row:hover { background: var(--gray2); }
 .settings-section-header { display:flex; align-items:center; justify-content:space-between; cursor:pointer; padding:8px 4px; user-select:none; }
 .settings-section-header:hover { opacity:.8; }
 .settings-section-chevron { font-size:11px; color:var(--gray4); transition:transform .2s; }
@@ -753,6 +754,11 @@ select.form-input { height: 42px; }
           <div class="settings-item" onclick="closeSettings();window.location.href='https://fly98.github.io/Analisi/grafici.html'">
             <span class="s-icon" style="background:#eef4fd"><svg viewBox="0 0 24 24" fill="none" stroke="#1a4a7a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10M12 20V4M6 20v-6"/></svg></span>
             <div class="s-text"><div class="s-label">Grafici e report</div><div class="s-desc">Analisi entrate/uscite per categoria</div></div>
+            <span class="s-arrow">›</span>
+          </div>
+          <div class="settings-item" onclick="closeSettings();openCategorieModal()">
+            <span class="s-icon" style="background:#f3eeff"><svg viewBox="0 0 24 24" fill="none" stroke="#6b3fa0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h5l2-4h4l2 4h5"/><path d="M3 7v13h18V7"/><path d="M9 12h6"/><path d="M12 9v6"/></svg></span>
+            <div class="s-text"><div class="s-label">Gestione categorie</div><div class="s-desc">Albero, rinomina, unisci, icone</div></div>
             <span class="s-arrow">›</span>
           </div>
         </div>
@@ -3912,6 +3918,227 @@ function aggiornaBottoneImport(overrideId) {
 
 function dbg() {} // debug rimosso
 
+
+// ══════════════════════════════════════════════════════════════════════════
+// GESTIONE CATEGORIE
+// ══════════════════════════════════════════════════════════════════════════
+
+var _catCounts = {}; // { catId: nTx } — caricato una volta
+
+function openCategorieModal() {
+  document.getElementById('modal-categorie').style.display = 'flex';
+  document.getElementById('cat-search').value = '';
+  // Carica conteggi TX per categoria
+  api('GET', '/api/categories/count').then(function(counts) {
+    _catCounts = counts || {};
+    renderCategorieTree();
+  }).catch(function() {
+    _catCounts = {};
+    renderCategorieTree();
+  });
+}
+
+function closeCategorieModal() {
+  document.getElementById('modal-categorie').style.display = 'none';
+}
+
+function renderCategorieTree() {
+  var body = document.getElementById('cat-tree-body');
+  if (!body || !meta || !meta.categories) return;
+  var q = (document.getElementById('cat-search').value || '').toLowerCase();
+  var cats = meta.categories;
+
+  // Filtra per ricerca
+  var visibleIds = new Set();
+  if (q) {
+    cats.forEach(function(c) {
+      if (c.name.toLowerCase().includes(q)) {
+        visibleIds.add(c.id);
+        if (c.parentId) visibleIds.add(c.parentId);
+      }
+    });
+  }
+
+  var roots = cats.filter(function(c) { return !c.parentId && (!q || visibleIds.has(c.id)); });
+  roots.sort(function(a,b) { return a.name.localeCompare(b.name); });
+
+  function catBadge(c) {
+    var col = c.color || '#6b7280';
+    var icon = c.icon ? c.icon + ' ' : '';
+    return '<span style="display:inline-flex;align-items:center;gap:4px">' +
+      '<span style="width:8px;height:8px;border-radius:50%;background:' + col + ';flex-shrink:0"></span>' +
+      icon + c.name + '</span>';
+  }
+
+  function renderCat(c, level) {
+    var children = cats.filter(function(x) { return x.parentId === c.id && (!q || visibleIds.has(x.id)); });
+    children.sort(function(a,b) { return a.name.localeCompare(b.name); });
+    var nTx = _catCounts[c.id] || 0;
+    var indent = level * 20;
+
+    var html = '<div class="cat-row" style="display:flex;align-items:center;gap:6px;padding:6px 4px 6px ' + (8+indent) + 'px;border-radius:8px">' +
+      '<span style="flex:1;font-size:' + (level===0?'14':'13') + 'px;font-weight:' + (level===0?'600':'400') + '">' + catBadge(c) + '</span>' +
+      '<span style="font-size:11px;color:var(--muted);min-width:30px;text-align:right">' + (nTx>0?nTx+' TX':'') + '</span>' +
+      '<button onclick="openNuovaCategoria(\"' + c.id + '\")" title="Aggiungi sottocategoria" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:14px;padding:2px 4px">+</button>' +
+      '<button onclick="openEditCategoria(\"' + c.id + '\")" title="Modifica" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:13px;padding:2px 4px">✏️</button>' +
+      '<button onclick="openMergeCategoria(\"' + c.id + '\")" title="Unisci/sposta TX" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:13px;padding:2px 4px">🔀</button>' +
+      '<button onclick="deleteCategoriaById(\"' + c.id + '\")" title="Elimina" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:13px;padding:2px 4px">🗑️</button>' +
+    '</div>';
+
+    if (children.length > 0) {
+      children.forEach(function(ch) { html += renderCat(ch, level+1); });
+    }
+    return html;
+  }
+
+  var html = roots.map(function(c) { return renderCat(c, 0); }).join('');
+  if (!html) html = '<p style="text-align:center;padding:40px;color:var(--muted)">Nessuna categoria trovata</p>';
+  body.innerHTML = html;
+}
+
+var _catEditParentId = null; // null = radice
+
+function openNuovaCategoria(parentId) {
+  _catEditParentId = parentId;
+  document.getElementById('cat-edit-id').value = '';
+  document.getElementById('cat-edit-name').value = '';
+  document.getElementById('cat-edit-icon').value = '';
+  document.getElementById('cat-edit-color').value = '';
+  document.getElementById('cat-edit-title').textContent = parentId ? 'Nuova sottocategoria' : 'Nuova categoria';
+  _fillParentSelect(parentId);
+  document.getElementById('modal-cat-edit').style.display = 'flex';
+  setTimeout(function() { document.getElementById('cat-edit-name').focus(); }, 100);
+}
+
+function openEditCategoria(catId) {
+  var cat = meta.categories.find(function(c) { return c.id === catId; });
+  if (!cat) return;
+  document.getElementById('cat-edit-id').value = catId;
+  document.getElementById('cat-edit-name').value = cat.name;
+  document.getElementById('cat-edit-icon').value = cat.icon || '';
+  document.getElementById('cat-edit-color').value = cat.color || '';
+  document.getElementById('cat-edit-title').textContent = 'Modifica categoria';
+  _fillParentSelect(cat.parentId || null);
+  document.getElementById('modal-cat-edit').style.display = 'flex';
+}
+
+function _fillParentSelect(selectedParentId) {
+  var sel = document.getElementById('cat-edit-parent');
+  var cats = meta.categories.filter(function(c) { return !c.parentId; });
+  cats.sort(function(a,b) { return a.name.localeCompare(b.name); });
+  sel.innerHTML = '<option value="">— Categoria radice —</option>' +
+    cats.map(function(c) {
+      return '<option value="' + c.id + '"' + (c.id===selectedParentId?' selected':'') + '>' + (c.icon?c.icon+' ':'') + c.name + '</option>';
+    }).join('');
+}
+
+function selectCatColor(el, color) {
+  document.getElementById('cat-edit-color').value = color;
+  document.querySelectorAll('#cat-color-picker span').forEach(function(s) {
+    s.style.outline = '';
+  });
+  el.style.outline = '3px solid var(--blue)';
+  el.style.outlineOffset = '2px';
+}
+
+function closeCatEdit() {
+  document.getElementById('modal-cat-edit').style.display = 'none';
+}
+
+async function saveCatEdit() {
+  var name = document.getElementById('cat-edit-name').value.trim();
+  if (!name) { alert('Inserisci un nome'); return; }
+  var id = document.getElementById('cat-edit-id').value;
+  var icon = document.getElementById('cat-edit-icon').value.trim();
+  var color = document.getElementById('cat-edit-color').value;
+  var parentId = document.getElementById('cat-edit-parent').value || null;
+
+  if (id) {
+    // Modifica esistente
+    var cat = meta.categories.find(function(c) { return c.id === id; });
+    if (cat) { cat.name = name; cat.icon = icon || null; cat.color = color || null; cat.parentId = parentId; }
+  } else {
+    // Nuova
+    var newCat = { id: crypto.randomUUID().toUpperCase(), name: name, parentId: parentId, icon: icon||null, color: color||null };
+    meta.categories.push(newCat);
+  }
+
+  try {
+    await api('PUT', '/api/meta', { accounts: meta.accounts, groups: meta.groups, categories: meta.categories });
+    closeCatEdit();
+    renderCategorieTree();
+  } catch(e) {
+    alert('Errore salvataggio: ' + e.message);
+  }
+}
+
+function deleteCategoriaById(catId) {
+  var cat = meta.categories.find(function(c) { return c.id === catId; });
+  var nTx = _catCounts[catId] || 0;
+  deleteCategoria(catId, cat ? cat.name : catId, nTx);
+}
+
+async function deleteCategoria(catId, catName, nTx) {
+  if (nTx > 0) {
+    alert('Non puoi eliminare ' + catName + ' perche ha ' + nTx + ' transazioni. Usa Unisci per spostare le TX verso unaltra categoria prima.');
+    return;
+  }
+  // Controlla se ha sottocategorie
+  var hasChildren = meta.categories.some(function(c) { return c.parentId === catId; });
+  if (hasChildren) {
+    alert('Non puoi eliminare ' + catName + ' perche ha sottocategorie. Elimina prima le sottocategorie.');
+    return;
+  }
+  if (!confirm('Elimina la categoria "' + catName + '"?')) return;
+  meta.categories = meta.categories.filter(function(c) { return c.id !== catId; });
+  try {
+    await api('PUT', '/api/meta', { accounts: meta.accounts, groups: meta.groups, categories: meta.categories });
+    renderCategorieTree();
+  } catch(e) {
+    alert('Errore: ' + e.message);
+  }
+}
+
+var _mergeFromId = null;
+
+function openMergeCategoria(catId) {
+  _mergeFromId = catId;
+  var cat = meta.categories.find(function(c) { return c.id === catId; });
+  var nTx = _catCounts[catId] || 0;
+  document.getElementById('cat-merge-desc').textContent =
+    'Sposta le ' + nTx + ' TX di ' + (cat?cat.name:catId) + ' verso unaltra categoria, poi elimina questa.';
+  var sel = document.getElementById('cat-merge-target');
+  var others = meta.categories.filter(function(c) { return c.id !== catId; });
+  others.sort(function(a,b) { return a.name.localeCompare(b.name); });
+  sel.innerHTML = others.map(function(c) {
+    var par = c.parentId ? meta.categories.find(function(p){return p.id===c.parentId;}) : null;
+    var label = (par ? par.name + ' › ' : '') + (c.icon?c.icon+' ':'') + c.name;
+    return '<option value="' + c.id + '">' + label + '</option>';
+  }).join('');
+  document.getElementById('modal-cat-merge').style.display = 'flex';
+}
+
+function closeCatMerge() {
+  document.getElementById('modal-cat-merge').style.display = 'none';
+}
+
+async function confirmCatMerge() {
+  var toId = document.getElementById('cat-merge-target').value;
+  if (!toId) return;
+  try {
+    var res = await api('POST', '/api/categories/merge', { fromId: _mergeFromId, toId: toId });
+    // Aggiorna meta locale
+    meta.categories = meta.categories.filter(function(c) { return c.id !== _mergeFromId; });
+    closeCatMerge();
+    closeCategorieModal();
+    alert('✅ Spostate ' + (res.updated||0) + ' transazioni. Ricaricamento...');
+    location.reload();
+  } catch(e) {
+    alert('Errore: ' + e.message);
+  }
+}
+
+
 // ── FINECO INVESTIMENTI ──────────────────────────────────────────────────────
 
 var _finecoStrumenti = [];
@@ -4516,6 +4743,76 @@ function openImportXLS(contoId) {
     </div>
   </div>
 </div>
+
+<!-- ══ MODAL GESTIONE CATEGORIE ══════════════════════════════════════════ -->
+<div id="modal-categorie" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2000;align-items:flex-start;justify-content:center;padding-top:40px" onclick="if(event.target===this)closeCategorieModal()">
+  <div style="background:var(--bg);border-radius:20px;width:min(640px,96vw);max-height:85vh;display:flex;flex-direction:column;box-shadow:0 8px 40px rgba(0,0,0,.25)">
+    <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0">
+      <span style="font-size:20px">🗂️</span>
+      <span style="flex:1;font-size:17px;font-weight:700">Gestione Categorie</span>
+      <button onclick="closeCategorieModal()" style="background:var(--gray2);border:none;border-radius:50%;width:28px;height:28px;cursor:pointer;font-size:15px;color:var(--muted)">✕</button>
+    </div>
+    <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;gap:8px;flex-shrink:0">
+      <button onclick="openNuovaCategoria(null)" style="padding:6px 14px;border-radius:8px;border:none;background:var(--blue);color:#fff;font-size:13px;font-weight:600;cursor:pointer">+ Nuova categoria</button>
+      <input id="cat-search" type="search" placeholder="Cerca..." oninput="renderCategorieTree()" style="flex:1;padding:6px 10px;border-radius:8px;border:1px solid var(--border);font-size:13px;background:var(--bg)">
+    </div>
+    <div id="cat-tree-body" style="flex:1;overflow-y:auto;padding:8px 12px"></div>
+  </div>
+</div>
+
+<!-- Modal nuova/modifica categoria -->
+<div id="modal-cat-edit" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:2100;align-items:center;justify-content:center" onclick="if(event.target===this)closeCatEdit()">
+  <div style="background:var(--bg);border-radius:16px;padding:20px;width:min(360px,95vw);box-shadow:0 8px 32px rgba(0,0,0,.3)">
+    <div style="font-size:16px;font-weight:700;margin-bottom:14px" id="cat-edit-title">Nuova categoria</div>
+    <div style="margin-bottom:10px">
+      <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">Nome</label>
+      <input id="cat-edit-name" type="text" style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--border);font-size:14px;background:var(--bg);box-sizing:border-box">
+    </div>
+    <div style="margin-bottom:10px">
+      <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">Icona emoji (opzionale)</label>
+      <input id="cat-edit-icon" type="text" maxlength="2" placeholder="🛒" style="width:60px;padding:8px 10px;border-radius:8px;border:1px solid var(--border);font-size:20px;text-align:center;background:var(--bg)">
+    </div>
+    <div style="margin-bottom:10px">
+      <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">Colore</label>
+      <div id="cat-color-picker" style="display:flex;gap:6px;flex-wrap:wrap">
+        <span onclick="selectCatColor(this,'#ef4444')" style="width:24px;height:24px;border-radius:50%;background:#ef4444;cursor:pointer"></span>
+        <span onclick="selectCatColor(this,'#f97316')" style="width:24px;height:24px;border-radius:50%;background:#f97316;cursor:pointer"></span>
+        <span onclick="selectCatColor(this,'#eab308')" style="width:24px;height:24px;border-radius:50%;background:#eab308;cursor:pointer"></span>
+        <span onclick="selectCatColor(this,'#22c55e')" style="width:24px;height:24px;border-radius:50%;background:#22c55e;cursor:pointer"></span>
+        <span onclick="selectCatColor(this,'#3b82f6')" style="width:24px;height:24px;border-radius:50%;background:#3b82f6;cursor:pointer"></span>
+        <span onclick="selectCatColor(this,'#8b5cf6')" style="width:24px;height:24px;border-radius:50%;background:#8b5cf6;cursor:pointer"></span>
+        <span onclick="selectCatColor(this,'#ec4899')" style="width:24px;height:24px;border-radius:50%;background:#ec4899;cursor:pointer"></span>
+        <span onclick="selectCatColor(this,'#6b7280')" style="width:24px;height:24px;border-radius:50%;background:#6b7280;cursor:pointer"></span>
+        <span onclick="selectCatColor(this,'#000000')" style="width:24px;height:24px;border-radius:50%;background:#000000;cursor:pointer"></span>
+      </div>
+      <input id="cat-edit-color" type="hidden" value="">
+    </div>
+    <div style="margin-bottom:14px" id="cat-edit-parent-row">
+      <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">Categoria padre (lascia vuoto = radice)</label>
+      <select id="cat-edit-parent" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--border);font-size:13px;background:var(--bg)"></select>
+    </div>
+    <input id="cat-edit-id" type="hidden">
+    <div style="display:flex;gap:8px">
+      <button onclick="saveCatEdit()" style="flex:1;padding:10px;border-radius:10px;border:none;background:var(--blue);color:#fff;font-size:14px;font-weight:700;cursor:pointer">Salva</button>
+      <button onclick="closeCatEdit()" style="padding:10px 16px;border-radius:10px;border:1px solid var(--border);background:none;font-size:14px;cursor:pointer">Annulla</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal conferma unisci -->
+<div id="modal-cat-merge" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:2100;align-items:center;justify-content:center" onclick="if(event.target===this)closeCatMerge()">
+  <div style="background:var(--bg);border-radius:16px;padding:20px;width:min(380px,95vw);box-shadow:0 8px 32px rgba(0,0,0,.3)">
+    <div style="font-size:16px;font-weight:700;margin-bottom:6px">Unisci categoria</div>
+    <p id="cat-merge-desc" style="font-size:13px;color:var(--muted);margin:0 0 14px"></p>
+    <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px">Sposta le transazioni verso:</label>
+    <select id="cat-merge-target" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--border);font-size:13px;background:var(--bg);margin-bottom:14px"></select>
+    <div style="display:flex;gap:8px">
+      <button onclick="confirmCatMerge()" style="flex:1;padding:10px;border-radius:10px;border:none;background:#dc3545;color:#fff;font-size:14px;font-weight:700;cursor:pointer">Unisci e elimina</button>
+      <button onclick="closeCatMerge()" style="padding:10px 16px;border-radius:10px;border:1px solid var(--border);background:none;font-size:14px;cursor:pointer">Annulla</button>
+    </div>
+  </div>
+</div>
+
 <input type="file" id="fineco-xls-input" accept=".xls,.xlsx" style="display:none">
 <script>
 document.getElementById('fineco-xls-input').addEventListener('change', function(e) {
