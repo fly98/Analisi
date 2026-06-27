@@ -651,7 +651,7 @@ select.form-input { height: 42px; }
       <span style="color:var(--muted);font-size:13px;padding:0 4px">→</span>
       <input type="date" id="date-to" onchange="setDateCustom()">
       <input id="search-tx" type="search" placeholder="Cerca..." oninput="applySearch(this.value)" style="margin-left:auto">
-      <button id="btn-import-contestuale" style="display:none;padding:5px 12px;border-radius:8px;border:1px solid var(--border);background:none;cursor:pointer;color:var(--muted);font-size:12px;font-weight:600" onclick="importContestuale()">📂 Import</button>
+      <button id="btn-import-contestuale" style="display:none;padding:5px 10px;border-radius:8px;border:1px solid var(--border);background:none;cursor:pointer;color:var(--muted);font-size:12px;font-weight:600;display:none;align-items:center;gap:4px" onclick="importContestuale()"><span id="btn-import-label">Import</span> ▾</button>
       <button class="btn-add" onclick="openNewTx()">+ Nuova</button>
     </div>
 
@@ -1158,6 +1158,11 @@ async function loadYear(year) {
   }
   currentTxs = txCache[year];
   applyFilters();
+}
+
+function showTxView() {
+  var sv=document.getElementById('strumenti-view'); if(sv) sv.style.display='none';
+  ['date-bar','rec-pending-box','tx-header','tx-body'].forEach(function(id){var e=document.getElementById(id);if(e)e.style.display='';});
 }
 
 async function selectAccount(id, name) {
@@ -3882,8 +3887,8 @@ function aggiornaBottoneImport(overrideId) {
   if (hasImport) {
     var label = IMPORT_MAP[id] ? IMPORT_MAP[id].label :
                 (acc ? IMPORT_MAP_AUTO[acc.name].label : '📂 Import');
-    btn.textContent = label;
-    btn.style.display = '';
+    document.getElementById('btn-import-label').textContent = label;
+    btn.style.display = 'inline-flex';
   } else {
     btn.style.display = 'none';
   }
@@ -3937,10 +3942,7 @@ function aggiornaBilancesTitoli() {
   }
 }
 function loadContiTitoli() { _initFinecoStrumenti(); aggiornaBilancesTitoli(); return Promise.resolve(); }
-function showTxView() {
-  var sv=document.getElementById('strumenti-view'); if(sv) sv.style.display='none';
-  ['date-bar','rec-pending-box','tx-header','tx-body'].forEach(function(id){var e=document.getElementById(id);if(e)e.style.display='';});
-}
+// showTxView definita prima
 function renderInvestimentiSidebar(){}
 function renderContiTitoliSidebar(){ aggiornaBilancesTitoli(); if(meta) renderSidebar(); }
 function toggleInvestimentiGroup(){}
@@ -4004,8 +4006,7 @@ function renderStrumentiView() {
 
   // Toolbar import
   var toolbar = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">' +
-    '<label for="fineco-xls-input" style="padding:7px 14px;border-radius:8px;border:1px solid var(--border);cursor:pointer;font-size:12px;color:var(--muted);display:inline-flex;align-items:center;gap:6px">📂 Aggiorna da file XLS Fineco</label>' +
-    (strumenti.length>0?'<span style="font-size:11px;color:var(--muted)">'+strumenti.length+' strumenti · ultimo import: '+(localStorage.getItem('fineco_inv_date')||'—')+'</span>':'') +
+    (strumenti.length>0?'<span style="font-size:11px;color:var(--muted)">'+strumenti.length+' strumenti · '+( localStorage.getItem("fineco_inv_date")||"—")+'</span>':'<span></span>') +
     '</div>';
 
   if (strumenti.length===0) {
