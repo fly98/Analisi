@@ -651,6 +651,7 @@ select.form-input { height: 42px; }
       <span style="color:var(--muted);font-size:13px;padding:0 4px">→</span>
       <input type="date" id="date-to" onchange="setDateCustom()">
       <input id="search-tx" type="search" placeholder="Cerca..." oninput="applySearch(this.value)" style="margin-left:auto">
+      <button id="btn-import-contestuale" style="display:none;padding:5px 12px;border-radius:8px;border:1px solid var(--border);background:none;cursor:pointer;color:var(--muted);font-size:12px;font-weight:600" onclick="importContestuale()">📂 Import</button>
       <button class="btn-add" onclick="openNewTx()">+ Nuova</button>
     </div>
 
@@ -1160,7 +1161,6 @@ async function loadYear(year) {
 }
 
 async function selectAccount(id, name) {
-  // Intercetta Fineco Investimenti — apre view strumenti invece di TX
   if (id === 'ACC-FINECO-INV') {
     selectStrumenti('fineco-inv', name);
     return;
@@ -1172,7 +1172,7 @@ async function selectAccount(id, name) {
     r.classList.toggle('active', r.dataset.accId === id);
   });
   showTxView();
-
+  aggiornaBottoneImport();
   await reloadTxForRange();
 }
 
@@ -3851,6 +3851,44 @@ async function sellapAutoDownload() {
 
 
 // ── DEBUG CONSOLE ────────────────────────────────────────────────────────────
+// Mappa conti con import automatico
+var IMPORT_MAP = {
+  'ACC-FINECO-INV':  { label: '📂 Import Fineco', fn: function() { openFinecoImportModal(); } },
+  'ACC-FINECO-CC':   { label: '📂 Import Fineco CC', fn: function() { openFinecoImportModal(); } },
+};
+// Conti Sella e InternoUno Banca identificati per nome
+var IMPORT_MAP_AUTO = {
+  'InternoUno Banca': { label: '🤖 Import Sella', fn: function() { openSellaImport(); } },
+  'Banca Sella':      { label: '🤖 Import Sella', fn: function() { openSellaPersonaleImport(); } },
+};
+
+function importContestuale() {
+  var acc = meta && meta.accounts && meta.accounts.find(function(a){ return a.id===selectedAccountId; });
+  if (IMPORT_MAP[selectedAccountId]) {
+    IMPORT_MAP[selectedAccountId].fn();
+  } else if (acc && IMPORT_MAP_AUTO[acc.name]) {
+    IMPORT_MAP_AUTO[acc.name].fn();
+  }
+}
+
+function aggiornaBottoneImport(overrideId) {
+  var btn = document.getElementById('btn-import-contestuale');
+  if (!btn) return;
+  var id = overrideId || selectedAccountId;
+  // Se siamo su Fineco Investimenti (strumenti-view), usa ACC-FINECO-INV
+  if (id === '__strumenti__') id = 'ACC-FINECO-INV';
+  var acc = meta && meta.accounts && meta.accounts.find(function(a){ return a.id===id; });
+  var hasImport = IMPORT_MAP[id] || (acc && IMPORT_MAP_AUTO[acc.name]);
+  if (hasImport) {
+    var label = IMPORT_MAP[id] ? IMPORT_MAP[id].label :
+                (acc ? IMPORT_MAP_AUTO[acc.name].label : '📂 Import');
+    btn.textContent = label;
+    btn.style.display = '';
+  } else {
+    btn.style.display = 'none';
+  }
+}
+
 function dbg(msg, col) {
   var el = document.getElementById('icompta-debug');
   if (!el) {
@@ -3923,6 +3961,7 @@ function selectStrumenti(contoId, nome) {
   document.querySelectorAll('.account-row').forEach(function(r){r.classList.remove('active');});
   ['date-bar','rec-pending-box','tx-header','tx-body'].forEach(function(id){var e=document.getElementById(id);if(e)e.style.display='none';});
   document.getElementById('strumenti-view').style.display = 'block';
+  aggiornaBottoneImport();
   _initFinecoStrumenti();
   renderStrumentiView();
 }
@@ -3932,25 +3971,30 @@ function renderStrumentiView() {
   if (!view) return;
   var strumenti = _finecoStrumenti;
 
+  // Classificazione tipi
+  function isAzionario(s) { return s.tipo==='ETF'||s.tipo==='ETC'; }
+  function isObblig(s) { return s.tipo==='Obbligazione'||s.tipo==='Certificate'; }
+  function isAltro(s) { return !isAzionario(s)&&!isObblig(s); }
+
   // Filtra per tab
   var filtered = strumenti;
-  if (_finecoTabAttivo === 'azioni') filtered = strumenti.filter(function(s){ return s.tipo==='ETF'||s.tipo==='ETC'; });
-  else if (_finecoTabAttivo === 'obbligazioni') filtered = strumenti.filter(function(s){ return s.tipo==='Obbligazione'; });
-  else if (_finecoTabAttivo === 'altro') filtered = strumenti.filter(function(s){ return s.tipo!=='ETF'&&s.tipo!=='ETC'&&s.tipo!=='Obbligazione'; });
+  if (_finecoTabAttivo === 'azioni') filtered = strumenti.filter(isAzionario);
+  else if (_finecoTabAttivo === 'obbligazioni') filtered = strumenti.filter(isObblig);
+  else if (_finecoTabAttivo === 'altro') filtered = strumenti.filter(isAltro);
 
-  // Totali globali
-  var totVC = strumenti.reduce(function(s,x){return s+(x.vc||0);},0);
-  var totVM = strumenti.reduce(function(s,x){return s+(x.vm||0);},0);
+  // Totali sul tab selezionato (non globali)
+  var totVC = filtered.reduce(function(s,x){return s+(x.vc||0);},0);
+  var totVM = filtered.reduce(function(s,x){return s+(x.vm||0);},0);
   var totPL = totVM - totVC;
   var totPct = totVC>0?(totPL/totVC*100):0;
   var plCol = totPL>=0?'#28a745':'#dc3545';
 
   // Tab buttons
   var tabs = [
-    {id:'tutti',  label:'Tutti ('+strumenti.length+')'},
-    {id:'azioni', label:'ETF/ETC ('+strumenti.filter(function(s){return s.tipo==='ETF'||s.tipo==='ETC';}).length+')'},
-    {id:'obbligazioni', label:'Obbligazioni ('+strumenti.filter(function(s){return s.tipo==='Obbligazione';}).length+')'},
-    {id:'altro',  label:'Altro ('+strumenti.filter(function(s){return s.tipo!=='ETF'&&s.tipo!=='ETC'&&s.tipo!=='Obbligazione';}).length+')'}
+    {id:'tutti',        label:'Tutti ('+strumenti.length+')'},
+    {id:'azioni',       label:'ETF/ETC ('+strumenti.filter(isAzionario).length+')'},
+    {id:'obbligazioni', label:'Obbligazioni+Cert ('+strumenti.filter(isObblig).length+')'},
+    {id:'altro',        label:'Altro ('+strumenti.filter(isAltro).length+')'}
   ];
   var tabsHtml = '<div style="display:flex;gap:4px;margin-bottom:14px;flex-wrap:wrap">' +
     tabs.map(function(t){
@@ -4011,6 +4055,43 @@ function renderStrumentiView() {
   view.innerHTML = toolbar + tabsHtml + boxHtml + tableHtml;
 }
 
+async function _importaRigheFineco(rows) {
+  var hi=-1;
+  for (var i=0;i<rows.length;i++) {
+    if (rows[i]&&rows[i].some(function(c){return c&&String(c).trim()==='ISIN';})) { hi=i; break; }
+  }
+  if (hi<0) { alert('Formato non riconosciuto'); return; }
+  var h=rows[hi].map(function(c){return c?String(c).trim():'';});
+  var C={ nome:h.indexOf('Titolo'), isin:h.indexOf('ISIN'), tipo:h.indexOf('Strumento'),
+          vc:h.findIndex(function(x){return x==='Valore di carico';}),
+          vm:h.findIndex(function(x){return x==='Valore di mercato €';}) };
+  var strumenti=[];
+  for (var i=hi+1;i<rows.length;i++) {
+    var r=rows[i];
+    if (!r||!r[C.isin]||String(r[C.isin]).trim().length<5) continue;
+    var vc=C.vc>=0&&r[C.vc]!=null?parseFloat(r[C.vc])||0:0;
+    var vm=C.vm>=0&&r[C.vm]!=null?parseFloat(r[C.vm])||0:0;
+    if (vc===0&&vm===0) continue;
+    strumenti.push({
+      nome:C.nome>=0&&r[C.nome]?String(r[C.nome]).trim():String(r[C.isin]).trim(),
+      isin:String(r[C.isin]).trim(),
+      tipo:C.tipo>=0&&r[C.tipo]?String(r[C.tipo]).trim():'—',
+      vc:vc, vm:vm
+    });
+  }
+  if (strumenti.length===0) { alert('Nessuno strumento trovato'); return; }
+  localStorage.setItem('fineco_inv_date', new Date().toLocaleDateString('it-IT'));
+  _saveFinecoStrumenti(strumenti);
+  aggiornaBilancesTitoli();
+  if (meta) renderSidebar();
+  updateTotalBalance();
+  renderStrumentiView();
+  var totVC=strumenti.reduce(function(s,x){return s+(x.vc||0);},0);
+  var totVM=strumenti.reduce(function(s,x){return s+(x.vm||0);},0);
+  var pl=totVM-totVC; var pct=totVC>0?(pl/totVC*100):0;
+  alert('✅ Importati '+strumenti.length+' strumenti\n\nCarico: '+fmt(totVC)+'\nMercato: '+fmt(totVM)+'\nP&L: '+(pl>=0?'+':'')+fmt(pl)+' ('+(pl>=0?'+':'')+pct.toFixed(2)+'%)');
+}
+
 async function handleXLSImport(e) {
   dbg('handleXLSImport chiamata');
   var file = e.target.files[0];
@@ -4055,25 +4136,8 @@ async function handleXLSImport(e) {
       strumenti.push({nome:nome, isin:isin, tipo:tipo, vc:vc, vm:vm});
     }
 
-    dbg('strumenti trovati: '+strumenti.length);
-    if (strumenti.length===0) { dbg('0 strumenti!','#f00'); alert('Nessuno strumento trovato nel file'); return; }
-
-    var oggi=new Date().toLocaleDateString('it-IT');
-    localStorage.setItem('fineco_inv_date', oggi);
-    _saveFinecoStrumenti(strumenti);
-    aggiornaBilancesTitoli();
-    if (meta) renderSidebar();
-    updateTotalBalance();
-    renderStrumentiView();
-
-    var totVC=strumenti.reduce(function(s,x){return s+(x.vc||0);},0);
-    var totVM=strumenti.reduce(function(s,x){return s+(x.vm||0);},0);
-    var pl=totVM-totVC;
-    var pct=totVC>0?(pl/totVC*100):0;
-    alert('✅ Importati '+strumenti.length+' strumenti ('+oggi+')\n\n'+
-      'Carico:  '+fmt(totVC)+'\n'+
-      'Mercato: '+fmt(totVM)+'\n'+
-      'P&L:     '+(pl>=0?'+':'')+fmt(pl)+' ('+(pl>=0?'+':'')+pct.toFixed(2)+'%)');
+    dbg('rows: '+rows.length+', chiamo _importaRigheFineco');
+    await _importaRigheFineco(rows);
   } catch(err) {
     dbg('CATCH: '+err.message, '#f00');
     alert('❌ Errore import: '+err.message);
@@ -4136,14 +4200,15 @@ async function finecoAutoPortafoglio() {
         document.head.appendChild(s);
       });
     }
-    var fakeFile = new File([buf], 'fineco-auto.xlsx', {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
-    var fakeEvent = { target: { files: [fakeFile] } };
+    toast.textContent = '📊 Elaboro...';
+    const wb2 = XLSX.read(new Uint8Array(buf), {type:'array'});
+    const ws2 = wb2.Sheets[wb2.SheetNames[0]];
+    const rows2 = XLSX.utils.sheet_to_json(ws2, {header:1, defval:null});
     toast.remove();
-    // Apri Fineco Investimenti e processa
     selectStrumenti('fineco-inv', 'Fineco Investimenti');
     _contoCorrenteId = 'fineco-inv';
-    await new Promise(r => setTimeout(r, 300));
-    await handleXLSImport(fakeEvent);
+    await new Promise(function(r){setTimeout(r,300);});
+    await _importaRigheFineco(rows2);
   } catch(e) {
     toast.textContent = '❌ ' + e.message;
     setTimeout(() => toast.remove(), 4000);
