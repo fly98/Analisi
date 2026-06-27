@@ -4014,6 +4014,13 @@ function renderStrumentiView() {
     return;
   }
 
+  // P&L Portafoglio: Conti Titoli vs Valore di carico (fisso, indipendente dal tab)
+  var totCT = (balances && balances.groups && balances.groups['GRP-CONTI-TITOLI']) || 0;
+  var carico = (balances && balances.accounts && balances.accounts['ACC-VALORE-CARICO']) || 0;
+  var plPort = totCT - carico;
+  var plPortPct = carico > 0 ? (plPort/carico*100) : 0;
+  var plPortCol = plPort >= 0 ? '#28a745' : '#dc3545';
+
   // Box riassuntivi
   var boxHtml = '<div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">' +
     '<div style="flex:1;min-width:110px;background:var(--surface,#fff);border-radius:10px;padding:11px 14px;border:1px solid var(--border)">' +
@@ -4023,8 +4030,14 @@ function renderStrumentiView() {
       '<div style="font-size:11px;color:var(--muted)">Valore di mercato</div>' +
       '<div style="font-size:16px;font-weight:700">'+fmt(totVM)+'</div></div>' +
     '<div style="flex:1;min-width:110px;background:var(--surface,#fff);border-radius:10px;padding:11px 14px;border:1.5px solid '+plCol+';">' +
-      '<div style="font-size:11px;color:var(--muted)">P&L totale</div>' +
+      '<div style="font-size:11px;color:var(--muted)">P&L '+(filtered.length<strumenti.length?'selezione':'totale')+'</div>' +
       '<div style="font-size:16px;font-weight:700;color:'+plCol+'">'+(totPL>=0?'+':'')+fmt(totPL)+' ('+(totPL>=0?'+':'')+totPct.toFixed(2)+'%)</div></div>' +
+    (carico>0 ?
+      '<div style="flex:1;min-width:110px;background:var(--surface,#fff);border-radius:10px;padding:11px 14px;border:1.5px solid '+plPortCol+'">' +
+        '<div style="font-size:11px;color:var(--muted)">P&L Portafoglio</div>' +
+        '<div style="font-size:16px;font-weight:700;color:'+plPortCol+'">'+(plPort>=0?'+':'')+fmt(plPort)+'</div>' +
+        '<div style="font-size:10px;color:'+plPortCol+';margin-top:2px">'+(plPort>=0?'+':'')+plPortPct.toFixed(2)+'% · Titoli vs Carico</div></div>'
+      : '') +
     '</div>';
 
   // Tabella righe filtrate
