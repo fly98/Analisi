@@ -3871,6 +3871,8 @@ function aggiornaBilancesTitoli() {
 function calcolaValoreMercato(contoId) {
   const strumenti = titoliState.strumenti[contoId] || [];
   return strumenti.reduce((sum, s) => {
+    // Usa valoreFineco diretto se disponibile (più preciso)
+    if (s.valoreFineco != null && s.valoreFineco > 0) return sum + s.valoreFineco;
     var px = s.prezzoFineco || s.prezzoAttuale || s.pmc;
     return sum + (s.tipo === 'PCT' ? (s.quantita * px) / 100 : s.quantita * px);
   }, 0);
@@ -4405,10 +4407,12 @@ async function handleXLSImport(e) {
   const iCol   = header.indexOf('ISIN');
   const nCol   = header.indexOf('Titolo') !== -1 ? header.indexOf('Titolo') : 0;
   const qCol   = header.findIndex(function(h) { return h.includes('Quant') || h === 'Quantità'; });
-  const pmcCol = header.findIndex(function(h) { return h.includes('carico') && h.includes('medio'); });
-  const pxCol  = header.findIndex(function(h) { return h.includes('mercato') && h.includes('P.zo'); });
-  const tipCol = header.indexOf('Strumento');
-  const symCol = header.indexOf('Simbolo');
+  const pmcCol  = header.findIndex(function(h) { return h.includes('carico') && h.includes('medio'); });
+  const pxCol   = header.findIndex(function(h) { return h.includes('P.zo') && h.includes('mercato'); });
+  const valFCol = header.findIndex(function(h) { return h.includes('Valore') && h.includes('mercato'); });
+  const tipCol  = header.indexOf('Strumento');
+  const symCol  = header.indexOf('Simbolo');
+  console.log('Colonne trovate — pmc:', pmcCol, 'px:', pxCol, 'valF:', valFCol, 'tip:', tipCol);
 
   const FONTE_MAP = {
     'VWCE.MI': 'yahoo:VWCE.MI', 'CSNDX.MI': 'yahoo:CSNDX.MI',
@@ -4435,16 +4439,25 @@ async function handleXLSImport(e) {
     const nome = nCol >= 0 && r[nCol] ? String(r[nCol]).trim() : isin;
     const qty  = qCol >= 0 ? (parseFloat(r[qCol]) || 0) : 0;
     const pmc  = pmcCol >= 0 ? (parseFloat(r[pmcCol]) || 0) : 0;
-    const px   = pxCol >= 0 ? (parseFloat(r[pxCol]) || pmc) : pmc;
+    const pxPrezzo = pxCol >= 0 && r[pxCol] != null ? (parseFloat(r[pxCol]) || 0) : 0;
+    // Valore di mercato già calcolato da Fineco (più affidabile del prezzo × quantità)
+    const valF = valFCol >= 0 && r[valFCol] != null ? (parseFloat(r[valFCol]) || 0) : 0;
     const sym  = symCol >= 0 && r[symCol] ? String(r[symCol]).trim() : '';
     const tipRaw = tipCol >= 0 && r[tipCol] ? String(r[tipCol]).trim() : '';
     const tipo = tipRaw === 'Obbligazione' ? 'PCT' : 'UNIT';
+    // prezzoFineco: ricaviamo il "prezzo equivalente" dal valore totale
+    // per UNIT: valore/qty; per PCT: valore/qty*100
+    var pxFineco = pxPrezzo;
+    if (valF > 0 && qty > 0) {
+      pxFineco = tipo === 'PCT' ? (valF / qty * 100) : (valF / qty);
+    }
     strumenti.push({
       id: isin + '_' + qty,
       nome: nome, isin: isin, tipo: tipo, quantita: qty,
       pmc: pmc,
-      prezzoFineco: px,    // dal file XLS Fineco
-      prezzoOnline: null,  // aggiornato da Yahoo/Borsa Italiana
+      prezzoFineco: pxFineco,  // dal file XLS Fineco
+      valoreFineco: valF,       // valore totale diretto dal file
+      prezzoOnline: null,
       fontePrezzo: FONTE_MAP[sym] || 'manuale',
       tassazione: TASS_MAP[isin] || 0.26,
       cedolaLorda: 0, valoreScadenza: tipo === 'PCT' ? qty : 0, scadenza: ''
