@@ -1232,7 +1232,9 @@ function getTxAmount(tx) {
 
 function getCatName(catId) {
   if (!catId || !meta) return '';
-  return meta.categories.find(c => c.id === catId)?.name || '';
+  const cat = meta.categories.find(c => c.id === catId);
+  if (!cat) return '';
+  return (cat.icon ? cat.icon + ' ' : '') + (cat.name || '');
 }
 
 function applyFilters() {
@@ -1885,21 +1887,25 @@ function getCatBadge(catId) {
   if (!catId || !meta) return '';
   const cat = meta.categories.find(function(c) { return c.id === catId; });
   if (!cat) return '';
+  var label = (cat.icon ? cat.icon + ' ' : '') + cat.name;
+  if (cat.color) {
+    // Usa colore custom dalla categoria
+    return '<span class="cat-badge" style="background:' + cat.color + '22;color:' + cat.color + ';border:1px solid ' + cat.color + '55">' + esc(label) + '</span>';
+  }
+  // Colore di default in base al tipo
   const parent = meta.categories.find(function(c) { return c.id === cat.parentId; });
   const parentName = parent ? parent.name : '';
   var cls = 'cat-other';
   if (cat.name === 'Spese Personali') cls = 'cat-personali';
   else if (parentName === 'Spese Interno1') cls = 'cat-spesa';
   else if (parentName === 'Redditi') cls = 'cat-redditi';
-  return '<span class="cat-badge ' + cls + '">' + esc(cat.name) + '</span>';
+  return '<span class="cat-badge ' + cls + '">' + esc(label) + '</span>';
 }
 
 function getVisibleCategories() {
   if (!meta) return [];
   return meta.categories.filter(function(c) {
-    const parent = meta.categories.find(function(p) { return p.id === c.parentId; });
-    const parentName = parent ? parent.name : '';
-    return parentName === 'Spese Interno1' || parentName === 'Redditi';
+    return c.hidden !== true; // mostra tutte tranne quelle marcate hidden
   }).sort(function(a,b) { return a.name.localeCompare(b.name); });
 }
 
@@ -3980,9 +3986,10 @@ function renderCategorieTree() {
   function catBadge(c) {
     var col = c.color || '#6b7280';
     var icon = c.icon ? c.icon + ' ' : '';
+    var hiddenTag = c.hidden ? ' <span style="font-size:10px;color:var(--muted);background:var(--gray2);border-radius:4px;padding:1px 4px">nascosta</span>' : '';
     return '<span style="display:inline-flex;align-items:center;gap:4px">' +
       '<span style="width:8px;height:8px;border-radius:50%;background:' + col + ';flex-shrink:0"></span>' +
-      icon + c.name + '</span>';
+      icon + c.name + hiddenTag + '</span>';
   }
 
   function renderCat(c, level) {
@@ -4032,6 +4039,7 @@ function openNuovaCategoria(parentId) {
   document.getElementById('cat-edit-name').value = '';
   document.getElementById('cat-edit-icon').value = '';
   document.getElementById('cat-edit-color').value = '';
+  document.getElementById('cat-edit-hidden').checked = false;
   document.getElementById('cat-edit-title').textContent = parentId ? 'Nuova sottocategoria' : 'Nuova categoria';
   _fillParentSelect(parentId);
   document.getElementById('modal-cat-edit').style.display = 'flex';
@@ -4045,6 +4053,7 @@ function openEditCategoria(catId) {
   document.getElementById('cat-edit-name').value = cat.name;
   document.getElementById('cat-edit-icon').value = cat.icon || '';
   document.getElementById('cat-edit-color').value = cat.color || '';
+  document.getElementById('cat-edit-hidden').checked = cat.hidden === true;
   document.getElementById('cat-edit-title').textContent = 'Modifica categoria';
   _fillParentSelect(cat.parentId || null);
   document.getElementById('modal-cat-edit').style.display = 'flex';
@@ -4080,14 +4089,13 @@ async function saveCatEdit() {
   var icon = document.getElementById('cat-edit-icon').value.trim();
   var color = document.getElementById('cat-edit-color').value;
   var parentId = document.getElementById('cat-edit-parent').value || null;
+  var hidden = document.getElementById('cat-edit-hidden').checked;
 
   if (id) {
-    // Modifica esistente
     var cat = meta.categories.find(function(c) { return c.id === id; });
-    if (cat) { cat.name = name; cat.icon = icon || null; cat.color = color || null; cat.parentId = parentId; }
+    if (cat) { cat.name = name; cat.icon = icon||null; cat.color = color||null; cat.parentId = parentId; cat.hidden = hidden||false; }
   } else {
-    // Nuova
-    var newCat = { id: crypto.randomUUID().toUpperCase(), name: name, parentId: parentId, icon: icon||null, color: color||null };
+    var newCat = { id: crypto.randomUUID().toUpperCase(), name: name, parentId: parentId, icon: icon||null, color: color||null, hidden: hidden||false };
     meta.categories.push(newCat);
   }
 
@@ -4834,16 +4842,31 @@ function openImportXLS(contoId) {
     </div>
     <div style="margin-bottom:10px">
       <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">Colore</label>
-      <div id="cat-color-picker" style="display:flex;gap:6px;flex-wrap:wrap">
-        <span onclick="selectCatColor(this,'#ef4444')" style="width:24px;height:24px;border-radius:50%;background:#ef4444;cursor:pointer"></span>
-        <span onclick="selectCatColor(this,'#f97316')" style="width:24px;height:24px;border-radius:50%;background:#f97316;cursor:pointer"></span>
-        <span onclick="selectCatColor(this,'#eab308')" style="width:24px;height:24px;border-radius:50%;background:#eab308;cursor:pointer"></span>
-        <span onclick="selectCatColor(this,'#22c55e')" style="width:24px;height:24px;border-radius:50%;background:#22c55e;cursor:pointer"></span>
-        <span onclick="selectCatColor(this,'#3b82f6')" style="width:24px;height:24px;border-radius:50%;background:#3b82f6;cursor:pointer"></span>
-        <span onclick="selectCatColor(this,'#8b5cf6')" style="width:24px;height:24px;border-radius:50%;background:#8b5cf6;cursor:pointer"></span>
-        <span onclick="selectCatColor(this,'#ec4899')" style="width:24px;height:24px;border-radius:50%;background:#ec4899;cursor:pointer"></span>
-        <span onclick="selectCatColor(this,'#6b7280')" style="width:24px;height:24px;border-radius:50%;background:#6b7280;cursor:pointer"></span>
-        <span onclick="selectCatColor(this,'#000000')" style="width:24px;height:24px;border-radius:50%;background:#000000;cursor:pointer"></span>
+      <div id="cat-color-picker" style="display:flex;gap:5px;flex-wrap:wrap">
+        <span onclick="selectCatColor(this,'#ef4444')" style="width:22px;height:22px;border-radius:50%;background:#ef4444;cursor:pointer;border:1px solid rgba(0,0,0,.15)"></span>
+        <span onclick="selectCatColor(this,'#f97316')" style="width:22px;height:22px;border-radius:50%;background:#f97316;cursor:pointer;border:1px solid rgba(0,0,0,.15)"></span>
+        <span onclick="selectCatColor(this,'#fb923c')" style="width:22px;height:22px;border-radius:50%;background:#fb923c;cursor:pointer;border:1px solid rgba(0,0,0,.15)"></span>
+        <span onclick="selectCatColor(this,'#f59e0b')" style="width:22px;height:22px;border-radius:50%;background:#f59e0b;cursor:pointer;border:1px solid rgba(0,0,0,.15)"></span>
+        <span onclick="selectCatColor(this,'#eab308')" style="width:22px;height:22px;border-radius:50%;background:#eab308;cursor:pointer;border:1px solid rgba(0,0,0,.15)"></span>
+        <span onclick="selectCatColor(this,'#84cc16')" style="width:22px;height:22px;border-radius:50%;background:#84cc16;cursor:pointer;border:1px solid rgba(0,0,0,.15)"></span>
+        <span onclick="selectCatColor(this,'#22c55e')" style="width:22px;height:22px;border-radius:50%;background:#22c55e;cursor:pointer;border:1px solid rgba(0,0,0,.15)"></span>
+        <span onclick="selectCatColor(this,'#10b981')" style="width:22px;height:22px;border-radius:50%;background:#10b981;cursor:pointer;border:1px solid rgba(0,0,0,.15)"></span>
+        <span onclick="selectCatColor(this,'#14b8a6')" style="width:22px;height:22px;border-radius:50%;background:#14b8a6;cursor:pointer;border:1px solid rgba(0,0,0,.15)"></span>
+        <span onclick="selectCatColor(this,'#06b6d4')" style="width:22px;height:22px;border-radius:50%;background:#06b6d4;cursor:pointer;border:1px solid rgba(0,0,0,.15)"></span>
+        <span onclick="selectCatColor(this,'#3b82f6')" style="width:22px;height:22px;border-radius:50%;background:#3b82f6;cursor:pointer;border:1px solid rgba(0,0,0,.15)"></span>
+        <span onclick="selectCatColor(this,'#6366f1')" style="width:22px;height:22px;border-radius:50%;background:#6366f1;cursor:pointer;border:1px solid rgba(0,0,0,.15)"></span>
+        <span onclick="selectCatColor(this,'#8b5cf6')" style="width:22px;height:22px;border-radius:50%;background:#8b5cf6;cursor:pointer;border:1px solid rgba(0,0,0,.15)"></span>
+        <span onclick="selectCatColor(this,'#a855f7')" style="width:22px;height:22px;border-radius:50%;background:#a855f7;cursor:pointer;border:1px solid rgba(0,0,0,.15)"></span>
+        <span onclick="selectCatColor(this,'#ec4899')" style="width:22px;height:22px;border-radius:50%;background:#ec4899;cursor:pointer;border:1px solid rgba(0,0,0,.15)"></span>
+        <span onclick="selectCatColor(this,'#f43f5e')" style="width:22px;height:22px;border-radius:50%;background:#f43f5e;cursor:pointer;border:1px solid rgba(0,0,0,.15)"></span>
+        <span onclick="selectCatColor(this,'#78716c')" style="width:22px;height:22px;border-radius:50%;background:#78716c;cursor:pointer;border:1px solid rgba(0,0,0,.15)"></span>
+        <span onclick="selectCatColor(this,'#6b7280')" style="width:22px;height:22px;border-radius:50%;background:#6b7280;cursor:pointer;border:1px solid rgba(0,0,0,.15)"></span>
+        <span onclick="selectCatColor(this,'#374151')" style="width:22px;height:22px;border-radius:50%;background:#374151;cursor:pointer;border:1px solid rgba(0,0,0,.15)"></span>
+        <span onclick="selectCatColor(this,'#000000')" style="width:22px;height:22px;border-radius:50%;background:#000000;cursor:pointer;border:1px solid rgba(0,0,0,.15)"></span>
+        <span onclick="selectCatColor(this,'#92400e')" style="width:22px;height:22px;border-radius:50%;background:#92400e;cursor:pointer;border:1px solid rgba(0,0,0,.15)"></span>
+        <span onclick="selectCatColor(this,'#065f46')" style="width:22px;height:22px;border-radius:50%;background:#065f46;cursor:pointer;border:1px solid rgba(0,0,0,.15)"></span>
+        <span onclick="selectCatColor(this,'#1e3a8a')" style="width:22px;height:22px;border-radius:50%;background:#1e3a8a;cursor:pointer;border:1px solid rgba(0,0,0,.15)"></span>
+        <span onclick="selectCatColor(this,'#ffffff')" style="width:22px;height:22px;border-radius:50%;background:#ffffff;cursor:pointer;border:1px solid rgba(0,0,0,.15)"></span>
       </div>
       <input id="cat-edit-color" type="hidden" value="">
     </div>
@@ -4852,6 +4875,10 @@ function openImportXLS(contoId) {
       <select id="cat-edit-parent" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--border);font-size:13px;background:var(--bg)"></select>
     </div>
     <input id="cat-edit-id" type="hidden">
+    <div style="margin-bottom:14px;display:flex;align-items:center;gap:8px">
+      <input type="checkbox" id="cat-edit-hidden" style="width:16px;height:16px;cursor:pointer">
+      <label for="cat-edit-hidden" style="font-size:13px;cursor:pointer">Nascondi dalle dropdown (non visibile nella selezione)</label>
+    </div>
     <div style="display:flex;gap:8px">
       <button onclick="saveCatEdit()" style="flex:1;padding:10px;border-radius:10px;border:none;background:var(--blue);color:#fff;font-size:14px;font-weight:700;cursor:pointer">Salva</button>
       <button onclick="closeCatEdit()" style="padding:10px 16px;border-radius:10px;border:1px solid var(--border);background:none;font-size:14px;cursor:pointer">Annulla</button>
