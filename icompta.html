@@ -651,13 +651,17 @@ select.form-input { height: 42px; }
       <span style="color:var(--muted);font-size:13px;padding:0 4px">→</span>
       <input type="date" id="date-to" onchange="setDateCustom()">
       <input id="search-tx" type="search" placeholder="Cerca..." oninput="applySearch(this.value)" style="margin-left:auto">
-      <button id="btn-import-contestuale" style="display:none;padding:5px 10px;border-radius:8px;border:1px solid var(--border);background:none;cursor:pointer;color:var(--muted);font-size:12px;font-weight:600;display:none;align-items:center;gap:4px" onclick="importContestuale()"><span id="btn-import-label">Import</span> ▾</button>
+      <button id="btn-import-contestuale" style="display:none;padding:4px 10px;border-radius:8px;border:1px solid var(--border);background:none;cursor:pointer;color:var(--muted);font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:4px" onclick="importContestuale()"><span id="btn-import-label">Aggiorna</span> <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="2,3 5,7 8,3"/></svg></button>
       <button class="btn-add" onclick="openNewTx()">+ Nuova</button>
     </div>
 
     <div id="tx-list-container">
       <!-- View Fineco Investimenti — mostrata al posto delle TX -->
       <div id="strumenti-view" style="display:none;padding:20px;flex:1;overflow-y:auto">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+          <span id="fineco-inv-info" style="font-size:11px;color:var(--muted)"></span>
+          <button onclick="openFinecoInvModal()" style="padding:4px 10px;border-radius:8px;border:1px solid var(--border);background:none;cursor:pointer;color:var(--muted);font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:4px">Aggiorna <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="2,3 5,7 8,3"/></svg></button>
+        </div>
         <div id="strumenti-view-content"></div>
       </div>
       <div id="rec-pending-box">
@@ -3857,14 +3861,21 @@ async function sellapAutoDownload() {
 
 // ── DEBUG CONSOLE ────────────────────────────────────────────────────────────
 // Mappa conti con import automatico
+function openFinecoImportModal() { openFinecoInvModal(); } // legacy
+function closeFinecoImportModal() { closeFinecoInvModal(); closeFinecoCCModal(); }
+function openFinecoInvModal() { var m=document.getElementById('modal-fineco-inv'); if(m) m.style.display='flex'; }
+function closeFinecoInvModal() { var m=document.getElementById('modal-fineco-inv'); if(m) m.style.display='none'; }
+function openFinecoCCModal() { var m=document.getElementById('modal-fineco-cc'); if(m) m.style.display='flex'; }
+function closeFinecoCCModal() { var m=document.getElementById('modal-fineco-cc'); if(m) m.style.display='none'; }
+
 var IMPORT_MAP = {
-  'ACC-FINECO-INV':  { label: '📂 Import Fineco', fn: function() { openFinecoImportModal(); } },
-  'ACC-FINECO-CC':   { label: '📂 Import Fineco CC', fn: function() { openFinecoImportModal(); } },
+  'ACC-FINECO-INV':  { label: 'Aggiorna', fn: function() { openFinecoInvModal(); } },
+  'ACC-FINECO-CC':   { label: 'Aggiorna', fn: function() { openFinecoCCModal(); } },
 };
 // Conti Sella e InternoUno Banca identificati per nome
 var IMPORT_MAP_AUTO = {
-  'InternoUno Banca': { label: '🤖 Import Sella', fn: function() { openSellaImport(); } },
-  'Banca Sella':      { label: '🤖 Import Sella', fn: function() { openSellaPersonaleImport(); } },
+  'InternoUno Banca': { label: 'Aggiorna', fn: function() { openSellaImport(); } },
+  'Banca Sella':      { label: 'Aggiorna', fn: function() { openSellaPersonaleImport(); } },
 };
 
 function importContestuale() {
@@ -3880,14 +3891,13 @@ function aggiornaBottoneImport(overrideId) {
   var btn = document.getElementById('btn-import-contestuale');
   if (!btn) return;
   var id = overrideId || selectedAccountId;
-  // Se siamo su Fineco Investimenti (strumenti-view), usa ACC-FINECO-INV
   if (id === '__strumenti__') id = 'ACC-FINECO-INV';
   var acc = meta && meta.accounts && meta.accounts.find(function(a){ return a.id===id; });
-  var hasImport = IMPORT_MAP[id] || (acc && IMPORT_MAP_AUTO[acc.name]);
-  if (hasImport) {
-    var label = IMPORT_MAP[id] ? IMPORT_MAP[id].label :
-                (acc ? IMPORT_MAP_AUTO[acc.name].label : '📂 Import');
-    document.getElementById('btn-import-label').textContent = label;
+  var imp = IMPORT_MAP[id] || (acc && IMPORT_MAP_AUTO[acc.name]);
+  if (imp) {
+    var label = IMPORT_MAP[id] ? IMPORT_MAP[id].label : IMPORT_MAP_AUTO[acc.name].label;
+    var lbl = document.getElementById('btn-import-label');
+    if (lbl) lbl.textContent = label;
     btn.style.display = 'inline-flex';
   } else {
     btn.style.display = 'none';
@@ -4004,10 +4014,10 @@ function renderStrumentiView() {
       return '<button onclick="_finecoTabAttivo=\''+t.id+'\';renderStrumentiView()" style="padding:5px 12px;border-radius:20px;border:none;cursor:pointer;font-size:12px;font-weight:600;background:'+(active?'var(--blue)':'var(--border)')+';color:'+(active?'#fff':'var(--muted)')+'">'+t.label+'</button>';
     }).join('') + '</div>';
 
-  // Toolbar import
-  var toolbar = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">' +
-    (strumenti.length>0?'<span style="font-size:11px;color:var(--muted)">'+strumenti.length+' strumenti · '+( localStorage.getItem("fineco_inv_date")||"—")+'</span>':'<span></span>') +
-    '</div>';
+  // Aggiorna info sopra la view
+  var infoEl = document.getElementById('fineco-inv-info');
+  if (infoEl) infoEl.textContent = strumenti.length>0 ? strumenti.length+' strumenti · '+( localStorage.getItem('fineco_inv_date')||'—') : '';
+  var toolbar = '';
 
   if (strumenti.length===0) {
     view.innerHTML = toolbar + '<p style="text-align:center;padding:60px;color:var(--muted)">Nessuno strumento.<br>Importa il file XLS dal portafoglio Fineco.</p>';
@@ -4444,44 +4454,42 @@ function openImportXLS(contoId) {
   </div>
 </div>
 
-<!-- Modal Import Fineco -->
-<div id="modal-fineco-import" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:950;align-items:center;justify-content:center" onclick="if(event.target===this)closeFinecoImportModal()">
-  <div style="background:var(--bg);border-radius:20px;padding:24px;width:min(440px,95vw);box-shadow:0 8px 40px rgba(0,0,0,.2)">
+<!-- Modal Fineco Investimenti -->
+<div id="modal-fineco-inv" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:950;align-items:center;justify-content:center" onclick="if(event.target===this)closeFinecoInvModal()">
+  <div style="background:var(--bg);border-radius:20px;padding:24px;width:min(400px,95vw);box-shadow:0 8px 40px rgba(0,0,0,.2)">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
-      <div style="font-size:16px;font-weight:700">Import Fineco</div>
-      <button onclick="closeFinecoImportModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted)">✕</button>
+      <div style="font-size:16px;font-weight:700">📊 Fineco Investimenti</div>
+      <button onclick="closeFinecoInvModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted)">✕</button>
     </div>
-
-    <!-- Investimenti -->
-    <div style="margin-bottom:16px">
-      <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">📊 Investimenti</div>
-      <div style="display:flex;gap:8px">
-        <button onclick="closeFinecoImportModal();finecoAutoPortafoglio()"
-          style="flex:1;padding:11px;border-radius:10px;border:1.5px solid var(--blue);background:var(--blue);color:#fff;font-size:13px;font-weight:600;cursor:pointer">
-          🤖 Auto Playwright
-        </button>
-        <button onclick="closeFinecoImportModal();openImportXLSCurrent_inv()"
-          style="flex:1;padding:11px;border-radius:10px;border:1.5px solid var(--border);background:none;font-size:13px;font-weight:600;cursor:pointer;color:var(--text)">
-          📂 Da file XLS
-        </button>
-      </div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <button onclick="closeFinecoInvModal();finecoAutoPortafoglio()"
+        style="width:100%;padding:13px;border-radius:12px;border:none;background:var(--blue);color:#fff;font-size:14px;font-weight:700;cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px">
+        🤖 <span><b>Scarica automaticamente</b><br><span style="font-size:11px;opacity:.8">Playwright scarica il file da Fineco</span></span>
+      </button>
+      <label style="width:100%;padding:13px;border-radius:12px;border:1.5px solid var(--border);font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:10px;box-sizing:border-box">
+        📂 <span><b>Importa da file XLS</b><br><span style="font-size:11px;color:var(--muted)">Seleziona il file scaricato da Fineco</span></span>
+        <input type="file" accept=".xls,.xlsx" style="display:none" onchange="closeFinecoInvModal();handleXLSImport(event)">
+      </label>
     </div>
+  </div>
+</div>
 
-    <div style="border-top:1px solid var(--border);margin:16px 0"></div>
-
-    <!-- Conto Corrente -->
-    <div>
-      <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">🏧 Conto Corrente</div>
-      <div style="display:flex;gap:8px">
-        <button onclick="closeFinecoImportModal();finecoAutoCC()"
-          style="flex:1;padding:11px;border-radius:10px;border:1.5px solid var(--blue);background:var(--blue);color:#fff;font-size:13px;font-weight:600;cursor:pointer">
-          🤖 Auto Playwright
-        </button>
-        <button onclick="closeFinecoImportModal();selectAccount('ACC-FINECO-CC','Fineco CC');setTimeout(openImportMovimentiCC,300)"
-          style="flex:1;padding:11px;border-radius:10px;border:1.5px solid var(--border);background:none;font-size:13px;font-weight:600;cursor:pointer;color:var(--text)">
-          📂 Da file XLSX
-        </button>
-      </div>
+<!-- Modal Fineco CC -->
+<div id="modal-fineco-cc" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:950;align-items:center;justify-content:center" onclick="if(event.target===this)closeFinecoCCModal()">
+  <div style="background:var(--bg);border-radius:20px;padding:24px;width:min(400px,95vw);box-shadow:0 8px 40px rgba(0,0,0,.2)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <div style="font-size:16px;font-weight:700">🏧 Fineco Conto Corrente</div>
+      <button onclick="closeFinecoCCModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted)">✕</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <button onclick="closeFinecoCCModal();finecoAutoCC()"
+        style="width:100%;padding:13px;border-radius:12px;border:none;background:var(--blue);color:#fff;font-size:14px;font-weight:700;cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px">
+        🤖 <span><b>Scarica automaticamente</b><br><span style="font-size:11px;opacity:.8">Playwright scarica i movimenti da Fineco</span></span>
+      </button>
+      <button onclick="closeFinecoCCModal();selectAccount('ACC-FINECO-CC','Fineco CC');setTimeout(openImportMovimentiCC,300)"
+        style="width:100%;padding:13px;border-radius:12px;border:1.5px solid var(--border);background:none;font-size:14px;font-weight:600;cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px">
+        📂 <span><b>Importa da file XLSX</b><br><span style="font-size:11px;color:var(--muted)">Seleziona il file esportato da Fineco</span></span>
+      </button>
     </div>
   </div>
 </div>
