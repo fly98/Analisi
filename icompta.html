@@ -599,6 +599,40 @@ select.form-input { height: 42px; }
 .leo-log-info { flex:1; }
 .leo-log-label { font-size:14px;font-weight:600; }
 .leo-log-sub { font-size:12px;color:var(--muted);margin-top:2px; }
+
+/* ── RESPONSIVE IPHONE ────────────────────────────────────────────────────── */
+@media (max-width: 430px) {
+
+  /* Date-bar: scroll orizzontale per filtri periodo */
+  #date-bar { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; gap: 4px; padding: 6px 8px; }
+  #date-bar .filter-chip, #date-bar button { white-space: nowrap; font-size: 12px; padding: 4px 8px; flex-shrink: 0; }
+  #date-bar input[type=date] { width: 86px; font-size: 11px; padding: 3px 4px; }
+  #btn-import-contestuale { font-size: 11px !important; padding: 4px 7px !important; }
+
+  /* Bottone + Nuova: fisso in basso a destra */
+  .btn-add { position: fixed !important; bottom: 24px; right: 16px; z-index: 500;
+    border-radius: 50% !important; width: 50px !important; height: 50px !important;
+    font-size: 22px !important; padding: 0 !important;
+    display: inline-flex !important; align-items: center; justify-content: center;
+    box-shadow: 0 4px 20px rgba(0,0,0,.3); }
+
+  /* Nascondi colonne Saldo e Trasf. */
+  .tx-c-bal  { display: none !important; }
+  .tx-c-trasf { display: none !important; }
+
+  /* Descrizione: testo completo, no troncamento */
+  .tx-c-desc .txn { white-space: normal !important; font-size: 13px; }
+  .tx-c-desc .txs { white-space: nowrap; font-size: 11px; }
+
+  /* Importo compatto */
+  .tx-c-amt { width: 85px !important; font-size: 13px !important; }
+
+  /* Data compatta */
+  .tx-c-date { width: 58px !important; font-size: 11px !important; }
+
+  /* Categoria badge piccolo */
+  .cat-badge { font-size: 10px !important; padding: 1px 5px !important; max-width: 90px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+}
 </style>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 </head>
