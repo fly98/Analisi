@@ -457,6 +457,25 @@ var icompta_worker_default = {
     // icompta:fineco:strumenti         → [{id, nome, isin, tipo, quantita, pmc, prezzoAttuale, fontePrezzo, tassazione, cedolaLorda, valoreScadenza, scadenza}]
     // icompta:fineco:cc:saldo          → { saldo: number, aggiornato: string }
 
+    // POST /api/parse-xls-fineco — riceve file XLS in base64, restituisce righe JSON
+    if (path === "/api/parse-xls-fineco" && method === "POST") {
+      try {
+        const body = await request.json();
+        if (!body.base64) return err("base64 richiesto");
+        const b64 = body.base64;
+        const binary = atob(b64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+        const { read, utils } = await import('https://cdn.sheetjs.com/xlsx-0.20.3/package/xlsx.mjs');
+        const wb = read(bytes, { type: 'array' });
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const rows = utils.sheet_to_json(ws, { header: 1, defval: null });
+        return json({ ok: true, rows: rows });
+      } catch(e) {
+        return err("Errore parsing XLS: " + e.message);
+      }
+    }
+
     // GET /api/titoli/carico — legge valore di carico investimenti
     if (path === "/api/titoli/carico" && method === "GET") {
       const raw = await env.ICOMPTA_KV.get("icompta:investimenti:carico");
