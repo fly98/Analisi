@@ -3954,12 +3954,22 @@ function renderCategorieTree() {
     cats.forEach(function(c) {
       if (c.name.toLowerCase().includes(q)) {
         visibleIds.add(c.id);
-        if (c.parentId) visibleIds.add(c.parentId);
+        // Aggiungi tutti gli antenati
+        var cur = c;
+        while (cur && cur.parentId && allIds.has(cur.parentId)) {
+          visibleIds.add(cur.parentId);
+          cur = cats.find(function(x) { return x.id === cur.parentId; });
+        }
       }
     });
   }
 
-  var roots = cats.filter(function(c) { return !c.parentId && (!q || visibleIds.has(c.id)); });
+  // Root = categorie senza parentId O con parentId che non esiste
+  var allIds = new Set(cats.map(function(c) { return c.id; }));
+  var roots = cats.filter(function(c) {
+    var isRoot = !c.parentId || !allIds.has(c.parentId);
+    return isRoot && (!q || visibleIds.has(c.id));
+  });
   roots.sort(function(a,b) { return a.name.localeCompare(b.name); });
 
   function catBadge(c) {
