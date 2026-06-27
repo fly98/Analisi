@@ -3986,13 +3986,14 @@ function renderCategorieTree() {
     var nTx = _catCounts[c.id] || 0;
     var indent = level * 20;
 
-    var html = '<div class="cat-row" style="display:flex;align-items:center;gap:6px;padding:6px 4px 6px ' + (8+indent) + 'px;border-radius:8px">' +
+    var id = c.id;
+    var html = '<div class="cat-row" style="display:flex;align-items:center;gap:6px;padding:6px 4px 6px ' + (8+indent) + 'px;border-radius:8px" data-catid="' + id + '">' +
       '<span style="flex:1;font-size:' + (level===0?'14':'13') + 'px;font-weight:' + (level===0?'600':'400') + '">' + catBadge(c) + '</span>' +
       '<span style="font-size:11px;color:var(--muted);min-width:30px;text-align:right">' + (nTx>0?nTx+' TX':'') + '</span>' +
-      '<button onclick="openNuovaCategoria(\"' + c.id + '\")" title="Aggiungi sottocategoria" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:14px;padding:2px 4px">+</button>' +
-      '<button onclick="openEditCategoria(\"' + c.id + '\")" title="Modifica" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:13px;padding:2px 4px">✏️</button>' +
-      '<button onclick="openMergeCategoria(\"' + c.id + '\")" title="Unisci/sposta TX" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:13px;padding:2px 4px">🔀</button>' +
-      '<button onclick="deleteCategoriaById(\"' + c.id + '\")" title="Elimina" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:13px;padding:2px 4px">🗑️</button>' +
+      '<button data-act="add" data-id="' + id + '" title="Aggiungi sottocategoria" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:14px;padding:2px 4px">+</button>' +
+      '<button data-act="edit" data-id="' + id + '" title="Modifica" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:13px;padding:2px 4px">✏️</button>' +
+      '<button data-act="merge" data-id="' + id + '" title="Unisci/sposta TX" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:13px;padding:2px 4px">🔀</button>' +
+      '<button data-act="del" data-id="' + id + '" title="Elimina" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:13px;padding:2px 4px">🗑️</button>' +
     '</div>';
 
     if (children.length > 0) {
@@ -4004,6 +4005,18 @@ function renderCategorieTree() {
   var html = roots.map(function(c) { return renderCat(c, 0); }).join('');
   if (!html) html = '<p style="text-align:center;padding:40px;color:var(--muted)">Nessuna categoria trovata</p>';
   body.innerHTML = html;
+
+  // Event delegation — un solo listener per tutti i bottoni
+  body.onclick = function(e) {
+    var btn = e.target.closest('[data-act]');
+    if (!btn) return;
+    var act = btn.dataset.act;
+    var id  = btn.dataset.id;
+    if (act === 'add')   openNuovaCategoria(id);
+    if (act === 'edit')  openEditCategoria(id);
+    if (act === 'merge') openMergeCategoria(id);
+    if (act === 'del')   deleteCategoriaById(id);
+  };
 }
 
 var _catEditParentId = null; // null = radice
