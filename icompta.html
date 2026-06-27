@@ -3929,12 +3929,18 @@ async function loadContiTitoli() {
   for (var _ci = 0; _ci < titoliState.contiMeta.length; _ci++) {
     var c = titoliState.contiMeta[_ci];
     if (c.tipo === 'portafoglio') {
-      var cached = lsGet('strumenti_' + c.id);
-      if (cached) titoliState.strumenti[c.id] = cached;
-      var res = await titoliApi('GET', '/api/titoli/strumenti/' + c.id);
-      if (res.ok && Array.isArray(res.data) && res.data.length > 0) {
-        titoliState.strumenti[c.id] = res.data;
-        lsSet('strumenti_' + c.id, res.data);
+      // Carica prima da localStorage v3 (con valoreFineco), poi da worker
+      var cachedV3 = localStorage.getItem('titoli_v3_strumenti_' + c.id);
+      var cached   = lsGet('strumenti_' + c.id);
+      var datiLocali = cachedV3 ? JSON.parse(cachedV3) : cached;
+      if (datiLocali && datiLocali.length > 0) titoliState.strumenti[c.id] = datiLocali;
+      // Carica dal worker solo se i dati locali non hanno valoreFineco
+      var hasValoreFineco = datiLocali && datiLocali.some(function(s) { return s.valoreFineco != null && s.valoreFineco > 0; });
+      if (!hasValoreFineco) {
+        var res = await titoliApi('GET', '/api/titoli/strumenti/' + c.id);
+        if (res.ok && Array.isArray(res.data) && res.data.length > 0) {
+          titoliState.strumenti[c.id] = res.data;
+        }
       }
       if (!titoliState.strumenti[c.id]) titoliState.strumenti[c.id] = [];
     } else if (c.tipo === 'cc') {
@@ -4750,7 +4756,7 @@ async function handleXLSImport(e) {
 
   // Salva — aggiorna stato PRIMA di render
   titoliState.strumenti[_contoCorrenteId] = strumenti;
-  lsSet('strumenti_' + _contoCorrenteId, strumenti);
+  localStorage.setItem('titoli_v3_strumenti_' + _contoCorrenteId, JSON.stringify(strumenti));
   titoliApi('PUT', '/api/titoli/strumenti/' + _contoCorrenteId, { strumenti }).catch(function(){});
   aggiornaBilancesTitoli();
   if (meta) renderSidebar();
