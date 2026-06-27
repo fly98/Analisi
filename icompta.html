@@ -4697,13 +4697,14 @@ async function handleXLSImport(e) {
   if (headerIdx === -1) { alert('Formato XLS non riconosciuto — riga ISIN non trovata'); return; }
 
   const header = rows[headerIdx].map(function(c) { return c ? String(c).trim() : ''; });
-  const iCol   = header.indexOf('ISIN');
-  const nCol   = header.indexOf('Titolo') !== -1 ? header.indexOf('Titolo') : 0;
-  const qCol   = header.findIndex(function(h) { return h.includes('Quant') || h === 'Quantità'; });
-  const pmcCol = header.findIndex(function(h) { return h.includes('carico') && h.includes('medio'); });
-  const pxCol  = header.findIndex(function(h) { return h.includes('mercato') && h.includes('P.zo'); });
-  const tipCol = header.indexOf('Strumento');
-  const symCol = header.indexOf('Simbolo');
+  const iCol    = header.indexOf('ISIN');
+  const nCol    = header.indexOf('Titolo') !== -1 ? header.indexOf('Titolo') : 0;
+  const qCol    = header.findIndex(function(h) { return h.includes('Quant') || h === 'Quantità'; });
+  const pmcCol  = header.findIndex(function(h) { return h.includes('carico') && h.includes('medio'); });
+  const pxCol   = header.findIndex(function(h) { return h.includes('mercato') && h.includes('P.zo'); });
+  const valFCol = header.findIndex(function(h) { return h.includes('Valore') && h.includes('mercato'); });
+  const tipCol  = header.indexOf('Strumento');
+  const symCol  = header.indexOf('Simbolo');
 
   const FONTE_MAP = {
     'VWCE.MI': 'yahoo:VWCE.MI', 'CSNDX.MI': 'yahoo:CSNDX.MI',
@@ -4727,17 +4728,18 @@ async function handleXLSImport(e) {
     if (!r || !r[iCol]) continue;
     const isin = String(r[iCol]).trim();
     if (!isin || isin === 'N/A' || isin.length < 5) continue;
-    const nome = nCol >= 0 && r[nCol] ? String(r[nCol]).trim() : isin;
-    const qty  = qCol >= 0 ? (parseFloat(r[qCol]) || 0) : 0;
-    const pmc  = pmcCol >= 0 ? (parseFloat(r[pmcCol]) || 0) : 0;
-    const px   = pxCol >= 0 ? (parseFloat(r[pxCol]) || pmc) : pmc;
-    const sym  = symCol >= 0 && r[symCol] ? String(r[symCol]).trim() : '';
+    const nome   = nCol >= 0 && r[nCol] ? String(r[nCol]).trim() : isin;
+    const qty    = qCol >= 0 ? (parseFloat(r[qCol]) || 0) : 0;
+    const pmc    = pmcCol >= 0 ? (parseFloat(r[pmcCol]) || 0) : 0;
+    const valF   = valFCol >= 0 && r[valFCol] != null ? (parseFloat(r[valFCol]) || 0) : 0;
+    const sym    = symCol >= 0 && r[symCol] ? String(r[symCol]).trim() : '';
     const tipRaw = tipCol >= 0 && r[tipCol] ? String(r[tipCol]).trim() : '';
-    const tipo = tipRaw === 'Obbligazione' ? 'PCT' : 'UNIT';
+    const tipo   = tipRaw === 'Obbligazione' ? 'PCT' : 'UNIT';
     strumenti.push({
       id: isin + '_' + qty,
       nome: nome, isin: isin, tipo: tipo, quantita: qty,
-      pmc: pmc, prezzoAttuale: px,
+      pmc: pmc,
+      valoreFineco: valF,  // valore di mercato dal file Fineco
       fontePrezzo: FONTE_MAP[sym] || 'manuale',
       tassazione: TASS_MAP[isin] || 0.26,
       cedolaLorda: 0, valoreScadenza: tipo === 'PCT' ? qty : 0, scadenza: ''
@@ -4757,7 +4759,14 @@ async function handleXLSImport(e) {
   renderStrumentiView(_contoCorrenteId);
   renderInvestimentiSidebar();
   if (importBtnXls) { importBtnXls.textContent = '📂 Importa XLS Fineco'; importBtnXls.disabled = false; }
-  alert('✅ Importati ' + strumenti.length + ' strumenti');
+  var totC = strumenti.reduce(function(s,x) { return s + (x.tipo==='PCT'?(x.quantita*x.pmc)/100:x.quantita*x.pmc); }, 0);
+  var totF = strumenti.reduce(function(s,x) { return s + (x.valoreFineco||0); }, 0);
+  var pl   = totF - totC;
+  var pct  = totC > 0 ? (pl/totC*100) : 0;
+  alert('✅ Importati ' + strumenti.length + ' strumenti\n\n' +
+    'Carico:  ' + fmt(totC) + '\n' +
+    'Fineco:  ' + fmt(totF) + '\n' +
+    'P&L:     ' + (pl>=0?'+':'') + fmt(pl) + ' (' + (pl>=0?'+':'') + pct.toFixed(2) + '%)');
 }
 </script>
 
