@@ -208,7 +208,7 @@ select.form-input { height: 42px; }
 .btn-danger { background: var(--red); color: white; }
 
 /* ── Split rows in modal ── */
-.split-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+.split-row { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; background: var(--surface,#f9f9f9); border-radius: 12px; padding: 10px 12px; border: 1px solid var(--border); }
 .split-row input { flex: 1; }
 .btn-icon { background: var(--gray2); border: none; border-radius: 8px; 
   padding: 6px 10px; cursor: pointer; font-size: 14px; }
@@ -888,11 +888,8 @@ select.form-input { height: 42px; }
         <textarea class="form-input" id="tx-comment" placeholder="Opzionale" rows="3" style="resize:vertical;min-height:72px;font-family:inherit;line-height:1.5"></textarea>
       </div>
       <div class="form-group">
-        <label class="form-label" style="display:flex;justify-content:space-between">
-          <span>Splits (categorie)</span>
-          <button class="btn-icon" onclick="addSplit()">+ Aggiungi</button>
-        </label>
         <div id="splits-container"></div>
+        <button class="btn-icon" onclick="addSplit()" style="margin-top:6px;font-size:12px;color:var(--muted);background:none;border:1px dashed var(--border);border-radius:8px;padding:6px 12px;width:100%;cursor:pointer">+ Aggiungi categoria</button>
       </div>
       <div class="transfer-section">
         <div class="transfer-header" onclick="toggleTransfer()">
@@ -1521,9 +1518,9 @@ function addSplit(split = null) {
 
   amtDisplay.addEventListener('click', function() { openNumpad(amtDisplay, amtHidden); });
 
-  // Riga: importo + categoria + elimina
-  const bottom = document.createElement('div');
-  bottom.style.cssText = 'display:flex;gap:8px;align-items:center;margin-top:8px;';
+  // Importo sopra, categoria sotto
+  const catRow = document.createElement('div');
+  catRow.style.cssText = 'display:flex;gap:8px;align-items:center;margin-top:8px;';
 
   const catBtn = document.createElement('button');
   catBtn.className = 'form-input split-cat-btn';
@@ -1536,13 +1533,15 @@ function addSplit(split = null) {
   const delBtn = document.createElement('button');
   delBtn.className = 'btn-icon';
   delBtn.textContent = '✕';
+  delBtn.style.cssText = 'flex-shrink:0;';
   delBtn.onclick = function() { row.remove(); };
 
-  bottom.appendChild(catBtn);
-  bottom.appendChild(delBtn);
-  row.appendChild(amtDisplay);
+  catRow.appendChild(catBtn);
+  catRow.appendChild(delBtn);
+
+  row.appendChild(amtDisplay);  // importo in cima
   row.appendChild(amtHidden);
-  row.appendChild(bottom);
+  row.appendChild(catRow);      // categoria sotto
   container.appendChild(row);
 }
 
