@@ -4016,7 +4016,7 @@ function renderStrumentiView() {
 
   // P&L Portafoglio: Conti Titoli vs Valore di carico (fisso, indipendente dal tab)
   var totCT = (balances && balances.groups && balances.groups['GRP-CONTI-TITOLI']) || 0;
-  var carico = (balances && balances.accounts && balances.accounts['ACC-VALORE-CARICO']) || 0;
+  var carico = Math.abs((balances && balances.accounts && balances.accounts['ACC-VALORE-CARICO']) || 0);
   var plPort = totCT - carico;
   var plPortPct = carico > 0 ? (plPort/carico*100) : 0;
   var plPortCol = plPort >= 0 ? '#28a745' : '#dc3545';
