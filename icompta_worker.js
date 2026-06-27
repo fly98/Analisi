@@ -64,15 +64,67 @@ var icompta_worker_default = {
     // ── META PUT (aggiorna accounts/groups) ──────────────────────────────────
     if (path === "/api/meta" && method === "PUT") {
       const body = await request.json();
-      const { accounts, groups } = body;
+      const { accounts, groups, categories } = body;
       if (!accounts || !groups) return err("accounts e groups richiesti");
       const raw = await env.ICOMPTA_KV.get("icompta:meta");
       if (!raw) return err("Meta non trovato", 404);
       const meta = JSON.parse(raw);
       meta.accounts = accounts;
       meta.groups = groups;
+      if (categories) meta.categories = categories;
       await env.ICOMPTA_KV.put("icompta:meta", JSON.stringify(meta));
       return json({ ok: true });
+    }
+
+    // ── CATEGORIES MERGE ─────────────────────────────────────────────────────
+    // POST /api/categories/merge { fromId, toId } → sposta TX fromId→toId
+    if (path === "/api/categories/merge" && method === "POST") {
+      const { fromId, toId } = await request.json();
+      if (!fromId || !toId) return err("fromId e toId richiesti");
+      const metaRaw = await env.ICOMPTA_KV.get("icompta:meta");
+      if (!metaRaw) return err("Meta non trovato", 404);
+      const meta = JSON.parse(metaRaw);
+      let updated = 0;
+      for (const year of meta.years) {
+        const txs = await getTxYear(env, year);
+        let changed = false;
+        for (const tx of txs) {
+          if (tx.splits) {
+            for (const s of tx.splits) {
+              if (s.categoryId === fromId) { s.categoryId = toId; changed = true; updated++; }
+            }
+          } else if (tx.categoryId === fromId) {
+            tx.categoryId = toId; changed = true; updated++;
+          }
+        }
+        if (changed) await putTxYear(env, year, txs);
+      }
+      // Rimuovi categoria fromId dal meta
+      meta.categories = meta.categories.filter(c => c.id !== fromId);
+      await env.ICOMPTA_KV.put("icompta:meta", JSON.stringify(meta));
+      return json({ ok: true, updated });
+    }
+
+    // ── CATEGORIES COUNT ─────────────────────────────────────────────────────
+    // GET /api/categories/count → conta TX per categoria
+    if (path === "/api/categories/count" && method === "GET") {
+      const metaRaw = await env.ICOMPTA_KV.get("icompta:meta");
+      if (!metaRaw) return err("Meta non trovato", 404);
+      const meta = JSON.parse(metaRaw);
+      const counts = {};
+      for (const year of meta.years) {
+        const txs = await getTxYear(env, year);
+        for (const tx of txs) {
+          if (tx.splits) {
+            for (const s of tx.splits) {
+              if (s.categoryId) counts[s.categoryId] = (counts[s.categoryId]||0) + 1;
+            }
+          } else if (tx.categoryId) {
+            counts[tx.categoryId] = (counts[tx.categoryId]||0) + 1;
+          }
+        }
+      }
+      return json(counts);
     }
 
     // ── TX GET per anno ─────────────────────────────────────────────────────
