@@ -3878,10 +3878,19 @@ function calcolaValoreMercato(contoId) {
   }, 0);
 }
 function loadContiTitoli() {
-  // Carica strumenti da localStorage
   try {
     var cached = localStorage.getItem('titoli_strumenti_fineco-inv');
-    if (cached) titoliState.strumenti['fineco-inv'] = JSON.parse(cached);
+    if (cached) {
+      var strumenti = JSON.parse(cached);
+      // Migrazione: vecchi dati usavano prezzoAttuale, ora usiamo prezzoFineco/prezzoOnline
+      strumenti.forEach(function(s) {
+        if (s.prezzoFineco == null && s.prezzoAttuale != null) {
+          s.prezzoFineco = s.prezzoAttuale;
+          s.prezzoOnline = null; // non sappiamo se era online o da file
+        }
+      });
+      titoliState.strumenti['fineco-inv'] = strumenti;
+    }
   } catch(e) {}
   aggiornaBilancesTitoli();
   return Promise.resolve();
@@ -4412,7 +4421,6 @@ async function handleXLSImport(e) {
   const valFCol = header.findIndex(function(h) { return h.includes('Valore') && h.includes('mercato'); });
   const tipCol  = header.indexOf('Strumento');
   const symCol  = header.indexOf('Simbolo');
-  alert('📊 File letto: ' + rows.length + ' righe\nColonne trovate:\n- PMC: ' + pmcCol + '\n- Prezzo mercato: ' + pxCol + '\n- Valore mercato: ' + valFCol);
 
   const FONTE_MAP = {
     'VWCE.MI': 'yahoo:VWCE.MI', 'CSNDX.MI': 'yahoo:CSNDX.MI',
