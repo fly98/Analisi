@@ -609,10 +609,21 @@ select.form-input { height: 42px; }
   #date-bar input[type=date] { width: 86px; font-size: 11px; padding: 3px 4px; }
   #btn-import-contestuale { font-size: 11px !important; padding: 4px 7px !important; }
 
-  /* Lista TX: scroll orizzontale sul wrapper, header e body si muovono insieme */
-  #tx-scroll-wrap { overflow-x: auto !important; -webkit-overflow-scrolling: touch; }
-  #tx-header { min-width: 580px; overflow-x: visible !important; }
-  #tx-body   { overflow-x: visible !important; }
+  /* Lista TX: scroll orizzontale sul wrapper — header e body si muovono INSIEME */
+  #tx-scroll-wrap {
+    overflow-x: auto !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    flex: 1;
+  }
+  #tx-header {
+    min-width: 580px;
+    position: sticky !important;
+    top: 0;
+    z-index: 10;
+    overflow-x: visible !important;
+  }
+  #tx-body   { overflow-x: visible !important; min-width: 580px; }
   .tx-row    { min-width: 580px; }
 
   /* Descrizione più larga */
