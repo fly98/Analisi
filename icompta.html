@@ -814,7 +814,14 @@ select.form-input { height: 42px; }
     <div class="modal-body">
       <div class="form-group">
         <label class="form-label">Data</label>
-        <input type="date" class="form-input" id="tx-date">
+        <div style="position:relative">
+          <div id="tx-date-display" onclick="document.getElementById('tx-date').showPicker?document.getElementById('tx-date').showPicker():document.getElementById('tx-date').click()"
+            style="width:100%;padding:10px 12px;border-radius:10px;border:1.5px solid var(--border);font-size:15px;font-weight:600;cursor:pointer;background:var(--bg);box-sizing:border-box;text-align:center;color:var(--text)">
+            — seleziona data —
+          </div>
+          <input type="date" id="tx-date" onchange="txDateChanged(this.value)"
+            style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer;box-sizing:border-box">
+        </div>
       </div>
       <select id="tx-status" style="display:none">
         <option value="created">In sospeso</option>
@@ -1393,7 +1400,9 @@ function openNewTx() {
   editingTx = null;
   document.getElementById('modal-title').textContent = 'Nuova transazione';
   document.getElementById('btn-delete').style.display = 'none';
-  document.getElementById('tx-date').value = new Date().toISOString().slice(0,10);
+  var _td = new Date().toISOString().slice(0,10);
+  document.getElementById('tx-date').value = _td;
+  txDateChanged(_td);
   document.getElementById('tx-status').value = 'created';
   document.getElementById('tx-name').value = '';
   document.getElementById('tx-comment').value = '';
@@ -1423,6 +1432,7 @@ function openEditTx(tx) {
   document.getElementById('modal-title').textContent = 'Modifica transazione';
   document.getElementById('btn-delete').style.display = 'block';
   document.getElementById('tx-date').value = tx.date;
+  txDateChanged(tx.date);
   document.getElementById('tx-status').value = tx.status || 'created';
   document.getElementById('tx-name').value = tx.name || '';
   document.getElementById('tx-comment').value = tx.comment || '';
@@ -4022,6 +4032,14 @@ function toggleShowHidden() {
   var btn = document.getElementById('btn-show-hidden');
   if (btn) btn.textContent = _showHidden ? '👁 Nascondi nascoste' : '🙈 Mostra nascoste';
   renderCategorieTree();
+}
+
+function txDateChanged(val) {
+  if (!val) return;
+  var d = new Date(val + 'T12:00:00');
+  var label = d.toLocaleDateString('it-IT', { weekday:'short', day:'numeric', month:'long', year:'numeric' });
+  var disp = document.getElementById('tx-date-display');
+  if (disp) disp.textContent = label;
 }
 
 function openCategorieModal() {
