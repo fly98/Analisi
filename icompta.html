@@ -3871,7 +3871,8 @@ function aggiornaBilancesTitoli() {
 function calcolaValoreMercato(contoId) {
   const strumenti = titoliState.strumenti[contoId] || [];
   return strumenti.reduce((sum, s) => {
-    return sum + (s.tipo === 'PCT' ? (s.quantita * (s.prezzoAttuale || s.pmc)) / 100 : s.quantita * (s.prezzoAttuale || s.pmc));
+    var px = s.prezzoFineco || s.prezzoAttuale || s.pmc;
+    return sum + (s.tipo === 'PCT' ? (s.quantita * px) / 100 : s.quantita * px);
   }, 0);
 }
 function loadContiTitoli() {
@@ -3946,69 +3947,132 @@ function renderStrumentiView(contoId) {
     return;
   }
 
-  var totCarico = 0, totMercato = 0;
+  var totCarico = 0, totFineco = 0, totOnline = 0;
   var rows = '';
+  var hasOnline = strumenti.some(function(s) { return s.prezzoOnline != null; });
   for (var s of strumenti) {
-    var carico  = s.tipo === 'PCT' ? (s.quantita * s.pmc) / 100 : s.quantita * s.pmc;
-    var mercato = s.tipo === 'PCT' ? (s.quantita * (s.prezzoAttuale || s.pmc)) / 100 : s.quantita * (s.prezzoAttuale || s.pmc);
-    var pl = mercato - carico;
-    var plPct = carico > 0 ? (pl / carico * 100) : 0;
-    var plColor = pl >= 0 ? 'var(--green,#28a745)' : 'var(--red,#dc3545)';
-    totCarico += carico; totMercato += mercato;
+    var pxF = s.prezzoFineco || s.prezzoAttuale || s.pmc;
+    var pxO = s.prezzoOnline;
+    var carico   = s.tipo === 'PCT' ? (s.quantita * s.pmc) / 100 : s.quantita * s.pmc;
+    var vFineco  = s.tipo === 'PCT' ? (s.quantita * pxF) / 100 : s.quantita * pxF;
+    var vOnline  = pxO != null ? (s.tipo === 'PCT' ? (s.quantita * pxO) / 100 : s.quantita * pxO) : null;
+    var plF = vFineco - carico;
+    var plFPct = carico > 0 ? (plF / carico * 100) : 0;
+    var plFColor = plF >= 0 ? '#28a745' : '#dc3545';
+    totCarico += carico; totFineco += vFineco;
+    if (vOnline != null) totOnline += vOnline;
+
+    var onlineCell = vOnline != null ?
+      (function(vO, c) {
+        var plO = vO - c;
+        var plOPct = c > 0 ? (plO/c*100) : 0;
+        var col = plO >= 0 ? '#28a745' : '#dc3545';
+        return '<td style="padding:9px 10px;text-align:right">' + fmt(vO) + '</td>' +
+               '<td style="padding:9px 10px;text-align:right;font-size:11px;color:' + col + '">' +
+                 (plO>=0?'+':'') + fmt(plO) + '<br>' + (plO>=0?'+':'') + plOPct.toFixed(2) + '%</td>';
+      })(vOnline, carico) :
+      '<td style="padding:9px 10px;text-align:right;color:var(--muted);font-size:11px">—</td>' +
+      '<td style="padding:9px 10px;text-align:right;color:var(--muted);font-size:11px">—</td>';
+
     rows += '<tr style="border-bottom:1px solid var(--border)">' +
-      '<td style="padding:9px 10px;font-size:13px">' + s.nome + '</td>' +
-      '<td style="padding:9px 10px;font-size:11px;color:var(--muted);font-family:monospace">' + (s.isin||'—') + '</td>' +
+      '<td style="padding:9px 10px;font-size:13px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + s.nome + '</td>' +
+      '<td style="padding:9px 10px;font-size:10px;color:var(--muted);font-family:monospace">' + (s.isin||'—') + '</td>' +
       '<td style="padding:9px 10px;text-align:right">' + fmt(carico) + '</td>' +
-      '<td style="padding:9px 10px;text-align:right">' + fmt(mercato) + '</td>' +
-      '<td style="padding:9px 10px;text-align:right;font-weight:600;color:' + plColor + '">' +
-        (pl>=0?'+':'') + fmt(pl) + '<br><span style="font-size:10px">' + (pl>=0?'+':'') + plPct.toFixed(2) + '%</span>' +
-      '</td></tr>';
+      '<td style="padding:9px 10px;text-align:right;font-weight:600">' + fmt(vFineco) + '</td>' +
+      '<td style="padding:9px 10px;text-align:right;font-size:11px;font-weight:600;color:' + plFColor + '">' +
+        (plF>=0?'+':'') + fmt(plF) + '<br>' + (plF>=0?'+':'') + plFPct.toFixed(2) + '%</td>' +
+      onlineCell +
+    '</tr>';
   }
-  var totPL = totMercato - totCarico;
-  var totPLColor = totPL >= 0 ? 'var(--green,#28a745)' : 'var(--red,#dc3545)';
-  var totPLPct = totCarico > 0 ? (totPL/totCarico*100) : 0;
+  var totPLF = totFineco - totCarico;
+  var totPLFColor = totPLF >= 0 ? '#28a745' : '#dc3545';
+  var totPLFPct = totCarico > 0 ? (totPLF/totCarico*100) : 0;
+
+  var onlineHeader = '<th style="text-align:right;padding:10px;font-size:11px;color:#007aff;font-weight:700">🌐 Online</th>' +
+                     '<th style="text-align:right;padding:10px;font-size:11px;color:#007aff">P&L Online</th>';
+
+  var onlineTot = hasOnline && totOnline > 0 ?
+    '<td colspan="2" style="padding:10px;text-align:right;font-size:12px;color:#007aff;font-weight:700">' + fmt(totOnline) + '</td>' : 
+    '<td colspan="2"></td>';
 
   view.innerHTML = plBox + toolbar +
     '<div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap">' +
-      '<div style="flex:1;min-width:120px;background:var(--surface,#fff);border-radius:10px;padding:12px 14px;border:1px solid var(--border)">' +
-        '<div style="font-size:11px;color:var(--muted)">Valore di carico</div>' +
+      '<div style="flex:1;min-width:110px;background:var(--surface,#fff);border-radius:10px;padding:12px 14px;border:1px solid var(--border)">' +
+        '<div style="font-size:11px;color:var(--muted)">Carico totale</div>' +
         '<div style="font-size:17px;font-weight:700">' + fmt(totCarico) + '</div></div>' +
-      '<div style="flex:1;min-width:120px;background:var(--surface,#fff);border-radius:10px;padding:12px 14px;border:1px solid var(--border)">' +
-        '<div style="font-size:11px;color:var(--muted)">Valore di mercato</div>' +
-        '<div style="font-size:17px;font-weight:700">' + fmt(totMercato) + '</div></div>' +
-      '<div style="flex:1;min-width:120px;background:var(--surface,#fff);border-radius:10px;padding:12px 14px;border:1px solid var(--border)">' +
-        '<div style="font-size:11px;color:var(--muted)">P&L totale</div>' +
-        '<div style="font-size:17px;font-weight:700;color:' + totPLColor + '">' +
-          (totPL>=0?'+':'') + fmt(totPL) + ' (' + (totPL>=0?'+':'') + totPLPct.toFixed(2) + '%)</div></div>' +
+      '<div style="flex:1;min-width:110px;background:var(--surface,#fff);border-radius:10px;padding:12px 14px;border:1.5px solid #34c759">' +
+        '<div style="font-size:11px;color:var(--muted)">📄 Fineco (file)</div>' +
+        '<div style="font-size:17px;font-weight:700">' + fmt(totFineco) + '</div>' +
+        '<div style="font-size:11px;font-weight:600;color:' + totPLFColor + '">' + (totPLF>=0?'+':'') + fmt(totPLF) + ' (' + (totPLF>=0?'+':'') + totPLFPct.toFixed(2) + '%)</div></div>' +
+      (hasOnline && totOnline > 0 ?
+        '<div style="flex:1;min-width:110px;background:var(--surface,#fff);border-radius:10px;padding:12px 14px;border:1.5px solid #007aff">' +
+          '<div style="font-size:11px;color:var(--muted)">🌐 Online (live)</div>' +
+          '<div style="font-size:17px;font-weight:700">' + fmt(totOnline) + '</div>' +
+          (function() { var plO=totOnline-totCarico; var pct=totCarico>0?(plO/totCarico*100):0; var col=plO>=0?'#28a745':'#dc3545'; return '<div style="font-size:11px;font-weight:600;color:'+col+'">'+(plO>=0?'+':'')+fmt(plO)+' ('+(plO>=0?'+':'')+pct.toFixed(2)+'%)</div>'; })() +
+        '</div>' : '') +
     '</div>' +
     '<div style="overflow-x:auto;background:var(--surface,#fff);border-radius:10px;border:1px solid var(--border)">' +
-      '<table style="width:100%;border-collapse:collapse;font-size:13px">' +
+      '<table style="width:100%;border-collapse:collapse;font-size:12px">' +
         '<thead><tr style="background:var(--bg,#f5f5f5)">' +
           '<th style="text-align:left;padding:10px;font-size:11px;color:var(--muted)">Strumento</th>' +
           '<th style="text-align:left;padding:10px;font-size:11px;color:var(--muted)">ISIN</th>' +
           '<th style="text-align:right;padding:10px;font-size:11px;color:var(--muted)">Carico</th>' +
-          '<th style="text-align:right;padding:10px;font-size:11px;color:var(--muted)">Mercato</th>' +
-          '<th style="text-align:right;padding:10px;font-size:11px;color:var(--muted)">P&L</th>' +
-        '</tr></thead><tbody>' + rows + '</tbody></table></div>';
+          '<th style="text-align:right;padding:10px;font-size:11px;color:#34c759;font-weight:700">📄 Fineco</th>' +
+          '<th style="text-align:right;padding:10px;font-size:11px;color:#34c759">P&L Fineco</th>' +
+          onlineHeader +
+        '</tr></thead>' +
+        '<tbody>' + rows + '</tbody>' +
+        '<tfoot><tr style="background:var(--bg,#f5f5f5);font-weight:700">' +
+          '<td colspan="2" style="padding:10px;font-size:12px">Totale</td>' +
+          '<td style="padding:10px;text-align:right">' + fmt(totCarico) + '</td>' +
+          '<td style="padding:10px;text-align:right;color:#34c759">' + fmt(totFineco) + '</td>' +
+          '<td style="padding:10px;text-align:right;color:' + totPLFColor + '">' + (totPLF>=0?'+':'') + fmt(totPLF) + '</td>' +
+          onlineTot +
+        '</tr></tfoot>' +
+      '</table></div>';
 }
 
 async function aggiornaPrezziConto() {
   var contoId = _contoCorrenteId;
   var btn = document.getElementById('btn-aggiorna-prezzi');
-  if (btn) { btn.textContent = '⏳...'; btn.disabled = true; }
+  if (btn) { btn.textContent = '⏳ Aggiornamento...'; btn.disabled = true; }
   try {
+    // Chiama worker per aggiornare prezzi
     var res = await titoliApi('GET', '/api/titoli/prezzi/' + contoId);
     var updated = await titoliApi('GET', '/api/titoli/strumenti/' + contoId);
     if (updated.ok && Array.isArray(updated.data) && updated.data.length > 0) {
-      titoliState.strumenti[contoId] = updated.data;
-      localStorage.setItem('titoli_strumenti_' + contoId, JSON.stringify(updated.data));
+      // Aggiorna solo prezzoOnline, mantieni prezzoFineco
+      var existing = titoliState.strumenti[contoId] || [];
+      updated.data.forEach(function(su) {
+        var ex = existing.find(function(e) { return e.id === su.id || e.isin === su.isin; });
+        if (ex) ex.prezzoOnline = su.prezzoAttuale || su.prezzoOnline || null;
+      });
+      localStorage.setItem('titoli_strumenti_' + contoId, JSON.stringify(existing));
     }
     aggiornaBilancesTitoli();
     if (meta) renderSidebar();
+    updateTotalBalance();
     renderStrumentiView(contoId);
-    if (btn) { btn.textContent = '✅ ' + (res.data && res.data.aggiornati || 0) + ' aggiornati'; }
-  } catch(e) { if (btn) btn.textContent = '❌ Errore'; }
-  setTimeout(function() { if (btn) { btn.textContent = '🔄 Aggiorna prezzi'; btn.disabled = false; }}, 2000);
+    // Messaggio conferma
+    var nAgg = res.ok && res.data ? (res.data.aggiornati || 0) : 0;
+    var totO = (titoliState.strumenti[contoId] || []).reduce(function(s,x) {
+      if (x.prezzoOnline == null) return s;
+      return s + (x.tipo==='PCT' ? (x.quantita*x.prezzoOnline)/100 : x.quantita*x.prezzoOnline);
+    }, 0);
+    if (btn) btn.textContent = '✅ ' + nAgg + ' aggiornati';
+    if (nAgg > 0) {
+      setTimeout(function() {
+        alert('✅ Prezzi online aggiornati: ' + nAgg + ' strumenti\n\n' +
+          '🌐 Valore di mercato online: ' + totO.toLocaleString('it-IT',{style:'currency',currency:'EUR'}));
+      }, 100);
+    } else {
+      alert('⚠️ Nessun prezzo aggiornato — controlla che il Mac sia acceso e il worker funzionante.');
+    }
+  } catch(e) {
+    if (btn) btn.textContent = '❌ Errore';
+    alert('❌ Errore aggiornamento prezzi: ' + e.message);
+  }
+  setTimeout(function() { if (btn) { btn.textContent = '🔄 Aggiorna prezzi'; btn.disabled = false; }}, 3000);
 }
 
 function titoliApi(method, path, body) {
@@ -4378,7 +4442,9 @@ async function handleXLSImport(e) {
     strumenti.push({
       id: isin + '_' + qty,
       nome: nome, isin: isin, tipo: tipo, quantita: qty,
-      pmc: pmc, prezzoAttuale: px,
+      pmc: pmc,
+      prezzoFineco: px,    // dal file XLS Fineco
+      prezzoOnline: null,  // aggiornato da Yahoo/Borsa Italiana
       fontePrezzo: FONTE_MAP[sym] || 'manuale',
       tassazione: TASS_MAP[isin] || 0.26,
       cedolaLorda: 0, valoreScadenza: tipo === 'PCT' ? qty : 0, scadenza: ''
@@ -4397,7 +4463,15 @@ async function handleXLSImport(e) {
   // Salva su worker in background
   titoliApi('PUT', '/api/titoli/strumenti/' + _contoCorrenteId, { strumenti })
     .catch(function(e) { console.warn('Worker save failed:', e); });
-  alert('✅ Importati ' + strumenti.length + ' strumenti');
+  // Messaggio di conferma con riepilogo
+  var totC = strumenti.reduce(function(s,x) { return s + (x.tipo==='PCT'?(x.quantita*x.pmc)/100:x.quantita*x.pmc); }, 0);
+  var totF = strumenti.reduce(function(s,x) { var pf=x.prezzoFineco||x.pmc; return s + (x.tipo==='PCT'?(x.quantita*pf)/100:x.quantita*pf); }, 0);
+  var plF = totF - totC;
+  var plFPct = totC > 0 ? (plF/totC*100) : 0;
+  alert('✅ Importati ' + strumenti.length + ' strumenti da file Fineco\n\n' +
+    '📄 Valore di carico:  ' + totC.toLocaleString('it-IT',{style:'currency',currency:'EUR'}) + '\n' +
+    '📄 Valore Fineco:     ' + totF.toLocaleString('it-IT',{style:'currency',currency:'EUR'}) + '\n' +
+    '📈 P&L:               ' + (plF>=0?'+':'') + plF.toLocaleString('it-IT',{style:'currency',currency:'EUR'}) + ' (' + (plF>=0?'+':'') + plFPct.toFixed(2) + '%)');
 }
 </script>
 
