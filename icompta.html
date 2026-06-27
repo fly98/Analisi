@@ -3919,13 +3919,30 @@ function renderStrumentiView(contoId) {
   var view = document.getElementById('strumenti-view-content');
   if (!view) return;
 
+  // Box P&L globale
+  var totCT = (balances && balances.groups && balances.groups['GRP-CONTI-TITOLI']) || 0;
+  var carico = (balances && balances.accounts && balances.accounts['ACC-VALORE-CARICO']) || 0;
+  var plGlob = totCT - carico;
+  var plGlobPct = carico > 0 ? (plGlob / carico * 100) : 0;
+  var plColor = plGlob >= 0 ? '#28a745' : '#dc3545';
+  var plBg    = plGlob >= 0 ? '#e8f8ed' : '#fff0ef';
+  var plSign  = plGlob >= 0 ? '+' : '';
+  var plBox = totCT > 0 && carico > 0 ?
+    '<div style="background:' + plBg + ';border:1.5px solid ' + plColor + ';border-radius:12px;padding:14px 20px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center">' +
+      '<div>' +
+        '<div style="font-size:11px;font-weight:700;color:' + plColor + ';text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px">P&L Portafoglio</div>' +
+        '<div style="font-size:11px;color:#666">Conti Titoli ' + fmt(totCT) + ' — Valore di carico ' + fmt(carico) + '</div>' +
+      '</div>' +
+      '<div style="font-size:22px;font-weight:800;color:' + plColor + '">' + plSign + fmt(plGlob) + '<span style="font-size:13px;font-weight:600;margin-left:6px">(' + plSign + plGlobPct.toFixed(2) + '%)</span></div>' +
+    '</div>' : '';
+
   var toolbar = '<div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">' +
     '<button id="btn-import-xls-fineco" onclick="openImportXLSCurrent()" style="padding:7px 14px;border-radius:8px;border:1px solid var(--border);background:none;cursor:pointer;font-size:13px;color:var(--muted)">📂 Importa XLS Fineco</button>' +
     '<button id="btn-aggiorna-prezzi" onclick="aggiornaPrezziConto()" style="padding:7px 14px;border-radius:8px;border:none;background:var(--blue);color:#fff;font-size:13px;font-weight:600;cursor:pointer">🔄 Aggiorna prezzi</button>' +
     '</div>';
 
   if (strumenti.length === 0) {
-    view.innerHTML = toolbar + '<div style="text-align:center;padding:60px;color:var(--muted)">Nessuno strumento. Importa il file XLS dal portafoglio Fineco.</div>';
+    view.innerHTML = plBox + toolbar + '<div style="text-align:center;padding:60px;color:var(--muted)">Nessuno strumento. Importa il file XLS dal portafoglio Fineco.</div>';
     return;
   }
 
@@ -3951,7 +3968,7 @@ function renderStrumentiView(contoId) {
   var totPLColor = totPL >= 0 ? 'var(--green,#28a745)' : 'var(--red,#dc3545)';
   var totPLPct = totCarico > 0 ? (totPL/totCarico*100) : 0;
 
-  view.innerHTML = toolbar +
+  view.innerHTML = plBox + toolbar +
     '<div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap">' +
       '<div style="flex:1;min-width:120px;background:var(--surface,#fff);border-radius:10px;padding:12px 14px;border:1px solid var(--border)">' +
         '<div style="font-size:11px;color:var(--muted)">Valore di carico</div>' +
