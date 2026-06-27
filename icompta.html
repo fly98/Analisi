@@ -609,13 +609,14 @@ select.form-input { height: 42px; }
   #date-bar input[type=date] { width: 86px; font-size: 11px; padding: 3px 4px; }
   #btn-import-contestuale { font-size: 11px !important; padding: 4px 7px !important; }
 
-  /* Lista TX: scroll orizzontale, tutte le colonne visibili */
-  #tx-body { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  #tx-header { min-width: 600px; }
-  .tx-row { min-width: 600px; }
+  /* Lista TX: scroll orizzontale sul wrapper, header e body si muovono insieme */
+  #tx-scroll-wrap { overflow-x: auto !important; -webkit-overflow-scrolling: touch; }
+  #tx-header { min-width: 580px; overflow-x: visible !important; }
+  #tx-body   { overflow-x: visible !important; }
+  .tx-row    { min-width: 580px; }
 
   /* Descrizione più larga */
-  .tx-c-desc { min-width: 180px !important; }
+  .tx-c-desc { min-width: 160px !important; }
   .tx-c-desc .txn { font-size: 13px; }
   .tx-c-desc .txs { font-size: 11px; }
 
@@ -709,17 +710,19 @@ select.form-input { height: 42px; }
         </div>
         <div id="rec-pending-list"></div>
       </div>
-      <div id="tx-header">
-        <div class="txh tx-c-date">Data<div class="col-resizer" data-col="date"></div></div>
-        <div class="txh tx-c-desc" style="padding:0 10px">Descrizione</div>
-        <div class="txh tx-c-cat" style="padding:0 8px">Categoria<div class="col-resizer" data-col="cat"></div></div>
-        <div class="txh tx-c-amt" style="text-align:right;padding:0 8px">Importo<div class="col-resizer" data-col="amt"></div></div>
-        <div class="txh tx-c-bal" style="text-align:right;padding:0 8px">Saldo<div class="col-resizer" data-col="bal"></div></div>
-        <div class="txh tx-c-trasf" style="padding:0 8px">Trasf.<div class="col-resizer" data-col="trasf"></div></div>
-        <div style="width:28px;flex-shrink:0"></div>
-      </div>
-      <div id="tx-body" style="flex:1">
-        <div style="text-align:center;padding:40px;color:var(--muted)">Seleziona un conto dalla sidebar</div>
+      <div id="tx-scroll-wrap" style="flex:1;display:flex;flex-direction:column;overflow:hidden">
+        <div id="tx-header">
+          <div class="txh tx-c-date">Data<div class="col-resizer" data-col="date"></div></div>
+          <div class="txh tx-c-desc" style="padding:0 10px">Descrizione</div>
+          <div class="txh tx-c-cat" style="padding:0 8px">Categoria<div class="col-resizer" data-col="cat"></div></div>
+          <div class="txh tx-c-amt" style="text-align:right;padding:0 8px">Importo<div class="col-resizer" data-col="amt"></div></div>
+          <div class="txh tx-c-bal" style="text-align:right;padding:0 8px">Saldo<div class="col-resizer" data-col="bal"></div></div>
+          <div class="txh tx-c-trasf" style="padding:0 8px">Trasf.<div class="col-resizer" data-col="trasf"></div></div>
+          <div style="width:28px;flex-shrink:0"></div>
+        </div>
+        <div id="tx-body" style="flex:1">
+          <div style="text-align:center;padding:40px;color:var(--muted)">Seleziona un conto dalla sidebar</div>
+        </div>
       </div>
     </div>
   </div>
