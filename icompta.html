@@ -118,7 +118,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif
   border: none; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
 
 /* ── Transaction list ── */
-#tx-list-container { flex: 1; overflow-y: auto; background: var(--surface); display: flex; flex-direction: column; }
+#tx-list-container { flex: 1; overflow-y: auto; background: var(--surface); display: flex; flex-direction: column; min-height: 0; }
+#strumenti-view { flex: 1; overflow-y: auto; min-height: 0; }
 #tx-header { display: flex; flex-direction: row; align-items: center; padding: 6px 16px;
   background: var(--bg); border-bottom: 1px solid var(--border-s);
   position: sticky; top: 0; z-index: 3; width: 100%; box-sizing: border-box; }
@@ -711,7 +712,7 @@ select.form-input { height: 42px; }
 
     <div id="tx-list-container">
       <!-- View Fineco Investimenti — mostrata al posto delle TX -->
-      <div id="strumenti-view" style="display:none;padding:20px;flex:1;overflow-y:auto;min-height:0">
+      <div id="strumenti-view" style="display:none;padding:20px;flex:1;overflow-y:auto">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
           <span id="fineco-inv-info" style="font-size:11px;color:var(--muted)"></span>
           <button onclick="openFinecoInvModal()" style="padding:4px 10px;border-radius:8px;border:1px solid var(--border);background:none;cursor:pointer;color:var(--muted);font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:4px">Aggiorna <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="2,3 5,7 8,3"/></svg></button>
@@ -1228,6 +1229,7 @@ async function loadYear(year) {
 
 function showTxView() {
   var sv=document.getElementById('strumenti-view'); if(sv) sv.style.display='none';
+  var wrap=document.getElementById('tx-scroll-wrap'); if(wrap) wrap.style.display='';
   ['date-bar','rec-pending-box','tx-header','tx-body'].forEach(function(id){var e=document.getElementById(id);if(e)e.style.display='';});
 }
 
@@ -4581,9 +4583,13 @@ function selectStrumenti(contoId, nome) {
   closeSidebar();
   document.querySelectorAll('.account-row').forEach(function(r){r.classList.remove('active');});
   ['date-bar','rec-pending-box','tx-header','tx-body'].forEach(function(id){var e=document.getElementById(id);if(e)e.style.display='none';});
-  document.getElementById('strumenti-view').style.display = 'block';
+  var sv = document.getElementById('strumenti-view');
+  sv.style.display = 'flex';
+  sv.style.flexDirection = 'column';
+  var wrap = document.getElementById('tx-scroll-wrap');
+  if (wrap) wrap.style.display = 'none';
   aggiornaBottoneImport();
-  _initFinecoStrumenti(); // sync: carica da localStorage subito
+  _initFinecoStrumenti();
   renderStrumentiView();
   // Poi async: se localStorage vuoto carica da KV e aggiorna
   _initFinecoStrumentiAsync().then(function() {
