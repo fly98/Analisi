@@ -3936,7 +3936,10 @@ async function sellapAutoDownload() {
     <div id="leo-panel-hdr">
       <span style="font-size:22px">🦁</span>
       <h3>Import da Leo</h3>
-      <button onclick="closeLeoImport()" style="background:var(--gray2);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:16px">✕</button>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button onclick="window.open('https://fly98.github.io/Analisi/leo.html','_blank')" style="padding:5px 12px;border-radius:8px;border:1px solid var(--border);background:none;font-size:12px;font-weight:600;cursor:pointer;color:var(--blue)">Apri Leo ↗</button>
+        <button onclick="closeLeoImport()" style="background:var(--gray2);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:16px">✕</button>
+      </div>
     </div>
     <div id="leo-tabs">
       <button class="active" onclick="leoShowTab('sessioni',this)">Sessioni Leo</button>
