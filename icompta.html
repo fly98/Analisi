@@ -193,7 +193,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif
 .modal-body { padding: 20px 24px 24px; }
 .form-group { margin-bottom: 14px; }
 .form-label { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 5px; display: block; }
-.form-input { width: 100%; padding: 10px 12px; border-radius: 10px;
+.form-input { width: 100%; padding: 10px 12px; border-radius: 10px; box-sizing: border-box;
   border: 1.5px solid var(--gray2); font-size: 15px; outline: none; transition: border-color 0.15s;
   min-height: 42px; background: var(--surface); color: var(--text); }
 .form-input:focus { border-color: var(--blue); background: #fff; }
@@ -1464,31 +1464,35 @@ function addSplit(split = null) {
 
   amtDisplay.addEventListener('click', function() { openNumpad(amtDisplay, amtHidden); });
 
-  // Categoria a cascata (madre → figlia)
-  const catDiv = document.createElement('div');
-  catDiv.className = 'split-cat-cascade';
-  catDiv.style.cssText = 'margin-top:8px;';
-  catDiv.innerHTML = buildCatCascade(split?.categoryId || null);
+  // Riga: importo + categoria + elimina
+  const bottom = document.createElement('div');
+  bottom.style.cssText = 'display:flex;gap:8px;align-items:center;margin-top:8px;';
+
+  const catBtn = document.createElement('button');
+  catBtn.className = 'form-input split-cat-btn';
+  catBtn.style.cssText = 'flex:1;text-align:left;font-size:13px;cursor:pointer;color:var(--muted);background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;';
+  catBtn.dataset.catId = split?.categoryId || '';
+  var catLabel = split?.categoryId ? getCatName(split.categoryId) : '— Categoria —';
+  catBtn.textContent = catLabel;
+  catBtn.onclick = function() { openCatPicker(catBtn); };
 
   const delBtn = document.createElement('button');
   delBtn.className = 'btn-icon';
-  delBtn.style.cssText = 'margin-top:8px;align-self:flex-start;';
   delBtn.textContent = '✕';
   delBtn.onclick = function() { row.remove(); };
 
+  bottom.appendChild(catBtn);
+  bottom.appendChild(delBtn);
   row.appendChild(amtDisplay);
   row.appendChild(amtHidden);
-  row.appendChild(catDiv);
-  row.appendChild(delBtn);
+  row.appendChild(bottom);
   container.appendChild(row);
 }
 
 // Legge categoryId da un split-row
 function getSplitCategoryId(row) {
-  var cascade = row.querySelector('.split-cat-cascade');
-  if (cascade) return getCatCascadeValue(cascade);
-  var sel = row.querySelector('.split-cat');
-  return sel ? sel.value : '';
+  var btn = row.querySelector('.split-cat-btn');
+  return btn ? (btn.dataset.catId || '') : '';
 }
 
 // ── Numpad ────────────────────────────────────────────────────────────────────
@@ -4278,6 +4282,127 @@ async function confirmCatMerge() {
   }
 }
 
+
+
+// ── CATEGORY PICKER ──────────────────────────────────────────────────────────
+var _catPickerBtn = null;
+
+function openCatPicker(btn) {
+  _catPickerBtn = btn;
+  if (!meta) return;
+  var cats = meta.categories.filter(function(c) { return c.hidden !== true; });
+  var allIds = new Set(cats.map(function(c) { return c.id; }));
+  var roots = cats.filter(function(c) {
+    return !c.parentId || !allIds.has(c.parentId);
+  }).sort(function(a,b) { return a.name.localeCompare(b.name); });
+
+  _renderCatPicker(roots, cats, null);
+}
+
+function _renderCatPicker(roots, cats, parentId) {
+  var existing = document.getElementById('cat-picker-sheet');
+  if (existing) existing.remove();
+
+  var sheet = document.createElement('div');
+  sheet.id = 'cat-picker-sheet';
+  sheet.style.cssText = 'position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center';
+  sheet.onclick = function(e) { if(e.target===sheet) sheet.remove(); };
+
+  var inner = document.createElement('div');
+  inner.style.cssText = 'background:var(--bg);border-radius:20px 20px 0 0;width:min(540px,100%);max-height:70vh;display:flex;flex-direction:column;box-shadow:0 -4px 32px rgba(0,0,0,.2);';
+
+  var header = document.createElement('div');
+  header.style.cssText = 'padding:14px 16px 10px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);flex-shrink:0';
+
+  if (parentId) {
+    var back = document.createElement('button');
+    back.textContent = '‹';
+    back.style.cssText = 'background:none;border:none;font-size:22px;cursor:pointer;color:var(--blue);padding:0 6px';
+    back.onclick = function() {
+      var allIds = new Set(meta.categories.map(function(c){return c.id;}));
+      var roots2 = meta.categories.filter(function(c){ return c.hidden!==true && (!c.parentId||!allIds.has(c.parentId)); })
+        .sort(function(a,b){return a.name.localeCompare(b.name);});
+      _renderCatPicker(roots2, meta.categories, null);
+    };
+    header.appendChild(back);
+  }
+
+  var title = document.createElement('span');
+  var par = parentId ? meta.categories.find(function(c){return c.id===parentId;}) : null;
+  title.textContent = par ? (par.icon?par.icon+' ':'')+par.name : 'Seleziona categoria';
+  title.style.cssText = 'flex:1;font-size:15px;font-weight:700';
+  header.appendChild(title);
+
+  var closeBtn = document.createElement('button');
+  closeBtn.textContent = '✕';
+  closeBtn.style.cssText = 'background:none;border:none;font-size:18px;cursor:pointer;color:var(--muted)';
+  closeBtn.onclick = function() { sheet.remove(); };
+  header.appendChild(closeBtn);
+
+  var list = document.createElement('div');
+  list.style.cssText = 'overflow-y:auto;padding:8px 0';
+
+  var items = parentId
+    ? meta.categories.filter(function(c){ return c.hidden!==true && c.parentId===parentId; }).sort(function(a,b){return a.name.localeCompare(b.name);})
+    : roots;
+
+  items.forEach(function(c) {
+    var allIds2 = new Set(meta.categories.map(function(x){return x.id;}));
+    var children = meta.categories.filter(function(x){ return x.hidden!==true && x.parentId===c.id; });
+    var hasChildren = children.length > 0;
+
+    var item = document.createElement('div');
+    item.style.cssText = 'display:flex;align-items:center;padding:13px 18px;cursor:pointer;border-bottom:1px solid var(--border);gap:10px';
+    item.onmouseover = function(){ item.style.background='var(--gray2)'; };
+    item.onmouseout  = function(){ item.style.background=''; };
+
+    var lbl = document.createElement('span');
+    lbl.style.cssText = 'flex:1;font-size:15px';
+    lbl.textContent = (c.icon?c.icon+' ':'')+c.name;
+    item.appendChild(lbl);
+
+    if (hasChildren) {
+      var arr = document.createElement('span');
+      arr.textContent = '›';
+      arr.style.cssText = 'color:var(--muted);font-size:18px';
+      item.appendChild(arr);
+      item.onclick = function() {
+        _renderCatPicker(roots, meta.categories, c.id);
+      };
+    } else {
+      item.onclick = function() {
+        _selectCat(c.id, (c.icon?c.icon+' ':'')+c.name);
+        sheet.remove();
+      };
+    }
+    list.appendChild(item);
+  });
+
+  // Se siamo in una parent, aggiungi opzione "Seleziona questa categoria"
+  if (parentId && par) {
+    var selParent = document.createElement('div');
+    selParent.style.cssText = 'display:flex;align-items:center;padding:13px 18px;cursor:pointer;background:var(--blue)10;border-bottom:1px solid var(--border)';
+    selParent.innerHTML = '<span style="flex:1;font-size:14px;color:var(--blue);font-weight:600">Usa "' + (par.icon?par.icon+' ':'')+par.name + '" direttamente</span>';
+    selParent.onclick = function() {
+      _selectCat(par.id, (par.icon?par.icon+' ':'')+par.name);
+      sheet.remove();
+    };
+    list.insertBefore(selParent, list.firstChild);
+  }
+
+  inner.appendChild(header);
+  inner.appendChild(list);
+  sheet.appendChild(inner);
+  document.body.appendChild(sheet);
+}
+
+function _selectCat(catId, catName) {
+  if (_catPickerBtn) {
+    _catPickerBtn.dataset.catId = catId;
+    _catPickerBtn.textContent = catName;
+    _catPickerBtn.style.color = 'var(--text)';
+  }
+}
 
 // ── FINECO INVESTIMENTI ──────────────────────────────────────────────────────
 
