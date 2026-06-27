@@ -618,6 +618,7 @@ select.form-input { height: 42px; }
   }
   #tx-header {
     min-width: 580px;
+    width: max-content;
     position: sticky !important;
     top: 0;
     z-index: 10;
@@ -1366,9 +1367,18 @@ function renderTxList() {
       const label = new Date(y, m-1, 1).toLocaleString('it-IT', {month:'long', year:'numeric'});
       const mTxs = filteredTxs.filter(t => t.date.startsWith(month));
       const mOut = mTxs.reduce((s,t)=>{ const a=getTxAmount(t); return a<0?s+Math.abs(a):s; },0);
+      const mIn  = mTxs.reduce((s,t)=>{ const a=getTxAmount(t); return a>0?s+a:s; },0);
       const hdr = document.createElement('div');
       hdr.className = 'tx-month-hdr';
-      hdr.innerHTML = `<span class="mhl">${label}</span><span class="mhc">${mTxs.length} transazioni</span><span class="mht">Uscite: ${fmt(-mOut)}</span>`;
+      var mSaldo = mIn - mOut; // mOut è già negativo
+      var saldoCol = mSaldo >= 0 ? 'var(--green,#28a745)' : 'var(--red,#dc3545)';
+      hdr.innerHTML = '<span class="mhl">' + label + '</span>' +
+        '<span class="mhc">' + mTxs.length + ' tx</span>' +
+        '<span class="mht" style="display:flex;gap:10px;align-items:center">' +
+          '<span style="color:#28a745">↑ ' + fmt(mIn) + '</span>' +
+          '<span style="color:#dc3545">↓ ' + fmt(-mOut) + '</span>' +
+          '<span style="color:' + saldoCol + '">⚖ ' + fmt(mSaldo) + '</span>' +
+        '</span>';
       body.appendChild(hdr);
     }
 
