@@ -3991,12 +3991,34 @@ function renderStrumentiView() {
   view.innerHTML = toolbar + tabsHtml + boxHtml + tableHtml;
 }
 
+function dbg(msg, col) {
+  var el = document.getElementById('icompta-debug');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'icompta-debug';
+    el.style.cssText = 'position:fixed;bottom:0;left:0;right:0;max-height:200px;overflow-y:auto;background:#000;color:#0f0;font-family:monospace;font-size:11px;padding:6px;z-index:9999;border-top:2px solid #0f0';
+    el.innerHTML = '<div style="color:#fff;font-weight:bold">Debug <button onclick="document.getElementById('icompta-debug').remove()" style="float:right;background:none;border:none;color:#fff;cursor:pointer">✕</button></div>';
+    document.body.appendChild(el);
+  }
+  var line = document.createElement('div');
+  line.style.color = col||'#0f0';
+  line.textContent = new Date().toLocaleTimeString('it-IT') + ' ' + msg;
+  el.appendChild(line);
+  el.scrollTop = el.scrollHeight;
+}
+window.onerror = function(msg,src,line) { dbg('ERROR: '+msg+' ('+line+')', '#f00'); };
+window.onunhandledrejection = function(e) { dbg('PROMISE: '+(e.reason&&e.reason.message||e.reason), '#f80'); };
+
 async function handleXLSImport(e) {
+  dbg('handleXLSImport chiamata');
   var file = e.target.files[0];
-  if (!file) return;
-  if (typeof XLSX === 'undefined') { alert('Errore: libreria XLSX non caricata. Ricarica la pagina.'); return; }
+  if (!file) { dbg('Nessun file!', '#f00'); return; }
+  dbg('File: ' + file.name + ' (' + file.size + ' bytes)');
+  if (typeof XLSX === 'undefined') { dbg('XLSX undefined!', '#f00'); alert('Errore: libreria XLSX non caricata. Ricarica la pagina.'); return; }
+  dbg('XLSX OK, leggo...');
   try {
     var buf = await file.arrayBuffer();
+    dbg('arrayBuffer OK: ' + buf.byteLength + ' bytes');
     var wb = XLSX.read(new Uint8Array(buf), {type:'array'});
     var ws = wb.Sheets[wb.SheetNames[0]];
     var rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:null});
@@ -4006,7 +4028,8 @@ async function handleXLSImport(e) {
     for (var i=0;i<rows.length;i++) {
       if (rows[i]&&rows[i].some(function(c){return c&&String(c).trim()==='ISIN';})) { hi=i; break; }
     }
-    if (hi<0) { alert('Formato non riconosciuto: colonna ISIN non trovata'); return; }
+    dbg('rows: '+rows.length+', hi: '+hi);
+    if (hi<0) { dbg('ISIN non trovata!','#f00'); alert('Formato non riconosciuto: colonna ISIN non trovata'); return; }
 
     var h = rows[hi].map(function(c){return c?String(c).trim():'';});
     var C = {
@@ -4030,7 +4053,8 @@ async function handleXLSImport(e) {
       strumenti.push({nome:nome, isin:isin, tipo:tipo, vc:vc, vm:vm});
     }
 
-    if (strumenti.length===0) { alert('Nessuno strumento trovato nel file'); return; }
+    dbg('strumenti trovati: '+strumenti.length);
+    if (strumenti.length===0) { dbg('0 strumenti!','#f00'); alert('Nessuno strumento trovato nel file'); return; }
 
     var oggi=new Date().toLocaleDateString('it-IT');
     localStorage.setItem('fineco_inv_date', oggi);
@@ -4049,6 +4073,7 @@ async function handleXLSImport(e) {
       'Mercato: '+fmt(totVM)+'\n'+
       'P&L:     '+(pl>=0?'+':'')+fmt(pl)+' ('+(pl>=0?'+':'')+pct.toFixed(2)+'%)');
   } catch(err) {
+    dbg('CATCH: '+err.message, '#f00');
     alert('❌ Errore import: '+err.message);
   }
 }
