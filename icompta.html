@@ -4063,11 +4063,15 @@ function openEditCategoria(catId) {
 
 function _fillParentSelect(selectedParentId) {
   var sel = document.getElementById('cat-edit-parent');
-  var cats = meta.categories.filter(function(c) { return !c.parentId; });
+  var allIds = new Set(meta.categories.map(function(c) { return c.id; }));
+  // Root = senza parentId O con parentId che non esiste (stessa logica dell'albero)
+  var cats = meta.categories.filter(function(c) {
+    return !c.parentId || !allIds.has(c.parentId);
+  });
   cats.sort(function(a,b) { return a.name.localeCompare(b.name); });
   sel.innerHTML = '<option value="">— Categoria radice —</option>' +
     cats.map(function(c) {
-      return '<option value="' + c.id + '"' + (c.id===selectedParentId?' selected':'') + '>' + (c.icon?c.icon+' ':'') + c.name + '</option>';
+      return '<option value="' + c.id + '"' + (c.id===selectedParentId?' selected':'') + '>' + (c.icon?c.icon+' ':'') + esc(c.name) + '</option>';
     }).join('');
 }
 
