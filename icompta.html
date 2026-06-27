@@ -2363,24 +2363,30 @@ function sellaRenderTable(movs) {
     var m=movs[i];
     var amtCls=m.importo>=0?'sella-amt-pos':'sella-amt-neg';
     var amtStr=(m.importo>=0?'+':'')+m.importo.toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2})+' \u20ac';
-    var opts = buildCatOptions(m.catObj ? m.catObj.id : null);
+    var catLabel = m.catObj ? getCatName(m.catObj.id) : '— Categoria —';
+    var catStyle = m.catObj ? 'color:var(--text)' : 'color:var(--muted)';
     rows+='<tr class="'+(m.isDup?' dup-row':'')+'" id="sella-row-'+i+'">'+
       '<td style="white-space:nowrap;color:var(--muted);font-size:12px">'+m.dataOp+'</td>'+
       '<td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+esc(m.desc)+'">'+esc(m.desc)+'</td>'+
       '<td class="'+amtCls+'" style="white-space:nowrap;text-align:right">'+amtStr+'</td>'+
-      '<td><select class="sella-cat-sel" onchange="sellaSetCat('+i+',this.value)">'+opts+'</select></td>'+
+      '<td><button class="sella-cat-btn" data-idx="'+i+'" style="'+catStyle+';font-size:12px;padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg);cursor:pointer;white-space:nowrap;max-width:130px;overflow:hidden;text-overflow:ellipsis">'+esc(catLabel)+'</button></td>'+
       '<td style="text-align:center"><button class="sella-tog '+(m.includi?'on':'off')+'" onclick="sellaToggle('+i+')" title="'+(m.isDup?'Gi\u00e0 presente':'')+'"></button></td>'+
       '</tr>';
   }
   tbody.innerHTML=rows;
-  // Safari non rispetta sempre l'attributo "selected" iniettato via innerHTML —
-  // impostiamo il valore dei select esplicitamente dopo il render
-  for (var i=0;i<movs.length;i++) {
-    if (movs[i].catObj) {
-      var sel = tbody.querySelector('#sella-row-'+i+' .sella-cat-sel');
-      if (sel) sel.value = movs[i].catObj.id;
-    }
-  }
+  // Event delegation per cat picker
+  tbody.querySelectorAll('.sella-cat-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var idx = parseInt(btn.dataset.idx);
+      _catPickerBtn = btn;
+      _catPickerCallback = function(catId, catName) {
+        btn.textContent = catName;
+        btn.style.color = 'var(--text)';
+        sellaSetCat(idx, catId);
+      };
+      openCatPicker(btn);
+    });
+  });
 }
 
 function sellaSetCat(i, catId) {
@@ -3738,20 +3744,32 @@ function sellapRenderTable() {
     var m = sellapMovimenti[i];
     var amtCls = m.importo >= 0 ? 'sella-amt-pos' : 'sella-amt-neg';
     var amtStr = (m.importo >= 0 ? '+' : '') + m.importo.toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2}) + ' \u20ac';
-    var opts = buildCatOptions(m.catObj ? m.catObj.id : null);
+    var catLabelP = m.catObj ? getCatName(m.catObj.id) : '— Categoria —';
+    var catStyleP = m.catObj ? 'color:var(--text)' : 'color:var(--muted)';
     rows += '<tr style="'+(m.isDup?'opacity:.45;text-decoration:line-through':'')+'" id="sellap-row-'+i+'">'+
       '<td style="white-space:nowrap;color:var(--muted);font-size:12px;padding:6px 8px">'+m.dataOp+'</td>'+
       '<td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:6px 8px" title="'+esc(m.desc)+'">'+esc(m.desc)+'</td>'+
       '<td class="'+amtCls+'" style="white-space:nowrap;text-align:right;padding:6px 8px">'+amtStr+'</td>'+
-      '<td style="padding:4px 8px"><select class="sella-cat-sel" onchange="sellapSetCat('+i+',this.value)">'+opts+'</select></td>'+
+      '<td style="padding:4px 8px"><button class="sellap-cat-btn" data-idx="'+i+'" style="'+catStyleP+';font-size:12px;padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg);cursor:pointer;white-space:nowrap;max-width:130px;overflow:hidden;text-overflow:ellipsis">'+esc(catLabelP)+'</button></td>'+
       '<td style="text-align:center;padding:6px 8px"><button class="sella-tog '+(m.includi?'on':'off')+'" onclick="sellapToggle('+i+')" title="'+(m.isDup?'Gi\u00e0 presente':'')+'"></button></td>'+
       '</tr>';
   }
   tbody.innerHTML = rows;
+  tbody.querySelectorAll('.sellap-cat-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var idx = parseInt(btn.dataset.idx);
+      _catPickerBtn = null;
+      _catPickerCallback = function(catId, catName) {
+        btn.textContent = catName;
+        btn.style.color = 'var(--text)';
+        sellapSetCat(idx, catId);
+      };
+      openCatPicker(btn);
+    });
+  });
   for (var i = 0; i < sellapMovimenti.length; i++) {
     if (sellapMovimenti[i].catObj) {
-      var sel = tbody.querySelector('#sellap-row-'+i+' .sella-cat-sel');
-      if (sel) sel.value = sellapMovimenti[i].catObj.id;
+      var sel2 = null; // non più select, niente da fare
     }
   }
 }
@@ -4390,6 +4408,7 @@ async function confirmCatMerge() {
 
 // ── CATEGORY PICKER ──────────────────────────────────────────────────────────
 var _catPickerBtn = null;
+var _catPickerCallback = null;
 
 function openCatPicker(btn) {
   _catPickerBtn = btn;
@@ -4501,7 +4520,10 @@ function _renderCatPicker(roots, cats, parentId) {
 }
 
 function _selectCat(catId, catName) {
-  if (_catPickerBtn) {
+  if (_catPickerCallback) {
+    _catPickerCallback(catId, catName);
+    _catPickerCallback = null;
+  } else if (_catPickerBtn) {
     _catPickerBtn.dataset.catId = catId;
     _catPickerBtn.textContent = catName;
     _catPickerBtn.style.color = 'var(--text)';
