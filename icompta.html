@@ -3948,6 +3948,9 @@ function renderCategorieTree() {
   var q = (document.getElementById('cat-search').value || '').toLowerCase();
   var cats = meta.categories;
 
+  // Root = categorie senza parentId O con parentId che non esiste
+  var allIds = new Set(cats.map(function(c) { return c.id; }));
+
   // Filtra per ricerca
   var visibleIds = new Set();
   if (q) {
@@ -3963,9 +3966,6 @@ function renderCategorieTree() {
       }
     });
   }
-
-  // Root = categorie senza parentId O con parentId che non esiste
-  var allIds = new Set(cats.map(function(c) { return c.id; }));
   var roots = cats.filter(function(c) {
     var isRoot = !c.parentId || !allIds.has(c.parentId);
     return isRoot && (!q || visibleIds.has(c.id));
