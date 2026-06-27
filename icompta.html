@@ -3849,45 +3849,54 @@ async function sellapAutoDownload() {
 <script>
 
 
-// ── STUB funzioni titoli (semplificate) ──────────────────────────────────────
-var titoliState = { strumenti: {}, carico: 0 };
+// ── FINECO INVESTIMENTI ──────────────────────────────────────────────────────
+// Logica semplice: strumenti caricati da file XLS Fineco via localStorage
+// Struttura strumento: { nome, isin, tipo, quantita, pmc, valMercato }
+// tipo: 'PCT' per obbligazioni (valore = quantita*prezzo/100), 'UNIT' per ETF/ETC
+
+var _strumentiFineco = []; // cache in memoria
+
+function _saveStrumenti(strumenti) {
+  _strumentiFineco = strumenti;
+  try { localStorage.setItem('fineco_inv_v1', JSON.stringify(strumenti)); } catch(e) {}
+}
+
+function _loadStrumenti() {
+  if (_strumentiFineco.length > 0) return _strumentiFineco;
+  try {
+    var raw = localStorage.getItem('fineco_inv_v1');
+    if (raw) { _strumentiFineco = JSON.parse(raw); }
+  } catch(e) {}
+  return _strumentiFineco;
+}
+
+function calcolaValoreMercato(contoId) {
+  var strumenti = _loadStrumenti();
+  return strumenti.reduce(function(sum, s) {
+    return sum + (s.valMercato || 0);
+  }, 0);
+}
+
 function aggiornaBilancesTitoli() {
   if (!balances) return;
   if (!balances.accounts) balances.accounts = {};
   if (!balances.groups) balances.groups = {};
-  // Inietta valore mercato Fineco Investimenti
   balances.accounts['ACC-FINECO-INV'] = Math.round(calcolaValoreMercato('fineco-inv') * 100) / 100;
-  // Ricalcola totale gruppo GRP-CONTI-TITOLI sommando tutti i suoi conti
   if (meta && meta.accounts) {
     var totCT = 0;
     for (var a of meta.accounts) {
-      if (a.groupId === 'GRP-CONTI-TITOLI') {
-        totCT += balances.accounts[a.id] || 0;
-      }
+      if (a.groupId === 'GRP-CONTI-TITOLI') totCT += balances.accounts[a.id] || 0;
     }
     balances.groups['GRP-CONTI-TITOLI'] = Math.round(totCT * 100) / 100;
   }
 }
-function calcolaValoreMercato(contoId) {
-  const strumenti = titoliState.strumenti[contoId] || [];
-  return strumenti.reduce((sum, s) => {
-    return sum + (s.tipo === 'PCT' ? (s.quantita * (s.prezzoAttuale || s.pmc)) / 100 : s.quantita * (s.prezzoAttuale || s.pmc));
-  }, 0);
-}
+
 function loadContiTitoli() {
-  // Carica strumenti da localStorage
-  try {
-    var cached = localStorage.getItem('titoli_strumenti_fineco-inv');
-    if (cached) titoliState.strumenti['fineco-inv'] = JSON.parse(cached);
-  } catch(e) {}
+  _loadStrumenti();
   aggiornaBilancesTitoli();
   return Promise.resolve();
 }
 
-function refreshTitoliSidebar() {
-  aggiornaBilancesTitoli();
-  if (meta) { renderSidebar(); updateTotalBalance(); }
-}
 function showTxView() {
   var sv = document.getElementById('strumenti-view');
   if (sv) sv.style.display = 'none';
@@ -3895,10 +3904,12 @@ function showTxView() {
     var el = document.getElementById(id); if (el) el.style.display = '';
   });
 }
+
 function renderInvestimentiSidebar() {}
 function renderContiTitoliSidebar() { aggiornaBilancesTitoli(); if (meta) renderSidebar(); }
 function toggleInvestimentiGroup() {}
 function openEditCarico() {}
+function refreshTitoliSidebar() { aggiornaBilancesTitoli(); if (meta) { renderSidebar(); updateTotalBalance(); } }
 
 function selectStrumenti(contoId, nome) {
   _contoCorrenteId = contoId;
@@ -3911,44 +3922,46 @@ function selectStrumenti(contoId, nome) {
   });
   var sv = document.getElementById('strumenti-view');
   if (sv) sv.style.display = 'block';
-  renderStrumentiView(contoId);
+  renderStrumentiView();
 }
 
-function renderStrumentiView(contoId) {
-  var strumenti = titoliState.strumenti[contoId] || [];
+function renderStrumentiView() {
+  var strumenti = _loadStrumenti();
   var view = document.getElementById('strumenti-view-content');
   if (!view) return;
 
+  // Toolbar con input file diretto (funziona su iPad Safari)
   var toolbar = '<div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">' +
-    '<button id="btn-import-xls-fineco" onclick="openImportXLSCurrent()" style="padding:7px 14px;border-radius:8px;border:1px solid var(--border);background:none;cursor:pointer;font-size:13px;color:var(--muted)">📂 Importa XLS Fineco</button>' +
-    '<button id="btn-aggiorna-prezzi" onclick="aggiornaPrezziConto()" style="padding:7px 14px;border-radius:8px;border:none;background:var(--blue);color:#fff;font-size:13px;font-weight:600;cursor:pointer">🔄 Aggiorna prezzi</button>' +
+    '<label style="padding:7px 14px;border-radius:8px;border:1px solid var(--border);cursor:pointer;font-size:13px;color:var(--muted);display:inline-flex;align-items:center;gap:6px">' +
+    '📂 Importa XLS Fineco' +
+    '<input type="file" accept=".xls,.xlsx" style="display:none" onchange="handleXLSImport(event)">' +
+    '</label>' +
     '</div>';
 
   if (strumenti.length === 0) {
-    view.innerHTML = toolbar + '<div style="text-align:center;padding:60px;color:var(--muted)">Nessuno strumento. Importa il file XLS dal portafoglio Fineco.</div>';
+    view.innerHTML = toolbar +
+      '<p style="text-align:center;padding:60px;color:var(--muted)">Nessuno strumento.<br>Importa il file XLS dal portafoglio Fineco.</p>';
     return;
   }
 
-  var totCarico = 0, totMercato = 0;
-  var rows = '';
+  var totCarico = 0, totMercato = 0, rows = '';
   for (var s of strumenti) {
-    var carico  = s.tipo === 'PCT' ? (s.quantita * s.pmc) / 100 : s.quantita * s.pmc;
-    var mercato = s.tipo === 'PCT' ? (s.quantita * (s.prezzoAttuale || s.pmc)) / 100 : s.quantita * (s.prezzoAttuale || s.pmc);
-    var pl = mercato - carico;
-    var plPct = carico > 0 ? (pl / carico * 100) : 0;
-    var plColor = pl >= 0 ? 'var(--green,#28a745)' : 'var(--red,#dc3545)';
-    totCarico += carico; totMercato += mercato;
+    var pl = (s.valMercato || 0) - (s.valCarico || 0);
+    var plPct = s.valCarico > 0 ? (pl / s.valCarico * 100) : 0;
+    var plCol = pl >= 0 ? '#28a745' : '#dc3545';
+    totCarico += s.valCarico || 0;
+    totMercato += s.valMercato || 0;
     rows += '<tr style="border-bottom:1px solid var(--border)">' +
-      '<td style="padding:9px 10px;font-size:13px">' + s.nome + '</td>' +
-      '<td style="padding:9px 10px;font-size:11px;color:var(--muted);font-family:monospace">' + (s.isin||'—') + '</td>' +
-      '<td style="padding:9px 10px;text-align:right">' + fmt(carico) + '</td>' +
-      '<td style="padding:9px 10px;text-align:right">' + fmt(mercato) + '</td>' +
-      '<td style="padding:9px 10px;text-align:right;font-weight:600;color:' + plColor + '">' +
-        (pl>=0?'+':'') + fmt(pl) + '<br><span style="font-size:10px">' + (pl>=0?'+':'') + plPct.toFixed(2) + '%</span>' +
+      '<td style="padding:9px 10px;font-size:13px;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + s.nome + '</td>' +
+      '<td style="padding:9px 10px;font-size:10px;color:var(--muted);font-family:monospace">' + (s.isin||'—') + '</td>' +
+      '<td style="padding:9px 10px;text-align:right">' + fmt(s.valCarico||0) + '</td>' +
+      '<td style="padding:9px 10px;text-align:right;font-weight:600">' + fmt(s.valMercato||0) + '</td>' +
+      '<td style="padding:9px 10px;text-align:right;font-size:11px;font-weight:600;color:' + plCol + '">' +
+        (pl>=0?'+':'') + fmt(pl) + '<br>' + (pl>=0?'+':'') + plPct.toFixed(2) + '%' +
       '</td></tr>';
   }
   var totPL = totMercato - totCarico;
-  var totPLColor = totPL >= 0 ? 'var(--green,#28a745)' : 'var(--red,#dc3545)';
+  var totPLCol = totPL >= 0 ? '#28a745' : '#dc3545';
   var totPLPct = totCarico > 0 ? (totPL/totCarico*100) : 0;
 
   view.innerHTML = toolbar +
@@ -3961,7 +3974,7 @@ function renderStrumentiView(contoId) {
         '<div style="font-size:17px;font-weight:700">' + fmt(totMercato) + '</div></div>' +
       '<div style="flex:1;min-width:120px;background:var(--surface,#fff);border-radius:10px;padding:12px 14px;border:1px solid var(--border)">' +
         '<div style="font-size:11px;color:var(--muted)">P&L totale</div>' +
-        '<div style="font-size:17px;font-weight:700;color:' + totPLColor + '">' +
+        '<div style="font-size:17px;font-weight:700;color:' + totPLCol + '">' +
           (totPL>=0?'+':'') + fmt(totPL) + ' (' + (totPL>=0?'+':'') + totPLPct.toFixed(2) + '%)</div></div>' +
     '</div>' +
     '<div style="overflow-x:auto;background:var(--surface,#fff);border-radius:10px;border:1px solid var(--border)">' +
@@ -3969,29 +3982,83 @@ function renderStrumentiView(contoId) {
         '<thead><tr style="background:var(--bg,#f5f5f5)">' +
           '<th style="text-align:left;padding:10px;font-size:11px;color:var(--muted)">Strumento</th>' +
           '<th style="text-align:left;padding:10px;font-size:11px;color:var(--muted)">ISIN</th>' +
-          '<th style="text-align:right;padding:10px;font-size:11px;color:var(--muted)">Carico</th>' +
-          '<th style="text-align:right;padding:10px;font-size:11px;color:var(--muted)">Mercato</th>' +
+          '<th style="text-align:right;padding:10px;font-size:11px;color:var(--muted)">Carico €</th>' +
+          '<th style="text-align:right;padding:10px;font-size:11px;color:var(--muted)">Mercato €</th>' +
           '<th style="text-align:right;padding:10px;font-size:11px;color:var(--muted)">P&L</th>' +
-        '</tr></thead><tbody>' + rows + '</tbody></table></div>';
+        '</tr></thead>' +
+        '<tbody>' + rows + '</tbody>' +
+        '<tfoot><tr style="font-weight:700;background:var(--bg,#f5f5f5)">' +
+          '<td colspan="2" style="padding:10px">Totale</td>' +
+          '<td style="padding:10px;text-align:right">' + fmt(totCarico) + '</td>' +
+          '<td style="padding:10px;text-align:right">' + fmt(totMercato) + '</td>' +
+          '<td style="padding:10px;text-align:right;color:' + totPLCol + '">' + (totPL>=0?'+':'') + fmt(totPL) + '</td>' +
+        '</tr></tfoot>' +
+      '</table></div>';
 }
 
-async function aggiornaPrezziConto() {
-  var contoId = _contoCorrenteId;
-  var btn = document.getElementById('btn-aggiorna-prezzi');
-  if (btn) { btn.textContent = '⏳...'; btn.disabled = true; }
+async function handleXLSImport(e) {
+  var file = e.target.files[0];
+  if (!file) return;
+  if (typeof XLSX === 'undefined') { alert('Libreria XLS non disponibile, ricarica la pagina'); return; }
+
   try {
-    var res = await titoliApi('GET', '/api/titoli/prezzi/' + contoId);
-    var updated = await titoliApi('GET', '/api/titoli/strumenti/' + contoId);
-    if (updated.ok && Array.isArray(updated.data) && updated.data.length > 0) {
-      titoliState.strumenti[contoId] = updated.data;
-      localStorage.setItem('titoli_strumenti_' + contoId, JSON.stringify(updated.data));
+    var buf = await file.arrayBuffer();
+    var wb = XLSX.read(new Uint8Array(buf), { type: 'array' });
+    var ws = wb.Sheets[wb.SheetNames[0]];
+    var rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null });
+
+    // Trova riga header con "ISIN"
+    var hi = -1;
+    for (var i = 0; i < rows.length; i++) {
+      if (rows[i] && rows[i].some(function(c) { return c && String(c).trim() === 'ISIN'; })) { hi = i; break; }
     }
+    if (hi === -1) { alert('Formato non riconosciuto: colonna ISIN non trovata'); return; }
+
+    var h = rows[hi].map(function(c) { return c ? String(c).trim() : ''; });
+    var nCol   = h.indexOf('Titolo');
+    var iCol   = h.indexOf('ISIN');
+    var qCol   = h.findIndex(function(x) { return x.includes('Quant'); });
+    var pmcCol = h.findIndex(function(x) { return x.includes('P.zo') && x.includes('carico'); });
+    var vcCol  = h.findIndex(function(x) { return x.includes('Valore') && x.includes('carico'); });
+    var vmCol  = h.findIndex(function(x) { return x.includes('Valore') && x.includes('mercato'); });
+    var tipCol = h.indexOf('Strumento');
+
+    var strumenti = [];
+    for (var i = hi + 1; i < rows.length; i++) {
+      var r = rows[i];
+      if (!r || !r[iCol] || String(r[iCol]).trim().length < 5) continue;
+      var isin = String(r[iCol]).trim();
+      var nome = nCol >= 0 && r[nCol] ? String(r[nCol]).trim() : isin;
+      var qty  = qCol >= 0 && r[qCol] != null ? parseFloat(r[qCol]) || 0 : 0;
+      var pmc  = pmcCol >= 0 && r[pmcCol] != null ? parseFloat(r[pmcCol]) || 0 : 0;
+      var vc   = vcCol >= 0 && r[vcCol] != null ? parseFloat(r[vcCol]) || 0 : 0;
+      var vm   = vmCol >= 0 && r[vmCol] != null ? parseFloat(r[vmCol]) || 0 : 0;
+      var tipRaw = tipCol >= 0 && r[tipCol] ? String(r[tipCol]).trim() : '';
+      var tipo = tipRaw === 'Obbligazione' ? 'PCT' : 'UNIT';
+      // Se valore di carico non c'è, calcolalo
+      if (vc === 0 && pmc > 0 && qty > 0) vc = tipo === 'PCT' ? (qty * pmc) / 100 : qty * pmc;
+      strumenti.push({ nome: nome, isin: isin, tipo: tipo, quantita: qty, pmc: pmc, valCarico: vc, valMercato: vm });
+    }
+
+    if (strumenti.length === 0) { alert('Nessuno strumento trovato nel file'); return; }
+
+    _saveStrumenti(strumenti);
     aggiornaBilancesTitoli();
     if (meta) renderSidebar();
-    renderStrumentiView(contoId);
-    if (btn) { btn.textContent = '✅ ' + (res.data && res.data.aggiornati || 0) + ' aggiornati'; }
-  } catch(e) { if (btn) btn.textContent = '❌ Errore'; }
-  setTimeout(function() { if (btn) { btn.textContent = '🔄 Aggiorna prezzi'; btn.disabled = false; }}, 2000);
+    updateTotalBalance();
+    renderStrumentiView();
+
+    var totC = strumenti.reduce(function(s,x) { return s + (x.valCarico||0); }, 0);
+    var totM = strumenti.reduce(function(s,x) { return s + (x.valMercato||0); }, 0);
+    var pl   = totM - totC;
+    var pct  = totC > 0 ? (pl/totC*100) : 0;
+    alert('✅ Importati ' + strumenti.length + ' strumenti\n\n' +
+      'Carico:  ' + fmt(totC) + '\n' +
+      'Mercato: ' + fmt(totM) + '\n' +
+      'P&L:     ' + (pl>=0?'+':'') + fmt(pl) + ' (' + (pl>=0?'+':'') + pct.toFixed(2) + '%)');
+  } catch(err) {
+    alert('❌ Errore: ' + err.message);
+  }
 }
 
 function titoliApi(method, path, body) {
@@ -3999,20 +4066,13 @@ function titoliApi(method, path, body) {
     method: method,
     headers: { 'Authorization': 'Bearer ' + TOKEN, 'Content-Type': 'application/json' },
     body: body ? JSON.stringify(body) : undefined
-  }).then(function(r) { return r.json().then(function(data) { return { ok: r.ok, data: data }; }); })
+  }).then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
     .catch(function(e) { return { ok: false, error: e.message }; });
 }
 
-function openFinecoImportModal() {
-  document.getElementById('modal-fineco-import').style.display = 'flex';
-}
-function closeFinecoImportModal() {
-  document.getElementById('modal-fineco-import').style.display = 'none';
-}
 function openImportXLSCurrent_inv() {
   selectStrumenti('fineco-inv', 'Fineco Investimenti');
   _contoCorrenteId = 'fineco-inv';
-  setTimeout(function() { openImportXLS('fineco-inv'); }, 300);
 }
 
 // ── FINECO AUTO (Playwright) ─────────────────────────────────────────────────
