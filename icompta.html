@@ -4412,7 +4412,7 @@ async function handleXLSImport(e) {
   const valFCol = header.findIndex(function(h) { return h.includes('Valore') && h.includes('mercato'); });
   const tipCol  = header.indexOf('Strumento');
   const symCol  = header.indexOf('Simbolo');
-  console.log('Colonne trovate — pmc:', pmcCol, 'px:', pxCol, 'valF:', valFCol, 'tip:', tipCol);
+  alert('📊 File letto: ' + rows.length + ' righe\nColonne trovate:\n- PMC: ' + pmcCol + '\n- Prezzo mercato: ' + pxCol + '\n- Valore mercato: ' + valFCol);
 
   const FONTE_MAP = {
     'VWCE.MI': 'yahoo:VWCE.MI', 'CSNDX.MI': 'yahoo:CSNDX.MI',
