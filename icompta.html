@@ -1194,6 +1194,7 @@ async function setDateCustom() {
 }
 
 async function reloadTxForRange() {
+  console.log('reloadTxForRange START acc='+selectedAccountId+' from='+dateFrom+' to='+dateTo);
   if (!selectedAccountId) { applyFilters(); return; }
   const fromYear = parseInt(dateFrom.slice(0,4));
   const toYear = parseInt(dateTo.slice(0,4));
@@ -1202,12 +1203,18 @@ async function reloadTxForRange() {
     const yr = String(y);
     if (!meta.years.includes(yr)) continue;
     if (!txCache[yr]) {
+      console.log('reloadTxForRange fetching year '+yr+'...');
       txCache[yr] = await api('GET', `/api/tx/${yr}`);
       loadedYears.add(yr);
+      console.log('reloadTxForRange year '+yr+' loaded: '+txCache[yr].length+' tx');
+    } else {
+      console.log('reloadTxForRange year '+yr+' cached: '+txCache[yr].length+' tx');
     }
     currentTxs.push(...txCache[yr]);
   }
+  console.log('reloadTxForRange applyFilters on '+currentTxs.length+' tx');
   applyFilters();
+  console.log('reloadTxForRange DONE');
 }
 
 async function selectYear(y) {
@@ -1234,19 +1241,24 @@ function showTxView() {
 }
 
 async function selectAccount(id, name) {
+  console.log('selectAccount START id='+id+' name='+name);
   if (id === 'ACC-FINECO-INV') {
+    console.log('selectAccount → selectStrumenti');
     selectStrumenti('fineco-inv', name);
     return;
   }
   selectedAccountId = id;
   document.getElementById('main-title').textContent = name;
   closeSidebar();
+  console.log('selectAccount closeSidebar done');
   document.querySelectorAll('.account-row').forEach(r => {
     r.classList.toggle('active', r.dataset.accId === id);
   });
   showTxView();
   aggiornaBottoneImport();
+  console.log('selectAccount → reloadTxForRange...');
   await reloadTxForRange();
+  console.log('selectAccount DONE');
 }
 
 // ══════════════════════════════════════════════
@@ -5246,5 +5258,55 @@ document.getElementById('fineco-xls-input').addEventListener('change', function(
   this.value = '';
 });
 </script>
+
+<!-- DEBUG CONSOLE -->
+<div id="dbg-console" style="display:none;position:fixed;bottom:0;left:0;right:0;height:220px;background:#111;color:#0f0;font-family:monospace;font-size:11px;z-index:99999;flex-direction:column">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 8px;background:#222;border-top:2px solid #0f0">
+    <span style="color:#0f0;font-weight:700">🐛 Debug Console</span>
+    <div style="display:flex;gap:8px">
+      <button onclick="document.getElementById('dbg-log').innerHTML=''" style="background:#333;color:#fff;border:none;padding:2px 8px;border-radius:4px;font-size:11px;cursor:pointer">Clear</button>
+      <button onclick="closeDbgConsole()" style="background:#c00;color:#fff;border:none;padding:2px 8px;border-radius:4px;font-size:11px;cursor:pointer">✕</button>
+    </div>
+  </div>
+  <div id="dbg-log" style="flex:1;overflow-y:auto;padding:6px 8px;word-break:break-all"></div>
+</div>
+<button id="dbg-btn" onclick="openDbgConsole()" style="display:none;position:fixed;bottom:80px;right:12px;z-index:99998;background:#111;color:#0f0;border:2px solid #0f0;border-radius:50%;width:40px;height:40px;font-size:18px;cursor:pointer;font-family:monospace">🐛</button>
+<script>
+function dbgLog() {
+  var args = Array.from(arguments);
+  var msg = args.map(function(a){ try{return typeof a==='object'?JSON.stringify(a):String(a);}catch(e){return '[obj]';} }).join(' ');
+  var el = document.getElementById('dbg-log');
+  if (!el) return;
+  var line = document.createElement('div');
+  line.style.cssText = 'border-bottom:1px solid #222;padding:2px 0';
+  var ts = new Date().toLocaleTimeString('it-IT',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  line.innerHTML = '<span style="color:#888">['+ts+']</span> ' + msg.replace(/</g,'&lt;');
+  el.appendChild(line);
+  el.scrollTop = el.scrollHeight;
+}
+function openDbgConsole() {
+  document.getElementById('dbg-console').style.display='flex';
+  document.getElementById('dbg-btn').style.display='none';
+}
+function closeDbgConsole() {
+  document.getElementById('dbg-console').style.display='none';
+  document.getElementById('dbg-btn').style.display='flex';
+}
+// Intercetto console.log/error/warn
+(function(){
+  var _log=console.log, _err=console.error, _warn=console.warn;
+  console.log=function(){dbgLog.apply(null,arguments);_log.apply(console,arguments);};
+  console.error=function(){var args=Array.from(arguments);dbgLog('❌ '+args[0]);_err.apply(console,arguments);};
+  console.warn=function(){var args=Array.from(arguments);dbgLog('⚠️ '+args[0]);_warn.apply(console,arguments);};
+  window.onerror=function(msg,src,line){dbgLog('💥 '+msg+' ('+line+')');};
+  window.onunhandledrejection=function(e){dbgLog('💥 Promise: '+(e.reason&&e.reason.message||e.reason));};
+})();
+// Attiva con triplo tap su titolo o scuotendo
+document.addEventListener('DOMContentLoaded', function(){
+  var btn = document.getElementById('dbg-btn');
+  if(btn) btn.style.display='flex';
+});
+</script>
+
 </body>
 </html>
