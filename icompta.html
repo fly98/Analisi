@@ -5202,20 +5202,21 @@ async function confermImportFinecoCC() {
   if (_sa !== null && !isNaN(_sa)) {
     var _sApp = balances && balances.accounts && balances.accounts['ACC-FINECO-CC'];
     if (_sApp !== undefined && _sApp !== null) {
-      // Somma importi Autorizzato (TX appena importate con stato autorizzato)
+      // saldoFile = solo contabilizzati
+      // saldoFile + sommaAutorizzato = saldo atteso in app (include anche non contabilizzati)
       var _autorizzatoSum = 0;
       for (var _ai = 0; _ai < _finecoPreviewData.length; _ai++) {
         if (_finecoPreviewData[_ai]._autorizzato) _autorizzatoSum += (_finecoPreviewData[_ai].amount || 0);
       }
-      var _sAppContab = Math.round((_sApp - _autorizzatoSum) * 100) / 100;
-      var _diff = Math.round(Math.abs(_sa - _sAppContab) * 100) / 100;
+      _autorizzatoSum = Math.round(_autorizzatoSum * 100) / 100;
+      var _sAtteso = Math.round((_sa + _autorizzatoSum) * 100) / 100;
+      var _diff = Math.round(Math.abs(_sAtteso - _sApp) * 100) / 100;
       if (_diff > 0.01) {
-        var _sStr = _sa.toLocaleString('it-IT',{minimumFractionDigits:2});
-        var _aStr = _sAppContab.toLocaleString('it-IT',{minimumFractionDigits:2});
+        var _sStr = _sAtteso.toLocaleString('it-IT',{minimumFractionDigits:2});
+        var _aStr = _sApp.toLocaleString('it-IT',{minimumFractionDigits:2});
         var _dStr = _diff.toLocaleString('it-IT',{minimumFractionDigits:2});
-        alert('⚠️ Saldo non coincide! File: ' + _sStr + ' € | App (solo contabilizzati): ' + _aStr + ' € | Diff: ' + _dStr + ' €. Controlla se mancano transazioni.');
+        alert('⚠️ Saldo non coincide! Atteso: ' + _sStr + ' € | App: ' + _aStr + ' € | Diff: ' + _dStr + ' €. Controlla se mancano transazioni.');
       }
-      // Se coincide: nessun messaggio
     }
   }
 }
