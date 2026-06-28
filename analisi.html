@@ -232,7 +232,7 @@ main { max-width:900px; margin:0 auto; padding:16px; display:flex;
 
 <script>
 const WORKER = 'https://icompta-worker.f-castiglioni.workers.dev';
-let TOKEN = localStorage.getItem('analisi_token') || '';
+let TOKEN = localStorage.getItem('icompta_token') || localStorage.getItem('analisi_token') || '';
 let snapshots = [];
 let strumenti = [];
 let txByYear = {};
@@ -262,7 +262,7 @@ async function doLogin() {
   TOKEN = t;
   try {
     const r = await api('GET', '/api/snapshot/last');
-    localStorage.setItem('analisi_token', TOKEN);
+    localStorage.setItem('icompta_token', TOKEN); localStorage.setItem('analisi_token', TOKEN);
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('app').style.display = 'block';
     await loadAll();
@@ -321,7 +321,8 @@ async function loadStrumenti() {
   try {
     const data = await api('GET', '/api/titoli/strumenti/fineco-inv');
     strumenti = Array.isArray(data) ? data : [];
-  } catch(e) { strumenti = []; }
+    console.log('loadStrumenti:', strumenti.length, 'strumenti');
+  } catch(e) { console.log('loadStrumenti error:', e); strumenti = []; }
 }
 
 async function loadTxFineco() {
@@ -543,6 +544,7 @@ function renderStrumenti() {
 // ─── VARIAZIONI GIORNALIERE ─────────────────────────────
 function renderVariazioni() {
   var body = document.getElementById('variazioni-body');
+  console.log('renderVariazioni: snapshots.length=', snapshots.length);
   if (snapshots.length < 2) {
     body.innerHTML = '<div class="empty" style="padding:20px">In attesa di almeno 2 snapshot per calcolare le variazioni.</div>';
     return;
