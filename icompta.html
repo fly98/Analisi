@@ -4987,7 +4987,8 @@ async function finecoAutoPortafoglio() {
 
 // ── IMPORT MOVIMENTI FINECO CC ────────────────────────────────────────────────
 var _finecoPreviewData = [];
-var _finecoSaldoAtteso = null; // righe parsate pronte per import
+var _finecoSaldoAtteso = null;
+var _finecoAutorizzatoSum = 0; // righe parsate pronte per import
 
 function openImportMovimentiCC() {
   var inp = document.getElementById('xlscc-mov-input');
@@ -5116,6 +5117,12 @@ async function handleImportMovimentiCC(e) {
   }
 
   // Mostra modal preview
+  // Calcola somma Autorizzato prima di salvare (per check saldo)
+  _finecoAutorizzatoSum = 0;
+  for (var _pi = 0; _pi < nuove.length; _pi++) {
+    if (nuove[_pi]._autorizzato) _finecoAutorizzatoSum += (nuove[_pi].amount || 0);
+  }
+  _finecoAutorizzatoSum = Math.round(_finecoAutorizzatoSum * 100) / 100;
   _finecoPreviewData = nuove;
   _finecoSaldoAtteso = _sfVal;
   mostraFinecoPreview(nuove, duplicate, nonContab.length, _sfVal);
