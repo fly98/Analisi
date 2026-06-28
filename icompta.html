@@ -1335,117 +1335,81 @@ function applyFilters() {
   renderTxList();
 }
 
-// --- Scroll infinito ---
-var _txPageSize = 60;   // righe per "pagina"
-var _txRendered = 0;    // quante righe sono state aggiunte al DOM
-var _txAmounts = [];    // pre-calcolato su filteredTxs completo
-var _txRunBal = [];     // saldo progressivo su filteredTxs completo
-var _txMonthStats = {}; // totali mese su filteredTxs completo
-var _txScrollObs = null;// IntersectionObserver sentinel
-
-function _txPrecompute() {
-  const accBal = balances?.accounts?.[selectedAccountId] ?? null;
-  _txAmounts = filteredTxs.map(tx => getTxAmount(tx));
-  _txRunBal = [];
-  if (accBal !== null) {
-    let r = accBal;
-    for (let i = 0; i < filteredTxs.length; i++) {
-      _txRunBal[i] = r;
-      r -= _txAmounts[i];
-    }
-  }
-  _txMonthStats = {};
-  for (let i = 0; i < filteredTxs.length; i++) {
-    const month = filteredTxs[i].date.slice(0,7);
-    const a = _txAmounts[i];
-    if (!_txMonthStats[month]) _txMonthStats[month] = { count:0, mIn:0, mOut:0 };
-    _txMonthStats[month].count++;
-    if (a > 0) _txMonthStats[month].mIn += a;
-    else _txMonthStats[month].mOut += Math.abs(a);
-  }
-}
-
-function _txRenderRows(body, from, to) {
-  let curMonth = from > 0 ? filteredTxs[from-1]?.date.slice(0,7) : null;
-  for (let i = from; i < to; i++) {
-    const tx = filteredTxs[i];
-    const amount = _txAmounts[i];
-    const month = tx.date.slice(0,7);
-    if (month !== curMonth) {
-      curMonth = month;
-      const [y,m] = month.split('-');
-      const label = new Date(y, m-1, 1).toLocaleString('it-IT', {month:'long', year:'numeric'});
-      const ms = _txMonthStats[month];
-      const mSaldo = ms.mIn - ms.mOut;
-      const saldoCol = mSaldo >= 0 ? 'var(--green,#28a745)' : 'var(--red,#dc3545)';
-      const hdr = document.createElement('div');
-      hdr.className = 'tx-month-hdr';
-      hdr.innerHTML = '<span class="mhl">' + label + '</span>' +
-        '<span class="mhc">' + ms.count + ' tx</span>' +
-        '<span class="mht" style="display:flex;gap:10px;align-items:center">' +
-          '<span style="color:#28a745">↑ ' + fmt(ms.mIn) + '</span>' +
-          '<span style="color:#dc3545">↓ ' + fmt(ms.mOut) + '</span>' +
-          '<span style="color:' + saldoCol + '">⚖ ' + fmt(mSaldo) + '</span>' +
-        '</span>';
-      body.appendChild(hdr);
-    }
-    const sub = tx.comment || tx.splits?.map(s=>s.comment).filter(Boolean).join(', ') || '';
-    const dateStr = tx.date.slice(8,10)+'/'+tx.date.slice(5,7)+'/'+tx.date.slice(2,4);
-    const row = document.createElement('div');
-    row.className = 'tx-row';
-    row.innerHTML =
-      '<div class="tx-c-date">'+dateStr+'</div>' +
-      '<div class="tx-c-desc"><div class="txn">'+esc(tx.name||'')+'</div>'+(sub?'<div class="txs">'+esc(sub)+'</div>':'')+'</div>' +
-      '<div class="tx-c-cat">'+(tx.splits&&tx.splits[0]?getCatBadge(tx.splits[0].categoryId):esc(tx.splits?.map(s=>getCatName(s.categoryId)).filter(Boolean).join(', ')||''))+'</div>' +
-      '<div class="tx-c-amt '+(amount>=0?'amount-pos':'amount-neg')+'">'+fmt(amount)+'</div>' +
-      '<div class="tx-c-bal">'+(_txRunBal[i]!==undefined?fmt(_txRunBal[i]):'—')+'</div>' +
-      '<div class="tx-c-trasf">'+getLinkedAccName(tx)+'</div>' +
-      '<div class="tx-del"><button onclick="event.stopPropagation();quickDelete(''+tx.id+'',''+tx.date.slice(0,4)+'')" title="Elimina">✕</button></div>';
-    row.addEventListener('click', () => openEditTx(tx));
-    body.appendChild(row);
-  }
-}
-
-function _txAttachSentinel(body) {
-  if (_txScrollObs) _txScrollObs.disconnect();
-  var sentinel = document.createElement('div');
-  sentinel.id = 'tx-sentinel';
-  sentinel.style.cssText = 'height:1px';
-  body.appendChild(sentinel);
-  _txScrollObs = new IntersectionObserver(function(entries) {
-    if (entries[0].isIntersecting && _txRendered < filteredTxs.length) {
-      var next = Math.min(_txRendered + _txPageSize, filteredTxs.length);
-      _txRenderRows(body, _txRendered, next);
-      _txRendered = next;
-      if (_txRendered >= filteredTxs.length) {
-        _txScrollObs.disconnect();
-        sentinel.remove();
-      } else {
-        // ri-attacca sentinel in fondo
-        body.appendChild(sentinel);
-        _txScrollObs.observe(sentinel);
-      }
-    }
-  }, { threshold: 0 });
-  _txScrollObs.observe(sentinel);
-}
-
+var _txRenderLimit = 200;
 function renderTxList() {
-  if (_txScrollObs) { _txScrollObs.disconnect(); _txScrollObs = null; }
   const body = document.getElementById('tx-body');
   if (!body) return;
   if (filteredTxs.length === 0) {
     body.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">Nessuna transazione</div>';
     return;
   }
-  _txPrecompute();
+  const txsToRender = filteredTxs.slice(0, _txRenderLimit);
+  const hasMore = filteredTxs.length > _txRenderLimit;
+
+  // Saldo progressivo dal saldo attuale
+  const accBal = balances?.accounts?.[selectedAccountId] ?? null;
+  const amounts = filteredTxs.map(tx => getTxAmount(tx));
+  const runBal = [];
+  if (accBal !== null) {
+    let r = accBal;
+    for (let i = 0; i < filteredTxs.length; i++) {
+      runBal[i] = r;
+      r -= amounts[i];
+    }
+  }
+
   body.innerHTML = '';
-  _txRendered = 0;
-  var first = Math.min(_txPageSize, filteredTxs.length);
-  _txRenderRows(body, 0, first);
-  _txRendered = first;
-  if (_txRendered < filteredTxs.length) {
-    _txAttachSentinel(body);
+  let curMonth = null;
+
+  for (let i = 0; i < txsToRender.length; i++) {
+    const tx = txsToRender[i];
+    const amount = amounts[i];
+    const month = tx.date.slice(0,7);
+
+    // Intestazione mese
+    if (month !== curMonth) {
+      curMonth = month;
+      const [y,m] = month.split('-');
+      const label = new Date(y, m-1, 1).toLocaleString('it-IT', {month:'long', year:'numeric'});
+      const mTxs = filteredTxs.filter(t => t.date.startsWith(month));
+      const mOut = mTxs.reduce((s,t)=>{ const a=getTxAmount(t); return a<0?s+Math.abs(a):s; },0);
+      const mIn  = mTxs.reduce((s,t)=>{ const a=getTxAmount(t); return a>0?s+a:s; },0);
+      const hdr = document.createElement('div');
+      hdr.className = 'tx-month-hdr';
+      var mSaldo = mIn - mOut; // mOut è già negativo
+      var saldoCol = mSaldo >= 0 ? 'var(--green,#28a745)' : 'var(--red,#dc3545)';
+      hdr.innerHTML = '<span class="mhl">' + label + '</span>' +
+        '<span class="mhc">' + mTxs.length + ' tx</span>' +
+        '<span class="mht" style="display:flex;gap:10px;align-items:center">' +
+          '<span style="color:#28a745">↑ ' + fmt(mIn) + '</span>' +
+          '<span style="color:#dc3545">↓ ' + fmt(-mOut) + '</span>' +
+          '<span style="color:' + saldoCol + '">⚖ ' + fmt(mSaldo) + '</span>' +
+        '</span>';
+      body.appendChild(hdr);
+    }
+
+    const cat = tx.splits?.map(s=>getCatName(s.categoryId)).filter(Boolean).join(', ') || '';
+    const sub = tx.comment || tx.splits?.map(s=>s.comment).filter(Boolean).join(', ') || '';
+    const dateStr = `${tx.date.slice(8,10)}/${tx.date.slice(5,7)}/${tx.date.slice(2,4)}`;
+
+    const row = document.createElement('div');
+    row.className = 'tx-row';
+    row.innerHTML = `
+      <div class="tx-c-date">${dateStr}</div>
+      <div class="tx-c-desc"><div class="txn">${esc(tx.name||'')}</div>${sub?`<div class="txs">${esc(sub)}</div>`:''}</div>
+      <div class="tx-c-cat">${tx.splits&&tx.splits[0]?getCatBadge(tx.splits[0].categoryId):esc(cat)}</div>
+      <div class="tx-c-amt ${amount>=0?'amount-pos':'amount-neg'}">${fmt(amount)}</div>
+      <div class="tx-c-bal">${runBal[i]!==undefined?fmt(runBal[i]):'—'}</div>
+            <div class="tx-c-trasf">${getLinkedAccName(tx)}</div>
+      <div class="tx-del"><button onclick="event.stopPropagation();quickDelete('${tx.id}','${tx.date.slice(0,4)}')" title="Elimina">✕</button></div>`;
+    row.addEventListener('click', () => openEditTx(tx));
+    body.appendChild(row);
+  }
+  if (hasMore) {
+    var moreBtn = document.createElement('div');
+    moreBtn.style.cssText = 'text-align:center;padding:16px';
+    moreBtn.innerHTML = '<button onclick="_txRenderLimit+=200;renderTxList()" style="padding:10px 24px;border-radius:10px;border:1.5px solid var(--blue);background:var(--blue-bg,#e8f0fe);color:var(--blue);font-size:14px;font-weight:600;cursor:pointer">Carica altre (' + (filteredTxs.length - _txRenderLimit) + ')</button>';
+    body.appendChild(moreBtn);
   }
 }
 
