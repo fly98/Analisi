@@ -1245,7 +1245,7 @@ async function selectAccount(id, name) {
     r.classList.toggle('active', r.dataset.accId === id);
   });
   showTxView();
-  if (typeof aggiornaBottoneImport === 'function') aggiornaBottoneImport();
+  aggiornaBottoneImport();
   await reloadTxForRange();
 }
 
@@ -1355,18 +1355,6 @@ function renderTxList() {
     }
   }
 
-  // Pre-calcola totali mensili in O(N) — evita il filter dentro il loop
-  const monthStats = {};
-  for (let i = 0; i < filteredTxs.length; i++) {
-    const tx = filteredTxs[i];
-    const month = tx.date.slice(0,7);
-    const a = amounts[i];
-    if (!monthStats[month]) monthStats[month] = { count:0, mIn:0, mOut:0 };
-    monthStats[month].count++;
-    if (a > 0) monthStats[month].mIn += a;
-    else monthStats[month].mOut += Math.abs(a);
-  }
-
   body.innerHTML = '';
   let curMonth = null;
 
@@ -1380,16 +1368,18 @@ function renderTxList() {
       curMonth = month;
       const [y,m] = month.split('-');
       const label = new Date(y, m-1, 1).toLocaleString('it-IT', {month:'long', year:'numeric'});
-      const ms = monthStats[month];
-      const mSaldo = ms.mIn - ms.mOut;
-      const saldoCol = mSaldo >= 0 ? 'var(--green,#28a745)' : 'var(--red,#dc3545)';
+      const mTxs = filteredTxs.filter(t => t.date.startsWith(month));
+      const mOut = mTxs.reduce((s,t)=>{ const a=getTxAmount(t); return a<0?s+Math.abs(a):s; },0);
+      const mIn  = mTxs.reduce((s,t)=>{ const a=getTxAmount(t); return a>0?s+a:s; },0);
       const hdr = document.createElement('div');
       hdr.className = 'tx-month-hdr';
+      var mSaldo = mIn - mOut; // mOut è già negativo
+      var saldoCol = mSaldo >= 0 ? 'var(--green,#28a745)' : 'var(--red,#dc3545)';
       hdr.innerHTML = '<span class="mhl">' + label + '</span>' +
-        '<span class="mhc">' + ms.count + ' tx</span>' +
+        '<span class="mhc">' + mTxs.length + ' tx</span>' +
         '<span class="mht" style="display:flex;gap:10px;align-items:center">' +
-          '<span style="color:#28a745">↑ ' + fmt(ms.mIn) + '</span>' +
-          '<span style="color:#dc3545">↓ ' + fmt(ms.mOut) + '</span>' +
+          '<span style="color:#28a745">↑ ' + fmt(mIn) + '</span>' +
+          '<span style="color:#dc3545">↓ ' + fmt(-mOut) + '</span>' +
           '<span style="color:' + saldoCol + '">⚖ ' + fmt(mSaldo) + '</span>' +
         '</span>';
       body.appendChild(hdr);
@@ -1684,7 +1674,7 @@ async function saveTx() {
   const splits = [];
   document.querySelectorAll('.split-row').forEach(row => {
     const amount = parseFloat(row.querySelector('.split-amount').value);
-    const categoryId = (row.querySelector('.split-cat-btn') || {}).dataset?.catId || null;
+    const categoryId = row.querySelector('.split-cat').value || null;
     const el = row.querySelector('.split-comment'); const comment = el ? el.value || null : null;
     if (!isNaN(amount)) splits.push({ amount, categoryId, comment });
   });
@@ -5256,54 +5246,5 @@ document.getElementById('fineco-xls-input').addEventListener('change', function(
   this.value = '';
 });
 </script>
-
-<!-- DEBUG CONSOLE -->
-<style>
-#dbg-fab{position:fixed;bottom:72px;right:12px;z-index:99999;width:44px;height:44px;border-radius:50%;background:#1a1a1a;border:2px solid #00ff88;color:#00ff88;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 12px rgba(0,0,0,.4)}
-#dbg-panel{position:fixed;bottom:0;left:0;right:0;height:260px;background:#1a1a1a;z-index:99998;display:none;flex-direction:column;border-top:2px solid #00ff88}
-#dbg-panel.open{display:flex}
-#dbg-toolbar{display:flex;align-items:center;padding:4px 8px;background:#111;gap:8px;flex-shrink:0}
-#dbg-toolbar span{color:#00ff88;font-family:monospace;font-size:12px;font-weight:700;flex:1}
-#dbg-toolbar button{background:#333;color:#ccc;border:none;padding:3px 10px;border-radius:4px;font-size:11px;cursor:pointer}
-#dbg-toolbar button.red{background:#c00;color:#fff}
-#dbg-out{flex:1;overflow-y:auto;padding:6px 8px;font-family:monospace;font-size:11px;color:#ccc;word-break:break-all}
-#dbg-out .e{color:#ff5555}
-#dbg-out .w{color:#ffb86c}
-#dbg-out .t{color:#555;margin-right:4px}
-</style>
-<button id="dbg-fab" onclick="dbgOpen()">🐛</button>
-<div id="dbg-panel">
-  <div id="dbg-toolbar">
-    <span>🐛 Console</span>
-    <button onclick="document.getElementById('dbg-out').innerHTML=''">Clear</button>
-    <button class="red" onclick="dbgClose()">✕</button>
-  </div>
-  <div id="dbg-out"></div>
-</div>
-<script>
-(function(){
-  function dbgClose(){ document.getElementById('dbg-panel').classList.remove('open'); document.getElementById('dbg-fab').style.display='flex'; }
-  function dbgOpen(){ document.getElementById('dbg-panel').classList.add('open'); document.getElementById('dbg-fab').style.display='none'; }
-  window.dbgClose=dbgClose; window.dbgOpen=dbgOpen;
-
-  function dbgLog(msg, cls){
-    var out=document.getElementById('dbg-out'); if(!out) return;
-    var ts=new Date().toLocaleTimeString('it-IT',{hour12:false});
-    var d=document.createElement('div'); if(cls) d.className=cls;
-    d.innerHTML='<span class="t">'+ts+'</span>'+String(msg).replace(/</g,'&lt;');
-    out.appendChild(d); out.scrollTop=out.scrollHeight;
-  }
-  window.dbgLog=dbgLog;
-
-  // Intercetta console
-  var _l=console.log,_e=console.error,_w=console.warn;
-  console.log=function(){ dbgLog(Array.from(arguments).join(' ')); _l.apply(console,arguments); };
-  console.error=function(){ dbgLog('❌ '+Array.from(arguments).join(' '),'e'); _e.apply(console,arguments); };
-  console.warn=function(){ dbgLog('⚠️ '+Array.from(arguments).join(' '),'w'); _w.apply(console,arguments); };
-  window.onerror=function(msg,src,line){ dbgLog('💥 '+msg+' (line '+line+')','e'); };
-  window.onunhandledrejection=function(e){ dbgLog('💥 Promise: '+(e.reason&&(e.reason.message||e.reason)||'unknown'),'e'); };
-})();
-</script>
-
 </body>
 </html>
