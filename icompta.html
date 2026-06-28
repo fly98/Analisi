@@ -1194,7 +1194,6 @@ async function setDateCustom() {
 }
 
 async function reloadTxForRange() {
-  console.log('reloadTxForRange START acc='+selectedAccountId+' from='+dateFrom+' to='+dateTo);
   if (!selectedAccountId) { applyFilters(); return; }
   const fromYear = parseInt(dateFrom.slice(0,4));
   const toYear = parseInt(dateTo.slice(0,4));
@@ -1203,18 +1202,18 @@ async function reloadTxForRange() {
     const yr = String(y);
     if (!meta.years.includes(yr)) continue;
     if (!txCache[yr]) {
-      console.log('reloadTxForRange fetching year '+yr+'...');
+      dbgLog('📡 fetch anno '+yr+'...');
       txCache[yr] = await api('GET', `/api/tx/${yr}`);
       loadedYears.add(yr);
-      console.log('reloadTxForRange year '+yr+' loaded: '+txCache[yr].length+' tx');
+      dbgLog('✅ anno '+yr+': '+txCache[yr].length+' tx');
     } else {
-      console.log('reloadTxForRange year '+yr+' cached: '+txCache[yr].length+' tx');
+      dbgLog('💾 cache '+yr+': '+txCache[yr].length+' tx');
     }
     currentTxs.push(...txCache[yr]);
   }
-  console.log('reloadTxForRange applyFilters on '+currentTxs.length+' tx');
+  dbgLog('🔍 applyFilters su '+currentTxs.length+' tx totali');
   applyFilters();
-  console.log('reloadTxForRange DONE');
+  dbgLog('✅ reload done');
 }
 
 async function selectYear(y) {
@@ -1241,24 +1240,22 @@ function showTxView() {
 }
 
 async function selectAccount(id, name) {
-  console.log('selectAccount START id='+id+' name='+name);
+  dbgLog('👆 selectAccount: '+name+' ('+id+')');
   if (id === 'ACC-FINECO-INV') {
-    console.log('selectAccount → selectStrumenti');
     selectStrumenti('fineco-inv', name);
     return;
   }
   selectedAccountId = id;
   document.getElementById('main-title').textContent = name;
   closeSidebar();
-  console.log('selectAccount closeSidebar done');
   document.querySelectorAll('.account-row').forEach(r => {
     r.classList.toggle('active', r.dataset.accId === id);
   });
   showTxView();
   aggiornaBottoneImport();
-  console.log('selectAccount → reloadTxForRange...');
+  dbgLog('→ reloadTxForRange...');
   await reloadTxForRange();
-  console.log('selectAccount DONE');
+  dbgLog('✅ selectAccount done');
 }
 
 // ══════════════════════════════════════════════
