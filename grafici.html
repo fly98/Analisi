@@ -326,6 +326,12 @@ const MESI_SHORT=['','Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott'
 
 // ── Main tabs ─────────────────────────────────────────────
 let _prenLoaded = false;
+// Prenotazioni è il tab di default — inizializza subito al caricamento
+document.addEventListener('DOMContentLoaded', function() {
+  _prenLoaded = true;
+  initYearChips();
+  loadAll();
+});
 function showMainTab(id, btn) {
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.main-tab').forEach(b => b.classList.remove('active'));
