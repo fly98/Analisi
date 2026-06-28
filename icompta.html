@@ -5187,15 +5187,16 @@ async function confermImportFinecoCC() {
     try { await api('POST', '/api/tx', { tx }); ok++; } catch(e) { errs++; }
   }
 
-  // Invalida cache, ricarica balance e TX — poi assicura che la view TX sia visibile
+  // Invalida cache, ricarica balance e TX
   delete txCache[String(year)];
   closeFinecoPreview();
   await loadBalances();
-  // Forza reload TX per il conto corrente selezionato
-  if (selectedAccountId === 'ACC-FINECO-CC') {
-    showTxView();
-    await reloadTxForRange();
-  }
+  // Forza sempre il reload su Fineco CC
+  selectedAccountId = 'ACC-FINECO-CC';
+  document.getElementById('main-title').textContent = 'Fineco CC';
+  document.querySelectorAll('.account-row').forEach(function(r){ r.classList.toggle('active', r.dataset.accId === 'ACC-FINECO-CC'); });
+  showTxView();
+  await reloadTxForRange();
   var _sa = _finecoSaldoAtteso; _finecoSaldoAtteso = null;
   // Il saldo file esclude gli Autorizzato — sottraiamo il loro importo dal saldo app
   // per ottenere il saldo "solo contabilizzato" da confrontare
