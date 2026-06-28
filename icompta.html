@@ -820,6 +820,11 @@ select.form-input { height: 42px; }
           <span class="settings-section-chevron open" id="chev-avanzate">›</span>
         </div>
         <div class="settings-section-body" id="sec-avanzate">
+          <div class="settings-item" onclick="closeSettings();window.open('analisi.html','_blank')">
+            <span class="s-icon" style="background:#eef4fd"><svg viewBox="0 0 24 24" fill="none" stroke="#1a4a7a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>
+            <div class="s-text"><div class="s-label">Analisi Finanziaria</div><div class="s-desc">Portafoglio, andamento, cedole</div></div>
+            <span class="s-arrow">›</span>
+          </div>
           <div class="settings-item" onclick="closeSettings();openBackupModal()">
             <span class="s-icon" style="background:#eef4fd"><svg viewBox="0 0 24 24" fill="none" stroke="#1a4a7a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 5 17 10"/><line x1="12" y1="5" x2="12" y2="19"/></svg></span>
             <div class="s-text"><div class="s-label">Backup & Ripristino</div><div class="s-desc">Salva e ripristina dati anno corrente</div></div>
