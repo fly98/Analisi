@@ -846,6 +846,9 @@ select.form-input { height: 42px; }
       </div>
 
     </div>
+    <div style="padding:10px 16px 14px;text-align:center;border-top:1px solid var(--border);margin-top:4px">
+      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">iCompta InternoUno &mdash; v1.0</span>
+    </div>
   </div>
 </div>
 </div>
@@ -1206,11 +1209,6 @@ async function reloadTxForRange() {
   applyFilters();
 }
 
-async function selectYear(y) {
-  selectedYear = y;
-  await loadYear(y);
-}
-
 // ══════════════════════════════════════════════
 // TX LOADING
 // ══════════════════════════════════════════════
@@ -1502,10 +1500,6 @@ function esc(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
-function showLoading(v) {
-  // Potremmo mostrare spinner nell'header
-}
-
 // ══════════════════════════════════════════════
 // TX MODAL
 // ══════════════════════════════════════════════
@@ -1616,10 +1610,6 @@ function addSplit(split = null) {
 }
 
 // Legge categoryId da un split-row
-function getSplitCategoryId(row) {
-  var btn = row.querySelector('.split-cat-btn');
-  return btn ? (btn.dataset.catId || '') : '';
-}
 
 // ── Numpad ────────────────────────────────────────────────────────────────────
 let _npDisplay = null;
@@ -2056,39 +2046,6 @@ function buildCatOptions(selectedId, prefix) {
 }
 
 // Restituisce HTML dei due select a cascata per selezione categoria
-function buildCatCascade(selectedId, onChangeJs) {
-  if (!meta) return '';
-  var cats = meta.categories.filter(function(c) { return c.hidden !== true; });
-  var allIds = new Set(cats.map(function(c) { return c.id; }));
-  var roots = cats.filter(function(c) {
-    return !c.parentId || !allIds.has(c.parentId);
-  }).sort(function(a,b) { return a.name.localeCompare(b.name); });
-
-  // Trova categoria selezionata e suo parent
-  var selCat = selectedId ? cats.find(function(c){ return c.id===selectedId; }) : null;
-  var selParentId = selCat ? (selCat.parentId && allIds.has(selCat.parentId) ? selCat.parentId : selCat.id) : '';
-  var selChildId  = selCat && selCat.parentId && allIds.has(selCat.parentId) ? selCat.id : '';
-
-  // Select 1: categorie madre
-  var opts1 = '<option value="">-- categoria --</option>';
-  roots.forEach(function(r) {
-    opts1 += '<option value="' + esc(r.id) + '"' + (r.id===selParentId?' selected':'') + '>' + (r.icon?r.icon+' ':'') + esc(r.name) + '</option>';
-  });
-
-  // Select 2: figli della madre selezionata
-  var children = selParentId ? cats.filter(function(c){ return c.parentId===selParentId; }).sort(function(a,b){ return a.name.localeCompare(b.name); }) : [];
-  var hasChildren = children.length > 0;
-  var opts2 = '<option value="">-- sottocategoria --</option>';
-  children.forEach(function(c) {
-    opts2 += '<option value="' + esc(c.id) + '"' + (c.id===selChildId?' selected':'') + '>' + (c.icon?c.icon+' ':'') + esc(c.name) + '</option>';
-  });
-
-  var cb = onChangeJs || '';
-  return '<div style="display:flex;flex-direction:column;gap:6px">' +
-    '<select class="cat-sel-parent" onchange="catCascadeParentChange(this,' + JSON.stringify(cb) + ')" style="width:100%;padding:7px 8px;border-radius:8px;border:1px solid var(--border);font-size:13px;background:var(--bg)">' + opts1 + '</select>' +
-    '<select class="cat-sel-child" onchange="' + esc(cb) + '" style="width:100%;padding:7px 8px;border-radius:8px;border:1px solid var(--border);font-size:13px;background:var(--bg);display:' + (hasChildren?'block':'none') + '">' + opts2 + '</select>' +
-  '</div>';
-}
 
 function catCascadeParentChange(selEl, onChangeJs) {
   if (!meta) return;
@@ -2110,13 +2067,6 @@ function catCascadeParentChange(selEl, onChangeJs) {
 }
 
 // Legge il valore dal cascade (prende figlio se selezionato, altrimenti padre)
-function getCatCascadeValue(container) {
-  if (!container) return '';
-  var childSel = container.querySelector('.cat-sel-child');
-  var parentSel = container.querySelector('.cat-sel-parent');
-  if (childSel && childSel.style.display !== 'none' && childSel.value) return childSel.value;
-  return parentSel ? parentSel.value : '';
-}
 
 function getLinkedAccName(tx) {
   if (!tx.linkedTxId) return '';
@@ -2614,16 +2564,6 @@ function sellaToast(msg, type) {
 }
 
 // Toast nella UI principale (dopo chiusura modal)
-function sellaShowMainToast(msg) {
-  var el = document.createElement('div');
-  el.style.cssText = 'position:fixed;bottom:30px;left:50%;transform:translateX(-50%);'+
-    'background:var(--green);color:#fff;padding:12px 24px;border-radius:12px;'+
-    'font-size:15px;font-weight:600;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.2);'+
-    'animation:npFadeIn .2s ease;pointer-events:none';
-  el.textContent = '\u2713 ' + msg;
-  document.body.appendChild(el);
-  setTimeout(function(){ el.remove(); }, 3500);
-}
 
 async function sellaLoadLog() {
   var logEl=document.getElementById('sella-log-list');
@@ -4669,10 +4609,9 @@ function loadContiTitoli() {
   return _initFinecoStrumentiAsync().then(function() { aggiornaBilancesTitoli(); });
 }
 // showTxView definita prima
-function renderInvestimentiSidebar(){}
+
 function renderContiTitoliSidebar(){ aggiornaBilancesTitoli(); if(meta) renderSidebar(); }
-function toggleInvestimentiGroup(){}
-function openEditCarico(){}
+
 function refreshTitoliSidebar(){ aggiornaBilancesTitoli(); if(meta){renderSidebar();updateTotalBalance();} }
 function openImportXLSCurrent_inv(){ selectStrumenti('fineco-inv','Fineco Investimenti'); }
 function titoliApi(method,path,body){
