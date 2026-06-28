@@ -5104,7 +5104,7 @@ async function handleImportMovimentiCC(e) {
 
     var dedupKey = dateISO + '|' + amount + '|' + desc.substring(0, 30);
 
-    var tx = { date: dateISO, accountId: 'ACC-FINECO-CC', name: desc, amount: amount, status: 'cleared' };
+    var tx = { date: dateISO, accountId: 'ACC-FINECO-CC', name: desc, amount: amount, status: 'cleared', _autorizzato: statoLow === 'autorizzato' };
 
     if (existingKeys.has(dedupKey) || seenKeys.has(dedupKey)) {
       tx._duplicato = true;
@@ -5197,21 +5197,27 @@ async function confermImportFinecoCC() {
     await reloadTxForRange();
   }
   var _sa = _finecoSaldoAtteso; _finecoSaldoAtteso = null;
-  var _bm = ok + ' transazioni importate' + (errs ? ' (' + errs + ' errori)' : '') + '.';
+  // Il saldo file esclude gli Autorizzato — sottraiamo il loro importo dal saldo app
+  // per ottenere il saldo "solo contabilizzato" da confrontare
   if (_sa !== null && !isNaN(_sa)) {
     var _sApp = balances && balances.accounts && balances.accounts['ACC-FINECO-CC'];
     if (_sApp !== undefined && _sApp !== null) {
-      var _diff = Math.round(Math.abs(_sa - _sApp) * 100) / 100;
-      var _sStr = _sa.toLocaleString('it-IT',{minimumFractionDigits:2});
-      var _aStr = _sApp.toLocaleString('it-IT',{minimumFractionDigits:2});
-      var _dStr = _diff.toLocaleString('it-IT',{minimumFractionDigits:2});
-      if (_diff > 0.01) {
-        alert('⚠️ ' + _bm + ' Saldo non coincide! File: ' + _sStr + ' € | App: ' + _aStr + ' € | Diff: ' + _dStr + ' €. Controlla se mancano transazioni.');
-      } else {
-        alert('✅ ' + _bm + ' Saldo verificato: ' + _sStr + ' € ✓');
+      // Somma importi Autorizzato (TX appena importate con stato autorizzato)
+      var _autorizzatoSum = 0;
+      for (var _ai = 0; _ai < _finecoPreviewData.length; _ai++) {
+        if (_finecoPreviewData[_ai]._autorizzato) _autorizzatoSum += (_finecoPreviewData[_ai].amount || 0);
       }
-    } else { alert('✅ ' + _bm); }
-  } else { alert('✅ ' + _bm); }
+      var _sAppContab = Math.round((_sApp - _autorizzatoSum) * 100) / 100;
+      var _diff = Math.round(Math.abs(_sa - _sAppContab) * 100) / 100;
+      if (_diff > 0.01) {
+        var _sStr = _sa.toLocaleString('it-IT',{minimumFractionDigits:2});
+        var _aStr = _sAppContab.toLocaleString('it-IT',{minimumFractionDigits:2});
+        var _dStr = _diff.toLocaleString('it-IT',{minimumFractionDigits:2});
+        alert('⚠️ Saldo non coincide! File: ' + _sStr + ' € | App (solo contabilizzati): ' + _aStr + ' € | Diff: ' + _dStr + ' €. Controlla se mancano transazioni.');
+      }
+      // Se coincide: nessun messaggio
+    }
+  }
 }
 
 
