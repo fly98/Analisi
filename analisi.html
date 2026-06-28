@@ -607,6 +607,19 @@ function renderStrumenti() {
     return '<td class="r" style="font-size:11px;font-weight:700;color:'+col+'">' + str + '</td>';
   }
 
+  // Calcola totali
+  var totVm = 0, totVc = 0, totPl1d = 0, hasPl1d = false;
+  sorted.forEach(function(s) {
+    totVm += s.vm || 0;
+    totVc += s.vc || s.carico || 0;
+    var vmIeri = _getVarVsIeri(s);
+    if (vmIeri != null) { totPl1d += (s.vm||0) - vmIeri; hasPl1d = true; }
+  });
+  var totPlTot = totVc > 0 ? totVm - totVc : null;
+  var totPlTotPct = (totVc > 0 && totPlTot != null) ? (totPlTot / totVc * 100) : null;
+  var totPl1dVal = hasPl1d ? totPl1d : null;
+  var totPl1dPct = (hasPl1d && totVm > 0) ? (totPl1d / (totVm - totPl1d) * 100) : null;
+
   tbody.innerHTML = sorted.map(function(s) {
     var vm = s.vm || 0;
     var vc = s.vc || s.carico || 0;
@@ -628,7 +641,16 @@ function renderStrumenti() {
       numCell(pl1d, true) +
       numCell(pl1dPct, false) +
       '</tr>';
-  }).join('');
+  }).join('') +
+  // Riga totale
+  '<tr style="border-top:2px solid var(--border-s);background:var(--gray1)">' +
+    '<td style="font-size:12px;font-weight:700;padding-top:8px">Totale</td>' +
+    '<td class="r" style="font-size:12px;font-weight:700;padding-top:8px">' + fmt(totVm) + '</td>' +
+    numCell(totPlTot, true).replace('<td ', '<td style="padding-top:8px" ') +
+    numCell(totPlTotPct, false).replace('<td ', '<td style="padding-top:8px" ') +
+    numCell(totPl1dVal, true).replace('<td ', '<td style="padding-top:8px" ') +
+    numCell(totPl1dPct, false).replace('<td ', '<td style="padding-top:8px" ') +
+  '</tr>';
 }
 
 
