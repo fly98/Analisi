@@ -5075,22 +5075,20 @@ async function handleImportMovimentiCC(e) {
       if (stato !== '') nonContab.push(r);
       continue;
     }
-    // Per Autorizzato usa Data_Valuta se Data_Operazione e assente o '-'
-    var dateISO = '';
+    // Funzione helper per estrarre dateISO da qualsiasi formato Fineco
+    function _fDate(v) {
+      if (!v) return '';
+      if (typeof v === 'object' && v.toISOString) return v.toISOString().slice(0,10);
+      var s = String(v).trim();
+      var m1 = s.match(/(\d{4})-(\d{2})-(\d{2})/); if (m1) return m1[1]+'-'+m1[2]+'-'+m1[3];
+      var m2 = s.match(/(\d{2})\/(\d{2})\/(\d{4})/); if (m2) return m2[3]+'-'+m2[2]+'-'+m2[1];
+      var m3 = s.match(/(\d{2})-(\d{2})-(\d{4})/); if (m3) return m3[3]+'-'+m3[2]+'-'+m3[1];
+      return '';
+    }
     var dop = r[dateCol];
-    if (dop && typeof dop === 'object' && dop.toISOString) {
-      dateISO = dop.toISOString().slice(0,10);
-    } else if (dop && String(dop).trim() !== '-' && String(dop).trim() !== '') {
-      var rdv = String(dop).trim();
-      var mm1 = rdv.match(/(\d{4})-(\d{2})-(\d{2})/);
-      if (mm1) dateISO = mm1[1]+'-'+mm1[2]+'-'+mm1[3];
-      else { var mm2=rdv.match(/(\d{2})\/(\d{2})\/(\d{4})/); if(mm2) dateISO=mm2[3]+'-'+mm2[2]+'-'+mm2[1]; }
-    }
-    if (!dateISO && dateVCol >= 0 && r[dateVCol]) {
-      var dv = r[dateVCol];
-      if (typeof dv === 'object' && dv.toISOString) dateISO = dv.toISOString().slice(0,10);
-      else { var mm3=String(dv).match(/(\d{4})-(\d{2})-(\d{2})/); if(mm3) dateISO=mm3[1]+'-'+mm3[2]+'-'+mm3[3]; }
-    }
+    var dopStr = dop ? String(dop).trim() : '';
+    var dateISO = (dopStr !== '' && dopStr !== '-') ? _fDate(dop) : '';
+    if (!dateISO && dateVCol >= 0) dateISO = _fDate(r[dateVCol]);
     if (!dateISO) continue;
 
     // XLSX restituisce float nativi; Uscite sono già negative nel file
