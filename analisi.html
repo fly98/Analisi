@@ -152,7 +152,7 @@ main { max-width:900px; margin:0 auto; padding:16px; display:flex;
         <div class="kpi"><div class="kpi-label">Plus/minus latente</div>
           <div class="kpi-value" id="kpi-pm">—</div>
           <div class="kpi-sub" id="kpi-pm-pct"></div></div>
-        <div class="kpi"><div class="kpi-label">Variaz. ieri</div>
+        <div class="kpi"><div class="kpi-label">Var. periodo</div>
           <div class="kpi-value" id="kpi-day">—</div>
           <div class="kpi-sub" id="kpi-day-pct"></div></div>
       </div>
@@ -191,30 +191,34 @@ main { max-width:900px; margin:0 auto; padding:16px; display:flex;
     </div>
 
     <!-- Composizione + dettaglio -->
-    <div style="display:flex;gap:16px;flex-wrap:wrap">
-      <div class="card" style="flex:1;min-width:250px">
-        <div class="card-title">Composizione</div>
-        <div class="chart-wrap" style="height:200px">
-          <canvas id="chart-torta"></canvas>
+    <div class="card">
+      <div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap">
+        <!-- Torta piccola a sinistra -->
+        <div style="flex:0 0 160px">
+          <div class="card-title">Composizione</div>
+          <canvas id="chart-torta" style="max-width:160px;max-height:160px"></canvas>
+          <div id="torta-legend" style="margin-top:6px;font-size:10px;color:var(--muted);line-height:1.6"></div>
         </div>
-      </div>
-      <div class="card" style="flex:2;min-width:280px">
-        <div class="card-title">Dettaglio strumenti</div>
-        <div class="range-bar" id="str-tabs" style="margin-bottom:10px">
-          <button class="range-btn active" data-tab="tutti">Tutti</button>
-          <button class="range-btn" data-tab="az">Azionario / ETF</button>
-          <button class="range-btn" data-tab="ob">Obbligaz. / Cert.</button>
-        </div>
-        <table class="data-table" id="table-strumenti">
-          <thead><tr>
-            <th>Strumento</th>
-            <th class="r">Valore</th><th class="r">+/−</th><th class="r">%</th>
-          </tr></thead>
-          <tbody id="tbody-strumenti"></tbody>
-        </table>
-        <div id="strumenti-empty" class="empty" style="display:none">
-          <div class="empty-icon">🏦</div>
-          Nessun strumento trovato.
+        <!-- Tabella strumenti a destra -->
+        <div style="flex:1;min-width:260px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:6px">
+            <div class="card-title" style="margin-bottom:0">Dettaglio strumenti</div>
+            <div class="range-bar" id="str-tabs" style="margin-bottom:0">
+              <button class="range-btn active" data-tab="tutti">Tutti</button>
+              <button class="range-btn" data-tab="az">Azionario / ETF</button>
+              <button class="range-btn" data-tab="ob">Obbligaz. / Cert.</button>
+            </div>
+          </div>
+          <table class="data-table" id="table-strumenti">
+            <thead><tr>
+              <th>Strumento</th><th>Tipo</th>
+              <th class="r">Valore</th><th class="r">Var. €</th><th class="r">Var. %</th>
+            </tr></thead>
+            <tbody id="tbody-strumenti"></tbody>
+          </table>
+          <div id="strumenti-empty" class="empty" style="display:none">
+            <div class="empty-icon">🏦</div>Nessun strumento trovato.
+          </div>
         </div>
       </div>
     </div>
@@ -503,25 +507,38 @@ function renderTorta() {
   var keys = Object.keys(byClasse).filter(function(k){ return byClasse[k] > 0; });
   if (!keys.length) return;
 
-  var labels = keys.map(function(k) { return (CLASSI[k] || { label: k }).label; });
-  var values = keys.map(function(k) { return byClasse[k]; });
-  var colors = keys.map(function(k) { return (CLASSI[k] || { color: '#ccc' }).color; });
+  var totVm = keys.reduce(function(s,k){ return s+byClasse[k]; }, 0);
+  var labels = keys.map(function(k){ return (CLASSI[k]||{label:k}).label; });
+  var values = keys.map(function(k){ return byClasse[k]; });
+  var colors = keys.map(function(k){ return (CLASSI[k]||{color:'#ccc'}).color; });
 
   if (chartTorta) chartTorta.destroy();
   chartTorta = new Chart(document.getElementById('chart-torta').getContext('2d'), {
     type: 'doughnut',
     data: { labels: labels, datasets: [{ data: values, backgroundColor: colors, borderWidth: 2, borderColor: '#fff' }] },
     options: {
-      responsive: true, maintainAspectRatio: false,
+      responsive: false,
       plugins: {
-        legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 10 } },
+        legend: { display: false },
         tooltip: { callbacks: { label: function(ctx) {
-          var pct = (ctx.raw / values.reduce(function(a,b){return a+b;},0)*100).toFixed(1);
-          return ctx.label + ': ' + fmt(ctx.raw) + ' (' + pct + '%)';
+          var pct = (ctx.raw / totVm * 100).toFixed(1);
+          return ctx.label + ': ' + pct + '%';
         }}}
       }
     }
   });
+  // Legenda custom con percentuali
+  var leg = document.getElementById('torta-legend');
+  if (leg) {
+    leg.innerHTML = keys.map(function(k,i) {
+      var pct = (values[i]/totVm*100).toFixed(1);
+      return '<div style="display:flex;align-items:center;gap:4px;margin-bottom:2px">' +
+        '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+colors[i]+';flex-shrink:0"></span>' +
+        '<span style="flex:1">'+labels[i]+'</span>' +
+        '<span style="font-weight:700;color:var(--text)">'+pct+'%</span>' +
+        '</div>';
+    }).join('');
+  }
 }
 
 // ─── STRUMENTI ───────────────────────────────────────────
@@ -646,10 +663,13 @@ function renderVariazioni() {
           var yTop = bar.y;
           var yBot = bar.base;
           var isPos = val >= 0;
-          var yLine1 = isPos ? yTop - 16 : yBot + 10;
-          var yLine2 = isPos ? yTop - 5 : yBot + 20;
-          ctx2.fillText(sign + (Math.abs(val)/1000).toFixed(1)+'k', x, yLine1);
-          ctx2.fillText(sign + pcts[i].toFixed(1)+'%', x, yLine2);
+          if (isPos) {
+            ctx2.fillText(sign + (Math.abs(val)/1000).toFixed(1)+'k', x, yTop - 16);
+            ctx2.fillText(sign + pcts[i].toFixed(1)+'%', x, yTop - 5);
+          } else {
+            ctx2.fillText(sign + (Math.abs(val)/1000).toFixed(1)+'k', x, yBot + 12);
+            ctx2.fillText(sign + pcts[i].toFixed(1)+'%', x, yBot + 22);
+          }
           ctx2.restore();
         });
       }
