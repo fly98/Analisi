@@ -211,8 +211,11 @@ main { max-width:900px; margin:0 auto; padding:16px; display:flex;
           </div>
           <table class="data-table" id="table-strumenti">
             <thead><tr>
-              <th>Strumento</th><th>Tipo</th>
-              <th class="r">Valore</th><th class="r">Var. €</th><th class="r">Var. %</th>
+              <th>Strumento</th>
+              <th class="r">Carico</th>
+              <th class="r">Mercato</th>
+              <th class="r">P&amp;L tot.</th>
+              <th class="r">P&amp;L 1D</th>
             </tr></thead>
             <tbody id="tbody-strumenti"></tbody>
           </table>
@@ -663,12 +666,22 @@ function renderVariazioni() {
           var yTop = bar.y;
           var yBot = bar.base;
           var isPos = val >= 0;
+          var barH = Math.abs(yBot - yTop);
           if (isPos) {
-            ctx2.fillText(sign + (Math.abs(val)/1000).toFixed(1)+'k', x, yTop - 16);
-            ctx2.fillText(sign + pcts[i].toFixed(1)+'%', x, yTop - 5);
+            // Verde: testo sopra la barra, scuro
+            ctx2.fillStyle = '#1a7a4a';
+            ctx2.fillText(sign + (Math.abs(val)/1000).toFixed(1)+'k', x, yTop - 14);
+            ctx2.fillText(sign + pcts[i].toFixed(1)+'%', x, yTop - 4);
+          } else if (barH > 22) {
+            // Rosso abbastanza alto: testo dentro la barra, bianco
+            ctx2.fillStyle = '#ffffff';
+            ctx2.fillText(sign + (Math.abs(val)/1000).toFixed(1)+'k', x, yBot - barH/2 - 4);
+            ctx2.fillText(sign + pcts[i].toFixed(1)+'%', x, yBot - barH/2 + 7);
           } else {
-            ctx2.fillText(sign + (Math.abs(val)/1000).toFixed(1)+'k', x, yBot + 12);
-            ctx2.fillText(sign + pcts[i].toFixed(1)+'%', x, yBot + 22);
+            // Rosso piccolo: testo sotto la barra, rosso scuro
+            ctx2.fillStyle = '#b83232';
+            ctx2.fillText(sign + (Math.abs(val)/1000).toFixed(1)+'k', x, yBot + 13);
+            ctx2.fillText(sign + pcts[i].toFixed(1)+'%', x, yBot + 23);
           }
           ctx2.restore();
         });
