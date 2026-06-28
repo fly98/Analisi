@@ -3601,35 +3601,53 @@ async function leoRollback(entry,btn) {
   } catch(e){alert('Errore: '+e.message);btn.disabled=false;btn.textContent='\uD83D\uDDD1 Elimina';}
 }
 
+function _autoLog(logId, msg, type) {
+  var el = document.getElementById(logId);
+  if (!el) return;
+  var col = type==='ok' ? '#1a7a4a' : type==='err' ? '#b83232' : '#666';
+  var icon = type==='ok' ? '✅' : type==='err' ? '❌' : '⏳';
+  var ts = new Date().toLocaleTimeString('it-IT', {hour12:false});
+  el.innerHTML += '<div style="color:'+col+';font-size:11px;margin:2px 0">'+icon+' <span style="color:#999">'+ts+'</span> '+msg+'</div>';
+  el.scrollTop = el.scrollHeight;
+}
+
 async function sellaAutoDownload() {
   var btn = document.getElementById('sella-auto-btn');
+  var logEl = document.getElementById('sella-auto-log');
   btn.disabled = true;
-  btn.innerHTML = '<span>\u23f3</span> <span>Connessione al Mac...</span>';
+  btn.innerHTML = '<span>⏳</span> <span>In corso...</span>';
+  if (logEl) { logEl.style.display = 'block'; logEl.innerHTML = ''; }
   var MAC_URL = WORKER_URL + '/api/sella-auto';
   try {
-    btn.innerHTML = '<span>\u23f3</span> <span>Download in corso (~40 sec)...</span>';
+    _autoLog('sella-auto-log', 'Connessione al server Mac...', 'info');
     var TOKEN = localStorage.getItem('icompta_token');
     var resp = await fetch(MAC_URL, {
       headers: { 'Authorization': 'Bearer ' + TOKEN },
       signal: AbortSignal.timeout(120000)
     });
     if (!resp.ok) { const s=resp.status; throw Object.assign(new Error(), {_status:s}); }
+    _autoLog('sella-auto-log', 'Connesso — Playwright sta aprendo Sella...', 'info');
     var csvText = await resp.text();
     if (!csvText || csvText.length < 10) throw new Error('CSV vuoto o non valido ricevuto dal Mac');
-    btn.innerHTML = '<span>\u2705</span> <span>CSV ricevuto, analisi...</span>';
+    var filename = resp.headers.get('X-Filename') || 'Sella_auto.csv';
+    _autoLog('sella-auto-log', 'CSV ricevuto: ' + filename + ' (' + (csvText.length/1024).toFixed(1) + ' KB)', 'ok');
+    btn.innerHTML = '<span>✅</span> <span>CSV ricevuto, analisi...</span>';
     var blob = new Blob([csvText], {type:'text/csv'});
-    var file = new File([blob], resp.headers.get('X-Filename') || 'Sella_auto.csv', {type:'text/csv'});
+    var file = new File([blob], filename, {type:'text/csv'});
+    _autoLog('sella-auto-log', 'Analisi movimenti in corso...', 'info');
     await sellaHandleFile(file);
+    _autoLog('sella-auto-log', 'Importazione completata!', 'ok');
   } catch(e) {
-    var msg = e.name==='TimeoutError' ? 'Il Mac non risponde (timeout 2 min).\nAssicurati che il Mac sia sveglio e il server Playwright sia attivo.' :
-              e._status===502 ? 'Mac non raggiungibile (errore 502).\nVerifica che il Mac sia sveglio e il server Playwright sia in esecuzione.' :
-              e._status===503 ? 'Servizio non disponibile — riprova tra qualche secondo.' :
-              e._status===504 ? 'Timeout gateway — il Mac ha impiegato troppo a rispondere.' :
+    var msg = e.name==='TimeoutError' ? 'Timeout 2 min — Mac non risponde o Playwright troppo lento' :
+              e._status===502 ? 'Errore 502 — Mac non raggiungibile (sleep o server Playwright spento)' :
+              e._status===503 ? 'Errore 503 — Servizio non disponibile' :
+              e._status===504 ? 'Errore 504 — Timeout gateway' :
               e.message || 'Errore sconosciuto';
-    alert('⚠️ Download automatico fallito\n\n' + msg + '\n\nAlternativa: carica il CSV manualmente dalla sezione sottostante.');
+    _autoLog('sella-auto-log', msg, 'err');
+    _autoLog('sella-auto-log', 'Usa il caricamento manuale CSV qui sotto', 'info');
   } finally {
     btn.disabled = false;
-    btn.innerHTML = '<span>\uD83D\uDCE5</span> <span>Scarica automaticamente da Sella</span>';
+    btn.innerHTML = '<span>📥</span> <span>Scarica automaticamente da Sella</span>';
   }
 }
 
@@ -3860,27 +3878,36 @@ async function sellapDoImport() {
 async function sellapAutoDownload() {
   var btn = document.getElementById('sellap-auto-btn');
   btn.disabled = true;
-  btn.innerHTML = '<span>\u23f3</span> <span>Download in corso (~40 sec)...</span>';
+  btn.innerHTML = '<span>⏳</span> <span>In corso...</span>';
+  var logElP = document.getElementById('sellap-auto-log');
+  if (logElP) { logElP.style.display = 'block'; logElP.innerHTML = ''; }
   try {
+    _autoLog('sellap-auto-log', 'Connessione al server Mac...', 'info');
     var TOKEN = localStorage.getItem('icompta_token');
     var resp = await fetch(WORKER_URL + '/api/sella-personale-auto', {
       headers: { 'Authorization': 'Bearer ' + TOKEN },
       signal: AbortSignal.timeout(120000)
     });
     if (!resp.ok) { const s=resp.status; throw Object.assign(new Error(), {_status:s}); }
+    _autoLog('sellap-auto-log', 'Connesso — Playwright sta aprendo Sella Personale...', 'info');
     var csvText = await resp.text();
     if (!csvText || csvText.length < 10) throw new Error('CSV vuoto o non valido ricevuto dal Mac');
-    btn.innerHTML = '<span>\u2705</span> <span>CSV ricevuto, analisi...</span>';
+    var filenameP = resp.headers.get('X-Filename') || 'SellaPersonale_auto.csv';
+    _autoLog('sellap-auto-log', 'CSV ricevuto: ' + filenameP + ' (' + (csvText.length/1024).toFixed(1) + ' KB)', 'ok');
+    btn.innerHTML = '<span>✅</span> <span>CSV ricevuto, analisi...</span>';
     var blob = new Blob([csvText], {type:'text/csv'});
-    var file = new File([blob], resp.headers.get('X-Filename') || 'SellaPersonale_auto.csv', {type:'text/csv'});
+    var file = new File([blob], filenameP, {type:'text/csv'});
+    _autoLog('sellap-auto-log', 'Analisi movimenti in corso...', 'info');
     await sellapHandleFile(file);
+    _autoLog('sellap-auto-log', 'Importazione completata!', 'ok');
   } catch(e) {
-    var msg = e.name==='TimeoutError' ? 'Il Mac non risponde (timeout 2 min).\nAssicurati che il Mac sia sveglio e il server Playwright sia attivo.' :
-              e._status===502 ? 'Mac non raggiungibile (errore 502).\nVerifica che il Mac sia sveglio e il server Playwright sia in esecuzione.' :
-              e._status===503 ? 'Servizio non disponibile — riprova tra qualche secondo.' :
-              e._status===504 ? 'Timeout gateway — il Mac ha impiegato troppo a rispondere.' :
+    var msg = e.name==='TimeoutError' ? 'Timeout 2 min — Mac non risponde o Playwright troppo lento' :
+              e._status===502 ? 'Errore 502 — Mac non raggiungibile (sleep o server Playwright spento)' :
+              e._status===503 ? 'Errore 503 — Servizio non disponibile' :
+              e._status===504 ? 'Errore 504 — Timeout gateway' :
               e.message || 'Errore sconosciuto';
-    alert('⚠️ Download automatico fallito\n\n' + msg + '\n\nAlternativa: carica il CSV manualmente dalla sezione sottostante.');
+    _autoLog('sellap-auto-log', msg, 'err');
+    _autoLog('sellap-auto-log', 'Usa il caricamento manuale CSV qui sotto', 'info');
   } finally {
     btn.disabled = false;
     btn.innerHTML = '<span>\uD83D\uDCE5</span> <span>Scarica automaticamente da Sella</span>';
@@ -3901,6 +3928,7 @@ async function sellapAutoDownload() {
       <button id="sella-auto-btn" onclick="sellaAutoDownload()" style="width:100%;padding:12px;border-radius:10px;border:none;background:var(--blue);color:#fff;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:8px">
         <span>📥</span> <span>Scarica automaticamente da Sella</span>
       </button>
+          <div id="sella-auto-log" style="display:none;margin-top:8px;background:#1a1a1a;border-radius:8px;padding:8px 10px;max-height:120px;overflow-y:auto;font-family:monospace"></div>
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
         <div style="flex:1;height:1px;background:var(--border)"></div>
         <span style="font-size:12px;color:var(--faint)">oppure</span>
@@ -3965,6 +3993,7 @@ async function sellapAutoDownload() {
       <button id="sellap-auto-btn" onclick="sellapAutoDownload()" style="width:100%;padding:12px;border-radius:10px;border:none;background:var(--blue);color:#fff;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:8px">
         <span>📥</span> <span>Scarica automaticamente da Sella</span>
       </button>
+          <div id="sellap-auto-log" style="display:none;margin-top:8px;background:#1a1a1a;border-radius:8px;padding:8px 10px;max-height:120px;overflow-y:auto;font-family:monospace"></div>
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
         <div style="flex:1;height:1px;background:var(--border)"></div>
         <span style="font-size:12px;color:var(--faint)">oppure</span>
