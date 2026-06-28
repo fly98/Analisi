@@ -190,9 +190,9 @@ main { max-width:900px; margin:0 auto; padding:16px; display:flex;
       <div class="card" style="flex:2;min-width:280px">
         <div class="card-title">Dettaglio strumenti</div>
         <div class="range-bar" id="str-tabs" style="margin-bottom:10px">
-          <button class="range-btn active" data-macro="tutti">Tutti</button>
-          <button class="range-btn" data-macro="az">Azionario / ETF</button>
-          <button class="range-btn" data-macro="ob">Obbligaz. / Cert.</button>
+          <button class="range-btn active" data-tab="tutti">Tutti</button>
+          <button class="range-btn" data-tab="az">Azionario / ETF</button>
+          <button class="range-btn" data-tab="ob">Obbligaz. / Cert.</button>
         </div>
         <table class="data-table" id="table-strumenti">
           <thead><tr>
@@ -284,7 +284,7 @@ document.getElementById('str-tabs').addEventListener('click', function(e) {
   if (!btn) return;
   document.querySelectorAll('#str-tabs .range-btn').forEach(function(b){ b.classList.remove('active'); });
   btn.classList.add('active');
-  activeStrTab = btn.dataset.macro;
+  activeStrTab = btn.dataset.tab;
   renderStrumenti();
 });
 
@@ -439,14 +439,18 @@ function renderAndamento() {
 }
 
 // ─── TORTA ───────────────────────────────────────────────
-// 2 macro-classi: azionario (ETF/ETC/monetario) e obbligazionario (bond/certificati)
 var CLASSI = {
-  'azionario':      { label: 'Azionario / ETF', color: '#1a4a7a', badge: 'badge-az', macro: 'az' },
-  'monetario':      { label: 'Azionario / ETF', color: '#1a4a7a', badge: 'badge-az', macro: 'az' },
-  'materie prime':  { label: 'Azionario / ETF', color: '#1a4a7a', badge: 'badge-az', macro: 'az' },
-  'obbligazionario':{ label: 'Obbligaz. / Cert.', color: '#1a7a4a', badge: 'badge-ob', macro: 'ob' },
-  'altro':          { label: 'Obbligaz. / Cert.', color: '#1a7a4a', badge: 'badge-ob', macro: 'ob' },
-  'liquidita':      { label: 'Altro', color: '#888', badge: 'badge-lq', macro: 'altro' },
+  'azionario':       { label: 'Azionario',    color: '#1a4a7a', badge: 'badge-az' },
+  'monetario':       { label: 'Monetario',    color: '#7a5a00', badge: 'badge-mm' },
+  'materie prime':   { label: 'Mat. prime',   color: '#b83232', badge: 'badge-mp' },
+  'obbligazionario': { label: 'Obbligaz.',    color: '#1a7a4a', badge: 'badge-ob' },
+  'altro':           { label: 'Certificati',  color: '#6b3fa0', badge: 'badge-az' },
+  'liquidita':       { label: 'Altro',        color: '#888',    badge: 'badge-lq' },
+};
+// Gruppi per TAB strumenti (solo visualizzazione, non riclassifica)
+var TAB_GRUPPI = {
+  'az': ['azionario','monetario','materie prime'],
+  'ob': ['obbligazionario','altro'],
 };
 
 function getClasse(s) {
@@ -470,21 +474,17 @@ function getClasse(s) {
 }
 
 function renderTorta() {
-  // Raggruppa per macro-classe
-  var byMacro = { az: 0, ob: 0, altro: 0 };
+  var byClasse = {};
   strumenti.forEach(function(s) {
     var cl = getClasse(s);
-    var macro = (CLASSI[cl] || { macro: 'altro' }).macro;
-    byMacro[macro] = (byMacro[macro] || 0) + (s.vm || 0);
+    byClasse[cl] = (byClasse[cl] || 0) + (s.vm || 0);
   });
-  var macroLabels = { az: 'Azionario / ETF', ob: 'Obbligaz. / Cert.', altro: 'Altro' };
-  var macroColors = { az: '#1a4a7a', ob: '#1a7a4a', altro: '#888' };
-  var keys = Object.keys(byMacro).filter(function(k){ return byMacro[k] > 0; });
+  var keys = Object.keys(byClasse).filter(function(k){ return byClasse[k] > 0; });
   if (!keys.length) return;
 
-  var labels = keys.map(function(k) { return macroLabels[k]; });
-  var values = keys.map(function(k) { return byMacro[k]; });
-  var colors = keys.map(function(k) { return macroColors[k]; });
+  var labels = keys.map(function(k) { return (CLASSI[k] || { label: k }).label; });
+  var values = keys.map(function(k) { return byClasse[k]; });
+  var colors = keys.map(function(k) { return (CLASSI[k] || { color: '#ccc' }).color; });
 
   if (chartTorta) chartTorta.destroy();
   chartTorta = new Chart(document.getElementById('chart-torta').getContext('2d'), {
@@ -513,8 +513,8 @@ function renderStrumenti() {
   var filtered = strumenti.filter(function(s) {
     if (activeStrTab === 'tutti') return true;
     var cl = getClasse(s);
-    var macro = (CLASSI[cl] || {}).macro || 'altro';
-    return macro === activeStrTab;
+    var gruppo = TAB_GRUPPI[activeStrTab] || [];
+    return gruppo.indexOf(cl) >= 0;
   });
   var sorted = filtered.slice().sort(function(a,b) { return (b.vm||0) - (a.vm||0); });
 
