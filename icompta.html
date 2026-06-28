@@ -4782,6 +4782,7 @@ async function _importaRigheFineco(rows) {
   if (meta) renderSidebar();
   updateTotalBalance();
   renderStrumentiView();
+  trySnapshot(); // snapshot automatico dopo aggiornamento portafoglio
   var totVC=strumenti.reduce(function(s,x){return s+(x.vc||0);},0);
   var totVM=strumenti.reduce(function(s,x){return s+(x.vm||0);},0);
   var pl=totVM-totVC; var pct=totVC>0?(pl/totVC*100):0;
@@ -4914,7 +4915,30 @@ async function finecoAutoPortafoglio() {
 // ── IMPORT MOVIMENTI FINECO CC ────────────────────────────────────────────────
 var _finecoPreviewData = [];
 var _finecoSaldoAtteso = null;
-var _finecoAutorizzatoSum = 0; // righe parsate pronte per import
+var _finecoAutorizzatoSum = 0;
+
+// Snapshot portafoglio — salvato solo se il valore è cambiato rispetto all'ultimo
+async function trySnapshot() {
+  try {
+    // Calcola valore mercato corrente dai titoli Fineco
+    var vm = _finecoStrumenti.reduce(function(s,x){ return s+(x.vm||0); }, 0);
+    if (vm <= 0) return; // nessun dato titoli disponibile
+    vm = Math.round(vm * 100) / 100;
+    var today = new Date().toISOString().slice(0,10);
+    // Legge ultimo snapshot
+    var last = await api('GET', '/api/snapshot/last');
+    // Salva solo se cambiato (o non esiste ancora)
+    if (last && last.date === today && Math.abs(last.totale - vm) < 0.01) return;
+    if (last && last.date !== today && Math.abs(last.totale - vm) < 0.01) return;
+    // Breakdown per strumento
+    var breakdown = {};
+    _finecoStrumenti.forEach(function(s) {
+      var k = s.ticker || s.nome || s.id;
+      if (k) breakdown[k] = s.vm || 0;
+    });
+    await api('PUT', '/api/snapshot', { date: today, totale: vm, breakdown: breakdown });
+  } catch(e) { /* silenzioso */ }
+} // righe parsate pronte per import
 
 function openImportMovimentiCC() {
   var inp = document.getElementById('xlscc-mov-input');
@@ -5130,6 +5154,7 @@ async function confermImportFinecoCC() {
   document.querySelectorAll('.account-row').forEach(function(r){ r.classList.toggle('active', r.dataset.accId === 'ACC-FINECO-CC'); });
   showTxView();
   await reloadTxForRange();
+  trySnapshot(); // snapshot automatico dopo import CC (se titoli già caricati)
   var _sa = _finecoSaldoAtteso; _finecoSaldoAtteso = null;
   // Il saldo file esclude gli Autorizzato — sottraiamo il loro importo dal saldo app
   // per ottenere il saldo "solo contabilizzato" da confrontare
