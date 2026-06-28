@@ -4914,11 +4914,7 @@ async function trySnapshot() {
     if (vm <= 0) return; // nessun dato titoli disponibile
     vm = Math.round(vm * 100) / 100;
     var today = new Date().toISOString().slice(0,10);
-    // Legge ultimo snapshot
-    var last = await api('GET', '/api/snapshot/last');
-    // Salva solo se cambiato (o non esiste ancora)
-    if (last && last.date === today && Math.abs(last.totale - vm) < 0.01) return;
-    if (last && last.date !== today && Math.abs(last.totale - vm) < 0.01) return;
+    // Salva sempre: sovrascrive stessa data, crea nuovo record se data nuova
     // Breakdown per strumento — normalizza ticker (togli suffisso .MI .MOT .TX ecc.)
     var breakdown = {};
     _finecoStrumenti.forEach(function(s) {
