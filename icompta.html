@@ -3613,16 +3613,20 @@ async function sellaAutoDownload() {
       headers: { 'Authorization': 'Bearer ' + TOKEN },
       signal: AbortSignal.timeout(120000)
     });
-    if (!resp.ok) throw new Error('Errore server Mac: ' + resp.status);
+    if (!resp.ok) { const s=resp.status; throw Object.assign(new Error(), {_status:s}); }
     var csvText = await resp.text();
-    if (!csvText || csvText.length < 10) throw new Error('CSV vuoto o non valido');
+    if (!csvText || csvText.length < 10) throw new Error('CSV vuoto o non valido ricevuto dal Mac');
     btn.innerHTML = '<span>\u2705</span> <span>CSV ricevuto, analisi...</span>';
     var blob = new Blob([csvText], {type:'text/csv'});
     var file = new File([blob], resp.headers.get('X-Filename') || 'Sella_auto.csv', {type:'text/csv'});
     await sellaHandleFile(file);
   } catch(e) {
-    var msg = e.name === 'TimeoutError' ? 'Timeout — il Mac non risponde entro 2 minuti' : e.message;
-    alert('Errore: ' + msg);
+    var msg = e.name==='TimeoutError' ? 'Il Mac non risponde (timeout 2 min).\nAssicurati che il Mac sia sveglio e il server Playwright sia attivo.' :
+              e._status===502 ? 'Mac non raggiungibile (errore 502).\nVerifica che il Mac sia sveglio e il server Playwright sia in esecuzione.' :
+              e._status===503 ? 'Servizio non disponibile — riprova tra qualche secondo.' :
+              e._status===504 ? 'Timeout gateway — il Mac ha impiegato troppo a rispondere.' :
+              e.message || 'Errore sconosciuto';
+    alert('⚠️ Download automatico fallito\n\n' + msg + '\n\nAlternativa: carica il CSV manualmente dalla sezione sottostante.');
   } finally {
     btn.disabled = false;
     btn.innerHTML = '<span>\uD83D\uDCE5</span> <span>Scarica automaticamente da Sella</span>';
@@ -3863,15 +3867,20 @@ async function sellapAutoDownload() {
       headers: { 'Authorization': 'Bearer ' + TOKEN },
       signal: AbortSignal.timeout(120000)
     });
-    if (!resp.ok) throw new Error('Errore server Mac: ' + resp.status);
+    if (!resp.ok) { const s=resp.status; throw Object.assign(new Error(), {_status:s}); }
     var csvText = await resp.text();
-    if (!csvText || csvText.length < 10) throw new Error('CSV vuoto o non valido');
+    if (!csvText || csvText.length < 10) throw new Error('CSV vuoto o non valido ricevuto dal Mac');
     btn.innerHTML = '<span>\u2705</span> <span>CSV ricevuto, analisi...</span>';
     var blob = new Blob([csvText], {type:'text/csv'});
     var file = new File([blob], resp.headers.get('X-Filename') || 'SellaPersonale_auto.csv', {type:'text/csv'});
     await sellapHandleFile(file);
   } catch(e) {
-    alert('Errore: ' + e.message);
+    var msg = e.name==='TimeoutError' ? 'Il Mac non risponde (timeout 2 min).\nAssicurati che il Mac sia sveglio e il server Playwright sia attivo.' :
+              e._status===502 ? 'Mac non raggiungibile (errore 502).\nVerifica che il Mac sia sveglio e il server Playwright sia in esecuzione.' :
+              e._status===503 ? 'Servizio non disponibile — riprova tra qualche secondo.' :
+              e._status===504 ? 'Timeout gateway — il Mac ha impiegato troppo a rispondere.' :
+              e.message || 'Errore sconosciuto';
+    alert('⚠️ Download automatico fallito\n\n' + msg + '\n\nAlternativa: carica il CSV manualmente dalla sezione sottostante.');
   } finally {
     btn.disabled = false;
     btn.innerHTML = '<span>\uD83D\uDCE5</span> <span>Scarica automaticamente da Sella</span>';
