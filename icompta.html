@@ -4789,11 +4789,12 @@ async function handleXLSImport(e) {
 
     var h = rows[hi].map(function(c){return c?String(c).trim():'';});
     var C = {
-      nome: h.indexOf('Titolo'),
-      isin: h.indexOf('ISIN'),
-      tipo: h.indexOf('Strumento'),
-      vc:   h.findIndex(function(x){return x==='Valore di carico';}),
-      vm:   h.findIndex(function(x){return x==='Valore di mercato €';})
+      nome:    h.indexOf('Titolo'),
+      isin:    h.indexOf('ISIN'),
+      simbolo: h.indexOf('Simbolo'),
+      tipo:    h.indexOf('Strumento'),
+      vc:      h.findIndex(function(x){return x==='Valore di carico';}),
+      vm:      h.findIndex(function(x){return x==='Valore di mercato €';})
     };
 
     var strumenti=[];
@@ -4806,7 +4807,9 @@ async function handleXLSImport(e) {
       var vc=C.vc>=0&&r[C.vc]!=null?parseFloat(r[C.vc])||0:0;
       var vm=C.vm>=0&&r[C.vm]!=null?parseFloat(r[C.vm])||0:0;
       if (vc===0&&vm===0) continue; // skip riga totali
-      strumenti.push({nome:nome, isin:isin, tipo:tipo, vc:vc, vm:vm});
+      var simbolo = C.simbolo>=0&&r[C.simbolo] ? String(r[C.simbolo]).trim() : '';
+      var ticker = simbolo ? simbolo.replace(/\..*$/, '') : '';
+      strumenti.push({nome:nome, isin:isin, ticker:ticker, tipo:tipo, vc:vc, vm:vm});
     }
 
     dbg('rows: '+rows.length+', chiamo _importaRigheFineco');
