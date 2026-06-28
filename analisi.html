@@ -297,6 +297,7 @@ async function loadAll() {
   renderCedole();
   // setTimeout garantisce che il DOM sia aggiornato prima di renderizzare la tabella
   setTimeout(function() {
+    console.log('loadAll done: strumenti='+strumenti.length+' snapshots='+snapshots.length);
     renderStrumenti();
     renderVariazioni();
   }, 50);
@@ -516,7 +517,8 @@ function renderTorta() {
 function renderStrumenti() {
   var tbody = document.getElementById('tbody-strumenti');
   var empty = document.getElementById('strumenti-empty');
-  if (!tbody) return;
+  console.log('renderStrumenti: n='+strumenti.length+' tab='+activeStrTab+' tbody='+!!tbody);
+  if (!tbody) { console.error('tbody-strumenti non trovato!'); return; }
   if (!strumenti.length) { tbody.innerHTML = ''; if(empty) empty.style.display = 'block'; return; }
   if(empty) empty.style.display = 'none';
 
@@ -704,6 +706,45 @@ function getTxAmt(tx) {
   if (tx.useSumOfSplits && tx.splits) return tx.splits.reduce(function(s,sp){return s+(sp.amount||0);},0);
   return tx.amount || 0;
 }
+</script>
+
+<style>
+#adbg-fab{position:fixed;bottom:16px;right:16px;z-index:99999;width:44px;height:44px;border-radius:50%;background:#1a1a1a;border:2px solid #00ff88;color:#00ff88;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+#adbg-panel{position:fixed;bottom:0;left:0;right:0;height:260px;background:#1a1a1a;z-index:99998;display:none;flex-direction:column;border-top:2px solid #00ff88}
+#adbg-panel.open{display:flex}
+#adbg-bar{display:flex;align-items:center;padding:4px 8px;background:#111;gap:8px;flex-shrink:0}
+#adbg-bar span{color:#00ff88;font-family:monospace;font-size:12px;font-weight:700;flex:1}
+#adbg-bar button{background:#333;color:#ccc;border:none;padding:3px 10px;border-radius:4px;font-size:11px;cursor:pointer}
+#adbg-bar button.r{background:#c00;color:#fff}
+#adbg-out{flex:1;overflow-y:auto;padding:6px 8px;font-family:monospace;font-size:11px;color:#ccc;word-break:break-all}
+</style>
+<button id="adbg-fab" onclick="adbgOpen()">🐛</button>
+<div id="adbg-panel">
+  <div id="adbg-bar"><span>🐛 Console</span>
+    <button onclick="document.getElementById('adbg-out').innerHTML=''">Clear</button>
+    <button class="r" onclick="adbgClose()">✕</button>
+  </div>
+  <div id="adbg-out"></div>
+</div>
+<script>
+(function(){
+  function adbgClose(){ document.getElementById('adbg-panel').classList.remove('open'); document.getElementById('adbg-fab').style.display='flex'; }
+  function adbgOpen(){ document.getElementById('adbg-panel').classList.add('open'); document.getElementById('adbg-fab').style.display='none'; }
+  window.adbgClose=adbgClose; window.adbgOpen=adbgOpen;
+  function adbgLog(msg,cls){
+    var out=document.getElementById('adbg-out'); if(!out)return;
+    var ts=new Date().toLocaleTimeString('it-IT',{hour12:false});
+    var d=document.createElement('div'); if(cls)d.style.color=cls;
+    d.innerHTML='<span style="color:#555">'+ts+'</span> '+String(msg).replace(/</g,'&lt;');
+    out.appendChild(d); out.scrollTop=out.scrollHeight;
+  }
+  var _l=console.log,_e=console.error,_w=console.warn;
+  console.log=function(){adbgLog(Array.from(arguments).join(' '));_l.apply(console,arguments);};
+  console.error=function(){adbgLog('❌ '+Array.from(arguments).join(' '),'#ff5555');_e.apply(console,arguments);};
+  console.warn=function(){adbgLog('⚠️ '+Array.from(arguments).join(' '),'#ffb86c');_w.apply(console,arguments);};
+  window.onerror=function(msg,src,line){adbgLog('💥 '+msg+' (L'+line+')','#ff5555');};
+  window.onunhandledrejection=function(e){adbgLog('💥 Promise: '+(e.reason&&(e.reason.message||e.reason)||'?'),'#ff5555');};
+})();
 </script>
 </body>
 </html>
