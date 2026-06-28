@@ -332,7 +332,7 @@ async function loadSnapshots() {
     snapshots = Array.isArray(data) ? data : [];
   } catch(e) { snapshots = []; }
   // Carica demo se meno di 5 snapshot reali (in sviluppo)
-  if (snapshots.length < 5) {
+  if (snapshots.length < 1) {
     try {
       var r = await fetch('https://fly98.github.io/Analisi/demo_snapshots.json');
       var demo = await r.json();
