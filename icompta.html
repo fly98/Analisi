@@ -5301,11 +5301,12 @@ function closeDbgConsole() {
   window.onerror=function(msg,src,line){dbgLog('💥 '+msg+' ('+line+')');};
   window.onunhandledrejection=function(e){dbgLog('💥 Promise: '+(e.reason&&e.reason.message||e.reason));};
 })();
-// Attiva con triplo tap su titolo o scuotendo
-document.addEventListener('DOMContentLoaded', function(){
+// Bottone sempre visibile
+(function showDbgBtn(){
   var btn = document.getElementById('dbg-btn');
-  if(btn) btn.style.display='flex';
-});
+  if(btn){ btn.style.display='flex'; }
+  else { setTimeout(showDbgBtn, 200); }
+})();
 </script>
 
 </body>
