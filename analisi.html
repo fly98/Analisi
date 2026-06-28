@@ -548,39 +548,76 @@ function renderTorta() {
 }
 
 // ─── STRUMENTI ───────────────────────────────────────────
+function _getVarVsIeri(s) {
+  // Cerca nel breakdown dello snapshot usando ticker normalizzato
+  var today = new Date().toISOString().slice(0,10);
+  // Normalizza: VWCE.MI → VWCE, T43319.MOT → T43319
+  var ticker = (s.ticker || '').replace(/\..*$/, '').toUpperCase();
+  var isin = (s.isin || '').toUpperCase();
+  for (var i = snapshots.length - 1; i >= 0; i--) {
+    var snap = snapshots[i];
+    if (snap.date >= today) continue;
+    if (!snap.breakdown) continue;
+    var bd = snap.breakdown;
+    // 1. Match diretto su ticker normalizzato
+    if (ticker && bd[ticker] != null) return bd[ticker];
+    // 2. Match su ISIN
+    if (isin && bd[isin] != null) return bd[isin];
+    // 3. Match: chiave del breakdown contenuta nel ticker o viceversa
+    for (var k in bd) {
+      var ku = k.toUpperCase().replace(/\..*$/, '');
+      if (ticker && (ku === ticker || ticker.indexOf(ku) === 0 || ku.indexOf(ticker) === 0)) return bd[k];
+    }
+  }
+  return null;
+}
+
 function renderStrumenti() {
   var tbody = document.getElementById('tbody-strumenti');
   var empty = document.getElementById('strumenti-empty');
-  if (!tbody) { console.error('tbody-strumenti non trovato!'); return; }
+  if (!tbody) return;
   if (!strumenti.length) { tbody.innerHTML = ''; if(empty) empty.style.display = 'block'; return; }
   if(empty) empty.style.display = 'none';
 
   var filtered = strumenti.filter(function(s) {
     if (activeStrTab === 'tutti') return true;
     var cl = getClasse(s);
-    var gruppo = TAB_GRUPPI[activeStrTab] || [];
-    return gruppo.indexOf(cl) >= 0;
+    return (TAB_GRUPPI[activeStrTab] || []).indexOf(cl) >= 0;
   });
   var sorted = filtered.slice().sort(function(a,b) { return (b.vm||0) - (a.vm||0); });
+  if (!sorted.length) { tbody.innerHTML = ''; if(empty) empty.style.display = 'block'; return; }
 
-  if (!sorted.length) {
-    tbody.innerHTML = '';
-    if(empty) empty.style.display = 'block';
-    return;
+  function numCell(val, isMoney) {
+    if (val == null) return '<td class="r" style="font-size:11px;color:var(--faint)">—</td>';
+    var pos = val >= 0;
+    var col = pos ? '#1a7a4a' : '#b83232';
+    var sign = pos ? '+' : '';
+    var str = isMoney
+      ? sign + (Math.abs(val) >= 1000 ? (val/1000).toFixed(1)+'k' : val.toFixed(0)) + ' €'
+      : sign + Math.abs(val).toFixed(1) + '%';
+    return '<td class="r" style="font-size:11px;font-weight:700;color:'+col+'">' + str + '</td>';
   }
 
   tbody.innerHTML = sorted.map(function(s) {
     var vm = s.vm || 0;
-    var vc = s.vc || s.carico || s.valoreCarico || 0;
-    var pm = vm - vc;
-    var pmPct = vc > 0 ? (pm / vc * 100) : 0;
-    var nome = s.nome || s.ticker || s.id || '—';
+    var vc = s.vc || s.carico || 0;
+    var tipo = s.tipo ? (s.tipo.charAt(0).toUpperCase() + s.tipo.slice(1).toLowerCase()) : '—';
+    var nome = s.nome || s.ticker || '—';
+    // P&L totale vs carico
+    var plTot = vc > 0 ? vm - vc : null;
+    var plTotPct = (vc > 0 && plTot != null) ? (plTot / vc * 100) : null;
+    // P&L 1D vs snapshot precedente
+    var vmIeri = _getVarVsIeri(s);
+    var pl1d = vmIeri != null ? vm - vmIeri : null;
+    var pl1dPct = (vmIeri != null && vmIeri > 0) ? (pl1d / vmIeri * 100) : null;
     return '<tr>' +
-      '<td><div style="font-weight:600;font-size:13px">' + esc(nome) + '</div>' +
-      (s.isin ? '<div style="font-size:10px;color:var(--faint)">' + esc(s.isin) + '</div>' : '') + '</td>' +
-      '<td class="r" style="font-weight:600">' + fmt(vm) + '</td>' +
-      '<td class="r ' + (pm >= 0 ? 'pos' : 'neg') + '">' + (pm >= 0 ? '+' : '') + fmt(pm) + '</td>' +
-      '<td class="r ' + (pmPct >= 0 ? 'pos' : 'neg') + '" style="font-size:12px;font-weight:600">' + (pmPct >= 0 ? '+' : '') + pmPct.toFixed(1) + '%</td>' +
+      '<td><div style="font-weight:600;font-size:12px;line-height:1.3">' + esc(nome) + '</div>' +
+      '<div style="font-size:10px;color:var(--muted)">' + esc(tipo) + '</div></td>' +
+      '<td class="r" style="font-size:12px;font-weight:700">' + fmt(vm) + '</td>' +
+      numCell(plTot, true) +
+      numCell(plTotPct, false) +
+      numCell(pl1d, true) +
+      numCell(pl1dPct, false) +
       '</tr>';
   }).join('');
 }
