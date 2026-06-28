@@ -294,9 +294,12 @@ async function loadAll() {
   renderKpi();
   renderAndamento();
   renderTorta();
-  renderStrumenti();
-  renderVariazioni();
   renderCedole();
+  // setTimeout garantisce che il DOM sia aggiornato prima di renderizzare la tabella
+  setTimeout(function() {
+    renderStrumenti();
+    renderVariazioni();
+  }, 50);
 }
 
 async function loadSnapshots() {
@@ -321,8 +324,7 @@ async function loadStrumenti() {
   try {
     const data = await api('GET', '/api/titoli/strumenti/fineco-inv');
     strumenti = Array.isArray(data) ? data : [];
-    console.log('loadStrumenti:', strumenti.length, 'strumenti');
-  } catch(e) { console.log('loadStrumenti error:', e); strumenti = []; }
+    } catch(e) { strumenti = []; }
 }
 
 async function loadTxFineco() {
@@ -370,7 +372,8 @@ function renderKpi() {
   // Ultimo aggiornamento
   if (snapshots.length > 0) {
     var last = snapshots[snapshots.length - 1];
-    document.getElementById('last-update').textContent = 'Agg. ' + last.date;
+    var lp = last.date.split('-');
+    document.getElementById('last-update').textContent = 'Agg. ' + lp[2]+'/'+lp[1]+'/'+lp[0];
   }
 }
 
@@ -404,7 +407,12 @@ function renderAndamento() {
   canvas.style.display = 'block';
   emptyEl.style.display = 'none';
 
-  var labels = filtered.map(function(s) { return s.date.slice(5); }); // MM-DD
+  var labels = filtered.map(function(s) {
+    // DD/MM (o DD/MM/AA se più di 1 anno di dati)
+    var p = s.date.split('-');
+    if (filtered.length > 250) return p[2]+'/'+p[1]+'/'+p[0].slice(2);
+    return p[2]+'/'+p[1];
+  });
   var values = filtered.map(function(s) { return s.totale; });
   var first = values[0];
   var colors = values.map(function(v) { return v >= first ? '#1a7a4a' : '#b83232'; });
@@ -508,7 +516,6 @@ function renderTorta() {
 function renderStrumenti() {
   var tbody = document.getElementById('tbody-strumenti');
   var empty = document.getElementById('strumenti-empty');
-  console.log('renderStrumenti: strumenti='+strumenti.length+' tbody='+!!tbody+' activeStrTab='+activeStrTab);
   if (!tbody) return;
   if (!strumenti.length) { tbody.innerHTML = ''; if(empty) empty.style.display = 'block'; return; }
   if(empty) empty.style.display = 'none';
@@ -520,7 +527,6 @@ function renderStrumenti() {
     return gruppo.indexOf(cl) >= 0;
   });
   var sorted = filtered.slice().sort(function(a,b) { return (b.vm||0) - (a.vm||0); });
-  console.log('renderStrumenti: filtered='+filtered.length+' sorted='+sorted.length);
 
   if (!sorted.length) {
     tbody.innerHTML = '';
@@ -547,7 +553,6 @@ function renderStrumenti() {
 // ─── VARIAZIONI GIORNALIERE ─────────────────────────────
 function renderVariazioni() {
   var body = document.getElementById('variazioni-body');
-  console.log('renderVariazioni: snapshots='+snapshots.length+' body='+!!body);
   if (snapshots.length < 2) {
     body.innerHTML = '<div class="empty" style="padding:20px">In attesa di almeno 2 snapshot per calcolare le variazioni.</div>';
     return;
