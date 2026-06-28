@@ -5212,13 +5212,8 @@ async function confermImportFinecoCC() {
     if (_sApp !== undefined && _sApp !== null) {
       // saldoFile = solo contabilizzati
       // saldoFile + sommaAutorizzato = saldo atteso in app (include anche non contabilizzati)
-      var _autorizzatoSum = 0;
-      for (var _ai = 0; _ai < _finecoPreviewData.length; _ai++) {
-        if (_finecoPreviewData[_ai]._autorizzato) _autorizzatoSum += (_finecoPreviewData[_ai].amount || 0);
-      }
-      _autorizzatoSum = Math.round(_autorizzatoSum * 100) / 100;
-      // saldoAtteso in app = saldoFile (solo contabilizzati) + autorizzato
-      var _sAtteso = Math.round((_sa + _autorizzatoSum) * 100) / 100;
+      // saldoAtteso = saldoFile (contabilizzati) + autorizzato (calcolato al parsing)
+      var _sAtteso = Math.round((_sa + _finecoAutorizzatoSum) * 100) / 100;
       var _diff = Math.round(Math.abs(_sAtteso - _sApp) * 100) / 100;
       if (_diff > 0.02) {
         var _sStr = _sa.toLocaleString('it-IT',{minimumFractionDigits:2});
