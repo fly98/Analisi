@@ -655,6 +655,7 @@ select.form-input { height: 42px; }
 
 <div id="login-screen">
   <div class="login-card">
+    <div id="login-dbg" style="display:none;background:#111;color:#0f0;font-family:monospace;font-size:11px;border-radius:8px;padding:8px;margin-bottom:12px;max-height:120px;overflow-y:auto;word-break:break-all"></div>
     <div style="font-size:48px;margin-bottom:12px">📒</div>
     <h2>iCompta</h2>
     <p>InternoUno Contabilità</p>
@@ -949,19 +950,30 @@ let editingTx = null;     // TX in modifica
 // ══════════════════════════════════════════════
 // AUTH
 // ══════════════════════════════════════════════
+function _loginLog(msg) {
+  var d = document.getElementById('login-dbg');
+  if (!d) return;
+  d.style.display = 'block';
+  d.innerHTML += '<div>' + String(msg).replace(/</g,'&lt;') + '</div>';
+  d.scrollTop = d.scrollHeight;
+}
 async function doLogin() {
+  _loginLog('doLogin START');
   const t = document.getElementById('token-input').value.trim();
-  if (!t) return;
+  if (!t) { _loginLog('token vuoto'); return; }
   TOKEN = t;
-  // Verifica token chiamando /api/meta
+  _loginLog('token ok, chiamo /api/meta...');
   try {
     const r = await api('GET', '/api/meta');
+    _loginLog('risposta: ' + JSON.stringify(r).slice(0,80));
     if (r.error) throw new Error(r.error);
     localStorage.setItem('icompta_token', TOKEN);
+    _loginLog('login OK, init...');
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('app').style.display = 'flex';
     await init(r);
   } catch(e) {
+    _loginLog('ERRORE: ' + (e && e.message ? e.message : String(e)));
     document.getElementById('login-err').textContent = 'Token non valido';
     TOKEN = '';
   }
