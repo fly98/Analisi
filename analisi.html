@@ -182,8 +182,10 @@ main { max-width:900px; margin:0 auto; padding:16px; display:flex;
     <!-- Variazioni giornaliere -->
     <div class="card">
       <div class="card-title">Variazioni giornaliere</div>
-      <div style="position:relative;height:180px;margin-bottom:4px">
-        <canvas id="chart-variazioni"></canvas>
+      <div id="variazioni-container" style="position:relative">
+        <div style="position:relative;height:200px;margin-bottom:4px">
+          <canvas id="chart-variazioni"></canvas>
+        </div>
       </div>
       <div id="variazioni-empty" class="empty" style="display:none;padding:20px">
         In attesa di almeno 2 snapshot.
