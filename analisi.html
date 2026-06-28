@@ -189,9 +189,14 @@ main { max-width:900px; margin:0 auto; padding:16px; display:flex;
       </div>
       <div class="card" style="flex:2;min-width:280px">
         <div class="card-title">Dettaglio strumenti</div>
+        <div class="range-bar" id="str-tabs" style="margin-bottom:10px">
+          <button class="range-btn active" data-macro="tutti">Tutti</button>
+          <button class="range-btn" data-macro="az">Azionario / ETF</button>
+          <button class="range-btn" data-macro="ob">Obbligaz. / Cert.</button>
+        </div>
         <table class="data-table" id="table-strumenti">
           <thead><tr>
-            <th>Strumento</th><th>Classe</th>
+            <th>Strumento</th>
             <th class="r">Valore</th><th class="r">+/−</th><th class="r">%</th>
           </tr></thead>
           <tbody id="tbody-strumenti"></tbody>
@@ -201,6 +206,12 @@ main { max-width:900px; margin:0 auto; padding:16px; display:flex;
           Nessun strumento trovato.
         </div>
       </div>
+    </div>
+
+    <!-- Variazioni giornaliere -->
+    <div class="card">
+      <div class="card-title">Variazioni giornaliere</div>
+      <div id="variazioni-body"></div>
     </div>
 
     <!-- Cedole e proventi da Fineco CC -->
@@ -267,6 +278,16 @@ if (TOKEN) {
   loadAll();
 }
 
+// ─── STRUMENTI TAB ───────────────────────────────────────
+document.getElementById('str-tabs').addEventListener('click', function(e) {
+  var btn = e.target.closest('.range-btn');
+  if (!btn) return;
+  document.querySelectorAll('#str-tabs .range-btn').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+  activeStrTab = btn.dataset.macro;
+  renderStrumenti();
+});
+
 // ─── LOAD ALL ────────────────────────────────────────────
 async function loadAll() {
   await Promise.all([loadSnapshots(), loadStrumenti(), loadTxFineco()]);
@@ -274,6 +295,7 @@ async function loadAll() {
   renderAndamento();
   renderTorta();
   renderStrumenti();
+  renderVariazioni();
   renderCedole();
 }
 
@@ -417,13 +439,14 @@ function renderAndamento() {
 }
 
 // ─── TORTA ───────────────────────────────────────────────
+// 2 macro-classi: azionario (ETF/ETC/monetario) e obbligazionario (bond/certificati)
 var CLASSI = {
-  'azionario': { label: 'Azionario', color: '#1a4a7a', badge: 'badge-az' },
-  'obbligazionario': { label: 'Obbligazionario', color: '#1a7a4a', badge: 'badge-ob' },
-  'monetario': { label: 'Monetario', color: '#7a5a00', badge: 'badge-mm' },
-  'materie prime': { label: 'Materie prime', color: '#b83232', badge: 'badge-mp' },
-  'altro': { label: 'Certificati', color: '#6b3fa0', badge: 'badge-az' },
-  'liquidita': { label: 'Liquidità', color: '#888', badge: 'badge-lq' },
+  'azionario':      { label: 'Azionario / ETF', color: '#1a4a7a', badge: 'badge-az', macro: 'az' },
+  'monetario':      { label: 'Azionario / ETF', color: '#1a4a7a', badge: 'badge-az', macro: 'az' },
+  'materie prime':  { label: 'Azionario / ETF', color: '#1a4a7a', badge: 'badge-az', macro: 'az' },
+  'obbligazionario':{ label: 'Obbligaz. / Cert.', color: '#1a7a4a', badge: 'badge-ob', macro: 'ob' },
+  'altro':          { label: 'Obbligaz. / Cert.', color: '#1a7a4a', badge: 'badge-ob', macro: 'ob' },
+  'liquidita':      { label: 'Altro', color: '#888', badge: 'badge-lq', macro: 'altro' },
 };
 
 function getClasse(s) {
@@ -447,17 +470,21 @@ function getClasse(s) {
 }
 
 function renderTorta() {
-  var byClasse = {};
+  // Raggruppa per macro-classe
+  var byMacro = { az: 0, ob: 0, altro: 0 };
   strumenti.forEach(function(s) {
     var cl = getClasse(s);
-    byClasse[cl] = (byClasse[cl] || 0) + (s.vm || 0);
+    var macro = (CLASSI[cl] || { macro: 'altro' }).macro;
+    byMacro[macro] = (byMacro[macro] || 0) + (s.vm || 0);
   });
-  var keys = Object.keys(byClasse);
+  var macroLabels = { az: 'Azionario / ETF', ob: 'Obbligaz. / Cert.', altro: 'Altro' };
+  var macroColors = { az: '#1a4a7a', ob: '#1a7a4a', altro: '#888' };
+  var keys = Object.keys(byMacro).filter(function(k){ return byMacro[k] > 0; });
   if (!keys.length) return;
 
-  var labels = keys.map(function(k) { return (CLASSI[k] || { label: k }).label; });
-  var values = keys.map(function(k) { return byClasse[k]; });
-  var colors = keys.map(function(k) { return (CLASSI[k] || { color: '#ccc' }).color; });
+  var labels = keys.map(function(k) { return macroLabels[k]; });
+  var values = keys.map(function(k) { return byMacro[k]; });
+  var colors = keys.map(function(k) { return macroColors[k]; });
 
   if (chartTorta) chartTorta.destroy();
   chartTorta = new Chart(document.getElementById('chart-torta').getContext('2d'), {
@@ -483,24 +510,64 @@ function renderStrumenti() {
   if (!strumenti.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
   empty.style.display = 'none';
 
-  var sorted = strumenti.slice().sort(function(a,b) { return (b.vm||0) - (a.vm||0); });
+  var filtered = strumenti.filter(function(s) {
+    if (activeStrTab === 'tutti') return true;
+    var cl = getClasse(s);
+    var macro = (CLASSI[cl] || {}).macro || 'altro';
+    return macro === activeStrTab;
+  });
+  var sorted = filtered.slice().sort(function(a,b) { return (b.vm||0) - (a.vm||0); });
+
+  if (!sorted.length) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+
   tbody.innerHTML = sorted.map(function(s) {
     var vm = s.vm || 0;
     var vc = s.vc || s.carico || s.valoreCarico || 0;
     var pm = vm - vc;
     var pmPct = vc > 0 ? (pm / vc * 100) : 0;
-    var cl = getClasse(s);
-    var ci = CLASSI[cl] || { label: cl, badge: 'badge-lq' };
     var nome = s.nome || s.ticker || s.id || '—';
     return '<tr>' +
       '<td><div style="font-weight:600;font-size:13px">' + esc(nome) + '</div>' +
-      (s.ticker && s.nome ? '<div style="font-size:11px;color:var(--muted)">' + esc(s.ticker) + '</div>' : '') + '</td>' +
-      '<td><span class="badge ' + ci.badge + '">' + ci.label + '</span></td>' +
+      (s.isin ? '<div style="font-size:10px;color:var(--faint)">' + esc(s.isin) + '</div>' : '') + '</td>' +
       '<td class="r" style="font-weight:600">' + fmt(vm) + '</td>' +
       '<td class="r ' + (pm >= 0 ? 'pos' : 'neg') + '">' + (pm >= 0 ? '+' : '') + fmt(pm) + '</td>' +
-      '<td class="r ' + (pmPct >= 0 ? 'pos' : 'neg') + '" style="font-size:12px">' + (pmPct >= 0 ? '+' : '') + pmPct.toFixed(1) + '%</td>' +
+      '<td class="r ' + (pmPct >= 0 ? 'pos' : 'neg') + '" style="font-size:12px;font-weight:600">' + (pmPct >= 0 ? '+' : '') + pmPct.toFixed(1) + '%</td>' +
       '</tr>';
   }).join('');
+}
+
+// ─── VARIAZIONI GIORNALIERE ─────────────────────────────
+function renderVariazioni() {
+  var body = document.getElementById('variazioni-body');
+  if (snapshots.length < 2) {
+    body.innerHTML = '<div class="empty" style="padding:20px">In attesa di almeno 2 snapshot per calcolare le variazioni.</div>';
+    return;
+  }
+  // Ultimi 11 snapshot (per avere 10 variazioni)
+  var recent = snapshots.slice(-11);
+  var html = '<div style="display:flex;flex-direction:column;gap:0">';
+  for (var i = recent.length - 1; i >= 1; i--) {
+    var curr = recent[i];
+    var prev = recent[i-1];
+    var delta = curr.totale - prev.totale;
+    var deltaPct = prev.totale > 0 ? (delta / prev.totale * 100) : 0;
+    var isPos = delta >= 0;
+    var d = curr.date;
+    var dateLabel = new Date(d + 'T00:00:00').toLocaleDateString('it-IT', {weekday:'short', day:'numeric', month:'short'});
+    html += '<div style="display:flex;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">' +
+      '<span style="flex:1;font-size:13px;color:var(--muted)">' + dateLabel + '</span>' +
+      '<span style="font-size:14px;font-weight:700;margin-right:12px;color:' + (isPos?'var(--green)':'var(--red)') + '">' +
+        (isPos?'+':'') + fmt(delta) + '</span>' +
+      '<span style="font-size:12px;font-weight:600;min-width:52px;text-align:right;color:' + (isPos?'var(--green)':'var(--red)') + '">' +
+        (isPos?'+':'') + deltaPct.toFixed(2) + '%</span>' +
+      '</div>';
+  }
+  html += '</div>';
+  body.innerHTML = html;
 }
 
 // ─── CEDOLE ──────────────────────────────────────────────
