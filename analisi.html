@@ -316,7 +316,7 @@ async function loadTxFineco() {
 // ─── KPI ─────────────────────────────────────────────────
 function renderKpi() {
   var vm = strumenti.reduce(function(s, x) { return s + (x.vm || 0); }, 0);
-  var vc = strumenti.reduce(function(s, x) { return s + (x.carico || 0); }, 0);
+  var vc = strumenti.reduce(function(s, x) { return s + (x.vc || x.carico || 0); }, 0);
   var pm = vm - vc;
   var pmPct = vc > 0 ? (pm / vc * 100) : 0;
 
@@ -422,17 +422,27 @@ var CLASSI = {
   'obbligazionario': { label: 'Obbligazionario', color: '#1a7a4a', badge: 'badge-ob' },
   'monetario': { label: 'Monetario', color: '#7a5a00', badge: 'badge-mm' },
   'materie prime': { label: 'Materie prime', color: '#b83232', badge: 'badge-mp' },
+  'altro': { label: 'Certificati', color: '#6b3fa0', badge: 'badge-az' },
   'liquidita': { label: 'Liquidità', color: '#888', badge: 'badge-lq' },
 };
 
 function getClasse(s) {
   var n = (s.nome || s.ticker || '').toLowerCase();
-  var tag = (s.assetClass || s.classe || '').toLowerCase();
-  if (tag) return tag;
-  if (n.includes('vwce') || n.includes('msci') || n.includes('equity') || n.includes('azion')) return 'azionario';
-  if (n.includes('xeon') || n.includes('monetar') || n.includes('liquida')) return 'monetario';
-  if (n.includes('gold') || n.includes('oro') || n.includes('materie')) return 'materie prime';
-  if (n.includes('btp') || n.includes('cdp') || n.includes('bond') || n.includes('obbl') || n.includes('eni')) return 'obbligazionario';
+  var tipo = (s.tipo || s.assetClass || s.classe || '').toLowerCase();
+  // Classificazione per tipo dal file Fineco
+  if (tipo === 'obbligazione') return 'obbligazionario';
+  if (tipo === 'etf' || tipo === 'etc') {
+    if (n.includes('gold') || n.includes('oro')) return 'materie prime';
+    if (n.includes('xeon') || n.includes('overnight') || n.includes('swap')) return 'monetario';
+    return 'azionario';
+  }
+  if (tipo === 'certificate') return 'altro';
+  // Fallback su nome
+  if (n.includes('vwce') || n.includes('vanguard') || n.includes('nasdaq') || n.includes('ishares nasdaq')) return 'azionario';
+  if (n.includes('xeon') || n.includes('overnight')) return 'monetario';
+  if (n.includes('gold') || n.includes('physical gold')) return 'materie prime';
+  if (n.includes('btp') || n.includes('cdp') || n.includes('eni') || n.includes('mediob') || n.includes('gsachs')) return 'obbligazionario';
+  if (n.includes('certificate') || n.includes('is ep')) return 'altro';
   return 'liquidita';
 }
 
@@ -476,7 +486,7 @@ function renderStrumenti() {
   var sorted = strumenti.slice().sort(function(a,b) { return (b.vm||0) - (a.vm||0); });
   tbody.innerHTML = sorted.map(function(s) {
     var vm = s.vm || 0;
-    var vc = s.carico || s.valoreCarico || 0;
+    var vc = s.vc || s.carico || s.valoreCarico || 0;
     var pm = vm - vc;
     var pmPct = vc > 0 ? (pm / vc * 100) : 0;
     var cl = getClasse(s);
