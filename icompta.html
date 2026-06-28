@@ -1550,7 +1550,7 @@ function addSplit(split = null) {
   catBtn.dataset.catId = split?.categoryId || '';
   var catLabel = split?.categoryId ? getCatName(split.categoryId) : '— Categoria —';
   catBtn.textContent = catLabel;
-  catBtn.onclick = function() { openCatPicker(catBtn); };
+  catBtn.addEventListener('click', function(e) { e.stopPropagation(); openCatPicker(catBtn); });
 
   const delBtn = document.createElement('button');
   delBtn.className = 'btn-icon';
@@ -4419,10 +4419,12 @@ function _renderCatPicker(roots, cats, parentId) {
   var sheet = document.createElement('div');
   sheet.id = 'cat-picker-sheet';
   sheet.style.cssText = 'position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center';
-  sheet.onclick = function(e) { if(e.target===sheet) sheet.remove(); };
+  sheet.addEventListener('click', function(e) { if(e.target===sheet){ e.stopPropagation(); sheet.remove(); } });
+  sheet.addEventListener('touchmove', function(e) { e.stopPropagation(); }, {passive:true});
 
   var inner = document.createElement('div');
   inner.style.cssText = 'background:var(--bg);border-radius:20px 20px 0 0;width:min(540px,100%);max-height:70vh;display:flex;flex-direction:column;box-shadow:0 -4px 32px rgba(0,0,0,.2);';
+  inner.addEventListener('click', function(e) { e.stopPropagation(); });
 
   var header = document.createElement('div');
   header.style.cssText = 'padding:14px 16px 10px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);flex-shrink:0';
