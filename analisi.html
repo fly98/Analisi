@@ -324,13 +324,17 @@ async function loadSnapshots() {
     const data = await api('GET', '/api/snapshot');
     snapshots = Array.isArray(data) ? data : [];
   } catch(e) { snapshots = []; }
-  // Se KV vuoto, carica dati demo
-  if (snapshots.length === 0) {
+  // Carica demo se meno di 5 snapshot reali (in sviluppo)
+  if (snapshots.length < 5) {
     try {
       var r = await fetch('https://fly98.github.io/Analisi/demo_snapshots.json');
       var demo = await r.json();
       if (Array.isArray(demo) && demo.length > 0) {
-        snapshots = demo;
+        // Unisci demo + reali, i reali sovrascrivono stessa data
+        var byDate = {};
+        demo.forEach(function(s){ byDate[s.date] = s; });
+        snapshots.forEach(function(s){ byDate[s.date] = s; }); // reali vincono
+        snapshots = Object.values(byDate).sort(function(a,b){ return a.date.localeCompare(b.date); });
         document.getElementById('demo-banner').style.display = 'block';
       }
     } catch(e) {}
