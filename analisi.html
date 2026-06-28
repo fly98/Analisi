@@ -134,7 +134,6 @@ main { max-width:900px; margin:0 auto; padding:16px; display:flex;
   <header>
     <h1>📊 Analisi Finanziaria</h1>
     <span id="last-update"></span>
-    <button id="snap-btn" title="Salva snapshot oggi">💾 Snapshot</button>
     <a href="icompta.html">← iCompta</a>
   </header>
 
@@ -173,7 +172,7 @@ main { max-width:900px; margin:0 auto; padding:16px; display:flex;
       </div>
       <div id="chart-empty" class="empty" style="display:none">
         <div class="empty-icon">📈</div>
-        Nessun dato storico ancora.<br>Premi 💾 Snapshot per iniziare a raccogliere dati.
+        Nessun dato storico ancora.<br>Lo snapshot viene salvato automaticamente ad ogni importazione Fineco in iCompta.
       </div>
     </div>
 
@@ -273,7 +272,6 @@ async function loadAll() {
   renderTorta();
   renderStrumenti();
   renderCedole();
-  autoSnapshot();
 }
 
 async function loadSnapshots() {
