@@ -137,6 +137,9 @@ main { max-width:900px; margin:0 auto; padding:16px; display:flex;
     <a href="icompta.html">← iCompta</a>
   </header>
 
+  <div id="demo-banner" style="display:none;background:#fef8e8;border-bottom:1px solid #f0d060;padding:8px 16px;text-align:center;font-size:12px;font-weight:600;color:#7a5a00">
+    🧪 Dati demo attivi — lo storico mostrato è simulato. <a href="#" onclick="rimuoviDemo()" style="color:#b83232;margin-left:8px">Rimuovi dati demo</a>
+  </div>
   <main>
     <!-- KPI principali -->
     <div class="card">
@@ -279,6 +282,17 @@ async function loadSnapshots() {
     const data = await api('GET', '/api/snapshot');
     snapshots = Array.isArray(data) ? data : [];
   } catch(e) { snapshots = []; }
+  // Se KV vuoto, carica dati demo
+  if (snapshots.length === 0) {
+    try {
+      var r = await fetch('demo_snapshots.json');
+      var demo = await r.json();
+      if (Array.isArray(demo) && demo.length > 0) {
+        snapshots = demo;
+        document.getElementById('demo-banner').style.display = 'block';
+      }
+    } catch(e) {}
+  }
 }
 
 async function loadStrumenti() {
@@ -582,6 +596,15 @@ async function saveSnapshot(silent) {
     btn.textContent = '💾 Snapshot';
     btn.disabled = false;
   }
+}
+
+// ─── DEMO ────────────────────────────────────────────────
+async function rimuoviDemo() {
+  if (!confirm('Rimuovere i dati demo? Rimarrà solo lo storico reale (se presente).')) return;
+  snapshots = snapshots.filter(function(s) { return !s._demo; });
+  document.getElementById('demo-banner').style.display = 'none';
+  renderKpi();
+  renderAndamento();
 }
 
 // ─── UTILS ───────────────────────────────────────────────
