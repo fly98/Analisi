@@ -118,8 +118,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif
   border: none; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
 
 /* ── Transaction list ── */
-#tx-list-container { flex: 1; overflow-y: auto; background: var(--surface); display: flex; flex-direction: column; min-height: 0; }
-#strumenti-view { flex: 1; overflow-y: auto; min-height: 0; }
+#tx-list-container { flex: 1; overflow-y: auto; background: var(--surface); display: flex; flex-direction: column; }
 #tx-header { display: flex; flex-direction: row; align-items: center; padding: 6px 16px;
   background: var(--bg); border-bottom: 1px solid var(--border-s);
   position: sticky; top: 0; z-index: 3; width: 100%; box-sizing: border-box; }
@@ -209,7 +208,7 @@ select.form-input { height: 42px; }
 .btn-danger { background: var(--red); color: white; }
 
 /* ── Split rows in modal ── */
-.split-row { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; background: var(--surface,#f9f9f9); border-radius: 12px; padding: 10px 12px; border: 1px solid var(--border); }
+.split-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
 .split-row input { flex: 1; }
 .btn-icon { background: var(--gray2); border: none; border-radius: 8px; 
   padding: 6px 10px; cursor: pointer; font-size: 14px; }
@@ -322,7 +321,7 @@ select.form-input { height: 42px; }
 
 /* ── Numpad ── */
 .amt-display {
-  width:100%; font-size:26px; font-weight:700; text-align:center;
+  width:100%; font-size:26px; font-weight:700; text-align:right;
   padding:10px 14px; border-radius:8px; border:1.5px solid var(--border);
   box-sizing:border-box; margin-bottom:10px; background:var(--surface);
   cursor:pointer; transition:border-color 0.15s, background 0.15s;
@@ -600,53 +599,6 @@ select.form-input { height: 42px; }
 .leo-log-info { flex:1; }
 .leo-log-label { font-size:14px;font-weight:600; }
 .leo-log-sub { font-size:12px;color:var(--muted);margin-top:2px; }
-
-/* ── RESPONSIVE IPHONE ────────────────────────────────────────────────────── */
-@media (max-width: 430px) {
-
-  /* Date-bar: scroll orizzontale per filtri periodo */
-  #date-bar { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; gap: 4px; padding: 6px 8px; }
-  #date-bar .filter-chip, #date-bar button { white-space: nowrap; font-size: 12px; padding: 4px 8px; flex-shrink: 0; }
-  #date-bar input[type=date] { width: 86px; font-size: 11px; padding: 3px 4px; }
-  #btn-import-contestuale { font-size: 11px !important; padding: 4px 7px !important; }
-
-  /* Lista TX: scroll orizzontale sul wrapper — header e body si muovono INSIEME */
-  #tx-scroll-wrap {
-    overflow-x: auto !important;
-    overflow-y: visible !important;
-    -webkit-overflow-scrolling: touch;
-    flex: 1;
-    min-height: 0;
-  }
-  #tx-header {
-    min-width: 580px;
-    width: max-content;
-    position: sticky !important;
-    top: 0;
-    z-index: 10;
-    overflow-x: visible !important;
-  }
-  #tx-body   { overflow-x: visible !important; min-width: 580px; }
-  .tx-row    { min-width: 580px; }
-
-  /* Descrizione più larga */
-  .tx-c-desc { min-width: 160px !important; }
-  .tx-c-desc .txn { font-size: 13px; }
-  .tx-c-desc .txs { font-size: 11px; }
-
-  /* Data compatta */
-  .tx-c-date { width: 58px !important; font-size: 11px !important; }
-
-  /* Importo compatto */
-  .tx-c-amt { width: 85px !important; font-size: 13px !important; }
-
-  /* Categoria badge piccolo */
-  .cat-badge { font-size: 10px !important; padding: 1px 5px !important; max-width: 100px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-
-  /* Colonna Trasf. stesso colore delle altre */
-  .tx-c-trasf { color: var(--text) !important; }
-  .txh.tx-c-trasf { color: var(--muted) !important; }
-}
 </style>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 </head>
@@ -728,19 +680,17 @@ select.form-input { height: 42px; }
         </div>
         <div id="rec-pending-list"></div>
       </div>
-      <div id="tx-scroll-wrap" style="flex:1;display:flex;flex-direction:column;min-height:0">
-        <div id="tx-header">
-          <div class="txh tx-c-date">Data<div class="col-resizer" data-col="date"></div></div>
-          <div class="txh tx-c-desc" style="padding:0 10px">Descrizione</div>
-          <div class="txh tx-c-cat" style="padding:0 8px">Categoria<div class="col-resizer" data-col="cat"></div></div>
-          <div class="txh tx-c-amt" style="text-align:right;padding:0 8px">Importo<div class="col-resizer" data-col="amt"></div></div>
-          <div class="txh tx-c-bal" style="text-align:right;padding:0 8px">Saldo<div class="col-resizer" data-col="bal"></div></div>
-          <div class="txh tx-c-trasf" style="padding:0 8px">Trasf.<div class="col-resizer" data-col="trasf"></div></div>
-          <div style="width:28px;flex-shrink:0"></div>
-        </div>
-        <div id="tx-body" style="flex:1">
-          <div style="text-align:center;padding:40px;color:var(--muted)">Seleziona un conto dalla sidebar</div>
-        </div>
+      <div id="tx-header">
+        <div class="txh tx-c-date">Data<div class="col-resizer" data-col="date"></div></div>
+        <div class="txh tx-c-desc" style="padding:0 10px">Descrizione</div>
+        <div class="txh tx-c-cat" style="padding:0 8px">Categoria<div class="col-resizer" data-col="cat"></div></div>
+        <div class="txh tx-c-amt" style="text-align:right;padding:0 8px">Importo<div class="col-resizer" data-col="amt"></div></div>
+        <div class="txh tx-c-bal" style="text-align:right;padding:0 8px">Saldo<div class="col-resizer" data-col="bal"></div></div>
+        <div class="txh tx-c-trasf" style="padding:0 8px">Trasf.<div class="col-resizer" data-col="trasf"></div></div>
+        <div style="width:28px;flex-shrink:0"></div>
+      </div>
+      <div id="tx-body" style="flex:1">
+        <div style="text-align:center;padding:40px;color:var(--muted)">Seleziona un conto dalla sidebar</div>
       </div>
     </div>
   </div>
@@ -891,8 +841,11 @@ select.form-input { height: 42px; }
         <textarea class="form-input" id="tx-comment" placeholder="Opzionale" rows="3" style="resize:vertical;min-height:72px;font-family:inherit;line-height:1.5"></textarea>
       </div>
       <div class="form-group">
+        <label class="form-label" style="display:flex;justify-content:space-between">
+          <span>Splits (categorie)</span>
+          <button class="btn-icon" onclick="addSplit()">+ Aggiungi</button>
+        </label>
         <div id="splits-container"></div>
-        <button class="btn-icon" onclick="addSplit()" style="margin-top:6px;font-size:12px;color:var(--muted);background:none;border:1px dashed var(--border);border-radius:8px;padding:6px 12px;width:100%;cursor:pointer">+ Aggiungi categoria</button>
       </div>
       <div class="transfer-section">
         <div class="transfer-header" onclick="toggleTransfer()">
@@ -1229,7 +1182,6 @@ async function loadYear(year) {
 
 function showTxView() {
   var sv=document.getElementById('strumenti-view'); if(sv) sv.style.display='none';
-  var wrap=document.getElementById('tx-scroll-wrap'); if(wrap) wrap.style.cssText='flex:1;display:flex;flex-direction:column;min-height:0';
   ['date-bar','rec-pending-box','tx-header','tx-body'].forEach(function(id){var e=document.getElementById(id);if(e)e.style.display='';});
 }
 
@@ -1370,18 +1322,9 @@ function renderTxList() {
       const label = new Date(y, m-1, 1).toLocaleString('it-IT', {month:'long', year:'numeric'});
       const mTxs = filteredTxs.filter(t => t.date.startsWith(month));
       const mOut = mTxs.reduce((s,t)=>{ const a=getTxAmount(t); return a<0?s+Math.abs(a):s; },0);
-      const mIn  = mTxs.reduce((s,t)=>{ const a=getTxAmount(t); return a>0?s+a:s; },0);
       const hdr = document.createElement('div');
       hdr.className = 'tx-month-hdr';
-      var mSaldo = mIn - mOut; // mOut è già negativo
-      var saldoCol = mSaldo >= 0 ? 'var(--green,#28a745)' : 'var(--red,#dc3545)';
-      hdr.innerHTML = '<span class="mhl">' + label + '</span>' +
-        '<span class="mhc">' + mTxs.length + ' tx</span>' +
-        '<span class="mht" style="display:flex;gap:10px;align-items:center">' +
-          '<span style="color:#28a745">↑ ' + fmt(mIn) + '</span>' +
-          '<span style="color:#dc3545">↓ ' + fmt(-mOut) + '</span>' +
-          '<span style="color:' + saldoCol + '">⚖ ' + fmt(mSaldo) + '</span>' +
-        '</span>';
+      hdr.innerHTML = `<span class="mhl">${label}</span><span class="mhc">${mTxs.length} transazioni</span><span class="mht">Uscite: ${fmt(-mOut)}</span>`;
       body.appendChild(hdr);
     }
 
@@ -1531,9 +1474,9 @@ function addSplit(split = null) {
 
   amtDisplay.addEventListener('click', function() { openNumpad(amtDisplay, amtHidden); });
 
-  // Importo sopra, categoria sotto
-  const catRow = document.createElement('div');
-  catRow.style.cssText = 'display:flex;gap:8px;align-items:center;margin-top:8px;';
+  // Riga: importo + categoria + elimina
+  const bottom = document.createElement('div');
+  bottom.style.cssText = 'display:flex;gap:8px;align-items:center;margin-top:8px;';
 
   const catBtn = document.createElement('button');
   catBtn.className = 'form-input split-cat-btn';
@@ -1546,15 +1489,13 @@ function addSplit(split = null) {
   const delBtn = document.createElement('button');
   delBtn.className = 'btn-icon';
   delBtn.textContent = '✕';
-  delBtn.style.cssText = 'flex-shrink:0;';
   delBtn.onclick = function() { row.remove(); };
 
-  catRow.appendChild(catBtn);
-  catRow.appendChild(delBtn);
-
-  row.appendChild(amtDisplay);  // importo in cima
+  bottom.appendChild(catBtn);
+  bottom.appendChild(delBtn);
+  row.appendChild(amtDisplay);
   row.appendChild(amtHidden);
-  row.appendChild(catRow);      // categoria sotto
+  row.appendChild(bottom);
   container.appendChild(row);
 }
 
@@ -4583,14 +4524,9 @@ function selectStrumenti(contoId, nome) {
   closeSidebar();
   document.querySelectorAll('.account-row').forEach(function(r){r.classList.remove('active');});
   ['date-bar','rec-pending-box','tx-header','tx-body'].forEach(function(id){var e=document.getElementById(id);if(e)e.style.display='none';});
-  var wrap2=document.getElementById('tx-scroll-wrap'); if(wrap2) wrap2.style.display='none';
-  var sv = document.getElementById('strumenti-view');
-  sv.style.display = 'flex';
-  sv.style.flexDirection = 'column';
-  var wrap = document.getElementById('tx-scroll-wrap');
-  if (wrap) wrap.style.display = 'none';
+  document.getElementById('strumenti-view').style.display = 'block';
   aggiornaBottoneImport();
-  _initFinecoStrumenti();
+  _initFinecoStrumenti(); // sync: carica da localStorage subito
   renderStrumentiView();
   // Poi async: se localStorage vuoto carica da KV e aggiorna
   _initFinecoStrumentiAsync().then(function() {
