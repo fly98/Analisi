@@ -1229,7 +1229,7 @@ async function loadYear(year) {
 
 function showTxView() {
   var sv=document.getElementById('strumenti-view'); if(sv) sv.style.display='none';
-  var wrap=document.getElementById('tx-scroll-wrap'); if(wrap) wrap.style.display='';
+  var wrap=document.getElementById('tx-scroll-wrap'); if(wrap) wrap.style.cssText='flex:1;display:flex;flex-direction:column;min-height:0';
   ['date-bar','rec-pending-box','tx-header','tx-body'].forEach(function(id){var e=document.getElementById(id);if(e)e.style.display='';});
 }
 
@@ -4583,6 +4583,7 @@ function selectStrumenti(contoId, nome) {
   closeSidebar();
   document.querySelectorAll('.account-row').forEach(function(r){r.classList.remove('active');});
   ['date-bar','rec-pending-box','tx-header','tx-body'].forEach(function(id){var e=document.getElementById(id);if(e)e.style.display='none';});
+  var wrap2=document.getElementById('tx-scroll-wrap'); if(wrap2) wrap2.style.display='none';
   var sv = document.getElementById('strumenti-view');
   sv.style.display = 'flex';
   sv.style.flexDirection = 'column';
