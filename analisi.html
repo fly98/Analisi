@@ -564,6 +564,99 @@ function renderStrumenti() {
 
 
 
+// ─── VARIAZIONI GIORNALIERE ─────────────────────────────
+var chartVariazioni = null;
+function renderVariazioni() {
+  var canvas = document.getElementById('chart-variazioni');
+  var emptyEl = document.getElementById('variazioni-empty');
+  if (!canvas) return;
+  if (snapshots.length < 2) {
+    canvas.style.display = 'none';
+    if (emptyEl) emptyEl.style.display = 'block';
+    return;
+  }
+  canvas.style.display = 'block';
+  if (emptyEl) emptyEl.style.display = 'none';
+
+  var recent = snapshots.slice(-11);
+  var labels = [], deltas = [], pcts = [], colors = [];
+  for (var i = 1; i < recent.length; i++) {
+    var curr = recent[i], prev = recent[i-1];
+    var delta = Math.round((curr.totale - prev.totale) * 100) / 100;
+    var pct = prev.totale > 0 ? Math.round(delta / prev.totale * 10000) / 100 : 0;
+    var p = curr.date.split('-');
+    labels.push(p[2]+'/'+p[1]);
+    deltas.push(delta);
+    pcts.push(pct);
+    colors.push(delta >= 0 ? '#1a7a4a' : '#b83232');
+  }
+
+  if (chartVariazioni) chartVariazioni.destroy();
+  chartVariazioni = new Chart(canvas.getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        data: deltas,
+        backgroundColor: colors,
+        borderRadius: 4,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: function(ctx) {
+              var i = ctx.dataIndex;
+              var sign = deltas[i] >= 0 ? '+' : '';
+              return sign + fmt(deltas[i]) + '  (' + sign + pcts[i].toFixed(2) + '%)';
+            }
+          }
+        }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+        y: {
+          grid: { color: 'rgba(0,0,0,.05)' },
+          ticks: {
+            callback: function(v) {
+              return (v >= 0 ? '+' : '') + (v/1000).toFixed(1) + 'k';
+            },
+            font: { size: 10 }
+          }
+        }
+      }
+    },
+    plugins: [{
+      afterDatasetsDraw: function(chart) {
+        var ctx2 = chart.ctx;
+        var meta = chart.getDatasetMeta(0);
+        meta.data.forEach(function(bar, i) {
+          var val = deltas[i];
+          var sign = val >= 0 ? '+' : '';
+          var col = val >= 0 ? '#1a7a4a' : '#b83232';
+          ctx2.save();
+          ctx2.fillStyle = col;
+          ctx2.font = 'bold 9px -apple-system,sans-serif';
+          ctx2.textAlign = 'center';
+          var x = bar.x;
+          var yTop = bar.y;
+          var yBot = bar.base;
+          var isPos = val >= 0;
+          var yLine1 = isPos ? yTop - 16 : yBot + 10;
+          var yLine2 = isPos ? yTop - 5 : yBot + 20;
+          ctx2.fillText(sign + (Math.abs(val)/1000).toFixed(1)+'k', x, yLine1);
+          ctx2.fillText(sign + pcts[i].toFixed(1)+'%', x, yLine2);
+          ctx2.restore();
+        });
+      }
+    }]
+  });
+}
+
 // ─── CEDOLE ──────────────────────────────────────────────
 document.getElementById('cedole-range').addEventListener('click', function(e) {
   var btn = e.target.closest('.range-btn');
