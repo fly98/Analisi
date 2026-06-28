@@ -127,12 +127,12 @@ select:focus{border-color:var(--blue);}
 </div>
 
 <div class="main-tabs">
-  <button class="main-tab active" onclick="showMainTab('finanziario',this)">💰 Finanziario</button>
-  <button class="main-tab" onclick="showMainTab('prenotazioni',this)">📊 Prenotazioni</button>
+  <button class="main-tab active" onclick="showMainTab('prenotazioni',this)">📊 Prenotazioni</button>
+  <button class="main-tab" onclick="showMainTab('finanziario',this)">💰 Finanziario</button>
 </div>
 
 <!-- ═══════════════════ TAB FINANZIARIO ═══════════════════ -->
-<div id="panel-finanziario" class="tab-panel active">
+<div id="panel-finanziario" class="tab-panel">
 <div style="padding:0 14px 60px;max-width:1100px;margin:0 auto;">
 
   <div class="status-bar" id="status-fin"></div>
@@ -264,7 +264,7 @@ select:focus{border-color:var(--blue);}
 </div>
 
 <!-- ═══════════════════ TAB PRENOTAZIONI ═══════════════════ -->
-<div id="panel-prenotazioni" class="tab-panel">
+<div id="panel-prenotazioni" class="tab-panel active">
 <div id="app-pren" style="padding:0 14px 60px;max-width:1100px;margin:0 auto;">
 
   <div class="status-bar" id="status-bar"></div>
