@@ -508,8 +508,10 @@ function renderTorta() {
 function renderStrumenti() {
   var tbody = document.getElementById('tbody-strumenti');
   var empty = document.getElementById('strumenti-empty');
-  if (!strumenti.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
-  empty.style.display = 'none';
+  console.log('renderStrumenti: strumenti='+strumenti.length+' tbody='+!!tbody+' activeStrTab='+activeStrTab);
+  if (!tbody) return;
+  if (!strumenti.length) { tbody.innerHTML = ''; if(empty) empty.style.display = 'block'; return; }
+  if(empty) empty.style.display = 'none';
 
   var filtered = strumenti.filter(function(s) {
     if (activeStrTab === 'tutti') return true;
@@ -518,10 +520,11 @@ function renderStrumenti() {
     return gruppo.indexOf(cl) >= 0;
   });
   var sorted = filtered.slice().sort(function(a,b) { return (b.vm||0) - (a.vm||0); });
+  console.log('renderStrumenti: filtered='+filtered.length+' sorted='+sorted.length);
 
   if (!sorted.length) {
     tbody.innerHTML = '';
-    empty.style.display = 'block';
+    if(empty) empty.style.display = 'block';
     return;
   }
 
@@ -544,7 +547,7 @@ function renderStrumenti() {
 // ─── VARIAZIONI GIORNALIERE ─────────────────────────────
 function renderVariazioni() {
   var body = document.getElementById('variazioni-body');
-  console.log('renderVariazioni: snapshots.length=', snapshots.length);
+  console.log('renderVariazioni: snapshots='+snapshots.length+' body='+!!body);
   if (snapshots.length < 2) {
     body.innerHTML = '<div class="empty" style="padding:20px">In attesa di almeno 2 snapshot per calcolare le variazioni.</div>';
     return;
