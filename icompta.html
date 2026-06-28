@@ -1245,7 +1245,7 @@ async function selectAccount(id, name) {
     r.classList.toggle('active', r.dataset.accId === id);
   });
   showTxView();
-  aggiornaBottoneImport();
+  if (typeof aggiornaBottoneImport === 'function') aggiornaBottoneImport();
   await reloadTxForRange();
 }
 
@@ -1684,7 +1684,7 @@ async function saveTx() {
   const splits = [];
   document.querySelectorAll('.split-row').forEach(row => {
     const amount = parseFloat(row.querySelector('.split-amount').value);
-    const categoryId = row.querySelector('.split-cat').value || null;
+    const categoryId = (row.querySelector('.split-cat-btn') || {}).dataset?.catId || null;
     const el = row.querySelector('.split-comment'); const comment = el ? el.value || null : null;
     if (!isNaN(amount)) splits.push({ amount, categoryId, comment });
   });
