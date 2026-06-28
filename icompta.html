@@ -770,9 +770,9 @@ select.form-input { height: 42px; }
       <div class="settings-section">
         <div class="settings-section-header" onclick="toggleSettingsSection('import')">
           <span class="settings-section-title" style="margin:0">Import</span>
-          <span class="settings-section-chevron " id="chev-import" class="settings-section-chevron open">›</span>
+          <span class="settings-section-chevron " id="chev-import">›</span>
         </div>
-        <div class="settings-section-body" id="sec-import">
+        <div class="settings-section-body collapsed" id="sec-import">
           <div class="settings-item" onclick="closeSettings();openSellaImport()">
             <span class="s-icon" style="background:#e8f5ee"><svg viewBox="0 0 24 24" fill="none" stroke="#1a7a4a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-6 9 6v11a1 1 0 01-1 1H4a1 1 0 01-1-1z"/><path d="M9 22V12h6v10"/></svg></span>
             <div class="s-text"><div class="s-label">Import da Sella</div><div class="s-desc">Importa movimenti Banca Sella</div></div>
@@ -1202,18 +1202,12 @@ async function reloadTxForRange() {
     const yr = String(y);
     if (!meta.years.includes(yr)) continue;
     if (!txCache[yr]) {
-      dbgLog('📡 fetch anno '+yr+'...');
       txCache[yr] = await api('GET', `/api/tx/${yr}`);
       loadedYears.add(yr);
-      dbgLog('✅ anno '+yr+': '+txCache[yr].length+' tx');
-    } else {
-      dbgLog('💾 cache '+yr+': '+txCache[yr].length+' tx');
     }
     currentTxs.push(...txCache[yr]);
   }
-  dbgLog('🔍 applyFilters su '+currentTxs.length+' tx totali');
   applyFilters();
-  dbgLog('✅ reload done');
 }
 
 async function selectYear(y) {
@@ -1240,7 +1234,6 @@ function showTxView() {
 }
 
 async function selectAccount(id, name) {
-  dbgLog('👆 selectAccount: '+name+' ('+id+')');
   if (id === 'ACC-FINECO-INV') {
     selectStrumenti('fineco-inv', name);
     return;
@@ -1253,9 +1246,7 @@ async function selectAccount(id, name) {
   });
   showTxView();
   aggiornaBottoneImport();
-  dbgLog('→ reloadTxForRange...');
   await reloadTxForRange();
-  dbgLog('✅ selectAccount done');
 }
 
 // ══════════════════════════════════════════════
@@ -1550,7 +1541,7 @@ function addSplit(split = null) {
   catBtn.dataset.catId = split?.categoryId || '';
   var catLabel = split?.categoryId ? getCatName(split.categoryId) : '— Categoria —';
   catBtn.textContent = catLabel;
-  catBtn.addEventListener('click', function(e) { e.stopPropagation(); openCatPicker(catBtn); });
+  catBtn.onclick = function() { openCatPicker(catBtn); };
 
   const delBtn = document.createElement('button');
   delBtn.className = 'btn-icon';
@@ -4419,12 +4410,10 @@ function _renderCatPicker(roots, cats, parentId) {
   var sheet = document.createElement('div');
   sheet.id = 'cat-picker-sheet';
   sheet.style.cssText = 'position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center';
-  sheet.addEventListener('click', function(e) { if(e.target===sheet){ e.stopPropagation(); sheet.remove(); } });
-  sheet.addEventListener('touchmove', function(e) { e.stopPropagation(); }, {passive:true});
+  sheet.onclick = function(e) { if(e.target===sheet) sheet.remove(); };
 
   var inner = document.createElement('div');
   inner.style.cssText = 'background:var(--bg);border-radius:20px 20px 0 0;width:min(540px,100%);max-height:70vh;display:flex;flex-direction:column;box-shadow:0 -4px 32px rgba(0,0,0,.2);';
-  inner.addEventListener('click', function(e) { e.stopPropagation(); });
 
   var header = document.createElement('div');
   header.style.cssText = 'padding:14px 16px 10px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);flex-shrink:0';
@@ -5259,52 +5248,50 @@ document.getElementById('fineco-xls-input').addEventListener('change', function(
 </script>
 
 <!-- DEBUG CONSOLE -->
-<div id="dbg-console" style="display:none;position:fixed;bottom:0;left:0;right:0;height:220px;background:#111;color:#0f0;font-family:monospace;font-size:11px;z-index:99999;flex-direction:column">
-  <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 8px;background:#222;border-top:2px solid #0f0">
-    <span style="color:#0f0;font-weight:700">🐛 Debug Console</span>
-    <div style="display:flex;gap:8px">
-      <button onclick="document.getElementById('dbg-log').innerHTML=''" style="background:#333;color:#fff;border:none;padding:2px 8px;border-radius:4px;font-size:11px;cursor:pointer">Clear</button>
-      <button onclick="closeDbgConsole()" style="background:#c00;color:#fff;border:none;padding:2px 8px;border-radius:4px;font-size:11px;cursor:pointer">✕</button>
-    </div>
+<style>
+#dbg-fab{position:fixed;bottom:72px;right:12px;z-index:99999;width:44px;height:44px;border-radius:50%;background:#1a1a1a;border:2px solid #00ff88;color:#00ff88;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 12px rgba(0,0,0,.4)}
+#dbg-panel{position:fixed;bottom:0;left:0;right:0;height:260px;background:#1a1a1a;z-index:99998;display:none;flex-direction:column;border-top:2px solid #00ff88}
+#dbg-panel.open{display:flex}
+#dbg-toolbar{display:flex;align-items:center;padding:4px 8px;background:#111;gap:8px;flex-shrink:0}
+#dbg-toolbar span{color:#00ff88;font-family:monospace;font-size:12px;font-weight:700;flex:1}
+#dbg-toolbar button{background:#333;color:#ccc;border:none;padding:3px 10px;border-radius:4px;font-size:11px;cursor:pointer}
+#dbg-toolbar button.red{background:#c00;color:#fff}
+#dbg-out{flex:1;overflow-y:auto;padding:6px 8px;font-family:monospace;font-size:11px;color:#ccc;word-break:break-all}
+#dbg-out .e{color:#ff5555}
+#dbg-out .w{color:#ffb86c}
+#dbg-out .t{color:#555;margin-right:4px}
+</style>
+<button id="dbg-fab" onclick="dbgOpen()">🐛</button>
+<div id="dbg-panel">
+  <div id="dbg-toolbar">
+    <span>🐛 Console</span>
+    <button onclick="document.getElementById('dbg-out').innerHTML=''">Clear</button>
+    <button class="red" onclick="dbgClose()">✕</button>
   </div>
-  <div id="dbg-log" style="flex:1;overflow-y:auto;padding:6px 8px;word-break:break-all"></div>
+  <div id="dbg-out"></div>
 </div>
-<button id="dbg-btn" onclick="openDbgConsole()" style="display:none;position:fixed;bottom:80px;right:12px;z-index:99998;background:#111;color:#0f0;border:2px solid #0f0;border-radius:50%;width:40px;height:40px;font-size:18px;cursor:pointer;font-family:monospace">🐛</button>
 <script>
-function dbgLog() {
-  var args = Array.from(arguments);
-  var msg = args.map(function(a){ try{return typeof a==='object'?JSON.stringify(a):String(a);}catch(e){return '[obj]';} }).join(' ');
-  var el = document.getElementById('dbg-log');
-  if (!el) return;
-  var line = document.createElement('div');
-  line.style.cssText = 'border-bottom:1px solid #222;padding:2px 0';
-  var ts = new Date().toLocaleTimeString('it-IT',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  line.innerHTML = '<span style="color:#888">['+ts+']</span> ' + msg.replace(/</g,'&lt;');
-  el.appendChild(line);
-  el.scrollTop = el.scrollHeight;
-}
-function openDbgConsole() {
-  document.getElementById('dbg-console').style.display='flex';
-  document.getElementById('dbg-btn').style.display='none';
-}
-function closeDbgConsole() {
-  document.getElementById('dbg-console').style.display='none';
-  document.getElementById('dbg-btn').style.display='flex';
-}
-// Intercetto console.log/error/warn
 (function(){
-  var _log=console.log, _err=console.error, _warn=console.warn;
-  console.log=function(){dbgLog.apply(null,arguments);_log.apply(console,arguments);};
-  console.error=function(){var args=Array.from(arguments);dbgLog('❌ '+args[0]);_err.apply(console,arguments);};
-  console.warn=function(){var args=Array.from(arguments);dbgLog('⚠️ '+args[0]);_warn.apply(console,arguments);};
-  window.onerror=function(msg,src,line){dbgLog('💥 '+msg+' ('+line+')');};
-  window.onunhandledrejection=function(e){dbgLog('💥 Promise: '+(e.reason&&e.reason.message||e.reason));};
-})();
-// Bottone sempre visibile
-(function showDbgBtn(){
-  var btn = document.getElementById('dbg-btn');
-  if(btn){ btn.style.display='flex'; }
-  else { setTimeout(showDbgBtn, 200); }
+  function dbgClose(){ document.getElementById('dbg-panel').classList.remove('open'); document.getElementById('dbg-fab').style.display='flex'; }
+  function dbgOpen(){ document.getElementById('dbg-panel').classList.add('open'); document.getElementById('dbg-fab').style.display='none'; }
+  window.dbgClose=dbgClose; window.dbgOpen=dbgOpen;
+
+  function dbgLog(msg, cls){
+    var out=document.getElementById('dbg-out'); if(!out) return;
+    var ts=new Date().toLocaleTimeString('it-IT',{hour12:false});
+    var d=document.createElement('div'); if(cls) d.className=cls;
+    d.innerHTML='<span class="t">'+ts+'</span>'+String(msg).replace(/</g,'&lt;');
+    out.appendChild(d); out.scrollTop=out.scrollHeight;
+  }
+  window.dbgLog=dbgLog;
+
+  // Intercetta console
+  var _l=console.log,_e=console.error,_w=console.warn;
+  console.log=function(){ dbgLog(Array.from(arguments).join(' ')); _l.apply(console,arguments); };
+  console.error=function(){ dbgLog('❌ '+Array.from(arguments).join(' '),'e'); _e.apply(console,arguments); };
+  console.warn=function(){ dbgLog('⚠️ '+Array.from(arguments).join(' '),'w'); _w.apply(console,arguments); };
+  window.onerror=function(msg,src,line){ dbgLog('💥 '+msg+' (line '+line+')','e'); };
+  window.onunhandledrejection=function(e){ dbgLog('💥 Promise: '+(e.reason&&(e.reason.message||e.reason)||'unknown'),'e'); };
 })();
 </script>
 
