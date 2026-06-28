@@ -4986,7 +4986,8 @@ async function finecoAutoPortafoglio() {
 }
 
 // ── IMPORT MOVIMENTI FINECO CC ────────────────────────────────────────────────
-var _finecoPreviewData = []; // righe parsate pronte per import
+var _finecoPreviewData = [];
+var _finecoSaldoAtteso = null; // righe parsate pronte per import
 
 function openImportMovimentiCC() {
   var inp = document.getElementById('xlscc-mov-input');
@@ -5023,6 +5024,16 @@ async function handleImportMovimentiCC(e) {
   var ws = wb.Sheets[wb.SheetNames[0]];
   var rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null, raw: false });
 
+  // Estrai saldo finale (riga "Saldo Finale: X.XXX,XX")
+  var _sfVal = null;
+  for (var i = 0; i < rows.length; i++) {
+    if (rows[i] && rows[i][0] && String(rows[i][0]).indexOf('Saldo Finale:') === 0) {
+      var sf = String(rows[i][0]).replace('Saldo Finale:','').trim().replace(/\./g,'').replace(',','.');
+      _sfVal = parseFloat(sf);
+      break;
+    }
+  }
+
   // Trova riga header
   var headerIdx = -1;
   for (var i = 0; i < rows.length; i++) {
@@ -5034,16 +5045,17 @@ async function handleImportMovimentiCC(e) {
 
   var header = rows[headerIdx].map(function(c) { return c ? String(c).trim() : ''; });
   var dateCol  = header.indexOf('Data_Operazione');
+  var dateVCol = header.indexOf('Data_Valuta');
   var entrCol  = header.indexOf('Entrate');
   var uscCol   = header.indexOf('Uscite');
   var descCol  = header.indexOf('Descrizione');
   var descFCol = header.indexOf('Descrizione_Completa');
   var statCol  = header.indexOf('Stato');
 
-  // Carica TX esistenti per dedup — forza reload dal worker (non usa cache)
+  // Carica TX esistenti per dedup
   var year = new Date().getFullYear();
   var existingTxs = await api('GET', '/api/tx/' + year);
-  txCache[String(year)] = existingTxs; // aggiorna cache
+  txCache[String(year)] = existingTxs;
   var existingKeys = new Set();
   for (var tx of existingTxs) {
     if (tx.accountId === 'ACC-FINECO-CC') {
@@ -5051,21 +5063,34 @@ async function handleImportMovimentiCC(e) {
     }
   }
 
-  // Parsing righe
+  // Parsing righe - include Contabilizzato e Autorizzato
   var nuove = [], duplicate = [], nonContab = [];
   var seenKeys = new Set();
   for (var i = headerIdx + 1; i < rows.length; i++) {
     var r = rows[i];
-    if (!r || !r[dateCol]) continue;
-
-    var stato = statCol >= 0 && r[statCol] ? String(r[statCol]).trim() : 'Contabilizzato';
-    if (stato.toLowerCase() !== 'contabilizzato') { nonContab.push(r); continue; }
-
-    var rawDate = String(r[dateCol]).trim();
+    if (!r) continue;
+    var stato = statCol >= 0 && r[statCol] ? String(r[statCol]).trim() : '';
+    var statoLow = stato.toLowerCase();
+    if (statoLow !== 'contabilizzato' && statoLow !== 'autorizzato') {
+      if (stato !== '') nonContab.push(r);
+      continue;
+    }
+    // Per Autorizzato usa Data_Valuta se Data_Operazione e assente o '-'
     var dateISO = '';
-    var m = rawDate.match(/(\d{4})-(\d{2})-(\d{2})/);
-    if (m) dateISO = m[1] + '-' + m[2] + '-' + m[3];
-    else { m = rawDate.match(/(\d{2})\/(\d{2})\/(\d{4})/); if (m) dateISO = m[3] + '-' + m[2] + '-' + m[1]; }
+    var dop = r[dateCol];
+    if (dop && typeof dop === 'object' && dop.toISOString) {
+      dateISO = dop.toISOString().slice(0,10);
+    } else if (dop && String(dop).trim() !== '-' && String(dop).trim() !== '') {
+      var rdv = String(dop).trim();
+      var mm1 = rdv.match(/(\d{4})-(\d{2})-(\d{2})/);
+      if (mm1) dateISO = mm1[1]+'-'+mm1[2]+'-'+mm1[3];
+      else { var mm2=rdv.match(/(\d{2})\/(\d{2})\/(\d{4})/); if(mm2) dateISO=mm2[3]+'-'+mm2[2]+'-'+mm2[1]; }
+    }
+    if (!dateISO && dateVCol >= 0 && r[dateVCol]) {
+      var dv = r[dateVCol];
+      if (typeof dv === 'object' && dv.toISOString) dateISO = dv.toISOString().slice(0,10);
+      else { var mm3=String(dv).match(/(\d{4})-(\d{2})-(\d{2})/); if(mm3) dateISO=mm3[1]+'-'+mm3[2]+'-'+mm3[3]; }
+    }
     if (!dateISO) continue;
 
     // XLSX restituisce float nativi; Uscite sono già negative nel file
@@ -5094,10 +5119,11 @@ async function handleImportMovimentiCC(e) {
 
   // Mostra modal preview
   _finecoPreviewData = nuove;
-  mostraFinecoPreview(nuove, duplicate, nonContab.length);
+  _finecoSaldoAtteso = _sfVal;
+  mostraFinecoPreview(nuove, duplicate, nonContab.length, _sfVal);
 }
 
-function mostraFinecoPreview(nuove, duplicate, nonContabCount) {
+function mostraFinecoPreview(nuove, duplicate, nonContabCount, saldoFinale) {
   var modal = document.getElementById('modal-fineco-preview');
   var title = document.getElementById('fineco-preview-title');
   var sub = document.getElementById('fineco-preview-sub');
@@ -5105,7 +5131,8 @@ function mostraFinecoPreview(nuove, duplicate, nonContabCount) {
   var btn = document.getElementById('fineco-confirm-btn');
 
   title.textContent = 'Import movimenti Fineco CC';
-  sub.textContent = nuove.length + ' nuove · ' + duplicate.length + ' duplicate (skip) · ' + nonContabCount + ' non contabilizzate (skip)';
+  var saldoHint = (saldoFinale !== null && saldoFinale !== undefined && !isNaN(saldoFinale)) ? ' | Saldo: ' + saldoFinale.toLocaleString('it-IT',{minimumFractionDigits:2}) + ' €' : '';
+  sub.textContent = nuove.length + ' nuove · ' + duplicate.length + ' duplicate (skip) · ' + nonContabCount + ' non contabilizzate (skip)' + saldoHint;
   btn.textContent = '⬆️ Importa ' + nuove.length + ' transazioni';
   btn.disabled = nuove.length === 0;
 
@@ -5171,7 +5198,22 @@ async function confermImportFinecoCC() {
     showTxView();
     await reloadTxForRange();
   }
-  alert('✅ Importate ' + ok + ' transazioni' + (errs ? ' (⚠️ ' + errs + ' errori)' : '') + '.');
+  var _sa = _finecoSaldoAtteso; _finecoSaldoAtteso = null;
+  var _bm = ok + ' transazioni importate' + (errs ? ' (' + errs + ' errori)' : '') + '.';
+  if (_sa !== null && !isNaN(_sa)) {
+    var _sApp = balances && balances.accounts && balances.accounts['ACC-FINECO-CC'];
+    if (_sApp !== undefined && _sApp !== null) {
+      var _diff = Math.round(Math.abs(_sa - _sApp) * 100) / 100;
+      var _sStr = _sa.toLocaleString('it-IT',{minimumFractionDigits:2});
+      var _aStr = _sApp.toLocaleString('it-IT',{minimumFractionDigits:2});
+      var _dStr = _diff.toLocaleString('it-IT',{minimumFractionDigits:2});
+      if (_diff > 0.01) {
+        alert('⚠️ ' + _bm + ' Saldo non coincide! File: ' + _sStr + ' € | App: ' + _aStr + ' € | Diff: ' + _dStr + ' €. Controlla se mancano transazioni.');
+      } else {
+        alert('✅ ' + _bm + ' Saldo verificato: ' + _sStr + ' € ✓');
+      }
+    } else { alert('✅ ' + _bm); }
+  } else { alert('✅ ' + _bm); }
 }
 
 
