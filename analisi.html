@@ -600,9 +600,9 @@ function renderStrumenti() {
     if (val == null) return '<td class="r" style="font-size:11px;color:var(--faint)">—</td>';
     var pos = val >= 0;
     var col = pos ? '#1a7a4a' : '#b83232';
-    var sign = pos ? '+' : '';
+    var sign = pos ? '+' : '-';
     var str = isMoney
-      ? sign + (Math.abs(val) >= 1000 ? (val/1000).toFixed(1)+'k' : val.toFixed(0)) + ' €'
+      ? sign + (Math.abs(val) >= 1000 ? (Math.abs(val)/1000).toFixed(1)+'k' : Math.abs(val).toFixed(0)) + ' €'
       : sign + Math.abs(val).toFixed(1) + '%';
     return '<td class="r" style="font-size:11px;font-weight:700;color:'+col+'">' + str + '</td>';
   }
