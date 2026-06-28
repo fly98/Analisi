@@ -630,6 +630,32 @@ var icompta_worker_default = {
       return json({ ok: true, aggiornati, totale: strumenti.length });
     }
 
+    // --- Snapshot portafoglio giornaliero ---
+    if (path === '/api/snapshot' && method === 'GET') {
+      const list = await env.ICOMPTA_KV.list({ prefix: 'icompta:snapshot:' });
+      const snapshots = [];
+      for (const k of list.keys) {
+        const raw = await env.ICOMPTA_KV.get(k.name);
+        if (raw) snapshots.push(JSON.parse(raw));
+      }
+      snapshots.sort((a,b) => a.date.localeCompare(b.date));
+      return json(snapshots);
+    }
+    if (path === '/api/snapshot' && method === 'PUT') {
+      const body = await request.json();
+      if (!body.date || body.totale == null) return err('date e totale richiesti');
+      const key = 'icompta:snapshot:' + body.date;
+      await env.ICOMPTA_KV.put(key, JSON.stringify(body));
+      return json({ ok: true, key });
+    }
+    if (path === '/api/snapshot/last' && method === 'GET') {
+      const list = await env.ICOMPTA_KV.list({ prefix: 'icompta:snapshot:' });
+      if (!list.keys.length) return json(null);
+      list.keys.sort((a,b) => b.name.localeCompare(a.name));
+      const raw = await env.ICOMPTA_KV.get(list.keys[0].name);
+      return json(raw ? JSON.parse(raw) : null);
+    }
+
     return err("Endpoint non trovato", 404);
   }
 };
