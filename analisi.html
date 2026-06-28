@@ -615,83 +615,60 @@ function renderVariazioni() {
   }
 
   if (chartVariazioni) chartVariazioni.destroy();
+
+  // Plugin inline per etichette SEMPRE sopra la barra
+  var labelPlugin = {
+    id: 'topLabels',
+    afterDatasetsDraw: function(chart) {
+      var c = chart.ctx;
+      c.save();
+      c.font = 'bold 9px -apple-system,sans-serif';
+      c.textAlign = 'center';
+      c.textBaseline = 'bottom';
+      chart.getDatasetMeta(0).data.forEach(function(bar, i) {
+        var val = deltas[i];
+        var sign = val >= 0 ? '+' : '';
+        var col = val >= 0 ? '#1a7a4a' : '#b83232';
+        // topY = il punto più in ALTO sul canvas (coordinata Y minore)
+        // Per barre positive: bar.y (cima della barra)
+        // Per barre negative: bar.base (la linea dello zero = cima della barra rossa)
+        var topY = val >= 0 ? bar.y : bar.base;
+        c.fillStyle = col;
+        c.fillText(sign + pcts[i].toFixed(1) + '%', bar.x, topY - 2);
+        c.fillText(sign + (Math.abs(val)/1000).toFixed(1) + 'k', bar.x, topY - 12);
+      });
+      c.restore();
+    }
+  };
+
   chartVariazioni = new Chart(canvas.getContext('2d'), {
     type: 'bar',
     data: {
       labels: labels,
-      datasets: [{
-        data: deltas,
-        backgroundColor: colors,
-        borderRadius: 4,
-        borderSkipped: false,
-      }]
+      datasets: [{ data: deltas, backgroundColor: colors, borderRadius: 3, borderSkipped: false }]
     },
     options: {
       responsive: true, maintainAspectRatio: false,
+      layout: { padding: { top: 32 } },
       plugins: {
         legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: function(ctx) {
-              var i = ctx.dataIndex;
-              var sign = deltas[i] >= 0 ? '+' : '';
-              return sign + fmt(deltas[i]) + '  (' + sign + pcts[i].toFixed(2) + '%)';
-            }
-          }
-        }
+        tooltip: { callbacks: { label: function(ctx) {
+          var i = ctx.dataIndex;
+          var s = deltas[i] >= 0 ? '+' : '';
+          return s + fmt(deltas[i]) + ' (' + s + pcts[i].toFixed(2) + '%)';
+        }}}
       },
       scales: {
         x: { grid: { display: false }, ticks: { font: { size: 10 } } },
-        y: {
-          grid: { color: 'rgba(0,0,0,.05)' },
-          ticks: {
-            callback: function(v) {
-              return (v >= 0 ? '+' : '') + (v/1000).toFixed(1) + 'k';
-            },
-            font: { size: 10 }
-          }
+        y: { grid: { color: 'rgba(0,0,0,.05)' },
+          ticks: { callback: function(v) { return (v>=0?'+':'')+(v/1000).toFixed(1)+'k'; }, font: { size: 10 } }
         }
       }
     },
-    plugins: [{
-      afterDatasetsDraw: function(chart) {
-        var ctx2 = chart.ctx;
-        var meta = chart.getDatasetMeta(0);
-        meta.data.forEach(function(bar, i) {
-          var val = deltas[i];
-          var sign = val >= 0 ? '+' : '';
-          var col = val >= 0 ? '#1a7a4a' : '#b83232';
-          ctx2.save();
-          ctx2.fillStyle = col;
-          ctx2.font = 'bold 9px -apple-system,sans-serif';
-          ctx2.textAlign = 'center';
-          var x = bar.x;
-          var yTop = bar.y;
-          var yBot = bar.base;
-          var isPos = val >= 0;
-          var barH = Math.abs(yBot - yTop);
-          if (isPos) {
-            // Verde: testo sopra la barra, scuro
-            ctx2.fillStyle = '#1a7a4a';
-            ctx2.fillText(sign + (Math.abs(val)/1000).toFixed(1)+'k', x, yTop - 14);
-            ctx2.fillText(sign + pcts[i].toFixed(1)+'%', x, yTop - 4);
-          } else if (barH > 22) {
-            // Rosso abbastanza alto: testo dentro la barra, bianco
-            ctx2.fillStyle = '#ffffff';
-            ctx2.fillText(sign + (Math.abs(val)/1000).toFixed(1)+'k', x, yBot - barH/2 - 4);
-            ctx2.fillText(sign + pcts[i].toFixed(1)+'%', x, yBot - barH/2 + 7);
-          } else {
-            // Rosso piccolo: testo sotto la barra, rosso scuro
-            ctx2.fillStyle = '#b83232';
-            ctx2.fillText(sign + (Math.abs(val)/1000).toFixed(1)+'k', x, yBot + 13);
-            ctx2.fillText(sign + pcts[i].toFixed(1)+'%', x, yBot + 23);
-          }
-          ctx2.restore();
-        });
-      }
-    }]
+    plugins: [labelPlugin]
   });
 }
+
 
 // ─── CEDOLE ──────────────────────────────────────────────
 document.getElementById('cedole-range').addEventListener('click', function(e) {
