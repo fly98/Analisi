@@ -1335,6 +1335,7 @@ function applyFilters() {
   renderTxList();
 }
 
+var _txRenderLimit = 200;
 function renderTxList() {
   const body = document.getElementById('tx-body');
   if (!body) return;
@@ -1342,6 +1343,8 @@ function renderTxList() {
     body.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">Nessuna transazione</div>';
     return;
   }
+  const txsToRender = filteredTxs.slice(0, _txRenderLimit);
+  const hasMore = filteredTxs.length > _txRenderLimit;
 
   // Saldo progressivo dal saldo attuale
   const accBal = balances?.accounts?.[selectedAccountId] ?? null;
@@ -1358,8 +1361,8 @@ function renderTxList() {
   body.innerHTML = '';
   let curMonth = null;
 
-  for (let i = 0; i < filteredTxs.length; i++) {
-    const tx = filteredTxs[i];
+  for (let i = 0; i < txsToRender.length; i++) {
+    const tx = txsToRender[i];
     const amount = amounts[i];
     const month = tx.date.slice(0,7);
 
@@ -1401,6 +1404,12 @@ function renderTxList() {
       <div class="tx-del"><button onclick="event.stopPropagation();quickDelete('${tx.id}','${tx.date.slice(0,4)}')" title="Elimina">✕</button></div>`;
     row.addEventListener('click', () => openEditTx(tx));
     body.appendChild(row);
+  }
+  if (hasMore) {
+    var moreBtn = document.createElement('div');
+    moreBtn.style.cssText = 'text-align:center;padding:16px';
+    moreBtn.innerHTML = '<button onclick="_txRenderLimit+=200;renderTxList()" style="padding:10px 24px;border-radius:10px;border:1.5px solid var(--blue);background:var(--blue-bg,#e8f0fe);color:var(--blue);font-size:14px;font-weight:600;cursor:pointer">Carica altre (' + (filteredTxs.length - _txRenderLimit) + ')</button>';
+    body.appendChild(moreBtn);
   }
 }
 
