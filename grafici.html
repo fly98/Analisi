@@ -705,15 +705,43 @@ function renderRicavi(){
   document.getElementById('legend-ricavi').innerHTML=anni.map(a=>`<div class="legend-item"><div class="legend-dot" style="background:${ANNO_COLORS[a]||'#86868b'}"></div>${a}${a===curAnno?' ★':''}</div>`).join('');
   if(charts_pren['ricavi'])charts_pren['ricavi'].destroy();
   charts_pren['ricavi']=new Chart(document.getElementById('chart-ricavi-pren'),{type:'bar',data:{labels:labelsMesi,datasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>{const v=ctx.raw;if(v===null)return null;return ` ${ctx.dataset.label}: ${fmtE_p(v)}`;},}}},scales:{x:{grid:{display:false},border:{display:false}},y:{grid:{color:'#f2f2f7'},border:{display:false},ticks:{callback:v=>(v/1000).toFixed(0)+'k'}}},layout:{padding:{top:10}}}});
-  let html='<thead><tr><th>Mese</th>';for(const a of anni)html+=`<th>${a}${a===curAnno?' ★':''}</th>`;html+='</tr></thead><tbody>';
-  const totals={};anni.forEach(a=>totals[a]=0);
+  // Mostra colonna Δ tra i due anni più recenti
+  const anniSorted=anni.slice().sort();
+  const hasTwo=anniSorted.length>=2;
+  const aOld=hasTwo?anniSorted[anniSorted.length-2]:null;
+  const aNew=hasTwo?anniSorted[anniSorted.length-1]:null;
+  let html='<thead><tr><th>Mese</th>';
+  for(const a of anniSorted)html+=`<th>${a}${a===curAnno?' ★':''}</th>`;
+  if(hasTwo)html+=`<th style="color:var(--muted);font-size:.85em">Δ ${aOld}→${aNew}</th>`;
+  html+='</tr></thead><tbody>';
+  const totals={};anniSorted.forEach(a=>totals[a]=0);
   for(let m=1;m<=12;m++){
     const meseLbl=MESI_FULL[m];let hasAny=false;
-    const cells=anni.map(a=>{const key=`${a}-${String(m).padStart(2,'0')}`;const entry=(datiRicavi[a].mensile||{})[key];if(!entry)return null;hasAny=true;if(activeTab==='tax'){totals[a]+=entry.cityTax||0;return fmtE_p(entry.cityTax||0);}totals[a]+=entry.ricavi||0;return fmtE_p(entry.ricavi||0);});
+    const vals={};
+    const cells=anniSorted.map(a=>{const key=`${a}-${String(m).padStart(2,'0')}`;const entry=(datiRicavi[a].mensile||{})[key];if(!entry)return null;hasAny=true;const v=activeTab==='tax'?(entry.cityTax||0):(entry.ricavi||0);totals[a]+=v;vals[a]=v;return fmtE_p(v);});
     if(!hasAny)continue;
-    html+=`<tr><td>${meseLbl}</td>`;html+=cells.map((v,i)=>{const a=anni[i];const bold=a===curAnno?'style="font-weight:600"':'';return`<td ${bold}>${v!==null?v:'<span class="c-muted">—</span>'}</td>`;}).join('');html+='</tr>';
+    html+=`<tr><td>${meseLbl}</td>`;
+    html+=cells.map((v,i)=>{const a=anniSorted[i];const bold=a===curAnno?'style="font-weight:600"':'';return`<td ${bold}>${v!==null?v:'<span class="c-muted">—</span>'}</td>`;}).join('');
+    if(hasTwo){
+      const vOld=vals[aOld],vNew=vals[aNew];
+      if(vOld!=null&&vNew!=null){
+        const diff=vNew-vOld,pct=vOld>0?((diff/vOld)*100):0;
+        const col=diff>=0?'#1a7a4a':'#b83232';
+        const sign=diff>=0?'+':'';
+        html+=`<td style="font-size:.85em;font-weight:600;color:${col}">${sign}${fmtE_p(diff)}<br><span style="font-size:.9em">${sign}${pct.toFixed(1)}%</span></td>`;
+      } else { html+='<td><span class="c-muted">—</span></td>'; }
+    }
+    html+='</tr>';
   }
-  html+='<tr class="total-row"><td>Totale</td>';html+=anni.map((a,i)=>{const bold=a===curAnno?'style="font-weight:700"':'';return`<td ${bold}>${fmtE_p(totals[a]||0)}</td>`;}).join('');html+='</tr></tbody>';
+  html+='<tr class="total-row"><td>Totale</td>';
+  html+=anniSorted.map((a)=>{const bold=a===curAnno?'style="font-weight:700"':'';return`<td ${bold}>${fmtE_p(totals[a]||0)}</td>`;}).join('');
+  if(hasTwo){
+    const diff=(totals[aNew]||0)-(totals[aOld]||0);
+    const pct=(totals[aOld]||0)>0?(diff/(totals[aOld]||0)*100):0;
+    const col=diff>=0?'#1a7a4a':'#b83232';const sign=diff>=0?'+':'';
+    html+=`<td style="font-weight:700;color:${col}">${sign}${fmtE_p(diff)}<br><span style="font-size:.9em">${sign}${pct.toFixed(1)}%</span></td>`;
+  }
+  html+='</tr></tbody>';
   document.getElementById('table-ricavi-pren').innerHTML=html;
 }
 
