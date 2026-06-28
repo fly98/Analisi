@@ -655,7 +655,6 @@ select.form-input { height: 42px; }
 
 <div id="login-screen">
   <div class="login-card">
-    <div id="login-dbg" style="display:none;background:#111;color:#0f0;font-family:monospace;font-size:11px;border-radius:8px;padding:8px;margin-bottom:12px;max-height:120px;overflow-y:auto;word-break:break-all"></div>
     <div style="font-size:48px;margin-bottom:12px">📒</div>
     <h2>iCompta</h2>
     <p>InternoUno Contabilità</p>
@@ -950,30 +949,19 @@ let editingTx = null;     // TX in modifica
 // ══════════════════════════════════════════════
 // AUTH
 // ══════════════════════════════════════════════
-function _loginLog(msg) {
-  var d = document.getElementById('login-dbg');
-  if (!d) return;
-  d.style.display = 'block';
-  d.innerHTML += '<div>' + String(msg).replace(/</g,'&lt;') + '</div>';
-  d.scrollTop = d.scrollHeight;
-}
 async function doLogin() {
-  _loginLog('doLogin START');
   const t = document.getElementById('token-input').value.trim();
-  if (!t) { _loginLog('token vuoto'); return; }
+  if (!t) return;
   TOKEN = t;
-  _loginLog('token ok, chiamo /api/meta...');
+  // Verifica token chiamando /api/meta
   try {
     const r = await api('GET', '/api/meta');
-    _loginLog('risposta: ' + JSON.stringify(r).slice(0,80));
     if (r.error) throw new Error(r.error);
     localStorage.setItem('icompta_token', TOKEN);
-    _loginLog('login OK, init...');
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('app').style.display = 'flex';
     await init(r);
   } catch(e) {
-    _loginLog('ERRORE: ' + (e && e.message ? e.message : String(e)));
     document.getElementById('login-err').textContent = 'Token non valido';
     TOKEN = '';
   }
@@ -1347,117 +1335,82 @@ function applyFilters() {
   renderTxList();
 }
 
-// Scroll infinito — pre-calcola tutto, renderizza in blocchi da 60
-var _txPageSize = 60;
-var _txRendered = 0;
-var _txAmounts = [];
-var _txRunBal = [];
-var _txMonthStats = {};
-var _txScrollObs = null;
-
-function _txPrecompute() {
-  var accBal = (balances && balances.accounts && balances.accounts[selectedAccountId] != null) ? balances.accounts[selectedAccountId] : null;
-  _txAmounts = filteredTxs.map(function(tx) { return getTxAmount(tx); });
-  _txRunBal = [];
-  if (accBal !== null) {
-    var r = accBal;
-    for (var i = 0; i < filteredTxs.length; i++) {
-      _txRunBal[i] = r;
-      r -= _txAmounts[i];
-    }
-  }
-  _txMonthStats = {};
-  for (var i = 0; i < filteredTxs.length; i++) {
-    var month = filteredTxs[i].date.slice(0,7);
-    var a = _txAmounts[i];
-    if (!_txMonthStats[month]) _txMonthStats[month] = { count:0, mIn:0, mOut:0 };
-    _txMonthStats[month].count++;
-    if (a > 0) _txMonthStats[month].mIn += a;
-    else _txMonthStats[month].mOut += Math.abs(a);
-  }
-}
-
-function _txBuildRow(tx, i) {
-  var amount = _txAmounts[i];
-  var sub = tx.comment || (tx.splits ? tx.splits.map(function(s){return s.comment||'';}).filter(function(s){return s;}).join(', ') : '') || '';
-  var dateStr = tx.date.slice(8,10)+'/'+tx.date.slice(5,7)+'/'+tx.date.slice(2,4);
-  var bal = _txRunBal[i] !== undefined ? fmt(_txRunBal[i]) : '—';
-  var catHtml = (tx.splits && tx.splits[0]) ? getCatBadge(tx.splits[0].categoryId) : esc((tx.splits||[]).map(function(s){return getCatName(s.categoryId)||'';}).filter(Boolean).join(', '));
-  var amtCls = amount >= 0 ? 'amount-pos' : 'amount-neg';
-  var row = document.createElement('div');
-  row.className = 'tx-row';
-  row.innerHTML =
-    '<div class="tx-c-date">'+dateStr+'</div>'+
-    '<div class="tx-c-desc"><div class="txn">'+esc(tx.name||'')+'</div>'+(sub?'<div class="txs">'+esc(sub)+'</div>':'')+'</div>'+
-    '<div class="tx-c-cat">'+catHtml+'</div>'+
-    '<div class="tx-c-amt '+amtCls+'">'+fmt(amount)+'</div>'+
-    '<div class="tx-c-bal">'+bal+'</div>'+
-    '<div class="tx-c-trasf">'+getLinkedAccName(tx)+'</div>'+
-    '<div class="tx-del"><button onclick="event.stopPropagation();quickDelete(''+tx.id+'',''+tx.date.slice(0,4)+'')" title="Elimina">✕</button></div>';
-  row.addEventListener('click', function(){ openEditTx(tx); });
-  return row;
-}
-
-function _txRenderChunk(body, from, to) {
-  var prevMonth = from > 0 ? filteredTxs[from-1].date.slice(0,7) : null;
-  for (var i = from; i < to; i++) {
-    var tx = filteredTxs[i];
-    var month = tx.date.slice(0,7);
-    if (month !== prevMonth) {
-      prevMonth = month;
-      var ym = month.split('-');
-      var label = new Date(parseInt(ym[0]), parseInt(ym[1])-1, 1).toLocaleString('it-IT', {month:'long', year:'numeric'});
-      var ms = _txMonthStats[month];
-      var mSaldo = ms.mIn - ms.mOut;
-      var sCol = mSaldo >= 0 ? '#28a745' : '#dc3545';
-      var hdr = document.createElement('div');
-      hdr.className = 'tx-month-hdr';
-      hdr.innerHTML =
-        '<span class="mhl">'+label+'</span>'+
-        '<span class="mhc">'+ms.count+' tx</span>'+
-        '<span class="mht" style="display:flex;gap:10px;align-items:center">'+
-          '<span style="color:#28a745">↑ '+fmt(ms.mIn)+'</span>'+
-          '<span style="color:#dc3545">↓ '+fmt(ms.mOut)+'</span>'+
-          '<span style="color:'+sCol+'">⚖ '+fmt(mSaldo)+'</span>'+
-        '</span>';
-      body.appendChild(hdr);
-    }
-    body.appendChild(_txBuildRow(tx, i));
-  }
-}
-
-function _txSetupObserver(body) {
-  if (_txScrollObs) { _txScrollObs.disconnect(); _txScrollObs = null; }
-  var sentinel = document.createElement('div');
-  sentinel.style.cssText = 'height:2px';
-  body.appendChild(sentinel);
-  _txScrollObs = new IntersectionObserver(function(entries) {
-    if (!entries[0].isIntersecting) return;
-    if (_txRendered >= filteredTxs.length) { _txScrollObs.disconnect(); sentinel.remove(); return; }
-    var next = Math.min(_txRendered + _txPageSize, filteredTxs.length);
-    _txRenderChunk(body, _txRendered, next);
-    _txRendered = next;
-    if (_txRendered >= filteredTxs.length) { _txScrollObs.disconnect(); sentinel.remove(); }
-    else { body.appendChild(sentinel); _txScrollObs.observe(sentinel); }
-  }, { threshold: 0 });
-  _txScrollObs.observe(sentinel);
-}
-
+var _txRenderLimit = 200;
 function renderTxList() {
-  if (_txScrollObs) { _txScrollObs.disconnect(); _txScrollObs = null; }
-  var body = document.getElementById('tx-body');
+  const body = document.getElementById('tx-body');
   if (!body) return;
-  body.innerHTML = '';
   if (filteredTxs.length === 0) {
     body.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">Nessuna transazione</div>';
     return;
   }
-  _txPrecompute();
-  _txRendered = 0;
-  var first = Math.min(_txPageSize, filteredTxs.length);
-  _txRenderChunk(body, 0, first);
-  _txRendered = first;
-  if (_txRendered < filteredTxs.length) _txSetupObserver(body);
+  const txsToRender = filteredTxs.slice(0, _txRenderLimit);
+  const hasMore = filteredTxs.length > _txRenderLimit;
+
+  // Saldo progressivo dal saldo attuale
+  const accBal = balances?.accounts?.[selectedAccountId] ?? null;
+  const amounts = filteredTxs.map(tx => getTxAmount(tx));
+  const runBal = [];
+  if (accBal !== null) {
+    let r = accBal;
+    for (let i = 0; i < filteredTxs.length; i++) {
+      runBal[i] = r;
+      r -= amounts[i];
+    }
+  }
+
+  body.innerHTML = '';
+  let curMonth = null;
+
+  for (let i = 0; i < txsToRender.length; i++) {
+    const tx = txsToRender[i];
+    const amount = amounts[i];
+    const month = tx.date.slice(0,7);
+
+    // Intestazione mese
+    if (month !== curMonth) {
+      curMonth = month;
+      const [y,m] = month.split('-');
+      const label = new Date(y, m-1, 1).toLocaleString('it-IT', {month:'long', year:'numeric'});
+      const mTxs = filteredTxs.filter(t => t.date.startsWith(month));
+      const mOut = mTxs.reduce((s,t)=>{ const a=getTxAmount(t); return a<0?s+Math.abs(a):s; },0);
+      const mIn  = mTxs.reduce((s,t)=>{ const a=getTxAmount(t); return a>0?s+a:s; },0);
+      const hdr = document.createElement('div');
+      hdr.className = 'tx-month-hdr';
+      var mSaldo = mIn - mOut; // mOut è già negativo
+      var saldoCol = mSaldo >= 0 ? 'var(--green,#28a745)' : 'var(--red,#dc3545)';
+      hdr.innerHTML = '<span class="mhl">' + label + '</span>' +
+        '<span class="mhc">' + mTxs.length + ' tx</span>' +
+        '<span class="mht" style="display:flex;gap:10px;align-items:center">' +
+          '<span style="color:#28a745">↑ ' + fmt(mIn) + '</span>' +
+          '<span style="color:#dc3545">↓ ' + fmt(-mOut) + '</span>' +
+          '<span style="color:' + saldoCol + '">⚖ ' + fmt(mSaldo) + '</span>' +
+        '</span>';
+      body.appendChild(hdr);
+    }
+
+    const cat = tx.splits?.map(s=>getCatName(s.categoryId)).filter(Boolean).join(', ') || '';
+    const sub = tx.comment || tx.splits?.map(s=>s.comment).filter(Boolean).join(', ') || '';
+    const dateStr = `${tx.date.slice(8,10)}/${tx.date.slice(5,7)}/${tx.date.slice(2,4)}`;
+
+    const row = document.createElement('div');
+    row.className = 'tx-row';
+    row.innerHTML = `
+      <div class="tx-c-date">${dateStr}</div>
+      <div class="tx-c-desc"><div class="txn">${esc(tx.name||'')}</div>${sub?`<div class="txs">${esc(sub)}</div>`:''}</div>
+      <div class="tx-c-cat">${tx.splits&&tx.splits[0]?getCatBadge(tx.splits[0].categoryId):esc(cat)}</div>
+      <div class="tx-c-amt ${amount>=0?'amount-pos':'amount-neg'}">${fmt(amount)}</div>
+      <div class="tx-c-bal">${runBal[i]!==undefined?fmt(runBal[i]):'—'}</div>
+            <div class="tx-c-trasf">${getLinkedAccName(tx)}</div>
+      <div class="tx-del"><button onclick="event.stopPropagation();quickDelete('${tx.id}','${tx.date.slice(0,4)}')" title="Elimina">✕</button></div>`;
+    row.addEventListener('click', () => openEditTx(tx));
+    body.appendChild(row);
+  }
+  if (hasMore) {
+    var moreBtn = document.createElement('div');
+    moreBtn.style.cssText = 'text-align:center;padding:16px';
+    moreBtn.innerHTML = '<button onclick="_txRenderLimit+=200;renderTxList()" style="padding:10px 24px;border-radius:10px;border:1.5px solid var(--blue);background:var(--blue-bg,#e8f0fe);color:var(--blue);font-size:14px;font-weight:600;cursor:pointer">Carica altre (' + (filteredTxs.length - _txRenderLimit) + ')</button>';
+    body.appendChild(moreBtn);
+  }
 }
 
 async function quickDelete(id, year) {
