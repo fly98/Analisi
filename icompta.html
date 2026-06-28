@@ -831,11 +831,7 @@ select.form-input { height: 42px; }
             <div class="s-text"><div class="s-label">Backup & Ripristino</div><div class="s-desc">Salva e ripristina dati anno corrente</div></div>
             <span class="s-arrow">›</span>
           </div>
-          <div class="settings-item" onclick="exportOFX()">
-            <span class="s-icon" style="background:#e8f5ee"><svg viewBox="0 0 24 24" fill="none" stroke="#1a7a4a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></span>
-            <div class="s-text"><div class="s-label">Export OFX</div><div class="s-desc">Esporta per iCompta (periodo parallelo)</div></div>
-            <span class="s-arrow">›</span>
-          </div>
+
         </div>
       </div>
       <div class="settings-section">
@@ -2142,27 +2138,6 @@ function doLogout() {
   location.reload();
 }
 
-function exportOFX() {
-  if (!selectedAccountId || !meta) { alert('Seleziona prima un conto'); return; }
-  const acc = meta.accounts.find(a => a.id === selectedAccountId);
-  const from = prompt('Data inizio (YYYY-MM-DD):', new Date().getFullYear() + '-01-01');
-  if (!from) return;
-  const to = new Date().toISOString().slice(0,10);
-  const url = `${WORKER_URL}/api/export/ofx?accountId=${selectedAccountId}&from=${from}&to=${to}`;
-  const a = document.createElement('a');
-  a.href = url;
-  a.setAttribute('download', `icompta_${acc.name}_${from}_${to}.ofx`);
-  // Aggiungi auth header via fetch
-  fetch(url, { headers: { 'Authorization': `Bearer ${TOKEN}` }})
-    .then(r => r.blob())
-    .then(blob => {
-      const url2 = URL.createObjectURL(blob);
-      a.href = url2;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    });
-}
 
 // ── Sidebar resize ──────────────────────────────────────
 (function() {
