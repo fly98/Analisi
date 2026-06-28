@@ -285,7 +285,7 @@ async function loadSnapshots() {
   // Se KV vuoto, carica dati demo
   if (snapshots.length === 0) {
     try {
-      var r = await fetch('demo_snapshots.json');
+      var r = await fetch('https://fly98.github.io/Analisi/demo_snapshots.json');
       var demo = await r.json();
       if (Array.isArray(demo) && demo.length > 0) {
         snapshots = demo;
