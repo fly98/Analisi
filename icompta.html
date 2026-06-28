@@ -4906,10 +4906,11 @@ async function trySnapshot() {
     // Salva solo se cambiato (o non esiste ancora)
     if (last && last.date === today && Math.abs(last.totale - vm) < 0.01) return;
     if (last && last.date !== today && Math.abs(last.totale - vm) < 0.01) return;
-    // Breakdown per strumento
+    // Breakdown per strumento — normalizza ticker (togli suffisso .MI .MOT .TX ecc.)
     var breakdown = {};
     _finecoStrumenti.forEach(function(s) {
       var k = s.ticker || s.nome || s.id;
+      if (k) k = k.replace(/\..*$/, ''); // VWCE.MI → VWCE
       if (k) breakdown[k] = s.vm || 0;
     });
     await api('PUT', '/api/snapshot', { date: today, totale: vm, breakdown: breakdown });
