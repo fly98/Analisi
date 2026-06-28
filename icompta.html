@@ -1355,6 +1355,18 @@ function renderTxList() {
     }
   }
 
+  // Pre-calcola totali mensili in O(N) — evita il filter dentro il loop
+  const monthStats = {};
+  for (let i = 0; i < filteredTxs.length; i++) {
+    const tx = filteredTxs[i];
+    const month = tx.date.slice(0,7);
+    const a = amounts[i];
+    if (!monthStats[month]) monthStats[month] = { count:0, mIn:0, mOut:0 };
+    monthStats[month].count++;
+    if (a > 0) monthStats[month].mIn += a;
+    else monthStats[month].mOut += Math.abs(a);
+  }
+
   body.innerHTML = '';
   let curMonth = null;
 
@@ -1368,18 +1380,16 @@ function renderTxList() {
       curMonth = month;
       const [y,m] = month.split('-');
       const label = new Date(y, m-1, 1).toLocaleString('it-IT', {month:'long', year:'numeric'});
-      const mTxs = filteredTxs.filter(t => t.date.startsWith(month));
-      const mOut = mTxs.reduce((s,t)=>{ const a=getTxAmount(t); return a<0?s+Math.abs(a):s; },0);
-      const mIn  = mTxs.reduce((s,t)=>{ const a=getTxAmount(t); return a>0?s+a:s; },0);
+      const ms = monthStats[month];
+      const mSaldo = ms.mIn - ms.mOut;
+      const saldoCol = mSaldo >= 0 ? 'var(--green,#28a745)' : 'var(--red,#dc3545)';
       const hdr = document.createElement('div');
       hdr.className = 'tx-month-hdr';
-      var mSaldo = mIn - mOut; // mOut è già negativo
-      var saldoCol = mSaldo >= 0 ? 'var(--green,#28a745)' : 'var(--red,#dc3545)';
       hdr.innerHTML = '<span class="mhl">' + label + '</span>' +
-        '<span class="mhc">' + mTxs.length + ' tx</span>' +
+        '<span class="mhc">' + ms.count + ' tx</span>' +
         '<span class="mht" style="display:flex;gap:10px;align-items:center">' +
-          '<span style="color:#28a745">↑ ' + fmt(mIn) + '</span>' +
-          '<span style="color:#dc3545">↓ ' + fmt(-mOut) + '</span>' +
+          '<span style="color:#28a745">↑ ' + fmt(ms.mIn) + '</span>' +
+          '<span style="color:#dc3545">↓ ' + fmt(ms.mOut) + '</span>' +
           '<span style="color:' + saldoCol + '">⚖ ' + fmt(mSaldo) + '</span>' +
         '</span>';
       body.appendChild(hdr);
