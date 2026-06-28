@@ -1684,7 +1684,7 @@ async function saveTx() {
   const splits = [];
   document.querySelectorAll('.split-row').forEach(row => {
     const amount = parseFloat(row.querySelector('.split-amount').value);
-    const categoryId = row.querySelector('.split-cat').value || null;
+    const categoryId = (row.querySelector('.split-cat-btn') || row.querySelector('.split-cat'))?.dataset?.catId || (row.querySelector('.split-cat-btn') || row.querySelector('.split-cat'))?.value || null;
     const el = row.querySelector('.split-comment'); const comment = el ? el.value || null : null;
     if (!isNaN(amount)) splits.push({ amount, categoryId, comment });
   });
