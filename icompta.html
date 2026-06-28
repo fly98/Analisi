@@ -1463,6 +1463,7 @@ function showLoading(v) {
 // TX MODAL
 // ══════════════════════════════════════════════
 function openNewTx() {
+  if (!meta || !meta.accounts) { alert('Dati non ancora caricati, riprova tra un secondo.'); return; }
   editingTx = null;
   document.getElementById('modal-title').textContent = 'Nuova transazione';
   document.getElementById('btn-delete').style.display = 'none';
