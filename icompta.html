@@ -295,7 +295,6 @@ select.form-input { height: 42px; }
   border-top: 1px solid var(--border); background: var(--surface); }
 .transfer-body.open { display: block; }
 
-
 /* Dialogo custom */
 .custom-dialog-overlay { position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:400;
   display:flex;align-items:center;justify-content:center; }
@@ -310,7 +309,6 @@ select.form-input { height: 42px; }
 .btn-no-d { background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-b,#f0d880) !important; }
 .btn-yes-d { background:var(--text);color:white; }
 
-
 /* Badge categoria */
 .cat-badge { display:inline-block; padding:2px 8px; border-radius:6px;
   font-size:11px; font-weight:600; white-space:nowrap; }
@@ -318,7 +316,6 @@ select.form-input { height: 42px; }
 .cat-personali { background:#e8f5ee; color:#1a7a4a; border:1px solid #a8d9b8; }
 .cat-redditi { background:#eef4fd; color:#1a4a7a; border:1px solid #a8c4e8; }
 .cat-other { background:var(--gray2); color:var(--muted); }
-
 
 /* ── Numpad ── */
 .amt-display {
@@ -651,7 +648,6 @@ select.form-input { height: 42px; }
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
-
 
 <div id="login-screen">
   <div class="login-card">
@@ -1464,7 +1460,6 @@ function renderTxList() {
   if (_txRendered < filteredTxs.length) _txSetupObserver(body);
 }
 
-
 async function quickDelete(id, year) {
   // Trova la TX per vedere se ha una collegata
   const txList = txCache[year] || currentTxs;
@@ -1731,7 +1726,6 @@ function closeNumpad() {
   _npHidden  = null;
 }
 
-
 async function saveTx() {
   const splits = [];
   document.querySelectorAll('.split-row').forEach(row => {
@@ -1949,10 +1943,7 @@ function closeSidebar() {
   }
 })();
 
-
-
 // ── Trasferimento ────────────────────────────────────────
-
 
 // Dialogo custom con Sì/No/Annulla
 function showLinkedDialog(message) {
@@ -2011,7 +2002,6 @@ async function unlinkTx(txId, year) {
     loadedYears.delete((tx.date||'').slice(0,4));
   }
 }
-
 
 function getCatBadge(catId) {
   if (!catId || !meta) return '';
@@ -3430,7 +3420,6 @@ async function saveRicorrenze(){
   finally{btn.disabled=false;btn.textContent='💾 Salva';}
 }
 
-
 async function _setSidebarOrder() {
   if (meta.groups.some(function(g){ return g.sidebarIndex !== undefined; })) return;
   var GROUP_ORDER = ['Attivo','Contanti','Famiglia','Banche','Investimenti'];
@@ -4024,7 +4013,6 @@ async function sellapAutoDownload() {
   </div>
 </div>
 
-
 <!-- Modal Import Sella Personale -->
 <div id="sellap-overlay" style="display:none" onclick="if(event.target===this)closeSellaPImport()">
   <div id="sellap-panel" style="max-height:90vh">
@@ -4145,11 +4133,8 @@ async function sellapAutoDownload() {
 
 <script>
 
-
 // ── DEBUG CONSOLE ────────────────────────────────────────────────────────────
 // Mappa conti con import automatico
-function openFinecoImportModal() { openFinecoInvModal(); } // legacy
-function closeFinecoImportModal() { closeFinecoInvModal(); closeFinecoCCModal(); }
 function openFinecoInvModal() { var m=document.getElementById('modal-fineco-inv'); if(m) m.style.display='flex'; }
 function closeFinecoInvModal() { var m=document.getElementById('modal-fineco-inv'); if(m) m.style.display='none'; }
 function openFinecoCCModal() { var m=document.getElementById('modal-fineco-cc'); if(m) m.style.display='flex'; }
@@ -4200,7 +4185,6 @@ function aggiornaBottoneImport(overrideId) {
 }
 
 function dbg() {} // debug rimosso
-
 
 // ══════════════════════════════════════════════════════════════════════════
 // GESTIONE CATEGORIE
@@ -4508,8 +4492,6 @@ async function confirmCatMerge() {
     alert('Errore: ' + e.message);
   }
 }
-
-
 
 // ── CATEGORY PICKER ──────────────────────────────────────────────────────────
 var _catPickerBtn = null;
@@ -5224,7 +5206,6 @@ async function confermImportFinecoCC() {
     }
   }
 }
-
 
 function openImportXLSCurrent() {
   openImportXLS(_contoCorrenteId);
