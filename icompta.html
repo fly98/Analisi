@@ -3271,6 +3271,7 @@ function renderRecBody(){
       '<span style="font-size:16px">\u23f0</span>'+
       '<span class="rec-item-name">'+esc(rec.nome)+'</span>'+
       '<span style="font-weight:700;color:'+amtColor+'">'+amtStr+'</span>'+
+      '<button class="rec-item-edit" title="Modifica" style="background:none;border:none;color:var(--blue);cursor:pointer;font-size:16px;padding:2px 6px">&#9998;</button>'+
       '<button class="rec-item-del" title="Elimina">&#128465;</button></div>'+
       '<div class="rec-item-info">'+
       '<span>&#127974; '+(acc?esc(acc.name):'?')+'</span>'+
@@ -3285,8 +3286,56 @@ function renderRecBody(){
     div.querySelector('.rec-item-del').addEventListener('click',(function(i){
       return function(){if(!confirm('Eliminare?'))return;ricorrenze.splice(i,1);renderRecBody();};
     })(idx));
+    div.querySelector('.rec-item-edit').addEventListener('click',(function(i){
+      return function(){ editRecForm(i); };
+    })(idx));
     body.appendChild(div);
   });
+}
+
+function _closeRecForm(){ var f=document.getElementById('rec-form'); if(f) f.remove(); renderRecBody(); }
+
+function editRecForm(idx){
+  var rec = ricorrenze[idx];
+  if (!rec) return;
+  var body = document.getElementById('rec-body');
+  if (document.getElementById('rec-form')) document.getElementById('rec-form').remove();
+  var catOpts = buildCatOptions(rec.categoryId||null);
+  var accOpts = (meta?meta.accounts:[]).filter(function(a){return !a.hidden;})
+    .map(function(a){return '<option value="'+esc(a.id)+'"'+(a.id===rec.accountId?' selected':'')+'>'+esc(a.name)+'</option>';}).join('');
+  var accOpts2 = (meta?meta.accounts:[]).filter(function(a){return !a.hidden;})
+    .map(function(a){return '<option value="'+esc(a.id)+'"'+(a.id===rec.accountId2?' selected':'')+'>'+esc(a.name)+'</option>';}).join('');
+  var freqOpts = Object.keys(REC_FREQ).map(function(k){
+    return '<option value="'+k+'"'+(k===rec.frequenza?' selected':'')+'>'+REC_FREQ[k].label+'</option>';}).join('');
+  var trasfOn = !!(rec.isTrasf && rec.accountId2);
+  var form = document.createElement('div'); form.id = 'rec-form';
+  form.innerHTML = '<h4>✏ Modifica transazione programmata</h4>'+
+    '<div class="rec-form-row"><div class="rf"><label>Nome</label>'+
+    '<input id="rf-nome" type="text" value="'+esc(rec.nome||'')+'"></div></div>'+
+    '<div class="rec-form-row">'+
+    '<div class="rf"><label>Conto</label><select id="rf-acc">'+accOpts+'</select></div>'+
+    '<div class="rf"><label>Importo (neg=uscita)</label><input id="rf-amt" type="number" step="0.01" value="'+esc(String(rec.importo||''))+'"></div>'+
+    '</div><div class="rec-form-row">'+
+    '<div class="rf"><label>Categoria</label><select id="rf-cat">'+catOpts+'</select></div>'+
+    '<div class="rf"><label>Frequenza</label><select id="rf-freq">'+freqOpts+'</select></div>'+
+    '</div><div class="rec-form-row">'+
+    '<div class="rf"><label>Data inizio</label><input id="rf-start" type="date" value="'+esc(rec.dataInizio||'')+'"></div>'+
+    '<div class="rf"><label>Data fine (opz.)</label><input id="rf-end" type="date" value="'+esc(rec.dataFine||'')+'"></div>'+
+    '</div>'+
+    '<div class="rec-form-row" style="align-items:center">'+
+    '<div class="rf" style="display:flex;align-items:center;gap:8px">'+
+    '<label style="margin:0">Trasferimento</label>'+
+    '<button type="button" id="rf-trasf-tog" class="sella-tog '+(trasfOn?'on':'off')+'" onclick="toggleRecTrasf()" style="flex-shrink:0"></button>'+
+    '</div>'+
+    '<div class="rf" id="rf-trasf-box" style="display:'+(trasfOn?'block':'none')+'"><label>Conto destinazione</label><select id="rf-acc2">'+accOpts2+'</select></div>'+
+    '</div>'+
+    '<div style="display:flex;gap:8px;margin-top:10px">'+
+    '<button id="rf-save-btn" style="flex:2;padding:10px;border-radius:8px;border:none;background:var(--blue);color:#fff;font-weight:700;cursor:pointer">Salva modifiche</button>'+
+    '<button onclick="_closeRecForm()" style="flex:1;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);cursor:pointer">Annulla</button>'+
+    '</div>';
+  body.insertBefore(form, body.firstChild);
+  document.getElementById('rf-save-btn').addEventListener('click', function(){ submitRecForm(idx); });
+  document.getElementById('rf-nome').focus();
 }
 
 function showRecForm(){
@@ -3321,10 +3370,11 @@ function showRecForm(){
     '<div class="rf" id="rf-trasf-box" style="display:none"><label>Conto destinazione</label><select id="rf-acc2">'+accOpts+'</select></div>'+
     '</div>'+
     '<div style="display:flex;gap:8px;margin-top:10px">'+
-    '<button onclick="submitRecForm()" style="flex:2;padding:10px;border-radius:8px;border:none;background:var(--blue);color:#fff;font-weight:700;cursor:pointer">Aggiungi</button>'+
-    '<button onclick="document.getElementById(\'rec-form\').remove();renderRecBody()" style="flex:1;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);cursor:pointer">Annulla</button>'+
+    '<button id="rf-save-btn" style="flex:2;padding:10px;border-radius:8px;border:none;background:var(--blue);color:#fff;font-weight:700;cursor:pointer">Aggiungi</button>'+
+    '<button onclick="_closeRecForm()" style="flex:1;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);cursor:pointer">Annulla</button>'+
     '</div>';
   body.insertBefore(form,body.firstChild);
+  document.getElementById('rf-save-btn').addEventListener('click', function(){ submitRecForm(); });
   document.getElementById('rf-nome').focus();
 }
 
@@ -3335,7 +3385,7 @@ function toggleRecTrasf(){
   box.style.display=on?'':'none';
 }
 
-function submitRecForm(){
+function submitRecForm(editIdx){
   var nome=document.getElementById('rf-nome').value.trim();
   var accId=document.getElementById('rf-acc').value;
   var amt=document.getElementById('rf-amt').value;
@@ -3350,12 +3400,23 @@ function submitRecForm(){
   var trasfOn=document.getElementById('rf-trasf-tog').classList.contains('on');
   var acc2=trasfOn?document.getElementById('rf-acc2').value:null;
   if(trasfOn&&!acc2){alert('Seleziona il conto destinazione');return;}
-  ricorrenze.push({id:'REC-'+Date.now(),nome:nome,accountId:accId,
-    importo:parseFloat(amt),categoryId:catId||null,frequenza:freq,
-    dataInizio:start,dataFine:end||null,processed:[],
-    isTrasf:trasfOn||false,accountId2:acc2||null});
-  document.getElementById('rec-form').remove();
-  renderRecBody();
+  var obj = {
+    nome:nome, accountId:accId, importo:parseFloat(amt),
+    categoryId:catId||null, frequenza:freq,
+    dataInizio:start, dataFine:end||null,
+    isTrasf:trasfOn||false, accountId2:acc2||null
+  };
+  if (editIdx !== undefined && editIdx >= 0) {
+    var existing = ricorrenze[editIdx];
+    obj.id = existing.id;
+    obj.processed = existing.processed || [];
+    ricorrenze[editIdx] = obj;
+  } else {
+    obj.id = 'REC-'+Date.now();
+    obj.processed = [];
+    ricorrenze.push(obj);
+  }
+  _closeRecForm();
 }
 
 async function saveRicorrenze(){
