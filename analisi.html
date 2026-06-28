@@ -359,17 +359,22 @@ function renderKpi() {
   pmEl.className = 'kpi-value ' + (pm >= 0 ? 'pos' : 'neg');
   document.getElementById('kpi-pm-pct').textContent = (pmPct >= 0 ? '+' : '') + pmPct.toFixed(2) + '%';
 
-  // Variazione rispetto a ieri (ultimo snapshot vs penultimo)
+  // Variazione: vm attuale vs ultimo snapshot precedente a oggi
   var dayEl = document.getElementById('kpi-day');
   var dayPctEl = document.getElementById('kpi-day-pct');
-  if (snapshots.length >= 2) {
-    var last = snapshots[snapshots.length - 1];
-    var prev = snapshots[snapshots.length - 2];
-    var delta = last.totale - prev.totale;
-    var deltaPct = prev.totale > 0 ? (delta / prev.totale * 100) : 0;
+  var today = new Date().toISOString().slice(0,10);
+  // Trova lo snapshot più recente di un giorno precedente a oggi
+  var prevSnap = null;
+  for (var pi = snapshots.length - 1; pi >= 0; pi--) {
+    if (snapshots[pi].date < today) { prevSnap = snapshots[pi]; break; }
+  }
+  if (vm > 0 && prevSnap) {
+    var delta = vm - prevSnap.totale;
+    var deltaPct = prevSnap.totale > 0 ? (delta / prevSnap.totale * 100) : 0;
     dayEl.textContent = (delta >= 0 ? '+' : '') + fmt(delta);
     dayEl.className = 'kpi-value ' + (delta >= 0 ? 'pos' : 'neg');
-    dayPctEl.textContent = (deltaPct >= 0 ? '+' : '') + deltaPct.toFixed(2) + '%';
+    var pp = prevSnap.date.split('-');
+    dayPctEl.textContent = (deltaPct >= 0 ? '+' : '') + deltaPct.toFixed(2) + '% vs ' + pp[2]+'/'+pp[1];
   } else {
     dayEl.textContent = '—';
     dayEl.className = 'kpi-value neu';
@@ -557,35 +562,7 @@ function renderStrumenti() {
   }).join('');
 }
 
-// ─── VARIAZIONI GIORNALIERE ─────────────────────────────
-function renderVariazioni() {
-  var body = document.getElementById('variazioni-body');
-  if (snapshots.length < 2) {
-    body.innerHTML = '<div class="empty" style="padding:20px">In attesa di almeno 2 snapshot per calcolare le variazioni.</div>';
-    return;
-  }
-  // Ultimi 11 snapshot (per avere 10 variazioni)
-  var recent = snapshots.slice(-11);
-  var html = '<div style="display:flex;flex-direction:column;gap:0">';
-  for (var i = recent.length - 1; i >= 1; i--) {
-    var curr = recent[i];
-    var prev = recent[i-1];
-    var delta = curr.totale - prev.totale;
-    var deltaPct = prev.totale > 0 ? (delta / prev.totale * 100) : 0;
-    var isPos = delta >= 0;
-    var d = curr.date;
-    var dateLabel = new Date(d + 'T00:00:00').toLocaleDateString('it-IT', {weekday:'short', day:'numeric', month:'short'});
-    html += '<div style="display:flex;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">' +
-      '<span style="flex:1;font-size:13px;color:var(--muted)">' + dateLabel + '</span>' +
-      '<span style="font-size:14px;font-weight:700;margin-right:12px;color:' + (isPos?'var(--green)':'var(--red)') + '">' +
-        (isPos?'+':'') + fmt(delta) + '</span>' +
-      '<span style="font-size:12px;font-weight:600;min-width:52px;text-align:right;color:' + (isPos?'var(--green)':'var(--red)') + '">' +
-        (isPos?'+':'') + deltaPct.toFixed(2) + '%</span>' +
-      '</div>';
-  }
-  html += '</div>';
-  body.innerHTML = html;
-}
+
 
 // ─── CEDOLE ──────────────────────────────────────────────
 document.getElementById('cedole-range').addEventListener('click', function(e) {
