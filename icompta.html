@@ -3694,8 +3694,6 @@ async function sellaAutoDownload() {
     var el = document.getElementById(id);
     if (!el) return;
     el.style.display = 'block';
-    // Pulisci il placeholder iniziale al primo log reale
-    if (el.dataset.cleared !== '1') { el.innerHTML = ''; el.dataset.cleared = '1'; el.style.color = '#ccc'; }
     var ts = new Date().toLocaleTimeString('it-IT',{hour12:false});
     var d = document.createElement('div');
     d.style.color = msg.startsWith('✅') ? '#00ff88' : msg.startsWith('❌') ? '#ff5555' : '#87ceeb';
@@ -3838,7 +3836,7 @@ async function sellaAutoDownload() {
         storKey: storKey,
         isDup: isDup,
         includi: !isDup,
-        catObj: sellaGuessCategory(desc, ''),
+        catObj: (tipo === 'fineco') ? null : sellaGuessCategory(desc, ''),
         _ebTipo: tipo,
         _ebAccId: accId
       });
@@ -3900,20 +3898,15 @@ async function sellaAutoDownload() {
         var name = (tx.name || '').trim().substring(0,32).toUpperCase();
         var k = (tx.date||'') + '|' + parseFloat(amt).toFixed(2) + '|' + name;
         keys.add(k);
-        // Chiave fallback data+importo senza descrizione: usata dal lato EB
-        // SOLO come ultima risorsa quando la descrizione non matcha
-        // (es. Fineco bonifici con causale diversa, Sella codici come nome)
-        keys.add((tx.date||'') + '|' + parseFloat(amt).toFixed(2) + '|__NONAME__');
+        // Per TX con nome=codice identificativo (Sella Personale vecchio import)
+        // aggiungi anche chiave senza descrizione per fallback
+        if (/^\d{10,}$/.test((tx.name||'').trim())) {
+          keys.add((tx.date||'') + '|' + parseFloat(amt).toFixed(2) + '|__NONAME__');
+        }
       }
     }
-    var logId = accId === EB_ACCOUNTS['personale'].iComptaAccId ? 'eb-log-personale'
-              : accId === EB_ACCOUNTS['fineco'].iComptaAccId ? 'eb-log-fineco'
-              : 'eb-log-azienda';
-    if (logId === 'eb-log-fineco') {
-      _ebLog('fineco', 'dedup: ' + matchTx + ' TX gi\u00e0 in iCompta');
-    } else {
-      _autoLog(logId, 'dedup: ' + matchTx + ' TX trovate per ' + accId.slice(0,8) + '... su ' + totalTx + ' totali', 'info');
-    }
+    var logId = accId === EB_ACCOUNTS['personale'].iComptaAccId ? 'eb-log-personale' : 'eb-log-azienda';
+    _autoLog(logId, 'dedup: ' + matchTx + ' TX trovate per ' + accId.slice(0,8) + '... su ' + totalTx + ' totali', 'info');
     return keys;
   }
 
@@ -3972,7 +3965,7 @@ async function sellaAutoDownload() {
         '<td style="white-space:nowrap;color:var(--muted);font-size:12px">' + (m.dataOp || m.dateISO) + '</td>' +
         '<td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + esc(m.desc) + '">' + esc(m.desc) + '</td>' +
         '<td class="' + amtCls + '" style="white-space:nowrap;text-align:right">' + amtStr + '</td>' +
-        '<td><select class="sella-cat-sel" onchange="sellaSetCat(' + i + ',this.value)">' + opts + '</select></td>' +
+        '<td><select class="sella-cat-sel" onchange="fccSetCat(' + i + ',this.value)">' + opts + '</select></td>' +
         '<td style="text-align:center"><button class="sella-tog ' + (m.includi ? 'on' : 'off') + '" onclick="fccToggle(' + i + ')" title="' + (m.isDup ? 'Gi\u00e0 presente' : '') + '"></button></td>' +
         '</tr>';
     }
@@ -4008,13 +4001,59 @@ async function sellaAutoDownload() {
     if (el('fcc-cat')) el('fcc-cat').textContent = inc.filter(function(m){ return !m.catObj || !m.catObj.id; }).length;
   }
 
-  function finecoImportPreview() {
-    sellaImportPreview();
+  // Categoria nella tabella Fineco: aggiorna catObj e stat Fineco, SENZA imparare regole Sella
+  function fccSetCat(i, catId) {
+    if (catId && meta) {
+      var cat = meta.categories.find(function(c){ return c.id === catId; });
+      sellaMovimenti[i].catObj = cat ? { name: cat.name, id: cat.id } : null;
+    } else {
+      sellaMovimenti[i].catObj = null;
+    }
+    finecoUpdateStats();
   }
 
+  // Preview dedicata Fineco CC (entrata singola, nessuna scrittura doppia)
+  function finecoImportPreview() {
+    var inc = sellaMovimenti.filter(function(m){ return m.includi; });
+    if (!inc.length) { alert('Nessun movimento selezionato'); return; }
+    var bRows = inc.map(function(m){
+      var c = m.importo >= 0 ? 'color:var(--green)' : 'color:var(--red)';
+      var a = (m.importo >= 0 ? '+' : '') + m.importo.toLocaleString('it-IT', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' \u20ac';
+      return '<tr style="border-bottom:1px solid var(--gray2)">' +
+        '<td style="font-size:12px;color:var(--muted);padding:5px 8px;white-space:nowrap">' + (m.dataOp || m.dateISO) + '</td>' +
+        '<td style="font-size:13px;padding:5px 8px;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(m.desc) + '</td>' +
+        '<td style="font-size:13px;padding:5px 8px;text-align:right;white-space:nowrap;' + c + '">' + a + '</td>' +
+        '<td style="font-size:12px;color:var(--muted);padding:5px 8px">' + (m.catObj ? esc(m.catObj.name) : '<em>\u2014</em>') + '</td></tr>';
+    }).join('');
+    var tot = inc.reduce(function(s, m){ return s + m.importo; }, 0);
+    var totStr = (tot >= 0 ? '+' : '') + tot.toLocaleString('it-IT', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' \u20ac';
+    var ov = document.createElement('div');
+    ov.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box';
+    ov.onclick = function(e){ if (e.target === ov) ov.remove(); };
+    ov.innerHTML =
+      '<div style="background:var(--surface);border-radius:16px;max-width:700px;width:100%;max-height:85vh;display:flex;flex-direction:column;overflow:hidden">' +
+      '<div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center">' +
+        '<h3 style="flex:1;font-size:17px;font-weight:700">Preview importazione Fineco CC</h3>' +
+        '<button onclick="this.closest(\'div\').parentElement.remove()" style="background:var(--gray2);border:none;border-radius:50%;width:28px;height:28px;cursor:pointer">\u2715</button>' +
+      '</div>' +
+      '<div style="flex:1;overflow-y:auto;padding:16px 20px">' +
+        '<div style="font-size:11px;font-weight:700;color:var(--gray4);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">&#127975; Fineco CC &mdash; ' + inc.length + ' TX</div>' +
+        '<table style="width:100%;border-collapse:collapse"><tbody>' + bRows + '</tbody></table>' +
+      '</div>' +
+      '<div style="padding:14px 20px;border-top:1px solid var(--border);display:flex;align-items:center;gap:8px">' +
+        '<div style="flex:1;font-size:13px;font-weight:700;color:' + (tot >= 0 ? 'var(--green)' : 'var(--red)') + '">Totale ' + totStr + '</div>' +
+        '<button onclick="this.closest(\'div\').parentElement.remove()" style="padding:12px 16px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);font-size:15px;cursor:pointer">Chiudi</button>' +
+        '<button onclick="this.closest(\'div\').parentElement.remove();finecoImportMovimenti()" style="padding:12px 18px;border-radius:10px;border:none;background:var(--blue);color:#fff;font-size:15px;font-weight:700;cursor:pointer">\u2b06\ufe0f Importa ora</button>' +
+      '</div></div>';
+    document.body.appendChild(ov);
+  }
+
+  var _finecoImporting = false;
   async function finecoImportMovimenti() {
-    var inc = sellaMovimenti.filter(function(m){ return m.includi && !m.isDup; });
+    if (_finecoImporting) return;
+    var inc = sellaMovimenti.filter(function(m){ return m.includi; });
     if (!inc.length) return;
+    _finecoImporting = true;
     var accId = sellaGetAccId('Fineco CC') || 'ACC-FINECO-CC';
     var btn = document.getElementById('fineco-cc-import-btn');
     if (btn) { btn.disabled = true; btn.innerHTML = '⏳ Importazione...'; }
@@ -4044,6 +4083,7 @@ async function sellaAutoDownload() {
     if (btn) { btn.disabled = false; btn.innerHTML = '⬆ Importa selezionati'; }
     var pr2 = document.getElementById('fineco-cc-progress');
     if (pr2) pr2.textContent = '';
+    _finecoImporting = false;
     alert('✅ Importati ' + ids.length + ' movimenti su Fineco CC' + (errs ? ' (⚠️ ' + errs + ' errori)' : ''));
     document.getElementById('fineco-cc-overlay').style.display = 'none';
     if (typeof reloadTxForRange === 'function') await reloadTxForRange();
