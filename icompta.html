@@ -3737,8 +3737,8 @@ async function sellaAutoDownload() {
       var desc = (t.remittance_information && t.remittance_information[0]) ||
                  (t.creditor && t.creditor.name) || (t.debtor && t.debtor.name) || '';
       var dateISO = t.booking_date || '';
-      // Stessa chiave del CSV Sella per dedup compatibile
-      var storKey = dateISO + '|' + amt.toFixed(2) + '|' + desc.substring(0,32);
+      // Chiave in uppercase per match con CSV Sella (che usa mixed case)
+      var storKey = dateISO + '|' + amt.toFixed(2) + '|' + desc.substring(0,32).toUpperCase();
       sellaMovimenti.push({
         dateISO: dateISO,
         dataOp: dateISO ? dateISO.split('-').reverse().join('/') : '',
@@ -3779,7 +3779,7 @@ async function sellaAutoDownload() {
         } else {
           amt = tx.amount || 0;
         }
-        var name = (tx.name || '').substring(0,32);
+        var name = (tx.name || '').substring(0,32).toUpperCase();
         var k = (tx.date||'') + '|' + parseFloat(amt).toFixed(2) + '|' + name;
         keys.add(k);
       }
