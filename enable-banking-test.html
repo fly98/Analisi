@@ -6,210 +6,146 @@
 <title>Enable Banking — Test</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,sans-serif;background:#f5f4f0;color:#1a1a1a;padding:16px}
+body{font-family:-apple-system,sans-serif;background:#f5f4f0;color:#1a1a1a;padding:16px;max-width:700px;margin:0 auto}
 h1{font-size:18px;font-weight:700;margin-bottom:16px}
 .card{background:#fff;border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
-.card h2{font-size:13px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px}
-button{padding:10px 18px;border-radius:10px;border:none;background:#1a4a7a;color:#fff;font-size:14px;font-weight:700;cursor:pointer;margin:4px}
+.card h2{font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.6px;margin-bottom:12px}
+button{padding:10px 18px;border-radius:10px;border:none;background:#1a4a7a;color:#fff;font-size:14px;font-weight:700;cursor:pointer;margin:4px 4px 4px 0}
 button.sec{background:#e8f5ee;color:#1a7a4a}
-button.red{background:#fdf0f0;color:#b83232}
-select,input{padding:8px 12px;border-radius:8px;border:1.5px solid #e4e3dd;font-size:13px;margin:4px;background:#f5f4f0;color:#1a1a1a;width:100%}
-.log{background:#1a1a1a;border-radius:10px;padding:10px;font-family:monospace;font-size:11px;color:#ccc;max-height:200px;overflow-y:auto;margin-top:8px;word-break:break-all}
-.log .ok{color:#00ff88}
-.log .er{color:#ff5555}
-.log .in{color:#87ceeb}
-.status{font-size:12px;color:#666;margin-top:4px}
-.badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;margin:2px}
-.badge.green{background:#e8f5ee;color:#1a7a4a}
-.badge.red{background:#fdf0f0;color:#b83232}
-.badge.blue{background:#eef4fd;color:#1a4a7a}
-.tx-row{padding:6px 0;border-bottom:1px solid #f0efe9;font-size:12px;display:flex;justify-content:space-between}
+button.sml{font-size:12px;padding:6px 12px;background:#eef4fd;color:#1a4a7a;border:none;border-radius:8px;cursor:pointer}
+button.grn{background:#1a7a4a;color:#fff}
+input{padding:9px 12px;border-radius:8px;border:1.5px solid #e4e3dd;font-size:13px;background:#f5f4f0;color:#1a1a1a;display:block;width:100%;margin-bottom:8px}
+input[type=date]{width:auto;display:inline-block;margin-right:8px}
+.session-box{padding:10px;border:1.5px solid #e4e3dd;border-radius:10px;margin-bottom:8px}
+.session-box h3{font-size:13px;font-weight:700;margin-bottom:2px}
+.session-box .sub{font-size:11px;color:#888;margin-bottom:8px}
+.iban-btn{display:block;width:100%;text-align:left;padding:8px 12px;border-radius:8px;border:1.5px solid #e4e3dd;background:#f5f4f0;font-size:12px;font-family:monospace;cursor:pointer;margin:3px 0;color:#1a1a1a}
+.iban-btn.sel{background:#eef4fd;border-color:#1a4a7a;color:#1a4a7a;font-weight:700}
+.tx-row{padding:7px 0;border-bottom:1px solid #f0efe9;display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
 .tx-row:last-child{border-bottom:none}
+.tx-date{font-size:11px;color:#888;min-width:80px}
+.tx-desc{font-size:12px;flex:1}
+.tx-amt{font-size:13px;font-weight:700;white-space:nowrap}
+.pos{color:#1a7a4a}.neg{color:#b83232}
+.empty{color:#888;font-size:13px;text-align:center;padding:20px}
+textarea{width:100%;height:80px;border-radius:8px;border:1.5px solid #e4e3dd;font-size:11px;font-family:monospace;padding:8px;background:#f5f4f0}
+.match-row{padding:5px 0;border-bottom:1px solid #f0efe9;font-size:11px;font-family:monospace}
+.match-ok{color:#1a7a4a}.match-no{color:#b83232}
 </style>
 </head>
 <body>
-<h1>🏦 Enable Banking — Pagina di Test</h1>
+<h1>🏦 Enable Banking — Test</h1>
 
 <div class="card">
-  <h2>1. Configurazione</h2>
-  <input id="token" type="password" placeholder="Token iCompta" value="">
-  <div class="status" id="token-status"></div>
-</div>
-
-<div id="auth-log" class="log" style="display:none;margin-bottom:8px"></div>
-
-<div class="card">
-  <h2>3. Sessioni attive</h2>
-  <button class="sec" onclick="loadSessions()">🔄 Carica sessioni</button>
-  <div id="sessions-body" style="margin-top:8px"></div>
+  <h2>Token iCompta</h2>
+  <input id="token-inp" type="password" placeholder="Token iCompta">
 </div>
 
 <div class="card">
-  <h2>4. Test scarica transazioni</h2>
-  <select id="session-sel"><option value="">— seleziona sessione —</option></select>
-  <select id="account-sel"><option value="">— seleziona conto —</option></select>
-  <input id="date-from" type="date" value="">
-  <button onclick="loadTx()">📥 Scarica transazioni</button>
-  <div id="tx-body" style="margin-top:8px"></div>
+  <h2>Sessioni attive</h2>
+  <button class="sec" onclick="loadSessions()">🔄 Aggiorna sessioni</button>
+  <div id="sessions-list" style="margin-top:12px"><div class="empty">Caricamento...</div></div>
+</div>
+
+<div class="card" id="tx-card" style="display:none">
+  <h2>Transazioni</h2>
+  <input type="date" id="date-from">
+  <button onclick="downloadTx()">📥 Scarica</button>
+  <button class="grn" onclick="exportCSV()" id="btn-export" style="display:none">⬇️ Scarica CSV</button>
+  <div id="tx-result" style="margin-top:8px"></div>
+</div>
+
+<div class="card">
+  <h2>Analisi match con CSV Sella</h2>
+  <p style="font-size:12px;color:#666;margin-bottom:8px">Incolla il contenuto del CSV Sella qui sotto per analizzare il match con le transazioni EB scaricate</p>
+  <textarea id="csv-sella" placeholder="Incolla qui il contenuto del CSV Sella..."></textarea>
+  <button onclick="analyzeMatch()" style="margin-top:8px">🔍 Analizza match</button>
+  <div id="match-result" style="margin-top:12px"></div>
 </div>
 
 <script>
 var WORKER = 'https://icompta-worker.f-castiglioni.workers.dev';
-var TOKEN = localStorage.getItem('icompta_token') || '';
+var TOKEN = localStorage.getItem('icompta_token') || localStorage.getItem('analisi_token') || '';
+var _sessions = [];
+var _selSession = null;
+var _selAccount = null;
+var _lastTxs = [];
 
-document.getElementById('token').value = TOKEN;
-document.getElementById('token').addEventListener('input', function() {
+// Init token
+var inp = document.getElementById('token-inp');
+inp.value = TOKEN;
+inp.addEventListener('input', function(){
   TOKEN = this.value.trim();
   localStorage.setItem('icompta_token', TOKEN);
 });
 
-// Data default: 30 giorni fa
-var d30 = new Date(Date.now() - 30*24*3600*1000);
-document.getElementById('date-from').value = d30.toISOString().slice(0,10);
-
-function log(el, msg, type) {
-  var div = document.getElementById(el);
-  div.style.display = 'block';
-  var ts = new Date().toLocaleTimeString('it-IT',{hour12:false});
-  div.innerHTML += '<div class="' + (type||'in') + '">['+ts+'] ' + msg.replace(/</g,'&lt;') + '</div>';
-  div.scrollTop = div.scrollHeight;
-}
+// Data default 90 giorni fa
+document.getElementById('date-from').value = new Date(Date.now()-90*864e5).toISOString().slice(0,10);
 
 async function api(method, path, body) {
   var r = await fetch(WORKER + path, {
-    method,
-    headers: { 'Authorization': 'Bearer ' + TOKEN, 'Content-Type': 'application/json' },
+    method: method,
+    headers: {'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},
     body: body ? JSON.stringify(body) : undefined
   });
   return r.json();
 }
 
-async function startAuth() {
-  var bank = document.getElementById('bank').value;
-  var psuType = document.getElementById('psu_type').value;
-  log('auth-log', 'Richiesta autorizzazione a ' + bank + ' (' + psuType + ')...', 'in');
-  try {
-    var data = await api('GET', '/api/enable-banking/auth?bank=' + encodeURIComponent(bank) + '&psu_type=' + psuType);
-    if (data.ok) {
-      log('auth-log', 'URL ottenuto! Apertura banca...', 'ok');
-      log('auth-log', 'State: ' + data.state, 'in');
-      window.open(data.url, '_blank');
-    } else {
-      log('auth-log', 'Errore: ' + JSON.stringify(data), 'er');
-    }
-  } catch(e) {
-    log('auth-log', 'Errore: ' + e.message, 'er');
-  }
-}
-
-var sessions = [];
-async function renewAuth(bank, psuType) {
-  log('auth-log', 'Rinnovo autorizzazione ' + bank + '...', 'in');
-  try {
-    var r = await api('GET', '/api/enable-banking/auth?bank=' + encodeURIComponent(bank) + '&psu_type=' + psuType);
-    if (r.ok) {
-      log('auth-log', 'URL ottenuto — apertura banca...', 'ok');
-      document.getElementById('auth-log').style.display = 'block';
-      window.open(r.url, '_blank');
-    } else {
-      log('auth-log', 'Errore: ' + JSON.stringify(r), 'er');
-      document.getElementById('auth-log').style.display = 'block';
-    }
-  } catch(e) {
-    log('auth-log', 'Errore: ' + e.message, 'er');
-    document.getElementById('auth-log').style.display = 'block';
-  }
-}
-
 async function loadSessions() {
-  var data = await api('GET', '/api/enable-banking/sessions');
-  sessions = Array.isArray(data) ? data : [];
-  var body = document.getElementById('sessions-body');
-  var sel = document.getElementById('session-sel');
-  sel.innerHTML = '<option value="">— seleziona sessione —</option>';
-  if (!sessions.length) {
-    body.innerHTML = '<div class="status">Nessuna sessione trovata.</div>';
-    return;
-  }
-  body.innerHTML = sessions.map(function(s) {
-    var exp = s.valid_until ? new Date(s.valid_until).toLocaleDateString('it-IT') : '?';
-    var accounts = (s.accounts||[]).map(function(a) {
-      return '<span class="badge blue">' + (a.account_id && a.account_id.iban || a.uid || '?') + '</span>';
-    }).join('');
-    return '<div style="padding:8px 0;border-bottom:1px solid #f0efe9">' +
-      '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px">' +
-        '<span style="font-size:12px;font-weight:700">' + (s.aspsp && s.aspsp.name || s.key) + ' — ' + (s.psu_type||'?') + '</span>' +
-        '<button onclick="renewAuth(\'' + (s.aspsp&&s.aspsp.name||'') + '\',\'' + (s.psu_type||'personal') + '\')" style="font-size:11px;padding:4px 10px;border-radius:7px;border:none;background:#eef4fd;color:#1a4a7a;font-weight:700;cursor:pointer">🔄 Rinnova</button>' +
-      '</div>' +
-      '<div style="font-size:11px;color:#888;margin-bottom:4px">Valido fino: ' + exp + ' | Session: ' + (s.session_id||'?').slice(0,8) + '...</div>' +
-      '<div style="margin-top:4px">' + accounts + '</div>' +
-      '</div>';
-  }).join('');
-  // Popola select sessioni
-  sessions.forEach(function(s) {
-    var opt = document.createElement('option');
-    opt.value = s.key;
-    opt.textContent = (s.aspsp && s.aspsp.name || s.key) + ' — ' + (s.psu_type||'?');
-    sel.appendChild(opt);
-  });
-}
-
-document.getElementById('session-sel').addEventListener('change', function() {
-  var key = this.value;
-  var s = sessions.find(function(x){ return x.key === key; });
-  var accSel = document.getElementById('account-sel');
-  accSel.innerHTML = '<option value="">— seleziona conto —</option>';
-  if (!s || !s.accounts) return;
-  s.accounts.forEach(function(a) {
-    var opt = document.createElement('option');
-    opt.value = a.uid;
-    opt.textContent = (a.account_id && a.account_id.iban || a.uid || '?') + ' (' + (a.cash_account_type||'') + ')';
-    accSel.appendChild(opt);
-  });
-});
-
-async function loadTx() {
-  var sessionKey = document.getElementById('session-sel').value;
-  var accountId = document.getElementById('account-sel').value;
-  var dateFrom = document.getElementById('date-from').value;
-  if (!sessionKey || !accountId) { alert('Seleziona sessione e conto'); return; }
-  var body = document.getElementById('tx-body');
-  body.innerHTML = '<div class="status">Caricamento...</div>';
+  var list = document.getElementById('sessions-list');
+  list.innerHTML = '<div class="empty">Caricamento...</div>';
+  _selSession = null; _selAccount = null;
+  document.getElementById('tx-card').style.display = 'none';
   try {
-    var data = await api('GET', '/api/enable-banking/transactions?session_key=' + encodeURIComponent(sessionKey) + '&account_id=' + encodeURIComponent(accountId) + '&date_from=' + dateFrom);
-    if (data.ok) {
-      var txs = data.transactions || [];
-      body.innerHTML = '<div class="status" style="margin-bottom:8px">✅ ' + txs.length + ' transazioni trovate</div>' +
-        txs.slice(0, 20).map(function(t) {
-          var amt = t.transaction_amount && t.transaction_amount.amount;
-          var isCredit = t.credit_debit_indicator === 'CRDT';
-          var desc = (t.remittance_information && t.remittance_information[0]) || t.note || '—';
-          return '<div class="tx-row">' +
-            '<div><div style="font-weight:600">' + (t.booking_date||'?') + '</div>' +
-            '<div style="color:#666">' + desc + '</div></div>' +
-            '<div style="font-weight:700;color:' + (isCredit?'#1a7a4a':'#b83232') + '">' +
-            (isCredit?'+':'-') + Math.abs(parseFloat(amt||0)).toFixed(2) + '€</div>' +
-            '</div>';
-        }).join('') +
-        (txs.length > 20 ? '<div class="status">...e altre ' + (txs.length-20) + ' transazioni</div>' : '');
-    } else {
-      body.innerHTML = '<div class="status" style="color:#b83232">Errore: ' + JSON.stringify(data) + '</div>';
+    var sessions = await api('GET', '/api/enable-banking/sessions');
+    if (!Array.isArray(sessions) || !sessions.length) {
+      list.innerHTML = '<div class="empty">Nessuna sessione.</div>';
+      return;
     }
+    _sessions = sessions;
+    list.innerHTML = sessions.map(function(s, si) {
+      var exp = s.valid_until ? new Date(s.valid_until).toLocaleDateString('it-IT') : '?';
+      var daysLeft = s.valid_until ? Math.ceil((new Date(s.valid_until)-Date.now())/864e5) : null;
+      var badge = daysLeft !== null
+        ? (daysLeft <= 14 ? '<span style="color:#b83232"> ⚠️ '+daysLeft+'g</span>' : '<span style="color:#1a7a4a"> ✅ '+daysLeft+'g</span>')
+        : '';
+      var bankName = (s.aspsp && s.aspsp.name) || 'Banca';
+      var psuType = s.psu_type || 'personal';
+      var ibans = (s.accounts||[]).map(function(a, ai) {
+        var iban = (a.account_id && a.account_id.iban) || a.uid || '?';
+        return '<button class="iban-btn" onclick="selectAccount('+si+','+ai+',this)">'+iban+'</button>';
+      }).join('');
+      return '<div class="session-box">'+
+        '<div style="display:flex;justify-content:space-between;align-items:center;gap:4px;flex-wrap:wrap">'+
+          '<h3>'+bankName+' — '+psuType+'</h3>'+
+          '<button class="sml" onclick="renewAuth(''+bankName+'',''+psuType+'')">🔄 Rinnova</button>'+
+        '</div>'+
+        '<div class="sub">Scade: '+exp+badge+'</div>'+
+        ibans+'</div>';
+    }).join('');
   } catch(e) {
-    body.innerHTML = '<div class="status" style="color:#b83232">Errore: ' + e.message + '</div>';
+    list.innerHTML = '<div class="empty" style="color:#b83232">Errore: '+e.message+'</div>';
   }
 }
 
+function selectAccount(si, ai, btn) {
+  document.querySelectorAll('.iban-btn').forEach(function(b){ b.classList.remove('sel'); });
+  btn.classList.add('sel');
+  _selSession = _sessions[si];
+  _selAccount = (_selSession.accounts||[])[ai];
+  document.getElementById('tx-card').style.display = 'block';
+  document.getElementById('tx-result').innerHTML = '<div class="empty">Premi Scarica</div>';
+  document.getElementById('btn-export').style.display = 'none';
+}
 
-// ── Sezione download CSV EB ──────────────────────────
-var _lastTxs = [];
-
-var _origDownloadTx = downloadTx;
-downloadTx = async function() {
-  await _origDownloadTx();
-  // Salva le TX per il download CSV
-  _lastTxs = window._lastLoadedTxs || [];
-};
+async function renewAuth(bank, psuType) {
+  if (!confirm('Rinnova autorizzazione per '+bank+'?')) return;
+  try {
+    var data = await api('GET', '/api/enable-banking/auth?bank='+encodeURIComponent(bank)+'&psu_type='+psuType);
+    if (data.ok) { window.open(data.url,'_blank'); }
+    else { alert('Errore: '+JSON.stringify(data)); }
+  } catch(e) { alert('Errore: '+e.message); }
+}
 
 async function downloadTx() {
   if (!_selSession || !_selAccount) { alert('Seleziona un conto'); return; }
@@ -218,25 +154,26 @@ async function downloadTx() {
   result.innerHTML = '<div class="empty">Caricamento...</div>';
   try {
     var data = await api('GET',
-      '/api/enable-banking/transactions?session_key=' + encodeURIComponent(_selSession.key) +
-      '&account_id=' + encodeURIComponent(_selAccount.uid) +
-      '&date_from=' + dateFrom);
+      '/api/enable-banking/transactions?session_key='+encodeURIComponent(_selSession.key)+
+      '&account_id='+encodeURIComponent(_selAccount.uid)+
+      '&date_from='+dateFrom);
     if (data.ok) {
       _lastTxs = data.transactions || [];
       var txs = _lastTxs;
-      if (!txs.length) { result.innerHTML = '<div class="empty">Nessuna transazione</div>'; return; }
-      result.innerHTML = '<div style="font-size:12px;color:#888;margin-bottom:8px">✅ '+txs.length+' transazioni — <button class="sml" onclick="exportCSV()">⬇️ Scarica CSV</button></div>' +
-        txs.map(function(t){
+      if (!txs.length) { result.innerHTML='<div class="empty">Nessuna transazione</div>'; return; }
+      document.getElementById('btn-export').style.display = 'inline-block';
+      result.innerHTML = '<div style="font-size:12px;color:#888;margin-bottom:8px">✅ '+txs.length+' transazioni</div>'+
+        txs.slice(0,30).map(function(t){
           var amt = parseFloat((t.transaction_amount&&t.transaction_amount.amount)||0);
           if (t.credit_debit_indicator!=='CRDT') amt=-Math.abs(amt);
           var desc=(t.remittance_information&&t.remittance_information[0])||(t.creditor&&t.creditor.name)||(t.debtor&&t.debtor.name)||'—';
           var dp=(t.booking_date||'?').split('-');
           return '<div class="tx-row">'+
-            '<div class="tx-date">'+(dp[2]||'?')+'/'+( dp[1]||'?')+'</div>'+
+            '<div class="tx-date">'+(dp[2]||'?')+'/'+(dp[1]||'?')+'</div>'+
             '<div class="tx-desc">'+desc+'</div>'+
             '<div class="tx-amt '+(amt>=0?'pos':'neg')+'">'+(amt>=0?'+':'')+amt.toFixed(2)+'€</div>'+
             '</div>';
-        }).join('');
+        }).join('')+(txs.length>30?'<div class="empty">...e altre '+(txs.length-30)+' transazioni</div>':'');
     } else {
       result.innerHTML='<div class="empty" style="color:#b83232">Errore: '+JSON.stringify(data)+'</div>';
     }
@@ -246,33 +183,121 @@ async function downloadTx() {
 }
 
 function exportCSV() {
-  if (!_lastTxs.length) { alert('Nessuna transazione caricata'); return; }
-  var rows = ['data,importo,descrizione,credit_debit,remittance_raw,desc_len,desc_chars'];
+  if (!_lastTxs.length) { alert('Prima scarica le transazioni'); return; }
+  var lines = ['booking_date,importo,credit_debit,remittance,remittance_len,char_codes_first10'];
   _lastTxs.forEach(function(t) {
     var amt = parseFloat((t.transaction_amount&&t.transaction_amount.amount)||0);
     if (t.credit_debit_indicator!=='CRDT') amt=-Math.abs(amt);
-    var desc = (t.remittance_information&&t.remittance_information[0])||(t.creditor&&t.creditor.name)||(t.debtor&&t.debtor.name)||'';
-    var descRaw = t.remittance_information&&t.remittance_information[0]||'';
-    // Char codes dei primi 10 caratteri per vedere invisibili
+    var remit = (t.remittance_information&&t.remittance_information[0])||'';
     var chars = [];
-    for(var i=0;i<Math.min(descRaw.length,40);i++) chars.push(descRaw.charCodeAt(i));
-    rows.push([
+    for(var i=0;i<Math.min(remit.length,10);i++) chars.push(remit.charCodeAt(i));
+    lines.push([
       t.booking_date||'',
       amt.toFixed(2),
-      '"'+desc.replace(/"/g,'""')+'"',
       t.credit_debit_indicator||'',
-      '"'+descRaw.replace(/"/g,'""')+'"',
-      descRaw.length,
-      '"'+chars.join(',')+'"'
+      '"'+remit.replace(/"/g,'""')+'"',
+      remit.length,
+      '"['+chars.join(',')+']"'
     ].join(','));
   });
-  var blob = new Blob([rows.join('
-')], {type:'text/csv'});
+  var csv = lines.join('
+');
+  var blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
   var a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = 'eb_transactions.csv';
-  a.click();
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
 }
+
+function sellaParseCSVLine(line) {
+  var cols = [], cur = '', inQ = false;
+  for (var i=0; i<line.length; i++) {
+    var c = line[i];
+    if (c==='"') { inQ=!inQ; }
+    else if (c===',' && !inQ) { cols.push(cur); cur=''; }
+    else { cur+=c; }
+  }
+  cols.push(cur);
+  return cols;
+}
+
+function analyzeMatch() {
+  var csvText = document.getElementById('csv-sella').value.trim();
+  if (!csvText) { alert('Incolla il CSV Sella prima'); return; }
+  if (!_lastTxs.length) { alert('Prima scarica le transazioni EB'); return; }
+
+  // Parse CSV Sella: col[1]=data op, col[2]=data valuta, col[3]=desc, col[5]=debito, col[6]=credito
+  var lines = csvText.split('
+').filter(function(l){ return l.trim(); });
+  var sellaKeys = new Map(); // chiave -> riga originale
+  for (var i=1; i<lines.length; i++) {
+    var c = sellaParseCSVLine(lines[i].trim());
+    if (c.length < 7) continue;
+    var dataOp = c[1].replace(/"/g,'').trim();
+    var dataVal = c[2].replace(/"/g,'').trim();
+    var desc = c[3].replace(/"/g,'').trim();
+    var deb = c[5].replace(/"/g,'').replace(/\./g,'').replace(',','.').trim();
+    var cred = c[6].replace(/"/g,'').replace(/\./g,'').replace(',','.').trim();
+    var amt = cred && cred!=='' ? parseFloat(cred) : (deb && deb!=='' ? -parseFloat(deb) : 0);
+    // Converti data da DD/MM/YYYY a YYYY-MM-DD
+    var dp = dataOp.split('/');
+    var dateISO = dp.length===3 ? dp[2]+'-'+dp[1].padStart(2,'0')+'-'+dp[0].padStart(2,'0') : dataOp;
+    var key = dateISO+'|'+amt.toFixed(2)+'|'+desc.substring(0,32).toUpperCase();
+    sellaKeys.set(key, {date:dateISO, amt:amt, desc:desc});
+  }
+
+  // Ora confronta con TX EB
+  var html = '<div style="font-size:12px;font-weight:700;margin-bottom:8px">Sella: '+sellaKeys.size+' TX | EB: '+_lastTxs.length+' TX</div>';
+  var matched=0, unmatched=[];
+
+  _lastTxs.forEach(function(t) {
+    var amt = parseFloat((t.transaction_amount&&t.transaction_amount.amount)||0);
+    if (t.credit_debit_indicator!=='CRDT') amt=-Math.abs(amt);
+    var remit = (t.remittance_information&&t.remittance_information[0])||'';
+    var desc = remit.replace(/\s+/g,' ').trim();
+    var dateISO = t.booking_date||'';
+    var descUp = desc.substring(0,32).toUpperCase();
+    var amtStr = amt.toFixed(2);
+    var storKey = dateISO+'|'+amtStr+'|'+descUp;
+
+    // Cerca con ±3 giorni
+    var found = sellaKeys.has(storKey);
+    var foundKey = storKey;
+    if (!found && dateISO.length===10) {
+      var dParts = dateISO.split('-');
+      var baseMs = Date.UTC(parseInt(dParts[0]),parseInt(dParts[1])-1,parseInt(dParts[2]));
+      for (var dd=1; dd<=3; dd++) {
+        var altD = new Date(baseMs - dd*86400000);
+        var altKey = altD.getUTCFullYear()+'-'+
+          String(altD.getUTCMonth()+1).padStart(2,'0')+'-'+
+          String(altD.getUTCDate()).padStart(2,'0')+'|'+amtStr+'|'+descUp;
+        if (sellaKeys.has(altKey)) { found=true; foundKey=altKey; break; }
+      }
+    }
+
+    if (found) {
+      matched++;
+    } else {
+      unmatched.push({dateISO:dateISO, amt:amtStr, desc:desc, descUp:descUp, remitLen:remit.length,
+        chars: Array.from({length:Math.min(remit.length,6)},function(_,i){ return remit.charCodeAt(i); })});
+    }
+  });
+
+  html += '<div style="color:#1a7a4a;font-weight:700;margin-bottom:8px">✅ Matchati: '+matched+' / '+_lastTxs.length+'</div>';
+  if (unmatched.length) {
+    html += '<div style="color:#b83232;font-weight:700;margin-bottom:6px">❌ Non matchati: '+unmatched.length+'</div>';
+    html += unmatched.slice(0,20).map(function(u){
+      return '<div class="match-row match-no">'+u.dateISO+' | '+u.amt+' | len='+u.remitLen+' chars=['+u.chars+'] | '+u.desc+'</div>';
+    }).join('');
+    if (unmatched.length>20) html+='<div class="empty">...e altri '+(unmatched.length-20)+'</div>';
+  }
+  document.getElementById('match-result').innerHTML = html;
+}
+
+// Auto-login
+(function(){
+  if (TOKEN) loadSessions();
+})();
 </script>
 </body>
 </html>
