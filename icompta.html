@@ -3955,28 +3955,41 @@ async function sellaAutoDownload() {
   function finecoRenderTable() {
     var tbody = document.getElementById('fineco-cc-tbody');
     if (!tbody) return;
-    var rows = '';
-    for (var i = 0; i < sellaMovimenti.length; i++) {
-      var m = sellaMovimenti[i];
+    var movs = sellaMovimenti, rows = '';
+    for (var i = 0; i < movs.length; i++) {
+      var m = movs[i];
       var amtCls = m.importo >= 0 ? 'sella-amt-pos' : 'sella-amt-neg';
-      var amtStr = (m.importo >= 0 ? '+' : '') + m.importo.toLocaleString('it-IT', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' €';
-      var catOpts = sellaGetCatOptions(m.catObj && m.catObj.id);
-      var rowStyle = m.isDup ? 'opacity:.4;' : '';
-      rows += '<tr style="border-bottom:1px solid var(--border);' + rowStyle + '">' +
-        '<td style="padding:6px 8px;font-size:12px;white-space:nowrap;color:var(--muted)">' + (m.dataOp || m.dateISO) + '</td>' +
-        '<td style="padding:6px 8px;font-size:12px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + m.desc + '">' + m.desc + '</td>' +
-        '<td style="padding:6px 8px;text-align:right;font-weight:700" class="' + amtCls + '">' + amtStr + '</td>' +
-        '<td style="padding:6px 4px"><select style="font-size:11px;padding:3px;border-radius:6px;border:1px solid var(--border);max-width:130px" data-idx="' + i + '" data-pfx="fcc" onchange="sellaSetCat(this.dataset.idx,this.value)">' + catOpts + '</select></td>' +
-        '<td style="padding:6px 4px;text-align:center"><input type="checkbox" ' + (m.includi && !m.isDup ? 'checked' : '') + ' data-idx="' + i + '" onchange="sellaToggle(this.dataset.idx,this.checked)" style="width:16px;height:16px"></td>' +
+      var amtStr = (m.importo >= 0 ? '+' : '') + m.importo.toLocaleString('it-IT', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' \u20ac';
+      var opts = buildCatOptions(m.catObj ? m.catObj.id : null);
+      rows += '<tr class="' + (m.isDup ? ' dup-row' : '') + '" id="fcc-row-' + i + '">' +
+        '<td style="white-space:nowrap;color:var(--muted);font-size:12px">' + (m.dataOp || m.dateISO) + '</td>' +
+        '<td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + esc(m.desc) + '">' + esc(m.desc) + '</td>' +
+        '<td class="' + amtCls + '" style="white-space:nowrap;text-align:right">' + amtStr + '</td>' +
+        '<td><select class="sella-cat-sel" onchange="sellaSetCat(' + i + ',this.value)">' + opts + '</select></td>' +
+        '<td style="text-align:center"><button class="sella-tog ' + (m.includi ? 'on' : 'off') + '" onclick="fccToggle(' + i + ')" title="' + (m.isDup ? 'Gi\u00e0 presente' : '') + '"></button></td>' +
         '</tr>';
     }
     tbody.innerHTML = rows;
-    var inc = sellaMovimenti.filter(function(m){ return m.includi; });
+    for (var i = 0; i < movs.length; i++) {
+      if (movs[i].catObj) {
+        var sel = tbody.querySelector('#fcc-row-' + i + ' .sella-cat-sel');
+        if (sel) sel.value = movs[i].catObj.id;
+      }
+    }
+    // aggiorna totale e bottone
+    var inc = movs.filter(function(m){ return m.includi; });
     var tot = inc.reduce(function(s, m){ return s + m.importo; }, 0);
     var totEl = document.getElementById('fineco-cc-totale');
-    if (totEl) totEl.textContent = 'TOTALE SELEZIONATI ' + tot.toLocaleString('it-IT', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' €';
+    if (totEl) totEl.textContent = 'TOTALE SELEZIONATI ' + tot.toLocaleString('it-IT', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' \u20ac';
     var btn = document.getElementById('fineco-cc-import-btn');
     if (btn) { btn.disabled = inc.length === 0; btn.style.opacity = inc.length > 0 ? '1' : '.5'; }
+  }
+
+  // Toggle che aggiorna anche le stats Fineco
+  function fccToggle(i) {
+    sellaMovimenti[i].includi = !sellaMovimenti[i].includi;
+    finecoRenderTable();
+    finecoUpdateStats();
   }
 
   function finecoUpdateStats() {
