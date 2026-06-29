@@ -3808,10 +3808,16 @@ async function sellaAutoDownload() {
         keys.add(k);
       }
     }
-    _autoLog('eb-log-azienda', 'dedup: ' + matchTx + ' TX trovate su ' + totalTx + ' totali, ' + keys.size + ' chiavi', 'info');
-    // Log chiavi giugno per debug
-    var kArr = Array.from(keys).filter(function(k){ return k.indexOf('2026-06-2') !== -1; }).slice(0,8);
-    kArr.forEach(function(k){ _autoLog('eb-log-azienda', 'IC: '+k, 'info'); });
+    _autoLog('eb-log-azienda', 'dedup: ' + matchTx + ' TX trovate, ' + keys.size + ' chiavi uniche', 'info');
+    // Verifica esplicita chiavi target
+    var targets = [
+      '2026-04-04|-34.87|SUPERMERCATO EUROSPIN ROMA RM',
+      '2026-04-26|-16.97|SUPERMERCATO EUROSPIN ROMA RM',
+      '2026-06-24|-32.68|SUPERMERCATO EUROSPIN ROMA RM',
+      '2026-06-25|-120.00|ZEROZERO100 ROMA RM',
+      '2026-06-24|-3.50|IL CHIOSCHETTO ROMA RM'
+    ];
+    targets.forEach(function(t){ _autoLog('eb-log-azienda', (keys.has(t)?'✅':'❌')+' '+t, 'info'); });
     return keys;
   }
 
