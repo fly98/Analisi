@@ -3757,14 +3757,16 @@ async function sellaAutoDownload() {
 
   async function _ebGetExistingKeys(accId) {
     var keys = new Set();
+    var totalTx = 0, matchTx = 0;
     for (var yi=0; yi<(meta.years||[]).length; yi++) {
       var yr = meta.years[yi];
       if (!txCache[yr]) { try { txCache[yr] = await api('GET','/api/tx/'+yr); } catch(e){ txCache[yr]=[]; } }
       var txs = txCache[yr] || [];
+      totalTx += txs.length;
       for (var j=0; j<txs.length; j++) {
         var tx = txs[j];
         if (tx.accountId !== accId) continue;
-        // Ricostruisce importo: da splits (useSumOfSplits) o da amount
+        matchTx++;
         var amt = 0;
         if (tx.useSumOfSplits && tx.splits && tx.splits.length > 0) {
           for (var s=0; s<tx.splits.length; s++) amt += (tx.splits[s].amount || 0);
@@ -3776,6 +3778,7 @@ async function sellaAutoDownload() {
         keys.add(k);
       }
     }
+    console.log('[EB dedup] accId=' + accId + ' totalTx=' + totalTx + ' matchTx=' + matchTx + ' keys=' + keys.size);
     return keys;
   }
 
