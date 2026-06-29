@@ -3699,13 +3699,13 @@ async function sellaAutoDownload() {
     // Calcola date: ultimi 90 giorni
     var dateFrom = new Date(Date.now() - 90*24*3600*1000).toISOString().slice(0,10);
     var uid = await _ebGetAccountUid(cfg.sessionKey, cfg.ibanSuffix);
-    showToast('🏦 Account trovato, scarico transazioni...');
+    document.getElementById('sella-progress') && (document.getElementById('sella-progress').textContent='🏦 Scarico transazioni...');
     var data = await api('GET',
       '/api/enable-banking/transactions?session_key=' + encodeURIComponent(cfg.sessionKey) +
       '&account_id=' + encodeURIComponent(uid) +
       '&date_from=' + dateFrom);
     if (!data.ok) throw new Error(JSON.stringify(data));
-    showToast('✅ ' + (data.transactions||[]).length + ' transazioni ricevute');
+    document.getElementById('sella-progress') && (document.getElementById('sella-progress').textContent='✅ ' + (data.transactions||[]).length + ' transazioni ricevute');
     var txs = data.transactions || [];
     // Converti in formato sellaMovimenti per riusare la stessa tabella di revisione
     var accId = cfg.iComptaAccId;
@@ -3760,7 +3760,7 @@ async function sellaAutoDownload() {
     var cfg = EB_ACCOUNTS[tipo];
     if (!cfg) return;
     try {
-      showToast('🏦 Connessione Enable Banking...');
+      document.getElementById('sella-progress') && (document.getElementById('sella-progress').textContent='🏦 Connessione Enable Banking...');
       await _ebImportMovimenti(tipo);
       window._ebCurrentTipo = tipo;
     } catch(e) {
@@ -3771,7 +3771,7 @@ async function sellaAutoDownload() {
 
   async function finecoEBDownload() {
     try {
-      showToast('🏦 Connessione Enable Banking Fineco...');
+      document.getElementById('sella-progress') && (document.getElementById('sella-progress').textContent='🏦 Connessione Enable Banking Fineco...');
       await _ebImportMovimenti('fineco');
       window._ebCurrentTipo = 'fineco';
     } catch(e) {
