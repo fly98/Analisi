@@ -3768,6 +3768,21 @@ async function sellaAutoDownload() {
       }
 
       var isDup = existingKeys.has(storKey);
+      // Fallback: cerca per data+importo senza descrizione (TX vecchie con codice come nome)
+      if (!isDup) {
+        var noNameKey = dateISO + '|' + amtStr + '|__NONAME__';
+        if (existingKeys.has(noNameKey)) isDup = true;
+        // Cerca anche ±3 giorni
+        if (!isDup && dateISO && dateISO.length===10) {
+          var dP2=dateISO.split('-');
+          var bMs2=Date.UTC(parseInt(dP2[0]),parseInt(dP2[1])-1,parseInt(dP2[2]));
+          for(var dd9=1;dd9<=3;dd9++){
+            var aD9=new Date(bMs2-dd9*86400000);
+            var nk=aD9.getUTCFullYear()+'-'+String(aD9.getUTCMonth()+1).padStart(2,'0')+'-'+String(aD9.getUTCDate()).padStart(2,'0')+'|'+amtStr+'|__NONAME__';
+            if(existingKeys.has(nk)){isDup=true;break;}
+          }
+        }
+      }
       // Cerca anche con alias
       if (!isDup && aliasDescUp && dateISO && dateISO.length === 10) {
         var aliasKey = dateISO + '|' + amtStr + '|' + aliasDescUp.substring(0,32);
@@ -3864,6 +3879,11 @@ async function sellaAutoDownload() {
         var name = (tx.name || '').trim().substring(0,32).toUpperCase();
         var k = (tx.date||'') + '|' + parseFloat(amt).toFixed(2) + '|' + name;
         keys.add(k);
+        // Per TX con nome=codice identificativo (Sella Personale vecchio import)
+        // aggiungi anche chiave senza descrizione per fallback
+        if (/^\d{10,}$/.test((tx.name||'').trim())) {
+          keys.add((tx.date||'') + '|' + parseFloat(amt).toFixed(2) + '|__NONAME__');
+        }
       }
     }
     var logId = accId === EB_ACCOUNTS['personale'].iComptaAccId ? 'eb-log-personale' : 'eb-log-azienda';
