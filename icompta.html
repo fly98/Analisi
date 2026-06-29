@@ -3718,8 +3718,8 @@ async function sellaAutoDownload() {
       var desc = (t.remittance_information && t.remittance_information[0]) ||
                  (t.creditor && t.creditor.name) || (t.debtor && t.debtor.name) || '';
       var dateISO = t.booking_date || '';
-      var ref = t.entry_reference || '';
-      var storKey = dateISO + '|' + amt.toFixed(2) + '|' + (ref || desc.substring(0,32));
+      // Stessa chiave del CSV Sella per dedup compatibile
+      var storKey = dateISO + '|' + amt.toFixed(2) + '|' + desc.substring(0,32);
       sellaMovimenti.push({
         dateISO: dateISO,
         dataOp: dateISO ? dateISO.split('-').reverse().join('/') : '',
@@ -3743,6 +3743,8 @@ async function sellaAutoDownload() {
   }
 
   async function _ebGetExistingKeys(accId) {
+    // Usa la stessa logica di sellaGetExistingKeys:
+    // ricostruisce la chiave data|importo|desc[:32] dalle TX esistenti
     var keys = new Set();
     for (var yi=0; yi<(meta.years||[]).length; yi++) {
       var yr = meta.years[yi];
@@ -3750,7 +3752,13 @@ async function sellaAutoDownload() {
       var txs = txCache[yr] || [];
       for (var j=0; j<txs.length; j++) {
         var tx = txs[j];
-        if (tx.accountId === accId && tx._ebStorKey) keys.add(tx._ebStorKey);
+        if (tx.accountId !== accId) continue;
+        // Ricostruisce chiave: usa sellaStorKey se disponibile, altrimenti genera
+        if (tx._sellaKey) { keys.add(tx._sellaKey); continue; }
+        var amt = tx.amount != null ? tx.amount : 0;
+        var name = (tx.name || '').substring(0,32);
+        var k = (tx.date||'') + '|' + parseFloat(amt).toFixed(2) + '|' + name;
+        keys.add(k);
       }
     }
     return keys;
