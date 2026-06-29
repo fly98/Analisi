@@ -3701,7 +3701,9 @@ async function sellaAutoDownload() {
     el.scrollTop = el.scrollHeight;
   }
 
-  async function _ebGetAccountUid(sessionKey, ibanSuffix) {
+  async function _ebGetAccountUid(sessionKey, ibanSuffix, accountUid) {
+    // Se è specificato un uid diretto, usalo senza cercare
+    if (accountUid) return accountUid;
     // Carica sessione dal worker e trova l'account con IBAN corrispondente
     var sessions = await api('GET', '/api/enable-banking/sessions');
     if (!Array.isArray(sessions)) throw new Error('Sessioni non trovate: ' + JSON.stringify(sessions));
@@ -3725,7 +3727,7 @@ async function sellaAutoDownload() {
     // Calcola date: ultimi 90 giorni
     var days = window._ebDays || 30;
     var dateFrom = new Date(Date.now() - days*24*3600*1000).toISOString().slice(0,10);
-    var uid = await _ebGetAccountUid(cfg.sessionKey, cfg.ibanSuffix);
+    var uid = await _ebGetAccountUid(cfg.sessionKey, cfg.ibanSuffix, cfg.accountUid);
     _ebLog(tipo, '🏦 Account trovato, scarico transazioni da ' + dateFrom + '...');
     var data = await api('GET',
       '/api/enable-banking/transactions?session_key=' + encodeURIComponent(cfg.sessionKey) +
