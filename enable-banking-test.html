@@ -274,19 +274,18 @@ async function downloadTx() {
 // ── Export CSV ────────────────────────────────────────
 function exportCSV() {
   if (!_lastTxs.length) { alert('Prima scarica le transazioni'); return; }
-  var lines = ['booking_date,importo,credit_debit,remittance,remittance_len,char_codes_first10'];
+  var lines = ['booking_date,value_date,importo,credit_debit,entry_reference,remittance'];
   _lastTxs.forEach(function(t) {
     var amt = getAmount(t);
     var remit = getRemittance(t);
-    var chars = [];
-    for (var i = 0; i < Math.min(remit.length, 10); i++) chars.push(remit.charCodeAt(i));
+    var ref = (t.entry_reference || '').replace(/"/g,'""');
     lines.push([
       t.booking_date || '',
+      t.value_date || '',
       amt.toFixed(2),
       t.credit_debit_indicator || '',
-      '"' + remit.replace(/"/g, '""') + '"',
-      remit.length,
-      '"[' + chars.join(',') + ']"'
+      '"' + ref + '"',
+      '"' + remit.replace(/"/g, '""') + '"'
     ].join(','));
   });
   var csv = lines.join('\r\n');
