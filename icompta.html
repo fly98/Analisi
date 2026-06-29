@@ -3694,6 +3694,8 @@ async function sellaAutoDownload() {
     var el = document.getElementById(id);
     if (!el) return;
     el.style.display = 'block';
+    // Pulisci il placeholder iniziale al primo log reale
+    if (el.dataset.cleared !== '1') { el.innerHTML = ''; el.dataset.cleared = '1'; el.style.color = '#ccc'; }
     var ts = new Date().toLocaleTimeString('it-IT',{hour12:false});
     var d = document.createElement('div');
     d.style.color = msg.startsWith('✅') ? '#00ff88' : msg.startsWith('❌') ? '#ff5555' : '#87ceeb';
