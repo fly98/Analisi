@@ -12,7 +12,7 @@ h1{font-size:18px;font-weight:700;margin-bottom:16px}
 .card h2{font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.6px;margin-bottom:12px}
 button{padding:10px 18px;border-radius:10px;border:none;background:#1a4a7a;color:#fff;font-size:14px;font-weight:700;cursor:pointer;margin:4px 4px 4px 0}
 button.sec{background:#e8f5ee;color:#1a7a4a}
-button.sml{font-size:12px;padding:6px 12px;background:#eef4fd;color:#1a4a7a}
+button.sml{font-size:12px;padding:6px 12px;background:#eef4fd;color:#1a4a7a;border:none;border-radius:8px;cursor:pointer}
 input{padding:9px 12px;border-radius:8px;border:1.5px solid #e4e3dd;font-size:13px;background:#f5f4f0;color:#1a1a1a;display:block;width:100%;margin-bottom:8px}
 input[type=date]{width:auto;display:inline-block;margin-right:8px}
 .session-box{padding:10px;border:1.5px solid #e4e3dd;border-radius:10px;margin-bottom:8px}
@@ -27,6 +27,14 @@ input[type=date]{width:auto;display:inline-block;margin-right:8px}
 .tx-amt{font-size:13px;font-weight:700;white-space:nowrap}
 .pos{color:#1a7a4a}.neg{color:#b83232}
 .empty{color:#888;font-size:13px;text-align:center;padding:20px}
+/* Login */
+#login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh}
+.login-card{background:#fff;border-radius:20px;padding:32px 28px;width:min(340px,90vw);box-shadow:0 4px 32px rgba(0,0,0,.1);text-align:center}
+.login-card h2{font-size:20px;font-weight:700;margin-bottom:6px}
+.login-card p{color:#666;font-size:13px;margin-bottom:20px}
+.login-card input{margin-bottom:12px}
+.login-card button{width:100%;padding:12px;border-radius:10px}
+/* Console */
 #adbg-fab{position:fixed;bottom:16px;right:16px;z-index:99999;width:44px;height:44px;border-radius:50%;background:#1a1a1a;border:2px solid #00ff88;color:#00ff88;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
 #adbg-panel{position:fixed;bottom:0;left:0;right:0;height:240px;background:#1a1a1a;z-index:99998;display:none;flex-direction:column;border-top:2px solid #00ff88}
 #adbg-panel.open{display:flex}
@@ -38,28 +46,40 @@ input[type=date]{width:auto;display:inline-block;margin-right:8px}
 </style>
 </head>
 <body>
-<h1>🏦 Enable Banking — Test</h1>
 
-<div class="card">
-  <h2>Token iCompta</h2>
-  <input id="token-inp" type="password" placeholder="Token iCompta">
-</div>
-
-<div class="card">
-  <h2>Sessioni attive — seleziona conto e scarica</h2>
-  <button class="sec" onclick="loadSessions()">🔄 Aggiorna sessioni</button>
-  <div id="sessions-list" style="margin-top:12px">
-    <div class="empty">Caricamento...</div>
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-card">
+    <div style="font-size:32px;margin-bottom:8px">🏦</div>
+    <h2>Enable Banking Test</h2>
+    <p>Inserisci il token iCompta</p>
+    <input type="password" id="login-input" placeholder="Token accesso" autocomplete="current-password">
+    <button id="login-btn">Accedi</button>
+    <div id="login-err" style="color:#b83232;font-size:12px;margin-top:8px"></div>
   </div>
 </div>
 
-<div class="card" id="tx-card" style="display:none">
-  <h2>Transazioni</h2>
-  <input type="date" id="date-from">
-  <button onclick="downloadTx()">📥 Scarica</button>
-  <div id="tx-result" style="margin-top:8px"></div>
+<!-- APP -->
+<div id="app" style="display:none">
+  <h1>🏦 Enable Banking — Test</h1>
+
+  <div class="card">
+    <h2>Sessioni attive — seleziona conto e scarica</h2>
+    <button class="sec" onclick="loadSessions()">🔄 Aggiorna sessioni</button>
+    <div id="sessions-list" style="margin-top:12px">
+      <div class="empty">Caricamento...</div>
+    </div>
+  </div>
+
+  <div class="card" id="tx-card" style="display:none">
+    <h2>Transazioni</h2>
+    <input type="date" id="date-from">
+    <button onclick="downloadTx()">📥 Scarica</button>
+    <div id="tx-result" style="margin-top:8px"></div>
+  </div>
 </div>
 
+<!-- Console -->
 <button id="adbg-fab" onclick="document.getElementById('adbg-panel').classList.add('open');this.style.display='none'">🐛</button>
 <div id="adbg-panel">
   <div id="adbg-bar"><span>🐛 Console</span>
@@ -70,58 +90,80 @@ input[type=date]{width:auto;display:inline-block;margin-right:8px}
 </div>
 
 <script>
-// ── tutto in un unico script ─────────────────────────────
 var WORKER = 'https://icompta-worker.f-castiglioni.workers.dev';
-var TOKEN = localStorage.getItem('icompta_token') || localStorage.getItem('analisi_token') || '';
+var TOKEN = '';
 var _sessions = [];
 var _selSession = null;
 var _selAccount = null;
 
-// Console debug
+// Console
 (function(){
   var out = document.getElementById('adbg-out');
   function alog(msg, col) {
     var d = document.createElement('div');
     if (col) d.style.color = col;
     var ts = new Date().toLocaleTimeString('it-IT',{hour12:false});
-    d.innerHTML = '<span style="color:#555">'+ts+'</span> ' + String(msg).replace(/</g,'&lt;');
+    d.innerHTML = '<span style="color:#555">'+ts+'</span> '+String(msg).replace(/</g,'&lt;');
     out.appendChild(d); out.scrollTop = out.scrollHeight;
   }
-  var _l=console.log,_e=console.error;
+  var _l=console.log, _e=console.error;
   console.log = function(){ alog(Array.from(arguments).join(' ')); _l.apply(console,arguments); };
-  console.error = function(){ alog('❌ '+Array.from(arguments).join(' '), '#ff5555'); _e.apply(console,arguments); };
+  console.error = function(){ alog('❌ '+Array.from(arguments).join(' '),'#ff5555'); _e.apply(console,arguments); };
   window.onerror = function(m,s,l){ alog('💥 '+m+' L'+l,'#ff5555'); };
   window.onunhandledrejection = function(e){ alog('💥 '+(e.reason&&e.reason.message||'?'),'#ff5555'); };
 })();
 
-// Init token
-var inp = document.getElementById('token-inp');
-inp.value = TOKEN;
-inp.addEventListener('input', function(){
-  TOKEN = this.value.trim();
-  localStorage.setItem('icompta_token', TOKEN);
-});
+// Data default
+document.getElementById('date-from').value = new Date(Date.now()-60*864e5).toISOString().slice(0,10);
 
-// Data default 60 giorni fa
-var d60 = new Date(Date.now() - 60*24*3600*1000);
-document.getElementById('date-from').value = d60.toISOString().slice(0,10);
+// Login
+async function doLogin() {
+  var t = document.getElementById('login-input').value.trim();
+  if (!t) return;
+  TOKEN = t;
+  try {
+    var r = await fetch(WORKER + '/api/enable-banking/sessions', {
+      headers: { 'Authorization': 'Bearer ' + TOKEN }
+    });
+    if (r.status === 401) throw new Error('Token non valido');
+    localStorage.setItem('icompta_token', TOKEN);
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    loadSessions();
+  } catch(e) {
+    document.getElementById('login-err').textContent = e.message;
+    TOKEN = '';
+  }
+}
+document.getElementById('login-btn').addEventListener('click', doLogin);
+document.getElementById('login-input').addEventListener('keydown', function(e){ if(e.key==='Enter') doLogin(); });
 
-// API helper
+// Auto-login se token salvato
+(function(){
+  var saved = localStorage.getItem('icompta_token') || localStorage.getItem('analisi_token') || '';
+  if (saved) {
+    TOKEN = saved;
+    document.getElementById('login-input').value = saved;
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    loadSessions();
+  }
+})();
+
 async function api(method, path, body) {
-  console.log('API '+method+' '+path);
+  console.log('→ '+method+' '+path);
   var r = await fetch(WORKER + path, {
     method: method,
-    headers: { 'Authorization': 'Bearer ' + TOKEN, 'Content-Type': 'application/json' },
+    headers: {'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},
     body: body ? JSON.stringify(body) : undefined
   });
   var data = await r.json();
-  console.log('API resp: ' + JSON.stringify(data).slice(0,100));
+  console.log('← '+JSON.stringify(data).slice(0,120));
   return data;
 }
 
-// Carica sessioni
 async function loadSessions() {
-  console.log('loadSessions TOKEN=' + TOKEN.slice(0,8));
+  console.log('loadSessions...');
   var list = document.getElementById('sessions-list');
   list.innerHTML = '<div class="empty">Caricamento...</div>';
   _selSession = null; _selAccount = null;
@@ -138,27 +180,27 @@ async function loadSessions() {
       var daysLeft = s.valid_until ? Math.ceil((new Date(s.valid_until)-Date.now())/864e5) : null;
       var badge = daysLeft !== null
         ? (daysLeft <= 14
-          ? '<span style="color:#b83232;font-weight:700">⚠️ Scade tra '+daysLeft+'g</span>'
-          : '<span style="color:#1a7a4a">✅ '+daysLeft+' giorni</span>')
+          ? '<span style="color:#b83232;font-weight:700"> ⚠️ Scade tra '+daysLeft+'g</span>'
+          : '<span style="color:#1a7a4a"> ✅ '+daysLeft+'g</span>')
         : '';
       var bankName = (s.aspsp && s.aspsp.name) || 'Banca';
       var psuType = s.psu_type || 'personal';
       var ibans = (s.accounts||[]).map(function(a, ai) {
         var iban = (a.account_id && a.account_id.iban) || a.uid || '?';
-        return '<button class="iban-btn" onclick="selectAccount('+si+','+ai+',this)">' + iban + '</button>';
+        return '<button class="iban-btn" onclick="selectAccount('+si+','+ai+',this)">'+iban+'</button>';
       }).join('');
       return '<div class="session-box">' +
-        '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;gap:4px;flex-wrap:wrap">' +
           '<h3>'+bankName+' — '+psuType+'</h3>' +
           '<button class="sml" onclick="renewAuth(''+bankName+'',''+psuType+'')">🔄 Rinnova</button>' +
         '</div>' +
-        '<div class="sub">Scade: '+exp+' '+badge+'</div>' +
+        '<div class="sub">Scade: '+exp+badge+'</div>' +
         ibans +
         '</div>';
     }).join('');
   } catch(e) {
     list.innerHTML = '<div class="empty" style="color:#b83232">Errore: '+e.message+'</div>';
-    console.error('loadSessions: ' + e.message);
+    console.error('loadSessions: '+e.message);
   }
 }
 
@@ -169,57 +211,51 @@ function selectAccount(si, ai, btn) {
   _selAccount = (_selSession.accounts||[])[ai];
   document.getElementById('tx-card').style.display = 'block';
   document.getElementById('tx-result').innerHTML = '<div class="empty">Premi Scarica</div>';
-  console.log('Selezionato: ' + (_selAccount && _selAccount.uid));
+  console.log('Selezionato account uid: '+(_selAccount&&_selAccount.uid));
 }
 
 async function renewAuth(bank, psuType) {
-  if (!confirm('Rinnova autorizzazione per ' + bank + '?')) return;
+  if (!confirm('Rinnova autorizzazione per '+bank+'?')) return;
   try {
     var data = await api('GET', '/api/enable-banking/auth?bank='+encodeURIComponent(bank)+'&psu_type='+psuType);
-    if (data.ok) { window.open(data.url, '_blank'); }
-    else { alert('Errore: ' + JSON.stringify(data)); }
-  } catch(e) { alert('Errore: ' + e.message); }
+    if (data.ok) { window.open(data.url,'_blank'); }
+    else { alert('Errore: '+JSON.stringify(data)); }
+  } catch(e) { alert('Errore: '+e.message); }
 }
 
 async function downloadTx() {
-  if (!_selSession || !_selAccount) { alert('Seleziona un conto prima'); return; }
+  if (!_selSession || !_selAccount) { alert('Seleziona un conto'); return; }
   var dateFrom = document.getElementById('date-from').value;
   var result = document.getElementById('tx-result');
   result.innerHTML = '<div class="empty">Caricamento...</div>';
   try {
     var data = await api('GET',
-      '/api/enable-banking/transactions?session_key=' + encodeURIComponent(_selSession.key) +
-      '&account_id=' + encodeURIComponent(_selAccount.uid) +
-      '&date_from=' + dateFrom);
+      '/api/enable-banking/transactions?session_key='+encodeURIComponent(_selSession.key)+
+      '&account_id='+encodeURIComponent(_selAccount.uid)+
+      '&date_from='+dateFrom);
     if (data.ok) {
-      var txs = data.transactions || [];
-      if (!txs.length) { result.innerHTML = '<div class="empty">Nessuna transazione</div>'; return; }
-      result.innerHTML = '<div style="font-size:12px;color:#888;margin-bottom:8px">✅ '+txs.length+' transazioni</div>' +
-        txs.map(function(t) {
-          var amt = parseFloat((t.transaction_amount && t.transaction_amount.amount)||0);
-          var isCredit = t.credit_debit_indicator === 'CRDT';
-          if (!isCredit) amt = -Math.abs(amt);
-          var desc = (t.remittance_information && t.remittance_information[0]) ||
-                     (t.creditor && t.creditor.name) || (t.debtor && t.debtor.name) || '—';
-          var dp = (t.booking_date||'?').split('-');
-          var dateIt = dp[2]+'/'+dp[1];
-          return '<div class="tx-row">' +
-            '<div class="tx-date">'+dateIt+'</div>' +
-            '<div class="tx-desc">'+desc+'</div>' +
-            '<div class="tx-amt '+(amt>=0?'pos':'neg')+'">'+(amt>=0?'+':'')+amt.toFixed(2)+'€</div>' +
+      var txs = data.transactions||[];
+      if (!txs.length) { result.innerHTML='<div class="empty">Nessuna transazione</div>'; return; }
+      result.innerHTML = '<div style="font-size:12px;color:#888;margin-bottom:8px">✅ '+txs.length+' transazioni</div>'+
+        txs.map(function(t){
+          var amt = parseFloat((t.transaction_amount&&t.transaction_amount.amount)||0);
+          if (t.credit_debit_indicator!=='CRDT') amt=-Math.abs(amt);
+          var desc=(t.remittance_information&&t.remittance_information[0])||(t.creditor&&t.creditor.name)||(t.debtor&&t.debtor.name)||'—';
+          var dp=(t.booking_date||'?').split('-');
+          return '<div class="tx-row">'+
+            '<div class="tx-date">'+(dp[2]||'?')+'/'+( dp[1]||'?')+'</div>'+
+            '<div class="tx-desc">'+desc+'</div>'+
+            '<div class="tx-amt '+(amt>=0?'pos':'neg')+'">'+(amt>=0?'+':'')+amt.toFixed(2)+'€</div>'+
             '</div>';
         }).join('');
     } else {
-      result.innerHTML = '<div class="empty" style="color:#b83232">Errore: '+JSON.stringify(data)+'</div>';
+      result.innerHTML='<div class="empty" style="color:#b83232">Errore: '+JSON.stringify(data)+'</div>';
     }
   } catch(e) {
-    result.innerHTML = '<div class="empty" style="color:#b83232">Errore: '+e.message+'</div>';
-    console.error('downloadTx: ' + e.message);
+    result.innerHTML='<div class="empty" style="color:#b83232">Errore: '+e.message+'</div>';
+    console.error('downloadTx: '+e.message);
   }
 }
-
-// Avvio automatico
-loadSessions();
 </script>
 </body>
 </html>
