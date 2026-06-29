@@ -24,13 +24,14 @@ input[type=date]{width:auto;display:inline-block;margin-right:8px}
 .tx-row{padding:7px 0;border-bottom:1px solid #f0efe9;display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
 .tx-row:last-child{border-bottom:none}
 .tx-date{font-size:11px;color:#888;min-width:80px}
-.tx-desc{font-size:12px;flex:1}
+.tx-desc{font-size:12px;flex:1;word-break:break-word}
 .tx-amt{font-size:13px;font-weight:700;white-space:nowrap}
 .pos{color:#1a7a4a}.neg{color:#b83232}
 .empty{color:#888;font-size:13px;text-align:center;padding:20px}
 textarea{width:100%;height:80px;border-radius:8px;border:1.5px solid #e4e3dd;font-size:11px;font-family:monospace;padding:8px;background:#f5f4f0}
-.match-row{padding:5px 0;border-bottom:1px solid #f0efe9;font-size:11px;font-family:monospace}
+.match-row{padding:5px 0;border-bottom:1px solid #f0efe9;font-size:11px;font-family:monospace;word-break:break-all}
 .match-ok{color:#1a7a4a}.match-no{color:#b83232}
+#err-log{background:#1a1a1a;border-radius:10px;padding:8px;font-family:monospace;font-size:11px;color:#ff5555;max-height:80px;overflow-y:auto;margin-top:8px;display:none}
 </style>
 </head>
 <body>
@@ -39,6 +40,7 @@ textarea{width:100%;height:80px;border-radius:8px;border:1.5px solid #e4e3dd;fon
 <div class="card">
   <h2>Token iCompta</h2>
   <input id="token-inp" type="password" placeholder="Token iCompta">
+  <div id="err-log"></div>
 </div>
 
 <div class="card">
@@ -57,40 +59,120 @@ textarea{width:100%;height:80px;border-radius:8px;border:1.5px solid #e4e3dd;fon
 
 <div class="card">
   <h2>Analisi match con CSV Sella</h2>
-  <p style="font-size:12px;color:#666;margin-bottom:8px">Incolla il contenuto del CSV Sella qui sotto per analizzare il match con le transazioni EB scaricate</p>
+  <p style="font-size:12px;color:#666;margin-bottom:8px">Incolla il contenuto del CSV Sella e premi Analizza per confrontarlo con le transazioni EB scaricate</p>
   <textarea id="csv-sella" placeholder="Incolla qui il contenuto del CSV Sella..."></textarea>
   <button onclick="analyzeMatch()" style="margin-top:8px">🔍 Analizza match</button>
   <div id="match-result" style="margin-top:12px"></div>
 </div>
 
 <script>
+'use strict';
+
 var WORKER = 'https://icompta-worker.f-castiglioni.workers.dev';
-var TOKEN = localStorage.getItem('icompta_token') || localStorage.getItem('analisi_token') || '';
+var TOKEN = '';
 var _sessions = [];
 var _selSession = null;
 var _selAccount = null;
 var _lastTxs = [];
 
-// Init token
+// ── Gestione errori globale ───────────────────────────
+window.onerror = function(msg, src, line) { errLog('💥 ' + msg + ' L' + line); };
+window.onunhandledrejection = function(e) { errLog('💥 ' + (e.reason && (e.reason.message || String(e.reason)) || '?')); };
+
+function errLog(msg) {
+  var el = document.getElementById('err-log');
+  if (!el) return;
+  el.style.display = 'block';
+  var d = document.createElement('div');
+  d.textContent = new Date().toLocaleTimeString('it-IT') + ' ' + msg;
+  el.appendChild(d);
+  el.scrollTop = el.scrollHeight;
+}
+
+// ── Escape HTML ───────────────────────────────────────
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Helper remittance safe ────────────────────────────
+function getRemittance(t) {
+  try {
+    var r = t && t.remittance_information;
+    if (Array.isArray(r) && r.length > 0) return String(r[0] || '');
+    if (typeof r === 'string') return r;
+  } catch(e) {}
+  return '';
+}
+
+function getDesc(t) {
+  var r = getRemittance(t);
+  if (r) return r;
+  try { if (t && t.creditor && t.creditor.name) return String(t.creditor.name); } catch(e) {}
+  try { if (t && t.debtor && t.debtor.name) return String(t.debtor.name); } catch(e) {}
+  return '—';
+}
+
+function getAmount(t) {
+  try {
+    var amt = parseFloat(t && t.transaction_amount && t.transaction_amount.amount);
+    if (!isFinite(amt)) return 0;
+    return (t.credit_debit_indicator === 'CRDT') ? Math.abs(amt) : -Math.abs(amt);
+  } catch(e) { return 0; }
+}
+
+function getAccountUid(a) {
+  try { if (a && a.uid) return String(a.uid); } catch(e) {}
+  try { if (a && a.account_id && a.account_id.iban) return String(a.account_id.iban); } catch(e) {}
+  return '';
+}
+
+function getIban(a) {
+  try { if (a && a.account_id && a.account_id.iban) return String(a.account_id.iban); } catch(e) {}
+  try { if (a && a.uid) return String(a.uid); } catch(e) {}
+  return '?';
+}
+
+// ── localStorage safe ─────────────────────────────────
+function lsGet(k) { try { return localStorage.getItem(k) || ''; } catch(e) { return ''; } }
+function lsSet(k, v) { try { localStorage.setItem(k, v); } catch(e) {} }
+
+// ── Init token ────────────────────────────────────────
+TOKEN = lsGet('icompta_token') || lsGet('analisi_token') || '';
 var inp = document.getElementById('token-inp');
 inp.value = TOKEN;
-inp.addEventListener('input', function(){
+inp.addEventListener('input', function() {
   TOKEN = this.value.trim();
-  localStorage.setItem('icompta_token', TOKEN);
+  lsSet('icompta_token', TOKEN);
 });
 
 // Data default 90 giorni fa
-document.getElementById('date-from').value = new Date(Date.now()-90*864e5).toISOString().slice(0,10);
+document.getElementById('date-from').value = new Date(Date.now() - 90 * 864e5).toISOString().slice(0, 10);
 
+// ── API helper robusto ────────────────────────────────
 async function api(method, path, body) {
-  var r = await fetch(WORKER + path, {
-    method: method,
-    headers: {'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},
-    body: body ? JSON.stringify(body) : undefined
-  });
-  return r.json();
+  var r;
+  try {
+    r = await fetch(WORKER + path, {
+      method: method,
+      headers: { 'Authorization': 'Bearer ' + TOKEN, 'Content-Type': 'application/json' },
+      body: body ? JSON.stringify(body) : undefined
+    });
+  } catch(e) {
+    throw new Error('Rete non raggiungibile: ' + e.message);
+  }
+  var text;
+  try { text = await r.text(); } catch(e) { throw new Error('Errore lettura risposta: ' + e.message); }
+  if (!r.ok) {
+    var detail = '';
+    try { detail = JSON.parse(text).error || text.slice(0, 100); } catch(e) { detail = text.slice(0, 100); }
+    throw new Error('HTTP ' + r.status + ': ' + detail);
+  }
+  try { return JSON.parse(text); } catch(e) {
+    throw new Error('Risposta non JSON: ' + text.slice(0, 100));
+  }
 }
 
+// ── Sessioni ──────────────────────────────────────────
 async function loadSessions() {
   var list = document.getElementById('sessions-list');
   list.innerHTML = '<div class="empty">Caricamento...</div>';
@@ -99,205 +181,241 @@ async function loadSessions() {
   try {
     var sessions = await api('GET', '/api/enable-banking/sessions');
     if (!Array.isArray(sessions) || !sessions.length) {
-      list.innerHTML = '<div class="empty">Nessuna sessione.</div>';
-      return;
+      list.innerHTML = '<div class="empty">Nessuna sessione.</div>'; return;
     }
     _sessions = sessions;
     list.innerHTML = sessions.map(function(s, si) {
       var exp = s.valid_until ? new Date(s.valid_until).toLocaleDateString('it-IT') : '?';
-      var daysLeft = s.valid_until ? Math.ceil((new Date(s.valid_until)-Date.now())/864e5) : null;
+      var daysLeft = s.valid_until ? Math.ceil((new Date(s.valid_until) - Date.now()) / 864e5) : null;
       var badge = daysLeft !== null
-        ? (daysLeft <= 14 ? '<span style="color:#b83232"> ⚠️ '+daysLeft+'g</span>' : '<span style="color:#1a7a4a"> ✅ '+daysLeft+'g</span>')
-        : '';
-      var bankName = (s.aspsp && s.aspsp.name) || 'Banca';
-      var psuType = s.psu_type || 'personal';
-      var ibans = (s.accounts||[]).map(function(a, ai) {
-        var iban = (a.account_id && a.account_id.iban) || a.uid || '?';
-        return '<button class="iban-btn" onclick="selectAccount('+si+','+ai+',this)">'+iban+'</button>';
+        ? (daysLeft <= 14 ? '<span style="color:#b83232"> ⚠️ ' + daysLeft + 'g</span>'
+                          : '<span style="color:#1a7a4a"> ✅ ' + daysLeft + 'g</span>') : '';
+      var bankName = esc((s.aspsp && s.aspsp.name) || 'Banca');
+      var psuType = esc(s.psu_type || 'personal');
+      var bankRaw = (s.aspsp && s.aspsp.name) || 'Banca';
+      var psuRaw = s.psu_type || 'personal';
+      var ibans = (s.accounts || []).map(function(a, ai) {
+        return '<button class="iban-btn" onclick="selectAccount(' + si + ',' + ai + ',this)">' + esc(getIban(a)) + '</button>';
       }).join('');
-      return '<div class="session-box">'+
-        '<div style="display:flex;justify-content:space-between;align-items:center;gap:4px;flex-wrap:wrap">'+
-          '<h3>'+bankName+' — '+psuType+'</h3>'+
-          '<button class="sml" onclick="renewAuth(''+bankName+'',''+psuType+'')">🔄 Rinnova</button>'+
-        '</div>'+
-        '<div class="sub">Scade: '+exp+badge+'</div>'+
-        ibans+'</div>';
+      return '<div class="session-box">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;gap:4px;flex-wrap:wrap">' +
+          '<h3>' + bankName + ' — ' + psuType + '</h3>' +
+          '<button class="sml" onclick="renewAuth(' + si + ')">🔄 Rinnova</button>' +
+        '</div>' +
+        '<div class="sub">Scade: ' + esc(exp) + badge + '</div>' +
+        ibans + '</div>';
     }).join('');
+    window._sessionsRaw = sessions; // per renewAuth
   } catch(e) {
-    list.innerHTML = '<div class="empty" style="color:#b83232">Errore: '+e.message+'</div>';
+    list.innerHTML = '<div class="empty" style="color:#b83232">Errore: ' + esc(e.message) + '</div>';
+    errLog(e.message);
   }
 }
 
 function selectAccount(si, ai, btn) {
-  document.querySelectorAll('.iban-btn').forEach(function(b){ b.classList.remove('sel'); });
+  document.querySelectorAll('.iban-btn').forEach(function(b) { b.classList.remove('sel'); });
   btn.classList.add('sel');
   _selSession = _sessions[si];
-  _selAccount = (_selSession.accounts||[])[ai];
+  _selAccount = (_selSession.accounts || [])[ai] || null;
   document.getElementById('tx-card').style.display = 'block';
   document.getElementById('tx-result').innerHTML = '<div class="empty">Premi Scarica</div>';
   document.getElementById('btn-export').style.display = 'none';
+  _lastTxs = [];
 }
 
-async function renewAuth(bank, psuType) {
-  if (!confirm('Rinnova autorizzazione per '+bank+'?')) return;
+async function renewAuth(si) {
+  var s = _sessions[si];
+  if (!s) return;
+  var bank = (s.aspsp && s.aspsp.name) || 'Banca';
+  var psu = s.psu_type || 'personal';
+  if (!confirm('Rinnova autorizzazione per ' + bank + '?')) return;
   try {
-    var data = await api('GET', '/api/enable-banking/auth?bank='+encodeURIComponent(bank)+'&psu_type='+psuType);
-    if (data.ok) { window.open(data.url,'_blank'); }
-    else { alert('Errore: '+JSON.stringify(data)); }
-  } catch(e) { alert('Errore: '+e.message); }
+    var data = await api('GET', '/api/enable-banking/auth?bank=' + encodeURIComponent(bank) + '&psu_type=' + encodeURIComponent(psu));
+    if (data.ok) { window.open(data.url, '_blank'); }
+    else { alert('Errore: ' + (data.error || JSON.stringify(data))); }
+  } catch(e) { alert('Errore: ' + e.message); errLog(e.message); }
 }
 
+// ── Download transazioni ──────────────────────────────
 async function downloadTx() {
   if (!_selSession || !_selAccount) { alert('Seleziona un conto'); return; }
+  var uid = getAccountUid(_selAccount);
+  if (!uid) { alert('Account UID non trovato'); return; }
   var dateFrom = document.getElementById('date-from').value;
   var result = document.getElementById('tx-result');
   result.innerHTML = '<div class="empty">Caricamento...</div>';
+  document.getElementById('btn-export').style.display = 'none';
+  _lastTxs = [];
   try {
     var data = await api('GET',
-      '/api/enable-banking/transactions?session_key='+encodeURIComponent(_selSession.key)+
-      '&account_id='+encodeURIComponent(_selAccount.uid)+
-      '&date_from='+dateFrom);
-    if (data.ok) {
-      _lastTxs = data.transactions || [];
-      var txs = _lastTxs;
-      if (!txs.length) { result.innerHTML='<div class="empty">Nessuna transazione</div>'; return; }
-      document.getElementById('btn-export').style.display = 'inline-block';
-      result.innerHTML = '<div style="font-size:12px;color:#888;margin-bottom:8px">✅ '+txs.length+' transazioni</div>'+
-        txs.slice(0,30).map(function(t){
-          var amt = parseFloat((t.transaction_amount&&t.transaction_amount.amount)||0);
-          if (t.credit_debit_indicator!=='CRDT') amt=-Math.abs(amt);
-          var desc=(t.remittance_information&&t.remittance_information[0])||(t.creditor&&t.creditor.name)||(t.debtor&&t.debtor.name)||'—';
-          var dp=(t.booking_date||'?').split('-');
-          return '<div class="tx-row">'+
-            '<div class="tx-date">'+(dp[2]||'?')+'/'+(dp[1]||'?')+'</div>'+
-            '<div class="tx-desc">'+desc+'</div>'+
-            '<div class="tx-amt '+(amt>=0?'pos':'neg')+'">'+(amt>=0?'+':'')+amt.toFixed(2)+'€</div>'+
-            '</div>';
-        }).join('')+(txs.length>30?'<div class="empty">...e altre '+(txs.length-30)+' transazioni</div>':'');
-    } else {
-      result.innerHTML='<div class="empty" style="color:#b83232">Errore: '+JSON.stringify(data)+'</div>';
-    }
+      '/api/enable-banking/transactions?session_key=' + encodeURIComponent(_selSession.key) +
+      '&account_id=' + encodeURIComponent(uid) +
+      '&date_from=' + encodeURIComponent(dateFrom));
+    _lastTxs = Array.isArray(data.transactions) ? data.transactions : [];
+    if (!_lastTxs.length) { result.innerHTML = '<div class="empty">Nessuna transazione</div>'; return; }
+    document.getElementById('btn-export').style.display = 'inline-block';
+    result.innerHTML = '<div style="font-size:12px;color:#888;margin-bottom:8px">✅ ' + _lastTxs.length + ' transazioni</div>' +
+      _lastTxs.slice(0, 30).map(function(t) {
+        var amt = getAmount(t);
+        var desc = getDesc(t);
+        var dp = (t.booking_date || '?').split('-');
+        return '<div class="tx-row">' +
+          '<div class="tx-date">' + esc((dp[2] || '?') + '/' + (dp[1] || '?')) + '</div>' +
+          '<div class="tx-desc">' + esc(desc) + '</div>' +
+          '<div class="tx-amt ' + (amt >= 0 ? 'pos' : 'neg') + '">' + (amt >= 0 ? '+' : '') + amt.toFixed(2) + '€</div>' +
+          '</div>';
+      }).join('') + (_lastTxs.length > 30 ? '<div class="empty">...e altre ' + (_lastTxs.length - 30) + '</div>' : '');
   } catch(e) {
-    result.innerHTML='<div class="empty" style="color:#b83232">Errore: '+e.message+'</div>';
+    result.innerHTML = '<div class="empty" style="color:#b83232">Errore: ' + esc(e.message) + '</div>';
+    errLog(e.message);
   }
 }
 
+// ── Export CSV ────────────────────────────────────────
 function exportCSV() {
   if (!_lastTxs.length) { alert('Prima scarica le transazioni'); return; }
   var lines = ['booking_date,importo,credit_debit,remittance,remittance_len,char_codes_first10'];
   _lastTxs.forEach(function(t) {
-    var amt = parseFloat((t.transaction_amount&&t.transaction_amount.amount)||0);
-    if (t.credit_debit_indicator!=='CRDT') amt=-Math.abs(amt);
-    var remit = (t.remittance_information&&t.remittance_information[0])||'';
+    var amt = getAmount(t);
+    var remit = getRemittance(t);
     var chars = [];
-    for(var i=0;i<Math.min(remit.length,10);i++) chars.push(remit.charCodeAt(i));
+    for (var i = 0; i < Math.min(remit.length, 10); i++) chars.push(remit.charCodeAt(i));
     lines.push([
-      t.booking_date||'',
+      t.booking_date || '',
       amt.toFixed(2),
-      t.credit_debit_indicator||'',
-      '"'+remit.replace(/"/g,'""')+'"',
+      t.credit_debit_indicator || '',
+      '"' + remit.replace(/"/g, '""') + '"',
       remit.length,
-      '"['+chars.join(',')+']"'
+      '"[' + chars.join(',') + ']"'
     ].join(','));
   });
-  var csv = lines.join('
-');
-  var blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
-  var a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'eb_transactions.csv';
-  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  var csv = lines.join('\r\n');
+  try {
+    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'eb_transactions.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function() { URL.revokeObjectURL(url); }, 10000);
+  } catch(e) {
+    alert('Errore export: ' + e.message);
+    errLog(e.message);
+  }
 }
 
-function sellaParseCSVLine(line) {
-  var cols = [], cur = '', inQ = false;
-  for (var i=0; i<line.length; i++) {
+// ── Parser CSV robusto ────────────────────────────────
+function parseCSVLine(line) {
+  var cols = [], cur = '', inQ = false, i = 0;
+  while (i < line.length) {
     var c = line[i];
-    if (c==='"') { inQ=!inQ; }
-    else if (c===',' && !inQ) { cols.push(cur); cur=''; }
-    else { cur+=c; }
+    if (inQ) {
+      if (c === '"') {
+        if (i + 1 < line.length && line[i + 1] === '"') { cur += '"'; i += 2; continue; }
+        inQ = false;
+      } else { cur += c; }
+    } else {
+      if (c === '"') { inQ = true; }
+      else if (c === ',') { cols.push(cur); cur = ''; }
+      else if (c === ';') { cols.push(cur); cur = ''; } // fallback separatore punto e virgola
+      else { cur += c; }
+    }
+    i++;
   }
   cols.push(cur);
   return cols;
 }
 
+// ── Normalizza importo ────────────────────────────────
+function normalizeAmount(s) {
+  if (!s || !s.trim()) return 0;
+  var t = s.trim().replace(/[^\d,.\-]/g, '');
+  // Formato italiano: 1.234,56
+  if (/\d{1,3}(\.\d{3})+(,\d{1,2})?$/.test(t)) t = t.replace(/\./g, '').replace(',', '.');
+  // Formato con virgola decimale senza punti: 1234,56
+  else if (/^\d+,\d{1,2}$/.test(t)) t = t.replace(',', '.');
+  return parseFloat(t) || 0;
+}
+
+// ── Analisi match ─────────────────────────────────────
 function analyzeMatch() {
   var csvText = document.getElementById('csv-sella').value.trim();
   if (!csvText) { alert('Incolla il CSV Sella prima'); return; }
   if (!_lastTxs.length) { alert('Prima scarica le transazioni EB'); return; }
 
-  // Parse CSV Sella: col[1]=data op, col[2]=data valuta, col[3]=desc, col[5]=debito, col[6]=credito
-  var lines = csvText.split('
-').filter(function(l){ return l.trim(); });
-  var sellaKeys = new Map(); // chiave -> riga originale
-  for (var i=1; i<lines.length; i++) {
-    var c = sellaParseCSVLine(lines[i].trim());
-    if (c.length < 7) continue;
-    var dataOp = c[1].replace(/"/g,'').trim();
-    var dataVal = c[2].replace(/"/g,'').trim();
-    var desc = c[3].replace(/"/g,'').trim();
-    var deb = c[5].replace(/"/g,'').replace(/\./g,'').replace(',','.').trim();
-    var cred = c[6].replace(/"/g,'').replace(/\./g,'').replace(',','.').trim();
-    var amt = cred && cred!=='' ? parseFloat(cred) : (deb && deb!=='' ? -parseFloat(deb) : 0);
-    // Converti data da DD/MM/YYYY a YYYY-MM-DD
-    var dp = dataOp.split('/');
-    var dateISO = dp.length===3 ? dp[2]+'-'+dp[1].padStart(2,'0')+'-'+dp[0].padStart(2,'0') : dataOp;
-    var key = dateISO+'|'+amt.toFixed(2)+'|'+desc.substring(0,32).toUpperCase();
-    sellaKeys.set(key, {date:dateISO, amt:amt, desc:desc});
+  var lines = csvText.split(/\r?\n/).filter(function(l) { return l.trim(); });
+  var sellaKeys = new Map();
+
+  for (var i = 1; i < lines.length; i++) {
+    try {
+      var c = parseCSVLine(lines[i].trim());
+      if (c.length < 6) continue;
+      var dataOp = (c[1] || '').replace(/"/g, '').trim();
+      var dataVal = (c[2] || '').replace(/"/g, '').trim();
+      var desc = (c[3] || '').replace(/"/g, '').trim();
+      var deb = normalizeAmount(c[5] || '');
+      var cred = normalizeAmount(c[6] || '');
+      var amt = (cred !== 0) ? cred : (deb !== 0 ? -deb : 0);
+      // Converti data DD/MM/YYYY → YYYY-MM-DD
+      var dp = dataOp.split('/');
+      var dateISO = dp.length === 3
+        ? dp[2] + '-' + dp[1].padStart(2, '0') + '-' + dp[0].padStart(2, '0')
+        : dataOp;
+      var key = dateISO + '|' + amt.toFixed(2) + '|' + desc.substring(0, 32).toUpperCase();
+      sellaKeys.set(key, { date: dateISO, amt: amt, desc: desc });
+    } catch(e) { /* ignora riga malformata */ }
   }
 
-  // Ora confronta con TX EB
-  var html = '<div style="font-size:12px;font-weight:700;margin-bottom:8px">Sella: '+sellaKeys.size+' TX | EB: '+_lastTxs.length+' TX</div>';
-  var matched=0, unmatched=[];
-
+  var matched = 0, unmatched = [];
   _lastTxs.forEach(function(t) {
-    var amt = parseFloat((t.transaction_amount&&t.transaction_amount.amount)||0);
-    if (t.credit_debit_indicator!=='CRDT') amt=-Math.abs(amt);
-    var remit = (t.remittance_information&&t.remittance_information[0])||'';
-    var desc = remit.replace(/\s+/g,' ').trim();
-    var dateISO = t.booking_date||'';
-    var descUp = desc.substring(0,32).toUpperCase();
-    var amtStr = amt.toFixed(2);
-    var storKey = dateISO+'|'+amtStr+'|'+descUp;
-
-    // Cerca con ±3 giorni
-    var found = sellaKeys.has(storKey);
-    var foundKey = storKey;
-    if (!found && dateISO.length===10) {
-      var dParts = dateISO.split('-');
-      var baseMs = Date.UTC(parseInt(dParts[0]),parseInt(dParts[1])-1,parseInt(dParts[2]));
-      for (var dd=1; dd<=3; dd++) {
-        var altD = new Date(baseMs - dd*86400000);
-        var altKey = altD.getUTCFullYear()+'-'+
-          String(altD.getUTCMonth()+1).padStart(2,'0')+'-'+
-          String(altD.getUTCDate()).padStart(2,'0')+'|'+amtStr+'|'+descUp;
-        if (sellaKeys.has(altKey)) { found=true; foundKey=altKey; break; }
+    try {
+      var amt = getAmount(t);
+      var remit = getRemittance(t);
+      var desc = remit.replace(/\s+/g, ' ').trim();
+      var dateISO = t.booking_date || '';
+      var descUp = desc.substring(0, 32).toUpperCase();
+      var amtStr = amt.toFixed(2);
+      var storKey = dateISO + '|' + amtStr + '|' + descUp;
+      var found = sellaKeys.has(storKey);
+      if (!found && dateISO.length === 10) {
+        var dParts = dateISO.split('-');
+        var baseMs = Date.UTC(parseInt(dParts[0]), parseInt(dParts[1]) - 1, parseInt(dParts[2]));
+        if (isFinite(baseMs)) {
+          for (var dd = 1; dd <= 3; dd++) {
+            var altD = new Date(baseMs - dd * 86400000);
+            var altKey = altD.getUTCFullYear() + '-' +
+              String(altD.getUTCMonth() + 1).padStart(2, '0') + '-' +
+              String(altD.getUTCDate()).padStart(2, '0') + '|' + amtStr + '|' + descUp;
+            if (sellaKeys.has(altKey)) { found = true; break; }
+          }
+        }
       }
-    }
-
-    if (found) {
-      matched++;
-    } else {
-      unmatched.push({dateISO:dateISO, amt:amtStr, desc:desc, descUp:descUp, remitLen:remit.length,
-        chars: Array.from({length:Math.min(remit.length,6)},function(_,i){ return remit.charCodeAt(i); })});
-    }
+      if (found) { matched++; }
+      else {
+        var chars = [];
+        for (var ci = 0; ci < Math.min(remit.length, 8); ci++) chars.push(remit.charCodeAt(ci));
+        unmatched.push({ dateISO: dateISO, amt: amtStr, desc: desc, remitLen: remit.length, chars: chars });
+      }
+    } catch(e) { unmatched.push({ dateISO: '?', amt: '?', desc: 'ERRORE: ' + e.message, remitLen: 0, chars: [] }); }
   });
 
-  html += '<div style="color:#1a7a4a;font-weight:700;margin-bottom:8px">✅ Matchati: '+matched+' / '+_lastTxs.length+'</div>';
+  var html = '<div style="font-size:12px;font-weight:700;margin-bottom:8px">Sella: ' + sellaKeys.size + ' TX | EB: ' + _lastTxs.length + ' TX</div>';
+  html += '<div style="color:#1a7a4a;font-weight:700;margin-bottom:8px">✅ Matchati: ' + matched + ' / ' + _lastTxs.length + '</div>';
   if (unmatched.length) {
-    html += '<div style="color:#b83232;font-weight:700;margin-bottom:6px">❌ Non matchati: '+unmatched.length+'</div>';
-    html += unmatched.slice(0,20).map(function(u){
-      return '<div class="match-row match-no">'+u.dateISO+' | '+u.amt+' | len='+u.remitLen+' chars=['+u.chars+'] | '+u.desc+'</div>';
+    html += '<div style="color:#b83232;font-weight:700;margin-bottom:6px">❌ Non matchati: ' + unmatched.length + '</div>';
+    html += unmatched.slice(0, 30).map(function(u) {
+      return '<div class="match-row match-no">' + esc(u.dateISO) + ' | ' + esc(u.amt) + ' | len=' + u.remitLen +
+        ' chars=[' + u.chars.join(',') + '] | ' + esc(u.desc) + '</div>';
     }).join('');
-    if (unmatched.length>20) html+='<div class="empty">...e altri '+(unmatched.length-20)+'</div>';
+    if (unmatched.length > 30) html += '<div class="empty">...e altri ' + (unmatched.length - 30) + '</div>';
   }
   document.getElementById('match-result').innerHTML = html;
 }
 
-// Auto-login
-(function(){
-  if (TOKEN) loadSessions();
-})();
+// ── Auto-login ────────────────────────────────────────
+if (TOKEN) loadSessions();
 </script>
 </body>
 </html>
