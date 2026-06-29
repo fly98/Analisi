@@ -3711,16 +3711,17 @@ async function sellaAutoDownload() {
     var session = sessions.find(function(s){ return s.key === sessionKey; });
     if (!session) throw new Error('Sessione non trovata: ' + sessionKey + ' — disponibili: ' + sessions.map(function(s){return s.key;}).join(', '));
     var accounts = session.accounts || [];
-    // Trova account con IBAN che finisce per ibanSuffix
+    // Se accountIndex è specificato, usalo direttamente (caso Fineco: 4 IBAN identici)
+    if (accountIndex !== undefined && accountIndex !== null) {
+      var accByIdx = accounts[accountIndex];
+      if (accByIdx) return accByIdx.uid;
+    }
+    // Altrimenti trova account con IBAN che finisce per ibanSuffix
     var account = accounts.find(function(a){
       var iban = (a.account_id && a.account_id.iban) || '';
       return iban.endsWith(ibanSuffix);
     });
-    // Se non trovato per suffix, usa accountIndex o il secondo (Fineco CC)
-    if (!account) {
-      var idx = (accountIndex !== undefined && accountIndex !== null) ? accountIndex : 1;
-      account = accounts[idx] || accounts[1] || accounts[0];
-    }
+    if (!account) account = accounts[0];
     if (!account) throw new Error('Account non trovato per IBAN *' + ibanSuffix);
     return account.uid;
   }
@@ -5835,7 +5836,7 @@ document.getElementById('fineco-xls-input').addEventListener('change', function(
       <button onclick="document.getElementById('fineco-cc-overlay').style.display='none';selectAccount('ACC-FINECO-CC','Fineco CC');setTimeout(openImportMovimentiCC,300)" style="width:100%;padding:11px;border-radius:10px;border:1.5px solid var(--border);background:none;font-size:13px;font-weight:600;cursor:pointer;margin-bottom:12px;display:flex;align-items:center;gap:8px">
         <span>📂</span> <span>Importa da file XLSX</span>
       </button>
-      <div id="eb-log-fineco" style="display:none;background:#1a1a1a;border-radius:8px;padding:8px 10px;max-height:80px;overflow-y:auto;font-family:monospace;font-size:11px;margin-bottom:12px;color:#ccc"></div>
+      <div id="eb-log-fineco" style="background:#1a1a1a;border-radius:8px;padding:10px 12px;min-height:60px;max-height:120px;overflow-y:auto;font-family:monospace;font-size:11px;margin-bottom:12px;color:#888;line-height:1.6"><span style="color:#555">In attesa di scaricare...</span></div>
       <div id="fineco-cc-stats" style="display:none;gap:12px;margin-bottom:14px;flex-wrap:wrap">
         <div class="sella-stat"><div class="sella-stat-n" id="fcc-tot">0</div><div class="sella-stat-lbl">Totale</div></div>
         <div class="sella-stat"><div class="sella-stat-n" id="fcc-new" style="color:var(--green)">0</div><div class="sella-stat-lbl">Nuovi</div></div>
