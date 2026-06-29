@@ -3746,13 +3746,17 @@ async function sellaAutoDownload() {
       if (!isDup && dateISO && dateISO.length === 10) {
         try {
           var dParts = dateISO.split('-');
-          var d = new Date(parseInt(dParts[0]), parseInt(dParts[1])-1, parseInt(dParts[2]));
+          var dY=parseInt(dParts[0]), dM=parseInt(dParts[1])-1, dD=parseInt(dParts[2]);
           for (var dd = 1; dd <= 3; dd++) {
-            var altD = new Date(d.getTime() - dd * 86400000);
+            var altD = new Date(dY, dM, dD - dd);
             var altKey = altD.getFullYear() + '-' +
               String(altD.getMonth()+1).padStart(2,'0') + '-' +
               String(altD.getDate()).padStart(2,'0') + '|' + amtStr + '|' + descUp;
             if (existingKeys.has(altKey)) { isDup = true; storKey = altKey; break; }
+          }
+          // Log TX non matchate con descrizioni note
+          if (!isDup && (descUp.indexOf('ZEROZERO')!==-1||descUp.indexOf('CHIOSCHETTO')!==-1||descUp.indexOf('EUROSPIN')!==-1)) {
+            _autoLog('eb-log-azienda', 'NO MATCH: EB='+storKey, 'info');
           }
         } catch(ignored) {}
       }
@@ -3803,10 +3807,10 @@ async function sellaAutoDownload() {
         keys.add(k);
       }
     }
-    console.log('[EB dedup] accId=' + accId + ' totalTx=' + totalTx + ' matchTx=' + matchTx + ' keys=' + keys.size);
-    // Log prime 3 chiavi per debug
-    var kArr = Array.from(keys).filter(function(k){ return k.indexOf('2026-06-2') !== -1; }).slice(0,5);
-    kArr.forEach(function(k){ console.log('[EB key]', k); });
+    _autoLog('eb-log-azienda', 'dedup: ' + matchTx + ' TX trovate su ' + totalTx + ' totali, ' + keys.size + ' chiavi', 'info');
+    // Log chiavi giugno per debug
+    var kArr = Array.from(keys).filter(function(k){ return k.indexOf('2026-06-2') !== -1; }).slice(0,8);
+    kArr.forEach(function(k){ _autoLog('eb-log-azienda', 'IC: '+k, 'info'); });
     return keys;
   }
 
