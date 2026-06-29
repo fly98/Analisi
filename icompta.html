@@ -3819,10 +3819,7 @@ async function sellaAutoDownload() {
     }
     // Ordina per data decrescente
     sellaMovimenti.sort(function(a,b){ return b.dateISO.localeCompare(a.dateISO); });
-    document.getElementById('sella-drop').style.display = 'none';
-    document.getElementById('sella-table').style.display = 'table';
-    sellaRenderTable(sellaMovimenti);
-    sellaUpdateStats();
+    // routing nel blocco if/else sotto
   }
 
   async function _ebGetExistingKeys(accId) {
