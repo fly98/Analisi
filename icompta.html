@@ -4508,12 +4508,12 @@ async function sellapAutoDownload() {
 // Mappa conti con import automatico
 function openFinecoInvModal() { var m=document.getElementById('modal-fineco-inv'); if(m) m.style.display='flex'; }
 function closeFinecoInvModal() { var m=document.getElementById('modal-fineco-inv'); if(m) m.style.display='none'; }
-function openFinecoCCModal() { var ov=document.getElementById('fineco-cc-overlay'); if(ov){ ov.style.display='flex'; finecoEBDownload(); } }
+function openFinecoCCModal() { var ov=document.getElementById('fineco-cc-overlay'); if(ov){ ov.style.display='flex'; } }
 function closeFinecoCCModal() { var m=document.getElementById('modal-fineco-cc'); if(m) m.style.display='none'; }
 
 var IMPORT_MAP = {
   'ACC-FINECO-INV':  { label: 'Aggiorna', fn: function() { openFinecoInvModal(); } },
-  'ACC-FINECO-CC':   { label: 'Aggiorna', fn: function() { document.getElementById('fineco-cc-overlay').style.display='flex'; finecoEBDownload(); } },
+  'ACC-FINECO-CC':   { label: 'Aggiorna', fn: function() { document.getElementById('fineco-cc-overlay').style.display='flex'; } },
 };
 // Conti Sella e InternoUno Banca identificati per nome
 var IMPORT_MAP_AUTO = {
@@ -5818,6 +5818,23 @@ document.getElementById('fineco-xls-input').addEventListener('change', function(
       <button onclick="document.getElementById('fineco-cc-overlay').style.display='none'" style="background:var(--gray2);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:16px">✕</button>
     </div>
     <div style="padding:16px">
+      <div style="display:flex;gap:6px;margin-bottom:10px;align-items:center">
+        <button onclick="finecoEBDownload()" style="flex:1;padding:12px;border-radius:10px;border:none;background:#1a7a4a;color:#fff;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
+          <span>🏦</span> <span><b>Scarica via Enable Banking</b></span>
+        </button>
+        <select onchange="window._ebDays=parseInt(this.value)" style="padding:9px;border-radius:8px;border:1.5px solid #e4e3dd;font-size:12px;background:#f5f4f0;color:#1a1a1a;cursor:pointer">
+          <option value="1">1 gg</option>
+          <option value="7">7 gg</option>
+          <option value="15">15 gg</option>
+          <option value="30" selected>1 mese</option>
+        </select>
+      </div>
+      <button onclick="document.getElementById('fineco-cc-overlay').style.display='none';finecoAutoCC()" style="width:100%;padding:11px;border-radius:10px;border:none;background:var(--blue);color:#fff;font-size:13px;font-weight:600;cursor:pointer;margin-bottom:8px;display:flex;align-items:center;gap:8px">
+        <span>🤖</span> <span>Scarica via Playwright (Mac)</span>
+      </button>
+      <button onclick="document.getElementById('fineco-cc-overlay').style.display='none';selectAccount('ACC-FINECO-CC','Fineco CC');setTimeout(openImportMovimentiCC,300)" style="width:100%;padding:11px;border-radius:10px;border:1.5px solid var(--border);background:none;font-size:13px;font-weight:600;cursor:pointer;margin-bottom:12px;display:flex;align-items:center;gap:8px">
+        <span>📂</span> <span>Importa da file XLSX</span>
+      </button>
       <div id="eb-log-fineco" style="display:none;background:#1a1a1a;border-radius:8px;padding:8px 10px;max-height:80px;overflow-y:auto;font-family:monospace;font-size:11px;margin-bottom:12px;color:#ccc"></div>
       <div id="fineco-cc-stats" style="display:none;gap:12px;margin-bottom:14px;flex-wrap:wrap">
         <div class="sella-stat"><div class="sella-stat-n" id="fcc-tot">0</div><div class="sella-stat-lbl">Totale</div></div>
