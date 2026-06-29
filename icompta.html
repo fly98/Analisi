@@ -3741,15 +3741,20 @@ async function sellaAutoDownload() {
       var descUp = desc.substring(0,32).toUpperCase();
       var amtStr = amt.toFixed(2);
       var storKey = dateISO + '|' + amtStr + '|' + descUp;
-      // Controlla anche date alternative
+      // Controlla anche date alternative (±3 giorni: EB usa data valuta, CSV usa data operazione)
       var isDup = existingKeys.has(storKey);
-      if (!isDup) {
-        var d = new Date(dateISO);
-        for (var dd = 1; dd <= 3; dd++) {
-          var altDate = new Date(d.getTime() - dd * 86400000);
-          var altKey = altDate.toISOString().slice(0,10) + '|' + amtStr + '|' + descUp;
-          if (existingKeys.has(altKey)) { isDup = true; storKey = altKey; break; }
-        }
+      if (!isDup && dateISO && dateISO.length === 10) {
+        try {
+          var dParts = dateISO.split('-');
+          var d = new Date(parseInt(dParts[0]), parseInt(dParts[1])-1, parseInt(dParts[2]));
+          for (var dd = 1; dd <= 3; dd++) {
+            var altD = new Date(d.getTime() - dd * 86400000);
+            var altKey = altD.getFullYear() + '-' +
+              String(altD.getMonth()+1).padStart(2,'0') + '-' +
+              String(altD.getDate()).padStart(2,'0') + '|' + amtStr + '|' + descUp;
+            if (existingKeys.has(altKey)) { isDup = true; storKey = altKey; break; }
+          }
+        } catch(ignored) {}
       }
       sellaMovimenti.push({
         dateISO: dateISO,
