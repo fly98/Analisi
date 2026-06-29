@@ -2346,11 +2346,13 @@ async function sellaHandleFile(file) {
   // Mostra la tabella nel pannello corretto
   if (tipo === 'personale') {
     sellapMovimenti = sellaMovimenti.slice();
+    _autoLog('eb-log-personale', '📋 ' + sellapMovimenti.length + ' TX — rendering...', 'info');
     var d=document.getElementById('sellap-drop'); if(d) d.style.display='none';
     var t=document.getElementById('sellap-table'); if(t) t.style.display='table';
     var st=document.getElementById('sellap-stats'); if(st) st.style.display='flex';
-    sellapRenderTable();
-    sellapUpdateStats();
+    try { sellapRenderTable(); } catch(e) { _autoLog('eb-log-personale', '❌ sellapRenderTable: '+e.message, 'err'); }
+    try { sellapUpdateStats(); } catch(e) { _autoLog('eb-log-personale', '❌ sellapUpdateStats: '+e.message, 'err'); }
+    _autoLog('eb-log-personale', '✅ Tabella pronta — scorri giù', 'ok');
     document.getElementById('sellap-progress').textContent='';
   } else {
     document.getElementById('sella-drop').style.display='none';
