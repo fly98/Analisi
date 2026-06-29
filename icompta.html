@@ -3907,8 +3907,14 @@ async function sellaAutoDownload() {
         }
       }
     }
-    var logId = accId === EB_ACCOUNTS['personale'].iComptaAccId ? 'eb-log-personale' : 'eb-log-azienda';
-    _autoLog(logId, 'dedup: ' + matchTx + ' TX trovate per ' + accId.slice(0,8) + '... su ' + totalTx + ' totali', 'info');
+    var logId = accId === EB_ACCOUNTS['personale'].iComptaAccId ? 'eb-log-personale'
+              : accId === EB_ACCOUNTS['fineco'].iComptaAccId ? 'eb-log-fineco'
+              : 'eb-log-azienda';
+    if (logId === 'eb-log-fineco') {
+      _ebLog('fineco', 'dedup: ' + matchTx + ' TX gi\u00e0 in iCompta');
+    } else {
+      _autoLog(logId, 'dedup: ' + matchTx + ' TX trovate per ' + accId.slice(0,8) + '... su ' + totalTx + ' totali', 'info');
+    }
     return keys;
   }
 
