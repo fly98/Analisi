@@ -3779,6 +3779,8 @@ async function sellaAutoDownload() {
   }
 
   async function _ebGetExistingKeys(accId) {
+    // Reset cache per avere dati freschi
+    txCache = {};
     var keys = new Set();
     var totalTx = 0, matchTx = 0;
     for (var yi=0; yi<(meta.years||[]).length; yi++) {
@@ -3802,6 +3804,9 @@ async function sellaAutoDownload() {
       }
     }
     console.log('[EB dedup] accId=' + accId + ' totalTx=' + totalTx + ' matchTx=' + matchTx + ' keys=' + keys.size);
+    // Log prime 3 chiavi per debug
+    var kArr = Array.from(keys).filter(function(k){ return k.indexOf('2026-06-2') !== -1; }).slice(0,5);
+    kArr.forEach(function(k){ console.log('[EB key]', k); });
     return keys;
   }
 
