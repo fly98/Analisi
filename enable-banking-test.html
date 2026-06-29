@@ -39,20 +39,8 @@ select,input{padding:9px 12px;border-radius:8px;border:1.5px solid #e4e3dd;font-
   <input id="token" type="password" placeholder="Token iCompta">
 </div>
 
-<!-- NUOVA SESSIONE -->
-<div class="card">
-  <h2>Collega nuova banca</h2>
-  <select id="bank-sel">
-    <option value="Banca Sella">Banca Sella (personale + azienda)</option>
-    <option value="FinecoBank">FinecoBank</option>
-  </select>
-  <select id="psu-sel">
-    <option value="personal">Personal</option>
-    <option value="business">Business</option>
-  </select>
-  <button onclick="startAuth()">🔗 Autorizza banca</button>
-  <div id="auth-log" class="log" style="display:none"></div>
-</div>
+<!-- log nascosto per renewAuth -->
+<div id="auth-log" class="log" style="display:none;margin-bottom:12px"></div>
 
 <!-- SESSIONI + DOWNLOAD TX -->
 <div class="card">
@@ -84,10 +72,13 @@ document.getElementById('token').value = TOKEN;
 document.getElementById('token').addEventListener('input', function(){
   TOKEN = this.value.trim();
   localStorage.setItem('icompta_token', TOKEN);
+  loadSessions();
 });
 // data default 60 giorni fa
 var d60 = new Date(Date.now() - 60*24*3600*1000);
 document.getElementById('date-from').value = d60.toISOString().slice(0,10);
+// Carica sessioni automaticamente
+if (TOKEN) loadSessions();
 
 function log(msg, type) {
   var el = document.getElementById('auth-log');
