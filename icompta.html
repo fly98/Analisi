@@ -3819,7 +3819,24 @@ async function sellaAutoDownload() {
     }
     // Ordina per data decrescente
     sellaMovimenti.sort(function(a,b){ return b.dateISO.localeCompare(a.dateISO); });
-    // routing nel blocco if/else sotto
+    // Mostra la tabella nel pannello corretto
+    if (tipo === 'personale') {
+      sellapMovimenti = sellaMovimenti.slice();
+      _ebLog('personale', '📋 ' + sellapMovimenti.length + ' TX...');
+      var dp=document.getElementById('sellap-drop'); if(dp) dp.style.display='none';
+      var tp=document.getElementById('sellap-table'); if(tp) tp.style.display='table';
+      var sp=document.getElementById('sellap-stats'); if(sp) sp.style.display='flex';
+      try { sellapRenderTable(); } catch(ex) { _ebLog('personale','❌ render: '+ex.message); }
+      try { sellapUpdateStats(); } catch(ex) { _ebLog('personale','❌ stats: '+ex.message); }
+      _ebLog('personale', '✅ Pronto');
+      var prog=document.getElementById('sellap-progress'); if(prog) prog.textContent='';
+    } else {
+      var dd2=document.getElementById('sella-drop'); if(dd2) dd2.style.display='none';
+      var tt=document.getElementById('sella-table'); if(tt) tt.style.display='table';
+      try { sellaRenderTable(sellaMovimenti); } catch(ex) { _ebLog(tipo,'❌ render: '+ex.message); }
+      try { sellaUpdateStats(); } catch(ex) { _ebLog(tipo,'❌ stats: '+ex.message); }
+      var prog2=document.getElementById('sella-progress'); if(prog2) prog2.textContent='';
+    }
   }
 
   async function _ebGetExistingKeys(accId) {
