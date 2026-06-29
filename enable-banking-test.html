@@ -199,6 +199,80 @@ async function loadTx() {
     body.innerHTML = '<div class="status" style="color:#b83232">Errore: ' + e.message + '</div>';
   }
 }
+
+
+// ── Sezione download CSV EB ──────────────────────────
+var _lastTxs = [];
+
+var _origDownloadTx = downloadTx;
+downloadTx = async function() {
+  await _origDownloadTx();
+  // Salva le TX per il download CSV
+  _lastTxs = window._lastLoadedTxs || [];
+};
+
+async function downloadTx() {
+  if (!_selSession || !_selAccount) { alert('Seleziona un conto'); return; }
+  var dateFrom = document.getElementById('date-from').value;
+  var result = document.getElementById('tx-result');
+  result.innerHTML = '<div class="empty">Caricamento...</div>';
+  try {
+    var data = await api('GET',
+      '/api/enable-banking/transactions?session_key=' + encodeURIComponent(_selSession.key) +
+      '&account_id=' + encodeURIComponent(_selAccount.uid) +
+      '&date_from=' + dateFrom);
+    if (data.ok) {
+      _lastTxs = data.transactions || [];
+      var txs = _lastTxs;
+      if (!txs.length) { result.innerHTML = '<div class="empty">Nessuna transazione</div>'; return; }
+      result.innerHTML = '<div style="font-size:12px;color:#888;margin-bottom:8px">✅ '+txs.length+' transazioni — <button class="sml" onclick="exportCSV()">⬇️ Scarica CSV</button></div>' +
+        txs.map(function(t){
+          var amt = parseFloat((t.transaction_amount&&t.transaction_amount.amount)||0);
+          if (t.credit_debit_indicator!=='CRDT') amt=-Math.abs(amt);
+          var desc=(t.remittance_information&&t.remittance_information[0])||(t.creditor&&t.creditor.name)||(t.debtor&&t.debtor.name)||'—';
+          var dp=(t.booking_date||'?').split('-');
+          return '<div class="tx-row">'+
+            '<div class="tx-date">'+(dp[2]||'?')+'/'+( dp[1]||'?')+'</div>'+
+            '<div class="tx-desc">'+desc+'</div>'+
+            '<div class="tx-amt '+(amt>=0?'pos':'neg')+'">'+(amt>=0?'+':'')+amt.toFixed(2)+'€</div>'+
+            '</div>';
+        }).join('');
+    } else {
+      result.innerHTML='<div class="empty" style="color:#b83232">Errore: '+JSON.stringify(data)+'</div>';
+    }
+  } catch(e) {
+    result.innerHTML='<div class="empty" style="color:#b83232">Errore: '+e.message+'</div>';
+  }
+}
+
+function exportCSV() {
+  if (!_lastTxs.length) { alert('Nessuna transazione caricata'); return; }
+  var rows = ['data,importo,descrizione,credit_debit,remittance_raw,desc_len,desc_chars'];
+  _lastTxs.forEach(function(t) {
+    var amt = parseFloat((t.transaction_amount&&t.transaction_amount.amount)||0);
+    if (t.credit_debit_indicator!=='CRDT') amt=-Math.abs(amt);
+    var desc = (t.remittance_information&&t.remittance_information[0])||(t.creditor&&t.creditor.name)||(t.debtor&&t.debtor.name)||'';
+    var descRaw = t.remittance_information&&t.remittance_information[0]||'';
+    // Char codes dei primi 10 caratteri per vedere invisibili
+    var chars = [];
+    for(var i=0;i<Math.min(descRaw.length,40);i++) chars.push(descRaw.charCodeAt(i));
+    rows.push([
+      t.booking_date||'',
+      amt.toFixed(2),
+      '"'+desc.replace(/"/g,'""')+'"',
+      t.credit_debit_indicator||'',
+      '"'+descRaw.replace(/"/g,'""')+'"',
+      descRaw.length,
+      '"'+chars.join(',')+'"'
+    ].join(','));
+  });
+  var blob = new Blob([rows.join('
+')], {type:'text/csv'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'eb_transactions.csv';
+  a.click();
+}
 </script>
 </body>
 </html>
