@@ -2343,8 +2343,14 @@ async function sellaHandleFile(file) {
       importo:importo,storKey:storKey,isDup:existingKeys.has(storKey),includi:!existingKeys.has(storKey),
       catObj:sellaGuessCategory(desc,etich)});
   }
-  document.getElementById('sella-drop').style.display='none';
-  document.getElementById('sella-table').style.display='table';
+  // Mostra la tabella nel pannello corretto
+  if (tipo === 'personale') {
+    var d=document.getElementById('sellap-drop'); if(d) d.style.display='none';
+    var t=document.getElementById('sellap-table'); if(t) t.style.display='table';
+  } else {
+    document.getElementById('sella-drop').style.display='none';
+    document.getElementById('sella-table').style.display='table';
+  }
   sellaRenderTable(sellaMovimenti);
   sellaUpdateStats();
   document.getElementById('sella-progress').textContent='';
