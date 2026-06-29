@@ -6,190 +6,195 @@
 <title>Enable Banking — Test</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,sans-serif;background:#f5f4f0;color:#1a1a1a;padding:16px}
+body{font-family:-apple-system,sans-serif;background:#f5f4f0;color:#1a1a1a;padding:16px;max-width:700px;margin:0 auto}
 h1{font-size:18px;font-weight:700;margin-bottom:16px}
 .card{background:#fff;border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
-.card h2{font-size:13px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px}
-button{padding:10px 18px;border-radius:10px;border:none;background:#1a4a7a;color:#fff;font-size:14px;font-weight:700;cursor:pointer;margin:4px}
+.card h2{font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.6px;margin-bottom:12px}
+button{padding:10px 18px;border-radius:10px;border:none;background:#1a4a7a;color:#fff;font-size:14px;font-weight:700;cursor:pointer;margin:4px 4px 4px 0}
 button.sec{background:#e8f5ee;color:#1a7a4a}
-button.red{background:#fdf0f0;color:#b83232}
-select,input{padding:8px 12px;border-radius:8px;border:1.5px solid #e4e3dd;font-size:13px;margin:4px;background:#f5f4f0;color:#1a1a1a;width:100%}
-.log{background:#1a1a1a;border-radius:10px;padding:10px;font-family:monospace;font-size:11px;color:#ccc;max-height:200px;overflow-y:auto;margin-top:8px;word-break:break-all}
-.log .ok{color:#00ff88}
-.log .er{color:#ff5555}
-.log .in{color:#87ceeb}
-.status{font-size:12px;color:#666;margin-top:4px}
-.badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;margin:2px}
-.badge.green{background:#e8f5ee;color:#1a7a4a}
-.badge.red{background:#fdf0f0;color:#b83232}
-.badge.blue{background:#eef4fd;color:#1a4a7a}
-.tx-row{padding:6px 0;border-bottom:1px solid #f0efe9;font-size:12px;display:flex;justify-content:space-between}
+button.sml{font-size:12px;padding:6px 12px;background:#eef4fd;color:#1a4a7a}
+select,input{padding:9px 12px;border-radius:8px;border:1.5px solid #e4e3dd;font-size:13px;background:#f5f4f0;color:#1a1a1a;display:block;width:100%;margin-bottom:8px}
+.log{background:#1a1a1a;border-radius:10px;padding:10px;font-family:monospace;font-size:11px;color:#ccc;max-height:120px;overflow-y:auto;margin-top:8px;word-break:break-all}
+.log .ok{color:#00ff88} .log .er{color:#ff5555} .log .in{color:#87ceeb}
+.session-box{padding:10px;border:1.5px solid #e4e3dd;border-radius:10px;margin-bottom:8px}
+.session-box h3{font-size:13px;font-weight:700;margin-bottom:4px}
+.session-box .sub{font-size:11px;color:#888;margin-bottom:6px}
+.iban-btn{display:block;width:100%;text-align:left;padding:8px 12px;border-radius:8px;border:1.5px solid #e4e3dd;background:#f5f4f0;font-size:12px;font-family:monospace;cursor:pointer;margin:3px 0;color:#1a1a1a}
+.iban-btn:hover,.iban-btn.sel{background:#eef4fd;border-color:#1a4a7a;color:#1a4a7a;font-weight:700}
+.tx-row{padding:7px 0;border-bottom:1px solid #f0efe9;display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
 .tx-row:last-child{border-bottom:none}
+.tx-date{font-size:11px;color:#888;min-width:80px}
+.tx-desc{font-size:12px;flex:1}
+.tx-amt{font-size:13px;font-weight:700;white-space:nowrap}
+.pos{color:#1a7a4a} .neg{color:#b83232}
+.empty{color:#888;font-size:13px;text-align:center;padding:20px}
 </style>
 </head>
 <body>
-<h1>🏦 Enable Banking — Pagina di Test</h1>
+<h1>🏦 Enable Banking — Test</h1>
 
+<!-- TOKEN -->
 <div class="card">
-  <h2>1. Configurazione</h2>
-  <input id="token" type="password" placeholder="Token iCompta" value="">
-  <div class="status" id="token-status"></div>
+  <h2>Token iCompta</h2>
+  <input id="token" type="password" placeholder="Token iCompta">
 </div>
 
+<!-- NUOVA SESSIONE -->
 <div class="card">
-  <h2>2. Avvia autorizzazione banca</h2>
-  <select id="bank">
-    <option value="Banca Sella">Banca Sella — Personale</option>
-    <option value="Banca Sella group">Banca Sella — Azienda</option>
+  <h2>Collega nuova banca</h2>
+  <select id="bank-sel">
+    <option value="Banca Sella">Banca Sella (personale + azienda)</option>
     <option value="FinecoBank">FinecoBank</option>
   </select>
-  <select id="psu_type">
+  <select id="psu-sel">
     <option value="personal">Personal</option>
     <option value="business">Business</option>
   </select>
-  <br>
-  <button onclick="startAuth()">🔗 Avvia collegamento banca</button>
+  <button onclick="startAuth()">🔗 Autorizza banca</button>
   <div id="auth-log" class="log" style="display:none"></div>
 </div>
 
+<!-- SESSIONI + DOWNLOAD TX -->
 <div class="card">
-  <h2>3. Sessioni attive</h2>
-  <button class="sec" onclick="loadSessions()">🔄 Carica sessioni</button>
-  <div id="sessions-body" style="margin-top:8px"></div>
+  <h2>Sessioni attive — seleziona conto e scarica</h2>
+  <button class="sec" onclick="loadSessions()">🔄 Aggiorna sessioni</button>
+  <div id="sessions-list" style="margin-top:12px">
+    <div class="empty">Premi "Aggiorna sessioni"</div>
+  </div>
 </div>
 
-<div class="card">
-  <h2>4. Test scarica transazioni</h2>
-  <select id="session-sel"><option value="">— seleziona sessione —</option></select>
-  <select id="account-sel"><option value="">— seleziona conto —</option></select>
-  <input id="date-from" type="date" value="">
-  <button onclick="loadTx()">📥 Scarica transazioni</button>
-  <div id="tx-body" style="margin-top:8px"></div>
+<!-- RISULTATO TX -->
+<div class="card" id="tx-card" style="display:none">
+  <h2>Transazioni</h2>
+  <div id="tx-date-wrap" style="margin-bottom:8px">
+    <input type="date" id="date-from">
+    <button onclick="downloadTx()">📥 Scarica</button>
+  </div>
+  <div id="tx-result"></div>
 </div>
 
 <script>
 var WORKER = 'https://icompta-worker.f-castiglioni.workers.dev';
 var TOKEN = localStorage.getItem('icompta_token') || '';
+var selectedSession = null;
+var selectedAccount = null;
 
+// Init
 document.getElementById('token').value = TOKEN;
-document.getElementById('token').addEventListener('input', function() {
+document.getElementById('token').addEventListener('input', function(){
   TOKEN = this.value.trim();
   localStorage.setItem('icompta_token', TOKEN);
 });
+// data default 60 giorni fa
+var d60 = new Date(Date.now() - 60*24*3600*1000);
+document.getElementById('date-from').value = d60.toISOString().slice(0,10);
 
-// Data default: 30 giorni fa
-var d30 = new Date(Date.now() - 30*24*3600*1000);
-document.getElementById('date-from').value = d30.toISOString().slice(0,10);
-
-function log(el, msg, type) {
-  var div = document.getElementById(el);
-  div.style.display = 'block';
+function log(msg, type) {
+  var el = document.getElementById('auth-log');
+  el.style.display = 'block';
   var ts = new Date().toLocaleTimeString('it-IT',{hour12:false});
-  div.innerHTML += '<div class="' + (type||'in') + '">['+ts+'] ' + msg.replace(/</g,'&lt;') + '</div>';
-  div.scrollTop = div.scrollHeight;
+  el.innerHTML += '<div class="'+(type||'in')+'">['+ts+'] '+msg.replace(/</g,'&lt;')+'</div>';
+  el.scrollTop = el.scrollHeight;
 }
 
 async function api(method, path, body) {
   var r = await fetch(WORKER + path, {
     method,
-    headers: { 'Authorization': 'Bearer ' + TOKEN, 'Content-Type': 'application/json' },
+    headers:{'Authorization':'Bearer '+TOKEN,'Content-Type':'application/json'},
     body: body ? JSON.stringify(body) : undefined
   });
   return r.json();
 }
 
 async function startAuth() {
-  var bank = document.getElementById('bank').value;
-  var psuType = document.getElementById('psu_type').value;
-  log('auth-log', 'Richiesta autorizzazione a ' + bank + ' (' + psuType + ')...', 'in');
+  var bank = document.getElementById('bank-sel').value;
+  var psu = document.getElementById('psu-sel').value;
+  log('Richiesta autorizzazione '+bank+' ('+psu+')...','in');
   try {
-    var data = await api('GET', '/api/enable-banking/auth?bank=' + encodeURIComponent(bank) + '&psu_type=' + psuType);
+    var data = await api('GET','/api/enable-banking/auth?bank='+encodeURIComponent(bank)+'&psu_type='+psu);
     if (data.ok) {
-      log('auth-log', 'URL ottenuto! Apertura banca...', 'ok');
-      log('auth-log', 'State: ' + data.state, 'in');
+      log('✅ URL ottenuto — apertura pagina banca...','ok');
       window.open(data.url, '_blank');
+      log('Dopo aver autorizzato premi "Aggiorna sessioni"','in');
     } else {
-      log('auth-log', 'Errore: ' + JSON.stringify(data), 'er');
+      log('Errore: '+JSON.stringify(data),'er');
     }
-  } catch(e) {
-    log('auth-log', 'Errore: ' + e.message, 'er');
-  }
+  } catch(e) { log('Errore: '+e.message,'er'); }
 }
 
-var sessions = [];
 async function loadSessions() {
-  var data = await api('GET', '/api/enable-banking/sessions');
-  sessions = Array.isArray(data) ? data : [];
-  var body = document.getElementById('sessions-body');
-  var sel = document.getElementById('session-sel');
-  sel.innerHTML = '<option value="">— seleziona sessione —</option>';
-  if (!sessions.length) {
-    body.innerHTML = '<div class="status">Nessuna sessione trovata.</div>';
-    return;
-  }
-  body.innerHTML = sessions.map(function(s) {
-    var exp = s.valid_until ? new Date(s.valid_until).toLocaleDateString('it-IT') : '?';
-    var accounts = (s.accounts||[]).map(function(a) {
-      return '<span class="badge blue">' + (a.account_id && a.account_id.iban || a.uid || '?') + '</span>';
+  var list = document.getElementById('sessions-list');
+  list.innerHTML = '<div class="empty">Caricamento...</div>';
+  selectedSession = null; selectedAccount = null;
+  document.getElementById('tx-card').style.display = 'none';
+  try {
+    var sessions = await api('GET','/api/enable-banking/sessions');
+    if (!Array.isArray(sessions) || !sessions.length) {
+      list.innerHTML = '<div class="empty">Nessuna sessione. Autorizza una banca qui sopra.</div>';
+      return;
+    }
+    list.innerHTML = sessions.map(function(s,si) {
+      var exp = s.valid_until ? new Date(s.valid_until).toLocaleDateString('it-IT') : '?';
+      var accounts = (s.accounts||[]);
+      var ibans = accounts.map(function(a,ai) {
+        var iban = (a.account_id && a.account_id.iban) || a.uid || '?';
+        var type = a.cash_account_type || '';
+        return '<button class="iban-btn" onclick="selectAccount('+si+','+ai+',this)">' +
+          iban + (type?' ('+type+')':'') + '</button>';
+      }).join('');
+      return '<div class="session-box" id="sess-'+si+'">' +
+        '<h3>'+(s.aspsp && s.aspsp.name || 'Banca')+' — '+(s.psu_type||'?')+'</h3>' +
+        '<div class="sub">Valido fino: '+exp+' | '+(accounts.length)+' conto/i</div>' +
+        '<div>'+ibans+'</div>' +
+        '</div>';
     }).join('');
-    return '<div style="padding:8px 0;border-bottom:1px solid #f0efe9">' +
-      '<div style="font-size:12px;font-weight:700">' + (s.aspsp && s.aspsp.name || s.key) + ' — ' + (s.psu_type||'?') + '</div>' +
-      '<div style="font-size:11px;color:#888">Valido fino: ' + exp + ' | Session: ' + (s.session_id||'?').slice(0,8) + '...</div>' +
-      '<div style="margin-top:4px">' + accounts + '</div>' +
-      '</div>';
-  }).join('');
-  // Popola select sessioni
-  sessions.forEach(function(s) {
-    var opt = document.createElement('option');
-    opt.value = s.key;
-    opt.textContent = (s.aspsp && s.aspsp.name || s.key) + ' — ' + (s.psu_type||'?');
-    sel.appendChild(opt);
-  });
+    window._sessions = sessions;
+  } catch(e) {
+    list.innerHTML = '<div class="empty" style="color:#b83232">Errore: '+e.message+'</div>';
+  }
 }
 
-document.getElementById('session-sel').addEventListener('change', function() {
-  var key = this.value;
-  var s = sessions.find(function(x){ return x.key === key; });
-  var accSel = document.getElementById('account-sel');
-  accSel.innerHTML = '<option value="">— seleziona conto —</option>';
-  if (!s || !s.accounts) return;
-  s.accounts.forEach(function(a) {
-    var opt = document.createElement('option');
-    opt.value = a.uid;
-    opt.textContent = (a.account_id && a.account_id.iban || a.uid || '?') + ' (' + (a.cash_account_type||'') + ')';
-    accSel.appendChild(opt);
-  });
-});
+function selectAccount(si, ai, btn) {
+  // Deseleziona tutti
+  document.querySelectorAll('.iban-btn').forEach(function(b){ b.classList.remove('sel'); });
+  btn.classList.add('sel');
+  selectedSession = window._sessions[si];
+  selectedAccount = (selectedSession.accounts||[])[ai];
+  document.getElementById('tx-card').style.display = 'block';
+  document.getElementById('tx-result').innerHTML = '<div class="empty">Premi Scarica per caricare le transazioni</div>';
+}
 
-async function loadTx() {
-  var sessionKey = document.getElementById('session-sel').value;
-  var accountId = document.getElementById('account-sel').value;
+async function downloadTx() {
+  if (!selectedSession || !selectedAccount) return;
   var dateFrom = document.getElementById('date-from').value;
-  if (!sessionKey || !accountId) { alert('Seleziona sessione e conto'); return; }
-  var body = document.getElementById('tx-body');
-  body.innerHTML = '<div class="status">Caricamento...</div>';
+  var result = document.getElementById('tx-result');
+  result.innerHTML = '<div class="empty">Caricamento...</div>';
   try {
-    var data = await api('GET', '/api/enable-banking/transactions?session_key=' + encodeURIComponent(sessionKey) + '&account_id=' + encodeURIComponent(accountId) + '&date_from=' + dateFrom);
+    var data = await api('GET',
+      '/api/enable-banking/transactions?session_key='+encodeURIComponent(selectedSession.key)+
+      '&account_id='+encodeURIComponent(selectedAccount.uid)+
+      '&date_from='+dateFrom);
     if (data.ok) {
       var txs = data.transactions || [];
-      body.innerHTML = '<div class="status" style="margin-bottom:8px">✅ ' + txs.length + ' transazioni trovate</div>' +
-        txs.slice(0, 20).map(function(t) {
-          var amt = t.transaction_amount && t.transaction_amount.amount;
+      if (!txs.length) { result.innerHTML='<div class="empty">Nessuna transazione nel periodo</div>'; return; }
+      result.innerHTML = '<div style="font-size:12px;color:#888;margin-bottom:8px">✅ '+txs.length+' transazioni</div>' +
+        txs.map(function(t) {
+          var amt = parseFloat((t.transaction_amount && t.transaction_amount.amount)||0);
           var isCredit = t.credit_debit_indicator === 'CRDT';
-          var desc = (t.remittance_information && t.remittance_information[0]) || t.note || '—';
+          if (!isCredit) amt = -Math.abs(amt);
+          var desc = (t.remittance_information && t.remittance_information[0]) ||
+                     (t.creditor && t.creditor.name) || (t.debtor && t.debtor.name) || '—';
           return '<div class="tx-row">' +
-            '<div><div style="font-weight:600">' + (t.booking_date||'?') + '</div>' +
-            '<div style="color:#666">' + desc + '</div></div>' +
-            '<div style="font-weight:700;color:' + (isCredit?'#1a7a4a':'#b83232') + '">' +
-            (isCredit?'+':'-') + Math.abs(parseFloat(amt||0)).toFixed(2) + '€</div>' +
+            '<div class="tx-date">'+(t.booking_date||'?')+'</div>' +
+            '<div class="tx-desc">'+desc+'</div>' +
+            '<div class="tx-amt '+(amt>=0?'pos':'neg')+'">'+(amt>=0?'+':'')+amt.toFixed(2)+'€</div>' +
             '</div>';
-        }).join('') +
-        (txs.length > 20 ? '<div class="status">...e altre ' + (txs.length-20) + ' transazioni</div>' : '');
+        }).join('');
     } else {
-      body.innerHTML = '<div class="status" style="color:#b83232">Errore: ' + JSON.stringify(data) + '</div>';
+      result.innerHTML='<div class="empty" style="color:#b83232">Errore: '+JSON.stringify(data)+'</div>';
     }
   } catch(e) {
-    body.innerHTML = '<div class="status" style="color:#b83232">Errore: ' + e.message + '</div>';
+    result.innerHTML='<div class="empty" style="color:#b83232">Errore: '+e.message+'</div>';
   }
 }
 </script>
