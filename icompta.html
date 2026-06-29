@@ -3699,11 +3699,13 @@ async function sellaAutoDownload() {
     // Calcola date: ultimi 90 giorni
     var dateFrom = new Date(Date.now() - 90*24*3600*1000).toISOString().slice(0,10);
     var uid = await _ebGetAccountUid(cfg.sessionKey, cfg.ibanSuffix);
+    showToast('🏦 Account trovato, scarico transazioni...');
     var data = await api('GET',
       '/api/enable-banking/transactions?session_key=' + encodeURIComponent(cfg.sessionKey) +
       '&account_id=' + encodeURIComponent(uid) +
       '&date_from=' + dateFrom);
-    if (!data.ok) throw new Error(data.error || 'Errore transazioni EB');
+    if (!data.ok) throw new Error(JSON.stringify(data));
+    showToast('✅ ' + (data.transactions||[]).length + ' transazioni ricevute');
     var txs = data.transactions || [];
     // Converti in formato sellaMovimenti per riusare la stessa tabella di revisione
     var accId = cfg.iComptaAccId;
@@ -3757,25 +3759,24 @@ async function sellaAutoDownload() {
   async function sellaEBDownload(tipo) {
     var cfg = EB_ACCOUNTS[tipo];
     if (!cfg) return;
-    // Apri il pannello Sella appropriato se non già aperto
-    showToast('🏦 Scarico da ' + cfg.label + ' via Enable Banking...');
     try {
+      showToast('🏦 Connessione Enable Banking...');
       await _ebImportMovimenti(tipo);
-      // Sovrascrivi _ebTipo nel contesto per sapere dove importare
       window._ebCurrentTipo = tipo;
     } catch(e) {
-      showToast('❌ ' + e.message, 'error');
+      alert('❌ Enable Banking errore:\n' + e.message);
+      console.error('sellaEBDownload:', e);
     }
   }
 
   async function finecoEBDownload() {
-    showToast('🏦 Scarico Fineco CC via Enable Banking...');
     try {
-      // Apri sezione Sella per riusare la tabella di revisione
+      showToast('🏦 Connessione Enable Banking Fineco...');
       await _ebImportMovimenti('fineco');
       window._ebCurrentTipo = 'fineco';
     } catch(e) {
-      showToast('❌ ' + e.message, 'error');
+      alert('❌ Enable Banking Fineco errore:\n' + e.message);
+      console.error('finecoEBDownload:', e);
     }
   }
   // ── Fine Enable Banking ───────────────────────────────────────
