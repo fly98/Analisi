@@ -77,8 +77,7 @@ document.getElementById('token').addEventListener('input', function(){
 // data default 60 giorni fa
 var d60 = new Date(Date.now() - 60*24*3600*1000);
 document.getElementById('date-from').value = d60.toISOString().slice(0,10);
-// Carica sessioni automaticamente
-if (TOKEN) loadSessions();
+// loadSessions chiamato dopo la definizione (vedi fondo script)
 
 function log(msg, type) {
   var el = document.getElementById('auth-log');
@@ -254,6 +253,8 @@ async function downloadTx() {
   window.onerror=function(m,s,l){adbgLog('💥 '+m+' L'+l,'#ff5555');};
   window.onunhandledrejection=function(e){adbgLog('💥 '+(e.reason&&e.reason.message||e.reason||'?'),'#ff5555');};
 })();
+// Avvio automatico dopo definizione di tutte le funzioni
+if (TOKEN) loadSessions();
 </script>
 </body>
 </html>
