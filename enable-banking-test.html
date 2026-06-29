@@ -36,21 +36,7 @@ select,input{padding:8px 12px;border-radius:8px;border:1.5px solid #e4e3dd;font-
   <div class="status" id="token-status"></div>
 </div>
 
-<div class="card">
-  <h2>2. Avvia autorizzazione banca</h2>
-  <select id="bank">
-    <option value="Banca Sella">Banca Sella — Personale</option>
-    <option value="Banca Sella group">Banca Sella — Azienda</option>
-    <option value="FinecoBank">FinecoBank</option>
-  </select>
-  <select id="psu_type">
-    <option value="personal">Personal</option>
-    <option value="business">Business</option>
-  </select>
-  <br>
-  <button onclick="startAuth()">🔗 Avvia collegamento banca</button>
-  <div id="auth-log" class="log" style="display:none"></div>
-</div>
+<div id="auth-log" class="log" style="display:none;margin-bottom:8px"></div>
 
 <div class="card">
   <h2>3. Sessioni attive</h2>
@@ -117,6 +103,24 @@ async function startAuth() {
 }
 
 var sessions = [];
+async function renewAuth(bank, psuType) {
+  log('auth-log', 'Rinnovo autorizzazione ' + bank + '...', 'in');
+  try {
+    var r = await api('GET', '/api/enable-banking/auth?bank=' + encodeURIComponent(bank) + '&psu_type=' + psuType);
+    if (r.ok) {
+      log('auth-log', 'URL ottenuto — apertura banca...', 'ok');
+      document.getElementById('auth-log').style.display = 'block';
+      window.open(r.url, '_blank');
+    } else {
+      log('auth-log', 'Errore: ' + JSON.stringify(r), 'er');
+      document.getElementById('auth-log').style.display = 'block';
+    }
+  } catch(e) {
+    log('auth-log', 'Errore: ' + e.message, 'er');
+    document.getElementById('auth-log').style.display = 'block';
+  }
+}
+
 async function loadSessions() {
   var data = await api('GET', '/api/enable-banking/sessions');
   sessions = Array.isArray(data) ? data : [];
