@@ -3800,21 +3800,7 @@ async function sellaAutoDownload() {
               if (existingKeys.has(tryKey)) { isDup=true; storKey=tryKey; break; }
             }
           }
-          // Log TX non matchate con descrizioni note
-          if (!isDup && (descUp.indexOf('ZEROZERO')!==-1||descUp.indexOf('CHIOSCHETTO')!==-1||descUp.indexOf('EUROSPIN')!==-1)) {
-            _autoLog('eb-log-azienda', 'NO MATCH: EB='+storKey, 'info');
-            // Log dettaglio: desc raw, lunghezza, chiavi cercate
-            _autoLog('eb-log-azienda', '  desc len='+desc.length+' raw='+JSON.stringify(desc.substring(0,35)), 'info');
-            _autoLog('eb-log-azienda', '  descUp[:32]='+JSON.stringify(descUp), 'info');
-            // Mostra altKey cercate
-            var dParts2=dateISO.split('-');
-            var baseMs2=Date.UTC(parseInt(dParts2[0]),parseInt(dParts2[1])-1,parseInt(dParts2[2]));
-            for(var dd2=1;dd2<=3;dd2++){
-              var aD=new Date(baseMs2-dd2*86400000);
-              var aK=aD.getUTCFullYear()+'-'+String(aD.getUTCMonth()+1).padStart(2,'0')+'-'+String(aD.getUTCDate()).padStart(2,'0')+'|'+amtStr+'|'+descUp;
-              _autoLog('eb-log-azienda', '  seek -'+dd2+'g: '+(existingKeys.has(aK)?'✅':'❌')+' '+aK, 'info');
-            }
-          }
+
         } catch(ignored) {}
       }
       sellaMovimenti.push({
@@ -3866,15 +3852,6 @@ async function sellaAutoDownload() {
     }
     var logId = accId === EB_ACCOUNTS['personale'].iComptaAccId ? 'eb-log-personale' : 'eb-log-azienda';
     _autoLog(logId, 'dedup: ' + matchTx + ' TX trovate per ' + accId.slice(0,8) + '... su ' + totalTx + ' totali', 'info');
-    // Verifica esplicita chiavi target
-    var targets = [
-      '2026-04-04|-34.87|SUPERMERCATO EUROSPIN ROMA RM',
-      '2026-04-26|-16.97|SUPERMERCATO EUROSPIN ROMA RM',
-      '2026-06-24|-32.68|SUPERMERCATO EUROSPIN ROMA RM',
-      '2026-06-25|-120.00|ZEROZERO100 ROMA RM',
-      '2026-06-24|-3.50|IL CHIOSCHETTO ROMA RM'
-    ];
-    targets.forEach(function(t){ _autoLog('eb-log-azienda', (keys.has(t)?'✅':'❌')+' '+t, 'info'); });
     return keys;
   }
 
@@ -4197,11 +4174,10 @@ async function sellapAutoDownload() {
       <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center">
         <button onclick="sellaEBDownload('azienda')" style="flex:1;padding:12px;border-radius:10px;border:none;background:#1a7a4a;color:#fff;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px"><span>🏦</span> <span>Scarica via Enable Banking</span></button>
         <select onchange="window._ebDays=parseInt(this.value)" style="padding:8px;border-radius:8px;border:1.5px solid #e4e3dd;font-size:12px;background:#f5f4f0;color:#1a1a1a;cursor:pointer">
-          <option value="30" selected>30 gg</option>
-          <option value="60">60 gg</option>
-          <option value="90">90 gg</option>
-          <option value="180">6 mesi</option>
-          <option value="365">1 anno</option>
+          <option value="1">1 gg</option>
+          <option value="7">7 gg</option>
+          <option value="15">15 gg</option>
+          <option value="30" selected>1 mese</option>
         </select>
       </div>
       <div id="eb-log-azienda" style="display:none;background:#1a1a1a;border-radius:8px;padding:8px 10px;max-height:100px;overflow-y:auto;font-family:monospace;font-size:11px;margin-bottom:8px"></div>
@@ -4273,11 +4249,10 @@ async function sellapAutoDownload() {
       <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center">
         <button onclick="sellaEBDownload('personale')" style="flex:1;padding:12px;border-radius:10px;border:none;background:#1a7a4a;color:#fff;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px"><span>🏦</span> <span>Scarica via Enable Banking</span></button>
         <select onchange="window._ebDays=parseInt(this.value)" style="padding:8px;border-radius:8px;border:1.5px solid #e4e3dd;font-size:12px;background:#f5f4f0;color:#1a1a1a;cursor:pointer">
-          <option value="30" selected>30 gg</option>
-          <option value="60">60 gg</option>
-          <option value="90">90 gg</option>
-          <option value="180">6 mesi</option>
-          <option value="365">1 anno</option>
+          <option value="1">1 gg</option>
+          <option value="7">7 gg</option>
+          <option value="15">15 gg</option>
+          <option value="30" selected>1 mese</option>
         </select>
       </div>
       <div id="eb-log-personale" style="display:none;background:#1a1a1a;border-radius:8px;padding:8px 10px;max-height:100px;overflow-y:auto;font-family:monospace;font-size:11px;margin-bottom:8px"></div>
@@ -5562,11 +5537,10 @@ function openImportXLS(contoId) {
           🏦 <span><b>Scarica via Enable Banking</b><br><span style="font-size:11px;opacity:.8">Accesso diretto senza Mac</span></span>
         </button>
         <select onchange="window._ebDays=parseInt(this.value)" style="padding:8px;border-radius:8px;border:1.5px solid #e4e3dd;font-size:12px;background:#f5f4f0;color:#1a1a1a;cursor:pointer">
-          <option value="30" selected>30 gg</option>
-          <option value="60">60 gg</option>
-          <option value="90">90 gg</option>
-          <option value="180">6 mesi</option>
-          <option value="365">1 anno</option>
+          <option value="1">1 gg</option>
+          <option value="7">7 gg</option>
+          <option value="15">15 gg</option>
+          <option value="30" selected>1 mese</option>
         </select>
       </div>
       <div id="eb-log-fineco" style="display:none;background:#1a1a1a;border-radius:8px;padding:8px 10px;max-height:80px;overflow-y:auto;font-family:monospace;font-size:11px;margin-bottom:8px;color:#ccc"></div>
