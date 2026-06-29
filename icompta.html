@@ -3737,8 +3737,20 @@ async function sellaAutoDownload() {
       var desc = (t.remittance_information && t.remittance_information[0]) ||
                  (t.creditor && t.creditor.name) || (t.debtor && t.debtor.name) || '';
       var dateISO = t.booking_date || '';
-      // Chiave in uppercase per match con CSV Sella (che usa mixed case)
-      var storKey = dateISO + '|' + amt.toFixed(2) + '|' + desc.substring(0,32).toUpperCase();
+      // Genera chiavi per ±3 giorni (EB usa data valuta, CSV usa data operazione)
+      var descUp = desc.substring(0,32).toUpperCase();
+      var amtStr = amt.toFixed(2);
+      var storKey = dateISO + '|' + amtStr + '|' + descUp;
+      // Controlla anche date alternative
+      var isDup = existingKeys.has(storKey);
+      if (!isDup) {
+        var d = new Date(dateISO);
+        for (var dd = 1; dd <= 3; dd++) {
+          var altDate = new Date(d.getTime() - dd * 86400000);
+          var altKey = altDate.toISOString().slice(0,10) + '|' + amtStr + '|' + descUp;
+          if (existingKeys.has(altKey)) { isDup = true; storKey = altKey; break; }
+        }
+      }
       sellaMovimenti.push({
         dateISO: dateISO,
         dataOp: dateISO ? dateISO.split('-').reverse().join('/') : '',
@@ -3746,8 +3758,8 @@ async function sellaAutoDownload() {
         etich: '',
         importo: amt,
         storKey: storKey,
-        isDup: existingKeys.has(storKey),
-        includi: !existingKeys.has(storKey),
+        isDup: isDup,
+        includi: !isDup,
         catObj: sellaGuessCategory(desc, ''),
         _ebTipo: tipo,
         _ebAccId: accId
