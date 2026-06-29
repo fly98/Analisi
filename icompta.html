@@ -4505,7 +4505,7 @@ function closeFinecoCCModal() { var m=document.getElementById('modal-fineco-cc')
 
 var IMPORT_MAP = {
   'ACC-FINECO-INV':  { label: 'Aggiorna', fn: function() { openFinecoInvModal(); } },
-  'ACC-FINECO-CC':   { label: 'Aggiorna', fn: function() { openFinecoCCModal(); } },
+  'ACC-FINECO-CC':   { label: 'Aggiorna', fn: function() { document.getElementById('fineco-cc-overlay').style.display='flex'; finecoEBDownload(); } },
 };
 // Conti Sella e InternoUno Banca identificati per nome
 var IMPORT_MAP_AUTO = {
