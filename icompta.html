@@ -3683,7 +3683,7 @@ async function sellaAutoDownload() {
     'fineco': {
       sessionKey: 'icompta:eb:session:FinecoBank:personal',
       ibanSuffix: '1148',
-      accountUid: '1bd57da3-3f83-4005-b266-8d9306e95330',
+      accountIndex: 1,
       iComptaAccId: 'ACC-FINECO-CC',
       label: 'Fineco CC'
     }
@@ -3702,7 +3702,7 @@ async function sellaAutoDownload() {
     el.scrollTop = el.scrollHeight;
   }
 
-  async function _ebGetAccountUid(sessionKey, ibanSuffix, accountUid) {
+  async function _ebGetAccountUid(sessionKey, ibanSuffix, accountUid, accountIndex) {
     // Se è specificato un uid diretto, usalo senza cercare
     if (accountUid) return accountUid;
     // Carica sessione dal worker e trova l'account con IBAN corrispondente
@@ -3716,8 +3716,11 @@ async function sellaAutoDownload() {
       var iban = (a.account_id && a.account_id.iban) || '';
       return iban.endsWith(ibanSuffix);
     });
-    // Se non trovato per suffix, prendi il secondo (Fineco CC)
-    if (!account && accounts.length >= 2) account = accounts[1];
+    // Se non trovato per suffix, usa accountIndex o il secondo (Fineco CC)
+    if (!account) {
+      var idx = (accountIndex !== undefined && accountIndex !== null) ? accountIndex : 1;
+      account = accounts[idx] || accounts[1] || accounts[0];
+    }
     if (!account) throw new Error('Account non trovato per IBAN *' + ibanSuffix);
     return account.uid;
   }
@@ -3728,7 +3731,7 @@ async function sellaAutoDownload() {
     // Calcola date: ultimi 90 giorni
     var days = window._ebDays || 30;
     var dateFrom = new Date(Date.now() - days*24*3600*1000).toISOString().slice(0,10);
-    var uid = await _ebGetAccountUid(cfg.sessionKey, cfg.ibanSuffix, cfg.accountUid);
+    var uid = await _ebGetAccountUid(cfg.sessionKey, cfg.ibanSuffix, cfg.accountUid, cfg.accountIndex);
     _ebLog(tipo, '🏦 Account trovato, scarico transazioni da ' + dateFrom + '...');
     var data = await api('GET',
       '/api/enable-banking/transactions?session_key=' + encodeURIComponent(cfg.sessionKey) +
