@@ -3831,10 +3831,12 @@ async function sellaAutoDownload() {
       _ebLog('personale', '✅ Pronto');
       var prog=document.getElementById('sellap-progress'); if(prog) prog.textContent='';
     } else {
+      _autoLog('sella-auto-log', '🔧 render azienda: '+sellaMovimenti.length+' TX', 'info');
+      document.getElementById('sella-auto-log').style.display='block';
       var dd2=document.getElementById('sella-drop'); if(dd2) dd2.style.display='none';
       var tt=document.getElementById('sella-table'); if(tt) tt.style.display='table';
-      try { sellaRenderTable(sellaMovimenti); } catch(ex) { _ebLog(tipo,'❌ render: '+ex.message); }
-      try { sellaUpdateStats(); } catch(ex) { _ebLog(tipo,'❌ stats: '+ex.message); }
+      try { sellaRenderTable(sellaMovimenti); _autoLog('sella-auto-log','✅ sellaRenderTable ok','ok'); } catch(ex) { _autoLog('sella-auto-log','❌ sellaRenderTable: '+ex.message,'err'); alert('❌ sellaRenderTable: '+ex.message); }
+      try { sellaUpdateStats(); _autoLog('sella-auto-log','✅ sellaUpdateStats ok','ok'); } catch(ex) { _autoLog('sella-auto-log','❌ sellaUpdateStats: '+ex.message,'err'); }
       var prog2=document.getElementById('sella-progress'); if(prog2) prog2.textContent='';
     }
   }
