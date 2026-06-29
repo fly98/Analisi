@@ -3900,11 +3900,10 @@ async function sellaAutoDownload() {
         var name = (tx.name || '').trim().substring(0,32).toUpperCase();
         var k = (tx.date||'') + '|' + parseFloat(amt).toFixed(2) + '|' + name;
         keys.add(k);
-        // Per TX con nome=codice identificativo (Sella Personale vecchio import)
-        // aggiungi anche chiave senza descrizione per fallback
-        if (/^\d{10,}$/.test((tx.name||'').trim())) {
-          keys.add((tx.date||'') + '|' + parseFloat(amt).toFixed(2) + '|__NONAME__');
-        }
+        // Chiave fallback data+importo senza descrizione: usata dal lato EB
+        // SOLO come ultima risorsa quando la descrizione non matcha
+        // (es. Fineco bonifici con causale diversa, Sella codici come nome)
+        keys.add((tx.date||'') + '|' + parseFloat(amt).toFixed(2) + '|__NONAME__');
       }
     }
     var logId = accId === EB_ACCOUNTS['personale'].iComptaAccId ? 'eb-log-personale'
