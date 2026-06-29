@@ -2345,15 +2345,20 @@ async function sellaHandleFile(file) {
   }
   // Mostra la tabella nel pannello corretto
   if (tipo === 'personale') {
+    sellapMovimenti = sellaMovimenti.slice();
     var d=document.getElementById('sellap-drop'); if(d) d.style.display='none';
     var t=document.getElementById('sellap-table'); if(t) t.style.display='table';
+    var st=document.getElementById('sellap-stats'); if(st) st.style.display='flex';
+    sellapRenderTable();
+    sellapUpdateStats();
+    document.getElementById('sellap-progress').textContent='';
   } else {
     document.getElementById('sella-drop').style.display='none';
     document.getElementById('sella-table').style.display='table';
+    sellaRenderTable(sellaMovimenti);
+    sellaUpdateStats();
+    document.getElementById('sella-progress').textContent='';
   }
-  sellaRenderTable(sellaMovimenti);
-  sellaUpdateStats();
-  document.getElementById('sella-progress').textContent='';
 }
 
 function sellaRenderTable(movs) {
