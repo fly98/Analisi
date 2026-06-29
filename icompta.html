@@ -4500,7 +4500,7 @@ async function sellapAutoDownload() {
 // Mappa conti con import automatico
 function openFinecoInvModal() { var m=document.getElementById('modal-fineco-inv'); if(m) m.style.display='flex'; }
 function closeFinecoInvModal() { var m=document.getElementById('modal-fineco-inv'); if(m) m.style.display='none'; }
-function openFinecoCCModal() { var m=document.getElementById('modal-fineco-cc'); if(m) m.style.display='flex'; }
+function openFinecoCCModal() { var ov=document.getElementById('fineco-cc-overlay'); if(ov){ ov.style.display='flex'; finecoEBDownload(); } }
 function closeFinecoCCModal() { var m=document.getElementById('modal-fineco-cc'); if(m) m.style.display='none'; }
 
 var IMPORT_MAP = {
