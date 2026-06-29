@@ -3675,12 +3675,25 @@ async function sellaAutoDownload() {
     }
   };
 
+  function _ebLog(tipo, msg) {
+    var id = tipo === 'fineco' ? 'eb-log-fineco' : tipo === 'personale' ? 'eb-log-personale' : 'eb-log-azienda';
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.style.display = 'block';
+    var ts = new Date().toLocaleTimeString('it-IT',{hour12:false});
+    var d = document.createElement('div');
+    d.style.color = msg.startsWith('✅') ? '#00ff88' : msg.startsWith('❌') ? '#ff5555' : '#87ceeb';
+    d.textContent = '['+ts+'] ' + msg;
+    el.appendChild(d);
+    el.scrollTop = el.scrollHeight;
+  }
+
   async function _ebGetAccountUid(sessionKey, ibanSuffix) {
     // Carica sessione dal worker e trova l'account con IBAN corrispondente
     var sessions = await api('GET', '/api/enable-banking/sessions');
-    if (!Array.isArray(sessions)) throw new Error('Sessioni non trovate');
+    if (!Array.isArray(sessions)) throw new Error('Sessioni non trovate: ' + JSON.stringify(sessions));
     var session = sessions.find(function(s){ return s.key === sessionKey; });
-    if (!session) throw new Error('Sessione non trovata: ' + sessionKey);
+    if (!session) throw new Error('Sessione non trovata: ' + sessionKey + ' — disponibili: ' + sessions.map(function(s){return s.key;}).join(', '));
     var accounts = session.accounts || [];
     // Trova account con IBAN che finisce per ibanSuffix
     var account = accounts.find(function(a){
@@ -3699,13 +3712,13 @@ async function sellaAutoDownload() {
     // Calcola date: ultimi 90 giorni
     var dateFrom = new Date(Date.now() - 90*24*3600*1000).toISOString().slice(0,10);
     var uid = await _ebGetAccountUid(cfg.sessionKey, cfg.ibanSuffix);
-    document.getElementById('sella-progress') && (document.getElementById('sella-progress').textContent='🏦 Scarico transazioni...');
+    _ebLog(tipo, '🏦 Account trovato, scarico transazioni da ' + dateFrom + '...');
     var data = await api('GET',
       '/api/enable-banking/transactions?session_key=' + encodeURIComponent(cfg.sessionKey) +
       '&account_id=' + encodeURIComponent(uid) +
       '&date_from=' + dateFrom);
     if (!data.ok) throw new Error(JSON.stringify(data));
-    document.getElementById('sella-progress') && (document.getElementById('sella-progress').textContent='✅ ' + (data.transactions||[]).length + ' transazioni ricevute');
+    _ebLog(tipo, '✅ ' + (data.transactions||[]).length + ' transazioni ricevute');
     var txs = data.transactions || [];
     // Converti in formato sellaMovimenti per riusare la stessa tabella di revisione
     var accId = cfg.iComptaAccId;
@@ -3770,7 +3783,7 @@ async function sellaAutoDownload() {
     var cfg = EB_ACCOUNTS[tipo];
     if (!cfg) return;
     try {
-      document.getElementById('sella-progress') && (document.getElementById('sella-progress').textContent='🏦 Connessione Enable Banking...');
+      _ebLog(tipo, '🏦 Connessione Enable Banking...');
       await _ebImportMovimenti(tipo);
       window._ebCurrentTipo = tipo;
     } catch(e) {
@@ -3790,7 +3803,7 @@ async function sellaAutoDownload() {
 
   async function finecoEBDownload() {
     try {
-      document.getElementById('sella-progress') && (document.getElementById('sella-progress').textContent='🏦 Connessione Enable Banking Fineco...');
+      _ebLog('fineco', '🏦 Connessione Fineco via Enable Banking...');
       await _ebImportMovimenti('fineco');
       window._ebCurrentTipo = 'fineco';
     } catch(e) {
@@ -4083,6 +4096,7 @@ async function sellapAutoDownload() {
     </div>
     <div id="sella-panel-body">
       <button onclick="sellaEBDownload('azienda')" style="width:100%;padding:12px;border-radius:10px;border:none;background:#1a7a4a;color:#fff;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:6px;display:flex;align-items:center;justify-content:center;gap:8px"><span>🏦</span> <span>Scarica via Enable Banking</span></button>
+      <div id="eb-log-azienda" style="display:none;background:#1a1a1a;border-radius:8px;padding:8px 10px;max-height:100px;overflow-y:auto;font-family:monospace;font-size:11px;margin-bottom:8px"></div>
       <button id="sella-auto-btn" onclick="sellaAutoDownload()" style="width:100%;padding:12px;border-radius:10px;border:none;background:var(--blue);color:#fff;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:8px">
         <span>📥</span> <span>Scarica via Playwright (Mac)</span>
       </button>
@@ -4149,6 +4163,7 @@ async function sellapAutoDownload() {
     </div>
     <div id="sellap-body" style="flex:1;overflow-y:auto;padding:16px">
       <button onclick="sellaEBDownload('personale')" style="width:100%;padding:12px;border-radius:10px;border:none;background:#1a7a4a;color:#fff;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:6px;display:flex;align-items:center;justify-content:center;gap:8px"><span>🏦</span> <span>Scarica via Enable Banking</span></button>
+      <div id="eb-log-personale" style="display:none;background:#1a1a1a;border-radius:8px;padding:8px 10px;max-height:100px;overflow-y:auto;font-family:monospace;font-size:11px;margin-bottom:8px"></div>
       <button id="sellap-auto-btn" onclick="sellapAutoDownload()" style="width:100%;padding:12px;border-radius:10px;border:none;background:var(--blue);color:#fff;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:8px">
         <span>📥</span> <span>Scarica automaticamente da Sella</span>
       </button>
@@ -5425,10 +5440,11 @@ function openImportXLS(contoId) {
       <button onclick="closeFinecoCCModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted)">✕</button>
     </div>
     <div style="display:flex;flex-direction:column;gap:10px">
-      <button onclick="closeFinecoCCModal();finecoEBDownload()"
+      <button onclick="finecoEBDownload()"
         style="width:100%;padding:13px;border-radius:12px;border:none;background:#1a7a4a;color:#fff;font-size:14px;font-weight:700;cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px;margin-bottom:6px">
         🏦 <span><b>Scarica via Enable Banking</b><br><span style="font-size:11px;opacity:.8">Accesso diretto senza Mac</span></span>
       </button>
+      <div id="eb-log-fineco" style="display:none;background:#1a1a1a;border-radius:8px;padding:8px 10px;max-height:80px;overflow-y:auto;font-family:monospace;font-size:11px;margin-bottom:8px;color:#ccc"></div>
       <button onclick="closeFinecoCCModal();finecoAutoCC()"
         style="width:100%;padding:13px;border-radius:12px;border:none;background:var(--blue);color:#fff;font-size:14px;font-weight:700;cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px">
         🤖 <span><b>Scarica via Playwright (Mac)</b><br><span style="font-size:11px;opacity:.8">Playwright scarica i movimenti da Fineco</span></span>
