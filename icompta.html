@@ -3746,12 +3746,13 @@ async function sellaAutoDownload() {
       if (!isDup && dateISO && dateISO.length === 10) {
         try {
           var dParts = dateISO.split('-');
-          var dY=parseInt(dParts[0]), dM=parseInt(dParts[1])-1, dD=parseInt(dParts[2]);
+          // Usa UTC per evitare bug con timezone e rollover mese
+          var baseMs = Date.UTC(parseInt(dParts[0]), parseInt(dParts[1])-1, parseInt(dParts[2]));
           for (var dd = 1; dd <= 3; dd++) {
-            var altD = new Date(dY, dM, dD - dd);
-            var altKey = altD.getFullYear() + '-' +
-              String(altD.getMonth()+1).padStart(2,'0') + '-' +
-              String(altD.getDate()).padStart(2,'0') + '|' + amtStr + '|' + descUp;
+            var altD = new Date(baseMs - dd * 86400000);
+            var altKey = altD.getUTCFullYear() + '-' +
+              String(altD.getUTCMonth()+1).padStart(2,'0') + '-' +
+              String(altD.getUTCDate()).padStart(2,'0') + '|' + amtStr + '|' + descUp;
             if (existingKeys.has(altKey)) { isDup = true; storKey = altKey; break; }
           }
           // Log TX non matchate con descrizioni note
