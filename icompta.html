@@ -3738,7 +3738,7 @@ async function sellaAutoDownload() {
                  (t.creditor && t.creditor.name) || (t.debtor && t.debtor.name) || '';
       var dateISO = t.booking_date || '';
       // Genera chiavi per ±3 giorni (EB usa data valuta, CSV usa data operazione)
-      var descUp = desc.substring(0,32).toUpperCase();
+      var descUp = desc.trim().substring(0,32).toUpperCase();
       var amtStr = amt.toFixed(2);
       var storKey = dateISO + '|' + amtStr + '|' + descUp;
       // Controlla anche date alternative (±3 giorni: EB usa data valuta, CSV usa data operazione)
@@ -3814,7 +3814,7 @@ async function sellaAutoDownload() {
         } else {
           amt = tx.amount || 0;
         }
-        var name = (tx.name || '').substring(0,32).toUpperCase();
+        var name = (tx.name || '').trim().substring(0,32).toUpperCase();
         var k = (tx.date||'') + '|' + parseFloat(amt).toFixed(2) + '|' + name;
         keys.add(k);
       }
