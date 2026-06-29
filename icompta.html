@@ -3758,6 +3758,17 @@ async function sellaAutoDownload() {
           // Log TX non matchate con descrizioni note
           if (!isDup && (descUp.indexOf('ZEROZERO')!==-1||descUp.indexOf('CHIOSCHETTO')!==-1||descUp.indexOf('EUROSPIN')!==-1)) {
             _autoLog('eb-log-azienda', 'NO MATCH: EB='+storKey, 'info');
+            // Log dettaglio: desc raw, lunghezza, chiavi cercate
+            _autoLog('eb-log-azienda', '  desc len='+desc.length+' raw='+JSON.stringify(desc.substring(0,35)), 'info');
+            _autoLog('eb-log-azienda', '  descUp[:32]='+JSON.stringify(descUp), 'info');
+            // Mostra altKey cercate
+            var dParts2=dateISO.split('-');
+            var baseMs2=Date.UTC(parseInt(dParts2[0]),parseInt(dParts2[1])-1,parseInt(dParts2[2]));
+            for(var dd2=1;dd2<=3;dd2++){
+              var aD=new Date(baseMs2-dd2*86400000);
+              var aK=aD.getUTCFullYear()+'-'+String(aD.getUTCMonth()+1).padStart(2,'0')+'-'+String(aD.getUTCDate()).padStart(2,'0')+'|'+amtStr+'|'+descUp;
+              _autoLog('eb-log-azienda', '  seek -'+dd2+'g: '+(existingKeys.has(aK)?'✅':'❌')+' '+aK, 'info');
+            }
           }
         } catch(ignored) {}
       }
