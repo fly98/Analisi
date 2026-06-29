@@ -656,6 +656,120 @@ var icompta_worker_default = {
       return json(raw ? JSON.parse(raw) : null);
     }
 
+    // ── Enable Banking ──────────────────────────────────────
+    async function makeEBJwt(env) {
+      const appId = env.ENABLE_BANKING_APP_ID;
+      const pemKey = env.ENABLE_BANKING_PRIVATE_KEY;
+      if (!appId || !pemKey) throw new Error('ENABLE_BANKING_APP_ID o ENABLE_BANKING_PRIVATE_KEY mancanti');
+      const pemBody = pemKey.split('\n').filter(l => !l.includes('-----')).join('');
+      const der = Uint8Array.from(atob(pemBody), c => c.charCodeAt(0));
+      const key = await crypto.subtle.importKey(
+        'pkcs8', der.buffer,
+        { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
+        false, ['sign']
+      );
+      const now = Math.floor(Date.now() / 1000);
+      const b64url = s => btoa(s).replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_');
+      const header = b64url(JSON.stringify({ typ: 'JWT', alg: 'RS256', kid: appId }));
+      const payload = b64url(JSON.stringify({ iss: 'enablebanking.com', aud: 'api.enablebanking.com', iat: now, exp: now + 3600 }));
+      const sigInput = new TextEncoder().encode(header + '.' + payload);
+      const sigBuf = await crypto.subtle.sign('RSASSA-PKCS1-v1_5', key, sigInput);
+      const sig = btoa(String.fromCharCode(...new Uint8Array(sigBuf))).replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_');
+      return header + '.' + payload + '.' + sig;
+    }
+
+    if (path === '/api/enable-banking/auth' && method === 'GET') {
+      try {
+        const bank = url.searchParams.get('bank') || 'Banca Sella';
+        const psuType = url.searchParams.get('psu_type') || 'personal';
+        const jwt = await makeEBJwt(env);
+        const validUntil = new Date(Date.now() + 90 * 24 * 3600 * 1000).toISOString();
+        const state = crypto.randomUUID();
+        await env.ICOMPTA_KV.put('icompta:eb:state:' + state, JSON.stringify({ bank, psuType, ts: Date.now() }), { expirationTtl: 600 });
+        const authBody = {
+          access: { valid_until: validUntil, balances: true, transactions: true },
+          aspsp: { name: bank, country: 'IT' },
+          state,
+          redirect_url: 'https://fly98.github.io/Analisi/enable-banking-callback.html',
+          psu_type: psuType
+        };
+        const resp = await fetch('https://api.enablebanking.com/auth', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + jwt, 'Content-Type': 'application/json' },
+          body: JSON.stringify(authBody)
+        });
+        const data = await resp.json();
+        if (!resp.ok) return err('EB auth error: ' + JSON.stringify(data), resp.status);
+        return json({ ok: true, url: data.url, state });
+      } catch(e) {
+        return err('Errore auth EB: ' + e.message, 500);
+      }
+    }
+
+    if (path === '/api/enable-banking/session' && method === 'POST') {
+      try {
+        const body = await request.json();
+        const { code, state } = body;
+        if (!code) return err('code mancante');
+        const jwt = await makeEBJwt(env);
+        const resp = await fetch('https://api.enablebanking.com/sessions', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + jwt, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code })
+        });
+        const data = await resp.json();
+        if (!resp.ok) return err('EB session error: ' + JSON.stringify(data), resp.status);
+        const stateRaw = await env.ICOMPTA_KV.get('icompta:eb:state:' + state);
+        const sd = stateRaw ? JSON.parse(stateRaw) : {};
+        const sessionKey = 'icompta:eb:session:' + (sd.bank || data.aspsp && data.aspsp.name || 'unknown').replace(/\s+/g, '-') + ':' + (sd.psuType || data.psu_type || 'personal');
+        const sessionData = {
+          session_id: data.session_id,
+          accounts: data.accounts,
+          aspsp: data.aspsp,
+          psu_type: data.psu_type,
+          valid_until: data.access && data.access.valid_until,
+          created: new Date().toISOString()
+        };
+        await env.ICOMPTA_KV.put(sessionKey, JSON.stringify(sessionData));
+        return json({ ok: true, session_id: data.session_id, accounts: data.accounts, aspsp: data.aspsp });
+      } catch(e) {
+        return err('Errore sessione EB: ' + e.message, 500);
+      }
+    }
+
+    if (path === '/api/enable-banking/sessions' && method === 'GET') {
+      try {
+        const list = await env.ICOMPTA_KV.list({ prefix: 'icompta:eb:session:' });
+        const sessions = [];
+        for (const k of list.keys) {
+          const raw = await env.ICOMPTA_KV.get(k.name);
+          if (raw) sessions.push({ key: k.name, ...JSON.parse(raw) });
+        }
+        return json(sessions);
+      } catch(e) {
+        return err('Errore sessioni EB: ' + e.message, 500);
+      }
+    }
+
+    if (path === '/api/enable-banking/transactions' && method === 'GET') {
+      try {
+        const sessionKey = url.searchParams.get('session_key');
+        const accountId = url.searchParams.get('account_id');
+        const dateFrom = url.searchParams.get('date_from') || new Date(Date.now() - 30*24*3600*1000).toISOString().slice(0,10);
+        if (!sessionKey || !accountId) return err('session_key e account_id richiesti');
+        const raw = await env.ICOMPTA_KV.get(sessionKey);
+        if (!raw) return err('Sessione non trovata', 404);
+        const jwt = await makeEBJwt(env);
+        const txUrl = 'https://api.enablebanking.com/accounts/' + accountId + '/transactions?date_from=' + dateFrom;
+        const resp = await fetch(txUrl, { headers: { 'Authorization': 'Bearer ' + jwt } });
+        const data = await resp.json();
+        if (!resp.ok) return err('EB transactions error: ' + JSON.stringify(data), resp.status);
+        return json({ ok: true, transactions: data.transactions || [], continuation_key: data.continuation_key });
+      } catch(e) {
+        return err('Errore transazioni EB: ' + e.message, 500);
+      }
+    }
+
     return err("Endpoint non trovato", 404);
   }
 };
