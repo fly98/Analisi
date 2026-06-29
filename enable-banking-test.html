@@ -137,8 +137,11 @@ async function loadSessions() {
       return '<span class="badge blue">' + (a.account_id && a.account_id.iban || a.uid || '?') + '</span>';
     }).join('');
     return '<div style="padding:8px 0;border-bottom:1px solid #f0efe9">' +
-      '<div style="font-size:12px;font-weight:700">' + (s.aspsp && s.aspsp.name || s.key) + ' — ' + (s.psu_type||'?') + '</div>' +
-      '<div style="font-size:11px;color:#888">Valido fino: ' + exp + ' | Session: ' + (s.session_id||'?').slice(0,8) + '...</div>' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px">' +
+        '<span style="font-size:12px;font-weight:700">' + (s.aspsp && s.aspsp.name || s.key) + ' — ' + (s.psu_type||'?') + '</span>' +
+        '<button onclick="renewAuth(\'' + (s.aspsp&&s.aspsp.name||'') + '\',\'' + (s.psu_type||'personal') + '\')" style="font-size:11px;padding:4px 10px;border-radius:7px;border:none;background:#eef4fd;color:#1a4a7a;font-weight:700;cursor:pointer">🔄 Rinnova</button>' +
+      '</div>' +
+      '<div style="font-size:11px;color:#888;margin-bottom:4px">Valido fino: ' + exp + ' | Session: ' + (s.session_id||'?').slice(0,8) + '...</div>' +
       '<div style="margin-top:4px">' + accounts + '</div>' +
       '</div>';
   }).join('');
