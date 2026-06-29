@@ -3994,33 +3994,41 @@ async function sellaAutoDownload() {
   async function finecoImportMovimenti() {
     var inc = sellaMovimenti.filter(function(m){ return m.includi && !m.isDup; });
     if (!inc.length) return;
+    var accId = sellaGetAccId('Fineco CC') || 'ACC-FINECO-CC';
     var btn = document.getElementById('fineco-cc-import-btn');
     if (btn) { btn.disabled = true; btn.innerHTML = '⏳ Importazione...'; }
-    try {
-      var accId = 'ACC-FINECO-CC';
-      await sellaDoImport(inc, accId, 'Fineco CC');
-      document.getElementById('fineco-cc-overlay').style.display = 'none';
-    } catch(e) {
-      alert('❌ Errore: ' + e.message);
-    } finally {
-      if (btn) { btn.disabled = false; btn.innerHTML = '⬆ Importa selezionati'; }
-    }
-  }
-
-  async function sellaDoImport(movs, accId, label) {
-    var session = { id: 'eb-' + Date.now(), label: label + ' ' + new Date().toLocaleString('it-IT'), txBanca:[], txEco:[] };
-    var ok = 0, errs = 0;
-    for (var i = 0; i < movs.length; i++) {
+    var ids = [], errs = 0;
+    for (var i = 0; i < inc.length; i++) {
+      var m = inc[i];
+      var pr = document.getElementById('fineco-cc-progress');
+      if (pr) pr.textContent = 'Importazione ' + (i+1) + '/' + inc.length;
       try {
-        var r = await sellaImportMovimento(movs[i], accId);
-        if (r && r.txBancaId) session.txBanca.push(r.txBancaId);
-        if (r && r.txEcoId) session.txEco.push(r.txEcoId);
-        ok++;
+        var r = await api('POST', '/api/tx', { tx: {
+          id: null, date: m.dateISO, name: m.desc, accountId: accId,
+          status: 'cleared', comment: m.etich || null,
+          useSumOfSplits: true, amount: null, linkedTxId: null,
+          splits: [{ amount: m.importo, categoryId: m.catObj ? m.catObj.id : null, comment: null }]
+        }});
+        if (r && r.id) ids.push(r.id); else errs++;
       } catch(e) { errs++; }
     }
-    await api('POST', '/api/sella-log', { session });
-    alert('✅ Importati ' + ok + ' movimenti' + (errs ? ' (⚠️ ' + errs + ' errori)' : ''));
+    // Salva sessione per rollback
+    try {
+      await api('POST', '/api/sella-log', { session: {
+        id: 'fineco-' + Date.now(),
+        label: 'Fineco CC ' + new Date().toLocaleString('it-IT'),
+        txBanca: ids, txEco: []
+      }});
+    } catch(e) {}
+    if (btn) { btn.disabled = false; btn.innerHTML = '⬆ Importa selezionati'; }
+    var pr2 = document.getElementById('fineco-cc-progress');
+    if (pr2) pr2.textContent = '';
+    alert('✅ Importati ' + ids.length + ' movimenti su Fineco CC' + (errs ? ' (⚠️ ' + errs + ' errori)' : ''));
+    document.getElementById('fineco-cc-overlay').style.display = 'none';
+    if (typeof reloadTxForRange === 'function') await reloadTxForRange();
   }
+
+  
   // ── Fine Fineco CC overlay ────────────────────────────
 
   // ── Fine Enable Banking ───────────────────────────────────────
