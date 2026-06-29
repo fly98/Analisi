@@ -3743,8 +3743,6 @@ async function sellaAutoDownload() {
   }
 
   async function _ebGetExistingKeys(accId) {
-    // Usa la stessa logica di sellaGetExistingKeys:
-    // ricostruisce la chiave data|importo|desc[:32] dalle TX esistenti
     var keys = new Set();
     for (var yi=0; yi<(meta.years||[]).length; yi++) {
       var yr = meta.years[yi];
@@ -3753,9 +3751,13 @@ async function sellaAutoDownload() {
       for (var j=0; j<txs.length; j++) {
         var tx = txs[j];
         if (tx.accountId !== accId) continue;
-        // Ricostruisce chiave: usa sellaStorKey se disponibile, altrimenti genera
-        if (tx._sellaKey) { keys.add(tx._sellaKey); continue; }
-        var amt = tx.amount != null ? tx.amount : 0;
+        // Ricostruisce importo: da splits (useSumOfSplits) o da amount
+        var amt = 0;
+        if (tx.useSumOfSplits && tx.splits && tx.splits.length > 0) {
+          for (var s=0; s<tx.splits.length; s++) amt += (tx.splits[s].amount || 0);
+        } else {
+          amt = tx.amount || 0;
+        }
         var name = (tx.name || '').substring(0,32);
         var k = (tx.date||'') + '|' + parseFloat(amt).toFixed(2) + '|' + name;
         keys.add(k);
@@ -3772,7 +3774,16 @@ async function sellaAutoDownload() {
       await _ebImportMovimenti(tipo);
       window._ebCurrentTipo = tipo;
     } catch(e) {
-      alert('❌ Enable Banking errore:\n' + e.message);
+      var msg = e.message || '';
+      if (msg.indexOf('429') !== -1 || msg.indexOf('Too Many') !== -1 || msg.indexOf('quota') !== -1) {
+        if (confirm('⚠️ Limite accessi Banca Sella raggiunto (4/giorno).\n\nVuoi rinnovare l\'autorizzazione ora?')) {
+          var cfg = EB_ACCOUNTS[tipo];
+          api('GET', '/api/enable-banking/auth?bank=' + encodeURIComponent(cfg.sessionKey.split(':')[3].replace(/-/g,' ')) + '&psu_type=personal')
+            .then(function(d){ if(d.ok) window.open(d.url,'_blank'); });
+        }
+      } else {
+        alert('❌ Enable Banking errore:\n' + msg);
+      }
       console.error('sellaEBDownload:', e);
     }
   }
@@ -3783,7 +3794,15 @@ async function sellaAutoDownload() {
       await _ebImportMovimenti('fineco');
       window._ebCurrentTipo = 'fineco';
     } catch(e) {
-      alert('❌ Enable Banking Fineco errore:\n' + e.message);
+      var msg = e.message || '';
+      if (msg.indexOf('429') !== -1 || msg.indexOf('Too Many') !== -1 || msg.indexOf('quota') !== -1) {
+        if (confirm('⚠️ Limite accessi Fineco raggiunto.\n\nVuoi rinnovare l\'autorizzazione?')) {
+          api('GET', '/api/enable-banking/auth?bank=FinecoBank&psu_type=personal')
+            .then(function(d){ if(d.ok) window.open(d.url,'_blank'); });
+        }
+      } else {
+        alert('❌ Enable Banking Fineco errore:\n' + msg);
+      }
       console.error('finecoEBDownload:', e);
     }
   }
