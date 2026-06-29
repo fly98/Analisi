@@ -3740,6 +3740,8 @@ async function sellaAutoDownload() {
     sellaMovimenti = [];
     for (var i=0; i<txs.length; i++) {
       var t = txs[i];
+      // Salta TX non ancora contabilizzate (senza booking_date)
+      if (!t.booking_date) continue;
       var amt = parseFloat((t.transaction_amount && t.transaction_amount.amount) || 0);
       if (t.credit_debit_indicator !== 'CRDT') amt = -Math.abs(amt);
       var desc = (t.remittance_information && t.remittance_information[0]) ||
