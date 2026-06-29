@@ -3862,7 +3862,8 @@ async function sellaAutoDownload() {
         keys.add(k);
       }
     }
-    _autoLog('eb-log-azienda', 'dedup: ' + matchTx + ' TX trovate, ' + keys.size + ' chiavi uniche', 'info');
+    var logId = accId === EB_ACCOUNTS['personale'].iComptaAccId ? 'eb-log-personale' : 'eb-log-azienda';
+    _autoLog(logId, 'dedup: ' + matchTx + ' TX trovate per ' + accId.slice(0,8) + '... su ' + totalTx + ' totali', 'info');
     // Verifica esplicita chiavi target
     var targets = [
       '2026-04-04|-34.87|SUPERMERCATO EUROSPIN ROMA RM',
