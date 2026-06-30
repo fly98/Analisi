@@ -176,6 +176,34 @@
   .unlock input:focus{outline:none; border-color:var(--amber)}
   .ulk-b{width:100%; background:var(--amber); color:#1a1410; border:none; border-radius:13px; padding:13px; font-size:15px; font-weight:700; cursor:pointer; font-family:'DM Sans',sans-serif}
   .ulk-b:active{opacity:.85}
+
+  /* view toggle */
+  .viewtoggle{display:inline-flex; background:var(--bg2); border:1px solid var(--line); border-radius:999px; padding:3px; margin-top:12px}
+  .vt{border:none; background:transparent; color:var(--muted); font-family:'DM Sans',sans-serif; font-size:13px; font-weight:600; padding:7px 17px; border-radius:999px; cursor:pointer}
+  .vt.on{background:var(--bg3); color:var(--text)}
+
+  /* map */
+  #mapview{margin-top:14px}
+  .plan{position:relative; width:100%; aspect-ratio:100/152; background:linear-gradient(160deg,#1b1714,#141110); border:1px solid var(--line); border-radius:20px; overflow:hidden; touch-action:none}
+  .zone{position:absolute; border:1px solid var(--line2); border-radius:11px; background:rgba(255,255,255,.018); transition:background .25s, border-color .25s}
+  .zone.lit{background:rgba(255,157,47,.07); border-color:rgba(255,157,47,.28); box-shadow:inset 0 0 34px rgba(255,157,47,.07)}
+  .zone .zl{position:absolute; top:5px; left:8px; font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.02em; color:var(--muted); pointer-events:none; white-space:nowrap}
+  .zone.lit .zl{color:var(--amber)}
+  .zone-dots{position:absolute; inset:19px 6px 6px 6px; display:flex; flex-wrap:wrap; gap:5px; align-content:flex-start}
+  .dot{width:27px; height:27px; border-radius:9px; display:grid; place-items:center; background:var(--bg3); color:var(--faint); border:1px solid var(--line2); cursor:pointer; transition:background .15s,color .15s,box-shadow .15s; touch-action:none}
+  .dot svg{width:14px; height:14px}
+  .dot.on{background:rgba(255,157,47,.18); color:var(--amber); border-color:rgba(255,157,47,.5); box-shadow:0 0 13px rgba(255,157,47,.45)}
+  .dot.sw.on{background:rgba(124,196,255,.16); color:var(--blue); border-color:rgba(124,196,255,.5); box-shadow:0 0 13px rgba(124,196,255,.35)}
+  .dot.cl.on{background:rgba(94,221,196,.16); color:var(--teal); border-color:rgba(94,221,196,.5); box-shadow:0 0 13px rgba(94,221,196,.3)}
+  .dot.cust{position:absolute; transform:translate(-50%,-50%); margin:0}
+  .plan.edit .dot{cursor:grab}
+  .plan.edit .dot:active{cursor:grabbing; transform:scale(1.12)}
+  .plan.edit .dot.cust:active{transform:translate(-50%,-50%) scale(1.12)}
+  .plan.edit .zone{border-style:dashed; border-color:rgba(255,255,255,.18)}
+  .maptools{display:flex; gap:8px; align-items:center; margin-top:12px; flex-wrap:wrap}
+  .mapbtn{font-family:'DM Sans',sans-serif; font-size:13px; font-weight:600; background:var(--bg2); border:1px solid var(--line2); color:var(--text); border-radius:11px; padding:9px 15px; cursor:pointer}
+  .mapbtn.on{background:rgba(255,157,47,.15); border-color:rgba(255,157,47,.45); color:var(--amber)}
+  .maphint{font-family:'DM Mono',monospace; font-size:11px; color:var(--faint)}
 </style>
 </head>
 <body>
@@ -192,8 +220,13 @@
       </div>
     </div>
     <div class="summary" id="summary"></div>
+    <div class="viewtoggle" id="viewtoggle" style="display:none">
+      <button class="vt on" onclick="setView('list')">Stanze</button>
+      <button class="vt" onclick="setView('map')">Mappa</button>
+    </div>
   </header>
   <div id="app"><div class="loading">Carico lo stato della casa…</div></div>
+  <div id="mapview" style="display:none"></div>
   <div class="foot" id="foot"></div>
 </div>
 <div id="toast"></div>
@@ -391,7 +424,10 @@ function render(d){
   }
 
   document.getElementById('app').innerHTML = html;
-  document.getElementById('foot').innerHTML = `${d.total} entità · placement provvisorio in attesa della piantina`;
+  document.getElementById('foot').innerHTML = `${d.total} entità`;
+  document.getElementById('viewtoggle').style.display = '';
+  renderMap(d);
+  applyView();
 }
 
 // azioni
@@ -449,9 +485,138 @@ function saveKey(){
 }
 function changeKey(){ showUnlock('Inserisci o aggiorna la chiave di accesso.'); }
 
+// ══════════════ VISTA MAPPA ══════════════
+const ROOMS = [
+  {id:'cucina',     label:'Cucina',          x:5,  y:5,  w:33, h:20},
+  {id:'soggiorno',  label:'Soggiorno',       x:40, y:6,  w:55, h:25},
+  {id:'lavanderia', label:'Lavanderia',      x:5,  y:26, w:24, h:9},
+  {id:'bagno_cor',  label:'Bagno corridoio', x:31, y:33, w:25, h:9},
+  {id:'camera',     label:'Camera da letto', x:58, y:33, w:37, h:17},
+  {id:'riposti',    label:'Ripostiglio',     x:33, y:43, w:15, h:7},
+  {id:'veranda',    label:'Veranda',         x:31, y:51, w:19, h:9},
+  {id:'bambini',    label:'Camera bambini',  x:56, y:51, w:39, h:14},
+  {id:'guardaroba', label:'Guardaroba',      x:30, y:62, w:22, h:9},
+  {id:'bagno_mio',  label:'Bagno mio',       x:10, y:63, w:33, h:15},
+  {id:'alessia',    label:'Camera Alessia',  x:52, y:66, w:43, h:18},
+  {id:'giardino',   label:'Giardino',        x:5,  y:80, w:60, h:16},
+  {id:'spa',        label:'Spa',             x:67, y:80, w:28, h:16},
+];
+let POS = {}; try{ POS = JSON.parse(localStorage.getItem('ha_pos')||'{}'); }catch(e){ POS={}; }
+let editing = false;
+let currentView = localStorage.getItem('ha_view') || 'list';
+
+function mapRoomOf(id, name){
+  const s=(id+' '+name).toLowerCase();
+  if(/campaldino/.test(s)) return null;            // altra struttura, fuori mappa
+  if(/spa|wellis/.test(s)) return 'spa';
+  if(/giardino|patio|cancello/.test(s)) return 'giardino';
+  if(/lavanderia|asciugatrice/.test(s)) return 'lavanderia';
+  if(/bambine/.test(s)) return 'bambini';
+  if(/alessia/.test(s)) return 'alessia';
+  if(/cucina/.test(s)) return 'cucina';
+  if(/filippo|mena|letto|comodino|luna/.test(s) || id==='light.camera') return 'camera';
+  return 'soggiorno';
+}
+
+function dotHTML(e, cust){
+  const cls = e._t==='switch'?'sw':(e._t==='climate'?'cl':'');
+  const on = e._t==='climate' ? e.state!=='off' : e.state==='on';
+  let style='';
+  if(cust){ const p=POS[e.id]; style=`left:${p.x}%;top:${p.y}%`; }
+  return `<div class="dot ${cls} ${on?'on':''} ${cust?'cust':''}" style="${style}" data-id="${e.id}" data-t="${e._t}" data-s="${e.state}" title="${e.name}">${iconFor(e)}</div>`;
+}
+
+function renderMap(d){
+  const devs=[];
+  d.lights.forEach(e=>devs.push({...e,_t:'light'}));
+  (d.switches||[]).filter(e=>switchUseful(e.id,e.name) && e.state!=='unavailable').forEach(e=>devs.push({...e,_t:'switch'}));
+  (d.climate||[]).forEach(e=>devs.push({...e,_t:'climate'}));
+
+  const byRoom={}, custom=[];
+  for(const e of devs){
+    const r=mapRoomOf(e.id,e.name); if(!r) continue; e._room=r;
+    if(POS[e.id]) custom.push(e); else (byRoom[r]=byRoom[r]||[]).push(e);
+  }
+  let zones='';
+  for(const rm of ROOMS){
+    const here=(byRoom[rm.id]||[]).concat(custom.filter(c=>c._room===rm.id));
+    const lit = here.some(e=>e._t==='light' && e.state==='on');
+    const dots=(byRoom[rm.id]||[]).map(e=>dotHTML(e,false)).join('');
+    zones+=`<div class="zone ${lit?'lit':''}" style="left:${rm.x}%;top:${rm.y}%;width:${rm.w}%;height:${rm.h}%">
+      <span class="zl">${rm.label}</span><div class="zone-dots">${dots}</div></div>`;
+  }
+  const customHTML=custom.map(e=>dotHTML(e,true)).join('');
+
+  document.getElementById('mapview').innerHTML = `
+    <div class="plan ${editing?'edit':''}" id="plan">${zones}${customHTML}</div>
+    <div class="maptools">
+      <button class="mapbtn ${editing?'on':''}" onclick="toggleEdit()">${editing?'✓ Fine':'✎ Disponi'}</button>
+      ${editing?'<button class="mapbtn" onclick="resetPos()">Reset posizioni</button>':''}
+      <span class="maphint">${editing?'trascina i pallini sulla pianta':'tocca un pallino per accendere/spegnere'}</span>
+    </div>`;
+  bindPlan();
+}
+
+function bindPlan(){
+  const plan=document.getElementById('plan'); if(!plan) return;
+  plan.querySelectorAll('.dot').forEach(dot=>{
+    if(editing){
+      dot.addEventListener('pointerdown', startDrag);
+    }else{
+      dot.addEventListener('click', ()=>{
+        const id=dot.dataset.id, t=dot.dataset.t, s=dot.dataset.s;
+        dot.classList.toggle('on');
+        if(t==='climate') powerClimate(id, s, id.toLowerCase());
+        else toggle(t, id, s);
+      });
+    }
+  });
+}
+
+let drag=null;
+function startDrag(ev){
+  ev.preventDefault();
+  const dot=ev.currentTarget, plan=document.getElementById('plan');
+  const rect=plan.getBoundingClientRect();
+  drag={dot, rect, id:dot.dataset.id};
+  dot.setPointerCapture(ev.pointerId);
+  dot.addEventListener('pointermove', moveDrag);
+  dot.addEventListener('pointerup', endDrag);
+}
+function moveDrag(ev){
+  if(!drag) return;
+  const x=Math.max(2,Math.min(98,(ev.clientX-drag.rect.left)/drag.rect.width*100));
+  const y=Math.max(2,Math.min(98,(ev.clientY-drag.rect.top)/drag.rect.height*100));
+  drag.cur={x,y};
+  const dot=drag.dot;
+  if(!dot.classList.contains('cust')){
+    dot.classList.add('cust'); document.getElementById('plan').appendChild(dot);
+  }
+  dot.style.left=x+'%'; dot.style.top=y+'%';
+}
+function endDrag(ev){
+  if(!drag) return;
+  if(drag.cur){ POS[drag.id]=drag.cur; localStorage.setItem('ha_pos',JSON.stringify(POS)); }
+  drag.dot.removeEventListener('pointermove',moveDrag);
+  drag.dot.removeEventListener('pointerup',endDrag);
+  drag=null;
+}
+function toggleEdit(){ editing=!editing; renderMap(DATA); }
+function resetPos(){ POS={}; localStorage.removeItem('ha_pos'); renderMap(DATA); }
+
+function setView(v){
+  currentView=v; localStorage.setItem('ha_view',v); applyView();
+}
+function applyView(){
+  const map=currentView==='map';
+  document.getElementById('app').style.display = map?'none':'';
+  document.getElementById('mapview').style.display = map?'':'none';
+  document.querySelectorAll('.vt').forEach((b,i)=>b.classList.toggle('on', (i===1)===map));
+}
+
 load();
-setInterval(()=>{ if(!document.hidden) load(); }, 20000);
-document.addEventListener('visibilitychange',()=>{ if(!document.hidden) load(); });
+setInterval(()=>{ if(!document.hidden && !editing) load(); }, 20000);
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden && !editing) load(); });
 </script>
 </body>
 </html>
