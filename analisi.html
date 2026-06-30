@@ -236,6 +236,9 @@ main { max-width:900px; margin:0 auto; padding:16px; display:flex;
         <button class="range-btn active" data-year="all">Tutto</button>
         <button class="range-btn" data-year="2026">2026</button>
         <button class="range-btn" data-year="2025">2025</button>
+        <select id="cedole-month" style="padding:5px 10px;border-radius:8px;border:1.5px solid var(--border-s);background:none;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer">
+          <option value="">— mese —</option>
+        </select>
       </div>
       <div id="cedole-body">
         <div class="empty"><div class="spinner"></div></div>
@@ -310,6 +313,7 @@ async function loadAll() {
   renderKpi();
   renderAndamento();
   renderTorta();
+  populateCedoleMonths();
   renderCedole();
   // setTimeout garantisce che il DOM sia aggiornato prima di renderizzare la tabella
   setTimeout(function() {
@@ -749,9 +753,45 @@ document.getElementById('cedole-range').addEventListener('click', function(e) {
   if (!btn) return;
   document.querySelectorAll('#cedole-range .range-btn').forEach(function(b) { b.classList.remove('active'); });
   btn.classList.add('active');
+  var ms = document.getElementById('cedole-month'); if (ms) ms.value = '';
   activeCedoleYear = btn.dataset.year;
   renderCedole();
 });
+
+document.getElementById('cedole-month').addEventListener('change', function() {
+  var v = this.value;
+  var btns = document.querySelectorAll('#cedole-range .range-btn');
+  if (v) {
+    btns.forEach(function(b) { b.classList.remove('active'); });
+    activeCedoleYear = v; // 'YYYY-MM' — startsWith filtra il mese
+  } else {
+    btns.forEach(function(b) { b.classList.toggle('active', b.dataset.year === 'all'); });
+    activeCedoleYear = 'all';
+  }
+  renderCedole();
+});
+
+// Popola la select mese dai mesi realmente presenti sui movimenti Fineco CC
+function populateCedoleMonths() {
+  var sel = document.getElementById('cedole-month');
+  if (!sel) return;
+  var found = {};
+  Object.values(txByYear).forEach(function(txs) {
+    txs.forEach(function(tx) {
+      if (tx.accountId !== 'ACC-FINECO-CC') return;
+      if (!tx.date || tx.date.length < 7) return;
+      found[tx.date.slice(0, 7)] = true;
+    });
+  });
+  var MESI = ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ott', 'nov', 'dic'];
+  var months = Object.keys(found).sort().reverse();
+  var opts = '<option value="">— mese —</option>';
+  months.forEach(function(m) {
+    var y = m.slice(0, 4), mo = parseInt(m.slice(5, 7), 10);
+    opts += '<option value="' + m + '">' + MESI[mo - 1] + ' ' + y + '</option>';
+  });
+  sel.innerHTML = opts;
+}
 
 function renderCedole() {
   var body = document.getElementById('cedole-body');
@@ -767,7 +807,7 @@ function renderCedole() {
   // Categorie di provento da descrizione
   var PROVENTI = [
     { key: 'cedole', label: '💰 Cedole lorde', match: function(t) { return t.name && (t.name.includes('Stacco Cedole') || t.name.includes('Ced.su')); }, sign: 1 },
-    { key: 'ritenuta_cedole', label: '🏛️ Ritenuta su cedole', match: function(t) { return t.name && t.name.includes('Ritenuta su Cedole'); }, sign: -1 },
+    { key: 'ritenuta_cedole', label: '🏛️ Ritenuta su cedole', match: function(t) { return t.name && t.name.includes('Rit.ced'); }, sign: -1 },
     { key: 'ritenuta_fiscale', label: '🏛️ Ritenuta fiscale (rimborso)', match: function(t) { return t.name && t.name.includes('Ritenuta Fiscale') && getTxAmt(t) > 0; }, sign: 1 },
     { key: 'compravendita', label: '🔄 Compravendita titoli', match: function(t) { return t.name && t.name.includes('Compravendita Titoli'); }, sign: 1 },
   ];
