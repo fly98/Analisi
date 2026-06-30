@@ -971,6 +971,34 @@ function _cedolaPagata(codice, anno, mese) {
   return trovata;
 }
 
+// Importo effettivo di una tx: diretto, oppure somma degli splits (useSumOfSplits).
+function _txAmount(tx) {
+  if (typeof tx.amount === 'number') return tx.amount;
+  if (Array.isArray(tx.splits)) return tx.splits.reduce(function(s, x) { return s + (x.amount || 0); }, 0);
+  return 0;
+}
+
+// Importi REALI della cedola dal conto: lordo da "Ced.su", ritenuta da "Rit.ced.su" (stesso codice/mese).
+function _cedolaReale(codice, anno, mese) {
+  var res = { found: false, lordo: 0, ritenuta: 0, netto: 0 };
+  if (!codice) return res;
+  var ym = anno + '-' + String(mese).padStart(2, '0');
+  Object.values(txByYear).forEach(function(txs) {
+    if (!Array.isArray(txs)) return;
+    txs.forEach(function(tx) {
+      if (tx.accountId !== 'ACC-FINECO-CC') return;
+      if (!tx.date || tx.date.slice(0, 7) !== ym) return;
+      var nm = (tx.name || '').trim();
+      if (nm.indexOf(codice) === -1) return;
+      var low = nm.toLowerCase();
+      if (low.indexOf('ced.su') === 0) { res.lordo += _txAmount(tx); res.found = true; }
+      else if (low.indexOf('rit.ced.su') === 0) { res.ritenuta += Math.abs(_txAmount(tx)); }
+    });
+  });
+  res.netto = res.lordo - res.ritenuta;
+  return res;
+}
+
 function _cedolaLordoPerData(bond, dateISO) {
   var l = bond.tassi[0].lordo;
   for (var i = 0; i < bond.tassi.length; i++) {
@@ -1010,12 +1038,12 @@ function renderCalendarioCedole() {
   var html = '';
   for (var m = 1; m <= 12; m++) {
     var rows = (perMese[m] || []).slice().sort(function(a, b) { return a.giorno - b.giorno; });
-    var mTot = rows.reduce(function(s, r) { return s + r.netto; }, 0);
+    var mLordo = 0, mNetto = 0;
     var isCur = (m === meseCorrente);
     html += '<div class="acc-item' + (isCur ? ' acc-cur' : '') + '">' +
       '<button class="acc-head" onclick="toggleCedoleMonth(' + m + ')">' +
         '<span class="acc-h-name">' + MESI_CED[m - 1] + (isCur ? ' <span class="acc-badge">oggi</span>' : '') + '</span>' +
-        '<span class="acc-h-right">' + (rows.length ? fmt(mTot) : '<span style="color:var(--muted)">—</span>') +
+        '<span class="acc-h-right">' + '__MTOT_' + m + '__' +
           ' <span class="acc-arrow" id="acc-arr-' + m + '">' + (isCur ? '▾' : '▸') + '</span></span>' +
       '</button>' +
       '<div class="acc-body" id="acc-body-' + m + '" style="display:' + (isCur ? 'block' : 'none') + '">';
@@ -1023,27 +1051,34 @@ function renderCalendarioCedole() {
       rows.forEach(function(r) {
         var gg = String(r.giorno).padStart(2, '0') + '/' + String(m).padStart(2, '0');
         var occISO = oggi.getFullYear() + '-' + String(m).padStart(2, '0') + '-' + String(r.giorno).padStart(2, '0');
-        var mark = '';
-        if (occISO <= todayISO) {
-          if (_cedolaPagata(r.codice, oggi.getFullYear(), m)) {
-            mark = '<span title="accreditata (verificata sul conto)" style="color:var(--green);font-weight:800;margin-right:6px">✓</span>';
-          } else if (occISO < CEDOLE_VERIFICA_DA) {
-            mark = '<span title="assunta accreditata (precedente al passaggio a Fineco)" style="color:var(--green);font-weight:800;margin-right:6px">✓</span>';
-          } else {
-            mark = '<span title="non ancora rilevata sul conto" style="color:var(--muted);opacity:.55;margin-right:6px">○</span>';
-          }
+        var reale = _cedolaReale(r.codice, oggi.getFullYear(), m);
+        var dispLordo = reale.found ? reale.lordo : r.lordo;
+        var dispNetto = reale.found ? reale.netto : r.netto;
+        mLordo += dispLordo; mNetto += dispNetto;
+        var mark = '', tag = '';
+        if (reale.found) {
+          mark = '<span title="accreditata (verificata sul conto)" style="color:var(--green);font-weight:800;margin-right:6px">✓</span>';
+        } else if (occISO <= todayISO && occISO < CEDOLE_VERIFICA_DA) {
+          mark = '<span title="assunta accreditata (precedente al passaggio a Fineco) — importo stimato" style="color:var(--green);font-weight:800;margin-right:6px">✓</span>';
+          tag = '<span style="font-size:9px;color:var(--muted)"> stima</span>';
+        } else if (occISO <= todayISO) {
+          mark = '<span title="non ancora rilevata sul conto" style="color:var(--muted);opacity:.55;margin-right:6px">○</span>';
         }
         html += '<div class="cedola-row">' +
           '<span class="cedola-label">' + mark + gg + ' · ' + esc(r.nome) +
             (r.nota ? '<span style="display:block;font-size:10px;color:var(--muted)">' + esc(r.nota) + '</span>' : '') + '</span>' +
-          '<span style="text-align:right;white-space:nowrap"><span class="cedola-val pos">' + fmt(r.lordo) + '</span>' +
-            '<span style="display:block;font-size:10px;color:var(--muted)">netto ' + fmt(r.netto) + '</span></span>' +
+          '<span style="text-align:right;white-space:nowrap"><span class="cedola-val pos">' + fmt(dispLordo) + '</span>' + tag +
+            '<span style="display:block;font-size:10px;color:var(--muted)">netto ' + fmt(dispNetto) + '</span></span>' +
           '</div>';
       });
     } else {
       html += '<div style="padding:8px 0;color:var(--muted);font-size:13px">Nessuna cedola.</div>';
     }
     html += '</div></div>';
+    var mtotHtml = rows.length
+      ? fmt(mNetto) + ' <span style="font-size:10px;color:var(--muted);font-weight:600">netto · ' + fmt(mLordo) + ' lordo</span>'
+      : '<span style="color:var(--muted)">—</span>';
+    html = html.replace('__MTOT_' + m + '__', mtotHtml);
   }
   html += '<div class="cedola-row" style="border-top:2px solid var(--border-s);margin-top:10px;padding-top:12px">' +
     '<span class="cedola-label" style="font-weight:800">Totale annuo</span>' +
