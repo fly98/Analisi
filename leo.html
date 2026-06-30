@@ -179,6 +179,16 @@ input[type=checkbox]{accent-color:var(--text);cursor:pointer}
   </div>
 </div>
 
+<script>
+  window.LEO_EMBED=new URLSearchParams(location.search).get('embed')==='1';
+  if(window.LEO_EMBED){
+    document.documentElement.classList.add('leo-embed');
+    window.addEventListener('DOMContentLoaded',function(){
+      try{parent.postMessage({type:'leo:ready'},'https://fly98.github.io');}catch(e){}
+    });
+  }
+</script>
+<style>html.leo-embed .hdr{display:none!important}</style>
 <div class="hdr">
   <div class="hdr-icon">💶</div>
   <div style="flex:1"><h1>Leo</h1><p>InternoUno · Contabilità dipendente</p></div>
@@ -844,6 +854,7 @@ async function salva(){
     const d=await r.json();
     if(d.error) throw new Error(d.error);
     _cache={sessioni};
+    if(window.LEO_EMBED){try{parent.postMessage({type:'leo:saved'},'https://fly98.github.io');}catch(e){}}
     btn.textContent='✅ Salvato!';
     setTimeout(()=>{btn.textContent='💾 Salva in storico';btn.disabled=false;},2000);
   }catch(e){btn.textContent='💾 Salva in storico';btn.disabled=false;alert('Errore: '+e.message);}
