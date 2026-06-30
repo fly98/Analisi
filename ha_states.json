@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-06-30T22:46:28.970Z",
+  "timestamp": "2026-06-30T22:46:45.138Z",
   "total": 795,
   "lights": [
     {
@@ -137,8 +137,8 @@
     {
       "id": "light.camera",
       "name": "Camera",
-      "state": "on",
-      "brightness": 60
+      "state": "off",
+      "brightness": null
     },
     {
       "id": "light.alessia",
