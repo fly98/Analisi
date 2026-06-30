@@ -184,7 +184,9 @@
 
   /* map */
   #mapview{margin-top:14px}
-  .plan{position:relative; width:100%; aspect-ratio:100/152; background:linear-gradient(160deg,#1b1714,#141110); border:1px solid var(--line); border-radius:20px; overflow:hidden; touch-action:none}
+  .plan{position:relative; width:100%; aspect-ratio:1000/871; background:#16120f url('planimetria.png?v=1') center/contain no-repeat; border:1px solid var(--line); border-radius:18px; overflow:hidden; touch-action:none}
+  .tray{position:absolute; left:6px; right:6px; bottom:6px; max-height:36%; overflow-y:auto; display:flex; flex-wrap:wrap; gap:5px; padding:7px 8px; background:rgba(16,13,11,.62); border:1px solid var(--line); border-radius:13px; backdrop-filter:blur(3px)}
+  .tray .tl{flex-basis:100%; font-family:'DM Mono',monospace; font-size:9.5px; color:var(--faint); margin-bottom:2px}
   .zone{position:absolute; border:1px solid var(--line2); border-radius:11px; background:rgba(255,255,255,.018); transition:background .25s, border-color .25s}
   .zone.lit{background:rgba(255,157,47,.07); border-color:rgba(255,157,47,.28); box-shadow:inset 0 0 34px rgba(255,157,47,.07)}
   .zone .zl{position:absolute; top:5px; left:8px; font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.02em; color:var(--muted); pointer-events:none; white-space:nowrap}
@@ -531,28 +533,22 @@ function renderMap(d){
   d.lights.forEach(e=>devs.push({...e,_t:'light'}));
   (d.switches||[]).filter(e=>switchUseful(e.id,e.name) && e.state!=='unavailable').forEach(e=>devs.push({...e,_t:'switch'}));
   (d.climate||[]).forEach(e=>devs.push({...e,_t:'climate'}));
+  const home = devs.filter(e=>!/campaldino/.test((e.id+' '+e.name).toLowerCase()));
 
-  const byRoom={}, custom=[];
-  for(const e of devs){
-    const r=mapRoomOf(e.id,e.name); if(!r) continue; e._room=r;
-    if(POS[e.id]) custom.push(e); else (byRoom[r]=byRoom[r]||[]).push(e);
-  }
-  let zones='';
-  for(const rm of ROOMS){
-    const here=(byRoom[rm.id]||[]).concat(custom.filter(c=>c._room===rm.id));
-    const lit = here.some(e=>e._t==='light' && e.state==='on');
-    const dots=(byRoom[rm.id]||[]).map(e=>dotHTML(e,false)).join('');
-    zones+=`<div class="zone ${lit?'lit':''}" style="left:${rm.x}%;top:${rm.y}%;width:${rm.w}%;height:${rm.h}%">
-      <span class="zl">${rm.label}</span><div class="zone-dots">${dots}</div></div>`;
-  }
-  const customHTML=custom.map(e=>dotHTML(e,true)).join('');
+  const placed = home.filter(e=>POS[e.id]);
+  const tray   = home.filter(e=>!POS[e.id]);
+
+  const placedHTML = placed.map(e=>dotHTML(e,true)).join('');
+  const trayHTML = tray.length
+    ? `<div class="tray"><span class="tl">${editing?'trascina sulla pianta ↑':'da posizionare · '+tray.length}</span>${tray.map(e=>dotHTML(e,false)).join('')}</div>`
+    : '';
 
   document.getElementById('mapview').innerHTML = `
-    <div class="plan ${editing?'edit':''}" id="plan">${zones}${customHTML}</div>
+    <div class="plan ${editing?'edit':''}" id="plan">${placedHTML}${trayHTML}</div>
     <div class="maptools">
       <button class="mapbtn ${editing?'on':''}" onclick="toggleEdit()">${editing?'✓ Fine':'✎ Disponi'}</button>
-      ${editing?'<button class="mapbtn" onclick="resetPos()">Reset posizioni</button>':''}
-      <span class="maphint">${editing?'trascina i pallini sulla pianta':'tocca un pallino per accendere/spegnere'}</span>
+      ${editing?'<button class="mapbtn" onclick="resetPos()">Reset</button>':''}
+      <span class="maphint">${editing?'trascina i pallini al punto giusto':'tocca un pallino per accendere/spegnere'}</span>
     </div>`;
   bindPlan();
 }
@@ -578,7 +574,16 @@ function startDrag(ev){
   ev.preventDefault();
   const dot=ev.currentTarget, plan=document.getElementById('plan');
   const rect=plan.getBoundingClientRect();
-  drag={dot, rect, id:dot.dataset.id};
+  if(!dot.classList.contains('cust')){
+    // viene dal vassoio: portalo subito sulla pianta come marker assoluto
+    const x=Math.max(2,Math.min(98,(ev.clientX-rect.left)/rect.width*100));
+    const y=Math.max(2,Math.min(98,(ev.clientY-rect.top)/rect.height*100));
+    dot.classList.add('cust'); dot.style.left=x+'%'; dot.style.top=y+'%';
+    plan.appendChild(dot);
+    drag={dot, rect, id:dot.dataset.id, cur:{x,y}};
+  }else{
+    drag={dot, rect, id:dot.dataset.id};
+  }
   dot.setPointerCapture(ev.pointerId);
   dot.addEventListener('pointermove', moveDrag);
   dot.addEventListener('pointerup', endDrag);
@@ -588,11 +593,7 @@ function moveDrag(ev){
   const x=Math.max(2,Math.min(98,(ev.clientX-drag.rect.left)/drag.rect.width*100));
   const y=Math.max(2,Math.min(98,(ev.clientY-drag.rect.top)/drag.rect.height*100));
   drag.cur={x,y};
-  const dot=drag.dot;
-  if(!dot.classList.contains('cust')){
-    dot.classList.add('cust'); document.getElementById('plan').appendChild(dot);
-  }
-  dot.style.left=x+'%'; dot.style.top=y+'%';
+  drag.dot.style.left=x+'%'; drag.dot.style.top=y+'%';
 }
 function endDrag(ev){
   if(!drag) return;
