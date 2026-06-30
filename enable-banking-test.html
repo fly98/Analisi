@@ -132,6 +132,11 @@ function getIban(a) {
   return '?';
 }
 
+function getCurrency(a) {
+  try { if (a && a.currency) return String(a.currency); } catch(e) {}
+  return '—';
+}
+
 // ── localStorage safe ─────────────────────────────────
 function lsGet(k) { try { return localStorage.getItem(k) || ''; } catch(e) { return ''; } }
 function lsSet(k, v) { try { localStorage.setItem(k, v); } catch(e) {} }
@@ -195,7 +200,19 @@ async function loadSessions() {
       var bankRaw = (s.aspsp && s.aspsp.name) || 'Banca';
       var psuRaw = s.psu_type || 'personal';
       var ibans = (s.accounts || []).map(function(a, ai) {
-        return '<button class="iban-btn" onclick="selectAccount(' + si + ',' + ai + ',this)">' + esc(getIban(a)) + '</button>';
+        var cur = getCurrency(a);
+        var uid = getAccountUid(a);
+        var uidTail = uid ? uid.slice(-12) : '';
+        var det = (a && (a.details || a.product)) ? String(a.details || a.product) : '';
+        var isEur = (cur === 'EUR');
+        var curStyle = isEur ? 'background:#e8f5ee;color:#1a7a4a' : 'background:#f0efe9;color:#999';
+        return '<button class="iban-btn" onclick="selectAccount(' + si + ',' + ai + ',this)" style="display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left">' +
+          '<span style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">' +
+            '<span style="font-size:10px;font-weight:800;padding:1px 6px;border-radius:5px;letter-spacing:.5px;' + curStyle + '">' + esc(cur) + '</span>' +
+            '<span style="font-family:monospace;font-size:12px">' + esc(getIban(a)) + '</span>' +
+          '</span>' +
+          (uidTail ? '<span style="font-size:9px;color:#999;font-family:monospace">uid …' + esc(uidTail) + (det ? '  ·  ' + esc(det) : '') + '</span>' : '') +
+        '</button>';
       }).join('');
       return '<div class="session-box">' +
         '<div style="display:flex;justify-content:space-between;align-items:center;gap:4px;flex-wrap:wrap">' +
