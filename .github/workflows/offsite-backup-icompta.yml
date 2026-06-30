@@ -1,0 +1,42 @@
+name: Backup off-site iCompta (settimanale)
+
+# Mirror completo del KV iCompta su GitHub (disaster recovery off-site).
+# Sovrascrive icompta_backup/; Git deduplica i contenuti invariati.
+# Ripristinabile con il workflow "Restore iCompta KV from backup".
+
+on:
+  schedule:
+    - cron: '0 3 * * 0'   # domenica 03:00 UTC ~ 05:00 Italia
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  dump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Wrangler
+        run: npm install -g wrangler@3
+
+      - name: Dump completo KV -> icompta_backup/
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+        run: node tools/kv_dump.js
+
+      - name: Commit & push
+        run: |
+          git config user.name "icompta-backup-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add icompta_backup/
+          if git diff --cached --quiet; then
+            echo "Nessuna modifica nel backup off-site."
+          else
+            git commit -m "Off-site backup KV $(date -u +%F)"
+            git pull --rebase --autostash || true
+            git push
+            echo "Backup off-site aggiornato."
+          fi
