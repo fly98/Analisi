@@ -21,12 +21,16 @@ async function getGmailToken(env) {
     })
   });
   const data = await resp.json();
-  return data.access_token || null;
+  if (!data.access_token) {
+    return { token: null, error: data.error || "unknown", desc: data.error_description || "" };
+  }
+  return { token: data.access_token };
 }
 
 async function getAmenitizReport(env) {
-  const accessToken = await getGmailToken(env);
-  if (!accessToken) return { error: "Gmail auth fallita" };
+  const auth = await getGmailToken(env);
+  if (!auth.token) return { error: "Gmail auth fallita", google_error: auth.error, google_desc: auth.desc };
+  const accessToken = auth.token;
 
   const query = encodeURIComponent('subject:"Rapporto pagamenti registrati" has:attachment from:hotel-booking@amenitiz.io');
   const searchResp = await fetch(
