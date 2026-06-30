@@ -3381,6 +3381,32 @@ async function openLeoImport() {
   await leoRenderSessioni();
 }
 function closeLeoImport() { document.getElementById('leo-overlay').style.display='none'; }
+var LEO_FRAME_URL='https://fly98.github.io/Analisi/leo.html?embed=1';
+function openLeoFrame(){
+  var ov=document.getElementById('leoframe-overlay');
+  var fr=document.getElementById('leoframe');
+  var ld=document.getElementById('leoframe-loader');
+  if(ld) ld.style.display='flex';
+  if(fr) fr.src=LEO_FRAME_URL;
+  if(ov) ov.style.display='flex';
+}
+function closeLeoFrame(){
+  var ov=document.getElementById('leoframe-overlay');
+  var fr=document.getElementById('leoframe');
+  if(ov) ov.style.display='none';
+  if(fr) fr.src='about:blank';
+  if(typeof leoRenderSessioni==='function'){ try{ leoRenderSessioni(); }catch(e){} }
+}
+window.addEventListener('message',function(ev){
+  if(ev.origin!=='https://fly98.github.io') return;
+  var m=ev.data||{};
+  if(typeof m.type!=='string'||m.type.indexOf('leo:')!==0) return;
+  if(m.type==='leo:ready'){
+    var ld=document.getElementById('leoframe-loader'); if(ld) ld.style.display='none';
+  } else if(m.type==='leo:saved'){
+    if(typeof leoRenderSessioni==='function'){ try{ leoRenderSessioni(); }catch(e){} }
+  }
+});
 function leoShowTab(tab,btn) {
   document.querySelectorAll('#leo-tabs button').forEach(function(b){b.classList.remove('active');});
   btn.classList.add('active');
@@ -4424,7 +4450,7 @@ async function sellapDoImport() {
       <span style="font-size:22px">🦁</span>
       <h3>Import da Leo</h3>
       <div style="display:flex;gap:8px;align-items:center">
-        <button onclick="window.open('https://fly98.github.io/Analisi/leo.html','_blank')" style="padding:5px 12px;border-radius:8px;border:1px solid var(--border);background:none;font-size:12px;font-weight:600;cursor:pointer;color:var(--blue)">Apri Leo ↗</button>
+        <button onclick="openLeoFrame()" style="padding:5px 12px;border-radius:8px;border:1px solid var(--border);background:none;font-size:12px;font-weight:600;cursor:pointer;color:var(--blue)">Apri Leo ↗</button>
         <button onclick="closeLeoImport()" style="background:var(--gray2);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:16px">✕</button>
       </div>
     </div>
@@ -4433,6 +4459,21 @@ async function sellapDoImport() {
       <button onclick="leoShowTab('storico',this)">Storico importazioni</button>
     </div>
     <div id="leo-body"></div>
+  </div>
+</div>
+
+<!-- Modal Leo a tutto schermo (iframe) -->
+<div id="leoframe-overlay" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.55);align-items:center;justify-content:center" onclick="if(event.target===this)closeLeoFrame()">
+  <div style="width:min(1100px,96vw);height:min(880px,94vh);background:var(--surface);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.35);display:flex;flex-direction:column;overflow:hidden">
+    <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border);flex-shrink:0">
+      <span style="font-size:20px">🦁</span>
+      <strong style="flex:1;font-size:15px">Leo</strong>
+      <button onclick="closeLeoFrame()" style="background:var(--gray2);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:16px">✕</button>
+    </div>
+    <div style="position:relative;flex:1">
+      <div id="leoframe-loader" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--muted);background:var(--surface)">Carico Leo…</div>
+      <iframe id="leoframe" title="Leo" style="width:100%;height:100%;border:0;display:block"></iframe>
+    </div>
   </div>
 </div>
 
