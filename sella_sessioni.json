@@ -1,6 +1,109 @@
 {
   "sessioni": [
     {
+      "id": 1782813955531,
+      "data": "2026-06-30T10:05:55.531Z",
+      "file": "ListaMovimentiConto.csv",
+      "nuovi": 14,
+      "totale": 14,
+      "entrate": 370,
+      "uscite": -14681.97,
+      "saldo": -14311.97,
+      "categorie": {
+        "Spese Interno1 : Mutuo": -800.22,
+        "Redditi : Redditi InternoUno e Deluxe": 370,
+        "Spese Interno1 : Tasse": -13710.43,
+        "Spese Interno1 : Ufficio": -134.32,
+        "Spese Interno1 : Spese Personali": -37
+      },
+      "movimenti": [
+        {
+          "data": "30/06/2026",
+          "desc": "AFFITTO MENSILE IMMOBILE VIA LORENZO IL MAGNIFICO 158 A CHIARA CASTIGLIONI",
+          "importo": -0.22,
+          "cat": "Spese Interno1 : Mutuo"
+        },
+        {
+          "data": "30/06/2026",
+          "desc": "AFFITTO MENSILE IMMOBILE VIA LORENZO IL MAGNIFICO 158 A CHIARA CASTIGLIONI",
+          "importo": -800,
+          "cat": "Spese Interno1 : Mutuo"
+        },
+        {
+          "data": "30/06/2026",
+          "desc": "BS 323978547168 2906",
+          "importo": 40,
+          "cat": "Redditi : Redditi InternoUno e Deluxe"
+        },
+        {
+          "data": "30/06/2026",
+          "desc": "PAG. DELEGA F24 DEL 300626",
+          "importo": -13293.93,
+          "cat": "Spese Interno1 : Tasse"
+        },
+        {
+          "data": "30/06/2026",
+          "desc": "PAG. DELEGA F24 DEL 300626",
+          "importo": -416.5,
+          "cat": "Spese Interno1 : Tasse"
+        },
+        {
+          "data": "30/06/2026",
+          "desc": "ANTHROPIC* CLAUDE SUB +14152360599",
+          "importo": -78.33,
+          "cat": "Spese Interno1 : Ufficio"
+        },
+        {
+          "data": "29/06/2026",
+          "desc": "Beni e Servizi DA ALEX UMBRI",
+          "importo": 200,
+          "cat": "Redditi : Redditi InternoUno e Deluxe"
+        },
+        {
+          "data": "29/06/2026",
+          "desc": "BS 323978547368 2806",
+          "importo": 40,
+          "cat": "Redditi : Redditi InternoUno e Deluxe"
+        },
+        {
+          "data": "29/06/2026",
+          "desc": "SumUp *EDOARDO GUGLIETTA SPERLONGA",
+          "importo": -22,
+          "cat": "Spese Interno1 : Spese Personali"
+        },
+        {
+          "data": "28/06/2026",
+          "desc": "BS 323978547168 2706",
+          "importo": 25,
+          "cat": "Redditi : Redditi InternoUno e Deluxe"
+        },
+        {
+          "data": "28/06/2026",
+          "desc": "BS 323978547368 2706",
+          "importo": 40,
+          "cat": "Redditi : Redditi InternoUno e Deluxe"
+        },
+        {
+          "data": "28/06/2026",
+          "desc": "SNACK BAR DE PAROLIS PAS SPERLONGA LT",
+          "importo": -15,
+          "cat": "Spese Interno1 : Spese Personali"
+        },
+        {
+          "data": "27/06/2026",
+          "desc": "PRICELABSINC*DYNAPRICE CHICAGO",
+          "importo": -55.99,
+          "cat": "Spese Interno1 : Ufficio"
+        },
+        {
+          "data": "27/06/2026",
+          "desc": "BS 323978547368 2606",
+          "importo": 25,
+          "cat": "Redditi : Redditi InternoUno e Deluxe"
+        }
+      ]
+    },
+    {
       "id": 1782475834136,
       "data": "2026-06-26T12:10:34.136Z",
       "file": "ListaMovimentiConto-2.csv",
