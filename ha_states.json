@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-06-30T22:30:50.728Z",
+  "timestamp": "2026-06-30T22:30:51.600Z",
   "total": 795,
   "lights": [
     {
@@ -107,8 +107,8 @@
     {
       "id": "light.scrivania",
       "name": "Scrivania",
-      "state": "on",
-      "brightness": 60
+      "state": "off",
+      "brightness": null
     },
     {
       "id": "light.muro",
