@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-06-30T22:31:57.060Z",
+  "timestamp": "2026-06-30T22:43:37.568Z",
   "total": 795,
   "lights": [
     {
@@ -17,7 +17,7 @@
     {
       "id": "light.bambine_scrivania",
       "name": "Bambine scrivania",
-      "state": "off",
+      "state": "on",
       "brightness": null
     },
     {
@@ -274,7 +274,7 @@
     {
       "id": "switch.bambine_scrivania",
       "name": "Bambine scrivania",
-      "state": "off"
+      "state": "on"
     },
     {
       "id": "switch.aria_condizionata",
@@ -329,17 +329,17 @@
     {
       "id": "switch.salone_non_disturbare",
       "name": "Salone Non disturbare",
-      "state": "off"
+      "state": "unavailable"
     },
     {
       "id": "switch.viola_non_disturbare",
       "name": "Viola Non disturbare",
-      "state": "off"
+      "state": "unavailable"
     },
     {
       "id": "switch.tv_salone_non_disturbare",
       "name": "Alexa tv salotto Non disturbare",
-      "state": "off"
+      "state": "unavailable"
     },
     {
       "id": "switch.tv_cucina_non_disturbare",
@@ -349,27 +349,27 @@
     {
       "id": "switch.echo_bagno_piccolo_non_disturbare",
       "name": "Echo Bagno Piccolo Non disturbare",
-      "state": "off"
+      "state": "unavailable"
     },
     {
       "id": "switch.alexa_giardino_non_disturbare",
       "name": "Alexa Giardino Non disturbare",
-      "state": "off"
+      "state": "unavailable"
     },
     {
       "id": "switch.cucina_non_disturbare",
       "name": "Cucina Non disturbare",
-      "state": "off"
+      "state": "unavailable"
     },
     {
       "id": "switch.echo_alessia_non_disturbare",
       "name": "Echo Alessia Non disturbare",
-      "state": "off"
+      "state": "unavailable"
     },
     {
       "id": "switch.camera_non_disturbare",
       "name": "Camera Non disturbare",
-      "state": "on"
+      "state": "unavailable"
     },
     {
       "id": "switch.fly_smart_timer_smart_watering_program",
@@ -1243,7 +1243,7 @@
     {
       "id": "sensor.hue_motion_sensor_1_temperature",
       "name": "Hue motion sensor 1 Temperatura",
-      "state": "26.0",
+      "state": "25.9",
       "unit": "°C"
     },
     {
@@ -1279,7 +1279,7 @@
     {
       "id": "sensor.hue_dimmer_switch_1_battery",
       "name": "Hue dimmer Alessia Batteria",
-      "state": "70",
+      "state": "69",
       "unit": "%"
     },
     {
@@ -1291,19 +1291,19 @@
     {
       "id": "sensor.cancello_ultima_attivita",
       "name": "Cancello Ultima attività",
-      "state": "2026-06-30T20:39:23+00:00",
+      "state": "2026-06-30T22:34:01+00:00",
       "unit": null
     },
     {
       "id": "sensor.cancello_ultimo_ding",
       "name": "Cancello Ultimo ding",
-      "state": "2026-06-30T20:39:23+00:00",
+      "state": "2026-06-30T22:33:11+00:00",
       "unit": null
     },
     {
       "id": "sensor.cancello_ultimo_movimento",
       "name": "Cancello Ultimo movimento",
-      "state": "2026-06-30T19:18:50+00:00",
+      "state": "2026-06-30T22:34:01+00:00",
       "unit": null
     },
     {
@@ -1411,7 +1411,7 @@
     {
       "id": "sensor.netatmo_casa_temperature",
       "name": "Casa Temperatura",
-      "state": "30.1",
+      "state": "30.0",
       "unit": "°C"
     },
     {
@@ -1423,7 +1423,7 @@
     {
       "id": "sensor.netatmo_casa_humidity",
       "name": "Casa Umidità",
-      "state": "54.4",
+      "state": "54.5",
       "unit": "%"
     },
     {
@@ -1441,7 +1441,7 @@
     {
       "id": "sensor.netatmo_casa_wind_strength",
       "name": "Casa Velocità del vento",
-      "state": "5.1",
+      "state": "5.3",
       "unit": "km/h"
     },
     {
@@ -1453,7 +1453,7 @@
     {
       "id": "sensor.luci_scale_campaldino_energia_totale",
       "name": "Luci scale Campaldino  Energia totale",
-      "state": "1.687",
+      "state": "1.716",
       "unit": "kWh"
     },
     {
@@ -1471,19 +1471,19 @@
     {
       "id": "sensor.netatmo_la_mia_abitazione_interno_co2",
       "name": "Termometro Camera Anidride carbonica",
-      "state": "903",
+      "state": "912",
       "unit": "ppm"
     },
     {
       "id": "sensor.netatmo_la_mia_abitazione_interno_pressure",
       "name": "Termometro Camera Pressione atmosferica",
-      "state": "1020.1",
+      "state": "1019.8",
       "unit": "mbar"
     },
     {
       "id": "sensor.netatmo_la_mia_abitazione_interno_noise",
       "name": "Termometro Camera Noise",
-      "state": "37",
+      "state": "39",
       "unit": "dB"
     },
     {
@@ -1495,13 +1495,13 @@
     {
       "id": "sensor.netatmo_la_mia_abitazione_interno_esterno_temperature",
       "name": "Termomentro Giardino Temperatura",
-      "state": "29.1",
+      "state": "28.7",
       "unit": "°C"
     },
     {
       "id": "sensor.netatmo_la_mia_abitazione_interno_esterno_humidity",
       "name": "Termomentro Giardino Umidità",
-      "state": "55",
+      "state": "56",
       "unit": "%"
     },
     {
@@ -1615,25 +1615,25 @@
     {
       "id": "sensor.viola_illuminamento",
       "name": "Viola Illuminamento",
-      "state": "0.0",
+      "state": "unavailable",
       "unit": "lx"
     },
     {
       "id": "sensor.echo_bagno_piccolo_illuminamento",
       "name": "Echo Bagno Piccolo Illuminamento",
-      "state": "0.0",
+      "state": "unavailable",
       "unit": "lx"
     },
     {
       "id": "sensor.cucina_illuminamento",
       "name": "Cucina Illuminamento",
-      "state": "8.0",
+      "state": "unavailable",
       "unit": "lx"
     },
     {
       "id": "sensor.echo_alessia_illuminamento",
       "name": "Echo Alessia Illuminamento",
-      "state": "18.0",
+      "state": "unavailable",
       "unit": "lx"
     },
     {
@@ -2059,7 +2059,7 @@
     {
       "id": "sensor.camera_cucina_info",
       "name": "Camera Cucina Info",
-      "state": "2026-06-30T22:28:46+00:00",
+      "state": "2026-06-30T22:38:46+00:00",
       "unit": null
     },
     {
@@ -2095,7 +2095,7 @@
     {
       "id": "sensor.cancello_info",
       "name": "Cancello Info",
-      "state": "2026-06-30T20:39:46+00:00",
+      "state": "2026-06-30T22:34:34+00:00",
       "unit": null
     },
     {
@@ -2376,7 +2376,7 @@
     {
       "id": "person.viola",
       "name": "viola",
-      "state": "not_home"
+      "state": "home"
     },
     {
       "id": "person.filippo_2",
