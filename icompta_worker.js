@@ -444,26 +444,42 @@ var icompta_worker_default = {
         const raw = await env.ICOMPTA_KV.get(k.name);
         if (!raw) return null;
         const d = JSON.parse(raw);
-        return { key: k.name, date: d.date, year: d.year, txCount: d.txCount, metaSize: d.metaSize };
+        return { key: k.name, date: d.date, year: d.year, txCount: d.txCount, metaSize: d.metaSize, auto: d.auto || k.name.startsWith("backup:auto:"), preRestore: d.preRestore || false };
       }));
       return json(backups.filter(Boolean).sort((a,b) => b.date.localeCompare(a.date)));
     }
 
     if (path === "/api/backup/create" && method === "POST") {
+      const isAuto = url.searchParams.get("auto") === "1";
       const now = new Date();
       const year = now.getFullYear();
-      const dateStr = now.toISOString().slice(0,16).replace('T',' ');
-      const key = `backup:${now.toISOString().slice(0,10)}T${now.toISOString().slice(11,16)}:${year}`;
+      const iso = now.toISOString();
+      const dateStr = iso.slice(0,16).replace('T',' ');
+      const stamp = isAuto ? iso.slice(0,19) : (iso.slice(0,10) + 'T' + iso.slice(11,16));
+      const key = (isAuto ? "backup:auto:" : "backup:") + `${stamp}:${year}`;
       const metaRaw = await env.ICOMPTA_KV.get(`icompta:meta`);
       const txRaw   = await env.ICOMPTA_KV.get(`icompta:tx:${year}`);
       const txData  = txRaw ? JSON.parse(txRaw) : [];
       const payload = JSON.stringify({
         date: dateStr, year, txCount: txData.length,
         metaSize: metaRaw ? metaRaw.length : 0,
+        auto: isAuto,
         meta: metaRaw, tx: txRaw
       });
       await env.ICOMPTA_KV.put(key, payload);
-      return json({ ok: true, key, txCount: txData.length, date: dateStr });
+      // Retention: conserva solo gli auto-backup degli ultimi 7 giorni (i manuali restano)
+      let pruned = 0;
+      if (isAuto) {
+        try {
+          const cutoff = new Date(now.getTime() - 7 * 864e5).toISOString().slice(0,10);
+          const lst = await env.ICOMPTA_KV.list({ prefix: "backup:auto:" });
+          for (const k of lst.keys) {
+            const m = k.name.match(/^backup:auto:(\d{4}-\d{2}-\d{2})/);
+            if (m && m[1] < cutoff) { await env.ICOMPTA_KV.delete(k.name); pruned++; }
+          }
+        } catch(e) {}
+      }
+      return json({ ok: true, key, txCount: txData.length, date: dateStr, auto: isAuto, pruned });
     }
 
     if (path === "/api/backup/restore" && method === "POST") {
@@ -471,6 +487,20 @@ var icompta_worker_default = {
       const raw = await env.ICOMPTA_KV.get(body.key);
       if (!raw) return err("Backup non trovato", 404);
       const d = JSON.parse(raw);
+      // Sicurezza: salva lo stato ATTUALE prima di sovrascrivere (ripristino annullabile)
+      try {
+        const now = new Date();
+        const yr = d.year;
+        const curMeta = await env.ICOMPTA_KV.get("icompta:meta");
+        const curTx   = await env.ICOMPTA_KV.get(`icompta:tx:${yr}`);
+        const curTxData = curTx ? JSON.parse(curTx) : [];
+        const safeKey = "backup:auto:" + now.toISOString().slice(0,19) + ":" + yr;
+        await env.ICOMPTA_KV.put(safeKey, JSON.stringify({
+          date: now.toISOString().slice(0,16).replace('T',' '), year: yr,
+          txCount: curTxData.length, metaSize: curMeta ? curMeta.length : 0,
+          auto: true, preRestore: true, meta: curMeta, tx: curTx
+        }));
+      } catch(e) {}
       if (d.meta) await env.ICOMPTA_KV.put("icompta:meta", d.meta);
       if (d.tx)   await env.ICOMPTA_KV.put(`icompta:tx:${d.year}`, d.tx);
       return json({ ok: true, year: d.year, txCount: d.txCount });
