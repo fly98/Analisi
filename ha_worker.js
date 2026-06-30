@@ -15,12 +15,22 @@ export default {
     const corsHeaders = {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-API-Key',
       'Content-Type': 'application/json'
     }
 
     if (request.method === 'OPTIONS') {
       return new Response(null, { headers: corsHeaders })
+    }
+
+    // Sicurezza: se è impostato il secret HA_API_KEY, ogni richiesta
+    // deve presentare l'header X-API-Key corretto. Se il secret non è
+    // ancora impostato, il worker resta aperto (nessuna rottura al deploy).
+    if (env.HA_API_KEY) {
+      const provided = request.headers.get('X-API-Key')
+      if (provided !== env.HA_API_KEY) {
+        return new Response(JSON.stringify({ error: 'unauthorized' }), { status: 401, headers: corsHeaders })
+      }
     }
 
     // GET /dump - salva tutti gli stati HA su GitHub e ritorna summary
