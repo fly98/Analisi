@@ -166,6 +166,16 @@
   }
   #toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
   #toast.err{border-color:rgba(255,107,107,.5)}
+
+  /* unlock */
+  .unlock{max-width:360px; margin:56px auto; text-align:center; background:var(--bg2); border:1px solid var(--line); border-radius:22px; padding:34px 26px}
+  .ulk-ic{font-size:32px; margin-bottom:10px}
+  .ulk-t{font-size:20px; font-weight:700; margin-bottom:6px; letter-spacing:-.01em}
+  .ulk-s{font-size:13px; color:var(--muted); line-height:1.55; margin-bottom:20px}
+  .unlock input{width:100%; background:var(--bg); border:1px solid var(--line2); border-radius:13px; padding:13px 15px; color:var(--text); font-family:'DM Mono',monospace; font-size:15px; text-align:center; margin-bottom:12px}
+  .unlock input:focus{outline:none; border-color:var(--amber)}
+  .ulk-b{width:100%; background:var(--amber); color:#1a1410; border:none; border-radius:13px; padding:13px; font-size:15px; font-weight:700; cursor:pointer; font-family:'DM Sans',sans-serif}
+  .ulk-b:active{opacity:.85}
 </style>
 </head>
 <body>
@@ -173,10 +183,13 @@
   <header>
     <div class="hrow">
       <div class="brand">Casa<span class="dot">.</span></div>
-      <button class="reload" id="reload" onclick="load()">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6"/></svg>
-        <span id="ago">—</span>
-      </button>
+      <div style="display:flex; gap:8px">
+        <button class="reload" id="lockbtn" onclick="changeKey()" title="Chiave di accesso">🔒</button>
+        <button class="reload" id="reload" onclick="load()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6"/></svg>
+          <span id="ago">—</span>
+        </button>
+      </div>
     </div>
     <div class="summary" id="summary"></div>
   </header>
@@ -187,7 +200,7 @@
 
 <script>
 const WORKER = "https://ha-worker.f-castiglioni.workers.dev";
-const KEY = ""; // quando metteremo in sicurezza il worker, qui va la chiave
+let KEY = localStorage.getItem('ha_key') || ""; // salvata solo su questo dispositivo
 
 // ── Ordine e classificazione stanze (provvisoria fino alla piantina) ──
 const ROOM_ORDER = ["Camera","Bambine","Cucina","Salone","Studio","Giardino","Spa","Lavanderia","Altro"];
@@ -240,6 +253,7 @@ async function api(path, opts={}){
   const h = Object.assign({'Content-Type':'application/json'}, opts.headers||{});
   if(KEY) h['X-API-Key']=KEY;
   const r = await fetch(WORKER+path, Object.assign({}, opts, {headers:h}));
+  if(r.status===401){ const e=new Error('unauthorized'); e.code=401; throw e; }
   if(!r.ok) throw new Error('HTTP '+r.status);
   return r.json();
 }
@@ -248,7 +262,10 @@ async function call(domain, service, entity_id, data={}){
     await api('/call', {method:'POST', body:JSON.stringify({domain, service, entity_id, data})});
     toast('Fatto');
     setTimeout(load, 700);
-  }catch(e){ toast('Errore: '+e.message, true); }
+  }catch(e){
+    if(e.code===401){ KEY=''; localStorage.removeItem('ha_key'); showUnlock('Chiave non valida. Reinseriscila.'); return; }
+    toast('Errore: '+e.message, true);
+  }
 }
 
 async function load(){
@@ -259,6 +276,7 @@ async function load(){
     render(d);
     startAgo();
   }catch(e){
+    if(e.code===401){ KEY=''; localStorage.removeItem('ha_key'); showUnlock('Casa protetta. Inserisci la chiave di accesso.'); return; }
     document.getElementById('app').innerHTML =
       '<div class="errbox">Non riesco a raggiungere la casa.<br>'+e.message+
       '<br><button onclick="load()">Riprova</button></div>';
@@ -407,6 +425,29 @@ function toast(msg, err){
   t.className='show'+(err?' err':''); clearTimeout(toastT);
   toastT=setTimeout(()=>t.className='',1600);
 }
+
+function showUnlock(msg){
+  clearInterval(agoTimer);
+  document.getElementById('summary').innerHTML='';
+  document.getElementById('ago').textContent='🔒';
+  document.getElementById('app').innerHTML = `
+    <div class="unlock">
+      <div class="ulk-ic">🔒</div>
+      <div class="ulk-t">Casa protetta</div>
+      <div class="ulk-s">${msg||'Inserisci la chiave di accesso. Resta salvata solo su questo dispositivo.'}</div>
+      <input id="ulk-in" type="password" inputmode="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Chiave" onkeydown="if(event.key==='Enter')saveKey()">
+      <button class="ulk-b" onclick="saveKey()">Sblocca</button>
+    </div>`;
+  setTimeout(()=>{ const i=document.getElementById('ulk-in'); if(i) i.focus(); },120);
+}
+function saveKey(){
+  const i=document.getElementById('ulk-in'); if(!i) return;
+  const v=i.value.trim(); if(!v) return;
+  KEY=v; localStorage.setItem('ha_key',v);
+  document.getElementById('app').innerHTML='<div class="loading">Verifico…</div>';
+  load();
+}
+function changeKey(){ showUnlock('Inserisci o aggiorna la chiave di accesso.'); }
 
 load();
 setInterval(()=>{ if(!document.hidden) load(); }, 20000);
