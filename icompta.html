@@ -3827,6 +3827,23 @@ async function sellaAutoDownload() {
 
         } catch(ignored) {}
       }
+      // Fallback robusto: stessa data+importo ma descrizione diversa.
+      // Caso tipico Fineco: EB dà la sola causale ("fineco"), iCompta ha il nome lungo
+      // ("Ordinante: ... Causale: FINECO"). Se la descrizione EB è contenuta nel nome
+      // iCompta (o c'è un solo movimento con quella data+importo) → è la stessa TX.
+      if (!isDup && dateISO && dateISO.length === 10) {
+        var daLookup = dateISO + '|' + amtStr;
+        var cands = _ebExistingByDateAmt[daLookup] || [];
+        if (cands.length) {
+          if (descUp && descUp.length >= 4) {
+            for (var ci3 = 0; ci3 < cands.length; ci3++) {
+              if (cands[ci3].indexOf(descUp) >= 0) { isDup = true; break; }
+            }
+          }
+          // un solo movimento con identica data+importo: quasi certamente lo stesso
+          if (!isDup && cands.length === 1) isDup = true;
+        }
+      }
       sellaMovimenti.push({
         dateISO: dateISO,
         dataOp: dateISO ? dateISO.split('-').reverse().join('/') : '',
@@ -3875,9 +3892,11 @@ async function sellaAutoDownload() {
     }
   }
 
+  var _ebExistingByDateAmt = {};
   async function _ebGetExistingKeys(accId) {
     // Reset cache per avere dati freschi
     txCache = {};
+    _ebExistingByDateAmt = {};
     var keys = new Set();
     var totalTx = 0, matchTx = 0;
     for (var yi=0; yi<(meta.years||[]).length; yi++) {
@@ -3895,9 +3914,13 @@ async function sellaAutoDownload() {
         } else {
           amt = tx.amount || 0;
         }
-        var name = (tx.name || '').trim().substring(0,32).toUpperCase();
-        var k = (tx.date||'') + '|' + parseFloat(amt).toFixed(2) + '|' + name;
+        var fullUp = (tx.name || '').trim().toUpperCase();
+        var name = fullUp.substring(0,32);
+        var daK = (tx.date||'') + '|' + parseFloat(amt).toFixed(2);
+        var k = daK + '|' + name;
         keys.add(k);
+        if (!_ebExistingByDateAmt[daK]) _ebExistingByDateAmt[daK] = [];
+        _ebExistingByDateAmt[daK].push(fullUp);
         // Per TX con nome=codice identificativo (Sella Personale vecchio import)
         // aggiungi anche chiave senza descrizione per fallback
         if (/^\d{10,}$/.test((tx.name||'').trim())) {
@@ -3905,7 +3928,7 @@ async function sellaAutoDownload() {
         }
       }
     }
-    var logId = accId === EB_ACCOUNTS['personale'].iComptaAccId ? 'eb-log-personale' : 'eb-log-azienda';
+    var logId = accId === EB_ACCOUNTS['fineco'].iComptaAccId ? 'eb-log-fineco' : accId === EB_ACCOUNTS['personale'].iComptaAccId ? 'eb-log-personale' : 'eb-log-azienda';
     _autoLog(logId, 'dedup: ' + matchTx + ' TX trovate per ' + accId.slice(0,8) + '... su ' + totalTx + ' totali', 'info');
     return keys;
   }
@@ -3934,6 +3957,7 @@ async function sellaAutoDownload() {
 
   async function finecoEBDownload() {
     try {
+      var _fl = document.getElementById('eb-log-fineco'); if (_fl) _fl.innerHTML = '';
       _ebLog('fineco', '🏦 Connessione Fineco via Enable Banking...');
       await _ebImportMovimenti('fineco');
       window._ebCurrentTipo = 'fineco';
