@@ -1494,7 +1494,7 @@ function openNewTx() {
   document.getElementById('tx-modal').style.display = 'flex';
 }
 
-function openEditTx(tx) {
+async function openEditTx(tx) {
   editingTx = tx;
   document.getElementById('modal-title').textContent = 'Modifica transazione';
   document.getElementById('btn-delete').style.display = 'block';
@@ -1518,7 +1518,32 @@ function openEditTx(tx) {
   document.getElementById('splits-container').innerHTML = '';
   for (const s of splits) addSplit(s);
 
+  // ── Sezione trasferimento: inizializza SEMPRE (evita stato residuo del modale)
+  populateTransferAccounts(tx.accountId);
+  resetTransfer();
   document.getElementById('tx-modal').style.display = 'flex';
+
+  // Se è un trasferimento, ripristina toggle ON + conto di destinazione (la controparte)
+  if (tx.linkedTxId) {
+    document.getElementById('transfer-toggle').classList.add('on');
+    document.getElementById('transfer-body').classList.add('open');
+    let linkedAccId = null;
+    for (const yr of Object.keys(txCache)) {
+      const l = (txCache[yr] || []).find(t => t.id === tx.linkedTxId);
+      if (l) { linkedAccId = l.accountId; break; }
+    }
+    if (!linkedAccId) {
+      for (const yr of (meta.years || [])) {
+        try {
+          const txs = await api('GET', '/api/tx/' + yr);
+          txCache[yr] = txs;
+          const l = txs.find(t => t.id === tx.linkedTxId);
+          if (l) { linkedAccId = l.accountId; break; }
+        } catch (e) {}
+      }
+    }
+    if (linkedAccId) document.getElementById('transfer-account').value = linkedAccId;
+  }
 }
 
 function addSplit(split = null) {
