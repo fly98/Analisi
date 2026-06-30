@@ -1,3 +1,4 @@
+import * as XLSX from "xlsx";
 var __defProp = Object.defineProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
 
@@ -51,10 +52,9 @@ async function runFinecoAuto(env) {
   const r = await fetch("http://fly98.duckdns.org:3456/fineco-portafoglio", { signal: AbortSignal.timeout(120000) });
   if (!r.ok) throw new Error("Mac/Playwright HTTP " + r.status);
   const buf = await r.arrayBuffer();
-  const { read, utils } = await import("https://cdn.sheetjs.com/xlsx-0.20.3/package/xlsx.mjs");
-  const wb = read(new Uint8Array(buf), { type: "array" });
+  const wb = XLSX.read(new Uint8Array(buf), { type: "array" });
   const ws = wb.Sheets[wb.SheetNames[0]];
-  const rows = utils.sheet_to_json(ws, { header: 1, defval: null });
+  const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null });
   // Header con ISIN + mappa colonne (identico a _importaRigheFineco lato app)
   let hi = -1;
   for (let i = 0; i < rows.length; i++) {
@@ -630,10 +630,9 @@ var icompta_worker_default = {
         const binary = atob(b64);
         const bytes = new Uint8Array(binary.length);
         for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-        const { read, utils } = await import('https://cdn.sheetjs.com/xlsx-0.20.3/package/xlsx.mjs');
-        const wb = read(bytes, { type: 'array' });
+        const wb = XLSX.read(bytes, { type: 'array' });
         const ws = wb.Sheets[wb.SheetNames[0]];
-        const rows = utils.sheet_to_json(ws, { header: 1, defval: null });
+        const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null });
         return json({ ok: true, rows: rows });
       } catch(e) {
         return err("Errore parsing XLS: " + e.message);
