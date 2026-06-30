@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-06-30T22:29:51.354Z",
+  "timestamp": "2026-06-30T22:30:11.084Z",
   "total": 795,
   "lights": [
     {
@@ -54,7 +54,7 @@
       "id": "light.lampada_tv",
       "name": "Lampada tv",
       "state": "on",
-      "brightness": 255
+      "brightness": 59
     },
     {
       "id": "light.hue_play_gradient_lightstrip_1",
@@ -150,7 +150,7 @@
       "id": "light.salone",
       "name": "Salone",
       "state": "on",
-      "brightness": 255
+      "brightness": 190
     },
     {
       "id": "light.pranzo",
