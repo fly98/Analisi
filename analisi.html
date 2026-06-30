@@ -343,6 +343,18 @@ document.getElementById('str-tabs').addEventListener('click', function(e) {
 });
 
 // ─── LOAD ALL ────────────────────────────────────────────
+async function loadLastUpdate() {
+  try {
+    var lu = await api('GET', '/api/import-log?key=icompta:fineco-inv:last-update');
+    if (lu && lu.at) {
+      var d = new Date(lu.at);
+      var s = d.toLocaleString('it-IT', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
+      var el = document.getElementById('last-update');
+      if (el) el.textContent = 'Agg. ' + s;
+    }
+  } catch(e) {}
+}
+
 async function loadAll() {
   await Promise.all([loadSnapshots(), loadStrumenti(), loadTxFineco()]);
   renderKpi();
@@ -351,6 +363,7 @@ async function loadAll() {
   populateCedoleMonths();
   renderCedole();
   renderCalendarioCedole();
+  loadLastUpdate();
   // setTimeout garantisce che il DOM sia aggiornato prima di renderizzare la tabella
   setTimeout(function() {
     if (strumenti.length > 0) {
