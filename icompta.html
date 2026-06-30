@@ -4689,7 +4689,7 @@ function renderCategorieTree() {
     if (act === 'edit')   openEditCategoria(id);
     if (act === 'toggle') toggleCategoriaHidden(id);
     if (act === 'merge')  openMergeCategoria(id);
-    if (act === 'del')    openMergeCategoria(id, true); // del apre merge con autoDelete
+    if (act === 'del')    deleteCategoriaById(id); // vuote: elimina diretto; con TX: apre merge
   };
 }
 
