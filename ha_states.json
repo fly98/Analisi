@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-06-30T22:56:21.775Z",
+  "timestamp": "2026-06-30T22:56:41.287Z",
   "total": 795,
   "lights": [
     {
@@ -329,17 +329,17 @@
     {
       "id": "switch.salone_non_disturbare",
       "name": "Salone Non disturbare",
-      "state": "unavailable"
+      "state": "off"
     },
     {
       "id": "switch.viola_non_disturbare",
       "name": "Viola Non disturbare",
-      "state": "unavailable"
+      "state": "off"
     },
     {
       "id": "switch.tv_salone_non_disturbare",
       "name": "Alexa tv salotto Non disturbare",
-      "state": "unavailable"
+      "state": "off"
     },
     {
       "id": "switch.tv_cucina_non_disturbare",
@@ -349,27 +349,27 @@
     {
       "id": "switch.echo_bagno_piccolo_non_disturbare",
       "name": "Echo Bagno Piccolo Non disturbare",
-      "state": "unavailable"
+      "state": "off"
     },
     {
       "id": "switch.alexa_giardino_non_disturbare",
       "name": "Alexa Giardino Non disturbare",
-      "state": "unavailable"
+      "state": "off"
     },
     {
       "id": "switch.cucina_non_disturbare",
       "name": "Cucina Non disturbare",
-      "state": "unavailable"
+      "state": "off"
     },
     {
       "id": "switch.echo_alessia_non_disturbare",
       "name": "Echo Alessia Non disturbare",
-      "state": "unavailable"
+      "state": "off"
     },
     {
       "id": "switch.camera_non_disturbare",
       "name": "Camera Non disturbare",
-      "state": "unavailable"
+      "state": "on"
     },
     {
       "id": "switch.fly_smart_timer_smart_watering_program",
@@ -1537,7 +1537,7 @@
     {
       "id": "sensor.tv_salone_energy_difference",
       "name": "Tv Salone Energy difference",
-      "state": "0.001769444",
+      "state": "0.014634067",
       "unit": "kWh"
     },
     {
@@ -1615,25 +1615,25 @@
     {
       "id": "sensor.viola_illuminamento",
       "name": "Viola Illuminamento",
-      "state": "unavailable",
+      "state": "0.0",
       "unit": "lx"
     },
     {
       "id": "sensor.echo_bagno_piccolo_illuminamento",
       "name": "Echo Bagno Piccolo Illuminamento",
-      "state": "unavailable",
+      "state": "0.0",
       "unit": "lx"
     },
     {
       "id": "sensor.cucina_illuminamento",
       "name": "Cucina Illuminamento",
-      "state": "unavailable",
+      "state": "8.0",
       "unit": "lx"
     },
     {
       "id": "sensor.echo_alessia_illuminamento",
       "name": "Echo Alessia Illuminamento",
-      "state": "unavailable",
+      "state": "18.0",
       "unit": "lx"
     },
     {
