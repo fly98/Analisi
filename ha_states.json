@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-06-30T22:46:25.170Z",
+  "timestamp": "2026-06-30T22:46:28.970Z",
   "total": 795,
   "lights": [
     {
@@ -71,20 +71,20 @@
     {
       "id": "light.luce_filippo",
       "name": "Luce Filippo",
-      "state": "on",
-      "brightness": 60
+      "state": "off",
+      "brightness": null
     },
     {
       "id": "light.luna",
       "name": "Luna",
-      "state": "on",
-      "brightness": 60
+      "state": "off",
+      "brightness": null
     },
     {
       "id": "light.luce_letto",
       "name": "Luce letto",
-      "state": "on",
-      "brightness": 59
+      "state": "off",
+      "brightness": null
     },
     {
       "id": "light.ikea3",
@@ -131,8 +131,8 @@
     {
       "id": "light.luce_mena",
       "name": "Luce Mena",
-      "state": "on",
-      "brightness": 59
+      "state": "off",
+      "brightness": null
     },
     {
       "id": "light.camera",
