@@ -1,0 +1,29 @@
+name: Backup iCompta KV (notturno)
+
+# Backup automatico notturno: invoca il worker che salva meta + anno corrente
+# in KV come "backup:auto:..." e fa il prune dei backup auto piu' vecchi di 7 giorni.
+# I backup compaiono nella stessa lista "Backup & Ripristino" dell'app, con "Ripristina".
+
+on:
+  schedule:
+    - cron: '0 2 * * *'   # 02:00 UTC ~ 04:00 Italia (estate) / 03:00 (inverno)
+  workflow_dispatch:
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Crea backup notturno (+ retention 7gg)
+        run: |
+          RESP=$(curl -s -w $'\n%{http_code}' -X POST \
+            -H "Authorization: Bearer ${{ secrets.ICOMPTA_TOKEN }}" \
+            "https://icompta-worker.f-castiglioni.workers.dev/api/backup/create?auto=1")
+          BODY=$(echo "$RESP" | sed '$d')
+          CODE=$(echo "$RESP" | tail -n1)
+          echo "HTTP $CODE"
+          echo "Risposta: $BODY"
+          if [ "$CODE" != "200" ]; then
+            echo "::error::Backup notturno fallito (HTTP $CODE)"
+            exit 1
+          fi
+          echo "Backup notturno completato."
