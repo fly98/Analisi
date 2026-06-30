@@ -23,6 +23,12 @@ jobs:
           [[kv_namespaces]]
           binding = "ICOMPTA_KV"
           id = "1d8d7db930004f9eaa73e17af65b0957"
+
+          # Aggiornamento automatico Fineco investimenti, lun-ven.
+          # Due orari UTC: 16:00 = 18:00 Italia (ora legale), 17:00 = 18:00 Italia (ora solare).
+          # Idempotente: lo snapshot e i titoli sovrascrivono lo stesso giorno.
+          [triggers]
+          crons = ["0 16 * * 1-5", "0 17 * * 1-5"]
           EOF
       - name: Deploy with Wrangler
         uses: cloudflare/wrangler-action@v3
@@ -31,4 +37,3 @@ jobs:
           accountId: ${{ secrets.CF_ACCOUNT_ID }}
           wranglerVersion: '3'
           command: deploy --config wrangler_icompta_deploy.toml
-
