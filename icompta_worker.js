@@ -325,19 +325,27 @@ var icompta_worker_default = {
       }
     }
 
-    // ── SELLA REGOLE GET ─────────────────────────────────────────────────────
+    // ── SELLA REGOLE GET (merge: base GitHub + apprese KV) ───────────────────
     if (path === "/api/sella-regole" && method === "GET") {
+      let ghRegole = {};
       const ghPAT = env.GITHUB_PAT;
-      if (!ghPAT) return err("GITHUB_PAT non configurato", 500);
-      const r = await fetch("https://api.github.com/repos/fly98/Analisi/contents/sella_regole.json", {
-        headers: { Authorization: `Bearer ${ghPAT}`, Accept: "application/vnd.github.v3+json" }
-      });
-      if (r.status === 404) return json({});
-      if (!r.ok) return err("GitHub error " + r.status, 502);
-      const d = await r.json();
-      const raw = atob(d.content.replace(/\n/g, ""));
-      try { return json(JSON.parse(raw)); }
-      catch(e) { return json({}); }
+      if (ghPAT) {
+        try {
+          const r = await fetch("https://api.github.com/repos/fly98/Analisi/contents/sella_regole.json", {
+            headers: { Authorization: `Bearer ${ghPAT}`, Accept: "application/vnd.github.v3+json", "User-Agent": "icompta-worker" }
+          });
+          if (r.ok) {
+            const d = await r.json();
+            try { ghRegole = JSON.parse(atob(d.content.replace(/\n/g, ""))) || {}; } catch(e) {}
+          }
+        } catch(e) {}
+      }
+      let kvRegole = {};
+      try {
+        const kvRaw = await env.ICOMPTA_KV.get("icompta:sella_regole");
+        if (kvRaw) kvRegole = JSON.parse(kvRaw) || {};
+      } catch(e) {}
+      return json({ ...ghRegole, ...kvRegole });
     }
 
     // ── SELLA REGOLE PUT ─────────────────────────────────────────────────────
@@ -349,7 +357,7 @@ var icompta_worker_default = {
       if (!regole) return err("regole mancanti");
       // Legge sha attuale
       const getR = await fetch("https://api.github.com/repos/fly98/Analisi/contents/sella_regole.json", {
-        headers: { Authorization: `Bearer ${ghPAT}`, Accept: "application/vnd.github.v3+json" }
+        headers: { Authorization: `Bearer ${ghPAT}`, Accept: "application/vnd.github.v3+json", "User-Agent": "icompta-worker" }
       });
       let sha = null;
       if (getR.ok) { const gd = await getR.json(); sha = gd.sha; }
@@ -358,17 +366,11 @@ var icompta_worker_default = {
       if (sha) putBody.sha = sha;
       const putR = await fetch("https://api.github.com/repos/fly98/Analisi/contents/sella_regole.json", {
         method: "PUT",
-        headers: { Authorization: `Bearer ${ghPAT}`, "Content-Type": "application/json" },
+        headers: { Authorization: `Bearer ${ghPAT}`, "Content-Type": "application/json", "User-Agent": "icompta-worker" },
         body: JSON.stringify(putBody)
       });
       if (!putR.ok) return err("GitHub PUT error " + putR.status, 502);
       return json({ ok: true });
-    }
-
-    // ── SELLA REGOLE ─────────────────────────────────────────────────────────
-    if (path === "/api/sella-regole" && method === "GET") {
-      const raw = await env.ICOMPTA_KV.get("icompta:sella_regole");
-      return json(raw ? JSON.parse(raw) : {});
     }
 
     // ── RICORRENZE GET ───────────────────────────────────────────────────────
