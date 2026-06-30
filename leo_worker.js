@@ -143,6 +143,15 @@ async function saveStorico(body, env) {
   return { ok: true };
 }
 
+function htmlPage(inner) {
+  return new Response(
+    "<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'>" +
+    "<style>body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;max-width:640px;margin:40px auto;padding:0 16px;line-height:1.5;color:#111}code{background:#eee;padding:2px 6px;border-radius:4px;font-size:13px}a{color:#007aff}textarea{font-size:13px}</style></head><body>" +
+    inner + "</body></html>",
+    { headers: { "Content-Type": "text/html; charset=utf-8" } }
+  );
+}
+
 export default {
   async fetch(request, env) {
     if (request.method === "OPTIONS") {
@@ -152,6 +161,49 @@ export default {
     try {
       const url = new URL(request.url);
       const action = url.searchParams.get("action");
+
+      const REDIRECT_URI = "https://leo-worker.f-castiglioni.workers.dev/oauth2callback";
+
+      // Avvio re-autorizzazione Gmail: apri questo URL nel browser
+      if (action === "authStart") {
+        const p = new URLSearchParams({
+          client_id: env.GMAIL_CLIENT_ID,
+          redirect_uri: REDIRECT_URI,
+          response_type: "code",
+          scope: "https://www.googleapis.com/auth/gmail.readonly",
+          access_type: "offline",
+          prompt: "consent"
+        });
+        return Response.redirect("https://accounts.google.com/o/oauth2/v2/auth?" + p.toString(), 302);
+      }
+
+      // Callback OAuth: Google torna qui con ?code=...
+      if (url.pathname.endsWith("/oauth2callback")) {
+        const code = url.searchParams.get("code");
+        const oauthErr = url.searchParams.get("error");
+        if (oauthErr) return htmlPage("Errore da Google: " + oauthErr);
+        if (!code) return htmlPage("Nessun codice ricevuto da Google.");
+        const tokResp = await fetch("https://oauth2.googleapis.com/token", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: new URLSearchParams({
+            client_id: env.GMAIL_CLIENT_ID,
+            client_secret: env.GMAIL_CLIENT_SECRET,
+            code,
+            redirect_uri: REDIRECT_URI,
+            grant_type: "authorization_code"
+          })
+        });
+        const td = await tokResp.json();
+        if (!td.refresh_token) {
+          return htmlPage("Scambio completato ma Google NON ha restituito un refresh_token.<br><br>" +
+            "Di solito succede se l'app era gia autorizzata: vai su <a href='https://myaccount.google.com/permissions'>myaccount.google.com/permissions</a>, rimuovi l'accesso a questa app e riprova.<br><br>Risposta: <code>" + JSON.stringify(td) + "</code>");
+        }
+        return htmlPage("<b>Nuovo refresh token generato.</b><br><br>" +
+          "Copialo e incollalo nel secret <code>GMAIL_REFRESH_TOKEN</code> del worker:<br>" +
+          "Cloudflare dashboard &rarr; Workers &amp; Pages &rarr; <b>leo-worker</b> &rarr; Settings &rarr; Variables and Secrets &rarr; modifica <code>GMAIL_REFRESH_TOKEN</code>.<br><br>" +
+          "<textarea readonly style='width:100%;height:90px' onclick='this.select()'>" + td.refresh_token + "</textarea>");
+      }
 
       if (action === "getReport") {
         const result = await getAmenitizReport(env);
