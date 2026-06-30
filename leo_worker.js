@@ -205,6 +205,25 @@ export default {
           "<textarea readonly style='width:100%;height:90px' onclick='this.select()'>" + td.refresh_token + "</textarea>");
       }
 
+      // Avvia lo script Playwright sull'iMac che clicca "Esporta" su Amenitiz
+      // (Amenitiz invia poi il report via email). Stessa logica di Fineco.
+      if (action === "triggerAmenitiz") {
+        const MAC_URL = "http://fly98.duckdns.org:3456/amenitiz-pagamenti";
+        try {
+          const r = await fetch(MAC_URL, { signal: AbortSignal.timeout(120000) });
+          const body = await r.text();
+          return new Response(JSON.stringify({ ok: r.ok, status: r.status, body: body.slice(0, 300) }), {
+            status: r.ok ? 200 : 502,
+            headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        } catch (e) {
+          return new Response(JSON.stringify({ ok: false, error: "iMac non raggiungibile: " + e.message }), {
+            status: 502,
+            headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        }
+      }
+
       if (action === "getReport") {
         const result = await getAmenitizReport(env);
         return new Response(JSON.stringify(result), {
