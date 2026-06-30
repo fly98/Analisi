@@ -203,6 +203,10 @@ select:focus{border-color:var(--blue);}
   </div>
   <div class="section-title">Costi</div>
   <div class="chart-card">
+    <div class="ctrl-group" style="margin-bottom:12px">
+      <span class="ctrl-label">Categoria</span>
+      <select id="sel-cat-costi" onchange="render()"><option value="all">Tutte le categorie</option></select>
+    </div>
     <div class="chart-title" id="costi-chart-title"></div>
     <div class="chart-subtitle" id="costi-chart-sub"></div>
     <div class="chart-wrap"><canvas id="chart-costi"></canvas></div>
@@ -375,6 +379,11 @@ async function loadFinanziario() {
       }
     }
     availAnni = [...new Set(RAW.map(r=>r.anno))].sort();
+    const allCostCats = [...new Set(RAW.filter(r=>r.tipo==='costo').map(r=>r.cat))].sort((a,b)=>a.localeCompare(b,'it'));
+    const selCat = document.getElementById('sel-cat-costi');
+    const prevCatVal = selCat.value || 'all';
+    selCat.innerHTML = '<option value="all">Tutte le categorie</option>' + allCostCats.map(c=>`<option value="${c}">${c}</option>`).join('');
+    if ([...selCat.options].some(o=>o.value===prevCatVal)) selCat.value = prevCatVal;
     const today = new Date(), curYear = today.getFullYear(), curMonth = today.getMonth()+1;
     const selAnno = document.getElementById('sel-anno');
     selAnno.innerHTML = '';
@@ -474,7 +483,9 @@ function render() {
     <div class="kpi-card ${marg>=0?'green':'red'}"><div class="kpi-label">Margine</div><div class="kpi-value ${marg>=0?'green':'red'}">${marg>=0?'+':''}${fmtE(marg)}</div>${margP!==null?`<div class="kpi-delta ${marg>=margP?'up':'down'}">${pctStr(marg,margP)}</div>`:''}</div>
     <div class="kpi-card blue"><div class="kpi-label">Margine %</div><div class="kpi-value blue">${ref.ricavi>0?((marg/ref.ricavi)*100).toFixed(1)+'%':'—'}</div><div class="kpi-sub">${prorata?`al ${curDay}/${m2}`:'periodo completo'}</div></div>`;
   const labels=years.map(String);
-  const rD=years.map(y=>results[y].ricavi), cD=years.map(y=>results[y].costi), mD=years.map(y=>results[y].ricavi-results[y].costi);
+  const rD=years.map(y=>results[y].ricavi), mD=years.map(y=>results[y].ricavi-results[y].costi);
+  const catFilterCosti = (document.getElementById('sel-cat-costi')||{}).value || 'all';
+  const cD = catFilterCosti==='all' ? years.map(y=>results[y].costi) : years.map(y=>results[y].catCosti[catFilterCosti]||0);
   const rC=years.map(y=>y===refAnno?'#34c759':'rgba(52,199,89,0.28)');
   const cC=years.map(y=>y===refAnno?'#ff3b30':'rgba(255,59,48,0.28)');
   const mC=mD.map((v,i)=>{const r=years[i]===refAnno;return v>=0?(r?'#007aff':'rgba(0,122,255,0.28)'):(r?'#ff3b30':'rgba(255,59,48,0.28)');});
@@ -489,7 +500,8 @@ function render() {
     charts_fin[id]=new Chart(document.getElementById(id),{type:'bar',data:{labels,datasets:[{data,backgroundColor:colors,borderColor:colors.map(c=>c.startsWith('rgba')?c.replace('0.28','0.7'):c),borderWidth:1,borderRadius:5,borderSkipped:false}]},plugins:[dlPlugin],options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>'  '+fmtE(Math.abs(ctx.raw))}}},scales:{x:{grid:{display:false},border:{display:false}},y:{grid:{color:'#f2f2f7'},border:{display:false},ticks:{callback:v=>(v/1000).toFixed(0)+'k'}}},layout:{padding:{top:20}}}});
   }
   makeBar('chart-ricavi',rD,rC,'ricavi-chart-title','ricavi-chart-sub',`Ricavi — ${ml} · confronto anni`);
-  makeBar('chart-costi',cD,cC,'costi-chart-title','costi-chart-sub',`Costi — ${ml} · confronto anni`);
+  const costiTitle = catFilterCosti==='all' ? `Costi — ${ml} · confronto anni` : `Costi — ${catFilterCosti} — ${ml} · confronto anni`;
+  makeBar('chart-costi',cD,cC,'costi-chart-title','costi-chart-sub',costiTitle);
   if(charts_fin['chart-margine'])charts_fin['chart-margine'].destroy();
   charts_fin['chart-margine']=new Chart(document.getElementById('chart-margine'),{type:'bar',data:{labels,datasets:[{data:mD,backgroundColor:mC,borderColor:mC.map(c=>c.startsWith('rgba')?c.replace('0.28','0.7'):c),borderWidth:1,borderRadius:5,borderSkipped:false}]},plugins:[dlPlugin],options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>'  '+fmtE(ctx.raw)}}},scales:{x:{grid:{display:false},border:{display:false}},y:{grid:{color:'#f2f2f7'},border:{display:false},ticks:{callback:v=>(v>=0?'':'−')+(Math.abs(v)/1000).toFixed(0)+'k'}}},layout:{padding:{top:20}}}});
   const pal=['#007aff','#34c759','#ff9500','#ff3b30','#af52de','#5ac8fa','#ff2d55','#30b0c7','#ffcc00','#4cd964','#5856d6','#ff6b35'];
