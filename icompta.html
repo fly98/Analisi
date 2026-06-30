@@ -1443,6 +1443,10 @@ async function quickDelete(id, year) {
           break;
         }
       }
+    } else {
+      // "Solo questa": scollega la collegata per non lasciare un riferimento orfano
+      await unlinkTx(linkedId, year);
+      currentTxs.forEach(t => { if (t.id === linkedId) t.linkedTxId = null; });
     }
   } else {
     if (!confirm('Eliminare questa transazione?')) return;
@@ -1725,65 +1729,66 @@ async function saveTx() {
   const result = await api('POST', '/api/tx', { tx });
   if (result.error) { alert('Errore: ' + result.error); return; }
 
-  // Trasferimento: crea TX collegata se toggle attivo
+  // ── Trasferimento collegato ──
   const tOn = document.getElementById('transfer-toggle').classList.contains('on');
   const tAccId = document.getElementById('transfer-account').value;
-  if (tOn && tAccId && result && result.id) {
-    const total = splits.reduce((s, sp) => s + (sp.amount || 0), 0);
-    const srcName = meta.accounts.find(function(a) { return a.id === tx.accountId; })?.name || '';
-    const existingLinkedId = editingTx ? editingTx.linkedTxId : null;
+  const existingLinkedId = editingTx ? editingTx.linkedTxId : null;
+  const total = splits.reduce((s, sp) => s + (sp.amount || 0), 0);
+  const linkedCatId = splits[0]?.categoryId || null;
 
-    if (existingLinkedId) {
-      // TX esistente con collegamento — chiedi conferma
-      const updateLinked = confirm('Questa transazione è collegata a un trasferimento.\nVuoi aggiornare anche la transazione collegata?');
-      if (updateLinked) {
-        // Cerca TX collegata in cache e KV
-        let linked = null;
-        for (const yr of Object.keys(txCache)) {
-          linked = (txCache[yr] || []).find(t => t.id === existingLinkedId);
-          if (linked) break;
-        }
-        if (!linked) {
-          for (const yr of (meta.years || [])) {
-            const txs = await api('GET', '/api/tx/' + yr);
-            linked = txs.find(t => t.id === existingLinkedId);
-            if (linked) { txCache[yr] = txs; break; }
-          }
-        }
-        if (linked) {
-          // Aggiorna importo inverso + sync note e categoria
-          const newAmt = -total;
-          const linkedCatId = splits[0]?.categoryId || null;
-          const updatedLinked = Object.assign({}, linked, {
-            date: tx.date,
-            name: tx.name,
-            comment: tx.comment,
-            splits: [{ amount: newAmt, categoryId: linkedCatId, comment: splits[0]?.comment || null }],
-            linkedTxId: result.id
-          });
-          await api('POST', '/api/tx', { tx: updatedLinked });
-          delete txCache[linked.date.slice(0,4)];
-          loadedYears.delete(linked.date.slice(0,4));
+  if (tOn && existingLinkedId && result && result.id) {
+    // Modifica di una tx GIÀ collegata → sincronizza la collegata (importo inverso + data/nome/nota)
+    const updateLinked = confirm('Questa transazione è collegata a un trasferimento.\nVuoi aggiornare anche la transazione collegata?');
+    if (updateLinked) {
+      let linked = null;
+      for (const yr of Object.keys(txCache)) {
+        linked = (txCache[yr] || []).find(t => t.id === existingLinkedId);
+        if (linked) break;
+      }
+      if (!linked) {
+        for (const yr of (meta.years || [])) {
+          const txs = await api('GET', '/api/tx/' + yr);
+          linked = txs.find(t => t.id === existingLinkedId);
+          if (linked) { txCache[yr] = txs; break; }
         }
       }
-    } else {
-      // Nuova TX di trasferimento — crea la collegata
-      const linkedCatId = splits[0]?.categoryId || null;
-      const linkedTx = {
-        id: null, date: tx.date, name: tx.name,
-        accountId: tAccId, status: 'created',
-        comment: tx.comment,
-        useSumOfSplits: true, amount: null,
-        linkedTxId: result.id,
-        splits: [{ amount: -total, categoryId: linkedCatId, comment: splits[0]?.comment || null }]
-      };
-      const linkedResult = await api('POST', '/api/tx', { tx: linkedTx });
-      if (linkedResult && linkedResult.id) {
-        // Aggiorna TX originale con linkedTxId
-        const txUpdate = Object.assign({}, tx, { id: result.id, linkedTxId: linkedResult.id });
-        await api('POST', '/api/tx', { tx: txUpdate });
+      if (linked) {
+        const updatedLinked = Object.assign({}, linked, {
+          date: tx.date,
+          name: tx.name,
+          comment: tx.comment,
+          splits: [{ amount: -total, categoryId: linkedCatId, comment: splits[0]?.comment || null }],
+          linkedTxId: result.id
+        });
+        await api('POST', '/api/tx', { tx: updatedLinked });
+        delete txCache[linked.date.slice(0,4)];
+        loadedYears.delete(linked.date.slice(0,4));
       }
     }
+    delete txCache[tx.date.slice(0,4)];
+    loadedYears.delete(tx.date.slice(0,4));
+  } else if (tOn && tAccId && result && result.id) {
+    // Nuovo trasferimento (o conversione di una tx esistente) → crea la collegata
+    const linkedTx = {
+      id: null, date: tx.date, name: tx.name,
+      accountId: tAccId, status: 'created',
+      comment: tx.comment,
+      useSumOfSplits: true, amount: null,
+      linkedTxId: result.id,
+      splits: [{ amount: -total, categoryId: linkedCatId, comment: splits[0]?.comment || null }]
+    };
+    const linkedResult = await api('POST', '/api/tx', { tx: linkedTx });
+    if (linkedResult && linkedResult.id) {
+      const txUpdate = Object.assign({}, tx, { id: result.id, linkedTxId: linkedResult.id });
+      await api('POST', '/api/tx', { tx: txUpdate });
+    }
+    delete txCache[tx.date.slice(0,4)];
+    loadedYears.delete(tx.date.slice(0,4));
+  } else if (existingLinkedId && !tOn && result && result.id) {
+    // Toggle spento su una tx collegata → scollega ENTRAMBE
+    const selfUnlinked = Object.assign({}, tx, { id: result.id, linkedTxId: null });
+    await api('POST', '/api/tx', { tx: selfUnlinked });
+    await unlinkTx(existingLinkedId, (tx.date || '').slice(0,4));
     delete txCache[tx.date.slice(0,4)];
     loadedYears.delete(tx.date.slice(0,4));
   }
