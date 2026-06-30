@@ -925,25 +925,51 @@ function renderCedole() {
 // Config modificabile: per ogni obbligazione, date di stacco e cedola lorda.
 // 'tassi' gestisce lo step-up: vale la cedola con 'da' (1° stacco al nuovo tasso) più recente <= data.
 var CALENDARIO_CEDOLE = [
-  { nome: 'BTP Valore Ott28', isin: 'IT0005565392', giorno: 10, mesi: [1,4,7,10], tax: 0.125,
+  { nome: 'BTP Valore Ott28', isin: 'IT0005565392', codice: 'BTP-10OT28', giorno: 10, mesi: [1,4,7,10], tax: 0.125,
     tassi: [{ da: '2023-10-10', lordo: 153.75 }, { da: '2027-01-10', lordo: 168.75 }], nota: '4,10% → 4,50%' },
-  { nome: 'BTP Italia Mar28', isin: 'IT0005532715', giorno: 14, mesi: [3,9], tax: 0.125,
+  { nome: 'BTP Italia Mar28', isin: 'IT0005532715', codice: 'BTP-14MZ28', giorno: 14, mesi: [3,9], tax: 0.125,
     tassi: [{ da: '2023-03-14', lordo: 302.86 }], nota: 'incl. rivalutazione inflazione' },
-  { nome: 'BTP Valore Mar30', isin: 'IT0005583478', giorno: 5, mesi: [3,6,9,12], tax: 0.125,
+  { nome: 'BTP Valore Mar30', isin: 'IT0005583478', codice: 'BTP-5MZ30', giorno: 5, mesi: [3,6,9,12], tax: 0.125,
     tassi: [{ da: '2024-06-05', lordo: 162.50 }, { da: '2027-06-05', lordo: 200 }], nota: '3,25% → 4,00%' },
-  { nome: 'BTP Valore Ott32', isin: 'IT0005672016', giorno: 28, mesi: [1,4,7,10], tax: 0.125,
+  { nome: 'BTP Valore Ott32', isin: 'IT0005672016', codice: 'BTP-28OT32', giorno: 28, mesi: [1,4,7,10], tax: 0.125,
     tassi: [{ da: '2025-10-28', lordo: 325 }], nota: 'tasso stimato (~2,60%) — da confermare' },
-  { nome: 'BTP 1Mar37', isin: 'IT0005433195', giorno: 1, mesi: [3,9], tax: 0.125,
+  { nome: 'BTP 1Mar37', isin: 'IT0005433195', codice: 'BTP-1MZ37', giorno: 1, mesi: [3,9], tax: 0.125,
     tassi: [{ da: '2021-03-01', lordo: 441.14 }], nota: '' },
-  { nome: 'ENI 4,3% Feb28', isin: 'IT0005521171', giorno: 10, mesi: [2], tax: 0.26,
+  { nome: 'ENI 4,3% Feb28', isin: 'IT0005521171', codice: 'ENI-10FB28', giorno: 10, mesi: [2], tax: 0.26,
     tassi: [{ da: '2023-02-10', lordo: 172 }], nota: 'annuale' },
-  { nome: 'Mediobanca Giu31', isin: 'IT0005595597', giorno: 28, mesi: [6], tax: 0.26,
+  { nome: 'Mediobanca Giu31', isin: 'IT0005595597', codice: 'MEDIOB-28GN31', giorno: 28, mesi: [6], tax: 0.26,
     tassi: [{ da: '2024-06-28', lordo: 1200 }], nota: '4% fisso (poi variabile)' },
-  { nome: 'Goldman Sachs Giu32', isin: 'XS2982322609', giorno: 16, mesi: [6], tax: 0.26,
+  { nome: 'Goldman Sachs Giu32', isin: 'XS2982322609', codice: 'GSACHS-16GN32', giorno: 16, mesi: [6], tax: 0.26,
     tassi: [{ da: '2025-06-16', lordo: 300 }], nota: 'frequenza da confermare' },
-  { nome: 'CDP 3,5% Mar32', isin: 'IT0005634602', giorno: 26, mesi: [3,6,9,12], tax: 0.125,
+  { nome: 'CDP 3,5% Mar32', isin: 'IT0005634602', codice: 'CDP-26MZ32', giorno: 26, mesi: [3,6,9,12], tax: 0.125,
     tassi: [{ da: '2025-03-26', lordo: 227.50 }], nota: 'fisso fino mar 2028' },
 ];
+
+// Verifica accredito cedole: data da cui controllare sulla voce del conto Fineco CC.
+// Prima di questa data le cedole sono assunte accreditate (eri su Fideuram, niente movimenti qui).
+// Abbassala a '2026-05-12' per un controllo più stretto, o alzala se vuoi assumere accreditato più a lungo.
+var CEDOLE_VERIFICA_DA = '2026-06-10';
+
+// True se esiste un accredito cedola (voce "Ced.su ... <codice>") sul Fineco CC in quell'anno/mese.
+// Controlla SOLO la voce (codice), non l'importo: le indicizzate possono variare.
+function _cedolaPagata(codice, anno, mese) {
+  if (!codice) return false;
+  var ym = anno + '-' + String(mese).padStart(2, '0');
+  var trovata = false;
+  Object.values(txByYear).forEach(function(txs) {
+    if (!Array.isArray(txs)) return;
+    txs.forEach(function(tx) {
+      if (trovata) return;
+      if (tx.accountId !== 'ACC-FINECO-CC') return;
+      var nm = (tx.name || '').trim();
+      if (nm.toLowerCase().indexOf('ced.su') !== 0) return;   // accredito cedola, esclude "Rit.ced.su"
+      if (nm.indexOf(codice) === -1) return;
+      if (!tx.date || tx.date.slice(0, 7) !== ym) return;
+      trovata = true;
+    });
+  });
+  return trovata;
+}
 
 function _cedolaLordoPerData(bond, dateISO) {
   var l = bond.tassi[0].lordo;
@@ -969,7 +995,7 @@ function renderCalendarioCedole() {
     var netto = lordo * (1 - b.tax);
     b.mesi.forEach(function(m) {
       if (!perMese[m]) perMese[m] = [];
-      perMese[m].push({ giorno: b.giorno, nome: b.nome, lordo: lordo, netto: netto, nota: b.nota });
+      perMese[m].push({ giorno: b.giorno, nome: b.nome, lordo: lordo, netto: netto, nota: b.nota, codice: b.codice });
       totLordo += lordo; totNetto += netto;
     });
   });
@@ -996,8 +1022,19 @@ function renderCalendarioCedole() {
     if (rows.length) {
       rows.forEach(function(r) {
         var gg = String(r.giorno).padStart(2, '0') + '/' + String(m).padStart(2, '0');
+        var occISO = oggi.getFullYear() + '-' + String(m).padStart(2, '0') + '-' + String(r.giorno).padStart(2, '0');
+        var mark = '';
+        if (occISO <= todayISO) {
+          if (_cedolaPagata(r.codice, oggi.getFullYear(), m)) {
+            mark = '<span title="accreditata (verificata sul conto)" style="color:var(--green);font-weight:800;margin-right:6px">✓</span>';
+          } else if (occISO < CEDOLE_VERIFICA_DA) {
+            mark = '<span title="assunta accreditata (precedente al passaggio a Fineco)" style="color:var(--green);font-weight:800;margin-right:6px">✓</span>';
+          } else {
+            mark = '<span title="non ancora rilevata sul conto" style="color:var(--muted);opacity:.55;margin-right:6px">○</span>';
+          }
+        }
         html += '<div class="cedola-row">' +
-          '<span class="cedola-label">' + gg + ' · ' + esc(r.nome) +
+          '<span class="cedola-label">' + mark + gg + ' · ' + esc(r.nome) +
             (r.nota ? '<span style="display:block;font-size:10px;color:var(--muted)">' + esc(r.nota) + '</span>' : '') + '</span>' +
           '<span style="text-align:right;white-space:nowrap"><span class="cedola-val pos">' + fmt(r.lordo) + '</span>' +
             '<span style="display:block;font-size:10px;color:var(--muted)">netto ' + fmt(r.netto) + '</span></span>' +
