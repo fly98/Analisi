@@ -2711,19 +2711,25 @@ function renderAcctsMgmt() {
     var ib = b.type==='group' ? b.g.sidebarIndex : b.acc.sidebarIndex;
     return (ia||0) - (ib||0);
   });
+  // Normalizza SEMPRE sidebarIndex in 0..N: elimina le collisioni (lo swap di valori uguali era un no-op)
+  function _reindexSections() {
+    sections.forEach(function(s, i) {
+      if (s.type === 'group') s.g.sidebarIndex = i; else s.acc.sidebarIndex = i;
+    });
+  }
+  _reindexSections();
 
   function moveSectionUp(idx) {
-    if (idx === 0) return;
-    var a = sections[idx-1], b = sections[idx];
-    var ia = a.type==='group' ? a.g.sidebarIndex : a.acc.sidebarIndex;
-    var ib = b.type==='group' ? b.g.sidebarIndex : b.acc.sidebarIndex;
-    if (a.type==='group') a.g.sidebarIndex = ib; else a.acc.sidebarIndex = ib;
-    if (b.type==='group') b.g.sidebarIndex = ia; else b.acc.sidebarIndex = ia;
+    if (idx <= 0) return;
+    var t = sections[idx-1]; sections[idx-1] = sections[idx]; sections[idx] = t;
+    _reindexSections();
     renderAcctsMgmt();
   }
   function moveSectionDown(idx) {
     if (idx >= sections.length-1) return;
-    moveSectionUp(idx+1);
+    var t = sections[idx+1]; sections[idx+1] = sections[idx]; sections[idx] = t;
+    _reindexSections();
+    renderAcctsMgmt();
   }
 
   sections.forEach(function(sec, idx) {
@@ -2968,6 +2974,12 @@ async function saveAcctsMgmt() {
   saveBtn.textContent = 'Salvataggio...';
   try {
     // Normalizza sidebarIndex prima di salvare
+    // Prima: azzera i groupId orfani (puntano a gruppi inesistenti) → diventano standalone veri
+    var _grpIds = {};
+    _acctsDraft.groups.forEach(function(g){ _grpIds[g.id] = true; });
+    _acctsDraft.accounts.forEach(function(a){
+      if (a.groupId && !_grpIds[a.groupId]) { a.groupId = null; a.groupName = null; }
+    });
     var _all = [];
     _acctsDraft.groups.forEach(function(g){ _all.push({type:'g',obj:g,idx:g.sidebarIndex!==undefined?g.sidebarIndex:0}); });
     _acctsDraft.accounts.filter(function(a){return !a.groupId;}).forEach(function(a){ _all.push({type:'a',obj:a,idx:a.sidebarIndex!==undefined?a.sidebarIndex:999}); });
