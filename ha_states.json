@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-06-30T22:30:30.756Z",
+  "timestamp": "2026-06-30T22:30:33.161Z",
   "total": 795,
   "lights": [
     {
@@ -314,7 +314,7 @@
     {
       "id": "switch.tenda_salone_inverso",
       "name": "Tenda Salone Inverso",
-      "state": "on"
+      "state": "off"
     },
     {
       "id": "switch.luci_scale_campaldino_socket_1",
