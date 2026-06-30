@@ -1,5 +1,9 @@
 name: Restore iCompta KV from backup
 
+# Ripristina il KV iCompta dalla copia off-site in icompta_backup/.
+# Restore COMPLETO via _manifest.json (meta + tutti gli anni + regole/titoli/
+# ricorrenze/sessioni EB). Fallback legacy meta+tx se il manifest non c'e'.
+
 on:
   workflow_dispatch:
 
@@ -12,20 +16,8 @@ jobs:
       - name: Install Wrangler
         run: npm install -g wrangler@3
 
-      - name: Restore meta
+      - name: Restore KV da icompta_backup/
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
-        run: |
-          wrangler kv key put --namespace-id=1d8d7db930004f9eaa73e17af65b0957 "icompta:meta" --path icompta_backup/meta.json
-
-      - name: Restore TX files
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
-        run: |
-          for year in 2001 2002 2003 2004 2005 2006 2007 2008 2009 2010 2011 2012 2013 2014 2015 2016 2017 2018 2019 2020 2021 2022 2023 2024 2025 2026; do
-            echo "Restoring tx_${year}.json..."
-            wrangler kv key put --namespace-id=1d8d7db930004f9eaa73e17af65b0957 "icompta:tx:${year}" --path "icompta_backup/tx_${year}.json"
-          done
-          echo "Ripristino completato!"
+        run: node tools/kv_restore.js
