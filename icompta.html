@@ -3553,45 +3553,6 @@ function _autoLog(logId, msg, type) {
   el.scrollTop = el.scrollHeight;
 }
 
-async function sellaAutoDownload() {
-  var btn = document.getElementById('sella-auto-btn');
-  var logEl = document.getElementById('sella-auto-log');
-  btn.disabled = true;
-  btn.innerHTML = '<span>⏳</span> <span>In corso...</span>';
-  if (logEl) { logEl.style.display = 'block'; logEl.innerHTML = ''; }
-  var MAC_URL = WORKER_URL + '/api/sella-auto';
-  try {
-    _autoLog('sella-auto-log', 'Connessione al server Mac...', 'info');
-    var TOKEN = localStorage.getItem('icompta_token');
-    var resp = await fetch(MAC_URL, {
-      headers: { 'Authorization': 'Bearer ' + TOKEN },
-      signal: AbortSignal.timeout(120000)
-    });
-    if (!resp.ok) { const s=resp.status; throw Object.assign(new Error(), {_status:s}); }
-    _autoLog('sella-auto-log', 'Connesso — Playwright sta aprendo Sella...', 'info');
-    var csvText = await resp.text();
-    if (!csvText || csvText.length < 10) throw new Error('CSV vuoto o non valido ricevuto dal Mac');
-    var filename = resp.headers.get('X-Filename') || 'Sella_auto.csv';
-    _autoLog('sella-auto-log', 'CSV ricevuto: ' + filename + ' (' + (csvText.length/1024).toFixed(1) + ' KB)', 'ok');
-    btn.innerHTML = '<span>✅</span> <span>CSV ricevuto, analisi...</span>';
-    var blob = new Blob([csvText], {type:'text/csv'});
-    var file = new File([blob], filename, {type:'text/csv'});
-    _autoLog('sella-auto-log', 'Analisi movimenti in corso...', 'info');
-    await sellaHandleFile(file);
-    _autoLog('sella-auto-log', 'Importazione completata!', 'ok');
-  } catch(e) {
-    var msg = e.name==='TimeoutError' ? 'Timeout 2 min — Mac non risponde o Playwright troppo lento' :
-              e._status===502 ? 'Errore 502 — Mac non raggiungibile (sleep o server Playwright spento)' :
-              e._status===503 ? 'Errore 503 — Servizio non disponibile' :
-              e._status===504 ? 'Errore 504 — Timeout gateway' :
-              e.message || 'Errore sconosciuto';
-    _autoLog('sella-auto-log', msg, 'err');
-    _autoLog('sella-auto-log', 'Usa il caricamento manuale CSV qui sotto', 'info');
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = '<span>📥</span> <span>Scarica automaticamente da Sella</span>';
-  }
-}
 
 
   // ── Enable Banking config ─────────────────────────────────────
@@ -4278,44 +4239,6 @@ async function sellapDoImport() {
   closeSellaPImport();
 }
 
-async function sellapAutoDownload() {
-  var btn = document.getElementById('sellap-auto-btn');
-  btn.disabled = true;
-  btn.innerHTML = '<span>⏳</span> <span>In corso...</span>';
-  var logElP = document.getElementById('sellap-auto-log');
-  if (logElP) { logElP.style.display = 'block'; logElP.innerHTML = ''; }
-  try {
-    _autoLog('sellap-auto-log', 'Connessione al server Mac...', 'info');
-    var TOKEN = localStorage.getItem('icompta_token');
-    var resp = await fetch(WORKER_URL + '/api/sella-personale-auto', {
-      headers: { 'Authorization': 'Bearer ' + TOKEN },
-      signal: AbortSignal.timeout(120000)
-    });
-    if (!resp.ok) { const s=resp.status; throw Object.assign(new Error(), {_status:s}); }
-    _autoLog('sellap-auto-log', 'Connesso — Playwright sta aprendo Sella Personale...', 'info');
-    var csvText = await resp.text();
-    if (!csvText || csvText.length < 10) throw new Error('CSV vuoto o non valido ricevuto dal Mac');
-    var filenameP = resp.headers.get('X-Filename') || 'SellaPersonale_auto.csv';
-    _autoLog('sellap-auto-log', 'CSV ricevuto: ' + filenameP + ' (' + (csvText.length/1024).toFixed(1) + ' KB)', 'ok');
-    btn.innerHTML = '<span>✅</span> <span>CSV ricevuto, analisi...</span>';
-    var blob = new Blob([csvText], {type:'text/csv'});
-    var file = new File([blob], filenameP, {type:'text/csv'});
-    _autoLog('sellap-auto-log', 'Analisi movimenti in corso...', 'info');
-    await sellapHandleFile(file);
-    _autoLog('sellap-auto-log', 'Importazione completata!', 'ok');
-  } catch(e) {
-    var msg = e.name==='TimeoutError' ? 'Timeout 2 min — Mac non risponde o Playwright troppo lento' :
-              e._status===502 ? 'Errore 502 — Mac non raggiungibile (sleep o server Playwright spento)' :
-              e._status===503 ? 'Errore 503 — Servizio non disponibile' :
-              e._status===504 ? 'Errore 504 — Timeout gateway' :
-              e.message || 'Errore sconosciuto';
-    _autoLog('sellap-auto-log', msg, 'err');
-    _autoLog('sellap-auto-log', 'Usa il caricamento manuale CSV qui sotto', 'info');
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = '<span>\uD83D\uDCE5</span> <span>Scarica automaticamente da Sella</span>';
-  }
-}
 
 </script>
 
@@ -4338,10 +4261,6 @@ async function sellapAutoDownload() {
         </select>
       </div>
       <div id="eb-log-azienda" style="display:none;background:#1a1a1a;border-radius:8px;padding:8px 10px;max-height:100px;overflow-y:auto;font-family:monospace;font-size:11px;margin-bottom:8px"></div>
-      <button id="sella-auto-btn" onclick="sellaAutoDownload()" style="width:100%;padding:12px;border-radius:10px;border:none;background:var(--blue);color:#fff;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:8px">
-        <span>📥</span> <span>Scarica via Playwright (Mac)</span>
-      </button>
-          <div id="sella-auto-log" style="display:none;margin-top:8px;background:#1a1a1a;border-radius:8px;padding:8px 10px;max-height:120px;overflow-y:auto;font-family:monospace"></div>
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
         <div style="flex:1;height:1px;background:var(--border)"></div>
         <span style="font-size:12px;color:var(--faint)">oppure</span>
@@ -4413,10 +4332,6 @@ async function sellapAutoDownload() {
         </select>
       </div>
       <div id="eb-log-personale" style="display:none;background:#1a1a1a;border-radius:8px;padding:8px 10px;max-height:100px;overflow-y:auto;font-family:monospace;font-size:11px;margin-bottom:8px"></div>
-      <button id="sellap-auto-btn" onclick="sellapAutoDownload()" style="width:100%;padding:12px;border-radius:10px;border:none;background:var(--blue);color:#fff;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:8px">
-        <span>📥</span> <span>Scarica automaticamente da Sella</span>
-      </button>
-          <div id="sellap-auto-log" style="display:none;margin-top:8px;background:#1a1a1a;border-radius:8px;padding:8px 10px;max-height:120px;overflow-y:auto;font-family:monospace"></div>
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
         <div style="flex:1;height:1px;background:var(--border)"></div>
         <span style="font-size:12px;color:var(--faint)">oppure</span>
@@ -5286,40 +5201,6 @@ async function handleXLSImport(e) {
 }
 
 // ── FINECO AUTO (Playwright) ─────────────────────────────────────────────────
-async function finecoAutoCC() {
-  var toast = document.createElement('div');
-  toast.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#1a1a2e;color:#fff;padding:12px 20px;border-radius:10px;z-index:9999;font-size:13px;font-weight:600';
-  toast.textContent = '🤖 Avvio Playwright Fineco CC... (può richiedere 1-2 min)';
-  document.body.appendChild(toast);
-  try {
-    const r = await fetch(WORKER_URL + '/api/fineco-conto-auto', {
-      headers: { 'Authorization': 'Bearer ' + TOKEN }
-    });
-    if (!r.ok) { toast.textContent = '❌ Errore: ' + r.status; setTimeout(() => toast.remove(), 4000); return; }
-    const buf = await r.arrayBuffer();
-    toast.textContent = '📊 File ricevuto, elaboro...';
-    // Processa come handleImportMovimentiCC ma da ArrayBuffer
-    if (typeof XLSX === 'undefined') {
-      await new Promise(function(resolve, reject) {
-        var s = document.createElement('script');
-        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
-        s.onload = resolve; s.onerror = reject;
-        document.head.appendChild(s);
-      });
-    }
-    // Crea file finto per riusare la logica esistente
-    var fakeFile = new File([buf], 'fineco-conto-auto.xlsx', {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
-    var fakeEvent = { target: { files: [fakeFile] } };
-    toast.remove();
-    // Apri il conto CC e mostra preview
-    selectAccount('ACC-FINECO-CC', 'Fineco CC');
-    await new Promise(r => setTimeout(r, 300));
-    await handleImportMovimentiCC(fakeEvent);
-  } catch(e) {
-    toast.textContent = '❌ ' + e.message;
-    setTimeout(() => toast.remove(), 4000);
-  }
-}
 
 async function finecoAutoPortafoglio() {
   var toast = document.createElement('div');
@@ -5692,10 +5573,6 @@ function openImportXLS(contoId) {
         </select>
       </div>
       <div id="eb-log-fineco-legacy" style="display:none;background:#1a1a1a;border-radius:8px;padding:8px 10px;max-height:80px;overflow-y:auto;font-family:monospace;font-size:11px;margin-bottom:8px;color:#ccc"></div>
-      <button onclick="closeFinecoCCModal();finecoAutoCC()"
-        style="width:100%;padding:13px;border-radius:12px;border:none;background:var(--blue);color:#fff;font-size:14px;font-weight:700;cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px">
-        🤖 <span><b>Scarica via Playwright (Mac)</b><br><span style="font-size:11px;opacity:.8">Playwright scarica i movimenti da Fineco</span></span>
-      </button>
       <button onclick="closeFinecoCCModal();selectAccount('ACC-FINECO-CC','Fineco CC');setTimeout(openImportMovimentiCC,300)"
         style="width:100%;padding:13px;border-radius:12px;border:1.5px solid var(--border);background:none;font-size:14px;font-weight:600;cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px">
         📂 <span><b>Importa da file XLSX</b><br><span style="font-size:11px;color:var(--muted)">Seleziona il file esportato da Fineco</span></span>
@@ -5841,9 +5718,6 @@ document.getElementById('fineco-xls-input').addEventListener('change', function(
           <option value="30" selected>1 mese</option>
         </select>
       </div>
-      <button onclick="document.getElementById('fineco-cc-overlay').style.display='none';finecoAutoCC()" style="width:100%;padding:11px;border-radius:10px;border:none;background:var(--blue);color:#fff;font-size:13px;font-weight:600;cursor:pointer;margin-bottom:8px;display:flex;align-items:center;gap:8px">
-        <span>🤖</span> <span>Scarica via Playwright (Mac)</span>
-      </button>
       <button onclick="document.getElementById('fineco-cc-overlay').style.display='none';selectAccount('ACC-FINECO-CC','Fineco CC');setTimeout(openImportMovimentiCC,300)" style="width:100%;padding:11px;border-radius:10px;border:1.5px solid var(--border);background:none;font-size:13px;font-weight:600;cursor:pointer;margin-bottom:12px;display:flex;align-items:center;gap:8px">
         <span>📂</span> <span>Importa da file XLSX</span>
       </button>
