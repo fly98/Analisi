@@ -84,6 +84,7 @@ async function runFinecoAuto(env) {
   if (strumenti.length === 0) throw new Error("Nessuno strumento trovato nel file");
   // Salva titoli (stessa chiave del pulsante)
   await env.ICOMPTA_KV.put("icompta:fineco-inv:strumenti", JSON.stringify(strumenti));
+  await env.ICOMPTA_KV.put("icompta:fineco-inv:last-update", JSON.stringify({ at: new Date().toISOString(), src: "auto" }));
   // Snapshot giornaliero (identico a trySnapshot: sovrascrive stessa data)
   let vmTot = strumenti.reduce((s, x) => s + (x.vm || 0), 0);
   vmTot = Math.round(vmTot * 100) / 100;
@@ -666,6 +667,9 @@ var icompta_worker_default = {
       const body = await request.json();
       if (!Array.isArray(body.strumenti)) return err("strumenti deve essere array");
       await env.ICOMPTA_KV.put(`icompta:${contoId}:strumenti`, JSON.stringify(body.strumenti));
+      if (contoId === "fineco-inv") {
+        await env.ICOMPTA_KV.put("icompta:fineco-inv:last-update", JSON.stringify({ at: new Date().toISOString(), src: "app" }));
+      }
       return json({ ok: true });
     }
 
