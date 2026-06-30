@@ -1066,16 +1066,17 @@ function renderSidebar() {
   for (const acc of standaloneAccs) sections.push({ type:'standalone', acc, idx: acc.sidebarIndex !== undefined ? acc.sidebarIndex : 1000 });
   sections.sort((a,b) => a.idx - b.idx);
 
+  // Ciclo UNICO: rispetta l'ordine interlacciato (sidebarIndex) di standalone e gruppi
   for (const sec of sections) {
     if (sec.type === 'standalone') {
       list.appendChild(makeAccountRow(sec.acc));
+      continue;
     }
-  }
-
-  for (const sec of sections) { if (sec.type !== 'group') continue; const g = groupById[sec.g.id]; if (!g) continue;
+    const g = groupById[sec.g.id];
+    if (!g) continue;
     if (g.accounts.length === 0) continue;
     const gBal = balances?.groups?.[g.id] ?? null;
-    
+
     const gRow = document.createElement('div');
     gRow.className = 'group-row';
     gRow.dataset.groupId = g.id;
