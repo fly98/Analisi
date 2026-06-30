@@ -245,6 +245,14 @@ main { max-width:900px; margin:0 auto; padding:16px; display:flex;
       </div>
     </div>
 
+    <!-- Calendario cedole attese -->
+    <div class="card">
+      <div class="card-title">📅 Calendario cedole attese — prossimi 12 mesi</div>
+      <div id="calendario-cedole-body">
+        <div class="empty"><div class="spinner"></div></div>
+      </div>
+    </div>
+
   </main>
 </div>
 
@@ -315,6 +323,7 @@ async function loadAll() {
   renderTorta();
   populateCedoleMonths();
   renderCedole();
+  renderCalendarioCedole();
   // setTimeout garantisce che il DOM sia aggiornato prima di renderizzare la tabella
   setTimeout(function() {
     if (strumenti.length > 0) {
@@ -842,6 +851,86 @@ function renderCedole() {
     '<span class="cedola-val ' + (netto >= 0 ? 'pos' : 'neg') + '" style="font-size:16px">' + (netto >= 0 ? '+' : '') + fmt(netto) + '</span>' +
     '</div>';
 
+  body.innerHTML = html;
+}
+
+// ─── CALENDARIO CEDOLE ATTESE ─────────────────────────────
+// Config modificabile: per ogni obbligazione, date di stacco e cedola lorda.
+// 'tassi' gestisce lo step-up: vale la cedola con 'da' (1° stacco al nuovo tasso) più recente <= data.
+var CALENDARIO_CEDOLE = [
+  { nome: 'BTP Valore Ott28', isin: 'IT0005565392', giorno: 10, mesi: [1,4,7,10], tax: 0.125,
+    tassi: [{ da: '2023-10-10', lordo: 153.75 }, { da: '2027-01-10', lordo: 168.75 }], nota: '4,10% → 4,50%' },
+  { nome: 'BTP Italia Mar28', isin: 'IT0005532715', giorno: 14, mesi: [3,9], tax: 0.125,
+    tassi: [{ da: '2023-03-14', lordo: 270 }], nota: 'stima + rivalutazione inflazione' },
+  { nome: 'BTP Valore Mar30', isin: 'IT0005583478', giorno: 5, mesi: [3,6,9,12], tax: 0.125,
+    tassi: [{ da: '2024-06-05', lordo: 162.50 }, { da: '2027-06-05', lordo: 200 }], nota: '3,25% → 4,00%' },
+  { nome: 'BTP Valore Ott32', isin: 'IT0005672016', giorno: 28, mesi: [1,4,7,10], tax: 0.125,
+    tassi: [{ da: '2025-10-28', lordo: 325 }], nota: 'tasso stimato (~2,60%) — da confermare' },
+  { nome: 'BTP 1Mar37 0,95%', isin: 'IT0005433195', giorno: 1, mesi: [3,9], tax: 0.125,
+    tassi: [{ da: '2021-03-01', lordo: 332.50 }], nota: '' },
+  { nome: 'ENI 4,3% Feb28', isin: 'IT0005521171', giorno: 10, mesi: [2], tax: 0.26,
+    tassi: [{ da: '2023-02-10', lordo: 172 }], nota: 'annuale' },
+  { nome: 'Mediobanca Giu31', isin: 'IT0005595597', giorno: 28, mesi: [6], tax: 0.26,
+    tassi: [{ da: '2024-06-28', lordo: 1200 }], nota: '4% fisso (poi variabile)' },
+  { nome: 'Goldman Sachs Giu32', isin: 'XS2982322609', giorno: 16, mesi: [6], tax: 0.26,
+    tassi: [{ da: '2025-06-16', lordo: 300 }], nota: 'frequenza da confermare' },
+  { nome: 'CDP 3,5% Mar32', isin: 'IT0005634602', giorno: 26, mesi: [3,6,9,12], tax: 0.125,
+    tassi: [{ da: '2025-03-26', lordo: 227.50 }], nota: 'fisso fino mar 2028' },
+];
+
+function _cedolaLordoPerData(bond, dateISO) {
+  var l = bond.tassi[0].lordo;
+  for (var i = 0; i < bond.tassi.length; i++) {
+    if (dateISO >= bond.tassi[i].da) l = bond.tassi[i].lordo;
+  }
+  return l;
+}
+
+function renderCalendarioCedole() {
+  var body = document.getElementById('calendario-cedole-body');
+  if (!body) return;
+  var oggi = new Date();
+  var start = new Date(oggi.getFullYear(), oggi.getMonth(), oggi.getDate());
+  var horizon = new Date(start.getFullYear(), start.getMonth() + 12, start.getDate());
+  var eventi = [];
+  CALENDARIO_CEDOLE.forEach(function(b) {
+    for (var off = 0; off <= 12; off++) {
+      var d = new Date(start.getFullYear(), start.getMonth() + off, 1);
+      var y = d.getFullYear(), mo = d.getMonth() + 1;
+      if (b.mesi.indexOf(mo) < 0) continue;
+      var dObj = new Date(y, mo - 1, b.giorno);
+      if (dObj < start || dObj > horizon) continue;
+      var dateISO = y + '-' + String(mo).padStart(2, '0') + '-' + String(b.giorno).padStart(2, '0');
+      var lordo = _cedolaLordoPerData(b, dateISO);
+      eventi.push({ dateISO: dateISO, mese: y + '-' + String(mo).padStart(2, '0'),
+        nome: b.nome, giorno: b.giorno, lordo: lordo, netto: lordo * (1 - b.tax), nota: b.nota });
+    }
+  });
+  if (!eventi.length) { body.innerHTML = '<div class="empty">Nessuna cedola nei prossimi 12 mesi.</div>'; return; }
+  eventi.sort(function(a, b) { return a.dateISO.localeCompare(b.dateISO); });
+  var MESI = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+  var html = '<div style="font-size:11px;color:var(--muted);margin-bottom:6px">Stime da analisi ISIN. Valori netti (ritenuta 12,5% titoli di Stato / 26% corporate).</div>';
+  var totLordo = 0, totNetto = 0, curMese = null, meseLordo = 0;
+  eventi.forEach(function(e, idx) {
+    if (e.mese !== curMese) {
+      curMese = e.mese;
+      var mIdx = parseInt(e.mese.slice(5, 7), 10) - 1;
+      html += '<div style="font-size:11px;font-weight:700;color:var(--gray4);text-transform:uppercase;letter-spacing:.5px;margin:14px 0 2px">' + MESI[mIdx] + ' ' + e.mese.slice(0, 4) + '</div>';
+    }
+    totLordo += e.lordo; totNetto += e.netto;
+    var gg = String(e.giorno).padStart(2, '0') + '/' + e.mese.slice(5, 7);
+    html += '<div class="cedola-row">' +
+      '<span class="cedola-label">' + gg + ' · ' + esc(e.nome) +
+        (e.nota ? '<span style="display:block;font-size:10px;color:var(--muted)">' + esc(e.nota) + '</span>' : '') + '</span>' +
+      '<span style="text-align:right;white-space:nowrap"><span class="cedola-val pos">' + fmt(e.lordo) + '</span>' +
+        '<span style="display:block;font-size:10px;color:var(--muted)">netto ' + fmt(e.netto) + '</span></span>' +
+      '</div>';
+  });
+  html += '<div class="cedola-row" style="border-top:2px solid var(--border-s);margin-top:8px;padding-top:10px">' +
+    '<span class="cedola-label" style="font-weight:700">Totale 12 mesi</span>' +
+    '<span style="text-align:right;white-space:nowrap"><span class="cedola-val pos" style="font-size:16px">' + fmt(totLordo) + '</span>' +
+    '<span style="display:block;font-size:11px;color:var(--muted)">netto ' + fmt(totNetto) + '</span></span>' +
+    '</div>';
   body.innerHTML = html;
 }
 
