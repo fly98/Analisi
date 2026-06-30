@@ -4744,6 +4744,19 @@ function _selectCat(catId, catName) {
 
 var _finecoStrumenti = [];
 var _finecoTabAttivo = 'tutti';
+var _finecoLastUpd = '';
+
+async function loadFinecoLastUpd() {
+  try {
+    var lu = await api('GET', '/api/import-log?key=icompta:fineco-inv:last-update');
+    if (lu && lu.at) {
+      var d = new Date(lu.at);
+      _finecoLastUpd = d.toLocaleString('it-IT', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
+      var el = document.getElementById('fineco-inv-info');
+      if (el && _finecoStrumenti.length) el.textContent = _finecoStrumenti.length + ' strumenti · agg. ' + _finecoLastUpd;
+    }
+  } catch(e) {}
+}
 
 function _saveFinecoStrumenti(s) {
   _finecoStrumenti = s;
@@ -4867,7 +4880,8 @@ function renderStrumentiView() {
 
   // Aggiorna info sopra la view
   var infoEl = document.getElementById('fineco-inv-info');
-  if (infoEl) infoEl.textContent = strumenti.length>0 ? strumenti.length+' strumenti · '+( localStorage.getItem('fineco_inv_date')||'—') : '';
+  if (infoEl) infoEl.textContent = strumenti.length>0 ? strumenti.length+' strumenti'+(_finecoLastUpd?' · agg. '+_finecoLastUpd:'') : '';
+  loadFinecoLastUpd();
   var toolbar = '';
 
   if (strumenti.length===0) {
