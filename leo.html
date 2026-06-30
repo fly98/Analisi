@@ -336,7 +336,7 @@ const FESTIVI = ['01-01','06-01','25-04','01-05','02-06','15-08','01-11','08-12'
 let S = {
   cashRows:[], stripeRows:[], dupIds:[],
   wkDays:[], periodStart:null, periodEnd:null,
-  wkStart:null, loaded:false
+  wkStart:null, refStart:null, loaded:false
 };
 let _cache = null;
 
@@ -423,7 +423,7 @@ function resetReport(){
   document.getElementById('card-wk').classList.add('hidden');
   document.getElementById('ferie-btn-box').style.display='none';
   document.getElementById('periodo-box').style.display='none';
-  S={cashRows:[],stripeRows:[],dupIds:[],wkDays:[],periodStart:null,periodEnd:null,wkStart:null,loaded:false};
+  S={cashRows:[],stripeRows:[],dupIds:[],wkDays:[],periodStart:null,periodEnd:null,wkStart:null,refStart:null,loaded:false};
   calcSaldo();
 }
 
@@ -509,7 +509,25 @@ async function checkDupsAndRender(){
   const hist=await getStorico();
   const allIds=new Set();
   (hist.sessioni||[]).forEach(s=>(s.cashIds||[]).forEach(id=>allIds.add(id)));
-  S.dupIds=[...S.cashRows,...S.stripeRows].filter(r=>allIds.has(r.id)).map(r=>r.id);
+
+  // Watermark periodo: ultimo giorno GIA' importato = max data tra i cashIds storici.
+  // Robusto: non dipende dal match riga-per-riga (che puo' fallire).
+  let lastImp=null;
+  (hist.sessioni||[]).forEach(s=>(s.cashIds||[]).forEach(id=>{
+    const m=String(id).split('|')[0].match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    if(m){const d=new Date(+m[3],+m[2]-1,+m[1]); if(!lastImp||d>lastImp) lastImp=d;}
+  }));
+  S.refStart=null;
+  if(lastImp){const rs=new Date(lastImp); rs.setDate(rs.getDate()+1); rs.setHours(0,0,0,0); S.refStart=rs;}
+
+  // Ordine cronologico DECRESCENTE (piu' recenti in alto)
+  const byDesc=(a,b)=>(b.date?b.date.getTime():-Infinity)-(a.date?a.date.getTime():-Infinity);
+  S.cashRows.sort(byDesc); S.stripeRows.sort(byDesc);
+
+  // "gia' contabilizzato" = data <= ultimo giorno importato (fuori periodo) OPPURE id gia' presente.
+  // Effetto: scendendo dalle piu' recenti ci si ferma al primo gia'-importato.
+  const rs=S.refStart;
+  S.dupIds=[...S.cashRows,...S.stripeRows].filter(r=> (rs&&r.date&&r.date<rs) || allIds.has(r.id)).map(r=>r.id);
 
   // Periodo weekend: da giorno dopo ultimo incontro a data+ora del file
   const sessioni=hist.sessioni||[];
@@ -670,11 +688,15 @@ function onWkCheck(){
 
 // ---------- STIPENDIO ----------
 function setupStip(){
-  if(!S.periodStart||!S.periodEnd){return;}
-  const mesi=[]; const cur=new Date(S.periodStart.getFullYear(),S.periodStart.getMonth(),1);
-  while(cur<=S.periodEnd){
+  // Stipendio = 1 mensilita' per ogni 1° del mese che cade nel PERIODO DI RIFERIMENTO
+  // (dall'ultimo giorno importato a oggi), non sull'intero range del report.
+  const start=S.refStart||S.periodStart;
+  const end=S.wkEnd||S.periodEnd;
+  if(!start||!end){document.getElementById('v-stip').value='';document.getElementById('stip-info').textContent='Nessun 1° del mese nel periodo';return;}
+  const mesi=[]; const cur=new Date(start.getFullYear(),start.getMonth(),1);
+  while(cur<=end){
     const p=new Date(cur.getFullYear(),cur.getMonth(),1);
-    if(p>=S.periodStart&&p<=S.periodEnd) mesi.push(new Date(p));
+    if(p>=start&&p<=end) mesi.push(new Date(p));
     cur.setMonth(cur.getMonth()+1);
   }
   const n=mesi.length, tot=n*STIP_DEF;
