@@ -13,23 +13,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Install xlsx (bundled nel worker per il parsing server-side)
+        run: npm install xlsx@0.18.5
+
       - name: Create wrangler config
         run: |
           cat > wrangler_icompta_deploy.toml << 'EOF'
           name = "icompta-worker"
           main = "icompta_worker.js"
-          compatibility_date = "2024-01-01"
+          compatibility_date = "2024-09-23"
+          compatibility_flags = ["nodejs_compat"]
 
           [[kv_namespaces]]
           binding = "ICOMPTA_KV"
           id = "1d8d7db930004f9eaa73e17af65b0957"
 
           # Aggiornamento automatico Fineco investimenti, lun-ven.
-          # Due orari UTC: 16:00 = 18:00 Italia (ora legale), 17:00 = 18:00 Italia (ora solare).
-          # Idempotente: lo snapshot e i titoli sovrascrivono lo stesso giorno.
+          # 16:00 UTC = 18:00 Italia (ora legale) - 17:00 UTC = 18:00 Italia (ora solare).
+          # Idempotente: titoli e snapshot sovrascrivono lo stesso giorno.
           [triggers]
           crons = ["0 16 * * 1-5", "0 17 * * 1-5"]
           EOF
+
       - name: Deploy with Wrangler
         uses: cloudflare/wrangler-action@v3
         with:
