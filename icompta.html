@@ -3827,15 +3827,11 @@ async function sellaAutoDownload() {
 
   var _ebExistingByDateAmt = {};
   var _ebExistingRefs = new Set();
-  var _ebIdByKey = {};
-  var _ebTxByDateAmt = {};
   async function _ebGetExistingKeys(accId) {
     // Reset cache per avere dati freschi
     txCache = {};
     _ebExistingByDateAmt = {};
     _ebExistingRefs = new Set();
-    _ebIdByKey = {};
-    _ebTxByDateAmt = {};
     var keys = new Set();
     var totalTx = 0, matchTx = 0;
     for (var yi=0; yi<(meta.years||[]).length; yi++) {
@@ -3859,9 +3855,6 @@ async function sellaAutoDownload() {
         var daK = (tx.date||'') + '|' + parseFloat(amt).toFixed(2);
         var k = daK + '|' + name;
         keys.add(k);
-        if (!(k in _ebIdByKey)) _ebIdByKey[k] = tx.id;
-        if (!_ebTxByDateAmt[daK]) _ebTxByDateAmt[daK] = [];
-        _ebTxByDateAmt[daK].push({ id: tx.id, fullUp: fullUp });
         if (!_ebExistingByDateAmt[daK]) _ebExistingByDateAmt[daK] = [];
         _ebExistingByDateAmt[daK].push(fullUp);
         // Per TX con nome=codice identificativo (Sella Personale vecchio import)
@@ -3895,82 +3888,6 @@ async function sellaAutoDownload() {
         alert('❌ Enable Banking errore:\n' + msg);
       }
       console.error('sellaEBDownload:', e);
-    }
-  }
-
-  // ── BACKFILL entry_reference (Fase 2): timbra ebRef su TX esistenti ───────
-  function _ebBackfillFindId(dateISO, amtStr, descUp) {
-    if (!dateISO || dateISO.length !== 10) return null;
-    var k = dateISO + '|' + amtStr + '|' + descUp;
-    if (_ebIdByKey[k]) return _ebIdByKey[k];
-    var dP = dateISO.split('-');
-    var baseMs = Date.UTC(parseInt(dP[0]), parseInt(dP[1]) - 1, parseInt(dP[2]));
-    for (var dd = 1; dd <= 3; dd++) {
-      var aD = new Date(baseMs - dd * 86400000);
-      var aIso = aD.getUTCFullYear() + '-' + String(aD.getUTCMonth() + 1).padStart(2, '0') + '-' + String(aD.getUTCDate()).padStart(2, '0');
-      var ak = aIso + '|' + amtStr + '|' + descUp;
-      if (_ebIdByKey[ak]) return _ebIdByKey[ak];
-    }
-    var cands = _ebTxByDateAmt[dateISO + '|' + amtStr] || [];
-    if (cands.length === 1) return cands[0].id;          // unico candidato data+importo
-    if (descUp && descUp.length >= 4) {                  // un solo candidato col nome che contiene la desc
-      var hit = null, n = 0;
-      for (var i = 0; i < cands.length; i++) {
-        if (cands[i].fullUp.indexOf(descUp) >= 0) { hit = cands[i].id; n++; }
-      }
-      if (n === 1) return hit;
-    }
-    return null;
-  }
-
-  async function sellaBackfillEbRef(tipo) {
-    var cfg = EB_ACCOUNTS[tipo];
-    if (!cfg) return;
-    if (!confirm('Backfill ebRef \u2014 ' + cfg.label + '\n\nScarico lo storico EB (consuma 1 dei 4 accessi/giorno), lo confronto con le TX esistenti e timbro entry_reference su quelle corrispondenti.\n\nPrima vedrai un\'anteprima, senza scrivere nulla.')) return;
-    var dateFrom = new Date(Date.now() - 90 * 24 * 3600 * 1000).toISOString().slice(0, 10);
-    try {
-      var uid = await _ebGetAccountUid(cfg.sessionKey, cfg.ibanSuffix, cfg.accountUid, cfg.accountIndex);
-      var data = await api('GET', '/api/enable-banking/transactions?session_key=' + encodeURIComponent(cfg.sessionKey) + '&account_id=' + encodeURIComponent(uid) + '&date_from=' + dateFrom);
-      if (!data.ok) { alert('\u274c EB: ' + JSON.stringify(data).slice(0, 220)); return; }
-      var txs = data.transactions || [];
-      var accId = cfg.iComptaAccId;
-      await _ebGetExistingKeys(accId); // popola txCache + mappe id
-      var stamps = [], conRef = 0, gia = 0, nomatch = 0;
-      for (var i = 0; i < txs.length; i++) {
-        var t = txs[i];
-        if (!t.booking_date) continue;
-        var ebRef = t.entry_reference || '';
-        if (!ebRef) continue;
-        conRef++;
-        var amt = parseFloat((t.transaction_amount && t.transaction_amount.amount) || 0);
-        if (t.credit_debit_indicator !== 'CRDT') amt = -Math.abs(amt);
-        var desc = (t.remittance_information && t.remittance_information[0]) || (t.creditor && t.creditor.name) || (t.debtor && t.debtor.name) || '';
-        var descUp = desc.replace(/\s+/g, ' ').trim().substring(0, 32).toUpperCase();
-        var amtStr = amt.toFixed(2);
-        var dateISO = t.booking_date || t.value_date || '';
-        var id = _ebBackfillFindId(dateISO, amtStr, descUp);
-        if (!id) { nomatch++; continue; }
-        var found = null;
-        for (var y in txCache) { var arr = txCache[y]; for (var j = 0; j < arr.length; j++) { if (arr[j].id === id) { found = arr[j]; break; } } if (found) break; }
-        if (!found) { nomatch++; continue; }
-        if (found.ebRef === ebRef) { gia++; continue; }
-        stamps.push({ tx: found, ebRef: ebRef });
-      }
-      if (!confirm('ANTEPRIMA \u2014 ' + cfg.label + '\n\n\u2022 TX EB con codice: ' + conRef + '\n\u2022 gi\u00e0 timbrate: ' + gia + '\n\u2022 da timbrare: ' + stamps.length + '\n\u2022 senza match (restano su fallback): ' + nomatch + '\n\nScrivo ebRef sulle ' + stamps.length + ' TX matchate?')) {
-        alert('Annullato. Nessuna scrittura effettuata.');
-        return;
-      }
-      var ok = 0, errs = 0;
-      for (var sI = 0; sI < stamps.length; sI++) {
-        var clone = Object.assign({}, stamps[sI].tx);
-        clone.ebRef = stamps[sI].ebRef;
-        try { var r = await api('POST', '/api/tx', { tx: clone }); if (r && (r.ok || r.id)) ok++; else errs++; } catch (e) { errs++; }
-      }
-      txCache = {};
-      try { await loadBalances(); } catch (e) {}
-      alert('\u2705 Backfill ' + cfg.label + ' completato.\n\nTimbrate: ' + ok + (errs ? '\nErrori: ' + errs : ''));
-    } catch (e) {
-      alert('\u274c Errore backfill: ' + (e.message || e) + '\n\nSe la sessione EB \u00e8 scaduta, riconnetti Enable Banking e riprova.');
     }
   }
 
@@ -4421,7 +4338,6 @@ async function sellapAutoDownload() {
         </select>
       </div>
       <div id="eb-log-azienda" style="display:none;background:#1a1a1a;border-radius:8px;padding:8px 10px;max-height:100px;overflow-y:auto;font-family:monospace;font-size:11px;margin-bottom:8px"></div>
-      <button onclick="sellaBackfillEbRef('azienda')" style="width:100%;padding:9px;border-radius:9px;border:1.5px solid #1a7a4a;background:none;color:#1a7a4a;font-size:13px;font-weight:600;cursor:pointer;margin-bottom:8px">\ud83d\udd16 Backfill ebRef storico (anteprima prima di scrivere)</button>
       <button id="sella-auto-btn" onclick="sellaAutoDownload()" style="width:100%;padding:12px;border-radius:10px;border:none;background:var(--blue);color:#fff;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:8px">
         <span>📥</span> <span>Scarica via Playwright (Mac)</span>
       </button>
@@ -4497,7 +4413,6 @@ async function sellapAutoDownload() {
         </select>
       </div>
       <div id="eb-log-personale" style="display:none;background:#1a1a1a;border-radius:8px;padding:8px 10px;max-height:100px;overflow-y:auto;font-family:monospace;font-size:11px;margin-bottom:8px"></div>
-      <button onclick="sellaBackfillEbRef('personale')" style="width:100%;padding:9px;border-radius:9px;border:1.5px solid #1a7a4a;background:none;color:#1a7a4a;font-size:13px;font-weight:600;cursor:pointer;margin-bottom:8px">\ud83d\udd16 Backfill ebRef storico (anteprima prima di scrivere)</button>
       <button id="sellap-auto-btn" onclick="sellapAutoDownload()" style="width:100%;padding:12px;border-radius:10px;border:none;background:var(--blue);color:#fff;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:8px">
         <span>📥</span> <span>Scarica automaticamente da Sella</span>
       </button>
