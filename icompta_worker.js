@@ -45,7 +45,75 @@ async function putSellaLog(env, log) {
 }
 __name(putSellaLog, "putSellaLog");
 
+// ── FINECO AUTO (replica server-side del pulsante "Aggiorna Fineco investimenti") ──
+// Scarica l'XLS dal server Playwright sul Mac, lo parsa, salva titoli + snapshot.
+async function runFinecoAuto(env) {
+  const r = await fetch("http://fly98.duckdns.org:3456/fineco-portafoglio", { signal: AbortSignal.timeout(120000) });
+  if (!r.ok) throw new Error("Mac/Playwright HTTP " + r.status);
+  const buf = await r.arrayBuffer();
+  const { read, utils } = await import("https://cdn.sheetjs.com/xlsx-0.20.3/package/xlsx.mjs");
+  const wb = read(new Uint8Array(buf), { type: "array" });
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  const rows = utils.sheet_to_json(ws, { header: 1, defval: null });
+  // Header con ISIN + mappa colonne (identico a _importaRigheFineco lato app)
+  let hi = -1;
+  for (let i = 0; i < rows.length; i++) {
+    if (rows[i] && rows[i].some(c => c && String(c).trim() === "ISIN")) { hi = i; break; }
+  }
+  if (hi < 0) throw new Error("Formato non riconosciuto (colonna ISIN assente)");
+  const h = rows[hi].map(c => c ? String(c).trim() : "");
+  const C = {
+    nome: h.indexOf("Titolo"), isin: h.indexOf("ISIN"), tipo: h.indexOf("Strumento"),
+    vc: h.findIndex(x => x === "Valore di carico"),
+    vm: h.findIndex(x => x === "Valore di mercato €")
+  };
+  const strumenti = [];
+  for (let i = hi + 1; i < rows.length; i++) {
+    const row = rows[i];
+    if (!row || !row[C.isin] || String(row[C.isin]).trim().length < 5) continue;
+    const vc = C.vc >= 0 && row[C.vc] != null ? parseFloat(row[C.vc]) || 0 : 0;
+    const vm = C.vm >= 0 && row[C.vm] != null ? parseFloat(row[C.vm]) || 0 : 0;
+    if (vc === 0 && vm === 0) continue;
+    strumenti.push({
+      nome: C.nome >= 0 && row[C.nome] ? String(row[C.nome]).trim() : String(row[C.isin]).trim(),
+      isin: String(row[C.isin]).trim(),
+      tipo: C.tipo >= 0 && row[C.tipo] ? String(row[C.tipo]).trim() : "—",
+      vc, vm
+    });
+  }
+  if (strumenti.length === 0) throw new Error("Nessuno strumento trovato nel file");
+  // Salva titoli (stessa chiave del pulsante)
+  await env.ICOMPTA_KV.put("icompta:fineco-inv:strumenti", JSON.stringify(strumenti));
+  // Snapshot giornaliero (identico a trySnapshot: sovrascrive stessa data)
+  let vmTot = strumenti.reduce((s, x) => s + (x.vm || 0), 0);
+  vmTot = Math.round(vmTot * 100) / 100;
+  if (vmTot > 0) {
+    const today = new Date().toISOString().slice(0, 10);
+    const breakdown = {};
+    for (const s of strumenti) {
+      let k = s.ticker || s.nome;
+      if (k) k = String(k).replace(/\..*$/, "");
+      if (k) breakdown[k] = s.vm || 0;
+    }
+    await env.ICOMPTA_KV.put("icompta:snapshot:" + today, JSON.stringify({ date: today, totale: vmTot, breakdown }));
+  }
+  return strumenti.length;
+}
+__name(runFinecoAuto, "runFinecoAuto");
+
 var icompta_worker_default = {
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil((async () => {
+      try {
+        const n = await runFinecoAuto(env);
+        await env.ICOMPTA_KV.put("icompta:fineco-inv:last-auto", JSON.stringify({ at: new Date().toISOString(), ok: true, count: n }));
+        console.log("Fineco auto OK:", n, "strumenti");
+      } catch (e) {
+        await env.ICOMPTA_KV.put("icompta:fineco-inv:last-auto", JSON.stringify({ at: new Date().toISOString(), ok: false, error: String((e && e.message) || e) }));
+        console.error("Fineco auto FAIL:", (e && e.message) || e);
+      }
+    })());
+  },
   async fetch(request, env) {
     const url = new URL(request.url);
     const path = url.pathname;
@@ -402,6 +470,18 @@ var icompta_worker_default = {
           headers: { ...CORS, "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "X-Filename": filename }
         });
       } catch(e) { return err("Mac non raggiungibile: " + e.message, 502); }
+    }
+
+    // ── FINECO AUTO ORA (test manuale dello stesso flusso del cron) ───────────
+    if (path === "/api/fineco-auto-now" && method === "GET") {
+      try {
+        const n = await runFinecoAuto(env);
+        await env.ICOMPTA_KV.put("icompta:fineco-inv:last-auto", JSON.stringify({ at: new Date().toISOString(), ok: true, count: n, manual: true }));
+        return json({ ok: true, count: n });
+      } catch(e) {
+        await env.ICOMPTA_KV.put("icompta:fineco-inv:last-auto", JSON.stringify({ at: new Date().toISOString(), ok: false, error: String((e && e.message) || e), manual: true }));
+        return err("Fineco auto fallito: " + ((e && e.message) || e), 502);
+      }
     }
 
     if (path === "/api/fineco-conto-auto" && method === "GET") {
