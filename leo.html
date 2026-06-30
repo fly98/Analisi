@@ -213,6 +213,9 @@ input[type=checkbox]{accent-color:var(--text);cursor:pointer}
       <div style="flex:1"><strong id="mail-fn" style="color:var(--green)">—</strong><br><span id="mail-dt" style="font-size:12px;color:var(--muted)"></span></div>
       <button class="btn" onclick="resetReport()">Cambia</button>
     </div>
+    <button class="fetch-btn" id="gen-mail-btn" onclick="generaNuovaMail()" style="border-style:solid;border-color:var(--blue,#007aff);color:var(--blue,#007aff);margin-bottom:.5rem">
+      <span id="gen-i">🔄</span><span id="gen-l">Genera nuova mail su Amenitiz</span>
+    </button>
     <button class="fetch-btn" id="fetch-btn" onclick="fetchReport()">
       <span id="fi">📬</span><span id="fl">Recupera ultima mail Amenitiz</span>
     </button>
@@ -373,6 +376,27 @@ async function fetchReport(){
     btn.disabled=false;
     document.getElementById('fl').textContent='Recupera ultima mail Amenitiz';
     document.getElementById('fi').textContent='📬';
+  }
+}
+
+async function generaNuovaMail(){
+  const btn=document.getElementById('gen-mail-btn');
+  const i=document.getElementById('gen-i'), l=document.getElementById('gen-l');
+  document.getElementById('fetch-err').classList.add('hidden');
+  btn.disabled=true; i.innerHTML='<span class="spin"></span>'; l.textContent='Genero la mail su Amenitiz...';
+  try{
+    const r=await fetch(WORKER+'?action=triggerAmenitiz');
+    const d=await r.json();
+    if(!d.ok) throw new Error(d.error||('errore '+(d.status||'')));
+    l.textContent='Mail generata, recupero...';
+    await new Promise(res=>setTimeout(res,4000));   // attesa arrivo in casella
+    i.textContent='🔄'; l.textContent='Genera nuova mail su Amenitiz'; btn.disabled=false;
+    fetchReport();
+  }catch(e){
+    i.textContent='🔄'; l.textContent='Genera nuova mail su Amenitiz'; btn.disabled=false;
+    const er=document.getElementById('fetch-err');
+    er.textContent='⚠️ '+e.message+' — l\'iMac e il trigger-server devono essere accesi';
+    er.classList.remove('hidden');
   }
 }
 
