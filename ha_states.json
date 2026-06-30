@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-06-30T22:30:25.887Z",
+  "timestamp": "2026-06-30T22:30:30.756Z",
   "total": 795,
   "lights": [
     {
@@ -1099,7 +1099,7 @@
     {
       "id": "sensor.flypad_battery_level",
       "name": "FlyPad Battery Level",
-      "state": "80",
+      "state": "75",
       "unit": "%"
     },
     {
