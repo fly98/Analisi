@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-06-30T22:47:26.634Z",
+  "timestamp": "2026-06-30T22:53:52.452Z",
   "total": 795,
   "lights": [
     {
@@ -1099,7 +1099,7 @@
     {
       "id": "sensor.flypad_battery_level",
       "name": "FlyPad Battery Level",
-      "state": "75",
+      "state": "70",
       "unit": "%"
     },
     {
@@ -1471,19 +1471,19 @@
     {
       "id": "sensor.netatmo_la_mia_abitazione_interno_co2",
       "name": "Termometro Camera Anidride carbonica",
-      "state": "912",
+      "state": "866",
       "unit": "ppm"
     },
     {
       "id": "sensor.netatmo_la_mia_abitazione_interno_pressure",
       "name": "Termometro Camera Pressione atmosferica",
-      "state": "1019.8",
+      "state": "1019.7",
       "unit": "mbar"
     },
     {
       "id": "sensor.netatmo_la_mia_abitazione_interno_noise",
       "name": "Termometro Camera Noise",
-      "state": "39",
+      "state": "38",
       "unit": "dB"
     },
     {
@@ -1495,7 +1495,7 @@
     {
       "id": "sensor.netatmo_la_mia_abitazione_interno_esterno_temperature",
       "name": "Termomentro Giardino Temperatura",
-      "state": "28.7",
+      "state": "28.6",
       "unit": "°C"
     },
     {
@@ -2059,7 +2059,7 @@
     {
       "id": "sensor.camera_cucina_info",
       "name": "Camera Cucina Info",
-      "state": "2026-06-30T22:43:46+00:00",
+      "state": "2026-06-30T22:53:46+00:00",
       "unit": null
     },
     {
@@ -2131,7 +2131,7 @@
     {
       "id": "sensor.casa_range_extender_battery_2",
       "name": "Casa Range Extender Battery",
-      "state": "5",
+      "state": "0",
       "unit": "%"
     },
     {
