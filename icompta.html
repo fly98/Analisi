@@ -695,7 +695,7 @@ select.form-input { height: 42px; }
       <div id="strumenti-view" style="display:none;padding:20px;flex:1;overflow-y:auto">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
           <span id="fineco-inv-info" style="font-size:11px;color:var(--muted)"></span>
-          <button onclick="openFinecoInvModal()" style="padding:4px 10px;border-radius:8px;border:1px solid var(--border);background:none;cursor:pointer;color:var(--muted);font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:4px">Aggiorna <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="2,3 5,7 8,3"/></svg></button>
+          <button onclick="aggiornaFinecoOra(this)" style="padding:4px 10px;border-radius:8px;border:1px solid var(--border);background:none;cursor:pointer;color:var(--muted);font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:4px">Aggiorna <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="2,3 5,7 8,3"/></svg></button>
         </div>
         <div id="strumenti-view-content"></div>
       </div>
@@ -4270,8 +4270,36 @@ function closeFinecoInvModal() { var m=document.getElementById('modal-fineco-inv
 function openFinecoCCModal() { var ov=document.getElementById('fineco-cc-overlay'); if(ov){ ov.style.display='flex'; } }
 function closeFinecoCCModal() { var m=document.getElementById('modal-fineco-cc'); if(m) m.style.display='none'; }
 
+// Aggiornamento diretto (come comando rapido): lancia la procedura Mac/Fineco,
+// ricarica i titoli e il timestamp. Nessuna conferma: il successo si vede dall'orario.
+async function aggiornaFinecoOra(btn) {
+  if (btn) { if (btn.dataset.busy) return; btn.dataset.busy = '1'; btn.style.opacity = '0.5'; btn.style.pointerEvents = 'none'; }
+  var info = document.getElementById('fineco-inv-info');
+  var prev = info ? info.textContent : '';
+  if (info) info.textContent = 'Aggiornamento in corso…';
+  try {
+    var r = await api('GET', '/api/fineco-auto-now');
+    if (r && r.ok) {
+      var res = await titoliApi('GET', '/api/titoli/strumenti/fineco-inv');
+      if (res.ok && Array.isArray(res.data)) {
+        _finecoStrumenti = res.data;
+        try { localStorage.setItem('fineco_inv', JSON.stringify(res.data)); } catch(e) {}
+      }
+      _finecoLastUpd = '';
+      if (typeof renderStrumentiView === 'function') renderStrumentiView();
+      loadFinecoLastUpd();
+    } else {
+      if (info) { info.textContent = '⚠️ aggiornamento non riuscito'; setTimeout(function(){ if (info && info.textContent.indexOf('⚠️')===0) info.textContent = prev; }, 4000); }
+    }
+  } catch (e) {
+    if (info) { info.textContent = '⚠️ aggiornamento non riuscito'; setTimeout(function(){ if (info && info.textContent.indexOf('⚠️')===0) info.textContent = prev; }, 4000); }
+  } finally {
+    if (btn) { delete btn.dataset.busy; btn.style.opacity = ''; btn.style.pointerEvents = ''; }
+  }
+}
+
 var IMPORT_MAP = {
-  'ACC-FINECO-INV':  { label: 'Aggiorna', fn: function() { openFinecoInvModal(); } },
+  'ACC-FINECO-INV':  { label: 'Aggiorna', fn: function() { aggiornaFinecoOra(document.getElementById('btn-import-contestuale')); } },
   'ACC-FINECO-CC':   { label: 'Aggiorna', fn: function() { document.getElementById('fineco-cc-overlay').style.display='flex'; } },
 };
 // Conti Sella e InternoUno Banca identificati per nome
