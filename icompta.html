@@ -581,22 +581,6 @@ select.form-input { height: 42px; }
 .rec-form-row input,.rec-form-row select { width:100%;padding:8px 10px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface);color:var(--text);font-size:14px;box-sizing:border-box; }
 
 /* -- Modal Import Leo -- */
-#leo-overlay { position:fixed;inset:0;z-index:8500;background:rgba(0,0,0,.45);display:flex;align-items:flex-end; }
-#leo-panel { width:100%;max-width:580px;margin:0 auto;background:var(--surface);border-radius:20px 20px 0 0;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 -4px 32px rgba(0,0,0,.2); }
-#leo-panel-hdr { padding:16px 20px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0; }
-#leo-panel-hdr h3 { flex:1;font-size:18px;font-weight:700; }
-#leo-body { flex:1;overflow-y:auto;padding:12px 16px; }
-#leo-tabs { display:flex;border-bottom:1px solid var(--border);flex-shrink:0;padding:0 16px; }
-#leo-tabs button { flex:1;padding:10px;border:none;background:none;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px; }
-#leo-tabs button.active { color:var(--blue);border-bottom-color:var(--blue); }
-.leo-sess-row { border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px;background:var(--bg); }
-.leo-sess-periodo { font-size:14px;font-weight:600;margin-bottom:4px; }
-.leo-sess-data { font-size:11px;color:var(--muted);margin-bottom:6px; }
-.leo-sess-voci { font-size:12px;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px; }
-.leo-log-row { display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--gray2); }
-.leo-log-info { flex:1; }
-.leo-log-label { font-size:14px;font-weight:600; }
-.leo-log-sub { font-size:12px;color:var(--muted);margin-top:2px; }
 
 /* ── RESPONSIVE IPHONE ────────────────────────────────────────────────────── */
 @media (max-width: 430px) {
@@ -798,7 +782,7 @@ select.form-input { height: 42px; }
 
           <!-- Import Leo -->
           <div class="s-text" style="padding:10px 12px 2px"><div class="s-label" style="font-size:11px;color:var(--gray4);text-transform:uppercase;letter-spacing:.5px">Leo</div></div>
-          <div class="settings-item" onclick="closeSettings();openLeoImport()">
+          <div class="settings-item" onclick="closeSettings();openLeoFrame()">
             <span class="s-icon" style="background:#fef8e8"><svg viewBox="0 0 24 24" fill="none" stroke="#7a5a00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
             <div class="s-text"><div class="s-label">Import Leo</div><div class="s-desc">Sincronizza pagamenti Leonardo</div></div>
             <span class="s-arrow">›</span>
@@ -3360,27 +3344,7 @@ function closeStellaDetail() {
   document.getElementById('sella-detail-overlay').style.display = 'none';
 }
 
-// IMPORT LEO
-var LEO_WORKER = 'https://leo-worker.f-castiglioni.workers.dev';
-var LEO_LOG_KEY = 'icompta:leo_log';
-
-function leoCatId(nome) {
-  if (!meta||!meta.categories) return null;
-  var c=meta.categories.find(function(c){return c.name===nome;});
-  return c?c.id:null;
-}
-function leoAccId(nome) {
-  if (!meta||!meta.accounts) return null;
-  var a=meta.accounts.find(function(a){return a.name===nome;});
-  return a?a.id:null;
-}
-
-async function openLeoImport() {
-  document.getElementById('leo-overlay').style.display='flex';
-  document.querySelectorAll('#leo-tabs button').forEach(function(b,i){b.classList.toggle('active',i===0);});
-  await leoRenderSessioni();
-}
-function closeLeoImport() { document.getElementById('leo-overlay').style.display='none'; }
+  // LEO (iframe embed)
 var LEO_FRAME_URL='https://fly98.github.io/Analisi/leo.html?embed=1';
 function openLeoFrame(){
   var ov=document.getElementById('leoframe-overlay');
@@ -3395,7 +3359,6 @@ function closeLeoFrame(){
   var fr=document.getElementById('leoframe');
   if(ov) ov.style.display='none';
   if(fr) fr.src='about:blank';
-  if(typeof leoRenderSessioni==='function'){ try{ leoRenderSessioni(); }catch(e){} }
 }
 window.addEventListener('message',function(ev){
   if(ev.origin!=='https://fly98.github.io') return;
@@ -3403,171 +3366,8 @@ window.addEventListener('message',function(ev){
   if(typeof m.type!=='string'||m.type.indexOf('leo:')!==0) return;
   if(m.type==='leo:ready'){
     var ld=document.getElementById('leoframe-loader'); if(ld) ld.style.display='none';
-  } else if(m.type==='leo:saved'){
-    if(typeof leoRenderSessioni==='function'){ try{ leoRenderSessioni(); }catch(e){} }
   }
 });
-function leoShowTab(tab,btn) {
-  document.querySelectorAll('#leo-tabs button').forEach(function(b){b.classList.remove('active');});
-  btn.classList.add('active');
-  if(tab==='sessioni') leoRenderSessioni(); else leoRenderStorico();
-}
-
-async function leoRenderSessioni() {
-  var body=document.getElementById('leo-body');
-  body.innerHTML='<div style="color:var(--faint);font-size:13px;padding:20px;text-align:center">Caricamento\u2026</div>';
-  try {
-    var r=await fetch(LEO_WORKER+'?action=getStorico',{headers:{'Origin':'https://fly98.github.io'}});
-    var d=await r.json();
-    var ss=d.sessioni||[];
-    if(!ss.length){body.innerHTML='<div style="color:var(--faint);font-size:13px;padding:20px;text-align:center">Nessuna sessione Leo salvata</div>';return;}
-    body.innerHTML='';
-    ss.forEach(function(s,idx){
-      var div=document.createElement('div'); div.className='leo-sess-row';
-      var data=s.dataSalvataggio?new Date(s.dataSalvataggio).toLocaleDateString('it-IT'):'';
-      var voci=[];
-      if(s.totContanti) voci.push('Clienti '+fmt(-Math.abs(s.totContanti)));
-      if(s.wkTot)       voci.push('Weekend +'+fmt(s.wkTot));
-      if(s.ferie)       voci.push('Ferie +'+fmt(s.ferie));
-      if(s.sp)          voci.push('Spesa +'+fmt(s.sp));
-      if(s.man)         voci.push('Manut. +'+fmt(s.man));
-      if(s.stip)        voci.push('Stipendio +'+fmt(s.stip));
-      if(s.bab)         voci.push('Babbo +'+fmt(s.bab));
-      div.innerHTML=
-        '<div class="leo-sess-periodo">'+esc(s.periodo||'Sessione '+(idx+1))+'</div>'+
-        '<div class="leo-sess-data">'+data+'</div>'+
-        '<div class="leo-sess-voci">'+voci.map(function(v){return '<span>'+v+'</span>';}).join('')+'</div>';
-      var btn=document.createElement('button');
-      btn.style.cssText='padding:8px 16px;border-radius:8px;border:none;background:var(--blue);color:#fff;font-size:13px;font-weight:700;cursor:pointer;width:100%';
-      btn.textContent='\u2193 Importa su iCompta';
-      (function(sess,b){b.addEventListener('click',function(){leoImporta(sess,b);});})(s,btn);
-      div.appendChild(btn);
-      body.appendChild(div);
-    });
-  } catch(e) { body.innerHTML='<div style="color:var(--red);font-size:13px;padding:20px">Errore: '+e.message+'</div>'; }
-}
-
-async function leoImporta(s,btn) {
-  btn.disabled=true; btn.textContent='\u23f3 Importazione\u2026';
-  try {
-    var accInterno=leoAccId('InternoUno');
-    var accBabbo=leoAccId('Babbo');
-    if(!accInterno) throw new Error('Conto InternoUno non trovato');
-
-    var catClienti='600FE5ED-A4B4-4876-A785-33627FFF0FDC';
-    var catPulizia='4DE42F08-CBBE-43B4-8D4B-6C8FAB4D142F';
-    var catWeekend=leoCatId('Weekend');
-    var catFerie=leoCatId('Ferie');
-    var catManut=leoCatId('Manutenzione');
-
-    var dataSal=s.dataSalvataggio?new Date(s.dataSalvataggio):new Date();
-    var dateISO=dataSal.toISOString().slice(0,10);
-    var oggiLabel=dataSal.toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'});
-    var mesiIT=['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
-    var mesePre=new Date(dataSal.getFullYear(),dataSal.getMonth()-1,1);
-    var labelStip='stipendio '+mesiIT[mesePre.getMonth()]+' '+mesePre.getFullYear();
-
-    function mkTx(name,amount,catId,comment,accId) {
-      return {id:null,date:dateISO,name:name,accountId:accId||accInterno,
-        status:'cleared',comment:comment||'',useSumOfSplits:true,amount:null,linkedTxId:null,
-        splits:[{amount:amount,categoryId:catId||null,comment:null}]};
-    }
-
-    var txs=[];
-    if(s.totContanti) txs.push(mkTx('Clienti',-Math.abs(s.totContanti),catClienti,'Importazione LEO del '+oggiLabel));
-    if(s.wkTot){
-      var wkDetail=s.wkDateSel&&s.wkDateSel.length?s.wkDateSel.join(', '):(s.wkN||0)+' giorni';
-      txs.push(mkTx('Weekend',Math.abs(s.wkTot),catWeekend,'weekend/festività: '+wkDetail));
-    }
-    if(s.ferie){
-      var fd=s.ferieDal&&s.ferieAl?'ferie: '+s.ferieDal+' - '+s.ferieAl:'ferie';
-      txs.push(mkTx('Ferie',Math.abs(s.ferie),catFerie,fd));
-    }
-    if(s.sp)   txs.push(mkTx('Spesa Leo',Math.abs(s.sp),catPulizia,'Importazione LEO del '+oggiLabel));
-    if(s.man)  txs.push(mkTx('Manutenzione Leo',Math.abs(s.man),catManut,'Importazione LEO del '+oggiLabel));
-    if(s.stip) txs.push(mkTx('Stipendio Leo',Math.abs(s.stip),catPulizia,labelStip));
-    if(s.bab&&accBabbo) txs.push(mkTx('Babbo',Math.abs(s.bab),null,'Importazione LEO del '+oggiLabel,accBabbo));
-
-    if(!txs.length){alert('Nessuna voce da importare.');return;}
-
-    var preview=txs.map(function(t){var a=t.splits[0].amount;return (a>0?'+':'')+a.toFixed(2)+'\u20ac '+t.name;}).join('\n');
-    if(!confirm('Importare su iCompta?\n\n'+preview+'\n\nConfermi?')) return;
-
-    var createdIds=[];
-    for(var i=0;i<txs.length;i++){
-      var r=await api('POST','/api/tx',{tx:txs[i]});
-      if(r&&r.id) createdIds.push(r.id);
-    }
-
-    // Salva log
-    var logRaw=await api('GET','/api/import-log?key='+encodeURIComponent(LEO_LOG_KEY));
-    var log=Array.isArray(logRaw)?logRaw:[];
-    log.unshift({id:'leo-'+Date.now(),date:new Date().toISOString(),
-      label:s.periodo||new Date().toLocaleDateString('it-IT'),
-      txIds:createdIds,count:createdIds.length});
-    await api('POST','/api/import',{key:LEO_LOG_KEY,data:log});
-
-    txCache={}; await loadBalances();
-    if(selectedAccountId){var a=meta.accounts.find(function(x){return x.id===selectedAccountId;});if(a)await selectAccount(a.id,a.name);}
-    alert('\u2705 '+createdIds.length+' transazioni create!');
-    closeLeoImport();
-  } catch(e){alert('Errore: '+e.message);}
-  finally{btn.disabled=false;btn.textContent='\u2193 Importa su iCompta';}
-}
-
-async function leoRenderStorico() {
-  var body=document.getElementById('leo-body');
-  body.innerHTML='<div style="color:var(--faint);font-size:13px;padding:20px;text-align:center">Caricamento\u2026</div>';
-  try {
-    var logRaw=await api('GET','/api/import-log?key='+encodeURIComponent(LEO_LOG_KEY));
-    var log=Array.isArray(logRaw)?logRaw:[];
-    if(!log.length){body.innerHTML='<div style="color:var(--faint);font-size:13px;padding:20px;text-align:center">Nessuna importazione registrata</div>';return;}
-    body.innerHTML='';
-    log.forEach(function(entry){
-      var row=document.createElement('div'); row.className='leo-log-row';
-      var data=entry.date?new Date(entry.date).toLocaleDateString('it-IT'):'';
-      row.innerHTML='<div class="leo-log-info">'+
-        '<div class="leo-log-label">'+esc(entry.label)+'</div>'+
-        '<div class="leo-log-sub">'+data+' \u00b7 '+(entry.count||0)+' TX create</div>'+
-        '</div>';
-      var delBtn=document.createElement('button');
-      delBtn.style.cssText='padding:6px 12px;border-radius:8px;border:1px solid var(--red);background:var(--red-bg);color:var(--red);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap';
-      delBtn.textContent='\uD83D\uDDD1 Elimina';
-      (function(e,b){b.addEventListener('click',function(){leoRollback(e,b);});})(entry,delBtn);
-      row.appendChild(delBtn);
-      body.appendChild(row);
-    });
-  } catch(e){body.innerHTML='<div style="color:var(--red);font-size:13px;padding:20px">Errore: '+e.message+'</div>';}
-}
-
-async function leoRollback(entry,btn) {
-  if(!confirm('Eliminare questa importazione e le '+(entry.count||0)+' transazioni?')) return;
-  btn.disabled=true; btn.textContent='\u23f3\u2026';
-  try {
-    var deleted=0;
-    var years=meta&&meta.years?meta.years:[];
-    for(var i=0;i<(entry.txIds||[]).length;i++){
-      var id=entry.txIds[i];
-      for(var yi=0;yi<years.length;yi++){
-        var yr=years[yi];
-        if(!txCache[yr]){try{txCache[yr]=await api('GET','/api/tx/'+yr);}catch(e2){continue;}}
-        if((txCache[yr]||[]).find(function(t){return t.id===id;})){
-          await api('DELETE','/api/tx/'+id+'?year='+yr);
-          txCache[yr]=(txCache[yr]||[]).filter(function(t){return t.id!==id;});
-          deleted++; break;
-        }
-      }
-    }
-    var logRaw=await api('GET','/api/import-log?key='+encodeURIComponent(LEO_LOG_KEY));
-    var log=Array.isArray(logRaw)?logRaw:[];
-    log=log.filter(function(e){return e.id!==entry.id;});
-    await api('POST','/api/import',{key:LEO_LOG_KEY,data:log});
-    txCache={}; await loadBalances();
-    if(selectedAccountId){var a=meta.accounts.find(function(x){return x.id===selectedAccountId;});if(a)await selectAccount(a.id,a.name);}
-    alert('\u2705 Eliminati '+deleted+' transazioni');
-    await leoRenderStorico();
-  } catch(e){alert('Errore: '+e.message);btn.disabled=false;btn.textContent='\uD83D\uDDD1 Elimina';}
-}
 
 function _autoLog(logId, msg, type) {
   var el = document.getElementById(logId);
@@ -4443,24 +4243,6 @@ async function sellapDoImport() {
   </div>
 </div>
 
-<!-- Modal Import Leo -->
-<div id="leo-overlay" style="display:none" onclick="if(event.target===this)closeLeoImport()">
-  <div id="leo-panel">
-    <div id="leo-panel-hdr">
-      <span style="font-size:22px">🦁</span>
-      <h3>Import da Leo</h3>
-      <div style="display:flex;gap:8px;align-items:center">
-        <button onclick="openLeoFrame()" style="padding:5px 12px;border-radius:8px;border:1px solid var(--border);background:none;font-size:12px;font-weight:600;cursor:pointer;color:var(--blue)">Apri Leo ↗</button>
-        <button onclick="closeLeoImport()" style="background:var(--gray2);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:16px">✕</button>
-      </div>
-    </div>
-    <div id="leo-tabs">
-      <button class="active" onclick="leoShowTab('sessioni',this)">Sessioni Leo</button>
-      <button onclick="leoShowTab('storico',this)">Storico importazioni</button>
-    </div>
-    <div id="leo-body"></div>
-  </div>
-</div>
 
 <!-- Modal Leo a tutto schermo (iframe) -->
 <div id="leoframe-overlay" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.55);align-items:center;justify-content:center" onclick="if(event.target===this)closeLeoFrame()">
