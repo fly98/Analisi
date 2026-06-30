@@ -2421,7 +2421,7 @@ async function sellaDoImport() {
     document.getElementById('sella-progress').textContent='Banca '+(i+1)+'/'+inc.length;
     try{
       var r=await api('POST','/api/tx',{tx:{id:null,date:m.dateISO,name:m.desc,accountId:bancaId,status:'cleared',
-        comment:m.etich||null,useSumOfSplits:true,amount:null,linkedTxId:null,
+        comment:m.etich||null,useSumOfSplits:true,amount:null,linkedTxId:null,ebRef:m.ebRef||null,
         splits:[{amount:m.importo,categoryId:m.catObj?m.catObj.id:null,comment:null}]}});
       if(r&&r.id)txBancaIds.push(r.id);else errCount++;
     }catch(e){errCount++;}
@@ -3678,6 +3678,7 @@ async function sellaAutoDownload() {
       var t = txs[i];
       // Salta TX non ancora contabilizzate (senza booking_date)
       if (!t.booking_date) continue;
+      var ebRef = t.entry_reference || '';
       var amt = parseFloat((t.transaction_amount && t.transaction_amount.amount) || 0);
       if (t.credit_debit_indicator !== 'CRDT') amt = -Math.abs(amt);
       var desc = (t.remittance_information && t.remittance_information[0]) ||
@@ -3705,7 +3706,9 @@ async function sellaAutoDownload() {
         if (descUp.indexOf(_ebAliases[ai2][1]) === 0) { aliasDescUp = _ebAliases[ai2][0]; break; }
       }
 
-      var isDup = existingKeys.has(storKey);
+      // Dedup primario: entry_reference EB (univoco). Fallback: regole data+importo+descrizione.
+      var isDup = (ebRef && _ebExistingRefs.has(ebRef));
+      if (!isDup) isDup = existingKeys.has(storKey);
       // Fallback: cerca per data+importo senza descrizione (TX vecchie con codice come nome)
       if (!isDup) {
         var noNameKey = dateISO + '|' + amtStr + '|__NONAME__';
@@ -3780,6 +3783,7 @@ async function sellaAutoDownload() {
         etich: '',
         importo: amt,
         storKey: storKey,
+        ebRef: ebRef,
         isDup: isDup,
         includi: !isDup,
         catObj: (tipo === 'fineco') ? null : sellaGuessCategory(desc, ''),
@@ -3822,10 +3826,12 @@ async function sellaAutoDownload() {
   }
 
   var _ebExistingByDateAmt = {};
+  var _ebExistingRefs = new Set();
   async function _ebGetExistingKeys(accId) {
     // Reset cache per avere dati freschi
     txCache = {};
     _ebExistingByDateAmt = {};
+    _ebExistingRefs = new Set();
     var keys = new Set();
     var totalTx = 0, matchTx = 0;
     for (var yi=0; yi<(meta.years||[]).length; yi++) {
@@ -3837,6 +3843,7 @@ async function sellaAutoDownload() {
         var tx = txs[j];
         if (tx.accountId !== accId) continue;
         matchTx++;
+        if (tx.ebRef) _ebExistingRefs.add(tx.ebRef);
         var amt = 0;
         if (tx.useSumOfSplits && tx.splits && tx.splits.length > 0) {
           for (var s=0; s<tx.splits.length; s++) amt += (tx.splits[s].amount || 0);
@@ -4019,7 +4026,7 @@ async function sellaAutoDownload() {
         var r = await api('POST', '/api/tx', { tx: {
           id: null, date: m.dateISO, name: m.desc, accountId: accId,
           status: 'cleared', comment: m.etich || null,
-          useSumOfSplits: true, amount: null, linkedTxId: null,
+          useSumOfSplits: true, amount: null, linkedTxId: null, ebRef: m.ebRef || null,
           splits: [{ amount: m.importo, categoryId: m.catObj ? m.catObj.id : null, comment: null }]
         }});
         if (r && r.id) ids.push(r.id); else errs++;
@@ -4254,7 +4261,7 @@ async function sellapDoImport() {
     var m = inc[i];
     btn.textContent = '\u23f3 ' + (i+1) + '/' + inc.length + '\u2026';
     var tx = { id:null, date:m.dateISO, name:m.codice, accountId:accId,
-      status:'cleared', comment:m.desc, useSumOfSplits:true, amount:null, linkedTxId:null,
+      status:'cleared', comment:m.desc, useSumOfSplits:true, amount:null, linkedTxId:null, ebRef:m.ebRef||null,
       splits:[{amount:m.importo, categoryId:m.catObj?m.catObj.id:null, comment:null}] };
     try {
       var res = await api('POST', '/api/tx', {tx:tx});
