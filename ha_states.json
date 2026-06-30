@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-06-30T22:30:19.527Z",
+  "timestamp": "2026-06-30T22:30:25.887Z",
   "total": 795,
   "lights": [
     {
@@ -304,7 +304,7 @@
     {
       "id": "switch.tenda_inverso",
       "name": "Tenda Inverso",
-      "state": "off"
+      "state": "on"
     },
     {
       "id": "switch.niovapresa2_socket_1",
