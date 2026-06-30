@@ -1,6 +1,6 @@
 {
-  "timestamp": "2026-06-22T23:33:00.061Z",
-  "total": 794,
+  "timestamp": "2026-06-30T22:17:09.644Z",
+  "total": 795,
   "lights": [
     {
       "id": "light.giardino_grande",
@@ -23,7 +23,7 @@
     {
       "id": "light.bambine_tavolo",
       "name": "Bambine tavolo",
-      "state": "off",
+      "state": "on",
       "brightness": null
     },
     {
@@ -41,20 +41,20 @@
     {
       "id": "light.giardino_patio_socket_1",
       "name": "Patio",
-      "state": "off",
+      "state": "unavailable",
       "brightness": null
     },
     {
       "id": "light.luce_tavolo",
       "name": "Luce tavolo",
-      "state": "off",
-      "brightness": null
+      "state": "on",
+      "brightness": 255
     },
     {
       "id": "light.lampada_tv",
       "name": "Lampada tv",
-      "state": "off",
-      "brightness": null
+      "state": "on",
+      "brightness": 255
     },
     {
       "id": "light.hue_play_gradient_lightstrip_1",
@@ -71,20 +71,20 @@
     {
       "id": "light.luce_filippo",
       "name": "Luce Filippo",
-      "state": "off",
-      "brightness": null
+      "state": "on",
+      "brightness": 60
     },
     {
       "id": "light.luna",
       "name": "Luna",
-      "state": "off",
-      "brightness": null
+      "state": "on",
+      "brightness": 60
     },
     {
       "id": "light.luce_letto",
       "name": "Luce letto",
-      "state": "off",
-      "brightness": null
+      "state": "on",
+      "brightness": 59
     },
     {
       "id": "light.ikea3",
@@ -107,13 +107,13 @@
     {
       "id": "light.scrivania",
       "name": "Scrivania",
-      "state": "off",
-      "brightness": null
+      "state": "on",
+      "brightness": 60
     },
     {
       "id": "light.muro",
       "name": "Muro",
-      "state": "unavailable",
+      "state": "off",
       "brightness": null
     },
     {
@@ -125,20 +125,20 @@
     {
       "id": "light.lampada_divano",
       "name": "Lampada divano",
-      "state": "off",
-      "brightness": null
+      "state": "on",
+      "brightness": 255
     },
     {
       "id": "light.luce_mena",
       "name": "Luce Mena",
-      "state": "off",
-      "brightness": null
+      "state": "on",
+      "brightness": 59
     },
     {
       "id": "light.camera",
       "name": "Camera",
-      "state": "off",
-      "brightness": null
+      "state": "on",
+      "brightness": 60
     },
     {
       "id": "light.alessia",
@@ -149,18 +149,12 @@
     {
       "id": "light.salone",
       "name": "Salone",
-      "state": "off",
-      "brightness": null
+      "state": "on",
+      "brightness": 255
     },
     {
       "id": "light.pranzo",
       "name": "Pranzo",
-      "state": "off",
-      "brightness": null
-    },
-    {
-      "id": "light.lavanderia",
-      "name": "lavanderia",
       "state": "off",
       "brightness": null
     },
@@ -185,6 +179,12 @@
     {
       "id": "light.wellis_spa_light_1",
       "name": "Wellis Spa Light 1",
+      "state": "off",
+      "brightness": null
+    },
+    {
+      "id": "light.lavanderia",
+      "name": "lavanderia",
       "state": "off",
       "brightness": null
     },
@@ -219,7 +219,7 @@
     {
       "id": "switch.sonoff_10003d6929",
       "name": "Ventola Viola",
-      "state": "on"
+      "state": "off"
     },
     {
       "id": "switch.hue_motion_sensor_1_motion",
@@ -262,9 +262,24 @@
       "state": "on"
     },
     {
+      "id": "switch.camera2",
+      "name": "Camera2",
+      "state": "off"
+    },
+    {
+      "id": "switch.bambine_tavolo",
+      "name": "Bambine tavolo",
+      "state": "on"
+    },
+    {
+      "id": "switch.bambine_scrivania",
+      "name": "Bambine scrivania",
+      "state": "off"
+    },
+    {
       "id": "switch.aria_condizionata",
       "name": "Aria Condizionata",
-      "state": "unknown"
+      "state": "on"
     },
     {
       "id": "switch.tavolo_cucina",
@@ -274,31 +289,6 @@
     {
       "id": "switch.mobile_cucina",
       "name": "Mobile Cucina",
-      "state": "off"
-    },
-    {
-      "id": "switch.bambine_tavolo",
-      "name": "Bambine tavolo",
-      "state": "off"
-    },
-    {
-      "id": "switch.bambine_scrivania",
-      "name": "Bambine scrivania",
-      "state": "off"
-    },
-    {
-      "id": "switch.camera2",
-      "name": "Camera2",
-      "state": "off"
-    },
-    {
-      "id": "switch.lavanderia_auto_update_enabled",
-      "name": "lavanderia Auto-update enabled",
-      "state": "on"
-    },
-    {
-      "id": "switch.asciugatrice_wrinkle_prevent",
-      "name": "Asciugatrice Wrinkle prevent",
       "state": "off"
     },
     {
@@ -319,7 +309,7 @@
     {
       "id": "switch.niovapresa2_socket_1",
       "name": "Patio",
-      "state": "off"
+      "state": "unavailable"
     },
     {
       "id": "switch.tenda_salone_inverso",
@@ -329,27 +319,27 @@
     {
       "id": "switch.luci_scale_campaldino_socket_1",
       "name": "Luci scale Campaldino  Socket 1",
-      "state": "off"
-    },
-    {
-      "id": "switch.camera_non_disturbare",
-      "name": "Camera Non disturbare",
       "state": "on"
     },
     {
-      "id": "switch.viola_non_disturbare",
-      "name": "Viola Non disturbare",
+      "id": "switch.asciugatrice_wrinkle_prevent",
+      "name": "Asciugatrice Wrinkle prevent",
       "state": "off"
     },
     {
       "id": "switch.salone_non_disturbare",
       "name": "Salone Non disturbare",
-      "state": "off"
+      "state": "unavailable"
+    },
+    {
+      "id": "switch.viola_non_disturbare",
+      "name": "Viola Non disturbare",
+      "state": "unavailable"
     },
     {
       "id": "switch.tv_salone_non_disturbare",
       "name": "Alexa tv salotto Non disturbare",
-      "state": "off"
+      "state": "unavailable"
     },
     {
       "id": "switch.tv_cucina_non_disturbare",
@@ -357,69 +347,29 @@
       "state": "unavailable"
     },
     {
+      "id": "switch.echo_bagno_piccolo_non_disturbare",
+      "name": "Echo Bagno Piccolo Non disturbare",
+      "state": "unavailable"
+    },
+    {
       "id": "switch.alexa_giardino_non_disturbare",
       "name": "Alexa Giardino Non disturbare",
-      "state": "off"
+      "state": "unavailable"
     },
     {
       "id": "switch.cucina_non_disturbare",
       "name": "Cucina Non disturbare",
-      "state": "off"
-    },
-    {
-      "id": "switch.echo_bagno_piccolo_non_disturbare",
-      "name": "Echo Bagno Piccolo Non disturbare",
-      "state": "off"
+      "state": "unavailable"
     },
     {
       "id": "switch.echo_alessia_non_disturbare",
       "name": "Echo Alessia Non disturbare",
-      "state": "off"
+      "state": "unavailable"
     },
     {
-      "id": "switch.casa_siren_2",
-      "name": "Casa Allarme Siren",
-      "state": "off"
-    },
-    {
-      "id": "switch.casa_panic_police_2",
-      "name": "Casa Allarme Panic - Police",
-      "state": "off"
-    },
-    {
-      "id": "switch.casa_panic_fire_2",
-      "name": "Casa Allarme Panic - Fire",
-      "state": "off"
-    },
-    {
-      "id": "switch.sirena_esterna_12967_2",
-      "name": "Sirena esterna 12967",
-      "state": "off"
-    },
-    {
-      "id": "switch.camera_cucina_live_stream",
-      "name": "Camera Cucina Live Stream",
-      "state": "off"
-    },
-    {
-      "id": "switch.camera_cucina_event_stream",
-      "name": "Camera Cucina Event Stream",
-      "state": "off"
-    },
-    {
-      "id": "switch.camera_cucina_siren_2",
-      "name": "Camera Cucina Siren",
-      "state": "off"
-    },
-    {
-      "id": "switch.camera_cucina_motion_detection",
-      "name": "Camera Cucina Motion Detection",
-      "state": "on"
-    },
-    {
-      "id": "switch.camera_cucina_motion_warning",
-      "name": "Camera Cucina Motion Warning",
-      "state": "off"
+      "id": "switch.camera_non_disturbare",
+      "name": "Camera Non disturbare",
+      "state": "unavailable"
     },
     {
       "id": "switch.fly_smart_timer_smart_watering_program",
@@ -477,6 +427,51 @@
       "state": "unavailable"
     },
     {
+      "id": "switch.camera_cucina_live_stream",
+      "name": "Camera Cucina Live Stream",
+      "state": "off"
+    },
+    {
+      "id": "switch.camera_cucina_siren_2",
+      "name": "Camera Cucina Siren",
+      "state": "off"
+    },
+    {
+      "id": "switch.camera_cucina_motion_detection",
+      "name": "Camera Cucina Motion Detection",
+      "state": "on"
+    },
+    {
+      "id": "switch.casa_siren_2",
+      "name": "Casa Allarme Siren",
+      "state": "off"
+    },
+    {
+      "id": "switch.casa_panic_police_2",
+      "name": "Casa Allarme Panic - Police",
+      "state": "off"
+    },
+    {
+      "id": "switch.casa_panic_fire_2",
+      "name": "Casa Allarme Panic - Fire",
+      "state": "off"
+    },
+    {
+      "id": "switch.camera_cucina_event_stream",
+      "name": "Camera Cucina Event Stream",
+      "state": "off"
+    },
+    {
+      "id": "switch.sirena_esterna_12967_2",
+      "name": "Sirena esterna 12967",
+      "state": "off"
+    },
+    {
+      "id": "switch.camera_cucina_motion_warning",
+      "name": "Camera Cucina Motion Warning",
+      "state": "off"
+    },
+    {
       "id": "switch.chirps",
       "name": "Chirps",
       "state": "unavailable"
@@ -490,6 +485,11 @@
       "id": "switch.automation_hue_motion_sensor_1",
       "name": "Automation: Hue motion sensor 1",
       "state": "unavailable"
+    },
+    {
+      "id": "switch.lavanderia_auto_update_enabled",
+      "name": "lavanderia Auto-update enabled",
+      "state": "on"
     },
     {
       "id": "switch.led_viola_auto_update_enabled_2",
@@ -535,37 +535,37 @@
     {
       "id": "sensor.sun_next_dawn",
       "name": "Sun Prossima alba",
-      "state": "2026-06-23T02:58:32+00:00",
+      "state": "2026-07-01T03:01:55+00:00",
       "unit": null
     },
     {
       "id": "sensor.sun_next_dusk",
       "name": "Sun Prossimo crepuscolo",
-      "state": "2026-06-23T19:25:47+00:00",
+      "state": "2026-07-01T19:25:30+00:00",
       "unit": null
     },
     {
       "id": "sensor.sun_next_midnight",
       "name": "Sun Prossima mezzanotte",
-      "state": "2026-06-23T23:12:25+00:00",
+      "state": "2026-06-30T23:13:51+00:00",
       "unit": null
     },
     {
       "id": "sensor.sun_next_noon",
       "name": "Sun Prossimo mezzogiorno",
-      "state": "2026-06-23T11:12:05+00:00",
+      "state": "2026-07-01T11:13:45+00:00",
       "unit": null
     },
     {
       "id": "sensor.sun_next_rising",
       "name": "Sun Prossima levata",
-      "state": "2026-06-23T03:33:30+00:00",
+      "state": "2026-07-01T03:36:40+00:00",
       "unit": null
     },
     {
       "id": "sensor.sun_next_setting",
       "name": "Sun Prossimo tramonto",
-      "state": "2026-06-23T18:50:50+00:00",
+      "state": "2026-07-01T18:50:48+00:00",
       "unit": null
     },
     {
@@ -1099,7 +1099,7 @@
     {
       "id": "sensor.flypad_battery_level",
       "name": "FlyPad Battery Level",
-      "state": "60",
+      "state": "80",
       "unit": "%"
     },
     {
@@ -1165,7 +1165,7 @@
     {
       "id": "sensor.flyphoneair3_battery_level",
       "name": "FlyPhoneAir3 Battery Level",
-      "state": "30",
+      "state": "25",
       "unit": "%"
     },
     {
@@ -1243,7 +1243,7 @@
     {
       "id": "sensor.hue_motion_sensor_1_temperature",
       "name": "Hue motion sensor 1 Temperatura",
-      "state": "25.0",
+      "state": "25.9",
       "unit": "°C"
     },
     {
@@ -1255,7 +1255,7 @@
     {
       "id": "sensor.hue_motion_sensor_1_battery",
       "name": "Hue motion sensor 1 Batteria",
-      "state": "28",
+      "state": "24",
       "unit": "%"
     },
     {
@@ -1279,8 +1279,50 @@
     {
       "id": "sensor.hue_dimmer_switch_1_battery",
       "name": "Hue dimmer Alessia Batteria",
-      "state": "57",
+      "state": "70",
       "unit": "%"
+    },
+    {
+      "id": "sensor.cancello_batteria",
+      "name": "Cancello Batteria",
+      "state": "93",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.cancello_ultima_attivita",
+      "name": "Cancello Ultima attività",
+      "state": "2026-06-30T20:39:23+00:00",
+      "unit": null
+    },
+    {
+      "id": "sensor.cancello_ultimo_ding",
+      "name": "Cancello Ultimo ding",
+      "state": "2026-06-30T20:39:23+00:00",
+      "unit": null
+    },
+    {
+      "id": "sensor.cancello_ultimo_movimento",
+      "name": "Cancello Ultimo movimento",
+      "state": "2026-06-30T19:18:50+00:00",
+      "unit": null
+    },
+    {
+      "id": "sensor.cancello_doorbell_volume",
+      "name": "Cancello Volume campanello",
+      "state": "8",
+      "unit": null
+    },
+    {
+      "id": "sensor.cancello_mic_volume",
+      "name": "Cancello Volume microfono",
+      "state": "11",
+      "unit": null
+    },
+    {
+      "id": "sensor.cancello_voice_volume",
+      "name": "Cancello Volume voce",
+      "state": "11",
+      "unit": null
     },
     {
       "id": "sensor.tavolo_cucina_potenza",
@@ -1321,32 +1363,14 @@
     {
       "id": "sensor.tavolo_cucina_energia",
       "name": "Tavolo Cucina Energia",
-      "state": "0.0",
+      "state": "0.0517333333333333",
       "unit": "kWh"
     },
     {
       "id": "sensor.mobile_cucina_energia",
       "name": "Mobile Cucina Energia",
-      "state": "0.0",
+      "state": "0.29045",
       "unit": "kWh"
-    },
-    {
-      "id": "sensor.chiudi_divano_batteria",
-      "name": "Chiudi Divano Batteria",
-      "state": "100",
-      "unit": "%"
-    },
-    {
-      "id": "sensor.hub_2_fb_temperatura",
-      "name": "Hub 2 FB Temperatura",
-      "state": "26.4",
-      "unit": "°C"
-    },
-    {
-      "id": "sensor.hub_2_fb_umidita",
-      "name": "Hub 2 FB Umidità",
-      "state": "68",
-      "unit": "%"
     },
     {
       "id": "sensor.sensore_di_presenza_cucina_batteria",
@@ -1361,75 +1385,45 @@
       "unit": null
     },
     {
+      "id": "sensor.hub_2_fb_temperatura",
+      "name": "Hub 2 FB Temperatura",
+      "state": "27.1",
+      "unit": "°C"
+    },
+    {
+      "id": "sensor.hub_2_fb_umidita",
+      "name": "Hub 2 FB Umidità",
+      "state": "63",
+      "unit": "%"
+    },
+    {
       "id": "sensor.apri_divano_batteria",
       "name": "Apri Divano Batteria",
       "state": "100",
       "unit": "%"
     },
     {
-      "id": "sensor.lavanderia_signal_level",
-      "name": "lavanderia Signal level",
-      "state": "1",
-      "unit": null
-    },
-    {
-      "id": "sensor.cancello_batteria",
-      "name": "Cancello Batteria",
-      "state": "78",
+      "id": "sensor.chiudi_divano_batteria",
+      "name": "Chiudi Divano Batteria",
+      "state": "100",
       "unit": "%"
-    },
-    {
-      "id": "sensor.cancello_ultima_attivita",
-      "name": "Cancello Ultima attività",
-      "state": "2026-06-22T20:43:08+00:00",
-      "unit": null
-    },
-    {
-      "id": "sensor.cancello_ultimo_ding",
-      "name": "Cancello Ultimo ding",
-      "state": "2026-06-22T18:30:38+00:00",
-      "unit": null
-    },
-    {
-      "id": "sensor.cancello_ultimo_movimento",
-      "name": "Cancello Ultimo movimento",
-      "state": "2026-06-22T20:43:08+00:00",
-      "unit": null
-    },
-    {
-      "id": "sensor.cancello_doorbell_volume",
-      "name": "Cancello Volume campanello",
-      "state": "8",
-      "unit": null
-    },
-    {
-      "id": "sensor.cancello_mic_volume",
-      "name": "Cancello Volume microfono",
-      "state": "11",
-      "unit": null
-    },
-    {
-      "id": "sensor.cancello_voice_volume",
-      "name": "Cancello Volume voce",
-      "state": "11",
-      "unit": null
     },
     {
       "id": "sensor.netatmo_casa_temperature",
       "name": "Casa Temperatura",
-      "state": "25.1",
+      "state": "30.2",
       "unit": "°C"
     },
     {
       "id": "sensor.netatmo_casa_pressure",
       "name": "Casa Pressione atmosferica",
-      "state": "1017.7",
+      "state": "1015.2",
       "unit": "mbar"
     },
     {
       "id": "sensor.netatmo_casa_humidity",
       "name": "Casa Umidità",
-      "state": "70.8",
+      "state": "53.8",
       "unit": "%"
     },
     {
@@ -1451,6 +1445,18 @@
       "unit": "km/h"
     },
     {
+      "id": "sensor.patio_energia_totale",
+      "name": "Patio Energia totale",
+      "state": "unavailable",
+      "unit": "kWh"
+    },
+    {
+      "id": "sensor.luci_scale_campaldino_energia_totale",
+      "name": "Luci scale Campaldino  Energia totale",
+      "state": "1.687",
+      "unit": "kWh"
+    },
+    {
       "id": "sensor.termostato_battery_percent_2",
       "name": "Termostato Batteria",
       "state": "75",
@@ -1459,61 +1465,61 @@
     {
       "id": "sensor.netatmo_la_mia_abitazione_interno_temperature",
       "name": "Termometro Camera Temperatura",
-      "state": "27.1",
+      "state": "27.4",
       "unit": "°C"
     },
     {
       "id": "sensor.netatmo_la_mia_abitazione_interno_co2",
       "name": "Termometro Camera Anidride carbonica",
-      "state": "1044",
+      "state": "893",
       "unit": "ppm"
     },
     {
       "id": "sensor.netatmo_la_mia_abitazione_interno_pressure",
       "name": "Termometro Camera Pressione atmosferica",
-      "state": "1022.9",
+      "state": "1020.1",
       "unit": "mbar"
     },
     {
       "id": "sensor.netatmo_la_mia_abitazione_interno_noise",
       "name": "Termometro Camera Noise",
-      "state": "43",
+      "state": "37",
       "unit": "dB"
     },
     {
       "id": "sensor.netatmo_la_mia_abitazione_interno_humidity",
       "name": "Termometro Camera Umidità",
-      "state": "77",
+      "state": "75",
       "unit": "%"
     },
     {
       "id": "sensor.netatmo_la_mia_abitazione_interno_esterno_temperature",
       "name": "Termomentro Giardino Temperatura",
-      "state": "23.5",
+      "state": "29.2",
       "unit": "°C"
     },
     {
       "id": "sensor.netatmo_la_mia_abitazione_interno_esterno_humidity",
       "name": "Termomentro Giardino Umidità",
-      "state": "77",
+      "state": "55",
       "unit": "%"
     },
     {
       "id": "sensor.netatmo_la_mia_abitazione_interno_esterno_battery_percent",
       "name": "Termomentro Giardino Batteria",
-      "state": "59",
+      "state": "58",
       "unit": "%"
     },
     {
       "id": "sensor.tv_cucina_canale_tv",
       "name": "tv cucina Canale TV",
-      "state": "",
+      "state": "50",
       "unit": null
     },
     {
       "id": "sensor.tv_cucina_nome_del_canale_tv",
       "name": "tv cucina Nome del canale TV",
-      "state": "cU8hhdYp3F.Duplecast",
+      "state": "Sky TG24",
       "unit": null
     },
     {
@@ -1573,13 +1579,13 @@
     {
       "id": "sensor.asciugatrice_completion_time",
       "name": "Asciugatrice Completion time",
-      "state": "2026-06-22T15:21:22+00:00",
+      "state": "2026-06-30T15:21:30+00:00",
       "unit": null
     },
     {
       "id": "sensor.asciugatrice_energia",
       "name": "Asciugatrice Energia",
-      "state": "28.3",
+      "state": "29.1",
       "unit": "kWh"
     },
     {
@@ -1607,56 +1613,38 @@
       "unit": "kWh"
     },
     {
-      "id": "sensor.patio_energia_totale",
-      "name": "Patio Energia totale",
-      "state": "0",
-      "unit": "kWh"
-    },
-    {
-      "id": "sensor.luci_scale_campaldino_energia_totale",
-      "name": "Luci scale Campaldino  Energia totale",
-      "state": "0.004",
-      "unit": "kWh"
-    },
-    {
       "id": "sensor.viola_illuminamento",
       "name": "Viola Illuminamento",
-      "state": "9.0",
-      "unit": "lx"
-    },
-    {
-      "id": "sensor.cucina_illuminamento",
-      "name": "Cucina Illuminamento",
-      "state": "12.0",
+      "state": "unavailable",
       "unit": "lx"
     },
     {
       "id": "sensor.echo_bagno_piccolo_illuminamento",
       "name": "Echo Bagno Piccolo Illuminamento",
-      "state": "0.0",
+      "state": "unavailable",
+      "unit": "lx"
+    },
+    {
+      "id": "sensor.cucina_illuminamento",
+      "name": "Cucina Illuminamento",
+      "state": "unavailable",
       "unit": "lx"
     },
     {
       "id": "sensor.echo_alessia_illuminamento",
       "name": "Echo Alessia Illuminamento",
-      "state": "115.0",
+      "state": "unavailable",
       "unit": "lx"
     },
     {
-      "id": "sensor.camera_prossima_sveglia",
-      "name": "Camera Prossima sveglia",
+      "id": "sensor.salone_prossima_sveglia",
+      "name": "Salone Prossima sveglia",
       "state": "unavailable",
       "unit": null
     },
     {
       "id": "sensor.viola_prossima_sveglia",
       "name": "Viola Prossima sveglia",
-      "state": "unavailable",
-      "unit": null
-    },
-    {
-      "id": "sensor.salone_prossima_sveglia",
-      "name": "Salone Prossima sveglia",
       "state": "unavailable",
       "unit": null
     },
@@ -1673,6 +1661,12 @@
       "unit": null
     },
     {
+      "id": "sensor.echo_bagno_piccolo_prossima_sveglia",
+      "name": "Echo Bagno Piccolo Prossima sveglia",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
       "id": "sensor.alexa_giardino_prossima_sveglia",
       "name": "Alexa Giardino Prossima sveglia",
       "state": "unavailable",
@@ -1685,32 +1679,26 @@
       "unit": null
     },
     {
-      "id": "sensor.echo_bagno_piccolo_prossima_sveglia",
-      "name": "Echo Bagno Piccolo Prossima sveglia",
-      "state": "unavailable",
-      "unit": null
-    },
-    {
       "id": "sensor.echo_alessia_prossima_sveglia",
       "name": "Echo Alessia Prossima sveglia",
       "state": "unavailable",
       "unit": null
     },
     {
-      "id": "sensor.camera_prossimo_promemoria",
-      "name": "Camera Prossimo promemoria",
-      "state": "unavailable",
-      "unit": null
-    },
-    {
-      "id": "sensor.viola_prossimo_promemoria",
-      "name": "Viola Prossimo promemoria",
+      "id": "sensor.camera_prossima_sveglia",
+      "name": "Camera Prossima sveglia",
       "state": "unavailable",
       "unit": null
     },
     {
       "id": "sensor.salone_prossimo_promemoria",
       "name": "Salone Prossimo promemoria",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.viola_prossimo_promemoria",
+      "name": "Viola Prossimo promemoria",
       "state": "unavailable",
       "unit": null
     },
@@ -1727,6 +1715,12 @@
       "unit": null
     },
     {
+      "id": "sensor.echo_bagno_piccolo_prossimo_promemoria",
+      "name": "Echo Bagno Piccolo Prossimo promemoria",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
       "id": "sensor.alexa_giardino_prossimo_promemoria",
       "name": "Alexa Giardino Prossimo promemoria",
       "state": "unavailable",
@@ -1739,32 +1733,26 @@
       "unit": null
     },
     {
-      "id": "sensor.echo_bagno_piccolo_prossimo_promemoria",
-      "name": "Echo Bagno Piccolo Prossimo promemoria",
-      "state": "unavailable",
-      "unit": null
-    },
-    {
       "id": "sensor.echo_alessia_prossimo_promemoria",
       "name": "Echo Alessia Prossimo promemoria",
       "state": "unavailable",
       "unit": null
     },
     {
-      "id": "sensor.camera_prossimo_timer",
-      "name": "Camera Prossimo timer",
-      "state": "unavailable",
-      "unit": null
-    },
-    {
-      "id": "sensor.viola_prossimo_timer",
-      "name": "Viola Prossimo timer",
+      "id": "sensor.camera_prossimo_promemoria",
+      "name": "Camera Prossimo promemoria",
       "state": "unavailable",
       "unit": null
     },
     {
       "id": "sensor.salone_prossimo_timer",
       "name": "Salone Prossimo timer",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.viola_prossimo_timer",
+      "name": "Viola Prossimo timer",
       "state": "unavailable",
       "unit": null
     },
@@ -1781,6 +1769,12 @@
       "unit": null
     },
     {
+      "id": "sensor.echo_bagno_piccolo_prossimo_timer",
+      "name": "Echo Bagno Piccolo Prossimo timer",
+      "state": "unavailable",
+      "unit": null
+    },
+    {
       "id": "sensor.alexa_giardino_prossimo_timer",
       "name": "Alexa Giardino Prossimo timer",
       "state": "unavailable",
@@ -1793,190 +1787,16 @@
       "unit": null
     },
     {
-      "id": "sensor.echo_bagno_piccolo_prossimo_timer",
-      "name": "Echo Bagno Piccolo Prossimo timer",
-      "state": "unavailable",
-      "unit": null
-    },
-    {
       "id": "sensor.echo_alessia_prossimo_timer",
       "name": "Echo Alessia Prossimo timer",
       "state": "unavailable",
       "unit": null
     },
     {
-      "id": "sensor.casa_base_station_info_2",
-      "name": "Casa Base Station Info",
-      "state": "ok",
+      "id": "sensor.camera_prossimo_timer",
+      "name": "Camera Prossimo timer",
+      "state": "unavailable",
       "unit": null
-    },
-    {
-      "id": "sensor.casa_allarme_info_2",
-      "name": "Casa Allarme Info",
-      "state": "all-clear",
-      "unit": null
-    },
-    {
-      "id": "sensor.porta_cucina_info",
-      "name": "Porta Cucina Info",
-      "state": "ok",
-      "unit": null
-    },
-    {
-      "id": "sensor.porta_cucina_battery",
-      "name": "Porta Cucina Battery",
-      "state": "100",
-      "unit": "%"
-    },
-    {
-      "id": "sensor.casa_range_extender_info_2",
-      "name": "Casa Range Extender Info",
-      "state": "error",
-      "unit": null
-    },
-    {
-      "id": "sensor.casa_range_extender_battery_2",
-      "name": "Casa Range Extender Battery",
-      "state": "90",
-      "unit": "%"
-    },
-    {
-      "id": "sensor.movimento_salone_info",
-      "name": "Movimento Salone Info",
-      "state": "ok",
-      "unit": null
-    },
-    {
-      "id": "sensor.movimento_salone_battery",
-      "name": "Movimento Salone Battery",
-      "state": "75",
-      "unit": "%"
-    },
-    {
-      "id": "sensor.porta_salone_info_2",
-      "name": "Porta Salone Info",
-      "state": "ok",
-      "unit": null
-    },
-    {
-      "id": "sensor.porta_salone_battery_2",
-      "name": "Porta Salone Battery",
-      "state": "100",
-      "unit": "%"
-    },
-    {
-      "id": "sensor.porta_salone_2_info_2",
-      "name": "Porta Salone 2 Info",
-      "state": "ok",
-      "unit": null
-    },
-    {
-      "id": "sensor.porta_salone_2_battery_2",
-      "name": "Porta Salone 2 Battery",
-      "state": "100",
-      "unit": "%"
-    },
-    {
-      "id": "sensor.porta_viola_info_2",
-      "name": "Porta Viola Info",
-      "state": "ok",
-      "unit": null
-    },
-    {
-      "id": "sensor.porta_viola_battery_2",
-      "name": "Porta Viola Battery",
-      "state": "100",
-      "unit": "%"
-    },
-    {
-      "id": "sensor.porta_ingresso_info",
-      "name": "Porta Ingresso Info",
-      "state": "ok",
-      "unit": null
-    },
-    {
-      "id": "sensor.porta_ingresso_battery",
-      "name": "Porta Ingresso Battery",
-      "state": "100",
-      "unit": "%"
-    },
-    {
-      "id": "sensor.movimento_ingresso_info",
-      "name": "Movimento ingresso Info",
-      "state": "ok",
-      "unit": null
-    },
-    {
-      "id": "sensor.movimento_ingresso_battery",
-      "name": "Movimento ingresso Battery",
-      "state": "90",
-      "unit": "%"
-    },
-    {
-      "id": "sensor.porta_alessia_info_2",
-      "name": "Porta Alessia  Info",
-      "state": "ok",
-      "unit": null
-    },
-    {
-      "id": "sensor.porta_alessia_battery_2",
-      "name": "Porta Alessia  Battery",
-      "state": "100",
-      "unit": "%"
-    },
-    {
-      "id": "sensor.porta_camera_info_2",
-      "name": "Porta Camera Info",
-      "state": "ok",
-      "unit": null
-    },
-    {
-      "id": "sensor.porta_camera_battery_2",
-      "name": "Porta Camera Battery",
-      "state": "100",
-      "unit": "%"
-    },
-    {
-      "id": "sensor.sirena_esterna_12967_info_2",
-      "name": "Sirena esterna 12967 Info",
-      "state": "ok",
-      "unit": null
-    },
-    {
-      "id": "sensor.sirena_esterna_12967_battery_2",
-      "name": "Sirena esterna 12967 Battery",
-      "state": "100",
-      "unit": "%"
-    },
-    {
-      "id": "sensor.camera_cucina_info",
-      "name": "Camera Cucina Info",
-      "state": "2026-06-22T23:31:14+00:00",
-      "unit": null
-    },
-    {
-      "id": "sensor.camera_cucina_wireless",
-      "name": "Camera Cucina Wireless",
-      "state": "unknown",
-      "unit": "dBm"
-    },
-    {
-      "id": "sensor.cancello_battery",
-      "name": "Cancello Battery",
-      "state": "78",
-      "unit": "%"
-    },
-    {
-      "id": "sensor.cancello_info",
-      "name": "Cancello Info",
-      "state": "2026-06-22T23:30:22+00:00",
-      "unit": null
-    },
-    {
-      "id": "sensor.cancello_wireless",
-      "name": "Cancello Wireless",
-      "state": "-28",
-      "unit": "dBm"
     },
     {
       "id": "sensor.fly_smart_timer_battery_level",
@@ -2237,6 +2057,18 @@
       "unit": "EUR"
     },
     {
+      "id": "sensor.camera_cucina_info",
+      "name": "Camera Cucina Info",
+      "state": "2026-06-30T22:13:46+00:00",
+      "unit": null
+    },
+    {
+      "id": "sensor.camera_cucina_wireless",
+      "name": "Camera Cucina Wireless",
+      "state": "unknown",
+      "unit": "dBm"
+    },
+    {
       "id": "sensor.portone_battery",
       "name": "Battery",
       "state": "unavailable",
@@ -2255,15 +2087,177 @@
       "unit": "dBm"
     },
     {
+      "id": "sensor.cancello_battery",
+      "name": "Cancello Battery",
+      "state": "93",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.cancello_info",
+      "name": "Cancello Info",
+      "state": "2026-06-30T20:39:46+00:00",
+      "unit": null
+    },
+    {
+      "id": "sensor.cancello_wireless",
+      "name": "Cancello Wireless",
+      "state": "-28",
+      "unit": "dBm"
+    },
+    {
+      "id": "sensor.casa_base_station_info_2",
+      "name": "Casa Base Station Info",
+      "state": "ok",
+      "unit": null
+    },
+    {
+      "id": "sensor.porta_cucina_info",
+      "name": "Porta Cucina Info",
+      "state": "ok",
+      "unit": null
+    },
+    {
+      "id": "sensor.porta_cucina_battery",
+      "name": "Porta Cucina Battery",
+      "state": "100",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.casa_range_extender_info_2",
+      "name": "Casa Range Extender Info",
+      "state": "error",
+      "unit": null
+    },
+    {
+      "id": "sensor.casa_range_extender_battery_2",
+      "name": "Casa Range Extender Battery",
+      "state": "5",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.movimento_salone_info",
+      "name": "Movimento Salone Info",
+      "state": "ok",
+      "unit": null
+    },
+    {
+      "id": "sensor.movimento_salone_battery",
+      "name": "Movimento Salone Battery",
+      "state": "70",
+      "unit": "%"
+    },
+    {
       "id": "sensor.ring_keypad_35228_info_2",
       "name": "Ring Keypad 35228 Info",
       "state": "unavailable",
       "unit": null
     },
     {
+      "id": "sensor.porta_salone_info_2",
+      "name": "Porta Salone Info",
+      "state": "ok",
+      "unit": null
+    },
+    {
+      "id": "sensor.porta_salone_battery_2",
+      "name": "Porta Salone Battery",
+      "state": "100",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.porta_salone_2_info_2",
+      "name": "Porta Salone 2 Info",
+      "state": "ok",
+      "unit": null
+    },
+    {
+      "id": "sensor.porta_salone_2_battery_2",
+      "name": "Porta Salone 2 Battery",
+      "state": "100",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.porta_viola_info_2",
+      "name": "Porta Viola Info",
+      "state": "ok",
+      "unit": null
+    },
+    {
+      "id": "sensor.porta_viola_battery_2",
+      "name": "Porta Viola Battery",
+      "state": "100",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.porta_ingresso_info",
+      "name": "Porta Ingresso Info",
+      "state": "ok",
+      "unit": null
+    },
+    {
+      "id": "sensor.porta_ingresso_battery",
+      "name": "Porta Ingresso Battery",
+      "state": "100",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.movimento_ingresso_info",
+      "name": "Movimento ingresso Info",
+      "state": "ok",
+      "unit": null
+    },
+    {
+      "id": "sensor.movimento_ingresso_battery",
+      "name": "Movimento ingresso Battery",
+      "state": "85",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.porta_alessia_info_2",
+      "name": "Porta Alessia  Info",
+      "state": "ok",
+      "unit": null
+    },
+    {
+      "id": "sensor.porta_alessia_battery_2",
+      "name": "Porta Alessia  Battery",
+      "state": "100",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.porta_camera_info_2",
+      "name": "Porta Camera Info",
+      "state": "ok",
+      "unit": null
+    },
+    {
+      "id": "sensor.porta_camera_battery_2",
+      "name": "Porta Camera Battery",
+      "state": "100",
+      "unit": "%"
+    },
+    {
       "id": "sensor.ring_keypad_35228_info_3",
       "name": "Info",
       "state": "unavailable",
+      "unit": null
+    },
+    {
+      "id": "sensor.sirena_esterna_12967_info_2",
+      "name": "Sirena esterna 12967 Info",
+      "state": "ok",
+      "unit": null
+    },
+    {
+      "id": "sensor.sirena_esterna_12967_battery_2",
+      "name": "Sirena esterna 12967 Battery",
+      "state": "100",
+      "unit": "%"
+    },
+    {
+      "id": "sensor.casa_allarme_info_2",
+      "name": "Casa Allarme Info",
+      "state": "all-clear",
       "unit": null
     },
     {
@@ -2321,6 +2315,12 @@
       "unit": null
     },
     {
+      "id": "sensor.lavanderia_signal_level",
+      "name": "lavanderia Signal level",
+      "state": "1",
+      "unit": null
+    },
+    {
       "id": "sensor.led_viola_signal_level_3",
       "name": "Signal level",
       "state": "unavailable",
@@ -2351,14 +2351,14 @@
       "id": "climate.salone",
       "name": "Termostato",
       "state": "off",
-      "temp": 26.5,
+      "temp": 27,
       "target": null
     },
     {
       "id": "climate.wellis_spa_thermostat_1",
       "name": "Weelis Jupiter Spa",
       "state": "heat",
-      "temp": 30.5,
+      "temp": 33.5,
       "target": 23.5
     }
   ],
@@ -2376,7 +2376,7 @@
     {
       "id": "person.viola",
       "name": "viola",
-      "state": "home"
+      "state": "not_home"
     },
     {
       "id": "person.filippo_2",
@@ -2386,7 +2386,7 @@
     {
       "id": "person.alessia",
       "name": "Alessia",
-      "state": "home"
+      "state": "not_home"
     }
   ]
 }
