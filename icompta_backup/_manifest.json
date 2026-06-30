@@ -1,0 +1,160 @@
+{
+  "generato": "2026-06-30T15:48:25.880Z",
+  "chiavi": 38,
+  "skippati_backup": 4,
+  "errori": 0,
+  "manifest": [
+    {
+      "key": "icompta:eb:session:Banca-Sella:personal",
+      "file": "keys/icompta_eb_session_Banca-Sella_personal.json"
+    },
+    {
+      "key": "icompta:eb:session:FinecoBank:personal",
+      "file": "keys/icompta_eb_session_FinecoBank_personal.json"
+    },
+    {
+      "key": "icompta:fineco-inv:strumenti",
+      "file": "keys/icompta_fineco-inv_strumenti.json"
+    },
+    {
+      "key": "icompta:investimenti:carico",
+      "file": "keys/icompta_investimenti_carico.json"
+    },
+    {
+      "key": "icompta:leo_log",
+      "file": "keys/icompta_leo_log.json"
+    },
+    {
+      "key": "icompta:meta",
+      "file": "meta.json"
+    },
+    {
+      "key": "icompta:ricorrenze",
+      "file": "keys/icompta_ricorrenze.json"
+    },
+    {
+      "key": "icompta:sella_log",
+      "file": "keys/icompta_sella_log.json"
+    },
+    {
+      "key": "icompta:sella_regole",
+      "file": "keys/icompta_sella_regole.json"
+    },
+    {
+      "key": "icompta:snapshot:2026-06-28",
+      "file": "keys/icompta_snapshot_2026-06-28.json"
+    },
+    {
+      "key": "icompta:snapshot:2026-06-29",
+      "file": "keys/icompta_snapshot_2026-06-29.json"
+    },
+    {
+      "key": "icompta:snapshot:2026-06-30",
+      "file": "keys/icompta_snapshot_2026-06-30.json"
+    },
+    {
+      "key": "icompta:tx:2001",
+      "file": "tx_2001.json"
+    },
+    {
+      "key": "icompta:tx:2002",
+      "file": "tx_2002.json"
+    },
+    {
+      "key": "icompta:tx:2003",
+      "file": "tx_2003.json"
+    },
+    {
+      "key": "icompta:tx:2004",
+      "file": "tx_2004.json"
+    },
+    {
+      "key": "icompta:tx:2005",
+      "file": "tx_2005.json"
+    },
+    {
+      "key": "icompta:tx:2006",
+      "file": "tx_2006.json"
+    },
+    {
+      "key": "icompta:tx:2007",
+      "file": "tx_2007.json"
+    },
+    {
+      "key": "icompta:tx:2008",
+      "file": "tx_2008.json"
+    },
+    {
+      "key": "icompta:tx:2009",
+      "file": "tx_2009.json"
+    },
+    {
+      "key": "icompta:tx:2010",
+      "file": "tx_2010.json"
+    },
+    {
+      "key": "icompta:tx:2011",
+      "file": "tx_2011.json"
+    },
+    {
+      "key": "icompta:tx:2012",
+      "file": "tx_2012.json"
+    },
+    {
+      "key": "icompta:tx:2013",
+      "file": "tx_2013.json"
+    },
+    {
+      "key": "icompta:tx:2014",
+      "file": "tx_2014.json"
+    },
+    {
+      "key": "icompta:tx:2015",
+      "file": "tx_2015.json"
+    },
+    {
+      "key": "icompta:tx:2016",
+      "file": "tx_2016.json"
+    },
+    {
+      "key": "icompta:tx:2017",
+      "file": "tx_2017.json"
+    },
+    {
+      "key": "icompta:tx:2018",
+      "file": "tx_2018.json"
+    },
+    {
+      "key": "icompta:tx:2019",
+      "file": "tx_2019.json"
+    },
+    {
+      "key": "icompta:tx:2020",
+      "file": "tx_2020.json"
+    },
+    {
+      "key": "icompta:tx:2021",
+      "file": "tx_2021.json"
+    },
+    {
+      "key": "icompta:tx:2022",
+      "file": "tx_2022.json"
+    },
+    {
+      "key": "icompta:tx:2023",
+      "file": "tx_2023.json"
+    },
+    {
+      "key": "icompta:tx:2024",
+      "file": "tx_2024.json"
+    },
+    {
+      "key": "icompta:tx:2025",
+      "file": "tx_2025.json"
+    },
+    {
+      "key": "icompta:tx:2026",
+      "file": "tx_2026.json"
+    }
+  ]
+}
