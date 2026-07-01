@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Trastevere Nascosta — Audioguida</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap');
+
+  :root{
+    --stone:#2a2622;
+    --stone-2:#332e28;
+    --patina:#7c9a82;
+    --patina-dim:#5c7566;
+    --ochre:#c97d4b;
+    --limestone:#ede6d8;
+    --limestone-dim:#b3a996;
+    --line: rgba(237,230,216,0.12);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
+  html,body{margin:0;padding:0;background:var(--stone);color:var(--limestone);
+    font-family:'Inter',-apple-system,sans-serif; min-height:100vh;
+    -webkit-font-smoothing:antialiased;}
+
+  .wrap{max-width:520px;margin:0 auto;padding:0 0 120px 0;}
+
+  header{padding:28px 20px 18px; position:sticky; top:0; z-index:20;
+    background:linear-gradient(var(--stone) 82%, transparent);}
+  .eyebrow{font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--patina); font-weight:600; margin-bottom:6px;}
+  h1{font-family:'Fraunces',serif; font-weight:600; font-size:30px; line-height:1.05;
+    margin:0 0 4px 0; letter-spacing:-0.01em;}
+  .subtitle{color:var(--limestone-dim); font-size:14px; margin:0;}
+
+  /* trail of stops, like sampietrini paving */
+  .trail{display:flex; align-items:center; gap:6px; padding:18px 20px 4px;}
+  .dot{width:10px;height:10px;border-radius:50%;background:var(--line); flex-shrink:0;
+    transition:background .4s, transform .3s;}
+  .dot.done{background:var(--patina);}
+  .dot.active{background:var(--ochre); transform:scale(1.35);}
+  .trail-line{flex:1; height:2px; background:var(--line); border-radius:2px;}
+  .trail-line.done{background:var(--patina-dim);}
+
+  .toggle-row{display:flex; align-items:center; justify-content:space-between;
+    margin:14px 20px 8px; padding:12px 14px; background:var(--stone-2);
+    border-radius:14px; border:1px solid var(--line);}
+  .toggle-label{font-size:13.5px; color:var(--limestone-dim);}
+  .toggle-label b{color:var(--limestone); font-weight:600;}
+  .switch{position:relative; width:44px; height:26px; flex-shrink:0;}
+  .switch input{opacity:0; width:0; height:0;}
+  .slider{position:absolute; inset:0; background:var(--line); border-radius:999px;
+    cursor:pointer; transition:.25s;}
+  .slider:before{content:""; position:absolute; width:20px; height:20px; left:3px; top:3px;
+    background:var(--limestone); border-radius:50%; transition:.25s;}
+  input:checked + .slider{background:var(--patina);}
+  input:checked + .slider:before{transform:translateX(18px);}
+
+  .gps-status{margin:4px 20px 18px; font-size:12.5px; color:var(--limestone-dim);
+    display:flex; align-items:center; gap:7px;}
+  .gps-dot{width:7px;height:7px;border-radius:50%; background:var(--patina-dim);}
+  .gps-dot.live{background:var(--patina); box-shadow:0 0 0 3px rgba(124,154,130,0.25);}
+
+  .stops{padding:0 20px; display:flex; flex-direction:column; gap:10px;}
+  .stop{background:var(--stone-2); border:1px solid var(--line); border-radius:16px;
+    padding:16px 16px; display:flex; align-items:center; gap:14px; cursor:pointer;
+    transition:border-color .2s, transform .15s;}
+  .stop:active{transform:scale(0.98);}
+  .stop.current{border-color:var(--ochre);}
+  .stop.done{opacity:0.55;}
+  .stop-num{font-family:'Fraunces',serif; font-size:20px; color:var(--limestone-dim);
+    width:26px; text-align:center; flex-shrink:0;}
+  .stop.done .stop-num{color:var(--patina);}
+  .stop-body{flex:1; min-width:0;}
+  .stop-name{font-family:'Fraunces',serif; font-size:17px; font-weight:600; margin:0 0 2px;}
+  .stop-desc{font-size:12.5px; color:var(--limestone-dim); margin:0; line-height:1.4;}
+  .stop-icon{width:34px;height:34px; border-radius:50%; background:rgba(124,154,130,0.14);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0; color:var(--patina);}
+
+  /* arrival prompt */
+  .arrival-overlay{position:fixed; inset:0; background:rgba(20,17,14,0.72);
+    backdrop-filter:blur(3px); z-index:50; display:flex; align-items:flex-end;
+    justify-content:center; opacity:0; pointer-events:none; transition:opacity .25s;}
+  .arrival-overlay.show{opacity:1; pointer-events:auto;}
+  .arrival-card{width:100%; max-width:520px; background:var(--stone-2);
+    border-radius:22px 22px 0 0; padding:26px 22px calc(26px + env(safe-area-inset-bottom));
+    border:1px solid var(--line); border-bottom:none;
+    transform:translateY(20px); transition:transform .3s;}
+  .arrival-overlay.show .arrival-card{transform:translateY(0);}
+  .arrival-eyebrow{font-size:12px; text-transform:uppercase; letter-spacing:.1em;
+    color:var(--ochre); font-weight:600; margin-bottom:8px;}
+  .arrival-title{font-family:'Fraunces',serif; font-size:22px; font-weight:600; margin:0 0 18px;}
+  .arrival-actions{display:flex; gap:10px;}
+  .btn{flex:1; padding:14px; border-radius:12px; border:none; font-size:15px;
+    font-weight:600; font-family:'Inter',sans-serif; cursor:pointer;}
+  .btn-primary{background:var(--ochre); color:#241a12;}
+  .btn-ghost{background:transparent; color:var(--limestone-dim); border:1px solid var(--line);}
+
+  /* player */
+  .player{position:fixed; left:0; right:0; bottom:0; z-index:40;
+    background:var(--stone-2); border-top:1px solid var(--line);
+    padding:14px 20px calc(14px + env(safe-area-inset-bottom));
+    transform:translateY(110%); transition:transform .3s;}
+  .player.show{transform:translateY(0);}
+  .player-top{display:flex; align-items:center; gap:12px; margin-bottom:10px;}
+  .player-name{font-family:'Fraunces',serif; font-size:15px; font-weight:600; flex:1;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .play-btn{width:40px;height:40px;border-radius:50%; background:var(--patina); border:none;
+    display:flex; align-items:center; justify-content:center; flex-shrink:0; cursor:pointer;}
+  .play-btn svg{width:16px;height:16px;}
+  audio{width:100%; height:32px;}
+  audio::-webkit-media-controls-panel{background-color:var(--stone-2);}
+
+  footer{text-align:center; padding:24px 20px; font-size:11.5px; color:var(--limestone-dim);
+    opacity:0.6;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Passeggiata narrata · ~2h30 · 4-5 km</div>
+    <h1>Trastevere Nascosta</h1>
+    <p class="subtitle">Il lato del rione che i turisti non vedono. Cammina, e ti racconto io.</p>
+  </header>
+
+  <div class="trail" id="trail"></div>
+
+  <div class="toggle-row">
+    <div class="toggle-label"><b>Riproduzione automatica</b><br>Parte da sola quando arrivi a una tappa</div>
+    <label class="switch">
+      <input type="checkbox" id="autoplayToggle" checked>
+      <span class="slider"></span>
+    </label>
+  </div>
+
+  <div class="gps-status">
+    <div class="gps-dot" id="gpsDot"></div>
+    <span id="gpsText">Posizione non attiva — tocca "Attiva GPS" qui sotto</span>
+  </div>
+
+  <div class="stops" id="stops"></div>
+
+  <footer>Genera audio con Google Cloud TTS · fatto per camminarci sopra</footer>
+</div>
+
+<div class="arrival-overlay" id="arrivalOverlay">
+  <div class="arrival-card">
+    <div class="arrival-eyebrow">Sei arrivato</div>
+    <div class="arrival-title" id="arrivalTitle">—</div>
+    <div class="arrival-actions">
+      <button class="btn btn-ghost" id="laterBtn">Più tardi</button>
+      <button class="btn btn-primary" id="playNowBtn">▶ Riproduci</button>
+    </div>
+  </div>
+</div>
+
+<div class="player" id="player">
+  <div class="player-top">
+    <button class="play-btn" id="playPauseBtn">
+      <svg viewBox="0 0 24 24" fill="#241a12"><path id="playIcon" d="M8 5v14l11-7z"/></svg>
+    </button>
+    <div class="player-name" id="playerName">—</div>
+  </div>
+  <audio id="audioEl"></audio>
+</div>
+
+<script>
+// ---- Dati tappe (pilota: 2 tappe) ----
+const STOPS = [
+  {
+    id: 1,
+    name: "Piazza Trilussa",
+    desc: "Ponte Sisto, la fontana spostata, l'ingresso a Trastevere",
+    lat: 41.8917821,
+    lon: 12.4702261,
+    audio: "audio/tappa1.mp3"
+  },
+  {
+    id: 2,
+    name: "Antica Farmacia S. Maria della Scala",
+    desc: "La farmacia dei Papi, teriaca e frati speziali",
+    lat: 41.8913020,
+    lon: 12.4679727,
+    audio: "audio/tappa2.mp3"
+  }
+];
+
+const RADIUS_METERS = 45;
+const state = {
+  played: new Set(JSON.parse(localStorage.getItem('trastevere_played') || '[]')),
+  autoplay: localStorage.getItem('trastevere_autoplay') !== 'false',
+  currentStopId: null,
+  wakeLock: null,
+  watchId: null
+};
+
+// ---- Utils ----
+function haversine(lat1, lon1, lat2, lon2){
+  const R = 6371000;
+  const toRad = d => d * Math.PI/180;
+  const dLat = toRad(lat2-lat1), dLon = toRad(lon2-lon1);
+  const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+function savePlayed(){ localStorage.setItem('trastevere_played', JSON.stringify([...state.played])); }
+function saveAutoplay(){ localStorage.setItem('trastevere_autoplay', state.autoplay); }
+
+// ---- Render lista tappe + trail ----
+function render(){
+  const stopsEl = document.getElementById('stops');
+  const trailEl = document.getElementById('trail');
+  stopsEl.innerHTML = '';
+  trailEl.innerHTML = '';
+
+  STOPS.forEach((s, i) => {
+    const done = state.played.has(s.id);
+    const current = state.currentStopId === s.id;
+
+    // trail dot
+    const dot = document.createElement('div');
+    dot.className = 'dot' + (done ? ' done' : '') + (current ? ' active' : '');
+    trailEl.appendChild(dot);
+    if(i < STOPS.length - 1){
+      const line = document.createElement('div');
+      line.className = 'trail-line' + (done ? ' done' : '');
+      trailEl.appendChild(line);
+    }
+
+    // stop card
+    const el = document.createElement('div');
+    el.className = 'stop' + (done ? ' done' : '') + (current ? ' current' : '');
+    el.innerHTML = `
+      <div class="stop-num">${String(s.id).padStart(2,'0')}</div>
+      <div class="stop-body">
+        <p class="stop-name">${s.name}</p>
+        <p class="stop-desc">${s.desc}</p>
+      </div>
+      <div class="stop-icon">${done ? '✓' : '▶'}</div>
+    `;
+    el.onclick = () => playStop(s.id, true);
+    stopsEl.appendChild(el);
+  });
+}
+
+// ---- Player ----
+const audioEl = document.getElementById('audioEl');
+const playerEl = document.getElementById('player');
+const playPauseBtn = document.getElementById('playPauseBtn');
+const playIcon = document.getElementById('playIcon');
+
+function playStop(id, manual){
+  const stop = STOPS.find(s => s.id === id);
+  if(!stop) return;
+  state.currentStopId = id;
+  document.getElementById('playerName').textContent = stop.name;
+  audioEl.src = stop.audio;
+  audioEl.play().catch(()=>{ /* iOS può richiedere un tap: il bottone play resta disponibile */ });
+  playerEl.classList.add('show');
+  state.played.add(id);
+  savePlayed();
+  render();
+  requestWakeLock();
+}
+
+playPauseBtn.onclick = () => {
+  if(audioEl.paused){ audioEl.play(); } else { audioEl.pause(); }
+};
+audioEl.onplay = () => { playIcon.setAttribute('d','M6 5h4v14H6zM14 5h4v14h-4z'); };
+audioEl.onpause = () => { playIcon.setAttribute('d','M8 5v14l11-7z'); };
+
+// ---- Overlay arrivo tappa (quando autoplay è OFF) ----
+const overlay = document.getElementById('arrivalOverlay');
+let pendingStopId = null;
+
+function showArrival(stopId){
+  const stop = STOPS.find(s => s.id === stopId);
+  pendingStopId = stopId;
+  document.getElementById('arrivalTitle').textContent = stop.name;
+  overlay.classList.add('show');
+}
+document.getElementById('playNowBtn').onclick = () => {
+  overlay.classList.remove('show');
+  if(pendingStopId) playStop(pendingStopId, false);
+};
+document.getElementById('laterBtn').onclick = () => {
+  overlay.classList.remove('show');
+};
+
+document.getElementById('autoplayToggle').onchange = (e) => {
+  state.autoplay = e.target.checked;
+  saveAutoplay();
+};
+document.getElementById('autoplayToggle').checked = state.autoplay;
+
+// ---- Geolocalizzazione ----
+const gpsDot = document.getElementById('gpsDot');
+const gpsText = document.getElementById('gpsText');
+
+function onPosition(pos){
+  gpsDot.classList.add('live');
+  const { latitude, longitude } = pos.coords;
+
+  let nearest = null, nearestDist = Infinity;
+  STOPS.forEach(s => {
+    if(state.played.has(s.id)) return; // già ascoltata, non ritriggerare
+    const d = haversine(latitude, longitude, s.lat, s.lon);
+    if(d < nearestDist){ nearestDist = d; nearest = s; }
+  });
+
+  if(nearest){
+    gpsText.textContent = `A ${Math.round(nearestDist)} m dalla prossima tappa — ${nearest.name}`;
+    if(nearestDist <= RADIUS_METERS && state.currentStopId !== nearest.id){
+      if(state.autoplay){
+        playStop(nearest.id, false);
+      } else {
+        showArrival(nearest.id);
+      }
+    }
+  } else {
+    gpsText.textContent = "Hai ascoltato tutte le tappe del pilota 🎉";
+  }
+}
+function onGpsError(err){
+  gpsDot.classList.remove('live');
+  gpsText.textContent = "GPS non disponibile (" + err.message + ") — usa la lista qui sotto";
+}
+
+function startGps(){
+  if(!navigator.geolocation){
+    gpsText.textContent = "Il browser non supporta la geolocalizzazione";
+    return;
+  }
+  state.watchId = navigator.geolocation.watchPosition(onPosition, onGpsError, {
+    enableHighAccuracy: true, maximumAge: 5000, timeout: 15000
+  });
+}
+
+// ---- Wake Lock (schermo sempre acceso mentre l'app è in uso) ----
+async function requestWakeLock(){
+  try{
+    if('wakeLock' in navigator){
+      state.wakeLock = await navigator.wakeLock.request('screen');
+    }
+  }catch(e){ /* silenzioso: non tutti i browser lo supportano */ }
+}
+document.addEventListener('visibilitychange', () => {
+  if(document.visibilityState === 'visible' && state.currentStopId) requestWakeLock();
+});
+
+// ---- Avvio ----
+render();
+startGps();
+requestWakeLock();
+</script>
+</body>
+</html>
