@@ -866,7 +866,7 @@ select.form-input { height: 42px; }
 
     </div>
     <div style="padding:10px 16px 14px;text-align:center;border-top:1px solid var(--border);margin-top:4px">
-      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v1.4</span>
+      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v1.5</span>
     </div>
   </div>
 </div>
@@ -2304,6 +2304,87 @@ async function sellaLoadRegole() {
     var r = await api('GET', '/api/sella-regole');
     if (r && !r.error) sellaRegole = r;
   } catch(e) { console.warn('Regole:', e); }
+}
+
+// ---- Pannello gestione regole categoria apprese ----
+function sellaRegoleParseKey(k) {
+  if (k.indexOf('sig:') === 0) {
+    var rest = k.slice(4), bar = rest.indexOf('|');
+    return { type:'sig', sign: bar>=0?rest.slice(0,bar):'', text: bar>=0?rest.slice(bar+1):rest };
+  }
+  if (k.indexOf('kw:') === 0) return { type:'kw', sign:'', text:k.slice(3) };
+  return { type:'legacy', sign:'', text:k };
+}
+async function openSellaRegole() {
+  await sellaLoadRegole();
+  sellaRegoleRender();
+  document.getElementById('sella-regole-overlay').style.display = 'flex';
+}
+function closeSellaRegole() { document.getElementById('sella-regole-overlay').style.display = 'none'; }
+function sellaRegoleRender() {
+  var body = document.getElementById('sella-regole-body');
+  var order = { sig:0, kw:1, legacy:2 };
+  window._sellaRegoleKeys = Object.keys(sellaRegole).sort(function(a,b){
+    var pa=sellaRegoleParseKey(a), pb=sellaRegoleParseKey(b);
+    if (order[pa.type]!==order[pb.type]) return order[pa.type]-order[pb.type];
+    return pa.text.localeCompare(pb.text);
+  });
+  var keys = window._sellaRegoleKeys;
+  if (!keys.length) {
+    body.innerHTML = '<div style="text-align:center;color:var(--faint);font-size:14px;padding:40px 20px">Nessuna regola appresa finora.<br>Assegna una categoria durante un import e comparir\u00e0 qui.</div>';
+    document.getElementById('sella-regole-count').textContent = '';
+    return;
+  }
+  var rows = '';
+  for (var i = 0; i < keys.length; i++) {
+    var p = sellaRegoleParseKey(keys[i]);
+    var catObj = sellaCatFromName(sellaRegole[keys[i]]);
+    var inert = (p.type==='legacy') && !/[a-z]{2,}/i.test(p.text);
+    var signBadge = p.sign==='-' ? '<span style="color:var(--red);font-weight:700">\u2212</span>'
+                  : p.sign==='+' ? '<span style="color:var(--green);font-weight:700">+</span>'
+                  : '<span style="color:var(--faint)">\u00b7</span>';
+    var typeLbl = p.type==='sig' ? 'firma' : (p.type==='kw' ? 'parola' : 'legacy');
+    rows += '<div style="display:flex;align-items:center;gap:8px;padding:8px 4px;border-bottom:1px solid var(--gray2)'+(inert?';opacity:.5':'')+'">'
+      + '<div style="width:14px;text-align:center;flex-shrink:0">'+signBadge+'</div>'
+      + '<div style="flex:1;min-width:0">'
+        + '<div style="font-family:ui-monospace,Menlo,monospace;font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(p.text)+'</div>'
+        + '<div style="font-size:10px;color:var(--faint);text-transform:uppercase;letter-spacing:.4px">'+typeLbl+(inert?' \u00b7 inerte':'')+'</div>'
+      + '</div>'
+      + '<select class="sella-cat-sel" style="max-width:190px" onchange="sellaRegoleSetCat('+i+',this.value)">'+buildCatOptions(catObj?catObj.id:null)+'</select>'
+      + '<button onclick="sellaRegoleDelete('+i+')" title="Elimina" style="background:none;border:none;color:var(--red);font-size:20px;line-height:1;cursor:pointer;flex-shrink:0;padding:0 4px">\u00d7</button>'
+      + '</div>';
+  }
+  body.innerHTML = rows;
+  var sels = body.querySelectorAll('.sella-cat-sel');
+  for (var j = 0; j < keys.length; j++) {
+    var co = sellaCatFromName(sellaRegole[keys[j]]);
+    if (co && sels[j]) sels[j].value = co.id;
+  }
+  var nSig = keys.filter(function(k){ return k.indexOf('sig:')===0; }).length;
+  document.getElementById('sella-regole-count').textContent = keys.length + ' regole \u00b7 ' + nSig + ' a firma';
+}
+function sellaRegoleSetCat(i, catId) {
+  var key = (window._sellaRegoleKeys||[])[i]; if (!key) return;
+  if (catId && meta) {
+    var cat = meta.categories.find(function(c){ return c.id === catId; });
+    if (cat) { sellaRegole[key] = cat.name; _sellaSaveRegole(); }
+  } else {
+    delete sellaRegole[key]; _sellaSaveRegole(); sellaRegoleRender();
+  }
+}
+function sellaRegoleDelete(i) {
+  var key = (window._sellaRegoleKeys||[])[i]; if (!key) return;
+  delete sellaRegole[key]; _sellaSaveRegole(); sellaRegoleRender();
+}
+function sellaRegolePulisciLegacy() {
+  var removed = 0;
+  Object.keys(sellaRegole).forEach(function(k){
+    var p = sellaRegoleParseKey(k);
+    if (p.type==='legacy' && !/[a-z]{2,}/i.test(p.text)) { delete sellaRegole[k]; removed++; }
+  });
+  if (removed) { _sellaSaveRegole(); sellaRegoleRender(); }
+  var c = document.getElementById('sella-regole-count');
+  if (c) c.textContent = removed ? ('Rimosse '+removed+' regole legacy inerti') : 'Nessuna regola legacy da rimuovere';
 }
 
 function sellaParseCSVLine(line) {
@@ -4222,6 +4303,7 @@ async function sellapDoImport() {
     <div id="sella-panel-header">
       <span style="font-size:22px">🏦</span>
       <h3>Import da Banca Sella</h3>
+      <button onclick="openSellaRegole()" title="Regole categoria apprese" style="background:var(--gray2);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:15px">⚙️</button>
       <button onclick="closeSellaImport()" style="background:var(--gray2);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:16px">✕</button>
     </div>
     <div id="sella-panel-body">
@@ -4283,6 +4365,22 @@ async function sellapDoImport() {
         <button id="sella-preview-btn" disabled onclick="sellaShowPreview()" style="flex:1;padding:13px;border-radius:12px;border:1.5px solid var(--blue);background:var(--blue-bg);color:var(--blue);font-size:15px;font-weight:700;cursor:pointer">👁️ Preview</button>
         <button id="sella-import-btn" disabled onclick="sellaDoImport()" style="flex:2;padding:13px;border-radius:12px;border:none;background:var(--blue);color:#fff;font-size:16px;font-weight:700;cursor:pointer">⬆️ Importa selezionati</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Regole categoria apprese -->
+<div id="sella-regole-overlay" style="display:none;position:fixed;inset:0;z-index:9500;background:rgba(0,0,0,.45);align-items:flex-end;justify-content:center" onclick="if(event.target===this)closeSellaRegole()">
+  <div style="width:100%;max-width:720px;background:var(--surface);border-radius:20px 20px 0 0;height:85vh;display:flex;flex-direction:column;box-shadow:0 -4px 32px rgba(0,0,0,.2)">
+    <div style="padding:18px 20px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0">
+      <span style="font-size:20px">⚙️</span>
+      <h3 style="flex:1;font-size:18px;font-weight:700">Regole categoria apprese</h3>
+      <button onclick="sellaRegolePulisciLegacy()" title="Rimuovi le vecchie regole inerti" style="background:var(--gray2);border:none;border-radius:8px;padding:7px 10px;cursor:pointer;font-size:12px;color:var(--muted)">🧹 Legacy</button>
+      <button onclick="closeSellaRegole()" style="background:var(--gray2);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:16px">✕</button>
+    </div>
+    <div id="sella-regole-body" style="flex:1;overflow-y:auto;padding:8px 14px"></div>
+    <div style="padding:12px 20px calc(12px + env(safe-area-inset-bottom,0));border-top:1px solid var(--border);flex-shrink:0">
+      <div id="sella-regole-count" style="font-size:12px;color:var(--faint)"></div>
     </div>
   </div>
 </div>
