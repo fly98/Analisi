@@ -1,29 +1,16 @@
 {
-  "name": "iCompta — InternoUno",
-  "short_name": "Conti",
-  "description": "InternoUno Contabilità",
+  "name": "Quadra",
+  "short_name": "Quadra",
+  "description": "Quadra — InternoUno",
   "start_url": "/Analisi/icompta.html",
   "scope": "/Analisi/",
   "display": "standalone",
-  "background_color": "#1a1a2e",
-  "theme_color": "#1a1a2e",
+  "background_color": "#6d28d9",
+  "theme_color": "#6d28d9",
   "orientation": "any",
   "icons": [
-    {
-      "src": "icons/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "icons/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    },
-    {
-      "src": "icons/icon-1024.png",
-      "sizes": "1024x1024",
-      "type": "image/png",
-      "purpose": "any maskable"
-    }
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-1024.png", "sizes": "1024x1024", "type": "image/png", "purpose": "any maskable" }
   ]
 }
