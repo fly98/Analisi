@@ -61,6 +61,26 @@ body { font-family:'Inter',sans-serif; background:var(--chalk); color:var(--dark
 .section-desc { font-size:13px; color:var(--muted); margin-top:6px; max-width:440px; }
 
 
+/* ── PHOTO STRIP ── */
+.photo-strip { display:flex; gap:8px; padding:14px 16px 0; overflow-x:auto; scrollbar-width:none; }
+.photo-strip::-webkit-scrollbar { display:none; }
+.photo-strip img { height:150px; width:auto; border-radius:12px; object-fit:cover; flex-shrink:0; box-shadow:0 2px 8px rgba(0,0,0,.12); }
+.photo-strip .ph-wide { width:230px; }
+.photo-credit { font-size:9px; color:var(--muted); padding:4px 16px 0; opacity:.6; }
+
+/* ── WEATHER BOX ── */
+.weather { display:flex; align-items:center; gap:14px; background:linear-gradient(135deg,#fff,var(--sand)); border:1px solid #E5E0D8; border-radius:12px; margin:12px 16px 0; padding:12px 16px; }
+.weather-icon { font-size:30px; }
+.weather-main { flex:1; }
+.weather-temp { font-size:16px; font-weight:700; color:var(--dark); }
+.weather-detail { font-size:11px; color:var(--muted); margin-top:2px; line-height:1.5; }
+
+/* ── ITINERARY MAP LINK ── */
+.map-cta { display:flex; align-items:center; justify-content:space-between; gap:10px; background:var(--dark); color:white; border-radius:12px; margin:10px 16px 0; padding:13px 16px; text-decoration:none; }
+.map-cta-text strong { display:block; font-size:13px; }
+.map-cta-text span { font-size:11px; opacity:.6; }
+.map-cta-arrow { font-size:18px; opacity:.7; }
+
 /* ── CARDS ── */
 .cards { padding:12px 16px 0; }
 .card { background:white; border-radius:14px; border:1px solid #EBE7E0; margin-bottom:12px; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,.04); }
@@ -429,6 +449,11 @@ footer strong { color:white; }
   <p class="route-note">🚗 Auto: 14 ago ore 14:00 → 21 ago ore 14:00 · Da Lisbona: metro + Uber</p>
 </div>
 
+<a class="map-cta" href="https://www.google.com/maps/dir/Évora,+Portugal/Vila+Nova+de+Milfontes,+Portugal/Sagres,+Portugal/Lisboa,+Portugal" target="_blank">
+  <div class="map-cta-text"><strong>🗺️ Apri l'itinerario completo su Google Maps</strong><span>Évora → Milfontes → Sagres → Lisbona, con tutte le tappe e attività</span></div>
+  <div class="map-cta-arrow">↗</div>
+</a>
+
 <!-- ═══════════════ VOLO ═══════════════ -->
 <div id="volo" class="anchor" style="padding-top:8px;"></div>
 <div class="info-card" style="margin-top:20px;">
@@ -535,8 +560,21 @@ footer strong { color:white; }
     <h2 class="section-title">Évora &<br>Lago Alqueva</h2>
     <p class="section-desc">Patrimonio UNESCO, megaliti, vino dell'Alentejo e il lago più grande d'Europa</p>
   </div>
-  
+  <div class="photo-strip">
+    <img class="ph-wide" src="https://lh3.googleusercontent.com/place-photos/AJRVUZNa7eu-S-Jnp1PTHkZ6xCKohGwv2L0k7XidT2GPtZwlPZ2XV8nuCXlSibpUEsl8e0A-TgP1rdgHORw8c-LhjBXsDpnI_Bn3TS37ljK6cMwkCZCORx1cVDBuY9KysivQ1jadX0u2hQ4kWarfmw=s800-w800-h600" alt="Cattedrale di Évora" loading="lazy">
+    <img class="ph-wide" src="https://lh3.googleusercontent.com/place-photos/AJRVUZNUaxMiSSvR_TtXbvxzlMFXo4qgKtrChVmSrFvUljx9sODwrc5uAgTYGZZXbX2Zy-QQGxJ6OIGP0v_Wylj7g6T0hL62iIQQNfpFZRMiYk-xwvYfjs9IcAuarhAi1jFA_DRja1tDxpZQY1R3v68=s800-w800-h600" alt="Évora centro storico" loading="lazy">
+    <img class="ph-wide" src="https://lh3.googleusercontent.com/place-photos/AJRVUZMpEUqHW0jCuRmHm4BhswVU0EV606mSjB-9P_9Ry6HQR66aU-UjbVCh3aTEOGFhG_o-49Uvxs4x1lNHXcLdl2M0PN-PN4Hgf9ddPktRYgj9GYF_Bs4uVicXH_d1jeHFGZN_X4e33yCEVxtk0YQ=s800-w800-h600" alt="Herdade do Esporão" loading="lazy">
+  </div>
+  <div class="photo-credit">Foto: Google Maps contributors</div>
+  <div class="weather">
+    <div class="weather-icon">☀️</div>
+    <div class="weather-main">
+      <div class="weather-temp">32–34°C giorno · 17–18°C notte</div>
+      <div class="weather-detail">Quasi zero pioggia, umidità bassa (~48%), UV altissimo. È la zona più calda del Portogallo — possibili punte oltre 38°C. Acqua sempre con te, visite al mattino presto o tardo pomeriggio.</div>
+    </div>
+  </div>
 </div>
+
 </div>
 
 <!-- ALLOGGIO ÉVORA -->
@@ -704,8 +742,21 @@ footer strong { color:white; }
     <h2 class="section-title">Vila Nova<br>de Milfontes</h2>
     <p class="section-desc">Il borgo costiero più autentico dell'Alentejo, porta della Rota Vicentina</p>
   </div>
-  
+  <div class="photo-strip">
+    <img class="ph-wide" src="https://lh3.googleusercontent.com/place-photos/AJRVUZNASAimGWLX3DntZmQKFGvGbr4bEi-G6Jz34yVlJ3g9AYnmkKKmYEu_jnBWqLiRSDSsykJopppXqSpjr6qIgY1kKVdAISWPbk-9JCF-lxBnJy-Rae3vBTD4jBn2IsiX4jBV5VOv-buAj4cMqeM=s800-w800-h600" alt="Vila Nova de Milfontes" loading="lazy">
+    <img class="ph-wide" src="https://lh3.googleusercontent.com/place-photos/AJRVUZMDN98G5n8YJzwKiqWnA7OF4Ion2QqlcPVk-3CCEIc_tGbVYOoIMnqO6sxSq4bjqXn_pUTQPy8_QUKeZPUVHFFGZU2BY7I2rTH84yT7KDMEgvvXTB5eSjyiXkUsZsmUy1g9hyC3YWM0W6Txnw=s800-w800-h600" alt="Milfontes fiume Mira" loading="lazy">
+    <img class="ph-wide" src="https://lh3.googleusercontent.com/place-photos/AJRVUZOiQQMgSHosUi2nqmVxbtgUVn5DfS4Xb4LkgT7gWDhBQUrYu9Gwdl3E0zk-jG5LR8G5aHBdeoU-cEj9BXhwa1-JGaxkfQrser_3hl3JqFQX48tXsLRjdHMIlmj48kxOngIToGFqsDGKTvXa=s800-w800-h600" alt="Milfontes spiaggia" loading="lazy">
+  </div>
+  <div class="photo-credit">Foto: Google Maps contributors</div>
+  <div class="weather">
+    <div class="weather-icon">🌊</div>
+    <div class="weather-main">
+      <div class="weather-temp">26–28°C giorno · 17–18°C notte</div>
+      <div class="weather-detail">Mare ~19–20°C, brezza atlantica costante che mitiga il caldo. Le spiagge esposte all'oceano possono essere ventose — le spiagge sul fiume Mira (estuario) sono più riparate e calme, ideali nel pomeriggio.</div>
+    </div>
+  </div>
 </div>
+
 </div>
 
 <div class="cards">
@@ -809,8 +860,21 @@ footer strong { color:white; }
     <h2 class="section-title">Sagres</h2>
     <p class="section-desc">Il punto più sud-occidentale d'Europa. Scogliere a 75m, vento costante, tramonti epici</p>
   </div>
-  
+  <div class="photo-strip">
+    <img class="ph-wide" src="https://lh3.googleusercontent.com/place-photos/AJRVUZMD3VTX4NDDx8xTf0iM-A-2K_8Mtbyick5ptrxdbQ0z3bU1NmehOJgPk4ay-lb4WGmQ3YNqLbyeMcsxC7kwYn1uudvj0jOFU_drm5AfF0FHWIQ84_A1AA-Wv_mrCO4Uaz4p0T9KRYNSgxUSQw=s800-w800-h600" alt="Fortaleza de Sagres" loading="lazy">
+    <img class="ph-wide" src="https://lh3.googleusercontent.com/place-photos/AJRVUZNqoiprn6Zei8HQy5zpYvzxwurq7cAzjs6GIzGRna-i0WOUGNNoAuNXUO914ezGZvqXkybVLx790Hptu2CLXZ3GTyrp4NVUnANlVzYPjneNj_6ue44xoTEG7SGz5_U_s5lSfQ5_f0oDdj-1Ew=s800-w800-h600" alt="Sagres scogliere" loading="lazy">
+    <img class="ph-wide" src="https://lh3.googleusercontent.com/place-photos/AJRVUZP4EIPvMkPOgDjq3xXoMiQV0pWpv_Ph0kuHz1g2-N0scVNedmvkaqJgpVmMc_eBwGtX6i5OHGwfet61rwVCZmRPAReCuiuum5nljz1a7xpKAuwCqUJF2YiL6lDaCOG_jxbUjqAJ3luPVLYh-A=s800-w800-h600" alt="Ponta da Piedade" loading="lazy">
+  </div>
+  <div class="photo-credit">Foto: Google Maps contributors</div>
+  <div class="weather">
+    <div class="weather-icon">💨</div>
+    <div class="weather-main">
+      <div class="weather-temp">22–25°C giorno · ~17°C notte</div>
+      <div class="weather-detail">Zona più fresca e ventosa del viaggio (Nortada). Mare ~20–22°C, ottimo per bagno. Vento forte quasi garantito su fortezza e Cabo de São Vicente — porta una giacca leggera anche ad agosto per il tramonto.</div>
+    </div>
+  </div>
 </div>
+
 </div>
 
 <div class="cards">
@@ -962,8 +1026,21 @@ footer strong { color:white; }
     <h2 class="section-title">Lisboa</h2>
     <p class="section-desc">Alfama, Belém, Sintra, Cascais, Cabo da Roca — e una notte seria alla <a href="https://maps.google.com/?q=Pink+Street+Cais+do+Sodré+Lisboa+Portugal" target="_blank" class="maps-inline">Pink Street</a></p>
   </div>
-  
+  <div class="photo-strip">
+    <img class="ph-wide" src="https://lh3.googleusercontent.com/place-photos/AJRVUZNxCYeFrmqgMbw0-KqUog99JQvSnZTRZIiCKkgAlx6i6pVqm5GYedoIRTgpLomx1SWfA1BwQGy0WLqN4qPWOlQhAdwlVuD8IedwR7Jdk4ATNlMe31SQ3_4HYyv3iBdsIojOVwRnWJ6A4q9kRQ=s800-w800-h600" alt="Miradouro de Santa Luzia, Alfama" loading="lazy">
+    <img class="ph-wide" src="https://lh3.googleusercontent.com/place-photos/AJRVUZPOc05LeXQTAvspcq4Ik9sq_0s87d7SQTfdDUP5FpGHCVNXukbz3M4Hk6XhsDA1rAx4M-ghgg9RhNJzndReew-SDL9bPoQKpxHNAQkVX5IdrU-UlLtRYxNULPWB3HKMTEOPO-GO1SUe7SSD=s800-w800-h600" alt="Alfama panorama" loading="lazy">
+    <img class="ph-wide" src="https://lh3.googleusercontent.com/place-photos/AJRVUZPYm7glbPwZhEUvFd4hE14ZRxkt-lYJyggC8fgX-V7viKy77c_R1zR0ZDH1FjGK87Z4nujdsdE_gw8SvJp-OqEsMdreoC5HinE25yq6YaBLlfNxZzs4R49Amxv6g6b5PV-hGHa3h2MFSSM_pKA=s800-w800-h600" alt="A Tasca do Chico, fado" loading="lazy">
+  </div>
+  <div class="photo-credit">Foto: Google Maps contributors</div>
+  <div class="weather">
+    <div class="weather-icon">🌇</div>
+    <div class="weather-main">
+      <div class="weather-temp">26–28°C giorno · ~17°C notte</div>
+      <div class="weather-detail">Secco, ~2% di probabilità pioggia in agosto, ventilato la sera (ottimo per Bairro Alto/Pink Street). Alfama è tutta scale e vicoli in salita — scarpe comode.</div>
+    </div>
+  </div>
 </div>
+
 </div>
 
 <div class="cards">
