@@ -71,7 +71,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif
 .header-actions { display: flex; gap: 8px; }
 
 /* ── Sidebar ── */
-#sidebar-header { padding: 14px 16px 6px; flex-shrink: 0; }
+#sidebar-header { padding: 0 16px; flex-shrink: 0; box-sizing: border-box; min-height: 68px;
+  display: flex; flex-direction: column; justify-content: center; }
 #total-box { margin: 8px 12px 4px; padding: 14px 16px; border-radius: 10px;
   background: var(--surface); border: 1px solid var(--border);
   display: flex; align-items: center; justify-content: space-between;
@@ -1070,6 +1071,34 @@ const ACCOUNT_ICONS = {
 };
 function accIcon(name) { return ACCOUNT_ICONS[name] || '🏦'; }
 
+// Allinea la cima del box "Disponibile" alla cima della riga DATA (tx-header),
+// centrando la targhetta QUADRA nello spazio in alto. Robusto a resize/safe-area.
+function alignSidebarTop(){
+  try{
+    var sh=document.getElementById('sidebar-header');
+    var tb=document.getElementById('total-box');
+    if(!sh||!tb) return;
+    var db=document.getElementById('date-bar');
+    var hdr=document.querySelector('#main .header');
+    var target=null;
+    if(db && db.offsetParent!==null && db.style.display!=='none'){
+      target=db.getBoundingClientRect().bottom;
+    } else if(hdr){
+      target=hdr.getBoundingClientRect().bottom;
+    }
+    if(target==null) return;
+    var cur=tb.getBoundingClientRect().top;
+    var curH=sh.getBoundingClientRect().height;
+    var newH=Math.round(curH + (target - cur));
+    if(newH<56) newH=56;
+    if(Math.abs(newH-curH)>0.5) sh.style.height=newH+'px';
+  }catch(e){}
+}
+var _alignRAF=null;
+function scheduleAlign(){ if(_alignRAF) cancelAnimationFrame(_alignRAF); _alignRAF=requestAnimationFrame(alignSidebarTop); }
+window.addEventListener('resize', scheduleAlign);
+window.addEventListener('load', function(){ scheduleAlign(); setTimeout(alignSidebarTop,300); });
+
 function renderSidebar() {
   const list = document.getElementById('accounts-list');
   list.innerHTML = '';
@@ -1238,6 +1267,7 @@ function showTxView() {
   var sv=document.getElementById('strumenti-view'); if(sv) sv.style.display='none';
   var wrap=document.getElementById('tx-scroll-wrap'); if(wrap) wrap.style.cssText='flex:1;display:flex;flex-direction:column;min-height:0';
   ['date-bar','rec-pending-box','tx-header','tx-body'].forEach(function(id){var e=document.getElementById(id);if(e)e.style.display='';});
+  scheduleAlign();
 }
 
 function goAnalisi() {
@@ -1324,6 +1354,7 @@ function applyFilters() {
   txs.sort((a,b) => b.date.localeCompare(a.date));
   filteredTxs = txs;
   renderTxList();
+  scheduleAlign();
 }
 
 var _txPageSize = 60;
@@ -4933,6 +4964,7 @@ function selectStrumenti(contoId, nome) {
   document.querySelectorAll('.account-row').forEach(function(r){r.classList.remove('active');});
   ['date-bar','rec-pending-box','tx-header','tx-body'].forEach(function(id){var e=document.getElementById(id);if(e)e.style.display='none';});
   var wrap2=document.getElementById('tx-scroll-wrap'); if(wrap2) wrap2.style.display='none';
+  scheduleAlign();
   var sv = document.getElementById('strumenti-view');
   sv.style.display = 'flex';
   sv.style.flexDirection = 'column';
