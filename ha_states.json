@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-06-30T23:46:36.710Z",
+  "timestamp": "2026-07-01T00:08:10.211Z",
   "total": 795,
   "lights": [
     {
@@ -17,13 +17,13 @@
     {
       "id": "light.bambine_scrivania",
       "name": "Bambine scrivania",
-      "state": "on",
+      "state": "off",
       "brightness": null
     },
     {
       "id": "light.bambine_tavolo",
       "name": "Bambine tavolo",
-      "state": "on",
+      "state": "off",
       "brightness": null
     },
     {
@@ -71,20 +71,20 @@
     {
       "id": "light.luce_filippo",
       "name": "Luce Filippo",
-      "state": "off",
-      "brightness": null
+      "state": "on",
+      "brightness": 255
     },
     {
       "id": "light.luna",
       "name": "Luna",
-      "state": "off",
-      "brightness": null
+      "state": "on",
+      "brightness": 255
     },
     {
       "id": "light.luce_letto",
       "name": "Luce letto",
-      "state": "off",
-      "brightness": null
+      "state": "on",
+      "brightness": 255
     },
     {
       "id": "light.ikea3",
@@ -107,8 +107,8 @@
     {
       "id": "light.scrivania",
       "name": "Scrivania",
-      "state": "off",
-      "brightness": null
+      "state": "on",
+      "brightness": 255
     },
     {
       "id": "light.muro",
@@ -131,14 +131,14 @@
     {
       "id": "light.luce_mena",
       "name": "Luce Mena",
-      "state": "off",
-      "brightness": null
+      "state": "on",
+      "brightness": 255
     },
     {
       "id": "light.camera",
       "name": "Camera",
-      "state": "off",
-      "brightness": null
+      "state": "on",
+      "brightness": 255
     },
     {
       "id": "light.alessia",
@@ -269,12 +269,12 @@
     {
       "id": "switch.bambine_tavolo",
       "name": "Bambine tavolo",
-      "state": "on"
+      "state": "off"
     },
     {
       "id": "switch.bambine_scrivania",
       "name": "Bambine scrivania",
-      "state": "on"
+      "state": "off"
     },
     {
       "id": "switch.aria_condizionata",
@@ -1411,19 +1411,19 @@
     {
       "id": "sensor.netatmo_casa_temperature",
       "name": "Casa Temperatura",
-      "state": "29.2",
+      "state": "29.0",
       "unit": "°C"
     },
     {
       "id": "sensor.netatmo_casa_pressure",
       "name": "Casa Pressione atmosferica",
-      "state": "1015.3",
+      "state": "1015.2",
       "unit": "mbar"
     },
     {
       "id": "sensor.netatmo_casa_humidity",
       "name": "Casa Umidità",
-      "state": "54.4",
+      "state": "54.3",
       "unit": "%"
     },
     {
@@ -1441,7 +1441,7 @@
     {
       "id": "sensor.netatmo_casa_wind_strength",
       "name": "Casa Velocità del vento",
-      "state": "5.2",
+      "state": "5.1",
       "unit": "km/h"
     },
     {
@@ -1471,19 +1471,19 @@
     {
       "id": "sensor.netatmo_la_mia_abitazione_interno_co2",
       "name": "Termometro Camera Anidride carbonica",
-      "state": "882",
+      "state": "866",
       "unit": "ppm"
     },
     {
       "id": "sensor.netatmo_la_mia_abitazione_interno_pressure",
       "name": "Termometro Camera Pressione atmosferica",
-      "state": "1020",
+      "state": "1019.6",
       "unit": "mbar"
     },
     {
       "id": "sensor.netatmo_la_mia_abitazione_interno_noise",
       "name": "Termometro Camera Noise",
-      "state": "36",
+      "state": "37",
       "unit": "dB"
     },
     {
@@ -1495,13 +1495,13 @@
     {
       "id": "sensor.netatmo_la_mia_abitazione_interno_esterno_temperature",
       "name": "Termomentro Giardino Temperatura",
-      "state": "27.9",
+      "state": "27.6",
       "unit": "°C"
     },
     {
       "id": "sensor.netatmo_la_mia_abitazione_interno_esterno_humidity",
       "name": "Termomentro Giardino Umidità",
-      "state": "58",
+      "state": "59",
       "unit": "%"
     },
     {
@@ -1537,7 +1537,7 @@
     {
       "id": "sensor.tv_salone_energy_difference",
       "name": "Tv Salone Energy difference",
-      "state": "0.033363413",
+      "state": "0.027854327",
       "unit": "kWh"
     },
     {
@@ -2059,7 +2059,7 @@
     {
       "id": "sensor.camera_cucina_info",
       "name": "Camera Cucina Info",
-      "state": "2026-06-30T23:43:46+00:00",
+      "state": "2026-07-01T00:03:46+00:00",
       "unit": null
     },
     {
