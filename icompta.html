@@ -640,7 +640,7 @@ select.form-input { height: 42px; }
 <div id="login-screen">
   <div class="login-card">
     <div style="font-size:48px;margin-bottom:12px">📒</div>
-    <h2>iCompta</h2>
+    <h2>Quadra</h2>
     <p>InternoUno Contabilità</p>
     <input type="password" id="token-input" placeholder="Token di accesso" autocomplete="current-password">
     <button onclick="doLogin()">Accedi</button>
@@ -701,7 +701,7 @@ select.form-input { height: 42px; }
           <span id="fineco-inv-info" style="font-size:11px;color:var(--muted)"></span>
           <div style="display:flex;gap:6px;align-items:center">
             <button onclick="aggiornaFinecoOra(this)" style="padding:4px 10px;border-radius:8px;border:1px solid var(--border);background:none;cursor:pointer;color:var(--muted);font-size:12px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:4px">Aggiorna <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="2,3 5,7 8,3"/></svg></button>
-            <button onclick="location.href='analisi.html'" style="padding:4px 10px;border-radius:8px;border:1px solid var(--border);background:none;cursor:pointer;color:var(--muted);font-size:12px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:4px">Analisi <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="3,2 7,5 3,8"/></svg></button>
+            <button onclick="goAnalisi()" style="padding:4px 10px;border-radius:8px;border:1px solid var(--border);background:none;cursor:pointer;color:var(--muted);font-size:12px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:4px">Analisi <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="3,2 7,5 3,8"/></svg></button>
           </div>
         </div>
         <div id="strumenti-view-content"></div>
@@ -935,6 +935,7 @@ let balances = null;      // {accounts: {id: amount}, groups: {id: amount}}
 let currentTxs = [];      // TX caricate per l'anno corrente
 let filteredTxs = [];     // TX dopo filtri
 let selectedAccountId = null;
+let currentViewAccId = null;   // ultimo conto selezionato (per "Indietro" da Analisi)
 let selectedYear = new Date().getFullYear().toString();
 let txCache = {};
 let loadedYears = new Set();
@@ -1002,6 +1003,14 @@ async function init(metaData) {
 
   // Seleziona InternoUno di default
   setTimeout(async () => {
+    // Ritorno da Analisi: ripristina il conto da cui si proveniva (una tantum)
+    let rid = null;
+    try { rid = sessionStorage.getItem('quadra_return_acc'); } catch(e) {}
+    if (rid) {
+      try { sessionStorage.removeItem('quadra_return_acc'); } catch(e) {}
+      const racc = meta.accounts.find(a => a.id === rid);
+      if (racc) { await selectAccount(racc.id, racc.name); return; }
+    }
     const acc = meta.accounts.find(a => a.name === 'InternoUno');
     if (acc) await selectAccount(acc.id, acc.name);
   }, 50);
@@ -1216,7 +1225,13 @@ function showTxView() {
   ['date-bar','rec-pending-box','tx-header','tx-body'].forEach(function(id){var e=document.getElementById(id);if(e)e.style.display='';});
 }
 
+function goAnalisi() {
+  try { if (currentViewAccId) sessionStorage.setItem('quadra_return_acc', currentViewAccId); } catch(e) {}
+  location.href = 'analisi.html';
+}
+
 async function selectAccount(id, name) {
+  currentViewAccId = id;
   if (id === 'ACC-FINECO-INV') {
     selectStrumenti('fineco-inv', name);
     return;
@@ -2094,7 +2109,7 @@ function closeSettings() {
 
 
 function doLogout() {
-  if (!confirm('Esci da iCompta?')) return;
+  if (!confirm('Esci da Quadra?')) return;
   localStorage.removeItem('icompta_token');
   location.reload();
 }
