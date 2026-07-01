@@ -871,7 +871,7 @@ select.form-input { height: 42px; }
 
     </div>
     <div style="padding:10px 16px 14px;text-align:center;border-top:1px solid var(--border);margin-top:4px">
-      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v1.5.1</span>
+      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v1.5.2</span>
     </div>
   </div>
 </div>
@@ -2348,7 +2348,7 @@ function sellaRegoleRender() {
     var signBadge = p.sign==='-' ? '<span style="color:var(--red);font-weight:700">\u2212</span>'
                   : p.sign==='+' ? '<span style="color:var(--green);font-weight:700">+</span>'
                   : '<span style="color:var(--faint)">\u00b7</span>';
-    var typeLbl = p.type==='sig' ? 'firma' : (p.type==='kw' ? 'parola' : 'legacy');
+    var typeLbl = p.type==='sig' ? 'firma' : (p.type==='kw' ? 'parola' : 'vecchia');
     rows += '<div style="display:flex;align-items:center;gap:8px;padding:8px 4px;border-bottom:1px solid var(--gray2)'+(inert?';opacity:.5':'')+'">'
       + '<div style="width:14px;text-align:center;flex-shrink:0">'+signBadge+'</div>'
       + '<div style="flex:1;min-width:0">'
