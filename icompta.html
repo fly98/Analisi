@@ -871,7 +871,7 @@ select.form-input { height: 42px; }
 
     </div>
     <div style="padding:10px 16px 14px;text-align:center;border-top:1px solid var(--border);margin-top:4px">
-      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v1.5.2</span>
+      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v1.5.3</span>
     </div>
   </div>
 </div>
@@ -4538,6 +4538,10 @@ async function aggiornaFinecoOra(btn) {
         try { localStorage.setItem('fineco_inv', JSON.stringify(res.data)); } catch(e) {}
       }
       _finecoLastUpd = '';
+      // Rinfresca tutto lo stato derivato (box P&L Portafoglio, sidebar, disponibile) senza reload
+      aggiornaBilancesTitoli();
+      if (meta) renderSidebar();
+      updateTotalBalance();
       if (typeof renderStrumentiView === 'function') renderStrumentiView();
       loadFinecoLastUpd();
     } else {
