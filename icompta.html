@@ -882,7 +882,7 @@ select.form-input { height: 42px; }
 
     </div>
     <div style="padding:10px 16px 14px;text-align:center;border-top:1px solid var(--border);margin-top:4px">
-      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v1.8</span>
+      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v1.8.1</span>
     </div>
   </div>
 </div>
@@ -4917,6 +4917,7 @@ function openNuovaCategoria(parentId) {
   document.getElementById('cat-edit-name').value = '';
   document.getElementById('cat-edit-icon').value = '';
   document.getElementById('cat-edit-color').value = '';
+  _catSyncColorPicker('');
   document.getElementById('cat-edit-hidden').checked = false;
   document.getElementById('cat-edit-title').textContent = parentId ? 'Nuova sottocategoria' : 'Nuova categoria';
   _fillParentSelect(parentId);
@@ -4931,6 +4932,7 @@ function openEditCategoria(catId) {
   document.getElementById('cat-edit-name').value = cat.name;
   document.getElementById('cat-edit-icon').value = cat.icon || '';
   document.getElementById('cat-edit-color').value = cat.color || '';
+  _catSyncColorPicker(cat.color || '');
   document.getElementById('cat-edit-hidden').checked = cat.hidden === true;
   document.getElementById('cat-edit-title').textContent = 'Modifica categoria';
   _fillParentSelect(cat.parentId || null);
@@ -4961,11 +4963,23 @@ function _fillParentSelect(selectedParentId) {
 
 function selectCatColor(el, color) {
   document.getElementById('cat-edit-color').value = color;
-  document.querySelectorAll('#cat-color-picker span').forEach(function(s) {
+  document.querySelectorAll('#cat-color-picker span, #cat-color-picker button').forEach(function(s) {
     s.style.outline = '';
   });
   el.style.outline = '3px solid var(--blue)';
   el.style.outlineOffset = '2px';
+}
+
+// Evidenzia nel picker il colore attualmente assegnato (usato in nuova/modifica)
+function _catSyncColorPicker(color) {
+  var target = (color || '').toLowerCase();
+  document.querySelectorAll('#cat-color-picker span, #cat-color-picker button').forEach(function(s) {
+    var oc = s.getAttribute('onclick') || '';
+    var m = /'(#?[0-9a-fA-F]{0,8})'/.exec(oc);
+    var sw = m ? m[1].toLowerCase() : '';
+    if (sw === target) { s.style.outline = '3px solid var(--blue)'; s.style.outlineOffset = '2px'; }
+    else { s.style.outline = ''; }
+  });
 }
 
 function closeCatEdit() {
@@ -5964,6 +5978,7 @@ function openImportXLS(contoId) {
     <div style="margin-bottom:10px">
       <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">Colore</label>
       <div id="cat-color-picker" style="display:flex;gap:5px;flex-wrap:wrap">
+        <button type="button" onclick="selectCatColor(this,'')" title="Nessun colore" style="width:22px;height:22px;border-radius:50%;background:var(--bg);cursor:pointer;border:1px dashed var(--muted);color:var(--muted);font-size:12px;line-height:1;padding:0">✕</button>
         <span onclick="selectCatColor(this,'#ef4444')" style="width:22px;height:22px;border-radius:50%;background:#ef4444;cursor:pointer;border:1px solid rgba(0,0,0,.15)"></span>
         <span onclick="selectCatColor(this,'#f97316')" style="width:22px;height:22px;border-radius:50%;background:#f97316;cursor:pointer;border:1px solid rgba(0,0,0,.15)"></span>
         <span onclick="selectCatColor(this,'#fb923c')" style="width:22px;height:22px;border-radius:50%;background:#fb923c;cursor:pointer;border:1px solid rgba(0,0,0,.15)"></span>
