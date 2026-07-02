@@ -69,6 +69,75 @@ async function cercaEmailBooking(bookingId, env) {
   }
 }
 
+async function debugEmailBooking(bookingId, env) {
+  const log = [];
+  try {
+    log.push("start");
+    const tokenResp = await fetch("https://oauth2.googleapis.com/token", {
+      method: "POST",
+      headers: {"Content-Type": "application/x-www-form-urlencoded"},
+      body: new URLSearchParams({
+        client_id: env.GMAIL_CLIENT_ID,
+        client_secret: env.GMAIL_CLIENT_SECRET,
+        refresh_token: env.GMAIL_REFRESH_TOKEN,
+        grant_type: "refresh_token",
+      }),
+    });
+    log.push("token status: " + tokenResp.status);
+    const tokenData = await tokenResp.json();
+    log.push("has access_token: " + !!tokenData.access_token);
+    if (tokenData.error) log.push("token error: " + JSON.stringify(tokenData));
+    if (!tokenData.access_token) return { log, error: "no access token" };
+    const accessToken = tokenData.access_token;
+
+    const query = encodeURIComponent(`subject:[${bookingId}] Nuova prenotazione`);
+    const searchResp = await fetch(
+      `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${query}&maxResults=1`,
+      {headers: {Authorization: `Bearer ${accessToken}`}}
+    );
+    log.push("search status: " + searchResp.status);
+    const searchData = await searchResp.json();
+    log.push("search result: " + JSON.stringify(searchData).slice(0,300));
+    if (!searchData.messages || !searchData.messages[0]) return { log, error: "no messages found" };
+
+    const msgId = searchData.messages[0].id;
+    const msgResp = await fetch(
+      `https://gmail.googleapis.com/gmail/v1/users/me/messages/${msgId}?format=full`,
+      {headers: {Authorization: `Bearer ${accessToken}`}}
+    );
+    log.push("msg status: " + msgResp.status);
+    const msgData = await msgResp.json();
+    log.push("has payload: " + !!msgData.payload);
+
+    function trovaTestoPlain(part) {
+      if (!part) return "";
+      if (part.mimeType === "text/plain" && part.body && part.body.data) {
+        return atob(part.body.data.replace(/-/g, "+").replace(/_/g, "/"));
+      }
+      if (part.parts && part.parts.length) {
+        for (const sub of part.parts) {
+          const t = trovaTestoPlain(sub);
+          if (t) return t;
+        }
+      }
+      return "";
+    }
+    let testo = trovaTestoPlain(msgData.payload);
+    log.push("testo length: " + testo.length);
+    log.push("testo preview: " + testo.slice(0, 200));
+
+    const nomeMatch = testo.match(new RegExp("Nome:\\s*\\r?\\n([^\\r\\n]+)"));
+    const telMatch = testo.match(new RegExp("Telefono\\s*\\r?\\n([^\\r\\n]+)"));
+    log.push("nome match: " + (nomeMatch ? nomeMatch[1] : "null"));
+    log.push("tel match: " + (telMatch ? telMatch[1] : "null"));
+
+    return { log, nome: nomeMatch ? nomeMatch[1] : null, telefono: telMatch ? telMatch[1] : null };
+  } catch(e) {
+    log.push("EXCEPTION: " + String(e));
+    return { log, error: String(e) };
+  }
+}
+
 async function amenitizGet(path, env) {
   const resp = await fetch(`${BASE}${path}`, {
     headers: {
@@ -425,6 +494,13 @@ export default {
       }
 
       // ── ARRIVI (comportamento originale) ──
+      if (action === "debugEmail") {
+        const bookingId = url.searchParams.get("booking_id");
+        const result = await debugEmailBooking(bookingId, env);
+        return new Response(JSON.stringify(result, null, 2), {
+          headers: { ...CORS, "Content-Type": "application/json" }
+        });
+      }
       let date = url.searchParams.get("date");
       if (!date) {
         const d = new Date();
