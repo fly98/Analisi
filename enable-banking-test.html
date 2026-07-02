@@ -49,6 +49,17 @@ textarea{width:100%;height:80px;border-radius:8px;border:1.5px solid #e4e3dd;fon
   <div id="sessions-list" style="margin-top:12px"><div class="empty">Caricamento...</div></div>
 </div>
 
+<div class="card">
+  <h2>Collega nuova banca</h2>
+  <p style="font-size:12px;color:#666;margin-bottom:8px">Avvia l'autorizzazione Enable Banking per una banca non ancora collegata (es. UniCredit). Deve essere già "linked" nel pannello EB. Al termine torni qui e premi "Aggiorna sessioni".</p>
+  <input id="new-bank" type="text" placeholder="Nome ASPSP esatto (es. UniCredit)" value="UniCredit">
+  <select id="new-psu" style="margin-top:8px;width:100%;padding:8px">
+    <option value="personal">Personale</option>
+    <option value="business">Business</option>
+  </select>
+  <button onclick="connectBank()" style="margin-top:8px">🔗 Autorizza</button>
+</div>
+
 <div class="card" id="tx-card" style="display:none">
   <h2>Transazioni</h2>
   <input type="date" id="date-from">
@@ -253,7 +264,21 @@ async function renewAuth(si) {
   } catch(e) { alert('Errore: ' + e.message); errLog(e.message); }
 }
 
-// ── Download transazioni ──────────────────────────────
+// ── Collega nuova banca (crea la sessione) ────────────
+async function connectBank() {
+  var bank = (document.getElementById('new-bank').value || '').trim();
+  var psu = document.getElementById('new-psu').value || 'personal';
+  if (!bank) { alert('Inserisci il nome ASPSP'); return; }
+  try {
+    var data = await api('GET', '/api/enable-banking/auth?bank=' + encodeURIComponent(bank) + '&psu_type=' + encodeURIComponent(psu));
+    if (data.ok && data.url) {
+      // Navigazione nella STESSA scheda: più affidabile del popup col redirect/SCA mobile
+      window.location.href = data.url;
+    } else {
+      alert('Errore: ' + (data.error || JSON.stringify(data)));
+    }
+  } catch(e) { alert('Errore: ' + e.message); errLog(e.message); }
+}
 async function downloadTx() {
   if (!_selSession || !_selAccount) { alert('Seleziona un conto'); return; }
   var uid = getAccountUid(_selAccount);
