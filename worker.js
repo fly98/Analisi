@@ -425,13 +425,6 @@ export default {
       }
 
       // ── ARRIVI (comportamento originale) ──
-      if (action === "debugEmail") {
-        const bookingId = url.searchParams.get("booking_id");
-        const result = await debugEmailBooking(bookingId, env);
-        return new Response(JSON.stringify(result, null, 2), {
-          headers: { ...CORS, "Content-Type": "application/json" }
-        });
-      }
       let date = url.searchParams.get("date");
       if (!date) {
         const d = new Date();
