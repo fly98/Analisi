@@ -880,7 +880,7 @@ select.form-input { height: 42px; }
 
     </div>
     <div style="padding:10px 16px 14px;text-align:center;border-top:1px solid var(--border);margin-top:4px">
-      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v1.7</span>
+      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v1.7.1</span>
     </div>
   </div>
 </div>
@@ -4104,6 +4104,14 @@ function _autoLog(logId, msg, type) {
     _finecoImporting = false;
     alert('✅ Importati ' + ids.length + ' movimenti su ' + accLabel + (errs ? ' (⚠️ ' + errs + ' errori)' : ''));
     document.getElementById('fineco-cc-overlay').style.display = 'none';
+    // Invalida la cache degli anni importati: altrimenti reloadTxForRange legge dalla cache
+    // e i movimenti appena inseriti non compaiono senza ricaricare la pagina.
+    var _yrs = {};
+    inc.forEach(function(m){ if (m.dateISO) _yrs[m.dateISO.slice(0,4)] = 1; });
+    Object.keys(_yrs).forEach(function(y){ delete txCache[y]; loadedYears.delete(y); });
+    try { await loadBalances(); } catch(e) {}
+    if (meta && typeof renderSidebar === 'function') renderSidebar();
+    if (typeof updateTotalBalance === 'function') updateTotalBalance();
     if (typeof reloadTxForRange === 'function') await reloadTxForRange();
   }
 
