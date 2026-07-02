@@ -69,6 +69,34 @@ async function cercaEmailBooking(bookingId, env) {
   }
 }
 
+async function debugEmailBooking(bookingId, env) {
+  const log = [];
+  try {
+    log.push("client_id present: " + !!env.GMAIL_CLIENT_ID);
+    log.push("client_secret present: " + !!env.GMAIL_CLIENT_SECRET);
+    log.push("refresh_token present: " + !!env.GMAIL_REFRESH_TOKEN);
+    log.push("refresh_token length: " + (env.GMAIL_REFRESH_TOKEN ? env.GMAIL_REFRESH_TOKEN.length : 0));
+    const tokenResp = await fetch("https://oauth2.googleapis.com/token", {
+      method: "POST",
+      headers: {"Content-Type": "application/x-www-form-urlencoded"},
+      body: new URLSearchParams({
+        client_id: env.GMAIL_CLIENT_ID,
+        client_secret: env.GMAIL_CLIENT_SECRET,
+        refresh_token: env.GMAIL_REFRESH_TOKEN,
+        grant_type: "refresh_token",
+      }),
+    });
+    log.push("token status: " + tokenResp.status);
+    const tokenData = await tokenResp.json();
+    log.push("has access_token: " + !!tokenData.access_token);
+    if (tokenData.error) log.push("token error: " + JSON.stringify(tokenData));
+    return { log };
+  } catch(e) {
+    log.push("EXCEPTION: " + String(e));
+    return { log };
+  }
+}
+
 async function amenitizGet(path, env) {
   const resp = await fetch(`${BASE}${path}`, {
     headers: {
@@ -425,6 +453,13 @@ export default {
       }
 
       // ── ARRIVI (comportamento originale) ──
+      if (action === "debugEmail") {
+        const bookingId = url.searchParams.get("booking_id");
+        const result = await debugEmailBooking(bookingId, env);
+        return new Response(JSON.stringify(result, null, 2), {
+          headers: { ...CORS, "Content-Type": "application/json" }
+        });
+      }
       let date = url.searchParams.get("date");
       if (!date) {
         const d = new Date();
