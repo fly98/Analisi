@@ -871,7 +871,7 @@ select.form-input { height: 42px; }
 
     </div>
     <div style="padding:10px 16px 14px;text-align:center;border-top:1px solid var(--border);margin-top:4px">
-      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v1.5.3</span>
+      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v1.5.4</span>
     </div>
   </div>
 </div>
@@ -4528,9 +4528,22 @@ async function aggiornaFinecoOra(btn) {
   if (btn) { if (btn.dataset.busy) return; btn.dataset.busy = '1'; btn.style.opacity = '0.5'; btn.style.pointerEvents = 'none'; }
   var info = document.getElementById('fineco-inv-info');
   var prev = info ? info.textContent : '';
-  if (info) info.textContent = 'Aggiornamento in corso…';
+  if (info) info.textContent = '⏳ Avvio…';
+  // Polling stato live: mostra l'ultima riga del processo (Mac) dove prima c'era "in corso"
+  var startTs = Date.now();
+  var lastStep = '';
+  var poll = setInterval(async function() {
+    try {
+      var s = await api('GET', '/api/fineco-status');
+      if (s && s.step && (s.ts || 0) >= startTs - 8000) {
+        lastStep = s.step;
+        if (info) info.textContent = (s.stato === 'error' ? '⚠️ ' : '⏳ ') + s.step;
+      }
+    } catch (e) {}
+  }, 1500);
   try {
     var r = await api('GET', '/api/fineco-auto-now');
+    clearInterval(poll);
     if (r && r.ok) {
       var res = await titoliApi('GET', '/api/titoli/strumenti/fineco-inv');
       if (res.ok && Array.isArray(res.data)) {
@@ -4545,11 +4558,12 @@ async function aggiornaFinecoOra(btn) {
       if (typeof renderStrumentiView === 'function') renderStrumentiView();
       loadFinecoLastUpd();
     } else {
-      if (info) { info.textContent = '⚠️ aggiornamento non riuscito'; setTimeout(function(){ if (info && info.textContent.indexOf('⚠️')===0) info.textContent = prev; }, 4000); }
+      if (info) { info.textContent = '⚠️ ' + (lastStep || 'aggiornamento non riuscito'); setTimeout(function(){ if (info && info.textContent.indexOf('⚠️')===0) info.textContent = prev; }, 6000); }
     }
   } catch (e) {
-    if (info) { info.textContent = '⚠️ aggiornamento non riuscito'; setTimeout(function(){ if (info && info.textContent.indexOf('⚠️')===0) info.textContent = prev; }, 4000); }
+    if (info) { info.textContent = '⚠️ ' + (lastStep || 'aggiornamento non riuscito'); setTimeout(function(){ if (info && info.textContent.indexOf('⚠️')===0) info.textContent = prev; }, 6000); }
   } finally {
+    clearInterval(poll);
     if (btn) { delete btn.dataset.busy; btn.style.opacity = ''; btn.style.pointerEvents = ''; }
   }
 }
