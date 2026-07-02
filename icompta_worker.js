@@ -292,6 +292,12 @@ var icompta_worker_default = {
       return json({ ok: true, key });
     }
 
+    // ── FINECO STATUS (ultima riga di avanzamento della procedura Mac) ────────
+    if (path === "/api/fineco-status" && method === "GET") {
+      const raw = await env.ICOMPTA_KV.get("icompta:fineco:status");
+      return json(raw ? JSON.parse(raw) : { step: "", stato: "idle", ts: 0 });
+    }
+
     // ── SELLA LOG GET ────────────────────────────────────────────────────────
     if (path === "/api/sella-log" && method === "GET") {
       return json(await getSellaLog(env));
