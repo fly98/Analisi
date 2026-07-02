@@ -38,15 +38,21 @@ async function cercaEmailBooking(bookingId, env) {
       { headers: { Authorization: `Bearer ${accessToken}` } }
     );
     const msgData = await msgResp.json();
-    let testo = "";
-    const parts = msgData.payload?.parts || [msgData.payload];
-    for (const part of parts) {
-      if (part?.mimeType === "text/plain" && part?.body?.data) {
-        testo = atob(part.body.data.replace(/-/g, "+").replace(/_/g, "/"));
-        break;
+    function trovaTestoPlain(part) {
+      if (!part) return "";
+      if (part.mimeType === "text/plain" && part.body && part.body.data) {
+        return atob(part.body.data.replace(/-/g, "+").replace(/_/g, "/"));
       }
+      if (part.parts && part.parts.length) {
+        for (const sub of part.parts) {
+          const t = trovaTestoPlain(sub);
+          if (t) return t;
+        }
+      }
+      return "";
     }
-    if (!testo && msgData.payload?.body?.data) {
+    let testo = trovaTestoPlain(msgData.payload);
+    if (!testo && msgData.payload && msgData.payload.body && msgData.payload.body.data) {
       testo = atob(msgData.payload.body.data.replace(/-/g, "+").replace(/_/g, "/"));
     }
     const nomeMatch = testo.match(new RegExp("Nome:\\s*\\r?\\n([^\\r\\n]+)"));
