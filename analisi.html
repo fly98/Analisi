@@ -353,17 +353,32 @@ async function aggiornaOra(btn) {
   if (btn) { if (btn.dataset.busy) return; btn.dataset.busy = '1'; btn.style.opacity = '0.4'; }
   var lu = document.getElementById('last-update');
   var prev = lu ? lu.textContent : '';
-  if (lu) lu.textContent = 'Aggiornamento…';
+  if (lu) lu.textContent = '⏳ Avvio…';
+  // Poll stato live: mostra l'ultima riga del processo (Mac) dove prima c'era "Aggiornamento…"
+  var startTs = Date.now();
+  var lastStep = '';
+  var poll = setInterval(async function() {
+    try {
+      var s = await api('GET', '/api/fineco-status');
+      if (s && s.step && (s.ts || 0) >= startTs - 8000) {
+        lastStep = s.step;
+        if (lu) lu.textContent = (s.stato === 'error' ? '⚠️ ' : '⏳ ') + s.step;
+      }
+    } catch (e) {}
+  }, 1500);
   try {
     var r = await api('GET', '/api/fineco-auto-now');
+    clearInterval(poll);
     if (r && r.ok) {
       await loadAll();
+      loadLastUpdate();
     } else {
-      if (lu) { lu.textContent = '⚠️ non riuscito'; setTimeout(function(){ if (lu) lu.textContent = prev; }, 4000); }
+      if (lu) { lu.textContent = '⚠️ ' + (lastStep || 'non riuscito'); setTimeout(function(){ if (lu) lu.textContent = prev; }, 6000); }
     }
   } catch (e) {
-    if (lu) { lu.textContent = '⚠️ non riuscito'; setTimeout(function(){ if (lu) lu.textContent = prev; }, 4000); }
+    if (lu) { lu.textContent = '⚠️ ' + (lastStep || 'non riuscito'); setTimeout(function(){ if (lu) lu.textContent = prev; }, 6000); }
   } finally {
+    clearInterval(poll);
     if (btn) { delete btn.dataset.busy; btn.style.opacity = ''; }
   }
 }
