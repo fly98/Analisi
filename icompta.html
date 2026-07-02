@@ -880,7 +880,7 @@ select.form-input { height: 42px; }
 
     </div>
     <div style="padding:10px 16px 14px;text-align:center;border-top:1px solid var(--border);margin-top:4px">
-      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v1.6</span>
+      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v1.7</span>
     </div>
   </div>
 </div>
@@ -2274,21 +2274,32 @@ function sellaNormSig(desc) {
 }
 function sellaSignOf(importo) { return (typeof importo === 'number' && importo < 0) ? '-' : '+'; }
 
+// Conto corrente dell'import in corso ('azienda','personale','fineco','unicredit').
+// Le regole a firma possono essere specifiche del conto e VINCONO sulle globali/default.
+var _importScope = null;
+
 function sellaGuessCategory(desc, etich, importo) {
   var d = (desc + ' ' + (etich || '')).toLowerCase();
-  // 1) regole di default cablate
+  var sign = sellaSignOf(importo);
+  var sig = sellaNormSig(desc);
+  var scope = _importScope || 'global';
+  // 1) regola SPECIFICA del conto (segno + firma) — vince su tutto, default compresi
+  if (sig) {
+    var ak = 'acc:' + scope + '|' + sign + '|' + sig;
+    if (sellaRegole[ak]) { var oa = sellaCatFromName(sellaRegole[ak]); if (oa) return oa; }
+  }
+  // 2) regole di default cablate (globali, per parola-chiave)
   for (var k in SELLA_REG_DEF) {
     if (d.indexOf(k) >= 0) return SELLA_REG_DEF[k];
   }
-  // 2) regola a firma (segno + firma normalizzata) — match esatto, robusto a numeri/date variabili
-  var sig = sellaNormSig(desc);
+  // 3) regola a firma GLOBALE (apprese senza conto, valgono ovunque come fallback)
   if (sig) {
-    var sk = 'sig:' + sellaSignOf(importo) + '|' + sig;
+    var sk = 'sig:' + sign + '|' + sig;
     if (sellaRegole[sk]) { var o1 = sellaCatFromName(sellaRegole[sk]); if (o1) return o1; }
   }
-  // 3) regole a parola-chiave apprese (+ legacy senza prefisso), sottostringa
+  // 4) regole a parola-chiave apprese (+ legacy senza prefisso), sottostringa
   for (var k2 in sellaRegole) {
-    if (k2.indexOf('sig:') === 0) continue;
+    if (k2.indexOf('sig:') === 0 || k2.indexOf('acc:') === 0) continue;
     var kw = (k2.indexOf('kw:') === 0) ? k2.slice(3) : k2;
     if (!kw) continue;
     if (d.indexOf(kw.toLowerCase()) >= 0) {
@@ -2303,7 +2314,10 @@ function sellaLearnRule(desc, catObj, importo) {
   if (!catObj || !desc) return;
   var sig = sellaNormSig(desc);
   if (!sig || !/[a-z]{2,}/.test(sig)) return;   // serve almeno un token alfabetico: mai firme "solo numeri"
-  sellaRegole['sig:' + sellaSignOf(importo) + '|' + sig] = catObj.name;
+  var scope = _importScope || 'global';
+  // Impara SPECIFICO del conto: così Airbnb su azienda ≠ Airbnb sul personale.
+  // Le regole globali già esistenti restano come fallback (vedi guess).
+  sellaRegole['acc:' + scope + '|' + sellaSignOf(importo) + '|' + sig] = catObj.name;
   _sellaSaveRegole();
 }
 
@@ -2322,6 +2336,10 @@ async function sellaLoadRegole() {
 
 // ---- Pannello gestione regole categoria apprese ----
 function sellaRegoleParseKey(k) {
+  if (k.indexOf('acc:') === 0) {
+    var r = k.slice(4).split('|');
+    return { type:'acc', scope: r[0]||'', sign: r[1]||'', text: r.slice(2).join('|') };
+  }
   if (k.indexOf('sig:') === 0) {
     var rest = k.slice(4), bar = rest.indexOf('|');
     return { type:'sig', sign: bar>=0?rest.slice(0,bar):'', text: bar>=0?rest.slice(bar+1):rest };
@@ -2337,7 +2355,7 @@ async function openSellaRegole() {
 function closeSellaRegole() { document.getElementById('sella-regole-overlay').style.display = 'none'; }
 function sellaRegoleRender() {
   var body = document.getElementById('sella-regole-body');
-  var order = { sig:0, kw:1, legacy:2 };
+  var order = { acc:0, sig:1, kw:2, legacy:3 };
   window._sellaRegoleKeys = Object.keys(sellaRegole).sort(function(a,b){
     var pa=sellaRegoleParseKey(a), pb=sellaRegoleParseKey(b);
     if (order[pa.type]!==order[pb.type]) return order[pa.type]-order[pb.type];
@@ -2357,7 +2375,7 @@ function sellaRegoleRender() {
     var signBadge = p.sign==='-' ? '<span style="color:var(--red);font-weight:700">\u2212</span>'
                   : p.sign==='+' ? '<span style="color:var(--green);font-weight:700">+</span>'
                   : '<span style="color:var(--faint)">\u00b7</span>';
-    var typeLbl = p.type==='sig' ? 'firma' : (p.type==='kw' ? 'parola' : 'vecchia');
+    var typeLbl = p.type==='acc' ? ('conto: ' + p.scope) : (p.type==='sig' ? 'firma' : (p.type==='kw' ? 'parola' : 'vecchia'));
     rows += '<div style="display:flex;align-items:center;gap:8px;padding:8px 4px;border-bottom:1px solid var(--gray2)'+(inert?';opacity:.5':'')+'">'
       + '<div style="width:14px;text-align:center;flex-shrink:0">'+signBadge+'</div>'
       + '<div style="flex:1;min-width:0">'
@@ -2467,6 +2485,7 @@ function sellaOnDrop(e) {
 
 async function sellaHandleFile(file) {
   if (!file) return;
+  _importScope = 'azienda';
   document.getElementById('sella-progress').textContent='Analisi\u2026';
   var lines=(await file.text()).split('\n').filter(function(l){return l.trim();});
   var existingKeys=await sellaGetExistingKeys();
@@ -3693,6 +3712,7 @@ function _autoLog(logId, msg, type) {
   async function _ebImportMovimenti(tipo) {
     var cfg = EB_ACCOUNTS[tipo];
     if (!cfg) return;
+    _importScope = tipo;  // regole categoria specifiche del conto
     // Calcola date: ultimi 90 giorni
     var days = window._ebDays || 30;
     var dateFrom = new Date(Date.now() - days*24*3600*1000).toISOString().slice(0,10);
@@ -4001,6 +4021,7 @@ function _autoLog(logId, msg, type) {
     if (catId && meta) {
       var cat = meta.categories.find(function(c){ return c.id === catId; });
       sellaMovimenti[i].catObj = cat ? { name: cat.name, id: cat.id } : null;
+      if (cat) sellaLearnRule(sellaMovimenti[i].desc, sellaMovimenti[i].catObj, sellaMovimenti[i].importo);
     } else {
       sellaMovimenti[i].catObj = null;
     }
@@ -4204,6 +4225,7 @@ async function sellapGetExistingKeys() {
 
 async function sellapHandleFile(file) {
   if (!file) return;
+  _importScope = 'personale';
   document.getElementById('sellap-progress').textContent = 'Analisi\u2026';
   var lines = (await file.text()).split('\n').filter(function(l){ return l.trim(); });
   var existingKeys = await sellapGetExistingKeys();
