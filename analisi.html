@@ -201,10 +201,17 @@ main { max-width:900px; margin:0 auto; padding:16px; display:flex;
       </div>
     </div>
 
-    <!-- Variazioni giornaliere -->
+    <!-- Variazioni -->
     <div class="card">
-      <div class="card-title">Variazioni giornaliere</div>
-      <div id="variazioni-container" style="position:relative">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+        <div class="card-title" style="margin:0">Variazioni</div>
+        <div id="variazioni-tabs" style="display:flex;gap:6px">
+          <button class="range-btn active" data-periodo="giorno">Giorno</button>
+          <button class="range-btn" data-periodo="settimana">Settimana</button>
+          <button class="range-btn" data-periodo="mese">Mese</button>
+        </div>
+      </div>
+      <div id="variazioni-container" style="position:relative;margin-top:8px">
         <div style="position:relative;height:200px;margin-bottom:4px">
           <canvas id="chart-variazioni"></canvas>
         </div>
@@ -293,6 +300,7 @@ main { max-width:900px; margin:0 auto; padding:16px; display:flex;
 const WORKER = 'https://icompta-worker.f-castiglioni.workers.dev';
 let TOKEN = localStorage.getItem('icompta_token') || localStorage.getItem('analisi_token') || '';
 let snapshots = [];
+let variazioniPeriodo = 'giorno';
 let strumenti = [];
 let txByYear = {};
 let chartAndamento = null;
@@ -755,26 +763,61 @@ function renderStrumenti() {
 
 // ─── VARIAZIONI GIORNALIERE ─────────────────────────────
 var chartVariazioni = null;
+// Costruisce i punti (label + totale) per periodo:
+// giorno = ogni snapshot; settimana/mese = ULTIMO snapshot di ogni settimana/mese.
+function lunediISO(dateStr) {
+  var d = new Date(dateStr + 'T00:00:00');
+  var day = (d.getDay() + 6) % 7; // 0 = lunedì
+  d.setDate(d.getDate() - day);
+  return d.toISOString().slice(0, 10);
+}
+function puntiVariazioni(periodo) {
+  if (periodo !== 'settimana' && periodo !== 'mese') {
+    return snapshots.map(function(s) {
+      var p = s.date.split('-');
+      return { totale: s.totale, label: p[2] + '/' + p[1] };
+    });
+  }
+  var byKey = {};
+  snapshots.forEach(function(s) {
+    var key = (periodo === 'mese') ? s.date.slice(0, 7) : lunediISO(s.date);
+    byKey[key] = s; // snapshots ordinati asc => l'ultimo del periodo vince
+  });
+  return Object.keys(byKey).sort().map(function(k) {
+    var s = byKey[k], p = s.date.split('-'), label;
+    if (periodo === 'mese') {
+      label = new Date(s.date + 'T00:00:00').toLocaleDateString('it-IT', { month: 'short' }) + ' ' + p[0].slice(2);
+    } else {
+      label = p[2] + '/' + p[1];
+    }
+    return { totale: s.totale, label: label };
+  });
+}
+
 function renderVariazioni() {
   var canvas = document.getElementById('chart-variazioni');
   var emptyEl = document.getElementById('variazioni-empty');
   if (!canvas) return;
-  if (snapshots.length < 2) {
+  var punti = puntiVariazioni(variazioniPeriodo);
+  if (punti.length < 2) {
     canvas.style.display = 'none';
-    if (emptyEl) emptyEl.style.display = 'block';
+    if (emptyEl) {
+      var q = variazioniPeriodo === 'mese' ? '2 mesi' : (variazioniPeriodo === 'settimana' ? '2 settimane' : '2 snapshot');
+      emptyEl.textContent = 'In attesa di almeno ' + q + '.';
+      emptyEl.style.display = 'block';
+    }
     return;
   }
   canvas.style.display = 'block';
   if (emptyEl) emptyEl.style.display = 'none';
 
-  var recent = snapshots.slice(-11);
+  var recent = punti.slice(-11);
   var labels = [], deltas = [], pcts = [], colors = [];
   for (var i = 1; i < recent.length; i++) {
     var curr = recent[i], prev = recent[i-1];
     var delta = Math.round((curr.totale - prev.totale) * 100) / 100;
     var pct = prev.totale > 0 ? Math.round(delta / prev.totale * 10000) / 100 : 0;
-    var p = curr.date.split('-');
-    labels.push(p[2]+'/'+p[1]);
+    labels.push(curr.label);
     deltas.push(delta);
     pcts.push(pct);
     colors.push(delta >= 0 ? '#1a7a4a' : '#b83232');
@@ -795,9 +838,6 @@ function renderVariazioni() {
         var val = deltas[i];
         var sign = val >= 0 ? '+' : '';
         var col = val >= 0 ? '#1a7a4a' : '#b83232';
-        // topY = il punto più in ALTO sul canvas (coordinata Y minore)
-        // Per barre positive: bar.y (cima della barra)
-        // Per barre negative: bar.base (la linea dello zero = cima della barra rossa)
         var topY = val >= 0 ? bar.y : bar.base;
         c.fillStyle = col;
         c.fillText(sign + pcts[i].toFixed(1) + '%', bar.x, topY - 2);
@@ -834,6 +874,19 @@ function renderVariazioni() {
     plugins: [labelPlugin]
   });
 }
+
+// Tab Giorno / Settimana / Mese
+(function() {
+  var tabs = document.getElementById('variazioni-tabs');
+  if (tabs) tabs.addEventListener('click', function(e) {
+    var btn = e.target.closest('.range-btn');
+    if (!btn) return;
+    tabs.querySelectorAll('.range-btn').forEach(function(b) { b.classList.remove('active'); });
+    btn.classList.add('active');
+    variazioniPeriodo = btn.getAttribute('data-periodo');
+    renderVariazioni();
+  });
+})();
 
 
 // ─── CEDOLE ──────────────────────────────────────────────
