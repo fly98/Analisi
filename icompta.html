@@ -273,6 +273,8 @@ select.form-input { height: 42px; }
 .settings-body { flex: 1; overflow-y: auto; padding: 16px; }
 .settings-section { margin-bottom: 4px; }
 .cat-row:hover { background: var(--gray2); }
+.cat-range-btn { padding:6px 12px; border-radius:8px; border:1.5px solid var(--border); background:none; font-size:12px; font-weight:600; cursor:pointer; color:var(--text); }
+.cat-range-btn.active { background:#1a4aaa; border-color:#1a4aaa; color:#fff; }
 .settings-section-header { display:flex; align-items:center; justify-content:space-between; cursor:pointer; padding:8px 4px; user-select:none; }
 .settings-section-header:hover { opacity:.8; }
 .settings-section-chevron { font-size:11px; color:var(--gray4); transition:transform .2s; }
@@ -880,7 +882,7 @@ select.form-input { height: 42px; }
 
     </div>
     <div style="padding:10px 16px 14px;text-align:center;border-top:1px solid var(--border);margin-top:4px">
-      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v1.7.3</span>
+      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v1.8</span>
     </div>
   </div>
 </div>
@@ -4742,6 +4744,90 @@ function closeCategorieModal() {
   document.getElementById('modal-categorie').style.display = 'none';
 }
 
+// ── Dettaglio categoria: transazioni cross-conto + totale ──────────
+var _catDetailId = null;
+var _catDetailRange = 'all';
+
+async function openCatDetail(catId) {
+  _catDetailId = catId;
+  var cat = meta && meta.categories && meta.categories.find(function(c){ return c.id === catId; });
+  var ttl = document.getElementById('cat-detail-title');
+  if (ttl) ttl.textContent = (cat && cat.icon ? cat.icon + ' ' : '') + (cat ? cat.name : 'Categoria');
+  _catDetailRange = 'all';
+  var rangeBox = document.getElementById('cat-detail-range');
+  rangeBox.querySelectorAll('.cat-range-btn').forEach(function(b){ b.classList.toggle('active', b.getAttribute('data-r')==='all'); });
+  rangeBox.onclick = function(e){
+    var b = e.target.closest('.cat-range-btn'); if (!b) return;
+    _catDetailRange = b.getAttribute('data-r');
+    rangeBox.querySelectorAll('.cat-range-btn').forEach(function(x){ x.classList.remove('active'); });
+    b.classList.add('active');
+    _catDetailRender();
+  };
+  document.getElementById('modal-cat-detail').style.display = 'flex';
+  _catDetailRender();
+}
+function closeCatDetail() { document.getElementById('modal-cat-detail').style.display = 'none'; }
+
+function _catDetailRangeDates() {
+  var now = new Date();
+  var toStr = now.toISOString().slice(0,10);
+  var f = new Date(now);
+  if (_catDetailRange === 'y1')   { f.setFullYear(f.getFullYear()-1); return { from: f.toISOString().slice(0,10), to: toStr }; }
+  if (_catDetailRange === 'm3')   { f.setMonth(f.getMonth()-3);       return { from: f.toISOString().slice(0,10), to: toStr }; }
+  if (_catDetailRange === 'year') { return { from: now.getFullYear()+'-01-01', to: toStr }; }
+  return { from: '2000-01-01', to: toStr }; // Tutto
+}
+function _catAccName(id) {
+  var a = meta && meta.accounts && meta.accounts.find(function(x){ return x.id === id; });
+  return a ? a.name : '—';
+}
+async function _catDetailRender() {
+  var body = document.getElementById('cat-detail-body');
+  var catId = _catDetailId;
+  var rng = _catDetailRangeDates();
+  body.innerHTML = '<div style="text-align:center;color:var(--muted);padding:30px">Caricamento…</div>';
+  var fromY = parseInt(rng.from.slice(0,4)), toY = parseInt(rng.to.slice(0,4));
+  var years = (meta && meta.years) ? meta.years : [];
+  var all = [];
+  for (var y = toY; y >= fromY; y--) {
+    var yr = String(y);
+    if (years.indexOf(yr) === -1) continue;
+    if (!txCache[yr]) { try { txCache[yr] = await api('GET','/api/tx/'+yr); loadedYears.add(yr); } catch(e){ txCache[yr]=[]; } }
+    all = all.concat(txCache[yr]);
+  }
+  var rows = [], total = 0, accs = {};
+  all.forEach(function(t){
+    if (!t.date || t.date < rng.from || t.date > rng.to) return;
+    if (!t.splits) return;
+    var amt = 0, has = false;
+    t.splits.forEach(function(s){ if (s.categoryId === catId) { amt += (s.amount||0); has = true; } });
+    if (has) { var an=_catAccName(t.accountId); rows.push({ date:t.date, acc:an, name:t.name||'', amount:amt }); total += amt; accs[an]=1; }
+  });
+  rows.sort(function(a,b){ return b.date.localeCompare(a.date); });
+  if (!rows.length) {
+    body.innerHTML = '<div style="text-align:center;color:var(--muted);padding:30px">Nessuna transazione in questo periodo.</div>';
+  } else {
+    var html = '';
+    rows.forEach(function(r){
+      var dd = r.date.split('-'); var dLabel = dd[2]+'/'+dd[1]+'/'+dd[0].slice(2);
+      var amtCol = r.amount < 0 ? 'var(--red)' : 'var(--green)';
+      html += '<div style="display:flex;align-items:center;gap:8px;padding:8px 6px;border-bottom:1px solid var(--gray2)">' +
+        '<div style="width:64px;flex-shrink:0;font-size:12px;color:var(--muted)">' + dLabel + '</div>' +
+        '<div style="flex:1;min-width:0">' +
+          '<div style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(r.name) + '</div>' +
+          '<div style="font-size:11px;color:var(--faint)">' + esc(r.acc) + '</div>' +
+        '</div>' +
+        '<div style="font-size:13px;font-weight:600;white-space:nowrap;color:' + amtCol + '">' + fmt(r.amount) + '</div>' +
+      '</div>';
+    });
+    body.innerHTML = html;
+  }
+  var cEl = document.getElementById('cat-detail-count');
+  if (cEl) cEl.textContent = rows.length + ' TX · ' + Object.keys(accs).length + ' conti';
+  var totEl = document.getElementById('cat-detail-total');
+  if (totEl) { totEl.textContent = fmt(total); totEl.style.color = total < 0 ? 'var(--red)' : 'var(--green)'; }
+}
+
 function renderCategorieTree() {
   var body = document.getElementById('cat-tree-body');
   if (!body || !meta || !meta.categories) return;
@@ -4789,7 +4875,7 @@ function renderCategorieTree() {
 
     var id = c.id;
     var html = '<div class="cat-row" style="display:flex;align-items:center;gap:6px;padding:6px 4px 6px ' + (8+indent) + 'px;border-radius:8px" data-catid="' + id + '">' +
-      '<span style="flex:1;font-size:' + (level===0?'14':'13') + 'px;font-weight:' + (level===0?'600':'400') + '">' + catBadge(c) + '</span>' +
+      '<span data-act="detail" data-id="' + id + '" title="Vedi transazioni e totale" style="flex:1;cursor:pointer;font-size:' + (level===0?'14':'13') + 'px;font-weight:' + (level===0?'600':'400') + '">' + catBadge(c) + '</span>' +
       '<span style="font-size:11px;color:var(--muted);min-width:30px;text-align:right">' + (nTx>0?nTx+' TX':'') + '</span>' +
       '<button data-act="add" data-id="' + id + '" title="Aggiungi sottocategoria" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:14px;padding:2px 4px">+</button>' +
       '<button data-act="edit" data-id="' + id + '" title="Modifica" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:13px;padding:2px 4px">✏️</button>' +
@@ -4814,6 +4900,7 @@ function renderCategorieTree() {
     if (!btn) return;
     var act = btn.dataset.act;
     var id  = btn.dataset.id;
+    if (act === 'detail') openCatDetail(id);
     if (act === 'add')    openNuovaCategoria(id);
     if (act === 'edit')   openEditCategoria(id);
     if (act === 'toggle') toggleCategoriaHidden(id);
@@ -5825,6 +5912,27 @@ function openImportXLS(contoId) {
 </div>
 
 <!-- ══ MODAL GESTIONE CATEGORIE ══════════════════════════════════════════ -->
+<!-- Modal dettaglio categoria: transazioni cross-conto + totale -->
+<div id="modal-cat-detail" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2100;align-items:flex-start;justify-content:center;padding-top:40px" onclick="if(event.target===this)closeCatDetail()">
+  <div style="background:var(--bg);border-radius:20px;width:min(760px,96vw);max-height:88vh;display:flex;flex-direction:column;box-shadow:0 8px 40px rgba(0,0,0,.25)">
+    <div style="display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid var(--border)">
+      <span id="cat-detail-title" style="flex:1;font-size:17px;font-weight:700">Categoria</span>
+      <button onclick="closeCatDetail()" style="background:var(--gray2);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:16px">✕</button>
+    </div>
+    <div id="cat-detail-range" style="padding:10px 16px;border-bottom:1px solid var(--border);display:flex;gap:6px;flex-wrap:wrap">
+      <button class="cat-range-btn" data-r="y1">Ultimi 12 mesi</button>
+      <button class="cat-range-btn" data-r="m3">3 mesi</button>
+      <button class="cat-range-btn" data-r="year">Quest'anno</button>
+      <button class="cat-range-btn active" data-r="all">Tutto</button>
+    </div>
+    <div id="cat-detail-body" style="flex:1;overflow-y:auto;padding:8px 12px"><div style="text-align:center;color:var(--muted);padding:30px">Caricamento…</div></div>
+    <div style="padding:12px 20px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+      <span id="cat-detail-count" style="font-size:12px;color:var(--muted)"></span>
+      <span id="cat-detail-total" style="font-size:16px;font-weight:800">—</span>
+    </div>
+  </div>
+</div>
+
 <div id="modal-categorie" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2000;align-items:flex-start;justify-content:center;padding-top:40px" onclick="if(event.target===this)closeCategorieModal()">
   <div style="background:var(--bg);border-radius:20px;width:min(640px,96vw);max-height:85vh;display:flex;flex-direction:column;box-shadow:0 8px 40px rgba(0,0,0,.25)">
     <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0">
