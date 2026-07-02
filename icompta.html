@@ -882,7 +882,7 @@ select.form-input { height: 42px; }
 
     </div>
     <div style="padding:10px 16px 14px;text-align:center;border-top:1px solid var(--border);margin-top:4px">
-      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v1.8.1</span>
+      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v1.8.2</span>
     </div>
   </div>
 </div>
@@ -4747,6 +4747,7 @@ function closeCategorieModal() {
 // ── Dettaglio categoria: transazioni cross-conto + totale ──────────
 var _catDetailId = null;
 var _catDetailRange = 'all';
+var _catDetailSign = 'all';
 
 async function openCatDetail(catId) {
   _catDetailId = catId;
@@ -4760,6 +4761,16 @@ async function openCatDetail(catId) {
     var b = e.target.closest('.cat-range-btn'); if (!b) return;
     _catDetailRange = b.getAttribute('data-r');
     rangeBox.querySelectorAll('.cat-range-btn').forEach(function(x){ x.classList.remove('active'); });
+    b.classList.add('active');
+    _catDetailRender();
+  };
+  _catDetailSign = 'all';
+  var signBox = document.getElementById('cat-detail-sign');
+  signBox.querySelectorAll('.cat-range-btn').forEach(function(b){ b.classList.toggle('active', b.getAttribute('data-s')==='all'); });
+  signBox.onclick = function(e){
+    var b = e.target.closest('.cat-range-btn'); if (!b) return;
+    _catDetailSign = b.getAttribute('data-s');
+    signBox.querySelectorAll('.cat-range-btn').forEach(function(x){ x.classList.remove('active'); });
     b.classList.add('active');
     _catDetailRender();
   };
@@ -4801,7 +4812,10 @@ async function _catDetailRender() {
     if (!t.splits) return;
     var amt = 0, has = false;
     t.splits.forEach(function(s){ if (s.categoryId === catId) { amt += (s.amount||0); has = true; } });
-    if (has) { var an=_catAccName(t.accountId); rows.push({ date:t.date, acc:an, name:t.name||'', amount:amt }); total += amt; accs[an]=1; }
+    if (has) {
+      if ((_catDetailSign === 'in' && amt <= 0) || (_catDetailSign === 'out' && amt >= 0)) return;
+      var an=_catAccName(t.accountId); rows.push({ date:t.date, acc:an, name:t.name||'', amount:amt }); total += amt; accs[an]=1;
+    }
   });
   rows.sort(function(a,b){ return b.date.localeCompare(a.date); });
   if (!rows.length) {
@@ -5933,11 +5947,16 @@ function openImportXLS(contoId) {
       <span id="cat-detail-title" style="flex:1;font-size:17px;font-weight:700">Categoria</span>
       <button onclick="closeCatDetail()" style="background:var(--gray2);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:16px">✕</button>
     </div>
-    <div id="cat-detail-range" style="padding:10px 16px;border-bottom:1px solid var(--border);display:flex;gap:6px;flex-wrap:wrap">
+    <div id="cat-detail-range" style="padding:10px 16px 6px;display:flex;gap:6px;flex-wrap:wrap">
       <button class="cat-range-btn" data-r="y1">Ultimi 12 mesi</button>
       <button class="cat-range-btn" data-r="m3">3 mesi</button>
       <button class="cat-range-btn" data-r="year">Quest'anno</button>
       <button class="cat-range-btn active" data-r="all">Tutto</button>
+    </div>
+    <div id="cat-detail-sign" style="padding:0 16px 10px;border-bottom:1px solid var(--border);display:flex;gap:6px">
+      <button class="cat-range-btn active" data-s="all">Tutto</button>
+      <button class="cat-range-btn" data-s="in">Solo entrate</button>
+      <button class="cat-range-btn" data-s="out">Solo uscite</button>
     </div>
     <div id="cat-detail-body" style="flex:1;overflow-y:auto;padding:8px 12px"><div style="text-align:center;color:var(--muted);padding:30px">Caricamento…</div></div>
     <div style="padding:12px 20px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
