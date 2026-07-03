@@ -882,7 +882,7 @@ select.form-input { height: 42px; }
 
     </div>
     <div style="padding:10px 16px 14px;text-align:center;border-top:1px solid var(--border);margin-top:4px">
-      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v1.8.2</span>
+      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v1.8.3</span>
     </div>
   </div>
 </div>
@@ -1085,7 +1085,10 @@ const ACCOUNT_ICONS = {
   'InternoRoma': '🏘️',
   'Operazioni future': '🔮',
 };
-function accIcon(name) { return ACCOUNT_ICONS[name] || '🏦'; }
+function accIcon(a) {
+  if (a && typeof a === 'object') return a.icon || ACCOUNT_ICONS[a.name] || '🏦';
+  return ACCOUNT_ICONS[a] || '🏦';
+}
 
 // Allinea la cima del box "Disponibile" alla cima della riga DATA (tx-header),
 // centrando la targhetta QUADRA nello spazio in alto. Robusto a resize/safe-area.
@@ -1182,7 +1185,7 @@ function makeAccountRow(acc) {
   row.className = 'account-row' + (acc.id === selectedAccountId ? ' active' : '');
   row.dataset.accId = acc.id;
   row.innerHTML = `
-    <span class="acc-icon">${accIcon(acc.name)}</span>
+    <span class="acc-icon">${accIcon(acc)}</span>
     <span class="acc-name">${acc.name}</span>
     ${bal !== null ? `<span class="acc-balance ${balClass(bal)}">${fmt(bal)}</span>` : ''}
   `;
@@ -3014,10 +3017,17 @@ function makeAcctRow(acc) {
   drag.textContent = '⠿';
   drag.title = 'Trascina per riordinare';
 
-  // Icona
+  // Icona (cliccabile per cambiarla)
   var icon = document.createElement('span');
   icon.className = 'acct-icon';
-  icon.textContent = accIcon(acc.name);
+  icon.textContent = accIcon(acc);
+  icon.style.cursor = 'pointer';
+  icon.title = 'Tocca per cambiare icona';
+  icon.addEventListener('click', function() {
+    var cur = acc.icon || accIcon(acc);
+    var e = prompt('Icona (emoji) per "' + acc.name + '":', cur);
+    if (e !== null) { e = e.trim(); acc.icon = e || null; renderAcctsMgmt(); }
+  });
 
   // Nome
   var nameEl = document.createElement('input');
