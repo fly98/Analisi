@@ -882,7 +882,7 @@ select.form-input { height: 42px; }
 
     </div>
     <div style="padding:10px 16px 14px;text-align:center;border-top:1px solid var(--border);margin-top:4px">
-      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v1.8.3</span>
+      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v1.8.4</span>
     </div>
   </div>
 </div>
@@ -3910,7 +3910,11 @@ function _autoLog(logId, msg, type) {
         var tx = txs[j];
         if (tx.accountId !== accId) continue;
         matchTx++;
-        if (tx.ebRef) _ebExistingRefs.add(tx.ebRef);
+        // Se la TX ha già un ebRef, il dedup è ESATTO via _ebExistingRefs: NON aggiungerla ai
+        // fallback fuzzy (data+importo+descrizione). Altrimenti una TX gemella legittima
+        // (stesso giorno, importo e descrizione, ma codice univoco diverso) verrebbe
+        // scartata per errore — es. due commissioni bonifico da 0,50 € lo stesso giorno.
+        if (tx.ebRef) { _ebExistingRefs.add(tx.ebRef); continue; }
         var amt = 0;
         if (tx.useSumOfSplits && tx.splits && tx.splits.length > 0) {
           for (var s=0; s<tx.splits.length; s++) amt += (tx.splits[s].amount || 0);
