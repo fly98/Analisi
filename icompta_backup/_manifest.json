@@ -1,7 +1,7 @@
 {
-  "generato": "2026-06-30T15:48:25.880Z",
-  "chiavi": 38,
-  "skippati_backup": 4,
+  "generato": "2026-07-05T06:27:28.163Z",
+  "chiavi": 46,
+  "skippati_backup": 8,
   "errori": 0,
   "manifest": [
     {
@@ -13,8 +13,24 @@
       "file": "keys/icompta_eb_session_FinecoBank_personal.json"
     },
     {
+      "key": "icompta:eb:session:UniCredit:personal",
+      "file": "keys/icompta_eb_session_UniCredit_personal.json"
+    },
+    {
+      "key": "icompta:fineco-inv:last-auto",
+      "file": "keys/icompta_fineco-inv_last-auto.json"
+    },
+    {
+      "key": "icompta:fineco-inv:last-update",
+      "file": "keys/icompta_fineco-inv_last-update.json"
+    },
+    {
       "key": "icompta:fineco-inv:strumenti",
       "file": "keys/icompta_fineco-inv_strumenti.json"
+    },
+    {
+      "key": "icompta:fineco:status",
+      "file": "keys/icompta_fineco_status.json"
     },
     {
       "key": "icompta:investimenti:carico",
@@ -51,6 +67,22 @@
     {
       "key": "icompta:snapshot:2026-06-30",
       "file": "keys/icompta_snapshot_2026-06-30.json"
+    },
+    {
+      "key": "icompta:snapshot:2026-07-01",
+      "file": "keys/icompta_snapshot_2026-07-01.json"
+    },
+    {
+      "key": "icompta:snapshot:2026-07-02",
+      "file": "keys/icompta_snapshot_2026-07-02.json"
+    },
+    {
+      "key": "icompta:snapshot:2026-07-03",
+      "file": "keys/icompta_snapshot_2026-07-03.json"
+    },
+    {
+      "key": "icompta:snapshot:2026-07-04",
+      "file": "keys/icompta_snapshot_2026-07-04.json"
     },
     {
       "key": "icompta:tx:2001",
