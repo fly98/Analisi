@@ -126,12 +126,16 @@ async function handleChat(request, env, slug) {
       || "Non sono riuscito a formulare una risposta. Scrivici su WhatsApp!";
 
     // contatori: uso globale + log domanda per l'analisi "domande frequenti"
-    await env.WB_KV.put(limitKey, String(count + 1), { expirationTtl: 60 * 60 * 24 * 3 });
-    const lastQ = apiMessages.filter(m => m.role === "user").pop();
-    if (lastQ) {
-      const qKey = `wb:${slug}:q:${todayStr()}:${Date.now()}:${Math.random().toString(36).slice(2, 7)}`;
-      await env.WB_KV.put(qKey, JSON.stringify({ q: lastQ.content.slice(0, 300), lang }), { expirationTtl: 60 * 60 * 24 * 90 });
-    }
+    // avvolti in try/catch separato: se KV fallisce (es. limite giornaliero raggiunto),
+    // l'ospite riceve comunque la risposta corretta invece di un errore
+    try {
+      await env.WB_KV.put(limitKey, String(count + 1), { expirationTtl: 60 * 60 * 24 * 3 });
+      const lastQ = apiMessages.filter(m => m.role === "user").pop();
+      if (lastQ) {
+        const qKey = `wb:${slug}:q:${todayStr()}:${Date.now()}:${Math.random().toString(36).slice(2, 7)}`;
+        await env.WB_KV.put(qKey, JSON.stringify({ q: lastQ.content.slice(0, 300), lang }), { expirationTtl: 60 * 60 * 24 * 90 });
+      }
+    } catch (logErr) { /* logging non riuscito: non deve mai far perdere la risposta all'ospite */ }
 
     return json({ reply });
   } catch (e) {
@@ -154,10 +158,12 @@ async function handleTrack(request, env, slug) {
     await env.WB_KV.put(key, String(cur + 1), { expirationTtl: 60 * 60 * 24 * 120 });
   };
 
-  await incr(`wb:${slug}:day:${day}:total`);
-  await incr(`wb:${slug}:day:${day}:evt:${event}`);
-  if (section) await incr(`wb:${slug}:day:${day}:sec:${section}`);
-  if (lang) await incr(`wb:${slug}:day:${day}:lang:${lang}`);
+  try {
+    await incr(`wb:${slug}:day:${day}:total`);
+    await incr(`wb:${slug}:day:${day}:evt:${event}`);
+    if (section) await incr(`wb:${slug}:day:${day}:sec:${section}`);
+    if (lang) await incr(`wb:${slug}:day:${day}:lang:${lang}`);
+  } catch (e) { /* limite KV giornaliero o altro errore: non deve mai rompere la pagina dell'ospite */ }
 
   return json({ ok: true });
 }
