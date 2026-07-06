@@ -123,7 +123,8 @@ header{
   font-size:.68rem;font-weight:600;transition:transform .15s;
   font-family:inherit;cursor:pointer;
 }
-.quick a span.i, .quick button span.i{font-size:1.4rem;line-height:1}
+.quick a span.i, .quick button span.i{width:24px;height:24px;display:flex;align-items:center;justify-content:center;color:var(--text)}
+.quick a span.i svg, .quick button span.i svg{width:24px;height:24px}
 .quick a:active, .quick button:active{transform:scale(.96);border-color:var(--border-s)}
 /* accordion */
 details.acc{
@@ -307,10 +308,22 @@ footer b{color:var(--text)}
     <p data-i="hero_sub"></p>
   </div>
   <div class="quick">
-    <a href="https://wa.me/393922999914" target="_blank"><span class="i">💬</span><span>WhatsApp</span></a>
-    <a href="https://www.google.com/maps/dir/?api=1&destination=Via+Campaldino+6,+Roma" target="_blank"><span class="i">📍</span><span data-i="q_nav"></span></a>
-    <a href="tel:112"><span class="i">🚨</span><span>SOS 112</span></a>
-    <button id="wifiBtn"><span class="i">📶</span><span data-i="q_wifi"></span></button>
+    <a href="https://wa.me/393922999914" target="_blank">
+      <span class="i"><svg viewBox="0 0 24 24" width="24" height="24"><circle cx="12" cy="12" r="12" fill="#25D366"/><path fill="#fff" d="M17.47 14.38c-.28-.14-1.67-.82-1.93-.92-.26-.09-.45-.14-.64.14-.19.28-.73.92-.9 1.1-.16.19-.33.21-.61.07-.28-.14-1.19-.44-2.26-1.39-.84-.75-1.4-1.67-1.57-1.95-.16-.28-.02-.43.12-.57.13-.13.28-.33.42-.5.14-.16.19-.28.28-.47.09-.19.05-.35-.02-.49-.07-.14-.64-1.54-.87-2.11-.23-.55-.47-.48-.64-.49-.16-.01-.35-.01-.54-.01-.19 0-.49.07-.75.35-.26.28-.98.96-.98 2.34s1.01 2.72 1.15 2.9c.14.19 1.98 3.02 4.79 4.24.67.29 1.19.46 1.6.59.67.21 1.28.18 1.76.11.54-.08 1.67-.68 1.9-1.34.24-.66.24-1.22.16-1.34-.07-.12-.26-.19-.54-.33z"/><path fill="#fff" d="M12.05 3.6c-4.63 0-8.39 3.75-8.39 8.38 0 1.48.39 2.92 1.12 4.19L3.6 20.4l4.36-1.14a8.4 8.4 0 0 0 4.08 1.04h.01c4.63 0 8.39-3.75 8.39-8.38a8.33 8.33 0 0 0-2.46-5.92 8.34 8.34 0 0 0-5.93-2.4zm0 15.34h-.01a7 7 0 0 1-3.56-.97l-.26-.15-2.65.69.71-2.58-.17-.27a6.95 6.95 0 0 1-1.07-3.68c0-3.85 3.14-6.98 6.99-6.98a6.95 6.95 0 0 1 4.94 2.05 6.93 6.93 0 0 1 2.05 4.94c0 3.85-3.14 6.95-6.97 6.95z"/></svg></span>
+      <span>WhatsApp</span>
+    </a>
+    <a href="https://www.google.com/maps/dir/?api=1&destination=Via+Campaldino+6,+Roma" target="_blank">
+      <span class="i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l18-8-8 18-2-8-8-2z"/></svg></span>
+      <span data-i="q_nav"></span>
+    </a>
+    <a href="tel:112">
+      <span class="i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.3 2.7 20h18.6L12 3.3z"/><path d="M12 10v3.6"/><circle cx="12" cy="16.6" r=".9" fill="currentColor" stroke="none"/></svg></span>
+      <span>SOS 112</span>
+    </a>
+    <button id="wifiBtn">
+      <span class="i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 9.8a11 11 0 0 1 15 0"/><path d="M7.5 13.2a7 7 0 0 1 9 0"/><path d="M10.5 16.6a3 3 0 0 1 3 0"/><circle cx="12" cy="19.6" r=".9" fill="currentColor" stroke="none"/></svg></span>
+      <span data-i="q_wifi"></span>
+    </button>
   </div>
   <div class="targa"><h2 data-i="t_casa"></h2><p data-i="t_casa_sub"></p></div>
   <div id="accordions"></div>
@@ -424,7 +437,7 @@ const CFG = {
     {id:'trastevere', url:'https://fly98.github.io/FlyTour/trastevere/index.html', em:'🌿'}
   ],
   flytourAll: 'https://fly98.github.io/FlyTour/index.html?city=roma',
-  wifiSSID: 'DA COMPLETARE',
+  wifiSSID: 'InternoUno Lan',
   wifiPass: 'DA COMPLETARE'
 };
 
