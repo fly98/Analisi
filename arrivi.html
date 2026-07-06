@@ -653,7 +653,7 @@ function render(iso,bookings){
     // salva dati per le modali
     taxStore[i]={nome,lng,notti,phone:numeroValido(phone)?phone:""};
     msgFull[i]={testo:testoCopia, email:(booker.email||""), nome, lng, waLink};
-    expStore[i]={nome:nomeMsg, isLorenzo, lng};
+    expStore[i]={nome:nomeMsg, isLorenzo, lng, email:(booker.email||"")};
     infoStore[i]={
       nome:`${nome} ${cognome}`.trim(), struttura, room:roomName, roomLabel,
       checkin:iso, checkout:b.checkout||"", notti, adults:b.adults||"", children:b.children||0,
@@ -1081,15 +1081,40 @@ function apriExperience(i){
   const html = buildExpHtml(propKey, lng, e.nome);
   const box=document.getElementById("expModalBox");
   const lngNome = LNG_NOMI[lng] || lng;
+  const haEmail = e.email && e.email.indexOf("@")>0;
+  const SUBJ={it:"Il suo arrivo",en:"Your arrival",es:"Su llegada",fr:"Votre arrivée",de:"Ihre Anreise",pt:"A sua chegada",zh:"您的入住信息"};
+  const propName = e.isLorenzo ? "InternoUno Deluxe" : "InternoUno";
+  const subject = `${propName} — ${SUBJ[lng]||SUBJ.en}`;
   box.innerHTML=`
     <h3>InternoUno Experience — ${e.nome||"ospite"} (${e.isLorenzo?"Lorenzo il Magnifico":"Via Campaldino"}) · ${lngNome}</h3>
     <div class="copy-note" style="margin-bottom:10px">Lingua rilevata automaticamente: ${lngNome}. Se non è corretta, <a href="#" onclick="apriExperienceLng(${i});return false" style="color:#FF6628">cambia lingua</a>.</div>
     <div class="msg-box" id="expRenderedBox" style="margin-bottom:14px;max-height:50vh;overflow:auto;background:#fff;border:1px solid #e5e3df;white-space:normal">${html}</div>
-    <div class="copy-note" style="margin-bottom:10px">Il pulsante copia il testo già formattato: incollalo direttamente in una nuova mail Gmail, grassetti e link resteranno intatti.</div>
+    <div class="copy-note" style="margin-bottom:10px">"Copia formattato" copia il testo per incollarlo in Gmail. "Invia adesso" lo manda subito, senza passaggi intermedi${haEmail?"":" (nessuna email disponibile per questo ospite)"}.</div>
     <div class="modal-actions">
       <button class="copy-btn" id="expCopyBtn">Copia formattato</button>
+      <button class="m-ok" id="expSendBtn" ${haEmail?"":"disabled"}>📧 Invia adesso</button>
       <button class="m-cancel" onclick="chiudiExperience()">Chiudi</button>
     </div>`;
+  document.getElementById("expSendBtn").onclick=async function(){
+    const btn=this;
+    btn.disabled=true; btn.textContent="Invio in corso…";
+    try{
+      const resp=await fetch(`${WORKER}/?action=sendExperience`,{
+        method:"POST", headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({to:e.email, subject, html})
+      });
+      const data=await resp.json();
+      if(data.ok){
+        btn.textContent="Inviata ✓"; btn.classList.add("done");
+      }else{
+        btn.disabled=false; btn.textContent="📧 Invia adesso";
+        alert("Invio non riuscito: "+(data.error||"errore sconosciuto")+(data.detail?"\\n"+JSON.stringify(data.detail).slice(0,200):""));
+      }
+    }catch(err){
+      btn.disabled=false; btn.textContent="📧 Invia adesso";
+      alert("Errore di rete: "+err.message);
+    }
+  };
   document.getElementById("expCopyBtn").onclick=function(){
     const btn=this;
     const node=document.getElementById("expRenderedBox");
