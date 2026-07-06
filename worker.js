@@ -544,17 +544,20 @@ async function runAutoSend(env, testMode) {
   daData.setDate(daData.getDate() - 2); // finestra di sicurezza: ultime 48h, per non perdere nulla per ritardi/fusi orari
   const from = daData.toISOString().slice(0, 10);
 
-  const resp = await amenitizGet(`/bookings/updated?from=${from}&to=${to}&hotel_id=${HOTEL_UUID}&locale=it`, env);
+  const resp = await amenitizGet(`/bookings/created?from=${from}&to=${to}&hotel_id=${HOTEL_UUID}`, env);
   if (!resp.ok) {
     return { error: "Errore API Amenitiz", status: resp.status };
   }
   const bookings = await resp.json();
   const dettagli = [];
-  const scartiPerMotivo = { non_nuova: 0, booking_com: 0, senza_email: 0, gia_inviata: 0, camera_sconosciuta: 0 };
+  const scartiPerMotivo = { cancellata: 0, booking_com: 0, senza_email: 0, gia_inviata: 0, camera_sconosciuta: 0 };
   let inviate = 0, saltate = 0;
 
   for (const b of (Array.isArray(bookings) ? bookings : [])) {
-    if (b.status !== "new") { saltate++; scartiPerMotivo.non_nuova++; continue; }
+    // /bookings/created filtra già per data di creazione: chi compare qui è per definizione una prenotazione nuova.
+    // Escludiamo solo quelle già cancellate nel frattempo (nessun senso inviare a chi ha disdetto).
+    const stato = (b.status || "").toLowerCase();
+    if (stato === "cancelled" || stato === "canceled") { saltate++; scartiPerMotivo.cancellata++; continue; }
     const source = (b.source || "").toLowerCase();
     if (source.includes("booking")) { saltate++; scartiPerMotivo.booking_com++; continue; }
     const booker = b.booker || {};
@@ -642,28 +645,6 @@ export default {
           "Copialo e incollalo nel secret <code>GMAIL_REFRESH_TOKEN</code> del worker:<br>" +
           "Cloudflare dashboard &rarr; Workers &amp; Pages &rarr; <b>little-shadow-145e</b> &rarr; Settings &rarr; Variables and Secrets &rarr; modifica <code>GMAIL_REFRESH_TOKEN</code>.<br><br>" +
           "<textarea readonly style='width:100%;height:90px' onclick='this.select()'>" + td.refresh_token + "</textarea>");
-      }
-
-      if (action === "debugBookingsCreated") {
-        const oggi = new Date();
-        const to = oggi.toISOString().slice(0, 10);
-        const daData = new Date(oggi);
-        daData.setDate(daData.getDate() - 2);
-        const from = daData.toISOString().slice(0, 10);
-        const resp2 = await amenitizGet(`/bookings/created?from=${from}&to=${to}&hotel_id=${HOTEL_UUID}`, env);
-        const raw = await resp2.text();
-        return new Response(raw, { headers: { ...CORS, "Content-Type": "application/json" } });
-      }
-
-      if (action === "debugBookingsUpdated") {
-        const oggi = new Date();
-        const to = oggi.toISOString().slice(0, 10);
-        const daData = new Date(oggi);
-        daData.setDate(daData.getDate() - 2);
-        const from = daData.toISOString().slice(0, 10);
-        const resp2 = await amenitizGet(`/bookings/updated?from=${from}&to=${to}&hotel_id=${HOTEL_UUID}&locale=it`, env);
-        const raw = await resp2.text();
-        return new Response(raw, { headers: { ...CORS, "Content-Type": "application/json" } });
       }
 
       if (action === "runAutoSend") {
