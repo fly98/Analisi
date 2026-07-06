@@ -160,12 +160,20 @@ async function handleTrack(request, env, slug) {
 
 // ---------------- Dati dinamici (food/eventi/concerti) ----------------
 async function handleData(request, env, slug, url) {
+  const lang = (url.searchParams.get("lang") || "en").slice(0, 2);
   const food = await env.WB_KV.get(`wb:${slug}:food`);
-  const eventi = await env.WB_KV.get(`wb:${slug}:eventi`);
+  const eventiRaw = await env.WB_KV.get(`wb:${slug}:eventi`);
   const concerti = await env.WB_KV.get(`wb:${slug}:concerti`);
+
+  let eventi = null;
+  if (eventiRaw) {
+    const parsed = JSON.parse(eventiRaw);
+    eventi = Array.isArray(parsed) ? parsed : (parsed[lang] || parsed.en || null);
+  }
+
   return json({
     food: food ? JSON.parse(food) : null,
-    eventi: eventi ? JSON.parse(eventi) : null,
+    eventi,
     concerti: concerti ? JSON.parse(concerti) : null
   });
 }
@@ -250,6 +258,37 @@ async function fetchMeta(html, prop) {
   return m ? m[1].replace(/&amp;/g, "&").replace(/&#039;/g, "'").replace(/&quot;/g, '"') : "";
 }
 
+const EVENTI_LANGS = ["it", "es", "fr", "de", "pt", "zh"];
+
+async function translateEventi(env, eventiEn) {
+  if (!env.ANTHROPIC_API_KEY || !eventiEn.length) return null;
+  const input = eventiEn.map((e, i) => ({ id: i, titolo: e.titolo, descr: e.descr }));
+  try {
+    const resp = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": env.ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01"
+      },
+      body: JSON.stringify({
+        model: "claude-haiku-4-5",
+        max_tokens: 4000,
+        system: "Sei un traduttore professionista per un'app di ospitalità turistica a Roma. Ricevi un array JSON di oggetti {id,titolo,descr} in inglese. Restituisci SOLO un oggetto JSON valido (nessun testo extra, nessun blocco markdown) con questa struttura esatta: {\"it\":[{\"titolo\":\"\",\"descr\":\"\"}],\"es\":[...],\"fr\":[...],\"de\":[...],\"pt\":[...],\"zh\":[...]}. Ogni array deve avere esattamente lo stesso numero di elementi, nello stesso ordine dell'input. Traduci in modo naturale e scorrevole, non letterale, mantenendo nomi propri di luoghi/eventi quando appropriato.",
+        messages: [{ role: "user", content: JSON.stringify(input) }]
+      })
+    });
+    if (!resp.ok) return null;
+    const data = await resp.json();
+    const text = (data.content || []).filter(b => b.type === "text").map(b => b.text).join("");
+    const parsed = JSON.parse(text.replace(/```json|```/g, "").trim());
+    for (const lang of EVENTI_LANGS) {
+      if (!Array.isArray(parsed[lang]) || parsed[lang].length !== eventiEn.length) return null;
+    }
+    return parsed;
+  } catch (e) { return null; }
+}
+
 async function refreshEventi(env, slug) {
   const resp = await fetch("https://www.wantedinrome.com/whatson");
   if (!resp.ok) return { ok: false, error: `Wanted in Rome ${resp.status}` };
@@ -279,8 +318,16 @@ async function refreshEventi(env, slug) {
     } catch (e) { /* salta questo link, continua con gli altri */ }
   }
 
-  await env.WB_KV.put(`wb:${slug}:eventi`, JSON.stringify(eventi), { expirationTtl: 60 * 60 * 24 * 7 });
-  return { ok: true, count: eventi.length };
+  const translations = await translateEventi(env, eventi);
+  const multiLang = { en: eventi };
+  for (const lang of EVENTI_LANGS) {
+    multiLang[lang] = translations
+      ? eventi.map((e, i) => ({ ...e, titolo: translations[lang][i].titolo, descr: translations[lang][i].descr }))
+      : eventi;
+  }
+
+  await env.WB_KV.put(`wb:${slug}:eventi`, JSON.stringify(multiLang), { expirationTtl: 60 * 60 * 24 * 7 });
+  return { ok: true, count: eventi.length, translated: !!translations };
 }
 
 async function handleRefreshEventi(request, env, slug, url) {
