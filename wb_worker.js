@@ -429,6 +429,14 @@ export default {
       if (action === "data" && request.method === "GET") return await handleData(request, env, slug, url);
       if (action === "stats" && request.method === "GET") return await handleStats(request, env, slug, url);
       if (action === "refresh-eventi" && request.method === "GET") return await handleRefreshEventi(request, env, slug, url);
+      if (action === "debug-fetch" && request.method === "GET") {
+        const key = url.searchParams.get("key");
+        if (!env.WB_ADMIN_KEY || key !== env.WB_ADMIN_KEY) return json({ error: "non autorizzato" }, 401);
+        const target = url.searchParams.get("url");
+        const r = await fetch(target, { headers: { "User-Agent": "Mozilla/5.0 (compatible; wb-worker/1.0)" } });
+        const t = await r.text();
+        return json({ status: r.status, length: t.length, hasQuando: t.includes("Quando"), hasDove: t.includes(">Dove<"), snippet: t.slice(0, 500) });
+      }
       if (action === "refresh-concerti" && request.method === "GET") return await handleRefreshConcerti(request, env, slug, url);
 
       return json({ error: "Rotta non trovata" }, 404);
