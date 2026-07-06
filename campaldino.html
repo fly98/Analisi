@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1a1a1a">
+<title>InternoUno Life · Via Campaldino 6</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Michroma&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f5f4f0;
+  --surface:#ffffff;
+  --sidebar:#f0efe9;
+  --border:rgba(0,0,0,.08);
+  --border-s:rgba(0,0,0,.15);
+  --text:#1a1a1a;
+  --muted:#666;
+  --faint:#999;
+  --orange:#FF6628;
+  --orange-bg:#FFEDE4;
+  --blue:#1a4a7a;  --blue-bg:#eef4fd;
+  --green:#1a7a4a; --green-bg:#e8f5ee;
+  --red:#b83232;   --red-bg:#fdf0f0;
+  --dark:#1a1a1a;
+  --radius:12px;
+  --tabbar-h:62px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',sans-serif;
+  background:var(--bg);color:var(--text);
+  font-size:16px;line-height:1.5;
+  max-width:520px;margin:0 auto;
+  padding-bottom:calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 12px);
+}
+a{color:var(--blue)}
+/* ---------- header scuro con wordmark ---------- */
+header{
+  position:sticky;top:0;z-index:20;
+  background:#2a2622;
+  border-radius:0 0 20px 20px;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 16px calc(14px);
+  padding-top:calc(14px + env(safe-area-inset-top));
+}
+.brand{display:flex;align-items:center;gap:9px}
+.brand-icon{display:block;flex-shrink:0}
+.wordmark{
+  font-family:'Michroma',-apple-system,sans-serif;font-weight:400;
+  font-size:17px;text-transform:uppercase;letter-spacing:.04em;color:#fff;
+  display:flex;align-items:baseline;gap:7px;
+}
+.wordmark .life{
+  font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+  font-size:.6rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--orange);border:1px solid rgba(232,134,46,.55);border-radius:20px;
+  padding:2px 8px;
+}
+.wordmark .uno{color:var(--orange)}
+.wordmark small{
+  display:block;font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+  font-weight:500;font-size:.6rem;letter-spacing:.14em;
+  color:rgba(255,255,255,.55);text-transform:uppercase;margin-top:3px;
+}
+.langs{display:flex;gap:6px}
+.langs button{
+  border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);
+  border-radius:8px;font-size:.95rem;padding:4px 7px;cursor:pointer;opacity:.45;transition:.15s;
+}
+.langs button.on{opacity:1;border-color:var(--orange);box-shadow:0 0 0 1px var(--orange)}
+/* ---------- section headers ---------- */
+.targa{margin:26px 16px 10px;text-align:left;background:none;border:none;box-shadow:none;padding:0}
+.targa h2{font-size:1.25rem;font-weight:700;letter-spacing:-.01em;color:var(--text);text-transform:none}
+.targa p{font-size:.8rem;color:var(--muted);margin-top:2px}
+/* ---------- screens & cards ---------- */
+.screen{display:none;animation:fade .18s ease}
+.screen.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.screen{animation:none}}
+.wrap{padding:0 16px}
+.card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:14px 16px;margin-bottom:10px;
+}
+/* hero */
+.hero{padding:22px 16px 2px;text-align:left}
+.hero .benvenuti{font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--orange);font-weight:700;margin-bottom:4px}
+.hero h1{font-size:1.7rem;font-weight:700;letter-spacing:-.02em;line-height:1.1;margin:0 0 4px}
+.hero p{color:var(--muted);font-size:.9rem;max-width:38ch}
+/* quick actions */
+.quick{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;padding:16px 16px 2px}
+.quick a{
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:12px 4px;text-decoration:none;color:var(--text);
+  font-size:.68rem;font-weight:600;transition:transform .15s;
+}
+.quick a span.i{font-size:1.4rem;line-height:1}
+.quick a:active{transform:scale(.96);border-color:var(--border-s)}
+/* accordion */
+details.acc{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  margin:0 16px 8px;overflow:hidden;
+}
+details.acc[open]{border-color:var(--border-s)}
+details.acc summary{
+  list-style:none;display:flex;align-items:center;gap:12px;
+  padding:14px 16px;cursor:pointer;font-weight:600;font-size:.93rem;
+}
+details.acc summary::-webkit-details-marker{display:none}
+details.acc summary .i{font-size:1.25rem}
+details.acc summary::after{content:"+";margin-left:auto;color:var(--orange);font-size:1.25rem;font-weight:400}
+details.acc[open] summary::after{content:"–"}
+details.acc .body{padding:0 16px 15px;color:var(--muted);font-size:.9rem}
+details.acc .body b,details.acc .body strong{color:var(--text)}
+details.acc .body p+p{margin-top:8px}
+/* pill row (biglietti) */
+.pills{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.pill{background:var(--blue-bg);border:1px solid var(--blue);border-radius:16px;padding:4px 11px;font-size:.78rem;font-weight:700;color:var(--blue)}
+.pill small{font-weight:500;opacity:.75}
+/* numeri utili */
+.numrow{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
+.numrow:last-child{border-bottom:0}
+.numrow .n{margin-left:auto;font-weight:700;color:var(--red);text-decoration:none;font-size:.98rem}
+/* ristoranti / poi */
+.poi{display:block;text-decoration:none;color:inherit}
+.poi .top{display:flex;align-items:baseline;gap:8px}
+.poi h3{font-size:.98rem;font-weight:700;color:var(--text)}
+.poi .star{margin-left:auto;font-size:.8rem;font-weight:700;color:var(--amber,#7a5a00);background:#fef8e8;border-radius:8px;padding:1px 7px;white-space:nowrap}
+.poi .addr{font-size:.78rem;color:var(--faint);margin:2px 0 3px}
+.poi .desc{font-size:.87rem;color:var(--muted)}
+.badge{display:inline-block;font-size:.62rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--green);background:var(--green-bg);border-radius:6px;padding:2px 7px;margin-left:8px;vertical-align:middle}
+/* buttons & map */
+.btn{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  background:var(--dark);color:#fff;border:0;border-radius:10px;
+  padding:13px;font-family:inherit;font-size:.93rem;font-weight:600;
+  text-decoration:none;margin-bottom:10px;width:100%;cursor:pointer;
+}
+.btn.alt{background:var(--surface);color:var(--text);border:1px solid var(--border-s)}
+.map-wrap{border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);margin-bottom:10px;position:relative;z-index:1}
+#map{height:280px;width:100%;background:#e9e6df}
+.leaflet-control-attribution{font-size:9px !important}
+.poi-pin{width:28px;height:28px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);
+  display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.35)}
+.poi-pin span{transform:rotate(45deg);font-size:13px;line-height:1}
+.poi-pin.cat-casa{background:var(--orange)}
+.poi-pin.cat-metro{background:#2f6fed}
+.poi-pin.cat-spesa{background:#4a9e6b}
+.poi-pin.cat-bancomat{background:#8b5fbf}
+.poi-pin.cat-lavanderia{background:#2f9bb0}
+.poi-pin.cat-farmacia{background:#e0555f}
+.poi-pin.cat-garage{background:#6b6b6b}
+.poi-tooltip{background:rgba(30,28,25,.92) !important;border:none !important;color:#fff !important;
+  font-family:inherit !important;font-size:11px !important;font-weight:600;padding:3px 8px !important;
+  border-radius:6px !important;box-shadow:none !important}
+.poi-tooltip::before{display:none !important}
+.card.poi{position:relative}
+.card.poi .navbtn{position:absolute;top:12px;right:12px;width:34px;height:34px;border-radius:50%;
+  background:rgba(255,102,40,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.card.poi .navbtn svg{width:16px;height:16px;stroke:var(--orange)}
+/* chat */
+#chatlog{min-height:40vh;display:flex;flex-direction:column;gap:9px;padding:4px 0 12px}
+.msg{max-width:84%;padding:10px 14px;border-radius:16px;font-size:.92rem}
+.msg.guest{align-self:flex-end;background:var(--dark);color:#fff;border-bottom-right-radius:4px}
+.msg.bot{align-self:flex-start;background:var(--surface);border:1px solid var(--border);border-bottom-left-radius:4px}
+.msg.bot a{color:var(--orange);font-weight:700}
+.chatbar{display:flex;gap:8px;position:sticky;bottom:calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 10px)}
+.chatbar input{
+  flex:1;border:1px solid var(--border-s);border-radius:22px;padding:12px 16px;
+  font-family:inherit;font-size:1rem;background:var(--surface);color:var(--text);
+}
+.chatbar input:focus{outline:none;border-color:var(--orange)}
+.chatbar button{
+  background:var(--orange);color:#fff;border:0;border-radius:50%;width:46px;height:46px;
+  font-size:1.15rem;cursor:pointer;flex-shrink:0;
+}
+/* tab bar */
+nav{
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);z-index:30;width:100%;max-width:520px;
+  background:rgba(255,255,255,.96);backdrop-filter:blur(10px);
+  border-top:1px solid var(--border);
+  display:flex;height:calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  padding-bottom:env(safe-area-inset-bottom);
+}
+nav button{
+  flex:1;background:none;border:0;font-family:inherit;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  font-size:.62rem;font-weight:600;color:var(--faint);transition:color .2s;
+}
+nav button .i{font-size:1.3rem;line-height:1;filter:grayscale(1) opacity(.55);transition:filter .2s}
+nav button.on{color:var(--orange)}
+nav button.on .i{filter:none}
+footer{padding:24px 16px 14px;text-align:left;font-size:.82rem;color:var(--muted)}
+footer b{color:var(--text)}
+.note{font-size:.78rem;color:var(--faint);text-align:center;margin:8px 16px}
+
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand"><img class="brand-icon" src="data:image/png;base64,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" alt="" width="27" height="20"><div class="wordmark">INTERNO<span class="uno">UNO</span><small data-i="hdr_sub">Welcome Book · Via Campaldino 6</small></div></div>
+  <div class="langs">
+    <button data-lang="it">🇮🇹</button>
+    <button data-lang="en">🇬🇧</button>
+    <button data-lang="es">🇪🇸</button>
+  </div>
+</header>
+
+<!-- ============ CASA ============ -->
+<section class="screen on" id="scr-casa">
+  <div class="hero">
+    <div class="benvenuti" data-i="hero_kicker"></div>
+    <h1>Welcome Book</h1>
+    <p data-i="hero_sub"></p>
+  </div>
+  <div class="quick">
+    <a href="https://wa.me/393922999914" target="_blank"><span class="i">💬</span><span>WhatsApp</span></a>
+    <a href="https://www.google.com/maps/dir/?api=1&destination=Via+Campaldino+6,+Roma" target="_blank"><span class="i">📍</span><span data-i="q_nav"></span></a>
+    <a href="tel:112"><span class="i">🚨</span><span>SOS 112</span></a>
+    <a href="https://www.interno1.it" target="_blank"><span class="i">🌐</span><span data-i="q_site"></span></a>
+  </div>
+  <div class="targa"><h2 data-i="t_casa"></h2><p data-i="t_casa_sub"></p></div>
+  <div id="accordions"></div>
+  <div class="targa"><h2 data-i="t_numeri"></h2></div>
+  <div class="card wrap-in" id="numeri"></div>
+  <footer id="farewell"></footer>
+</section>
+
+<!-- ============ MAPPA ============ -->
+<section class="screen" id="scr-mappa">
+  <div class="targa"><h2 data-i="t_mappa"></h2><p data-i="t_mappa_sub"></p></div>
+  <div class="wrap">
+    <div class="map-wrap"><div id="map"></div></div>
+    <button class="btn alt" id="mapOverviewBtn" data-i="m_overview"></button>
+  </div>
+  <div class="targa"><h2 data-i="t_servizi"></h2></div>
+  <div class="wrap" id="servizi"></div>
+</section>
+
+<!-- ============ MANGIARE ============ -->
+<section class="screen" id="scr-food">
+  <div class="targa"><h2 data-i="t_food"></h2><p data-i="t_food_sub"></p></div>
+  <div class="wrap" id="foodlist"></div>
+  <p class="note" data-i="food_note"></p>
+</section>
+
+<!-- ============ ROMA ============ -->
+<section class="screen" id="scr-roma">
+  <div class="targa"><h2 data-i="t_eventi"></h2><p data-i="t_eventi_sub"></p></div>
+  <div class="wrap" id="eventi"><div class="card" data-i="eventi_soon"></div></div>
+  <div class="targa"><h2 data-i="t_tour"></h2><p data-i="t_tour_sub"></p></div>
+  <div class="wrap" id="tours"></div>
+</section>
+
+<!-- ============ CHIEDI ============ -->
+<section class="screen" id="scr-chat">
+  <div class="targa"><h2 data-i="t_chat"></h2><p data-i="t_chat_sub"></p></div>
+  <div class="wrap">
+    <div id="chatlog"></div>
+    <div class="chatbar">
+      <input id="chatinput" type="text" autocomplete="off">
+      <button id="chatsend" aria-label="Send">➤</button>
+    </div>
+  </div>
+</section>
+
+<nav id="tabbar">
+  <button data-scr="casa" class="on"><span class="i">🏠</span><span data-i="tab_casa"></span></button>
+  <button data-scr="mappa"><span class="i">🗺️</span><span data-i="tab_mappa"></span></button>
+  <button data-scr="food"><span class="i">🍝</span><span data-i="tab_food"></span></button>
+  <button data-scr="roma"><span class="i">🏛️</span><span>Roma</span></button>
+  <button data-scr="chat"><span class="i">💬</span><span data-i="tab_chat"></span></button>
+</nav>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+/* ================= CONFIG STRUTTURA ================= */
+const CFG = {
+  slug: 'campaldino',
+  nome: 'InternoUno',
+  indirizzo: 'Via Campaldino 6, Roma',
+  lat: 41.9085842,
+  lon: 12.5216869,
+  whatsapp: '393922999914',
+  api: 'https://wb-worker.f-castiglioni.workers.dev', // live
+  flytour: [
+    {id:'ghetto',   url:'https://fly98.github.io/FlyTour/', em:'🕍'},
+    {id:'trastevere', url:'https://fly98.github.io/FlyTour/', em:'🌿'}
+  ]
+};
+
+/* ================= I18N ================= */
+const I18N = {
+it:{
+  hdr_sub:'Welcome Book · Via Campaldino 6',
+  hero_kicker:'Benvenuti a Roma', 
+  hero_sub:'Tutto quello che serve per il tuo soggiorno, in due tocchi.',
+  q_nav:'Naviga', q_site:'Sito',
+  t_casa:'La Casa', t_casa_sub:'Regole e istruzioni pratiche',
+  t_numeri:'Numeri Utili',
+  t_mappa:'Il Quartiere', t_mappa_sub:'Mappa e punti di riferimento', m_overview:'↺ Vista d\u2019insieme',
+  t_servizi:'Servizi Utili',
+  t_food:'Mangiare e Bere', t_food_sub:'I migliori nelle vicinanze',
+  food_note:'Selezione aggiornata periodicamente in base alle recensioni della zona.',
+  t_eventi:'Eventi a Roma', t_eventi_sub:'Cosa succede in città in questi giorni',
+  eventi_soon:'📅 Il calendario eventi si aggiorna automaticamente ogni settimana. Prima attivazione in arrivo.',
+  t_tour:'Tour Audio Gratuiti', t_tour_sub:'Un regalo della casa: passeggiate con audioguida GPS',
+  t_chat:'Chiedi a InternoUno', t_chat_sub:'Risposte immediate, in ogni lingua, 24/7',
+  tab_casa:'Casa', tab_mappa:'Mappa', tab_food:'Mangiare', tab_chat:'Chiedi',
+  chat_hello:'Ciao! Sono l\u2019assistente di InternoUno. Chiedimi qualsiasi cosa sul soggiorno: orari, WiFi, trasporti, consigli in zona.',
+  chat_ph:'Scrivi una domanda…',
+  chat_err:'Il concierge digitale non è ancora attivo. Nel frattempo scrivici su WhatsApp: rispondiamo velocemente!',
+  chat_wa:'Apri WhatsApp',
+  farewell:'<b>Alla prossima!</b><br>Grazie per aver scelto InternoUno. Se il soggiorno è andato bene, una recensione fa davvero la differenza (su Booking, 8 è appena sufficiente!). Se qualcosa non va, scrivici subito su WhatsApp.<br><br>Per tornare a trovarci, la tariffa migliore è su <b>www.interno1.it</b>.<br><br><i>Buon viaggio! — Filippo</i>',
+  acc:[
+    {i:'🚗',t:'Parcheggio',b:'<p>Via Campaldino e Via Cupa sono strade condominiali private: se c\u2019è posto, il parcheggio è gratuito.</p><p>In alternativa <b>Garage Di Nezza</b>, sotto la struttura con ingresso da Via Cupa: <b>+39 320 8667617</b>.<br>Lun–Sab 6:30–01:00 · Dom 7:00–11:00 e 19:00–23:00</p>'},
+    {i:'🕙',t:'Check-out entro le 10:00',b:'<p>Se alla partenza non trovi lo staff, lascia la chiave sul bancone della reception.</p>'},
+    {i:'🧳',t:'Deposito bagagli',b:'<p>Alla partenza puoi lasciare gratuitamente i bagagli nell\u2019armadio a specchio a destra della reception e ritirarli in giornata. Porta con te la chiave e lasciala sul bancone al ritiro.</p><p>Non è un deposito custodito: meglio non lasciare oggetti di valore.</p>'},
+    {i:'🚇',t:'Metro, bus e biglietti',b:'<p><b>Metro:</b> Piazza Bologna – Linea B, a 400 m (10 min a piedi). Termini a 3 fermate, Colosseo a 5.<br>Orari: dom–gio 5:30–23:30 · ven–sab 5:30–01:30</p><p><b>Bus:</b> fermata a pochi metri dall\u2019ingresso. Usa Google Maps per il percorso migliore.</p><div class="pills"><span class="pill">€1,50 <small>100 min</small></span><span class="pill">€7 <small>24H</small></span><span class="pill">€12,50 <small>48H</small></span><span class="pill">€18 <small>72H</small></span></div><p style="margin-top:8px">🎟️ In metro, tabacchi, edicole o con l\u2019app <a href="https://www.ticketappy.it">TicketAppy</a>.</p>'},
+    {i:'📺',t:'Netflix gratuito',b:'<p>Disponibile sulla TV: tasto dedicato sul telecomando o icona Smart TV, senza configurazioni.</p><p>Se chiede un codice, manda su WhatsApp la foto del QR sullo schermo e lo riattiviamo appena possibile.</p>'},
+    {i:'🤫',t:'Ore di silenzio 22:00–08:00',b:'<p>Ti chiediamo di ridurre al minimo i rumori per garantire tranquillità a tutti gli ospiti.</p>'},
+    {i:'💡',t:'Energia e aria condizionata',b:'<p>Spegni luci e dispositivi quando esci. <b>L\u2019aria condizionata va sempre spenta uscendo dalla camera.</b></p>'},
+    {i:'🐾',t:'Animali domestici',b:'<p>Benvenuti gratuitamente, nel rispetto di pulizia e sicurezza. Non devono salire sui letti né restare liberi nelle aree comuni.</p>'},
+    {i:'🚭',t:'Vietato fumare',b:'<p>L\u2019alloggio è rigorosamente non fumatori.</p>'}
+  ],
+  numeri:[['🚓','Emergenze (Polizia/Carabinieri)','112'],['🚑','Emergenza medica','118'],['🚕','Taxi Roma','063570'],['ℹ️','Info turistiche Roma','060606']],
+  servizi:[
+    ['🛒','Conad City','Viale delle Provincie 156 — davanti alla struttura','Conad+City+Viale+delle+Provincie+Roma',41.9084907,12.5210053,'spesa'],
+    ['🛒','Lidl','Via della Lega Lombarda 32 — 5 min a piedi','Lidl+Via+della+Lega+Lombarda+Roma',41.90864,12.52326,'spesa'],
+    ['🏧','ATM Banco BPM','Viale delle Provincie 148 — il bancomat più vicino','Banco+BPM+Viale+delle+Provincie+Roma',41.9087598,12.5210798,'bancomat'],
+    ['🧺','Lavanderia a gettoni Al.Ba.','Via Giuseppe de Mattheis 11 — 5 min a piedi','lavanderia+Via+Giuseppe+de+Mattheis+11+Roma',41.9094028,12.5200431,'lavanderia'],
+    ['💊','Farmacia Caluori','Piazzale delle Provincie 8 — la più vicina','Farmacia+Caluori+Roma',41.9096302,12.521481,'farmacia'],
+    ['🚇','Metro Piazza Bologna','Linea B — 400m, 10 min a piedi','Piazza+Bologna+Metro+B+Roma',41.9136626,12.5208135,'metro'],
+    ['🅿️','Garage Di Nezza','Ingresso da Via Cupa — parcheggio sotterraneo','Via+Cupa+Roma',41.908091,12.522909,'garage']
+  ],
+  food:[
+    ['☕','Bar Stendal','','Piazzale delle Provincie 1 — 1 min a piedi','Il bar più vicino: perfetto per colazione e dolci.','Bar+Stendal+Roma'],
+    ['🍝','Strada Romana','4.8','Via Teodorico 34 · 06 8339 8501','Ottima cucina romana e pizza, prezzi contenuti.','Strada+Romana+Via+Teodorico+34+Roma'],
+    ['🍣','Kimi Sushi Experience','4.5','Via della Lega Lombarda 48C','La scelta migliore in zona per il sushi.','Kimi+Sushi+Experience+Roma'],
+    ['🍷','Al Tinello d\u2019Abruzzo','4.4','Via Arduino 17','Ottimo rapporto qualità/prezzo, location curata.','Al+Tinello+d\u0027Abruzzo+Roma'],
+    ['🥪','La Pagnottella Gourmet','','Viale Ippocrate 25 — 3 min a piedi','Panini e insalate con ingredienti ricercati.','La+Pagnottella+Gourmet+Roma'],
+    ['🍔','Burger King','','Viale delle Provincie 136 — di fronte','Utile per un pasto veloce fino a tardi.','Burger+King+Viale+delle+Provincie+Roma']
+  ],
+  tours:{
+    ghetto:{t:'Ghetto e Testaccio',d:'Dal cuore ebraico di Roma al quartiere più verace: leggende, sapori e storie che non trovi sulle guide.'},
+    trastevere:{t:'Trastevere',d:'Vicoli, misteri e aneddoti del rione più amato, raccontati passo dopo passo dal GPS.'}
+  },
+  tour_cta:'Inizia il tour'
+},
+en:{
+  hdr_sub:'Welcome Book · Via Campaldino 6',
+  hero_kicker:'Welcome to Rome',
+  hero_sub:'Everything you need for your stay, two taps away.',
+  q_nav:'Navigate', q_site:'Website',
+  t_casa:'The House', t_casa_sub:'Practical rules and instructions',
+  t_numeri:'Useful Numbers',
+  t_mappa:'The Neighborhood', t_mappa_sub:'Map and points of reference', m_overview:'↺ Overview',
+  t_servizi:'Useful Services',
+  t_food:'Eat and Drink', t_food_sub:'The best places nearby',
+  food_note:'Selection updated periodically based on local reviews.',
+  t_eventi:'Events in Rome', t_eventi_sub:'What\u2019s on in the city these days',
+  eventi_soon:'📅 The events calendar updates automatically every week. Coming soon.',
+  t_tour:'Free Audio Tours', t_tour_sub:'A gift from the house: GPS-guided walks',
+  t_chat:'Ask InternoUno', t_chat_sub:'Instant answers, in any language, 24/7',
+  tab_casa:'Home', tab_mappa:'Map', tab_food:'Eat', tab_chat:'Ask',
+  chat_hello:'Hi! I\u2019m the InternoUno assistant. Ask me anything about your stay: times, WiFi, transport, local tips.',
+  chat_ph:'Type a question…',
+  chat_err:'The digital concierge is not active yet. Meanwhile, message us on WhatsApp — we reply fast!',
+  chat_wa:'Open WhatsApp',
+  farewell:'<b>See you soon!</b><br>Thank you for choosing InternoUno. If you enjoyed your stay, a review really makes a difference (on Booking, 8 is barely sufficient!). If anything is wrong, message us right away on WhatsApp.<br><br>For future stays, the best rate is on <b>www.interno1.it</b>.<br><br><i>Have a great trip! — Filippo</i>',
+  acc:[
+    {i:'🚗',t:'Parking',b:'<p>Via Campaldino and Via Cupa are private condominium roads: parking is free when space is available.</p><p>Alternatively, <b>Garage Di Nezza</b> under the building, entrance from Via Cupa: <b>+39 320 8667617</b>.<br>Mon–Sat 6:30–01:00 · Sun 7:00–11:00 and 19:00–23:00</p>'},
+    {i:'🕙',t:'Check-out by 10:00 AM',b:'<p>If no staff is present when you leave, simply leave the key on the reception desk.</p>'},
+    {i:'🧳',t:'Luggage storage',b:'<p>On departure day you can leave your bags for free in the mirrored wardrobe to the right of reception and collect them later. Keep the key with you and leave it on the desk when you pick them up.</p><p>It is not a supervised locker: please avoid leaving valuables.</p>'},
+    {i:'🚇',t:'Metro, bus and tickets',b:'<p><b>Metro:</b> Piazza Bologna – Line B, 400 m away (10 min walk). Termini in 3 stops, Colosseum in 5.<br>Hours: Sun–Thu 5:30–23:30 · Fri–Sat 5:30–01:30</p><p><b>Bus:</b> stop just a few metres from the entrance. Use Google Maps for the best route.</p><div class="pills"><span class="pill">€1.50 <small>100 min</small></span><span class="pill">€7 <small>24H</small></span><span class="pill">€12.50 <small>48H</small></span><span class="pill">€18 <small>72H</small></span></div><p style="margin-top:8px">🎟️ Sold in metro stations, tobacco shops, newsstands or via the <a href="https://www.ticketappy.it">TicketAppy</a> app.</p>'},
+    {i:'📺',t:'Free Netflix',b:'<p>Available on the TV: dedicated remote button or Smart TV icon, no setup needed.</p><p>If a code is requested, send us a WhatsApp photo of the QR on screen and we\u2019ll restore access as soon as possible.</p>'},
+    {i:'🤫',t:'Quiet hours 10 PM–8 AM',b:'<p>Please keep noise to a minimum so every guest can rest.</p>'},
+    {i:'💡',t:'Energy and air conditioning',b:'<p>Switch off lights and devices when you go out. <b>Air conditioning must always be off when leaving the room.</b></p>'},
+    {i:'🐾',t:'Pets',b:'<p>Welcome free of charge, respecting cleanliness and safety. They must not get on the beds or roam freely in common areas.</p>'},
+    {i:'🚭',t:'No smoking',b:'<p>The property is strictly non-smoking.</p>'}
+  ],
+  numeri:[['🚓','Emergencies (Police)','112'],['🚑','Medical emergency','118'],['🚕','Taxi Rome','063570'],['ℹ️','Rome tourist info','060606']],
+  servizi:[
+    ['🛒','Conad City','Viale delle Provincie 156 — right in front','Conad+City+Viale+delle+Provincie+Roma',41.9084907,12.5210053,'spesa'],
+    ['🛒','Lidl','Via della Lega Lombarda 32 — 5 min walk','Lidl+Via+della+Lega+Lombarda+Roma',41.90864,12.52326,'spesa'],
+    ['🏧','ATM Banco BPM','Viale delle Provincie 148 — nearest ATM','Banco+BPM+Viale+delle+Provincie+Roma',41.9087598,12.5210798,'bancomat'],
+    ['🧺','Laundromat Al.Ba.','Via Giuseppe de Mattheis 11 — 5 min walk','lavanderia+Via+Giuseppe+de+Mattheis+11+Roma',41.9094028,12.5200431,'lavanderia'],
+    ['💊','Pharmacy Caluori','Piazzale delle Provincie 8 — the nearest','Farmacia+Caluori+Roma',41.9096302,12.521481,'farmacia'],
+    ['🚇','Piazza Bologna Metro','Line B — 400m, 10 min walk','Piazza+Bologna+Metro+B+Roma',41.9136626,12.5208135,'metro'],
+    ['🅿️','Garage Di Nezza','Entrance from Via Cupa — underground parking','Via+Cupa+Roma',41.908091,12.522909,'garage']
+  ],
+  food:[
+    ['☕','Bar Stendal','','Piazzale delle Provincie 1 — 1 min walk','The nearest café: great for breakfast and pastries.','Bar+Stendal+Roma'],
+    ['🍝','Strada Romana','4.8','Via Teodorico 34 · 06 8339 8501','Excellent Roman cuisine and pizza, fair prices.','Strada+Romana+Via+Teodorico+34+Roma'],
+    ['🍣','Kimi Sushi Experience','4.5','Via della Lega Lombarda 48C','The best sushi option in the area.','Kimi+Sushi+Experience+Roma'],
+    ['🍷','Al Tinello d\u2019Abruzzo','4.4','Via Arduino 17','Great value and a lovely setting.','Al+Tinello+d\u0027Abruzzo+Roma'],
+    ['🥪','La Pagnottella Gourmet','','Viale Ippocrate 25 — 3 min walk','Gourmet sandwiches and salads.','La+Pagnottella+Gourmet+Roma'],
+    ['🍔','Burger King','','Viale delle Provincie 136 — across the street','Handy for a quick late meal.','Burger+King+Viale+delle+Provincie+Roma']
+  ],
+  tours:{
+    ghetto:{t:'Ghetto and Testaccio',d:'From Rome\u2019s Jewish heart to its most authentic district: legends, flavours and stories you won\u2019t find in guidebooks.'},
+    trastevere:{t:'Trastevere',d:'Alleys, mysteries and anecdotes of Rome\u2019s best-loved quarter, narrated step by step by GPS.'}
+  },
+  tour_cta:'Start the tour'
+},
+es:{
+  hdr_sub:'Welcome Book · Via Campaldino 6',
+  hero_kicker:'Bienvenidos a Roma',
+  hero_sub:'Todo lo que necesitas para tu estancia, a dos toques.',
+  q_nav:'Navegar', q_site:'Web',
+  t_casa:'La Casa', t_casa_sub:'Normas e instrucciones prácticas',
+  t_numeri:'Números Útiles',
+  t_mappa:'El Barrio', t_mappa_sub:'Mapa y puntos de referencia', m_overview:'↺ Vista general',
+  t_servizi:'Servicios Útiles',
+  t_food:'Comer y Beber', t_food_sub:'Los mejores de la zona',
+  food_note:'Selección actualizada periódicamente según las reseñas de la zona.',
+  t_eventi:'Eventos en Roma', t_eventi_sub:'Qué pasa en la ciudad estos días',
+  eventi_soon:'📅 El calendario de eventos se actualiza automáticamente cada semana. Muy pronto.',
+  t_tour:'Tours de Audio Gratis', t_tour_sub:'Un regalo de la casa: paseos con audioguía GPS',
+  t_chat:'Pregunta a InternoUno', t_chat_sub:'Respuestas al instante, en cualquier idioma, 24/7',
+  tab_casa:'Casa', tab_mappa:'Mapa', tab_food:'Comer', tab_chat:'Pregunta',
+  chat_hello:'¡Hola! Soy el asistente de InternoUno. Pregúntame lo que quieras sobre tu estancia: horarios, WiFi, transporte, consejos de la zona.',
+  chat_ph:'Escribe una pregunta…',
+  chat_err:'El conserje digital aún no está activo. Mientras tanto, escríbenos por WhatsApp: ¡respondemos rápido!',
+  chat_wa:'Abrir WhatsApp',
+  farewell:'<b>¡Hasta pronto!</b><br>Gracias por elegir InternoUno. Si la estancia ha ido bien, una reseña marca la diferencia (¡en Booking, un 8 es apenas suficiente!). Si algo no va bien, escríbenos enseguida por WhatsApp.<br><br>Para volver, la mejor tarifa está en <b>www.interno1.it</b>.<br><br><i>¡Buen viaje! — Filippo</i>',
+  acc:[
+    {i:'🚗',t:'Aparcamiento',b:'<p>Via Campaldino y Via Cupa son calles privadas del condominio: si hay sitio, aparcar es gratis.</p><p>Alternativa: <b>Garage Di Nezza</b> bajo el edificio, entrada por Via Cupa: <b>+39 320 8667617</b>.<br>Lun–Sáb 6:30–01:00 · Dom 7:00–11:00 y 19:00–23:00</p>'},
+    {i:'🕙',t:'Check-out antes de las 10:00',b:'<p>Si no hay personal al salir, deja la llave en el mostrador de recepción.</p>'},
+    {i:'🧳',t:'Consigna de equipaje',b:'<p>El día de salida puedes dejar gratis las maletas en el armario con espejo a la derecha de la recepción y recogerlas más tarde. Lleva la llave contigo y déjala en el mostrador al recoger.</p><p>No es una consigna vigilada: mejor no dejar objetos de valor.</p>'},
+    {i:'🚇',t:'Metro, bus y billetes',b:'<p><b>Metro:</b> Piazza Bologna – Línea B, a 400 m (10 min a pie). Termini a 3 paradas, Coliseo a 5.<br>Horario: dom–jue 5:30–23:30 · vie–sáb 5:30–01:30</p><p><b>Bus:</b> parada a pocos metros de la entrada. Usa Google Maps para la mejor ruta.</p><div class="pills"><span class="pill">€1,50 <small>100 min</small></span><span class="pill">€7 <small>24H</small></span><span class="pill">€12,50 <small>48H</small></span><span class="pill">€18 <small>72H</small></span></div><p style="margin-top:8px">🎟️ En el metro, estancos, quioscos o con la app <a href="https://www.ticketappy.it">TicketAppy</a>.</p>'},
+    {i:'📺',t:'Netflix gratis',b:'<p>Disponible en la TV: botón dedicado del mando o icono Smart TV, sin configuración.</p><p>Si pide un código, envíanos por WhatsApp una foto del QR de la pantalla y lo reactivamos lo antes posible.</p>'},
+    {i:'🤫',t:'Silencio 22:00–08:00',b:'<p>Se ruega reducir al mínimo los ruidos para garantizar el descanso de todos.</p>'},
+    {i:'💡',t:'Energía y aire acondicionado',b:'<p>Apaga luces y aparatos al salir. <b>El aire acondicionado debe quedar siempre apagado al salir de la habitación.</b></p>'},
+    {i:'🐾',t:'Mascotas',b:'<p>Bienvenidas sin coste, respetando limpieza y seguridad. No deben subir a las camas ni circular libres por las zonas comunes.</p>'},
+    {i:'🚭',t:'Prohibido fumar',b:'<p>El alojamiento es estrictamente libre de humo.</p>'}
+  ],
+  numeri:[['🚓','Emergencias (Policía)','112'],['🚑','Emergencia médica','118'],['🚕','Taxi Roma','063570'],['ℹ️','Información turística','060606']],
+  servizi:[
+    ['🛒','Conad City','Viale delle Provincie 156 — justo enfrente','Conad+City+Viale+delle+Provincie+Roma',41.9084907,12.5210053,'spesa'],
+    ['🛒','Lidl','Via della Lega Lombarda 32 — 5 min a pie','Lidl+Via+della+Lega+Lombarda+Roma',41.90864,12.52326,'spesa'],
+    ['🏧','ATM Banco BPM','Viale delle Provincie 148 — cajero más cercano','Banco+BPM+Viale+delle+Provincie+Roma',41.9087598,12.5210798,'bancomat'],
+    ['🧺','Lavandería Al.Ba.','Via Giuseppe de Mattheis 11 — 5 min a pie','lavanderia+Via+Giuseppe+de+Mattheis+11+Roma',41.9094028,12.5200431,'lavanderia'],
+    ['💊','Farmacia Caluori','Piazzale delle Provincie 8 — la más cercana','Farmacia+Caluori+Roma',41.9096302,12.521481,'farmacia'],
+    ['🚇','Metro Piazza Bologna','Línea B — 400m, 10 min a pie','Piazza+Bologna+Metro+B+Roma',41.9136626,12.5208135,'metro'],
+    ['🅿️','Garaje Di Nezza','Entrada desde Via Cupa — parking subterráneo','Via+Cupa+Roma',41.908091,12.522909,'garage']
+  ],
+  food:[
+    ['☕','Bar Stendal','','Piazzale delle Provincie 1 — 1 min a pie','El bar más cercano: ideal para desayunar.','Bar+Stendal+Roma'],
+    ['🍝','Strada Romana','4.8','Via Teodorico 34 · 06 8339 8501','Excelente cocina romana y pizza, buenos precios.','Strada+Romana+Via+Teodorico+34+Roma'],
+    ['🍣','Kimi Sushi Experience','4.5','Via della Lega Lombarda 48C','La mejor opción de sushi de la zona.','Kimi+Sushi+Experience+Roma'],
+    ['🍷','Al Tinello d\u2019Abruzzo','4.4','Via Arduino 17','Buena relación calidad-precio y ambiente cuidado.','Al+Tinello+d\u0027Abruzzo+Roma'],
+    ['🥪','La Pagnottella Gourmet','','Viale Ippocrate 25 — 3 min a pie','Bocadillos gourmet y ensaladas.','La+Pagnottella+Gourmet+Roma'],
+    ['🍔','Burger King','','Viale delle Provincie 136 — enfrente','Útil para comer rápido hasta tarde.','Burger+King+Viale+delle+Provincie+Roma']
+  ],
+  tours:{
+    ghetto:{t:'Ghetto y Testaccio',d:'Del corazón judío de Roma al barrio más auténtico: leyendas, sabores e historias que no están en las guías.'},
+    trastevere:{t:'Trastevere',d:'Callejones, misterios y anécdotas del barrio más querido, narrados paso a paso por GPS.'}
+  },
+  tour_cta:'Empezar el tour'
+}
+};
+
+/* ================= STATO & RENDER ================= */
+let lang = (navigator.language || 'it').slice(0,2).toLowerCase();
+if(!I18N[lang]) lang = 'en';
+
+const $ = s => document.querySelector(s);
+const $$ = s => document.querySelectorAll(s);
+const T = () => I18N[lang];
+
+function render(){
+  document.documentElement.lang = lang;
+  $$('.langs button').forEach(b => b.classList.toggle('on', b.dataset.lang === lang));
+  $$('[data-i]').forEach(el => { const v = T()[el.dataset.i]; if(v !== undefined) el.innerHTML = v; });
+
+  // accordions
+  $('#accordions').innerHTML = T().acc.map(a =>
+    `<details class="acc"><summary><span class="i">${a.i}</span>${a.t}</summary><div class="body">${a.b}</div></details>`).join('');
+
+  // numeri utili
+  $('#numeri').innerHTML = T().numeri.map(n =>
+    `<div class="numrow"><span>${n[0]}</span><span>${n[1]}</span><a class="n" href="tel:${n[2]}">${n[2]==='063570'?'06 3570':n[2]==='060606'?'06 0606':n[2]}</a></div>`).join('');
+
+  // servizi
+  $('#servizi').innerHTML = T().servizi.map((s,i) =>
+    `<div class="card poi" data-poi="${i}">
+       <a class="navbtn" href="https://www.google.com/maps/dir/?api=1&destination=${s[4]},${s[5]}" target="_blank" title="Naviga" data-navbtn>
+         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l18-8-8 18-2-8-8-2z"/></svg>
+       </a>
+       <div class="top"><h3>${s[0]} ${s[1]}</h3></div><div class="addr">${s[2]}</div>
+     </div>`).join('');
+  $$('#servizi .poi').forEach(el => {
+    el.querySelector('[data-navbtn]').addEventListener('click', e => e.stopPropagation());
+    el.addEventListener('click', () => {
+      const s = T().servizi[+el.dataset.poi];
+      $$('#tabbar button').forEach(x => x.classList.remove('on'));
+      $('#tabbar button[data-scr="mappa"]').classList.add('on');
+      $$('.screen').forEach(x => x.classList.remove('on'));
+      $('#scr-mappa').classList.add('on');
+      initMap();
+      setTimeout(() => { map.invalidateSize(); zoomToPoi(s[4], s[5]); }, 60);
+    });
+  });
+  refreshMapLabels();
+
+  // food (fallback statico; il worker sovrascriverà quando attivo)
+  renderFood(T().food);
+
+  // tours
+  $('#tours').innerHTML = CFG.flytour.map(t => {
+    const tt = T().tours[t.id];
+    return `<a class="card poi" href="${t.url}" target="_blank">
+      <div class="top"><h3>${t.em} ${tt.t}</h3><span class="badge">GPS</span></div>
+      <div class="desc">${tt.d}</div>
+      <div class="addr" style="margin-top:6px;color:var(--orange);font-weight:700">▶ ${T().tour_cta}</div></a>`;
+  }).join('');
+
+  $('#farewell').innerHTML = T().farewell;
+  $('#chatinput').placeholder = T().chat_ph;
+  if(!$('#chatlog').children.length) botSay(T().chat_hello);
+}
+
+function renderFood(list){
+  $('#foodlist').innerHTML = list.map(f =>
+    `<a class="card poi" target="_blank" href="https://www.google.com/maps/search/?api=1&query=${f[5]}">
+      <div class="top"><h3>${f[0]} ${f[1]}</h3>${f[2]?`<span class="star">★ ${f[2]}</span>`:''}</div>
+      <div class="addr">${f[3]}</div><div class="desc">${f[4]}</div></a>`).join('');
+}
+
+/* dati dinamici dal worker (quando esisterà) */
+async function loadDynamic(){
+  try{
+    const r = await fetch(`${CFG.api}/wb/${CFG.slug}/data?lang=${lang}`, {signal: AbortSignal.timeout(4000)});
+    if(!r.ok) return;
+    const d = await r.json();
+    if(d.food?.length) renderFood(d.food);
+    if(d.eventi?.length){
+      $('#eventi').innerHTML = d.eventi.map(e =>
+        `<div class="card"><div class="top"><h3>${e.emoji||'🎭'} ${e.titolo}</h3></div>
+         <div class="addr">${e.quando} · ${e.dove}</div><div class="desc">${e.descr||''}</div>
+         ${e.link?`<div class="addr" style="margin-top:6px"><a href="${e.link}" target="_blank">Info e biglietti →</a></div>`:''}</div>`).join('');
+    }
+  }catch(e){/* fallback statico già visibile */}
+}
+
+/* ================= TRACKING ================= */
+function trackEvent(event, section){
+  try{
+    fetch(`${CFG.api}/wb/${CFG.slug}/track`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({event, section, lang}),
+      keepalive:true
+    }).catch(()=>{});
+  }catch(e){/* mai bloccare l'esperienza per un ping di analytics */}
+}
+
+/* ================= MAPPA ================= */
+let map = null;
+let poiMarkers = [];
+let mapBounds = null;
+
+function initMap(){
+  if(map) return;
+  const home = [CFG.lat, CFG.lon];
+  map = L.map('map', {zoomControl:false, attributionControl:true}).setView(home, 16);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; OpenStreetMap &copy; CARTO', maxZoom: 20
+  }).addTo(map);
+
+  const homeIcon = L.divIcon({className:'', html:'<div class="poi-pin cat-casa"><span>🏠</span></div>', iconSize:[28,28], iconAnchor:[14,28]});
+  L.marker(home, {icon:homeIcon}).addTo(map).bindTooltip(CFG.nome, {direction:'top', offset:[0,-24], className:'poi-tooltip'});
+
+  const coords = [home];
+  T().servizi.forEach((s,i) => {
+    const lat = s[4], lon = s[5], cat = s[6];
+    const icon = L.divIcon({className:'', html:`<div class="poi-pin cat-${cat}"><span>${s[0]}</span></div>`, iconSize:[28,28], iconAnchor:[14,28]});
+    poiMarkers[i] = L.marker([lat, lon], {icon}).addTo(map).bindTooltip(s[1], {direction:'top', offset:[0,-24], className:'poi-tooltip'});
+    coords.push([lat, lon]);
+  });
+  mapBounds = coords;
+  map.fitBounds(coords, {padding:[36,36]});
+}
+function zoomToPoi(lat, lon){ if(map) map.flyTo([lat, lon], 18, {duration:0.6}); }
+function zoomOverview(){ if(map && mapBounds) map.flyToBounds(mapBounds, {padding:[36,36], duration:0.6}); }
+function refreshMapLabels(){
+  if(!map) return;
+  T().servizi.forEach((s,i) => { if(poiMarkers[i]) poiMarkers[i].setTooltipContent(s[1]); });
+}
+$('#mapOverviewBtn').addEventListener('click', zoomOverview);
+
+/* ================= TABS ================= */
+$$('#tabbar button').forEach(b => b.addEventListener('click', () => {
+  $$('#tabbar button').forEach(x => x.classList.remove('on'));
+  b.classList.add('on');
+  $$('.screen').forEach(s => s.classList.remove('on'));
+  $('#scr-' + b.dataset.scr).classList.add('on');
+  window.scrollTo(0,0);
+  trackEvent('tab', b.dataset.scr);
+  if(b.dataset.scr === 'mappa'){
+    initMap();
+    setTimeout(() => map.invalidateSize(), 60);
+  }
+}));
+
+$$('.langs button').forEach(b => b.addEventListener('click', () => { lang = b.dataset.lang; render(); trackEvent('lang', lang); }));
+
+/* ================= CHAT ================= */
+const chatHistory = [];
+function botSay(txt, withWA){
+  const d = document.createElement('div');
+  d.className = 'msg bot';
+  d.innerHTML = txt + (withWA ? `<br><a href="https://wa.me/${CFG.whatsapp}" target="_blank" style="color:var(--orange);font-weight:700">💬 ${T().chat_wa}</a>` : '');
+  $('#chatlog').appendChild(d);
+  d.scrollIntoView({behavior:'smooth'});
+}
+function guestSay(txt){
+  const d = document.createElement('div');
+  d.className = 'msg guest'; d.textContent = txt;
+  $('#chatlog').appendChild(d);
+  d.scrollIntoView({behavior:'smooth'});
+}
+async function sendChat(){
+  const inp = $('#chatinput');
+  const q = inp.value.trim();
+  if(!q) return;
+  inp.value = '';
+  guestSay(q);
+  chatHistory.push({role:'user', content:q});
+  trackEvent('chat_msg', 'chat');
+  try{
+    const r = await fetch(`${CFG.api}/wb/${CFG.slug}/chat`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({messages: chatHistory.slice(-10), lang}),
+      signal: AbortSignal.timeout(30000)
+    });
+    if(!r.ok) throw new Error('api');
+    const d = await r.json();
+    chatHistory.push({role:'assistant', content:d.reply});
+    botSay(d.reply.replace(/\n/g,'<br>'));
+  }catch(e){
+    botSay(T().chat_err, true);
+  }
+}
+$('#chatsend').addEventListener('click', sendChat);
+$('#chatinput').addEventListener('keydown', e => { if(e.key === 'Enter') sendChat(); });
+
+/* ================= INIT ================= */
+render();
+loadDynamic();
+trackEvent('view', 'casa');
+</script>
+
+</body>
+</html>
