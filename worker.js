@@ -644,6 +644,17 @@ export default {
           "<textarea readonly style='width:100%;height:90px' onclick='this.select()'>" + td.refresh_token + "</textarea>");
       }
 
+      if (action === "debugBookingsUpdated") {
+        const oggi = new Date();
+        const to = oggi.toISOString().slice(0, 10);
+        const daData = new Date(oggi);
+        daData.setDate(daData.getDate() - 2);
+        const from = daData.toISOString().slice(0, 10);
+        const resp2 = await amenitizGet(`/bookings/updated?from=${from}&to=${to}&hotel_id=${HOTEL_UUID}&locale=it`, env);
+        const raw = await resp2.text();
+        return new Response(raw, { headers: { ...CORS, "Content-Type": "application/json" } });
+      }
+
       if (action === "runAutoSend") {
         const testMode = url.searchParams.get("test") === "true";
         const result = await runAutoSend(env, testMode);
