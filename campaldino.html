@@ -65,12 +65,28 @@ header{
   font-weight:500;font-size:.6rem;letter-spacing:.14em;
   color:rgba(255,255,255,.55);text-transform:uppercase;margin-top:3px;
 }
-.langs{display:flex;gap:6px}
-.langs button{
-  border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);
-  border-radius:8px;font-size:.95rem;padding:4px 7px;cursor:pointer;opacity:.45;transition:.15s;
-}
-.langs button.on{opacity:1;border-color:var(--orange);box-shadow:0 0 0 1px var(--orange)}
+.lang-btn{width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,.25);
+  background:rgba(255,255,255,.08);font-size:17px;display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;cursor:pointer}
+.lang-modal-overlay{position:fixed;inset:0;background:rgba(20,17,14,.55);z-index:700;
+  display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;
+  transition:opacity .2s}
+.lang-modal-overlay.show{opacity:1;pointer-events:auto}
+.lang-modal{width:100%;max-width:480px;background:#fff;border-radius:20px 20px 0 0;
+  padding:18px 18px calc(18px + env(safe-area-inset-bottom));
+  transform:translateY(20px);transition:transform .25s;max-height:70vh;overflow-y:auto}
+.lang-modal-overlay.show .lang-modal{transform:translateY(0)}
+.lang-modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.lang-modal-head h3{font-size:16px;margin:0}
+.lang-modal-close{width:30px;height:30px;border-radius:50%;border:none;background:var(--bg2,#f0efe9);
+  font-size:14px;cursor:pointer}
+.lang-modal-list{display:flex;flex-direction:column;gap:4px}
+.lang-row{display:flex;align-items:center;gap:12px;padding:12px 10px;border-radius:12px;
+  border:none;background:none;width:100%;text-align:left;font-size:15px;cursor:pointer;color:inherit}
+.lang-row:active{background:rgba(0,0,0,.04)}
+.lang-row.on{background:rgba(255,102,40,.1);font-weight:700;color:var(--orange)}
+.lang-row .flag{font-size:20px}
+.lang-row .check{margin-left:auto;color:var(--orange)}
 /* ---------- section headers ---------- */
 .targa{margin:26px 16px 10px;text-align:left;background:none;border:none;box-shadow:none;padding:0}
 .targa h2{font-size:1.25rem;font-weight:700;letter-spacing:-.01em;color:var(--text);text-transform:none}
@@ -209,12 +225,18 @@ footer b{color:var(--text)}
 
 <header>
   <div class="brand"><img class="brand-icon" src="data:image/png;base64,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" alt="" width="27" height="20"><div class="wordmark">INTERNO<span class="uno">UNO</span><small data-i="hdr_sub">Welcome Book · Via Campaldino 6</small></div></div>
-  <div class="langs">
-    <button data-lang="it">🇮🇹</button>
-    <button data-lang="en">🇬🇧</button>
-    <button data-lang="es">🇪🇸</button>
-  </div>
+  <button class="lang-btn" id="langBtn" aria-label="Lingua"></button>
 </header>
+
+<div class="lang-modal-overlay" id="langModalOverlay">
+  <div class="lang-modal">
+    <div class="lang-modal-head">
+      <h3 data-i="lang_pick"></h3>
+      <button class="lang-modal-close" id="langModalClose">✕</button>
+    </div>
+    <div class="lang-modal-list" id="langModalList"></div>
+  </div>
+</div>
 
 <!-- ============ CASA ============ -->
 <section class="screen on" id="scr-casa">
@@ -308,7 +330,7 @@ it:{
   q_nav:'Naviga', q_site:'Sito',
   t_casa:'La Casa', t_casa_sub:'Regole e istruzioni pratiche',
   t_numeri:'Numeri Utili',
-  t_mappa:'Il Quartiere', t_mappa_sub:'Mappa e punti di riferimento', m_overview:'↺ Vista d\u2019insieme',
+  t_mappa:'Il Quartiere', t_mappa_sub:'Mappa e punti di riferimento', m_overview:'↺ Vista d\u2019insieme', lang_pick:'Scegli la lingua',
   t_servizi:'Servizi Utili',
   t_food:'Mangiare e Bere', t_food_sub:'I migliori nelle vicinanze',
   food_note:'Selezione aggiornata periodicamente in base alle recensioni della zona.',
@@ -364,7 +386,7 @@ en:{
   q_nav:'Navigate', q_site:'Website',
   t_casa:'The House', t_casa_sub:'Practical rules and instructions',
   t_numeri:'Useful Numbers',
-  t_mappa:'The Neighborhood', t_mappa_sub:'Map and points of reference', m_overview:'↺ Overview',
+  t_mappa:'The Neighborhood', t_mappa_sub:'Map and points of reference', m_overview:'↺ Overview', lang_pick:'Choose language',
   t_servizi:'Useful Services',
   t_food:'Eat and Drink', t_food_sub:'The best places nearby',
   food_note:'Selection updated periodically based on local reviews.',
@@ -420,7 +442,7 @@ es:{
   q_nav:'Navegar', q_site:'Web',
   t_casa:'La Casa', t_casa_sub:'Normas e instrucciones prácticas',
   t_numeri:'Números Útiles',
-  t_mappa:'El Barrio', t_mappa_sub:'Mapa y puntos de referencia', m_overview:'↺ Vista general',
+  t_mappa:'El Barrio', t_mappa_sub:'Mapa y puntos de referencia', m_overview:'↺ Vista general', lang_pick:'Elige el idioma',
   t_servizi:'Servicios Útiles',
   t_food:'Comer y Beber', t_food_sub:'Los mejores de la zona',
   food_note:'Selección actualizada periódicamente según las reseñas de la zona.',
@@ -468,10 +490,243 @@ es:{
     trastevere:{t:'Trastevere',d:'Callejones, misterios y anécdotas del barrio más querido, narrados paso a paso por GPS.'}
   },
   tour_cta:'Empezar el tour'
+},
+fr:{
+  hdr_sub:'Welcome Book · Via Campaldino 6',
+  hero_kicker:'Bienvenue à Rome',
+  hero_sub:'Tout ce qu\u2019il faut pour votre séjour, en deux clics.',
+  q_nav:'Itinéraire', q_site:'Site web',
+  t_casa:'La Maison', t_casa_sub:'Règles et instructions pratiques',
+  t_numeri:'Numéros Utiles',
+  t_mappa:'Le Quartier', t_mappa_sub:'Carte et points de repère', m_overview:'↺ Vue d\u2019ensemble', lang_pick:'Choisissez la langue',
+  t_servizi:'Services Utiles',
+  t_food:'Manger et Boire', t_food_sub:'Les meilleures adresses à proximité',
+  food_note:'Sélection mise à jour périodiquement selon les avis du quartier.',
+  t_eventi:'Événements à Rome', t_eventi_sub:'Ce qui se passe en ville ces jours-ci',
+  eventi_soon:'📅 Le calendrier des événements se met à jour automatiquement chaque semaine. Bientôt disponible.',
+  t_tour:'Visites Audio Gratuites', t_tour_sub:'Un cadeau de la maison : des balades avec audioguide GPS',
+  t_chat:'Demandez à InternoUno', t_chat_sub:'Réponses immédiates, dans toutes les langues, 24/7',
+  tab_casa:'Maison', tab_mappa:'Carte', tab_food:'Manger', tab_chat:'Demander',
+  chat_hello:'Bonjour ! Je suis l\u2019assistant InternoUno. Posez-moi vos questions sur votre séjour : horaires, WiFi, transports, conseils locaux.',
+  chat_ph:'Écrivez une question…',
+  chat_err:'Le concierge numérique n\u2019est pas encore actif. En attendant, écrivez-nous sur WhatsApp : nous répondons vite !',
+  chat_wa:'Ouvrir WhatsApp',
+  farewell:'<b>À bientôt !</b><br>Merci d\u2019avoir choisi InternoUno. Si votre séjour s\u2019est bien passé, un avis fait vraiment la différence (sur Booking, un 8 est à peine suffisant !). Si quelque chose ne va pas, écrivez-nous tout de suite sur WhatsApp.<br><br>Pour revenir, le meilleur tarif est sur <b>www.interno1.it</b>.<br><br><i>Bon voyage ! — Filippo</i>',
+  acc:[
+    {i:'🚗',t:'Parking',b:'<p>Via Campaldino et Via Cupa sont des rues privées de la copropriété : s\u2019il y a de la place, le stationnement est gratuit.</p><p>Alternative : <b>Garage Di Nezza</b>, sous le bâtiment, entrée par Via Cupa : <b>+39 320 8667617</b>.<br>Lun–Sam 6h30–01h00 · Dim 7h00–11h00 et 19h00–23h00</p>'},
+    {i:'🕙',t:'Départ avant 10h00',b:'<p>Si le personnel n\u2019est pas présent à votre départ, laissez la clé sur le comptoir de la réception.</p>'},
+    {i:'🧳',t:'Consigne à bagages',b:'<p>Le jour du départ, vous pouvez laisser gratuitement vos bagages dans l\u2019armoire miroir à droite de la réception et les récupérer dans la journée. Gardez la clé sur vous et laissez-la sur le comptoir au retrait.</p><p>Ce n\u2019est pas une consigne surveillée : évitez d\u2019y laisser des objets de valeur.</p>'},
+    {i:'🚇',t:'Métro, bus et billets',b:'<p><b>Métro :</b> Piazza Bologna – Ligne B, à 400 m (10 min à pied). Termini à 3 arrêts, Colisée à 5.<br>Horaires : dim–jeu 5h30–23h30 · ven–sam 5h30–01h30</p><p><b>Bus :</b> arrêt à quelques mètres de l\u2019entrée. Utilisez Google Maps pour le meilleur itinéraire.</p><div class="pills"><span class="pill">1,50 € <small>100 min</small></span><span class="pill">7 € <small>24H</small></span><span class="pill">12,50 € <small>48H</small></span><span class="pill">18 € <small>72H</small></span></div><p style="margin-top:8px">🎟️ Dans le métro, les bureaux de tabac, les kiosques ou avec l\u2019appli <a href="https://www.ticketappy.it">TicketAppy</a>.</p>'},
+    {i:'📺',t:'Netflix gratuit',b:'<p>Disponible sur la télé : touche dédiée sur la télécommande ou icône Smart TV, sans configuration.</p><p>Si un code est demandé, envoyez-nous par WhatsApp une photo du QR affiché à l\u2019écran, nous le réactivons rapidement.</p>'},
+    {i:'🤫',t:'Heures de silence 22h00–08h00',b:'<p>Merci de réduire au maximum le bruit pour garantir la tranquillité de tous les hôtes.</p>'},
+    {i:'💡',t:'Énergie et climatisation',b:'<p>Éteignez lumières et appareils en sortant. <b>La climatisation doit toujours être éteinte en quittant la chambre.</b></p>'},
+    {i:'🐾',t:'Animaux domestiques',b:'<p>Bienvenus gratuitement, dans le respect de la propreté et de la sécurité. Ils ne doivent pas monter sur les lits ni rester en liberté dans les espaces communs.</p>'},
+    {i:'🚭',t:'Interdiction de fumer',b:'<p>Le logement est strictement non-fumeur.</p>'}
+  ],
+  numeri:[['🚓','Urgences (Police)','112'],['🚑','Urgence médicale','118'],['🚕','Taxi Rome','063570'],['ℹ️','Infos touristiques Rome','060606']],
+  servizi:[
+    ['🛒','Conad City','Viale delle Provincie 156 — juste en face','Conad+City+Viale+delle+Provincie+Roma',41.9084907,12.5210053,'spesa'],
+    ['🛒','Lidl','Via della Lega Lombarda 32 — 5 min à pied','Lidl+Via+della+Lega+Lombarda+Roma',41.90864,12.52326,'spesa'],
+    ['🏧','ATM Banco BPM','Viale delle Provincie 148 — le distributeur le plus proche','Banco+BPM+Viale+delle+Provincie+Roma',41.9087598,12.5210798,'bancomat'],
+    ['🧺','Laverie Al.Ba.','Via Giuseppe de Mattheis 11 — 5 min à pied','lavanderia+Via+Giuseppe+de+Mattheis+11+Roma',41.9094028,12.5200431,'lavanderia'],
+    ['💊','Pharmacie Caluori','Piazzale delle Provincie 8 — la plus proche','Farmacia+Caluori+Roma',41.9096302,12.521481,'farmacia'],
+    ['🚇','Métro Piazza Bologna','Ligne B — 400 m, 10 min à pied','Piazza+Bologna+Metro+B+Roma',41.9136626,12.5208135,'metro'],
+    ['🅿️','Garage Di Nezza','Entrée par Via Cupa 35 — parking souterrain','Via+Cupa+35+Roma',41.9085477,12.5218817,'garage']
+  ],
+  food:[
+    ['☕','Bar Stendal','','Piazzale delle Provincie 1 — 1 min à pied','Le café le plus proche : parfait pour le petit-déjeuner.','Bar+Stendal+Roma'],
+    ['🍝','Strada Romana','4.8','Via Teodorico 34 · 06 8339 8501','Excellente cuisine romaine et pizza, prix raisonnables.','Strada+Romana+Via+Teodorico+34+Roma'],
+    ['🍣','Kimi Sushi Experience','4.5','Via della Lega Lombarda 48C','La meilleure option sushi du quartier.','Kimi+Sushi+Experience+Roma'],
+    ['🍷','Al Tinello d\u2019Abruzzo','4.4','Via Arduino 17','Excellent rapport qualité-prix, cadre soigné.','Al+Tinello+d\u0027Abruzzo+Roma'],
+    ['🥪','La Pagnottella Gourmet','','Viale Ippocrate 25 — 3 min à pied','Sandwichs et salades gourmets.','La+Pagnottella+Gourmet+Roma'],
+    ['🍔','Burger King','','Viale delle Provincie 136 — en face','Pratique pour un repas rapide, ouvert tard.','Burger+King+Viale+delle+Provincie+Roma']
+  ],
+  tours:{
+    ghetto:{t:'Ghetto et Testaccio',d:'Du cœur juif de Rome au quartier le plus authentique : légendes, saveurs et histoires que l\u2019on ne trouve pas dans les guides.'},
+    trastevere:{t:'Trastevere',d:'Ruelles, mystères et anecdotes du quartier le plus aimé, racontés pas à pas par GPS.'}
+  },
+  tour_cta:'Commencer la visite'
+},
+de:{
+  hdr_sub:'Welcome Book · Via Campaldino 6',
+  hero_kicker:'Willkommen in Rom',
+  hero_sub:'Alles, was Sie für Ihren Aufenthalt brauchen, zwei Fingertipps entfernt.',
+  q_nav:'Navigation', q_site:'Webseite',
+  t_casa:'Das Haus', t_casa_sub:'Praktische Regeln und Hinweise',
+  t_numeri:'Nützliche Nummern',
+  t_mappa:'Die Umgebung', t_mappa_sub:'Karte und Orientierungspunkte', m_overview:'↺ Gesamtübersicht', lang_pick:'Sprache wählen',
+  t_servizi:'Nützliche Dienste',
+  t_food:'Essen und Trinken', t_food_sub:'Die besten Adressen in der Nähe',
+  food_note:'Die Auswahl wird regelmäßig anhand lokaler Bewertungen aktualisiert.',
+  t_eventi:'Veranstaltungen in Rom', t_eventi_sub:'Was in der Stadt gerade los ist',
+  eventi_soon:'📅 Der Veranstaltungskalender aktualisiert sich automatisch jede Woche. Bald verfügbar.',
+  t_tour:'Kostenlose Audio-Touren', t_tour_sub:'Ein Geschenk des Hauses: Spaziergänge mit GPS-Audioguide',
+  t_chat:'Frag InternoUno', t_chat_sub:'Sofortige Antworten, in jeder Sprache, rund um die Uhr',
+  tab_casa:'Haus', tab_mappa:'Karte', tab_food:'Essen', tab_chat:'Fragen',
+  chat_hello:'Hallo! Ich bin der InternoUno-Assistent. Fragen Sie mich alles zu Ihrem Aufenthalt: Zeiten, WLAN, Verkehrsmittel, Tipps vor Ort.',
+  chat_ph:'Frage eingeben…',
+  chat_err:'Der digitale Concierge ist noch nicht aktiv. Schreiben Sie uns in der Zwischenzeit auf WhatsApp — wir antworten schnell!',
+  chat_wa:'WhatsApp öffnen',
+  farewell:'<b>Bis bald!</b><br>Danke, dass Sie sich für InternoUno entschieden haben. Wenn Ihr Aufenthalt schön war, macht eine Bewertung wirklich einen Unterschied (bei Booking ist eine 8 gerade so ausreichend!). Sollte etwas nicht stimmen, schreiben Sie uns sofort auf WhatsApp.<br><br>Für Ihren nächsten Besuch finden Sie die besten Preise auf <b>www.interno1.it</b>.<br><br><i>Gute Reise! — Filippo</i>',
+  acc:[
+    {i:'🚗',t:'Parken',b:'<p>Via Campaldino und Via Cupa sind private Anliegerstraßen: Wenn ein Platz frei ist, ist das Parken kostenlos.</p><p>Alternative: <b>Garage Di Nezza</b>, unter dem Gebäude, Einfahrt von der Via Cupa: <b>+39 320 8667617</b>.<br>Mo–Sa 6:30–01:00 · So 7:00–11:00 und 19:00–23:00</p>'},
+    {i:'🕙',t:'Check-out bis 10:00 Uhr',b:'<p>Falls bei der Abreise niemand vom Personal da ist, legen Sie den Schlüssel einfach an der Rezeptionstheke ab.</p>'},
+    {i:'🧳',t:'Gepäckaufbewahrung',b:'<p>Am Abreisetag können Sie Ihr Gepäck kostenlos im Spiegelschrank rechts von der Rezeption lassen und es tagsüber abholen. Nehmen Sie den Schlüssel mit und legen Sie ihn bei Abholung wieder auf die Theke.</p><p>Es handelt sich nicht um eine bewachte Aufbewahrung: Wertsachen besser nicht dort lassen.</p>'},
+    {i:'🚇',t:'U-Bahn, Bus und Fahrkarten',b:'<p><b>U-Bahn:</b> Piazza Bologna – Linie B, 400 m entfernt (10 Min. zu Fuß). Termini 3 Stationen, Kolosseum 5 Stationen.<br>Öffnungszeiten: So–Do 5:30–23:30 · Fr–Sa 5:30–01:30</p><p><b>Bus:</b> Haltestelle wenige Meter vom Eingang entfernt. Nutzen Sie Google Maps für die beste Route.</p><div class="pills"><span class="pill">1,50 € <small>100 Min.</small></span><span class="pill">7 € <small>24H</small></span><span class="pill">12,50 € <small>48H</small></span><span class="pill">18 € <small>72H</small></span></div><p style="margin-top:8px">🎟️ In der U-Bahn, an Tabakläden, Kiosken oder mit der App <a href="https://www.ticketappy.it">TicketAppy</a>.</p>'},
+    {i:'📺',t:'Kostenloses Netflix',b:'<p>Verfügbar auf dem Fernseher: eigene Taste auf der Fernbedienung oder Smart-TV-Symbol, ohne Einrichtung.</p><p>Falls ein Code verlangt wird, schicken Sie uns per WhatsApp ein Foto des QR-Codes auf dem Bildschirm — wir aktivieren ihn schnellstmöglich neu.</p>'},
+    {i:'🤫',t:'Ruhezeiten 22:00–08:00 Uhr',b:'<p>Wir bitten Sie, Lärm auf ein Minimum zu reduzieren, damit alle Gäste ihre Ruhe haben.</p>'},
+    {i:'💡',t:'Energie und Klimaanlage',b:'<p>Schalten Sie Licht und Geräte beim Verlassen des Zimmers aus. <b>Die Klimaanlage muss beim Verlassen des Zimmers immer ausgeschaltet werden.</b></p>'},
+    {i:'🐾',t:'Haustiere',b:'<p>Kostenlos willkommen, unter Wahrung von Sauberkeit und Sicherheit. Sie dürfen nicht auf die Betten oder sich frei in den Gemeinschaftsbereichen bewegen.</p>'},
+    {i:'🚭',t:'Rauchen verboten',b:'<p>Die Unterkunft ist strikt Nichtraucher.</p>'}
+  ],
+  numeri:[['🚓','Notruf (Polizei)','112'],['🚑','Medizinischer Notfall','118'],['🚕','Taxi Rom','063570'],['ℹ️','Touristeninfo Rom','060606']],
+  servizi:[
+    ['🛒','Conad City','Viale delle Provincie 156 — direkt gegenüber','Conad+City+Viale+delle+Provincie+Roma',41.9084907,12.5210053,'spesa'],
+    ['🛒','Lidl','Via della Lega Lombarda 32 — 5 Min. zu Fuß','Lidl+Via+della+Lega+Lombarda+Roma',41.90864,12.52326,'spesa'],
+    ['🏧','Geldautomat Banco BPM','Viale delle Provincie 148 — der nächstgelegene Geldautomat','Banco+BPM+Viale+delle+Provincie+Roma',41.9087598,12.5210798,'bancomat'],
+    ['🧺','Waschsalon Al.Ba.','Via Giuseppe de Mattheis 11 — 5 Min. zu Fuß','lavanderia+Via+Giuseppe+de+Mattheis+11+Roma',41.9094028,12.5200431,'lavanderia'],
+    ['💊','Apotheke Caluori','Piazzale delle Provincie 8 — die nächstgelegene','Farmacia+Caluori+Roma',41.9096302,12.521481,'farmacia'],
+    ['🚇','U-Bahn Piazza Bologna','Linie B — 400 m, 10 Min. zu Fuß','Piazza+Bologna+Metro+B+Roma',41.9136626,12.5208135,'metro'],
+    ['🅿️','Garage Di Nezza','Einfahrt über Via Cupa 35 — Tiefgarage','Via+Cupa+35+Roma',41.9085477,12.5218817,'garage']
+  ],
+  food:[
+    ['☕','Bar Stendal','','Piazzale delle Provincie 1 — 1 Min. zu Fuß','Das nächstgelegene Café: perfekt zum Frühstücken.','Bar+Stendal+Roma'],
+    ['🍝','Strada Romana','4.8','Via Teodorico 34 · 06 8339 8501','Ausgezeichnete römische Küche und Pizza, faire Preise.','Strada+Romana+Via+Teodorico+34+Roma'],
+    ['🍣','Kimi Sushi Experience','4.5','Via della Lega Lombarda 48C','Die beste Sushi-Option in der Gegend.','Kimi+Sushi+Experience+Roma'],
+    ['🍷','Al Tinello d\u2019Abruzzo','4.4','Via Arduino 17','Sehr gutes Preis-Leistungs-Verhältnis, gepflegtes Ambiente.','Al+Tinello+d\u0027Abruzzo+Roma'],
+    ['🥪','La Pagnottella Gourmet','','Viale Ippocrate 25 — 3 Min. zu Fuß','Gourmet-Sandwiches und Salate.','La+Pagnottella+Gourmet+Roma'],
+    ['🍔','Burger King','','Viale delle Provincie 136 — gegenüber','Praktisch für eine schnelle Mahlzeit bis spät abends.','Burger+King+Viale+delle+Provincie+Roma']
+  ],
+  tours:{
+    ghetto:{t:'Ghetto und Testaccio',d:'Vom jüdischen Herzen Roms zum urigsten Viertel: Legenden, Aromen und Geschichten, die man in keinem Reiseführer findet.'},
+    trastevere:{t:'Trastevere',d:'Gassen, Geheimnisse und Anekdoten des beliebtesten Viertels, Schritt für Schritt per GPS erzählt.'}
+  },
+  tour_cta:'Tour starten'
+},
+pt:{
+  hdr_sub:'Welcome Book · Via Campaldino 6',
+  hero_kicker:'Bem-vindos a Roma',
+  hero_sub:'Tudo o que precisa para a sua estadia, a dois toques.',
+  q_nav:'Navegar', q_site:'Site',
+  t_casa:'A Casa', t_casa_sub:'Regras e instruções práticas',
+  t_numeri:'Números Úteis',
+  t_mappa:'O Bairro', t_mappa_sub:'Mapa e pontos de referência', m_overview:'↺ Vista geral', lang_pick:'Escolha o idioma',
+  t_servizi:'Serviços Úteis',
+  t_food:'Comer e Beber', t_food_sub:'Os melhores locais nas proximidades',
+  food_note:'Seleção atualizada periodicamente com base nas avaliações da zona.',
+  t_eventi:'Eventos em Roma', t_eventi_sub:'O que acontece na cidade nestes dias',
+  eventi_soon:'📅 O calendário de eventos atualiza-se automaticamente todas as semanas. Brevemente disponível.',
+  t_tour:'Tours Áudio Gratuitos', t_tour_sub:'Uma oferta da casa: passeios com áudioguia GPS',
+  t_chat:'Pergunte à InternoUno', t_chat_sub:'Respostas imediatas, em qualquer idioma, 24 horas por dia',
+  tab_casa:'Casa', tab_mappa:'Mapa', tab_food:'Comer', tab_chat:'Perguntar',
+  chat_hello:'Olá! Sou o assistente da InternoUno. Pergunte-me qualquer coisa sobre a sua estadia: horários, WiFi, transportes, dicas locais.',
+  chat_ph:'Escreva uma pergunta…',
+  chat_err:'O concierge digital ainda não está ativo. Entretanto, escreva-nos no WhatsApp — respondemos rapidamente!',
+  chat_wa:'Abrir WhatsApp',
+  farewell:'<b>Até breve!</b><br>Obrigado por escolher a InternoUno. Se a estadia correu bem, uma avaliação faz mesmo a diferença (no Booking, um 8 é apenas suficiente!). Se algo não correu bem, escreva-nos já no WhatsApp.<br><br>Para voltar, a melhor tarifa está em <b>www.interno1.it</b>.<br><br><i>Boa viagem! — Filippo</i>',
+  acc:[
+    {i:'🚗',t:'Estacionamento',b:'<p>Via Campaldino e Via Cupa são ruas privadas do condomínio: se houver lugar, estacionar é gratuito.</p><p>Alternativa: <b>Garage Di Nezza</b>, por baixo do edifício, entrada pela Via Cupa: <b>+39 320 8667617</b>.<br>Seg–Sáb 6:30–01:00 · Dom 7:00–11:00 e 19:00–23:00</p>'},
+    {i:'🕙',t:'Check-out até às 10:00',b:'<p>Se não encontrar a equipa à partida, deixe a chave no balcão da receção.</p>'},
+    {i:'🧳',t:'Guarda-volumes',b:'<p>No dia da partida pode deixar a bagagem gratuitamente no armário com espelho à direita da receção e recolhê-la durante o dia. Leve a chave consigo e deixe-a no balcão ao levantar a bagagem.</p><p>Não é um serviço vigiado: evite deixar objetos de valor.</p>'},
+    {i:'🚇',t:'Metro, autocarro e bilhetes',b:'<p><b>Metro:</b> Piazza Bologna – Linha B, a 400 m (10 min a pé). Termini a 3 paragens, Coliseu a 5.<br>Horário: dom–qui 5:30–23:30 · sex–sáb 5:30–01:30</p><p><b>Autocarro:</b> paragem a poucos metros da entrada. Use o Google Maps para o melhor trajeto.</p><div class="pills"><span class="pill">1,50 € <small>100 min</small></span><span class="pill">7 € <small>24H</small></span><span class="pill">12,50 € <small>48H</small></span><span class="pill">18 € <small>72H</small></span></div><p style="margin-top:8px">🎟️ No metro, em tabacarias, quiosques ou com a app <a href="https://www.ticketappy.it">TicketAppy</a>.</p>'},
+    {i:'📺',t:'Netflix gratuito',b:'<p>Disponível na TV: botão dedicado no comando ou ícone Smart TV, sem configuração.</p><p>Se pedir um código, envie-nos por WhatsApp uma foto do QR no ecrã e reativamo-lo assim que possível.</p>'},
+    {i:'🤫',t:'Horário de silêncio 22:00–08:00',b:'<p>Pedimos que reduza ao mínimo o ruído para garantir o sossego de todos os hóspedes.</p>'},
+    {i:'💡',t:'Energia e ar condicionado',b:'<p>Apague luzes e desligue aparelhos ao sair. <b>O ar condicionado deve estar sempre desligado ao sair do quarto.</b></p>'},
+    {i:'🐾',t:'Animais de estimação',b:'<p>Bem-vindos gratuitamente, respeitando a limpeza e a segurança. Não devem subir para as camas nem circular livremente nas áreas comuns.</p>'},
+    {i:'🚭',t:'Proibido fumar',b:'<p>O alojamento é rigorosamente não-fumador.</p>'}
+  ],
+  numeri:[['🚓','Emergências (Polícia)','112'],['🚑','Emergência médica','118'],['🚕','Táxi Roma','063570'],['ℹ️','Informação turística','060606']],
+  servizi:[
+    ['🛒','Conad City','Viale delle Provincie 156 — mesmo em frente','Conad+City+Viale+delle+Provincie+Roma',41.9084907,12.5210053,'spesa'],
+    ['🛒','Lidl','Via della Lega Lombarda 32 — 5 min a pé','Lidl+Via+della+Lega+Lombarda+Roma',41.90864,12.52326,'spesa'],
+    ['🏧','Multibanco Banco BPM','Viale delle Provincie 148 — o mais próximo','Banco+BPM+Viale+delle+Provincie+Roma',41.9087598,12.5210798,'bancomat'],
+    ['🧺','Lavandaria Al.Ba.','Via Giuseppe de Mattheis 11 — 5 min a pé','lavanderia+Via+Giuseppe+de+Mattheis+11+Roma',41.9094028,12.5200431,'lavanderia'],
+    ['💊','Farmácia Caluori','Piazzale delle Provincie 8 — a mais próxima','Farmacia+Caluori+Roma',41.9096302,12.521481,'farmacia'],
+    ['🚇','Metro Piazza Bologna','Linha B — 400 m, 10 min a pé','Piazza+Bologna+Metro+B+Roma',41.9136626,12.5208135,'metro'],
+    ['🅿️','Garage Di Nezza','Entrada pela Via Cupa 35 — parque subterrâneo','Via+Cupa+35+Roma',41.9085477,12.5218817,'garage']
+  ],
+  food:[
+    ['☕','Bar Stendal','','Piazzale delle Provincie 1 — 1 min a pé','O café mais próximo: perfeito para o pequeno-almoço.','Bar+Stendal+Roma'],
+    ['🍝','Strada Romana','4.8','Via Teodorico 34 · 06 8339 8501','Excelente cozinha romana e pizza, preços justos.','Strada+Romana+Via+Teodorico+34+Roma'],
+    ['🍣','Kimi Sushi Experience','4.5','Via della Lega Lombarda 48C','A melhor opção de sushi da zona.','Kimi+Sushi+Experience+Roma'],
+    ['🍷','Al Tinello d\u2019Abruzzo','4.4','Via Arduino 17','Ótima relação qualidade-preço, ambiente cuidado.','Al+Tinello+d\u0027Abruzzo+Roma'],
+    ['🥪','La Pagnottella Gourmet','','Viale Ippocrate 25 — 3 min a pé','Sandes e saladas gourmet.','La+Pagnottella+Gourmet+Roma'],
+    ['🍔','Burger King','','Viale delle Provincie 136 — em frente','Prático para uma refeição rápida até mais tarde.','Burger+King+Viale+delle+Provincie+Roma']
+  ],
+  tours:{
+    ghetto:{t:'Ghetto e Testaccio',d:'Do coração judaico de Roma ao bairro mais autêntico: lendas, sabores e histórias que não encontra nos guias.'},
+    trastevere:{t:'Trastevere',d:'Vielas, mistérios e histórias do bairro mais amado, narrados passo a passo por GPS.'}
+  },
+  tour_cta:'Iniciar o tour'
+},
+zh:{
+  hdr_sub:'Welcome Book · Via Campaldino 6',
+  hero_kicker:'欢迎来到罗马',
+  hero_sub:'轻点两下,即可获取入住所需的一切信息。',
+  q_nav:'导航', q_site:'官网',
+  t_casa:'入住须知', t_casa_sub:'实用规则与说明',
+  t_numeri:'实用电话',
+  t_mappa:'周边地图', t_mappa_sub:'地图与周边地标', m_overview:'↺ 查看全图', lang_pick:'选择语言',
+  t_servizi:'周边服务',
+  t_food:'餐饮推荐', t_food_sub:'附近最佳去处',
+  food_note:'根据当地评价定期更新推荐列表。',
+  t_eventi:'罗马活动', t_eventi_sub:'近期城市活动',
+  eventi_soon:'📅 活动日历每周自动更新,即将上线。',
+  t_tour:'免费语音导览', t_tour_sub:'民宿赠送:GPS语音导览漫步之旅',
+  t_chat:'咨询 InternoUno', t_chat_sub:'全天候即时回复,支持任何语言',
+  tab_casa:'住宿', tab_mappa:'地图', tab_food:'美食', tab_chat:'咨询',
+  chat_hello:'您好!我是 InternoUno 的智能助理。关于入住的任何问题都可以问我:时间、WiFi、交通、周边推荐等。',
+  chat_ph:'请输入您的问题…',
+  chat_err:'智能礼宾服务暂未开通。请先通过 WhatsApp 联系我们,我们会尽快回复!',
+  chat_wa:'打开 WhatsApp',
+  farewell:'<b>期待再见!</b><br>感谢您选择 InternoUno。如果您对入住体验满意,一条评价对我们非常重要(在 Booking 上,8分只是刚刚及格!)。如有任何问题,请立即通过 WhatsApp 联系我们。<br><br>如需再次入住,最优惠的价格请前往 <b>www.interno1.it</b>。<br><br><i>祝旅途愉快!— Filippo</i>',
+  acc:[
+    {i:'🚗',t:'停车',b:'<p>Via Campaldino 和 Via Cupa 是小区私用道路:如有空位可免费停车。</p><p>也可选择楼下的 <b>Di Nezza 车库</b>,入口在 Via Cupa:<b>+39 320 8667617</b>。<br>周一至周六 6:30–01:00 · 周日 7:00–11:00 及 19:00–23:00</p>'},
+    {i:'🕙',t:'退房时间为10:00前',b:'<p>如离店时未见工作人员,请将钥匙留在前台柜台上即可。</p>'},
+    {i:'🧳',t:'行李寄存',b:'<p>离店当天可将行李免费寄存在前台右侧的镜柜中,当天可随时取回。取行李时请带上钥匙并归还至前台柜台。</p><p>此处非专人看管寄存处,请勿存放贵重物品。</p>'},
+    {i:'🚇',t:'地铁、公交与车票',b:'<p><b>地铁:</b>博洛尼亚广场站(Piazza Bologna)– B线,距离400米(步行约10分钟)。距离特米尼站3站,距离斗兽场5站。<br>运营时间:周日至周四 5:30–23:30 · 周五至周六 5:30–01:30</p><p><b>公交:</b>站点就在入口附近几米处,建议使用谷歌地图规划最佳路线。</p><div class="pills"><span class="pill">1.50€ <small>100分钟</small></span><span class="pill">7€ <small>24小时</small></span><span class="pill">12.50€ <small>48小时</small></span><span class="pill">18€ <small>72小时</small></span></div><p style="margin-top:8px">🎟️ 可在地铁站、烟草店、报刊亭购买,或使用 <a href="https://www.ticketappy.it">TicketAppy</a> 应用购票。</p>'},
+    {i:'📺',t:'免费 Netflix',b:'<p>电视上即可观看:遥控器上有专用按键,或直接点击智能电视图标,无需额外设置。</p><p>如需要验证码,请通过 WhatsApp 发送屏幕上二维码的照片给我们,我们会尽快为您重新激活。</p>'},
+    {i:'🤫',t:'安静时段 22:00–08:00',b:'<p>请尽量保持安静,以确保所有客人都能得到充分休息。</p>'},
+    {i:'💡',t:'节能与空调使用',b:'<p>离开房间时请关闭灯光和电器。<b>离开房间时空调必须关闭。</b></p>'},
+    {i:'🐾',t:'宠物',b:'<p>欢迎携带宠物入住,免费且需注意卫生与安全。请勿让宠物上床或在公共区域自由活动。</p>'},
+    {i:'🚭',t:'禁止吸烟',b:'<p>本住宿严格禁止吸烟。</p>'}
+  ],
+  numeri:[['🚓','紧急报警(警察)','112'],['🚑','医疗急救','118'],['🚕','罗马出租车','063570'],['ℹ️','罗马旅游咨询','060606']],
+  servizi:[
+    ['🛒','Conad City 超市','Viale delle Provincie 156 — 就在民宿对面','Conad+City+Viale+delle+Provincie+Roma',41.9084907,12.5210053,'spesa'],
+    ['🛒','Lidl 超市','Via della Lega Lombarda 32 — 步行5分钟','Lidl+Via+della+Lega+Lombarda+Roma',41.90864,12.52326,'spesa'],
+    ['🏧','Banco BPM 银行 ATM','Viale delle Provincie 148 — 最近的取款机','Banco+BPM+Viale+delle+Provincie+Roma',41.9087598,12.5210798,'bancomat'],
+    ['🧺','Al.Ba. 自助洗衣店','Via Giuseppe de Mattheis 11 — 步行5分钟','lavanderia+Via+Giuseppe+de+Mattheis+11+Roma',41.9094028,12.5200431,'lavanderia'],
+    ['💊','Caluori 药店','Piazzale delle Provincie 8 — 最近的药店','Farmacia+Caluori+Roma',41.9096302,12.521481,'farmacia'],
+    ['🚇','博洛尼亚广场地铁站','B线 — 400米,步行10分钟','Piazza+Bologna+Metro+B+Roma',41.9136626,12.5208135,'metro'],
+    ['🅿️','Di Nezza 车库','Via Cupa 35号入口 — 地下停车场','Via+Cupa+35+Roma',41.9085477,12.5218817,'garage']
+  ],
+  food:[
+    ['☕','Bar Stendal 咖啡吧','','Piazzale delle Provincie 1 — 步行1分钟','最近的咖啡吧,早餐甜点的绝佳选择。','Bar+Stendal+Roma'],
+    ['🍝','Strada Romana','4.8','Via Teodorico 34 · 06 8339 8501','正宗罗马菜与披萨,价格实惠。','Strada+Romana+Via+Teodorico+34+Roma'],
+    ['🍣','Kimi Sushi Experience','4.5','Via della Lega Lombarda 48C','本区最佳寿司选择。','Kimi+Sushi+Experience+Roma'],
+    ['🍷','Al Tinello d\u2019Abruzzo','4.4','Via Arduino 17','性价比极高,环境雅致。','Al+Tinello+d\u0027Abruzzo+Roma'],
+    ['🥪','La Pagnottella Gourmet','','Viale Ippocrate 25 — 步行3分钟','精选食材制作的三明治与沙拉。','La+Pagnottella+Gourmet+Roma'],
+    ['🍔','Burger King 汉堡王','','Viale delle Provincie 136 — 就在对面','适合深夜快速用餐。','Burger+King+Viale+delle+Provincie+Roma']
+  ],
+  tours:{
+    ghetto:{t:'犹太区与泰斯塔乔',d:'从罗马的犹太文化中心到最地道的市井街区:传说、风味与向导书上找不到的故事。'},
+    trastevere:{t:'特拉斯提弗列',d:'最受喜爱街区的小巷、传说与轶事,由GPS一步步为您讲述。'}
+  },
+  tour_cta:'开始导览'
 }
 };
 
 /* ================= STATO & RENDER ================= */
+const LANGS = [
+  {code:'it', flag:'🇮🇹', label:'Italiano'},
+  {code:'en', flag:'🇬🇧', label:'English'},
+  {code:'es', flag:'🇪🇸', label:'Español'},
+  {code:'fr', flag:'🇫🇷', label:'Français'},
+  {code:'de', flag:'🇩🇪', label:'Deutsch'},
+  {code:'pt', flag:'🇵🇹', label:'Português'},
+  {code:'zh', flag:'🇨🇳', label:'中文'}
+];
 let lang = (navigator.language || 'it').slice(0,2).toLowerCase();
 if(!I18N[lang]) lang = 'en';
 
@@ -479,9 +734,25 @@ const $ = s => document.querySelector(s);
 const $$ = s => document.querySelectorAll(s);
 const T = () => I18N[lang];
 
+function renderLangUI(){
+  const cur = LANGS.find(l => l.code === lang) || LANGS[1];
+  $('#langBtn').textContent = cur.flag;
+  $('#langModalList').innerHTML = LANGS.map(l =>
+    `<button class="lang-row${l.code===lang?' on':''}" data-lang="${l.code}">
+       <span class="flag">${l.flag}</span><span>${l.label}</span>
+       ${l.code===lang?'<span class="check">✓</span>':''}
+     </button>`).join('');
+  $$('#langModalList .lang-row').forEach(b => b.addEventListener('click', () => {
+    lang = b.dataset.lang;
+    render();
+    trackEvent('lang', lang);
+    $('#langModalOverlay').classList.remove('show');
+  }));
+}
+
 function render(){
   document.documentElement.lang = lang;
-  $$('.langs button').forEach(b => b.classList.toggle('on', b.dataset.lang === lang));
+  renderLangUI();
   $$('[data-i]').forEach(el => { const v = T()[el.dataset.i]; if(v !== undefined) el.innerHTML = v; });
 
   // accordions
@@ -620,7 +891,9 @@ $$('#tabbar button').forEach(b => b.addEventListener('click', () => {
   }
 }));
 
-$$('.langs button').forEach(b => b.addEventListener('click', () => { lang = b.dataset.lang; render(); trackEvent('lang', lang); }));
+$('#langBtn').addEventListener('click', () => { $('#langModalOverlay').classList.add('show'); });
+$('#langModalClose').addEventListener('click', () => { $('#langModalOverlay').classList.remove('show'); });
+$('#langModalOverlay').addEventListener('click', e => { if(e.target.id === 'langModalOverlay') e.currentTarget.classList.remove('show'); });
 
 /* ================= CHAT ================= */
 const chatHistory = [];
