@@ -435,7 +435,13 @@ export default {
         const target = url.searchParams.get("url");
         const r = await fetch(target, { headers: { "User-Agent": "Mozilla/5.0 (compatible; wb-worker/1.0)" } });
         const t = await r.text();
-        return json({ status: r.status, length: t.length, hasQuando: t.includes("Quando"), hasDove: t.includes(">Dove<"), snippet: t.slice(0, 500) });
+        const qIdx = t.indexOf("Quando");
+        const dIdx = t.indexOf(">Dove<");
+        return json({
+          status: r.status, length: t.length,
+          aroundQuando: qIdx > -1 ? t.slice(qIdx - 30, qIdx + 400) : null,
+          aroundDove: dIdx > -1 ? t.slice(dIdx - 30, dIdx + 400) : null
+        });
       }
       if (action === "refresh-concerti" && request.method === "GET") return await handleRefreshConcerti(request, env, slug, url);
 
