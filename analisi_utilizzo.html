@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>InternoUno · Analisi utilizzo</title>
+<style>
+  :root{
+    --ink:#1d1d1f; --paper:#f5f5f7; --card:#ffffff; --line:#e3e3e6;
+    --terra:#c45a3a; --sage:#5c6b52; --gold:#b8893a; --muted:#86868b;
+    --sysfont:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue',Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;background:var(--paper);color:var(--ink);font-family:var(--sysfont);}
+  body{padding:0 0 60px;-webkit-font-smoothing:antialiased;}
+  header{padding:22px 18px 14px;background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:10;}
+  .eyebrow{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--terra);margin-bottom:2px;}
+  h1{font-size:22px;font-weight:700;letter-spacing:-0.01em;margin:0;}
+  .subtitle{font-size:13px;color:var(--muted);margin-top:2px;}
+
+  .setup{margin:16px;padding:16px;background:#fff8f0;border:1.5px solid var(--gold);border-radius:14px;}
+  .setup h3{margin:0 0 6px;font-size:15px;}
+  .setup p{margin:0 0 10px;font-size:13px;color:#5a5a5a;line-height:1.5;}
+  .setup input{width:100%;font-family:var(--sysfont);font-size:15px;padding:11px 12px;border:1.5px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);margin-bottom:10px;}
+  .setup button{width:100%;padding:12px;border:none;border-radius:10px;background:var(--terra);color:#fff;font-weight:700;font-size:15px;font-family:var(--sysfont);cursor:pointer;}
+
+  .tabs{display:flex;gap:6px;padding:14px 16px 0;overflow-x:auto;}
+  .tab-btn{flex-shrink:0;padding:9px 16px;border-radius:20px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);font-size:14px;font-weight:600;font-family:var(--sysfont);cursor:pointer;white-space:nowrap;}
+  .tab-btn.active{background:var(--ink);color:#fff;border-color:var(--ink);}
+
+  .range-row{display:flex;gap:6px;padding:12px 16px 0;flex-wrap:wrap;}
+  .range-btn{padding:6px 12px;border-radius:14px;border:1.5px solid var(--line);background:var(--card);color:var(--muted);font-size:12.5px;font-weight:600;font-family:var(--sysfont);cursor:pointer;}
+  .range-btn.active{background:var(--sage);color:#fff;border-color:var(--sage);}
+
+  .content{padding:16px;max-width:640px;margin:0 auto;}
+  .status{text-align:center;color:var(--muted);padding:40px 20px;font-size:14px;}
+
+  .kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+  .kpi-card{background:var(--card);border-radius:14px;padding:14px 16px;border:1px solid var(--line);}
+  .kpi-val{font-size:26px;font-weight:800;letter-spacing:-0.02em;color:var(--ink);}
+  .kpi-label{font-size:11.5px;color:var(--muted);margin-top:2px;font-weight:600;}
+
+  .card{background:var(--card);border-radius:16px;padding:16px;margin-bottom:14px;border:1px solid var(--line);}
+  .card h3{margin:0 0 12px;font-size:14px;font-weight:700;color:var(--ink);display:flex;align-items:center;gap:6px;}
+  .card .hint{font-size:11.5px;color:var(--muted);font-weight:400;margin-left:auto;}
+
+  .bar-chart{display:flex;align-items:flex-end;gap:3px;height:90px;padding-top:6px;}
+  .bar-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;position:relative;}
+  .bar{width:100%;max-width:22px;background:var(--terra);border-radius:4px 4px 0 0;min-height:2px;transition:height .3s;}
+  .bar-day-label{font-size:9px;color:var(--muted);margin-top:4px;white-space:nowrap;}
+
+  .hbar-row{display:flex;align-items:center;gap:10px;margin-bottom:9px;}
+  .hbar-label{font-size:13px;min-width:92px;flex-shrink:0;color:var(--ink);font-weight:500;}
+  .hbar-track{flex:1;height:9px;background:var(--paper);border-radius:5px;overflow:hidden;}
+  .hbar-fill{height:100%;border-radius:5px;background:var(--sage);}
+  .hbar-val{font-size:12.5px;color:var(--muted);min-width:28px;text-align:right;font-weight:600;}
+
+  .q-item{padding:10px 0;border-bottom:1px solid var(--line);}
+  .q-item:last-child{border-bottom:none;}
+  .q-text{font-size:13.5px;line-height:1.4;color:var(--ink);}
+  .q-meta{font-size:11px;color:var(--muted);margin-top:3px;}
+
+  .empty-note{text-align:center;color:var(--muted);font-size:13px;padding:24px 10px;}
+  .refresh-btn{position:fixed;bottom:20px;right:20px;width:48px;height:48px;border-radius:24px;background:var(--ink);color:#fff;border:none;font-size:20px;box-shadow:0 4px 14px rgba(0,0,0,.2);cursor:pointer;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">InternoUno</div>
+  <h1>Analisi utilizzo</h1>
+  <div class="subtitle" id="subtitle">Come ospiti e viaggiatori usano le tue app</div>
+</header>
+
+<div class="setup" id="setupBox" style="display:none">
+  <h3>Configurazione iniziale</h3>
+  <p>Inserisci la chiave admin del worker (va impostata una sola volta come secret <code>WB_ADMIN_KEY</code> su Cloudflare → wb-worker → Settings → Variables and Secrets).</p>
+  <input type="text" id="adminKeyInput" placeholder="Chiave admin">
+  <button onclick="salvaChiave()">Salva e continua</button>
+</div>
+
+<div class="tabs" id="tabsRow" style="display:none">
+  <button class="tab-btn active" data-app="experience" onclick="cambiaApp('experience')">📱 InternoUno Experience</button>
+  <button class="tab-btn" data-app="flytour" onclick="cambiaApp('flytour')">🎧 FlyTour</button>
+</div>
+
+<div class="range-row" id="rangeRow" style="display:none">
+  <button class="range-btn" data-days="7" onclick="cambiaRange(7)">7 giorni</button>
+  <button class="range-btn active" data-days="14" onclick="cambiaRange(14)">14 giorni</button>
+  <button class="range-btn" data-days="30" onclick="cambiaRange(30)">30 giorni</button>
+  <button class="range-btn" data-days="90" onclick="cambiaRange(90)">90 giorni</button>
+</div>
+
+<div class="content" id="content">
+  <div class="status">Caricamento…</div>
+</div>
+
+<button class="refresh-btn" onclick="carica()" title="Aggiorna">↻</button>
+
+<script>
+const WORKER = "https://wb-worker.f-castiglioni.workers.dev";
+const PROPRIETA = { experience: ["campaldino","lorenzo"], flytour: ["flytour"] };
+const NOMI_PROPRIETA = { campaldino:"Via Campaldino", lorenzo:"Lorenzo il Magnifico" };
+const NOMI_LINGUA = { it:"Italiano", en:"Inglese", es:"Spagnolo", fr:"Francese", de:"Tedesco", pt:"Portoghese", zh:"Cinese" };
+const BANDIERE = { it:"🇮🇹", en:"🇬🇧", es:"🇪🇸", fr:"🇫🇷", de:"🇩🇪", pt:"🇵🇹", zh:"🇨🇳" };
+const NOMI_EVENTO = { view:"Aperture pagina", tab:"Cambi sezione", subtab:"Sotto-sezioni", wifi_open:"WiFi consultato", chat_msg:"Messaggi al concierge", lang:"Cambi lingua", tour_open:"Tour aperti", stop_view:"Tappe visualizzate", audio_play:"Audio riprodotti" };
+
+let adminKey = localStorage.getItem('wb_admin_key') || '';
+let appAttiva = 'experience';
+let rangeGiorni = 14;
+
+function salvaChiave(){
+  const v = document.getElementById('adminKeyInput').value.trim();
+  if(!v) return;
+  localStorage.setItem('wb_admin_key', v);
+  adminKey = v;
+  document.getElementById('setupBox').style.display = 'none';
+  document.getElementById('tabsRow').style.display = 'flex';
+  document.getElementById('rangeRow').style.display = 'flex';
+  carica();
+}
+
+function cambiaApp(app){
+  appAttiva = app;
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.app===app));
+  carica();
+}
+function cambiaRange(giorni){
+  rangeGiorni = giorni;
+  document.querySelectorAll('.range-btn').forEach(b=>b.classList.toggle('active', parseInt(b.dataset.days)===giorni));
+  carica();
+}
+
+async function fetchStats(slug, days){
+  const r = await fetch(`${WORKER}/wb/${slug}/stats?key=${encodeURIComponent(adminKey)}&days=${days}`);
+  if(!r.ok) throw new Error('HTTP '+r.status);
+  const d = await r.json();
+  if(d.error) throw new Error(d.error);
+  return d;
+}
+
+function sommaStats(lista){
+  const out = { byDay:{}, sections:{}, langs:{}, events:{}, recentQuestions:[] };
+  for(const s of lista){
+    for(const [day,val] of Object.entries(s.byDay||{})) out.byDay[day] = (out.byDay[day]||0) + val;
+    for(const [k,val] of Object.entries(s.sections||{})) out.sections[k] = (out.sections[k]||0) + val;
+    for(const [k,val] of Object.entries(s.langs||{})) out.langs[k] = (out.langs[k]||0) + val;
+    for(const [k,val] of Object.entries(s.events||{})) out.events[k] = (out.events[k]||0) + val;
+    if(s.recentQuestions) out.recentQuestions.push(...s.recentQuestions);
+  }
+  return out;
+}
+
+function renderBarChart(byDay, days){
+  const oggi = new Date();
+  const giorni = [];
+  for(let i=days-1;i>=0;i--){
+    const d = new Date(oggi); d.setUTCDate(d.getUTCDate()-i);
+    giorni.push(d.toISOString().slice(0,10));
+  }
+  const max = Math.max(1, ...giorni.map(g=>byDay[g]||0));
+  const mostraEtichette = days<=14;
+  return `<div class="bar-chart">${giorni.map(g=>{
+    const v = byDay[g]||0;
+    const h = Math.max(2, Math.round((v/max)*80));
+    const [,m,dd] = g.split('-');
+    return `<div class="bar-col" title="${g}: ${v}">
+      <div class="bar" style="height:${h}px"></div>
+      ${mostraEtichette?`<div class="bar-day-label">${dd}/${m}</div>`:''}
+    </div>`;
+  }).join('')}</div>`;
+}
+
+function renderHBars(obj, nomiMap, colore){
+  const entries = Object.entries(obj).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  if(!entries.length) return `<div class="empty-note">Nessun dato ancora</div>`;
+  const max = Math.max(...entries.map(e=>e[1]));
+  return entries.map(([k,v])=>{
+    const label = (nomiMap && nomiMap[k]) || k;
+    const pct = Math.round((v/max)*100);
+    return `<div class="hbar-row">
+      <div class="hbar-label">${label}</div>
+      <div class="hbar-track"><div class="hbar-fill" style="width:${pct}%;${colore?`background:${colore}`:''}"></div></div>
+      <div class="hbar-val">${v}</div>
+    </div>`;
+  }).join('');
+}
+
+async function carica(){
+  const content = document.getElementById('content');
+  content.innerHTML = '<div class="status">Caricamento…</div>';
+  const slugs = PROPRIETA[appAttiva];
+  try{
+    const risultati = await Promise.all(slugs.map(s=>fetchStats(s, rangeGiorni).catch(()=>null)));
+    const validi = risultati.filter(Boolean);
+    if(!validi.length){
+      content.innerHTML = `<div class="card"><div class="empty-note">
+        ${appAttiva==='flytour' ? "Il tracciamento per FlyTour non è ancora attivo — arriva a breve." : "Nessun dato disponibile per questo periodo."}
+      </div></div>`;
+      return;
+    }
+    const s = sommaStats(validi);
+
+    const totaleVisite = Object.values(s.byDay).reduce((a,b)=>a+b,0);
+    const mediaGiorno = rangeGiorni>0 ? (totaleVisite/rangeGiorni).toFixed(1) : 0;
+    const linguaTop = Object.entries(s.langs).sort((a,b)=>b[1]-a[1])[0];
+    const domande = s.events.chat_msg || 0;
+
+    let propBreakdown = '';
+    if(slugs.length>1){
+      const perProp = {};
+      validi.forEach((v,i)=>{ perProp[slugs[i]] = Object.values(v.byDay||{}).reduce((a,b)=>a+b,0); });
+      propBreakdown = `<div class="card"><h3>🏠 Per struttura</h3>${renderHBars(perProp, NOMI_PROPRIETA, 'var(--terra)')}</div>`;
+    }
+
+    content.innerHTML = `
+      <div class="kpi-grid">
+        <div class="kpi-card"><div class="kpi-val">${totaleVisite}</div><div class="kpi-label">Visite totali (${rangeGiorni}gg)</div></div>
+        <div class="kpi-card"><div class="kpi-val">${mediaGiorno}</div><div class="kpi-label">Media al giorno</div></div>
+        <div class="kpi-card"><div class="kpi-val">${linguaTop ? (BANDIERE[linguaTop[0]]||'') + ' ' + (NOMI_LINGUA[linguaTop[0]]||linguaTop[0]) : '—'}</div><div class="kpi-label">Lingua più usata</div></div>
+        <div class="kpi-card"><div class="kpi-val">${domande}</div><div class="kpi-label">Domande al concierge</div></div>
+      </div>
+
+      <div class="card">
+        <h3>📈 Andamento visite <span class="hint">${rangeGiorni} giorni</span></h3>
+        ${renderBarChart(s.byDay, rangeGiorni)}
+      </div>
+
+      ${propBreakdown}
+
+      <div class="card">
+        <h3>🧭 Come la usano <span class="hint">tipo di azione</span></h3>
+        ${renderHBars(s.events, NOMI_EVENTO, 'var(--sage)')}
+      </div>
+
+      <div class="card">
+        <h3>📍 Sezioni più visitate</h3>
+        ${renderHBars(s.sections, null, 'var(--gold)')}
+      </div>
+
+      <div class="card">
+        <h3>🌍 Lingue</h3>
+        ${renderHBars(s.langs, NOMI_LINGUA, 'var(--terra)')}
+      </div>
+
+      ${appAttiva==='experience' ? `
+      <div class="card">
+        <h3>💬 Ultime domande al concierge</h3>
+        ${s.recentQuestions.length ? s.recentQuestions.slice(0,15).map(q=>`
+          <div class="q-item">
+            <div class="q-text">${BANDIERE[q.lang]||''} ${(q.q||'').replace(/</g,'&lt;')}</div>
+          </div>
+        `).join('') : '<div class="empty-note">Nessuna domanda registrata in questo periodo</div>'}
+      </div>` : ''}
+    `;
+  }catch(e){
+    content.innerHTML = `<div class="card"><div class="empty-note">Errore nel caricamento: ${e.message}<br><br>Se la chiave admin non è corretta, <a href="#" onclick="resetChiave();return false">tocca qui per reinserirla</a>.</div></div>`;
+  }
+}
+
+function resetChiave(){
+  localStorage.removeItem('wb_admin_key');
+  location.reload();
+}
+
+// ====== AVVIO ======
+if(!adminKey){
+  document.getElementById('setupBox').style.display = 'block';
+}else{
+  document.getElementById('tabsRow').style.display = 'flex';
+  document.getElementById('rangeRow').style.display = 'flex';
+  carica();
+}
+</script>
+</body>
+</html>
