@@ -168,6 +168,66 @@ async function handleData(request, env, slug, url) {
   });
 }
 
+// ---------------- Eventi: refresh da Ticketmaster Discovery API ----------------
+const SEGMENT_EMOJI = {
+  "Music": "🎵", "Sports": "⚽", "Arts & Theatre": "🎭", "Film": "🎬", "Miscellaneous": "🎪"
+};
+const MESI = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+function fmtEventDate(localDate, localTime) {
+  if (!localDate) return "";
+  const [y, m, d] = localDate.split("-").map(Number);
+  const giorno = `${d} ${MESI[m - 1]}`;
+  if (localTime) return `${giorno} · ${localTime.slice(0, 5)}`;
+  return giorno;
+}
+
+async function refreshEventi(env, slug, city) {
+  if (!env.TM_API_KEY) return { ok: false, error: "TM_API_KEY non configurata" };
+  const apiUrl = `https://app.ticketmaster.com/discovery/v2/events.json?apikey=${env.TM_API_KEY}&city=${encodeURIComponent(city)}&countryCode=IT&size=20&sort=date,asc`;
+  const resp = await fetch(apiUrl);
+  if (!resp.ok) return { ok: false, error: `Ticketmaster ${resp.status}` };
+  const data = await resp.json();
+  const rawEvents = data._embedded?.events || [];
+
+  const oggi = new Date().toISOString().slice(0, 10);
+  const limite = new Date();
+  limite.setUTCDate(limite.getUTCDate() + 90);
+  const dataLimite = limite.toISOString().slice(0, 10);
+
+  const eventi = rawEvents
+    .filter(e => {
+      const d = e.dates?.start?.localDate;
+      return d && d >= oggi && d <= dataLimite;
+    })
+    .slice(0, 10)
+    .map(e => {
+      const cls = e.classifications?.[0] || {};
+      const segment = cls.segment?.name || "";
+      const genre = cls.genre?.name;
+      const venue = e._embedded?.venues?.[0];
+      return {
+        emoji: SEGMENT_EMOJI[segment] || "🎫",
+        titolo: e.name,
+        quando: fmtEventDate(e.dates?.start?.localDate, e.dates?.start?.localTime),
+        dove: venue?.name || "",
+        descr: (genre && genre !== "Undefined" && genre !== "Other") ? `${segment} · ${genre}` : segment,
+        link: e.url
+      };
+    });
+
+  await env.WB_KV.put(`wb:${slug}:eventi`, JSON.stringify(eventi), { expirationTtl: 60 * 60 * 24 * 7 });
+  return { ok: true, count: eventi.length };
+}
+
+async function handleRefreshEventi(request, env, slug, url) {
+  const key = url.searchParams.get("key");
+  if (!env.WB_ADMIN_KEY || key !== env.WB_ADMIN_KEY) return json({ error: "non autorizzato" }, 401);
+  const city = url.searchParams.get("city") || "Roma";
+  const result = await refreshEventi(env, slug, city);
+  return json(result, result.ok ? 200 : 502);
+}
+
 // ---------------- Stats (admin) ----------------
 async function handleStats(request, env, slug, url) {
   const key = url.searchParams.get("key");
@@ -220,10 +280,16 @@ export default {
       if (action === "track" && request.method === "POST") return await handleTrack(request, env, slug);
       if (action === "data" && request.method === "GET") return await handleData(request, env, slug, url);
       if (action === "stats" && request.method === "GET") return await handleStats(request, env, slug, url);
+      if (action === "refresh-eventi" && request.method === "GET") return await handleRefreshEventi(request, env, slug, url);
 
       return json({ error: "Rotta non trovata" }, 404);
     } catch (e) {
       return json({ error: "Errore interno", detail: String(e).slice(0, 200) }, 500);
     }
+  },
+
+  async scheduled(event, env, ctx) {
+    // Aggiornamento giornaliero eventi Roma per tutte le strutture attive
+    ctx.waitUntil(refreshEventi(env, "campaldino", "Roma"));
   }
 };
