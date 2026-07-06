@@ -161,6 +161,7 @@ details.acc .body p+p{margin-top:8px}
 .btn.alt{background:var(--surface);color:var(--text);border:1px solid var(--border-s)}
 .map-wrap{border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);margin-bottom:10px;position:relative;z-index:1}
 #map{height:280px;width:100%;background:#e9e6df}
+#foodMap{height:280px;width:100%;background:#e9e6df}
 .leaflet-control-attribution{font-size:9px !important}
 .poi-pin{width:28px;height:28px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);
   display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.35)}
@@ -185,11 +186,17 @@ details.acc .body p+p{margin-top:8px}
 .card.poi .navbtn{position:absolute;top:12px;right:12px;width:34px;height:34px;border-radius:50%;
   background:rgba(255,102,40,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .card.poi .navbtn svg{width:16px;height:16px;stroke:var(--orange)}
+.book-btn{display:inline-block;margin-top:8px;font-size:.78rem;font-weight:700;color:var(--orange);
+  border:1px solid rgba(255,102,40,.35);border-radius:20px;padding:5px 12px;text-decoration:none}
 .filter-row{display:flex;gap:6px;overflow-x:auto;padding:2px 0 8px;-webkit-overflow-scrolling:touch}
 .filter-row::-webkit-scrollbar{display:none}
 .chip{flex-shrink:0;border:1px solid var(--border);background:var(--surface);border-radius:20px;
   padding:6px 13px;font-size:.78rem;font-weight:600;color:var(--muted);white-space:nowrap;cursor:pointer}
 .chip.on{background:var(--orange);border-color:var(--orange);color:#fff}
+.filter-select-btn{display:flex;align-items:center;gap:8px;width:100%;text-align:left;
+  border:1px solid var(--border);background:var(--surface);border-radius:12px;
+  padding:11px 14px;font-size:.85rem;font-weight:600;color:var(--text);margin-bottom:8px;cursor:pointer}
+.filter-select-btn::after{content:'▾';margin-left:auto;color:var(--muted)}
 .poi-price{margin-left:6px;font-size:.75rem;font-weight:700;color:var(--muted)}
 .poi-price.pushright{margin-left:auto}
 /* chat */
@@ -247,6 +254,16 @@ footer b{color:var(--text)}
   </div>
 </div>
 
+<div class="lang-modal-overlay" id="cuisineModalOverlay">
+  <div class="lang-modal">
+    <div class="lang-modal-head">
+      <h3 data-i="filter_cuisine"></h3>
+      <button class="lang-modal-close" id="cuisineModalClose">✕</button>
+    </div>
+    <div class="lang-modal-list" id="cuisineModalList"></div>
+  </div>
+</div>
+
 <!-- ============ CASA ============ -->
 <section class="screen on" id="scr-casa">
   <div class="hero">
@@ -286,7 +303,7 @@ footer b{color:var(--text)}
     <button class="btn alt" id="foodOverviewBtn" data-i="m_overview"></button>
   </div>
   <div class="wrap">
-    <div class="filter-row" id="filterCuisine"></div>
+    <button class="filter-select-btn" id="cuisineFilterBtn"></button>
     <div class="filter-row" id="filterPrice"></div>
   </div>
   <div class="wrap" id="foodlist"></div>
@@ -387,33 +404,35 @@ it:{
   ],
   t_food_roma:'Perle di Roma', t_food_roma_sub:'Se ti sposti in centro, questi valgono la deviazione',
   filter_all:'Tutti', filter_cuisine:'Tipo di cucina', filter_price:'Fascia di prezzo',
+  book_cta:'📞 Prenota',
   food_cats:{colazione:'Colazione',romana:'Romana',sushi:'Sushi',pizza:'Pizza',pesce:'Pesce',vegano:'Vegano',messicano:'Messicano',indiano:'Indiano',hamburgeria:'Hamburgeria',gelateria:'Gelateria',aperitivo:'Aperitivo',streetfood:'Street food',esperienza:'Esperienza'},
   food:[
-    ['☕','Bar Stendal','','Piazzale delle Provincie 1','Il bar più vicino: perfetto per colazione e dolci.','Bar+Stendal+Roma',41.9090953,12.521502,'colazione','€'],
-    ['🍝','Strada Romana','4.7','Via Teodorico 34 · 06 8339 8501','Cucina romana e pizza, ambiente curato, ottimo rapporto qualità-prezzo.','Strada+Romana+Via+Teodorico+34+Roma',41.9105217,12.5279991,'romana','€€'],
-    ['🍣','Kimi Sushi Experience','4.5','Via della Lega Lombarda 48C','All-you-can-eat di qualità, tantissime opzioni tra crudo e cotto.','Kimi+Sushi+Experience+Roma',41.9084043,12.5247835,'sushi','€€'],
-    ['🍕','Malaterra','4.5','Viale XXI Aprile 75','Pizza gourmet leggerissima cotta al momento, tra le migliori della zona.','Malaterra+Viale+XXI+Aprile+Roma',41.9148692,12.5206389,'pizza','€€'],
-    ['🍝','Da Enrico','4.4','Via Michele di Lando 28','Trattoria storica, ottima amatriciana e polpette, atmosfera vivace.','Da+Enrico+Via+Michele+di+Lando+Roma',41.9137907,12.5224039,'romana','€€'],
-    ['🍷','Osteria Urbana','4.1','Via Bari 9','Carbonara tra le migliori di Roma, personale che parla inglese.','Osteria+Urbana+Via+Bari+Roma',41.9110697,12.5147991,'romana','€€'],
-    ['🍕','Da Mamma','4.0','Via Lorenzo il Magnifico 62','Trattoria familiare, cucina genuina a prezzi molto onesti.','Da+Mamma+Via+Lorenzo+il+Magnifico+Roma',41.9126707,12.5232376,'romana','€'],
-    ['🐟','Ristorante da Franco','4.5','Via Stamira 23','Pesce fresco di qualità, molto frequentato dai romani del quartiere.','Ristorante+da+Franco+Via+Stamira+Roma',41.913242,12.5234063,'pesce','€€'],
-    ['🍝','Rigatoni Ristorante Pizzeria','4.5','Via Luigi Pigorini 31','Pasta e pizza classiche, sempre affidabili, buona scelta per famiglie.','Rigatoni+Ristorante+Pizzeria+Piazza+Bologna+Roma',41.9160952,12.5222681,'pizza','€€'],
-    ['🌱','Col Cavolo - Vegan Bistrot','4.8','Via Cesare Bosi 7 · Trieste','Cucina vegana raffinata, tra le più apprezzate di Roma.','Col+Cavolo+Vegan+Bistrot+Via+Cesare+Bosi+Roma',41.9119436,12.500445,'vegano','€€'],
-    ['🌮','Casa Sánchez','4.6','Via Catanzaro 6b · Trieste','Autentica cucina messicana, ottimi tacos e margarita.','Casa+Sanchez+Via+Catanzaro+Roma',41.9119562,12.5175178,'messicano','€€'],
-    ['🍛','Suresh Food & Drinks','4.7','Via Arno 73 · Trieste','Cucina indiana raffinata, tra le migliori recensite della città.','Suresh+Food+Drinks+Via+Arno+Roma',41.9195212,12.4997278,'indiano','€€'],
-    ['🍔','Hamburgeseria Burger Bar','4.4','Via dei Reti 40 · San Lorenzo','Burger gourmet e patatine croccanti, atmosfera informale.','Hamburgeseria+Burger+Bar+Via+dei+Reti+Roma',41.8982015,12.5186568,'hamburgeria','€€'],
-    ['🍨','Gelato Romano','4.9','Via Giacomo Boni 33','Gelato artigianale eccellente, tra i meglio recensiti di Roma.','Gelato+Romano+Via+Giacomo+Boni+Roma',41.9150989,12.5222429,'gelateria','€'],
-    ['🍹','Mood Café','4.2','Piazza Bologna 7','Aperitivo abbondante a prezzo onesto, ottimo per un dopo-cena.','Mood+Cafe+Piazza+Bologna+Roma',41.912979,12.521305,'aperitivo','€€']
+    ['☕','Bar Stendal','','Piazzale delle Provincie 1','Il bar più vicino: perfetto per colazione e dolci.','Bar+Stendal+Roma',41.9090953,12.521502,'colazione','€',''],
+    ['🔺','Trapizzino | P.le Provincie','4.5','Piazzale delle Provincie 9','A 200 m da noi: se cerchi qualcosa di veloce e genuino in zona, è la scelta più sicura.','Trapizzino+Piazzale+delle+Provincie+Roma',41.90954,12.521587,'streetfood','€',''],
+    ['🍝','Strada Romana','4.7','Via Teodorico 34 · 06 8339 8501','Cucina romana e pizza, ambiente curato, ottimo rapporto qualità-prezzo.','Strada+Romana+Via+Teodorico+34+Roma',41.9105217,12.5279991,'romana','€€','+390683398501'],
+    ['🍣','Kimi Sushi Experience','4.5','Via della Lega Lombarda 48C','All-you-can-eat di qualità, tantissime opzioni tra crudo e cotto.','Kimi+Sushi+Experience+Roma',41.9084043,12.5247835,'sushi','€€','+393273412345'],
+    ['🍕','Malaterra','4.5','Viale XXI Aprile 75','Pizza gourmet leggerissima cotta al momento, tra le migliori della zona.','Malaterra+Viale+XXI+Aprile+Roma',41.9148692,12.5206389,'pizza','€€','+390645471930'],
+    ['🍝','Da Enrico','4.4','Via Michele di Lando 28','Trattoria storica, ottima amatriciana e polpette, atmosfera vivace.','Da+Enrico+Via+Michele+di+Lando+Roma',41.9137907,12.5224039,'romana','€€','+390644237738'],
+    ['🍷','Osteria Urbana','4.1','Via Bari 9','Carbonara tra le migliori di Roma, personale che parla inglese.','Osteria+Urbana+Via+Bari+Roma',41.9110697,12.5147991,'romana','€€','+390692099110'],
+    ['🍕','Da Mamma','4.0','Via Lorenzo il Magnifico 62','Trattoria familiare, cucina genuina a prezzi molto onesti.','Da+Mamma+Via+Lorenzo+il+Magnifico+Roma',41.9126707,12.5232376,'romana','€','+390644242613'],
+    ['🐟','Ristorante da Franco','4.5','Via Stamira 23','Pesce fresco di qualità, molto frequentato dai romani del quartiere.','Ristorante+da+Franco+Via+Stamira+Roma',41.913242,12.5234063,'pesce','€€','+390644236122'],
+    ['🍝','Rigatoni Ristorante Pizzeria','4.5','Via Luigi Pigorini 31','Pasta e pizza classiche, sempre affidabili, buona scelta per famiglie.','Rigatoni+Ristorante+Pizzeria+Piazza+Bologna+Roma',41.9160952,12.5222681,'pizza','€€','+390699702398'],
+    ['🌱','Col Cavolo - Vegan Bistrot','4.8','Via Cesare Bosi 7 · Trieste','Cucina vegana raffinata, tra le più apprezzate di Roma.','Col+Cavolo+Vegan+Bistrot+Via+Cesare+Bosi+Roma',41.9119436,12.500445,'vegano','€€','+393517675734'],
+    ['🌮','Casa Sánchez','4.6','Via Catanzaro 6b · Trieste','Autentica cucina messicana, ottimi tacos e margarita.','Casa+Sanchez+Via+Catanzaro+Roma',41.9119562,12.5175178,'messicano','€€','+390645542607'],
+    ['🍛','Suresh Food & Drinks','4.7','Via Arno 73 · Trieste','Cucina indiana raffinata, tra le migliori recensite della città.','Suresh+Food+Drinks+Via+Arno+Roma',41.9195212,12.4997278,'indiano','€€','+393888528172'],
+    ['🍔','Hamburgeseria Burger Bar','4.4','Via dei Reti 40 · San Lorenzo','Burger gourmet e patatine croccanti, atmosfera informale.','Hamburgeseria+Burger+Bar+Via+dei+Reti+Roma',41.8982015,12.5186568,'hamburgeria','€€','+390644701298'],
+    ['🍨','Gelato Romano','4.9','Via Giacomo Boni 33','Gelato artigianale eccellente, tra i meglio recensiti di Roma.','Gelato+Romano+Via+Giacomo+Boni+Roma',41.9150989,12.5222429,'gelateria','€',''],
+    ['🍹','Mood Café','4.2','Piazza Bologna 7','Aperitivo abbondante a prezzo onesto, ottimo per un dopo-cena.','Mood+Cafe+Piazza+Bologna+Roma',41.912979,12.521305,'aperitivo','€€','']
   ],
   foodRoma:[
-    ['🥖','All\'Antico Vinaio','4.3','Piazza della Maddalena 3 · Centro Storico','Schiacciate leggendarie, farcite all’inverosimile: l’istituzione fiorentina che ha conquistato anche Roma.','All+Antico+Vinaio+Piazza+della+Maddalena+Roma',41.8999637,12.4764773,'streetfood','€'],
-    ['🔺','Trapizzino','4.6','Via Giovanni Branca 88 · Testaccio','Il triangolo di pizza farcito inventato qui: polpette e pollo alla cacciatora imperdibili.','Trapizzino+Testaccio+Via+Giovanni+Branca+Roma',41.8796102,12.4736352,'streetfood','€'],
-    ['🍕','Antico Forno Roscioli','4.5','Via dei Chiavari 34 · Campo de’ Fiori','Pizza al taglio e forno storico a Campo de’ Fiori, la mortadella è leggendaria.','Antico+Forno+Roscioli+Via+dei+Chiavari+Roma',41.8945667,12.4742778,'pizza','€'],
-    ['🍚','Supplizio','4.5','Via dei Banchi Vecchi 143 · Centro Storico','Solo supplì, fatti alla perfezione: cacio e pepe, amatriciana, il classico.','Supplizio+Via+dei+Banchi+Vecchi+Roma',41.897487,12.467911,'streetfood','€'],
-    ['🍕','Bonci Pizzarium','4.1','Via della Meloria 43 · Prati/Aurelio','Pizza al trancio d’autore vicino al Vaticano, impasto a lunga lievitazione.','Bonci+Pizzarium+Via+della+Meloria+Roma',41.9066758,12.4466709,'pizza','€€'],
-    ['🍨','Giolitti','4.4','Via degli Uffici del Vicario 40 · Pantheon','Gelateria storica dal 1900, un’istituzione romana a due passi dal Pantheon.','Giolitti+Via+degli+Uffici+del+Vicario+Roma',41.9010245,12.4772026,'gelateria','€'],
-    ['🍝','Trattoria Da Enzo','4.3','Via dei Vascellari 29 · Trastevere','Trattoria romana verace a Trastevere, si fa la fila ma ne vale la pena.','Trattoria+Da+Enzo+Via+dei+Vascellari+Trastevere+Roma',41.8880847,12.4778554,'romana','€€'],
-    ['🍷','Roscioli Salumeria con Cucina','4.3','Via dei Giubbonari 21 · Campo de’ Fiori','Esperienza gourmet tra salumi, formaggi e la migliore cacio e pepe di Roma.','Roscioli+Salumeria+con+Cucina+Via+dei+Giubbonari+Roma',41.894256,12.4742417,'esperienza','€€€']
+    ['🥖','All\'Antico Vinaio','4.3','Piazza della Maddalena 3 · Centro Storico','Schiacciate leggendarie, farcite all’inverosimile: l’istituzione fiorentina che ha conquistato anche Roma.','All+Antico+Vinaio+Piazza+della+Maddalena+Roma',41.8999637,12.4764773,'streetfood','€',''],
+    ['🔺','Trapizzino | Testaccio','4.6','Via Giovanni Branca 88 · Testaccio','Il triangolo di pizza farcito inventato qui: polpette e pollo alla cacciatora imperdibili.','Trapizzino+Testaccio+Via+Giovanni+Branca+Roma',41.8796102,12.4736352,'streetfood','€',''],
+    ['🍕','Antico Forno Roscioli','4.5','Via dei Chiavari 34 · Campo de’ Fiori','Pizza al taglio e forno storico a Campo de’ Fiori, la mortadella è leggendaria.','Antico+Forno+Roscioli+Via+dei+Chiavari+Roma',41.8945667,12.4742778,'pizza','€',''],
+    ['🍚','Supplizio','4.5','Via dei Banchi Vecchi 143 · Centro Storico','Solo supplì, fatti alla perfezione: cacio e pepe, amatriciana, il classico.','Supplizio+Via+dei+Banchi+Vecchi+Roma',41.897487,12.467911,'streetfood','€',''],
+    ['🍕','Bonci Pizzarium','4.1','Via della Meloria 43 · Prati/Aurelio','Pizza al trancio d’autore vicino al Vaticano, impasto a lunga lievitazione.','Bonci+Pizzarium+Via+della+Meloria+Roma',41.9066758,12.4466709,'pizza','€€',''],
+    ['🍨','Giolitti','4.4','Via degli Uffici del Vicario 40 · Pantheon','Gelateria storica dal 1900, un’istituzione romana a due passi dal Pantheon.','Giolitti+Via+degli+Uffici+del+Vicario+Roma',41.9010245,12.4772026,'gelateria','€',''],
+    ['🍝','Trattoria Da Enzo','4.3','Via dei Vascellari 29 · Trastevere','Trattoria romana verace a Trastevere, si fa la fila ma ne vale la pena — non prendono prenotazioni.','Trattoria+Da+Enzo+Via+dei+Vascellari+Trastevere+Roma',41.8880847,12.4778554,'romana','€€',''],
+    ['🍷','Roscioli Salumeria con Cucina','4.3','Via dei Giubbonari 21 · Campo de’ Fiori','Esperienza gourmet tra salumi, formaggi e la migliore cacio e pepe di Roma.','Roscioli+Salumeria+con+Cucina+Via+dei+Giubbonari+Roma',41.894256,12.4742417,'esperienza','€€€','+390686875287']
   ],
   tours:{
     ghetto:{t:'Ghetto e Testaccio',d:'Dal cuore ebraico di Roma al quartiere più verace: leggende, sapori e storie che non trovi sulle guide.'},
@@ -465,33 +484,35 @@ en:{
   ],
   t_food_roma:'Rome’s Best Bites', t_food_roma_sub:'Heading downtown? These are worth the detour',
   filter_all:'All', filter_cuisine:'Cuisine type', filter_price:'Price range',
+  book_cta:'📞 Book',
   food_cats:{colazione:'Breakfast',romana:'Roman',sushi:'Sushi',pizza:'Pizza',pesce:'Seafood',vegano:'Vegan',messicano:'Mexican',indiano:'Indian',hamburgeria:'Burgers',gelateria:'Ice cream',aperitivo:'Aperitivo',streetfood:'Street food',esperienza:'Experience'},
   food:[
-    ['☕','Bar Stendal','','Piazzale delle Provincie 1','The nearest café: great for breakfast and pastries.','Bar+Stendal+Roma',41.9090953,12.521502,'colazione','€'],
-    ['🍝','Strada Romana','4.7','Via Teodorico 34 · 06 8339 8501','Roman cuisine and pizza, nice setting, excellent value for money.','Strada+Romana+Via+Teodorico+34+Roma',41.9105217,12.5279991,'romana','€€'],
-    ['🍣','Kimi Sushi Experience','4.5','Via della Lega Lombarda 48C','Quality all-you-can-eat, a huge choice of raw and cooked dishes.','Kimi+Sushi+Experience+Roma',41.9084043,12.5247835,'sushi','€€'],
-    ['🍕','Malaterra','4.5','Viale XXI Aprile 75','Ultra-light gourmet pizza cooked to order, among the best around here.','Malaterra+Viale+XXI+Aprile+Roma',41.9148692,12.5206389,'pizza','€€'],
-    ['🍝','Da Enrico','4.4','Via Michele di Lando 28','Historic trattoria, excellent amatriciana and meatballs, lively atmosphere.','Da+Enrico+Via+Michele+di+Lando+Roma',41.9137907,12.5224039,'romana','€€'],
-    ['🍷','Osteria Urbana','4.1','Via Bari 9','Some of the best carbonara in Rome, English-speaking staff.','Osteria+Urbana+Via+Bari+Roma',41.9110697,12.5147991,'romana','€€'],
-    ['🍕','Da Mamma','4.0','Via Lorenzo il Magnifico 62','Family-run trattoria, genuine home cooking at very fair prices.','Da+Mamma+Via+Lorenzo+il+Magnifico+Roma',41.9126707,12.5232376,'romana','€'],
-    ['🐟','Ristorante da Franco','4.5','Via Stamira 23','Quality fresh fish, a favourite with locals in the area.','Ristorante+da+Franco+Via+Stamira+Roma',41.913242,12.5234063,'pesce','€€'],
-    ['🍝','Rigatoni Ristorante Pizzeria','4.5','Via Luigi Pigorini 31','Classic pasta and pizza, always reliable, great for families.','Rigatoni+Ristorante+Pizzeria+Piazza+Bologna+Roma',41.9160952,12.5222681,'pizza','€€'],
-    ['🌱','Col Cavolo - Vegan Bistrot','4.8','Via Cesare Bosi 7 · Trieste','Refined vegan cuisine, one of the most loved in Rome.','Col+Cavolo+Vegan+Bistrot+Via+Cesare+Bosi+Roma',41.9119436,12.500445,'vegano','€€'],
-    ['🌮','Casa Sánchez','4.6','Via Catanzaro 6b · Trieste','Authentic Mexican food, great tacos and margaritas.','Casa+Sanchez+Via+Catanzaro+Roma',41.9119562,12.5175178,'messicano','€€'],
-    ['🍛','Suresh Food & Drinks','4.7','Via Arno 73 · Trieste','Refined Indian cuisine, one of the best-reviewed in the city.','Suresh+Food+Drinks+Via+Arno+Roma',41.9195212,12.4997278,'indiano','€€'],
-    ['🍔','Hamburgeseria Burger Bar','4.4','Via dei Reti 40 · San Lorenzo','Gourmet burgers and crispy fries, casual vibe.','Hamburgeseria+Burger+Bar+Via+dei+Reti+Roma',41.8982015,12.5186568,'hamburgeria','€€'],
-    ['🍨','Gelato Romano','4.9','Via Giacomo Boni 33','Excellent artisanal gelato, one of the best-reviewed in Rome.','Gelato+Romano+Via+Giacomo+Boni+Roma',41.9150989,12.5222429,'gelateria','€'],
-    ['🍹','Mood Café','4.2','Piazza Bologna 7','Generous aperitivo at a fair price, great for after dinner.','Mood+Cafe+Piazza+Bologna+Roma',41.912979,12.521305,'aperitivo','€€']
+    ['☕','Bar Stendal','','Piazzale delle Provincie 1','The nearest café: great for breakfast and pastries.','Bar+Stendal+Roma',41.9090953,12.521502,'colazione','€',''],
+    ['🔺','Trapizzino | P.le Provincie','4.5','Piazzale delle Provincie 9','Just 200 m from us: if you want something quick and genuine nearby, this is the safest bet.','Trapizzino+Piazzale+delle+Provincie+Roma',41.90954,12.521587,'streetfood','€',''],
+    ['🍝','Strada Romana','4.7','Via Teodorico 34 · 06 8339 8501','Roman cuisine and pizza, nice setting, excellent value for money.','Strada+Romana+Via+Teodorico+34+Roma',41.9105217,12.5279991,'romana','€€','+390683398501'],
+    ['🍣','Kimi Sushi Experience','4.5','Via della Lega Lombarda 48C','Quality all-you-can-eat, a huge choice of raw and cooked dishes.','Kimi+Sushi+Experience+Roma',41.9084043,12.5247835,'sushi','€€','+393273412345'],
+    ['🍕','Malaterra','4.5','Viale XXI Aprile 75','Ultra-light gourmet pizza cooked to order, among the best around here.','Malaterra+Viale+XXI+Aprile+Roma',41.9148692,12.5206389,'pizza','€€','+390645471930'],
+    ['🍝','Da Enrico','4.4','Via Michele di Lando 28','Historic trattoria, excellent amatriciana and meatballs, lively atmosphere.','Da+Enrico+Via+Michele+di+Lando+Roma',41.9137907,12.5224039,'romana','€€','+390644237738'],
+    ['🍷','Osteria Urbana','4.1','Via Bari 9','Some of the best carbonara in Rome, English-speaking staff.','Osteria+Urbana+Via+Bari+Roma',41.9110697,12.5147991,'romana','€€','+390692099110'],
+    ['🍕','Da Mamma','4.0','Via Lorenzo il Magnifico 62','Family-run trattoria, genuine home cooking at very fair prices.','Da+Mamma+Via+Lorenzo+il+Magnifico+Roma',41.9126707,12.5232376,'romana','€','+390644242613'],
+    ['🐟','Ristorante da Franco','4.5','Via Stamira 23','Quality fresh fish, a favourite with locals in the area.','Ristorante+da+Franco+Via+Stamira+Roma',41.913242,12.5234063,'pesce','€€','+390644236122'],
+    ['🍝','Rigatoni Ristorante Pizzeria','4.5','Via Luigi Pigorini 31','Classic pasta and pizza, always reliable, great for families.','Rigatoni+Ristorante+Pizzeria+Piazza+Bologna+Roma',41.9160952,12.5222681,'pizza','€€','+390699702398'],
+    ['🌱','Col Cavolo - Vegan Bistrot','4.8','Via Cesare Bosi 7 · Trieste','Refined vegan cuisine, one of the most loved in Rome.','Col+Cavolo+Vegan+Bistrot+Via+Cesare+Bosi+Roma',41.9119436,12.500445,'vegano','€€','+393517675734'],
+    ['🌮','Casa Sánchez','4.6','Via Catanzaro 6b · Trieste','Authentic Mexican food, great tacos and margaritas.','Casa+Sanchez+Via+Catanzaro+Roma',41.9119562,12.5175178,'messicano','€€','+390645542607'],
+    ['🍛','Suresh Food & Drinks','4.7','Via Arno 73 · Trieste','Refined Indian cuisine, one of the best-reviewed in the city.','Suresh+Food+Drinks+Via+Arno+Roma',41.9195212,12.4997278,'indiano','€€','+393888528172'],
+    ['🍔','Hamburgeseria Burger Bar','4.4','Via dei Reti 40 · San Lorenzo','Gourmet burgers and crispy fries, casual vibe.','Hamburgeseria+Burger+Bar+Via+dei+Reti+Roma',41.8982015,12.5186568,'hamburgeria','€€','+390644701298'],
+    ['🍨','Gelato Romano','4.9','Via Giacomo Boni 33','Excellent artisanal gelato, one of the best-reviewed in Rome.','Gelato+Romano+Via+Giacomo+Boni+Roma',41.9150989,12.5222429,'gelateria','€',''],
+    ['🍹','Mood Café','4.2','Piazza Bologna 7','Generous aperitivo at a fair price, great for after dinner.','Mood+Cafe+Piazza+Bologna+Roma',41.912979,12.521305,'aperitivo','€€','']
   ],
   foodRoma:[
-    ['🥖','All\'Antico Vinaio','4.3','Piazza della Maddalena 3 · Centro Storico','Legendary overstuffed schiacciate: the Florentine institution that conquered Rome too.','All+Antico+Vinaio+Piazza+della+Maddalena+Roma',41.8999637,12.4764773,'streetfood','€'],
-    ['🔺','Trapizzino','4.6','Via Giovanni Branca 88 · Testaccio','The stuffed pizza triangle invented here: meatballs and chicken cacciatore are unmissable.','Trapizzino+Testaccio+Via+Giovanni+Branca+Roma',41.8796102,12.4736352,'streetfood','€'],
-    ['🍕','Antico Forno Roscioli','4.5','Via dei Chiavari 34 · Campo de’ Fiori','Historic bakery and pizza al taglio near Campo de’ Fiori, the mortadella slice is legendary.','Antico+Forno+Roscioli+Via+dei+Chiavari+Roma',41.8945667,12.4742778,'pizza','€'],
-    ['🍚','Supplizio','4.5','Via dei Banchi Vecchi 143 · Centro Storico','Only suppli, done to perfection: cacio e pepe, amatriciana, the classic.','Supplizio+Via+dei+Banchi+Vecchi+Roma',41.897487,12.467911,'streetfood','€'],
-    ['🍕','Bonci Pizzarium','4.1','Via della Meloria 43 · Prati/Aurelio','Signature pizza by the slice near the Vatican, long-leavened dough.','Bonci+Pizzarium+Via+della+Meloria+Roma',41.9066758,12.4466709,'pizza','€€'],
-    ['🍨','Giolitti','4.4','Via degli Uffici del Vicario 40 · Pantheon','Historic gelateria since 1900, a Roman institution steps from the Pantheon.','Giolitti+Via+degli+Uffici+del+Vicario+Roma',41.9010245,12.4772026,'gelateria','€'],
-    ['🍝','Trattoria Da Enzo','4.3','Via dei Vascellari 29 · Trastevere','Authentic Roman trattoria in Trastevere, you’ll queue but it’s worth it.','Trattoria+Da+Enzo+Via+dei+Vascellari+Trastevere+Roma',41.8880847,12.4778554,'romana','€€'],
-    ['🍷','Roscioli Salumeria con Cucina','4.3','Via dei Giubbonari 21 · Campo de’ Fiori','A gourmet experience among cured meats, cheeses and Rome’s best cacio e pepe.','Roscioli+Salumeria+con+Cucina+Via+dei+Giubbonari+Roma',41.894256,12.4742417,'esperienza','€€€']
+    ['🥖','All\'Antico Vinaio','4.3','Piazza della Maddalena 3 · Centro Storico','Legendary overstuffed schiacciate: the Florentine institution that conquered Rome too.','All+Antico+Vinaio+Piazza+della+Maddalena+Roma',41.8999637,12.4764773,'streetfood','€',''],
+    ['🔺','Trapizzino | Testaccio','4.6','Via Giovanni Branca 88 · Testaccio','The stuffed pizza triangle invented here: meatballs and chicken cacciatore are unmissable.','Trapizzino+Testaccio+Via+Giovanni+Branca+Roma',41.8796102,12.4736352,'streetfood','€',''],
+    ['🍕','Antico Forno Roscioli','4.5','Via dei Chiavari 34 · Campo de’ Fiori','Historic bakery and pizza al taglio near Campo de’ Fiori, the mortadella slice is legendary.','Antico+Forno+Roscioli+Via+dei+Chiavari+Roma',41.8945667,12.4742778,'pizza','€',''],
+    ['🍚','Supplizio','4.5','Via dei Banchi Vecchi 143 · Centro Storico','Only suppli, done to perfection: cacio e pepe, amatriciana, the classic.','Supplizio+Via+dei+Banchi+Vecchi+Roma',41.897487,12.467911,'streetfood','€',''],
+    ['🍕','Bonci Pizzarium','4.1','Via della Meloria 43 · Prati/Aurelio','Signature pizza by the slice near the Vatican, long-leavened dough.','Bonci+Pizzarium+Via+della+Meloria+Roma',41.9066758,12.4466709,'pizza','€€',''],
+    ['🍨','Giolitti','4.4','Via degli Uffici del Vicario 40 · Pantheon','Historic gelateria since 1900, a Roman institution steps from the Pantheon.','Giolitti+Via+degli+Uffici+del+Vicario+Roma',41.9010245,12.4772026,'gelateria','€',''],
+    ['🍝','Trattoria Da Enzo','4.3','Via dei Vascellari 29 · Trastevere','Authentic Roman trattoria in Trastevere, you’ll queue but it’s worth it — no reservations taken.','Trattoria+Da+Enzo+Via+dei+Vascellari+Trastevere+Roma',41.8880847,12.4778554,'romana','€€',''],
+    ['🍷','Roscioli Salumeria con Cucina','4.3','Via dei Giubbonari 21 · Campo de’ Fiori','A gourmet experience among cured meats, cheeses and Rome’s best cacio e pepe.','Roscioli+Salumeria+con+Cucina+Via+dei+Giubbonari+Roma',41.894256,12.4742417,'esperienza','€€€','+390686875287']
   ],
   tours:{
     ghetto:{t:'Ghetto and Testaccio',d:'From Rome\u2019s Jewish heart to its most authentic district: legends, flavours and stories you won\u2019t find in guidebooks.'},
@@ -543,33 +564,35 @@ es:{
   ],
   t_food_roma:'Joyas de Roma', t_food_roma_sub:'Si te acercas al centro, estos valen la pena',
   filter_all:'Todos', filter_cuisine:'Tipo de cocina', filter_price:'Rango de precio',
+  book_cta:'📞 Reservar',
   food_cats:{colazione:'Desayuno',romana:'Romana',sushi:'Sushi',pizza:'Pizza',pesce:'Pescado',vegano:'Vegano',messicano:'Mexicano',indiano:'Indio',hamburgeria:'Hamburguesas',gelateria:'Heladería',aperitivo:'Aperitivo',streetfood:'Street food',esperienza:'Experiencia'},
   food:[
-    ['☕','Bar Stendal','','Piazzale delle Provincie 1','El bar más cercano: ideal para desayunar.','Bar+Stendal+Roma',41.9090953,12.521502,'colazione','€'],
-    ['🍝','Strada Romana','4.7','Via Teodorico 34 · 06 8339 8501','Cocina romana y pizza, ambiente cuidado, muy buena relación calidad-precio.','Strada+Romana+Via+Teodorico+34+Roma',41.9105217,12.5279991,'romana','€€'],
-    ['🍣','Kimi Sushi Experience','4.5','Via della Lega Lombarda 48C','Buffet libre de calidad, enorme variedad entre crudo y cocinado.','Kimi+Sushi+Experience+Roma',41.9084043,12.5247835,'sushi','€€'],
-    ['🍕','Malaterra','4.5','Viale XXI Aprile 75','Pizza gourmet ligerísima recién horneada, de las mejores de la zona.','Malaterra+Viale+XXI+Aprile+Roma',41.9148692,12.5206389,'pizza','€€'],
-    ['🍝','Da Enrico','4.4','Via Michele di Lando 28','Trattoria histórica, excelente amatriciana y albóndigas, ambiente animado.','Da+Enrico+Via+Michele+di+Lando+Roma',41.9137907,12.5224039,'romana','€€'],
-    ['🍷','Osteria Urbana','4.1','Via Bari 9','Una de las mejores carbonaras de Roma, personal que habla inglés.','Osteria+Urbana+Via+Bari+Roma',41.9110697,12.5147991,'romana','€€'],
-    ['🍕','Da Mamma','4.0','Via Lorenzo il Magnifico 62','Trattoria familiar, cocina casera genuina a precios muy honestos.','Da+Mamma+Via+Lorenzo+il+Magnifico+Roma',41.9126707,12.5232376,'romana','€'],
-    ['🐟','Ristorante da Franco','4.5','Via Stamira 23','Pescado fresco de calidad, muy frecuentado por los vecinos.','Ristorante+da+Franco+Via+Stamira+Roma',41.913242,12.5234063,'pesce','€€'],
-    ['🍝','Rigatoni Ristorante Pizzeria','4.5','Via Luigi Pigorini 31','Pasta y pizza clásicas, siempre fiables, ideal para familias.','Rigatoni+Ristorante+Pizzeria+Piazza+Bologna+Roma',41.9160952,12.5222681,'pizza','€€'],
-    ['🌱','Col Cavolo - Vegan Bistrot','4.8','Via Cesare Bosi 7 · Trieste','Cocina vegana refinada, de las más apreciadas de Roma.','Col+Cavolo+Vegan+Bistrot+Via+Cesare+Bosi+Roma',41.9119436,12.500445,'vegano','€€'],
-    ['🌮','Casa Sánchez','4.6','Via Catanzaro 6b · Trieste','Auténtica cocina mexicana, excelentes tacos y margaritas.','Casa+Sanchez+Via+Catanzaro+Roma',41.9119562,12.5175178,'messicano','€€'],
-    ['🍛','Suresh Food & Drinks','4.7','Via Arno 73 · Trieste','Cocina india refinada, de las mejor valoradas de la ciudad.','Suresh+Food+Drinks+Via+Arno+Roma',41.9195212,12.4997278,'indiano','€€'],
-    ['🍔','Hamburgeseria Burger Bar','4.4','Via dei Reti 40 · San Lorenzo','Hamburguesas gourmet y patatas crujientes, ambiente informal.','Hamburgeseria+Burger+Bar+Via+dei+Reti+Roma',41.8982015,12.5186568,'hamburgeria','€€'],
-    ['🍨','Gelato Romano','4.9','Via Giacomo Boni 33','Excelente helado artesanal, uno de los mejor valorados de Roma.','Gelato+Romano+Via+Giacomo+Boni+Roma',41.9150989,12.5222429,'gelateria','€'],
-    ['🍹','Mood Café','4.2','Piazza Bologna 7','Aperitivo abundante a precio justo, perfecto después de cenar.','Mood+Cafe+Piazza+Bologna+Roma',41.912979,12.521305,'aperitivo','€€']
+    ['☕','Bar Stendal','','Piazzale delle Provincie 1','El bar más cercano: ideal para desayunar.','Bar+Stendal+Roma',41.9090953,12.521502,'colazione','€',''],
+    ['🔺','Trapizzino | P.le Provincie','4.5','Piazzale delle Provincie 9','A 200 m de nosotros: si buscas algo rápido y genuino en la zona, es la opción más segura.','Trapizzino+Piazzale+delle+Provincie+Roma',41.90954,12.521587,'streetfood','€',''],
+    ['🍝','Strada Romana','4.7','Via Teodorico 34 · 06 8339 8501','Cocina romana y pizza, ambiente cuidado, muy buena relación calidad-precio.','Strada+Romana+Via+Teodorico+34+Roma',41.9105217,12.5279991,'romana','€€','+390683398501'],
+    ['🍣','Kimi Sushi Experience','4.5','Via della Lega Lombarda 48C','Buffet libre de calidad, enorme variedad entre crudo y cocinado.','Kimi+Sushi+Experience+Roma',41.9084043,12.5247835,'sushi','€€','+393273412345'],
+    ['🍕','Malaterra','4.5','Viale XXI Aprile 75','Pizza gourmet ligerísima recién horneada, de las mejores de la zona.','Malaterra+Viale+XXI+Aprile+Roma',41.9148692,12.5206389,'pizza','€€','+390645471930'],
+    ['🍝','Da Enrico','4.4','Via Michele di Lando 28','Trattoria histórica, excelente amatriciana y albóndigas, ambiente animado.','Da+Enrico+Via+Michele+di+Lando+Roma',41.9137907,12.5224039,'romana','€€','+390644237738'],
+    ['🍷','Osteria Urbana','4.1','Via Bari 9','Una de las mejores carbonaras de Roma, personal que habla inglés.','Osteria+Urbana+Via+Bari+Roma',41.9110697,12.5147991,'romana','€€','+390692099110'],
+    ['🍕','Da Mamma','4.0','Via Lorenzo il Magnifico 62','Trattoria familiar, cocina casera genuina a precios muy honestos.','Da+Mamma+Via+Lorenzo+il+Magnifico+Roma',41.9126707,12.5232376,'romana','€','+390644242613'],
+    ['🐟','Ristorante da Franco','4.5','Via Stamira 23','Pescado fresco de calidad, muy frecuentado por los vecinos.','Ristorante+da+Franco+Via+Stamira+Roma',41.913242,12.5234063,'pesce','€€','+390644236122'],
+    ['🍝','Rigatoni Ristorante Pizzeria','4.5','Via Luigi Pigorini 31','Pasta y pizza clásicas, siempre fiables, ideal para familias.','Rigatoni+Ristorante+Pizzeria+Piazza+Bologna+Roma',41.9160952,12.5222681,'pizza','€€','+390699702398'],
+    ['🌱','Col Cavolo - Vegan Bistrot','4.8','Via Cesare Bosi 7 · Trieste','Cocina vegana refinada, de las más apreciadas de Roma.','Col+Cavolo+Vegan+Bistrot+Via+Cesare+Bosi+Roma',41.9119436,12.500445,'vegano','€€','+393517675734'],
+    ['🌮','Casa Sánchez','4.6','Via Catanzaro 6b · Trieste','Auténtica cocina mexicana, excelentes tacos y margaritas.','Casa+Sanchez+Via+Catanzaro+Roma',41.9119562,12.5175178,'messicano','€€','+390645542607'],
+    ['🍛','Suresh Food & Drinks','4.7','Via Arno 73 · Trieste','Cocina india refinada, de las mejor valoradas de la ciudad.','Suresh+Food+Drinks+Via+Arno+Roma',41.9195212,12.4997278,'indiano','€€','+393888528172'],
+    ['🍔','Hamburgeseria Burger Bar','4.4','Via dei Reti 40 · San Lorenzo','Hamburguesas gourmet y patatas crujientes, ambiente informal.','Hamburgeseria+Burger+Bar+Via+dei+Reti+Roma',41.8982015,12.5186568,'hamburgeria','€€','+390644701298'],
+    ['🍨','Gelato Romano','4.9','Via Giacomo Boni 33','Excelente helado artesanal, uno de los mejor valorados de Roma.','Gelato+Romano+Via+Giacomo+Boni+Roma',41.9150989,12.5222429,'gelateria','€',''],
+    ['🍹','Mood Café','4.2','Piazza Bologna 7','Aperitivo abundante a precio justo, perfecto después de cenar.','Mood+Cafe+Piazza+Bologna+Roma',41.912979,12.521305,'aperitivo','€€','']
   ],
   foodRoma:[
-    ['🥖','All\'Antico Vinaio','4.3','Piazza della Maddalena 3 · Centro Storico','Schiacciate legendarias, rellenas hasta el límite: la institución florentina que también conquistó Roma.','All+Antico+Vinaio+Piazza+della+Maddalena+Roma',41.8999637,12.4764773,'streetfood','€'],
-    ['🔺','Trapizzino','4.6','Via Giovanni Branca 88 · Testaccio','El triángulo de pizza relleno inventado aquí: las albóndigas y el pollo a la cazadora son imprescindibles.','Trapizzino+Testaccio+Via+Giovanni+Branca+Roma',41.8796102,12.4736352,'streetfood','€'],
-    ['🍕','Antico Forno Roscioli','4.5','Via dei Chiavari 34 · Campo de’ Fiori','Horno histórico y pizza al taglio cerca de Campo de’ Fiori, la mortadela es legendaria.','Antico+Forno+Roscioli+Via+dei+Chiavari+Roma',41.8945667,12.4742778,'pizza','€'],
-    ['🍚','Supplizio','4.5','Via dei Banchi Vecchi 143 · Centro Storico','Solo suppli, hechos a la perfección: cacio e pepe, amatriciana, el clásico.','Supplizio+Via+dei+Banchi+Vecchi+Roma',41.897487,12.467911,'streetfood','€'],
-    ['🍕','Bonci Pizzarium','4.1','Via della Meloria 43 · Prati/Aurelio','Pizza al corte de autor cerca del Vaticano, masa de larga fermentación.','Bonci+Pizzarium+Via+della+Meloria+Roma',41.9066758,12.4466709,'pizza','€€'],
-    ['🍨','Giolitti','4.4','Via degli Uffici del Vicario 40 · Pantheon','Heladería histórica desde 1900, una institución romana a pasos del Panteón.','Giolitti+Via+degli+Uffici+del+Vicario+Roma',41.9010245,12.4772026,'gelateria','€'],
-    ['🍝','Trattoria Da Enzo','4.3','Via dei Vascellari 29 · Trastevere','Trattoria romana auténtica en Trastevere, hay cola pero vale la pena.','Trattoria+Da+Enzo+Via+dei+Vascellari+Trastevere+Roma',41.8880847,12.4778554,'romana','€€'],
-    ['🍷','Roscioli Salumeria con Cucina','4.3','Via dei Giubbonari 21 · Campo de’ Fiori','Experiencia gourmet entre embutidos, quesos y el mejor cacio e pepe de Roma.','Roscioli+Salumeria+con+Cucina+Via+dei+Giubbonari+Roma',41.894256,12.4742417,'esperienza','€€€']
+    ['🥖','All\'Antico Vinaio','4.3','Piazza della Maddalena 3 · Centro Storico','Schiacciate legendarias, rellenas hasta el límite: la institución florentina que también conquistó Roma.','All+Antico+Vinaio+Piazza+della+Maddalena+Roma',41.8999637,12.4764773,'streetfood','€',''],
+    ['🔺','Trapizzino | Testaccio','4.6','Via Giovanni Branca 88 · Testaccio','El triángulo de pizza relleno inventado aquí: las albóndigas y el pollo a la cazadora son imprescindibles.','Trapizzino+Testaccio+Via+Giovanni+Branca+Roma',41.8796102,12.4736352,'streetfood','€',''],
+    ['🍕','Antico Forno Roscioli','4.5','Via dei Chiavari 34 · Campo de’ Fiori','Horno histórico y pizza al taglio cerca de Campo de’ Fiori, la mortadela es legendaria.','Antico+Forno+Roscioli+Via+dei+Chiavari+Roma',41.8945667,12.4742778,'pizza','€',''],
+    ['🍚','Supplizio','4.5','Via dei Banchi Vecchi 143 · Centro Storico','Solo suppli, hechos a la perfección: cacio e pepe, amatriciana, el clásico.','Supplizio+Via+dei+Banchi+Vecchi+Roma',41.897487,12.467911,'streetfood','€',''],
+    ['🍕','Bonci Pizzarium','4.1','Via della Meloria 43 · Prati/Aurelio','Pizza al corte de autor cerca del Vaticano, masa de larga fermentación.','Bonci+Pizzarium+Via+della+Meloria+Roma',41.9066758,12.4466709,'pizza','€€',''],
+    ['🍨','Giolitti','4.4','Via degli Uffici del Vicario 40 · Pantheon','Heladería histórica desde 1900, una institución romana a pasos del Panteón.','Giolitti+Via+degli+Uffici+del+Vicario+Roma',41.9010245,12.4772026,'gelateria','€',''],
+    ['🍝','Trattoria Da Enzo','4.3','Via dei Vascellari 29 · Trastevere','Trattoria romana auténtica en Trastevere, hay cola pero vale la pena — no aceptan reservas.','Trattoria+Da+Enzo+Via+dei+Vascellari+Trastevere+Roma',41.8880847,12.4778554,'romana','€€',''],
+    ['🍷','Roscioli Salumeria con Cucina','4.3','Via dei Giubbonari 21 · Campo de’ Fiori','Experiencia gourmet entre embutidos, quesos y el mejor cacio e pepe de Roma.','Roscioli+Salumeria+con+Cucina+Via+dei+Giubbonari+Roma',41.894256,12.4742417,'esperienza','€€€','+390686875287']
   ],
   tours:{
     ghetto:{t:'Ghetto y Testaccio',d:'Del corazón judío de Roma al barrio más auténtico: leyendas, sabores e historias que no están en las guías.'},
@@ -621,33 +644,35 @@ fr:{
   ],
   t_food_roma:'Les Pépites de Rome', t_food_roma_sub:'Si vous allez dans le centre, ça vaut le détour',
   filter_all:'Tous', filter_cuisine:'Type de cuisine', filter_price:'Gamme de prix',
+  book_cta:'📞 Réserver',
   food_cats:{colazione:'Petit-déj',romana:'Romaine',sushi:'Sushi',pizza:'Pizza',pesce:'Poisson',vegano:'Végane',messicano:'Mexicain',indiano:'Indien',hamburgeria:'Burgers',gelateria:'Glacier',aperitivo:'Apéritif',streetfood:'Street food',esperienza:'Expérience'},
   food:[
-    ['☕','Bar Stendal','','Piazzale delle Provincie 1','Le café le plus proche : parfait pour le petit-déjeuner.','Bar+Stendal+Roma',41.9090953,12.521502,'colazione','€'],
-    ['🍝','Strada Romana','4.7','Via Teodorico 34 · 06 8339 8501','Cuisine romaine et pizza, cadre soigné, excellent rapport qualité-prix.','Strada+Romana+Via+Teodorico+34+Roma',41.9105217,12.5279991,'romana','€€'],
-    ['🍣','Kimi Sushi Experience','4.5','Via della Lega Lombarda 48C','Buffet à volonté de qualité, un grand choix entre cru et cuit.','Kimi+Sushi+Experience+Roma',41.9084043,12.5247835,'sushi','€€'],
-    ['🍕','Malaterra','4.5','Viale XXI Aprile 75','Pizza gourmet très légère, cuite à la commande, parmi les meilleures du quartier.','Malaterra+Viale+XXI+Aprile+Roma',41.9148692,12.5206389,'pizza','€€'],
-    ['🍝','Da Enrico','4.4','Via Michele di Lando 28','Trattoria historique, excellente amatriciana et boulettes, ambiance animée.','Da+Enrico+Via+Michele+di+Lando+Roma',41.9137907,12.5224039,'romana','€€'],
-    ['🍷','Osteria Urbana','4.1','Via Bari 9','Une des meilleures carbonara de Rome, personnel anglophone.','Osteria+Urbana+Via+Bari+Roma',41.9110697,12.5147991,'romana','€€'],
-    ['🍕','Da Mamma','4.0','Via Lorenzo il Magnifico 62','Trattoria familiale, cuisine maison authentique à prix très honnêtes.','Da+Mamma+Via+Lorenzo+il+Magnifico+Roma',41.9126707,12.5232376,'romana','€'],
-    ['🐟','Ristorante da Franco','4.5','Via Stamira 23','Poisson frais de qualité, très fréquenté par les habitants du quartier.','Ristorante+da+Franco+Via+Stamira+Roma',41.913242,12.5234063,'pesce','€€'],
-    ['🍝','Rigatoni Ristorante Pizzeria','4.5','Via Luigi Pigorini 31','Pâtes et pizzas classiques, toujours fiables, idéal en famille.','Rigatoni+Ristorante+Pizzeria+Piazza+Bologna+Roma',41.9160952,12.5222681,'pizza','€€'],
-    ['🌱','Col Cavolo - Vegan Bistrot','4.8','Via Cesare Bosi 7 · Trieste','Cuisine végane raffinée, parmi les plus appréciées de Rome.','Col+Cavolo+Vegan+Bistrot+Via+Cesare+Bosi+Roma',41.9119436,12.500445,'vegano','€€'],
-    ['🌮','Casa Sánchez','4.6','Via Catanzaro 6b · Trieste','Authentique cuisine mexicaine, excellents tacos et margaritas.','Casa+Sanchez+Via+Catanzaro+Roma',41.9119562,12.5175178,'messicano','€€'],
-    ['🍛','Suresh Food & Drinks','4.7','Via Arno 73 · Trieste','Cuisine indienne raffinée, parmi les mieux notées de la ville.','Suresh+Food+Drinks+Via+Arno+Roma',41.9195212,12.4997278,'indiano','€€'],
-    ['🍔','Hamburgeseria Burger Bar','4.4','Via dei Reti 40 · San Lorenzo','Burgers gourmets et frites croustillantes, ambiance décontractée.','Hamburgeseria+Burger+Bar+Via+dei+Reti+Roma',41.8982015,12.5186568,'hamburgeria','€€'],
-    ['🍨','Gelato Romano','4.9','Via Giacomo Boni 33','Excellente glace artisanale, parmi les mieux notées de Rome.','Gelato+Romano+Via+Giacomo+Boni+Roma',41.9150989,12.5222429,'gelateria','€'],
-    ['🍹','Mood Café','4.2','Piazza Bologna 7','Apéritif généreux à prix honnête, parfait après le dîner.','Mood+Cafe+Piazza+Bologna+Roma',41.912979,12.521305,'aperitivo','€€']
+    ['☕','Bar Stendal','','Piazzale delle Provincie 1','Le café le plus proche : parfait pour le petit-déjeuner.','Bar+Stendal+Roma',41.9090953,12.521502,'colazione','€',''],
+    ['🔺','Trapizzino | P.le Provincie','4.5','Piazzale delle Provincie 9','À 200 m de chez nous : pour un repas rapide et authentique dans le quartier, c’est la valeur sûre.','Trapizzino+Piazzale+delle+Provincie+Roma',41.90954,12.521587,'streetfood','€',''],
+    ['🍝','Strada Romana','4.7','Via Teodorico 34 · 06 8339 8501','Cuisine romaine et pizza, cadre soigné, excellent rapport qualité-prix.','Strada+Romana+Via+Teodorico+34+Roma',41.9105217,12.5279991,'romana','€€','+390683398501'],
+    ['🍣','Kimi Sushi Experience','4.5','Via della Lega Lombarda 48C','Buffet à volonté de qualité, un grand choix entre cru et cuit.','Kimi+Sushi+Experience+Roma',41.9084043,12.5247835,'sushi','€€','+393273412345'],
+    ['🍕','Malaterra','4.5','Viale XXI Aprile 75','Pizza gourmet très légère, cuite à la commande, parmi les meilleures du quartier.','Malaterra+Viale+XXI+Aprile+Roma',41.9148692,12.5206389,'pizza','€€','+390645471930'],
+    ['🍝','Da Enrico','4.4','Via Michele di Lando 28','Trattoria historique, excellente amatriciana et boulettes, ambiance animée.','Da+Enrico+Via+Michele+di+Lando+Roma',41.9137907,12.5224039,'romana','€€','+390644237738'],
+    ['🍷','Osteria Urbana','4.1','Via Bari 9','Une des meilleures carbonara de Rome, personnel anglophone.','Osteria+Urbana+Via+Bari+Roma',41.9110697,12.5147991,'romana','€€','+390692099110'],
+    ['🍕','Da Mamma','4.0','Via Lorenzo il Magnifico 62','Trattoria familiale, cuisine maison authentique à prix très honnêtes.','Da+Mamma+Via+Lorenzo+il+Magnifico+Roma',41.9126707,12.5232376,'romana','€','+390644242613'],
+    ['🐟','Ristorante da Franco','4.5','Via Stamira 23','Poisson frais de qualité, très fréquenté par les habitants du quartier.','Ristorante+da+Franco+Via+Stamira+Roma',41.913242,12.5234063,'pesce','€€','+390644236122'],
+    ['🍝','Rigatoni Ristorante Pizzeria','4.5','Via Luigi Pigorini 31','Pâtes et pizzas classiques, toujours fiables, idéal en famille.','Rigatoni+Ristorante+Pizzeria+Piazza+Bologna+Roma',41.9160952,12.5222681,'pizza','€€','+390699702398'],
+    ['🌱','Col Cavolo - Vegan Bistrot','4.8','Via Cesare Bosi 7 · Trieste','Cuisine végane raffinée, parmi les plus appréciées de Rome.','Col+Cavolo+Vegan+Bistrot+Via+Cesare+Bosi+Roma',41.9119436,12.500445,'vegano','€€','+393517675734'],
+    ['🌮','Casa Sánchez','4.6','Via Catanzaro 6b · Trieste','Authentique cuisine mexicaine, excellents tacos et margaritas.','Casa+Sanchez+Via+Catanzaro+Roma',41.9119562,12.5175178,'messicano','€€','+390645542607'],
+    ['🍛','Suresh Food & Drinks','4.7','Via Arno 73 · Trieste','Cuisine indienne raffinée, parmi les mieux notées de la ville.','Suresh+Food+Drinks+Via+Arno+Roma',41.9195212,12.4997278,'indiano','€€','+393888528172'],
+    ['🍔','Hamburgeseria Burger Bar','4.4','Via dei Reti 40 · San Lorenzo','Burgers gourmets et frites croustillantes, ambiance décontractée.','Hamburgeseria+Burger+Bar+Via+dei+Reti+Roma',41.8982015,12.5186568,'hamburgeria','€€','+390644701298'],
+    ['🍨','Gelato Romano','4.9','Via Giacomo Boni 33','Excellente glace artisanale, parmi les mieux notées de Rome.','Gelato+Romano+Via+Giacomo+Boni+Roma',41.9150989,12.5222429,'gelateria','€',''],
+    ['🍹','Mood Café','4.2','Piazza Bologna 7','Apéritif généreux à prix honnête, parfait après le dîner.','Mood+Cafe+Piazza+Bologna+Roma',41.912979,12.521305,'aperitivo','€€','']
   ],
   foodRoma:[
-    ['🥖','All\'Antico Vinaio','4.3','Piazza della Maddalena 3 · Centro Storico','Schiacciate légendaires, généreusement garnies : l’institution florentine qui a aussi conquis Rome.','All+Antico+Vinaio+Piazza+della+Maddalena+Roma',41.8999637,12.4764773,'streetfood','€'],
-    ['🔺','Trapizzino','4.6','Via Giovanni Branca 88 · Testaccio','Le triangle de pizza farci inventé ici : boulettes et poulet chasseur incontournables.','Trapizzino+Testaccio+Via+Giovanni+Branca+Roma',41.8796102,12.4736352,'streetfood','€'],
-    ['🍕','Antico Forno Roscioli','4.5','Via dei Chiavari 34 · Campo de’ Fiori','Four historique et pizza à la coupe près de Campo de’ Fiori, la mortadelle est légendaire.','Antico+Forno+Roscioli+Via+dei+Chiavari+Roma',41.8945667,12.4742778,'pizza','€'],
-    ['🍚','Supplizio','4.5','Via dei Banchi Vecchi 143 · Centro Storico','Que des suppli, réalisés à la perfection : cacio e pepe, amatriciana, le classique.','Supplizio+Via+dei+Banchi+Vecchi+Roma',41.897487,12.467911,'streetfood','€'],
-    ['🍕','Bonci Pizzarium','4.1','Via della Meloria 43 · Prati/Aurelio','Pizza à la part signature près du Vatican, pâte à longue fermentation.','Bonci+Pizzarium+Via+della+Meloria+Roma',41.9066758,12.4466709,'pizza','€€'],
-    ['🍨','Giolitti','4.4','Via degli Uffici del Vicario 40 · Pantheon','Glacier historique depuis 1900, une institution romaine à deux pas du Panthéon.','Giolitti+Via+degli+Uffici+del+Vicario+Roma',41.9010245,12.4772026,'gelateria','€'],
-    ['🍝','Trattoria Da Enzo','4.3','Via dei Vascellari 29 · Trastevere','Authentique trattoria romaine à Trastevere, on fait la queue mais ça en vaut la peine.','Trattoria+Da+Enzo+Via+dei+Vascellari+Trastevere+Roma',41.8880847,12.4778554,'romana','€€'],
-    ['🍷','Roscioli Salumeria con Cucina','4.3','Via dei Giubbonari 21 · Campo de’ Fiori','Expérience gourmande entre charcuteries, fromages et le meilleur cacio e pepe de Rome.','Roscioli+Salumeria+con+Cucina+Via+dei+Giubbonari+Roma',41.894256,12.4742417,'esperienza','€€€']
+    ['🥖','All\'Antico Vinaio','4.3','Piazza della Maddalena 3 · Centro Storico','Schiacciate légendaires, généreusement garnies : l’institution florentine qui a aussi conquis Rome.','All+Antico+Vinaio+Piazza+della+Maddalena+Roma',41.8999637,12.4764773,'streetfood','€',''],
+    ['🔺','Trapizzino | Testaccio','4.6','Via Giovanni Branca 88 · Testaccio','Le triangle de pizza farci inventé ici : boulettes et poulet chasseur incontournables.','Trapizzino+Testaccio+Via+Giovanni+Branca+Roma',41.8796102,12.4736352,'streetfood','€',''],
+    ['🍕','Antico Forno Roscioli','4.5','Via dei Chiavari 34 · Campo de’ Fiori','Four historique et pizza à la coupe près de Campo de’ Fiori, la mortadelle est légendaire.','Antico+Forno+Roscioli+Via+dei+Chiavari+Roma',41.8945667,12.4742778,'pizza','€',''],
+    ['🍚','Supplizio','4.5','Via dei Banchi Vecchi 143 · Centro Storico','Que des suppli, réalisés à la perfection : cacio e pepe, amatriciana, le classique.','Supplizio+Via+dei+Banchi+Vecchi+Roma',41.897487,12.467911,'streetfood','€',''],
+    ['🍕','Bonci Pizzarium','4.1','Via della Meloria 43 · Prati/Aurelio','Pizza à la part signature près du Vatican, pâte à longue fermentation.','Bonci+Pizzarium+Via+della+Meloria+Roma',41.9066758,12.4466709,'pizza','€€',''],
+    ['🍨','Giolitti','4.4','Via degli Uffici del Vicario 40 · Pantheon','Glacier historique depuis 1900, une institution romaine à deux pas du Panthéon.','Giolitti+Via+degli+Uffici+del+Vicario+Roma',41.9010245,12.4772026,'gelateria','€',''],
+    ['🍝','Trattoria Da Enzo','4.3','Via dei Vascellari 29 · Trastevere','Authentique trattoria romaine à Trastevere, on fait la queue mais ça en vaut la peine — pas de réservations.','Trattoria+Da+Enzo+Via+dei+Vascellari+Trastevere+Roma',41.8880847,12.4778554,'romana','€€',''],
+    ['🍷','Roscioli Salumeria con Cucina','4.3','Via dei Giubbonari 21 · Campo de’ Fiori','Expérience gourmande entre charcuteries, fromages et le meilleur cacio e pepe de Rome.','Roscioli+Salumeria+con+Cucina+Via+dei+Giubbonari+Roma',41.894256,12.4742417,'esperienza','€€€','+390686875287']
   ],
   tours:{
     ghetto:{t:'Ghetto et Testaccio',d:'Du cœur juif de Rome au quartier le plus authentique : légendes, saveurs et histoires que l\u2019on ne trouve pas dans les guides.'},
@@ -699,33 +724,35 @@ de:{
   ],
   t_food_roma:'Roms Highlights', t_food_roma_sub:'Wenn Sie ins Zentrum fahren, lohnt sich der Umweg',
   filter_all:'Alle', filter_cuisine:'Küchenart', filter_price:'Preisklasse',
+  book_cta:'📞 Reservieren',
   food_cats:{colazione:'Frühstück',romana:'Römisch',sushi:'Sushi',pizza:'Pizza',pesce:'Fisch',vegano:'Vegan',messicano:'Mexikanisch',indiano:'Indisch',hamburgeria:'Burger',gelateria:'Eisdiele',aperitivo:'Aperitivo',streetfood:'Street Food',esperienza:'Erlebnis'},
   food:[
-    ['☕','Bar Stendal','','Piazzale delle Provincie 1','Das nächstgelegene Café: perfekt zum Frühstücken.','Bar+Stendal+Roma',41.9090953,12.521502,'colazione','€'],
-    ['🍝','Strada Romana','4.7','Via Teodorico 34 · 06 8339 8501','Römische Küche und Pizza, gepflegtes Ambiente, ausgezeichnetes Preis-Leistungs-Verhältnis.','Strada+Romana+Via+Teodorico+34+Roma',41.9105217,12.5279991,'romana','€€'],
-    ['🍣','Kimi Sushi Experience','4.5','Via della Lega Lombarda 48C','Hochwertiges All-you-can-eat mit riesiger Auswahl an Rohem und Gekochtem.','Kimi+Sushi+Experience+Roma',41.9084043,12.5247835,'sushi','€€'],
-    ['🍕','Malaterra','4.5','Viale XXI Aprile 75','Superleichte Gourmet-Pizza, frisch gebacken, eine der besten der Gegend.','Malaterra+Viale+XXI+Aprile+Roma',41.9148692,12.5206389,'pizza','€€'],
-    ['🍝','Da Enrico','4.4','Via Michele di Lando 28','Traditionsreiche Trattoria, ausgezeichnete Amatriciana und Fleischbällchen, lebendige Atmosphäre.','Da+Enrico+Via+Michele+di+Lando+Roma',41.9137907,12.5224039,'romana','€€'],
-    ['🍷','Osteria Urbana','4.1','Via Bari 9','Eine der besten Carbonaras Roms, englischsprachiges Personal.','Osteria+Urbana+Via+Bari+Roma',41.9110697,12.5147991,'romana','€€'],
-    ['🍕','Da Mamma','4.0','Via Lorenzo il Magnifico 62','Familiäre Trattoria, ehrliche Hausmannskost zu sehr fairen Preisen.','Da+Mamma+Via+Lorenzo+il+Magnifico+Roma',41.9126707,12.5232376,'romana','€'],
-    ['🐟','Ristorante da Franco','4.5','Via Stamira 23','Frischer, hochwertiger Fisch, sehr beliebt bei Anwohnern.','Ristorante+da+Franco+Via+Stamira+Roma',41.913242,12.5234063,'pesce','€€'],
-    ['🍝','Rigatoni Ristorante Pizzeria','4.5','Via Luigi Pigorini 31','Klassische Pasta und Pizza, immer verlässlich, gut für Familien.','Rigatoni+Ristorante+Pizzeria+Piazza+Bologna+Roma',41.9160952,12.5222681,'pizza','€€'],
-    ['🌱','Col Cavolo - Vegan Bistrot','4.8','Via Cesare Bosi 7 · Trieste','Raffinierte vegane Küche, eine der beliebtesten in Rom.','Col+Cavolo+Vegan+Bistrot+Via+Cesare+Bosi+Roma',41.9119436,12.500445,'vegano','€€'],
-    ['🌮','Casa Sánchez','4.6','Via Catanzaro 6b · Trieste','Authentische mexikanische Küche, hervorragende Tacos und Margaritas.','Casa+Sanchez+Via+Catanzaro+Roma',41.9119562,12.5175178,'messicano','€€'],
-    ['🍛','Suresh Food & Drinks','4.7','Via Arno 73 · Trieste','Raffinierte indische Küche, eine der bestbewerteten der Stadt.','Suresh+Food+Drinks+Via+Arno+Roma',41.9195212,12.4997278,'indiano','€€'],
-    ['🍔','Hamburgeseria Burger Bar','4.4','Via dei Reti 40 · San Lorenzo','Gourmet-Burger und knusprige Pommes, lockere Atmosphäre.','Hamburgeseria+Burger+Bar+Via+dei+Reti+Roma',41.8982015,12.5186568,'hamburgeria','€€'],
-    ['🍨','Gelato Romano','4.9','Via Giacomo Boni 33','Ausgezeichnetes handwerkliches Eis, eines der bestbewerteten Roms.','Gelato+Romano+Via+Giacomo+Boni+Roma',41.9150989,12.5222429,'gelateria','€'],
-    ['🍹','Mood Café','4.2','Piazza Bologna 7','Reichhaltiger Aperitivo zu fairem Preis, ideal nach dem Abendessen.','Mood+Cafe+Piazza+Bologna+Roma',41.912979,12.521305,'aperitivo','€€']
+    ['☕','Bar Stendal','','Piazzale delle Provincie 1','Das nächstgelegene Café: perfekt zum Frühstücken.','Bar+Stendal+Roma',41.9090953,12.521502,'colazione','€',''],
+    ['🔺','Trapizzino | P.le Provincie','4.5','Piazzale delle Provincie 9','Nur 200 m von uns entfernt: für eine schnelle, authentische Mahlzeit in der Gegend die sicherste Wahl.','Trapizzino+Piazzale+delle+Provincie+Roma',41.90954,12.521587,'streetfood','€',''],
+    ['🍝','Strada Romana','4.7','Via Teodorico 34 · 06 8339 8501','Römische Küche und Pizza, gepflegtes Ambiente, ausgezeichnetes Preis-Leistungs-Verhältnis.','Strada+Romana+Via+Teodorico+34+Roma',41.9105217,12.5279991,'romana','€€','+390683398501'],
+    ['🍣','Kimi Sushi Experience','4.5','Via della Lega Lombarda 48C','Hochwertiges All-you-can-eat mit riesiger Auswahl an Rohem und Gekochtem.','Kimi+Sushi+Experience+Roma',41.9084043,12.5247835,'sushi','€€','+393273412345'],
+    ['🍕','Malaterra','4.5','Viale XXI Aprile 75','Superleichte Gourmet-Pizza, frisch gebacken, eine der besten der Gegend.','Malaterra+Viale+XXI+Aprile+Roma',41.9148692,12.5206389,'pizza','€€','+390645471930'],
+    ['🍝','Da Enrico','4.4','Via Michele di Lando 28','Traditionsreiche Trattoria, ausgezeichnete Amatriciana und Fleischbällchen, lebendige Atmosphäre.','Da+Enrico+Via+Michele+di+Lando+Roma',41.9137907,12.5224039,'romana','€€','+390644237738'],
+    ['🍷','Osteria Urbana','4.1','Via Bari 9','Eine der besten Carbonaras Roms, englischsprachiges Personal.','Osteria+Urbana+Via+Bari+Roma',41.9110697,12.5147991,'romana','€€','+390692099110'],
+    ['🍕','Da Mamma','4.0','Via Lorenzo il Magnifico 62','Familiäre Trattoria, ehrliche Hausmannskost zu sehr fairen Preisen.','Da+Mamma+Via+Lorenzo+il+Magnifico+Roma',41.9126707,12.5232376,'romana','€','+390644242613'],
+    ['🐟','Ristorante da Franco','4.5','Via Stamira 23','Frischer, hochwertiger Fisch, sehr beliebt bei Anwohnern.','Ristorante+da+Franco+Via+Stamira+Roma',41.913242,12.5234063,'pesce','€€','+390644236122'],
+    ['🍝','Rigatoni Ristorante Pizzeria','4.5','Via Luigi Pigorini 31','Klassische Pasta und Pizza, immer verlässlich, gut für Familien.','Rigatoni+Ristorante+Pizzeria+Piazza+Bologna+Roma',41.9160952,12.5222681,'pizza','€€','+390699702398'],
+    ['🌱','Col Cavolo - Vegan Bistrot','4.8','Via Cesare Bosi 7 · Trieste','Raffinierte vegane Küche, eine der beliebtesten in Rom.','Col+Cavolo+Vegan+Bistrot+Via+Cesare+Bosi+Roma',41.9119436,12.500445,'vegano','€€','+393517675734'],
+    ['🌮','Casa Sánchez','4.6','Via Catanzaro 6b · Trieste','Authentische mexikanische Küche, hervorragende Tacos und Margaritas.','Casa+Sanchez+Via+Catanzaro+Roma',41.9119562,12.5175178,'messicano','€€','+390645542607'],
+    ['🍛','Suresh Food & Drinks','4.7','Via Arno 73 · Trieste','Raffinierte indische Küche, eine der bestbewerteten der Stadt.','Suresh+Food+Drinks+Via+Arno+Roma',41.9195212,12.4997278,'indiano','€€','+393888528172'],
+    ['🍔','Hamburgeseria Burger Bar','4.4','Via dei Reti 40 · San Lorenzo','Gourmet-Burger und knusprige Pommes, lockere Atmosphäre.','Hamburgeseria+Burger+Bar+Via+dei+Reti+Roma',41.8982015,12.5186568,'hamburgeria','€€','+390644701298'],
+    ['🍨','Gelato Romano','4.9','Via Giacomo Boni 33','Ausgezeichnetes handwerkliches Eis, eines der bestbewerteten Roms.','Gelato+Romano+Via+Giacomo+Boni+Roma',41.9150989,12.5222429,'gelateria','€',''],
+    ['🍹','Mood Café','4.2','Piazza Bologna 7','Reichhaltiger Aperitivo zu fairem Preis, ideal nach dem Abendessen.','Mood+Cafe+Piazza+Bologna+Roma',41.912979,12.521305,'aperitivo','€€','']
   ],
   foodRoma:[
-    ['🥖','All\'Antico Vinaio','4.3','Piazza della Maddalena 3 · Centro Storico','Legendäre, üppig gefüllte Schiacciate: die Florentiner Institution, die auch Rom erobert hat.','All+Antico+Vinaio+Piazza+della+Maddalena+Roma',41.8999637,12.4764773,'streetfood','€'],
-    ['🔺','Trapizzino','4.6','Via Giovanni Branca 88 · Testaccio','Das gefüllte Pizza-Dreieck, hier erfunden: Fleischbällchen und Hühnchen alla cacciatora sind Pflicht.','Trapizzino+Testaccio+Via+Giovanni+Branca+Roma',41.8796102,12.4736352,'streetfood','€'],
-    ['🍕','Antico Forno Roscioli','4.5','Via dei Chiavari 34 · Campo de’ Fiori','Historischer Ofen und Pizza al taglio nahe Campo de’ Fiori, die Mortadella ist legendär.','Antico+Forno+Roscioli+Via+dei+Chiavari+Roma',41.8945667,12.4742778,'pizza','€'],
-    ['🍚','Supplizio','4.5','Via dei Banchi Vecchi 143 · Centro Storico','Nur Suppli, perfekt zubereitet: Cacio e Pepe, Amatriciana, der Klassiker.','Supplizio+Via+dei+Banchi+Vecchi+Roma',41.897487,12.467911,'streetfood','€'],
-    ['🍕','Bonci Pizzarium','4.1','Via della Meloria 43 · Prati/Aurelio','Pizza vom Blech mit Autorenanspruch nahe dem Vatikan, lang geführter Teig.','Bonci+Pizzarium+Via+della+Meloria+Roma',41.9066758,12.4466709,'pizza','€€'],
-    ['🍨','Giolitti','4.4','Via degli Uffici del Vicario 40 · Pantheon','Historische Eisdiele seit 1900, eine römische Institution nur Schritte vom Pantheon entfernt.','Giolitti+Via+degli+Uffici+del+Vicario+Roma',41.9010245,12.4772026,'gelateria','€'],
-    ['🍝','Trattoria Da Enzo','4.3','Via dei Vascellari 29 · Trastevere','Authentische römische Trattoria in Trastevere, man wartet, aber es lohnt sich.','Trattoria+Da+Enzo+Via+dei+Vascellari+Trastevere+Roma',41.8880847,12.4778554,'romana','€€'],
-    ['🍷','Roscioli Salumeria con Cucina','4.3','Via dei Giubbonari 21 · Campo de’ Fiori','Gourmet-Erlebnis zwischen Wurstwaren, Käse und der besten Cacio e Pepe Roms.','Roscioli+Salumeria+con+Cucina+Via+dei+Giubbonari+Roma',41.894256,12.4742417,'esperienza','€€€']
+    ['🥖','All\'Antico Vinaio','4.3','Piazza della Maddalena 3 · Centro Storico','Legendäre, üppig gefüllte Schiacciate: die Florentiner Institution, die auch Rom erobert hat.','All+Antico+Vinaio+Piazza+della+Maddalena+Roma',41.8999637,12.4764773,'streetfood','€',''],
+    ['🔺','Trapizzino | Testaccio','4.6','Via Giovanni Branca 88 · Testaccio','Das gefüllte Pizza-Dreieck, hier erfunden: Fleischbällchen und Hühnchen alla cacciatora sind Pflicht.','Trapizzino+Testaccio+Via+Giovanni+Branca+Roma',41.8796102,12.4736352,'streetfood','€',''],
+    ['🍕','Antico Forno Roscioli','4.5','Via dei Chiavari 34 · Campo de’ Fiori','Historischer Ofen und Pizza al taglio nahe Campo de’ Fiori, die Mortadella ist legendär.','Antico+Forno+Roscioli+Via+dei+Chiavari+Roma',41.8945667,12.4742778,'pizza','€',''],
+    ['🍚','Supplizio','4.5','Via dei Banchi Vecchi 143 · Centro Storico','Nur Suppli, perfekt zubereitet: Cacio e Pepe, Amatriciana, der Klassiker.','Supplizio+Via+dei+Banchi+Vecchi+Roma',41.897487,12.467911,'streetfood','€',''],
+    ['🍕','Bonci Pizzarium','4.1','Via della Meloria 43 · Prati/Aurelio','Pizza vom Blech mit Autorenanspruch nahe dem Vatikan, lang geführter Teig.','Bonci+Pizzarium+Via+della+Meloria+Roma',41.9066758,12.4466709,'pizza','€€',''],
+    ['🍨','Giolitti','4.4','Via degli Uffici del Vicario 40 · Pantheon','Historische Eisdiele seit 1900, eine römische Institution nur Schritte vom Pantheon entfernt.','Giolitti+Via+degli+Uffici+del+Vicario+Roma',41.9010245,12.4772026,'gelateria','€',''],
+    ['🍝','Trattoria Da Enzo','4.3','Via dei Vascellari 29 · Trastevere','Authentische römische Trattoria in Trastevere, man wartet, aber es lohnt sich — keine Reservierungen.','Trattoria+Da+Enzo+Via+dei+Vascellari+Trastevere+Roma',41.8880847,12.4778554,'romana','€€',''],
+    ['🍷','Roscioli Salumeria con Cucina','4.3','Via dei Giubbonari 21 · Campo de’ Fiori','Gourmet-Erlebnis zwischen Wurstwaren, Käse und der besten Cacio e Pepe Roms.','Roscioli+Salumeria+con+Cucina+Via+dei+Giubbonari+Roma',41.894256,12.4742417,'esperienza','€€€','+390686875287']
   ],
   tours:{
     ghetto:{t:'Ghetto und Testaccio',d:'Vom jüdischen Herzen Roms zum urigsten Viertel: Legenden, Aromen und Geschichten, die man in keinem Reiseführer findet.'},
@@ -777,33 +804,35 @@ pt:{
   ],
   t_food_roma:'Pérolas de Roma', t_food_roma_sub:'Se for ao centro, valem bem o desvio',
   filter_all:'Todos', filter_cuisine:'Tipo de cozinha', filter_price:'Faixa de preço',
+  book_cta:'📞 Reservar',
   food_cats:{colazione:'Pequeno-almoço',romana:'Romana',sushi:'Sushi',pizza:'Pizza',pesce:'Peixe',vegano:'Vegano',messicano:'Mexicano',indiano:'Indiano',hamburgeria:'Hambúrgueres',gelateria:'Gelataria',aperitivo:'Aperitivo',streetfood:'Street food',esperienza:'Experiência'},
   food:[
-    ['☕','Bar Stendal','','Piazzale delle Provincie 1','O café mais próximo: perfeito para o pequeno-almoço.','Bar+Stendal+Roma',41.9090953,12.521502,'colazione','€'],
-    ['🍝','Strada Romana','4.7','Via Teodorico 34 · 06 8339 8501','Cozinha romana e pizza, ambiente cuidado, ótima relação qualidade-preço.','Strada+Romana+Via+Teodorico+34+Roma',41.9105217,12.5279991,'romana','€€'],
-    ['🍣','Kimi Sushi Experience','4.5','Via della Lega Lombarda 48C','Rodízio de qualidade, enorme variedade entre cru e cozinhado.','Kimi+Sushi+Experience+Roma',41.9084043,12.5247835,'sushi','€€'],
-    ['🍕','Malaterra','4.5','Viale XXI Aprile 75','Pizza gourmet leve, feita na hora, das melhores da zona.','Malaterra+Viale+XXI+Aprile+Roma',41.9148692,12.5206389,'pizza','€€'],
-    ['🍝','Da Enrico','4.4','Via Michele di Lando 28','Trattoria histórica, excelente amatriciana e almôndegas, ambiente animado.','Da+Enrico+Via+Michele+di+Lando+Roma',41.9137907,12.5224039,'romana','€€'],
-    ['🍷','Osteria Urbana','4.1','Via Bari 9','Uma das melhores carbonaras de Roma, equipa que fala inglês.','Osteria+Urbana+Via+Bari+Roma',41.9110697,12.5147991,'romana','€€'],
-    ['🍕','Da Mamma','4.0','Via Lorenzo il Magnifico 62','Trattoria familiar, cozinha caseira genuína a preços muito justos.','Da+Mamma+Via+Lorenzo+il+Magnifico+Roma',41.9126707,12.5232376,'romana','€'],
-    ['🐟','Ristorante da Franco','4.5','Via Stamira 23','Peixe fresco de qualidade, muito frequentado pelos moradores da zona.','Ristorante+da+Franco+Via+Stamira+Roma',41.913242,12.5234063,'pesce','€€'],
-    ['🍝','Rigatoni Ristorante Pizzeria','4.5','Via Luigi Pigorini 31','Massas e pizzas clássicas, sempre fiáveis, ótimo para famílias.','Rigatoni+Ristorante+Pizzeria+Piazza+Bologna+Roma',41.9160952,12.5222681,'pizza','€€'],
-    ['🌱','Col Cavolo - Vegan Bistrot','4.8','Via Cesare Bosi 7 · Trieste','Cozinha vegana refinada, das mais apreciadas de Roma.','Col+Cavolo+Vegan+Bistrot+Via+Cesare+Bosi+Roma',41.9119436,12.500445,'vegano','€€'],
-    ['🌮','Casa Sánchez','4.6','Via Catanzaro 6b · Trieste','Autêntica cozinha mexicana, ótimos tacos e margaritas.','Casa+Sanchez+Via+Catanzaro+Roma',41.9119562,12.5175178,'messicano','€€'],
-    ['🍛','Suresh Food & Drinks','4.7','Via Arno 73 · Trieste','Cozinha indiana refinada, das mais bem avaliadas da cidade.','Suresh+Food+Drinks+Via+Arno+Roma',41.9195212,12.4997278,'indiano','€€'],
-    ['🍔','Hamburgeseria Burger Bar','4.4','Via dei Reti 40 · San Lorenzo','Hambúrgueres gourmet e batatas fritas estaladiças, ambiente informal.','Hamburgeseria+Burger+Bar+Via+dei+Reti+Roma',41.8982015,12.5186568,'hamburgeria','€€'],
-    ['🍨','Gelato Romano','4.9','Via Giacomo Boni 33','Excelente gelado artesanal, um dos mais bem avaliados de Roma.','Gelato+Romano+Via+Giacomo+Boni+Roma',41.9150989,12.5222429,'gelateria','€'],
-    ['🍹','Mood Café','4.2','Piazza Bologna 7','Aperitivo generoso a preço justo, ótimo para depois do jantar.','Mood+Cafe+Piazza+Bologna+Roma',41.912979,12.521305,'aperitivo','€€']
+    ['☕','Bar Stendal','','Piazzale delle Provincie 1','O café mais próximo: perfeito para o pequeno-almoço.','Bar+Stendal+Roma',41.9090953,12.521502,'colazione','€',''],
+    ['🔺','Trapizzino | P.le Provincie','4.5','Piazzale delle Provincie 9','A 200 m de nós: se procura algo rápido e genuíno na zona, é a escolha mais segura.','Trapizzino+Piazzale+delle+Provincie+Roma',41.90954,12.521587,'streetfood','€',''],
+    ['🍝','Strada Romana','4.7','Via Teodorico 34 · 06 8339 8501','Cozinha romana e pizza, ambiente cuidado, ótima relação qualidade-preço.','Strada+Romana+Via+Teodorico+34+Roma',41.9105217,12.5279991,'romana','€€','+390683398501'],
+    ['🍣','Kimi Sushi Experience','4.5','Via della Lega Lombarda 48C','Rodízio de qualidade, enorme variedade entre cru e cozinhado.','Kimi+Sushi+Experience+Roma',41.9084043,12.5247835,'sushi','€€','+393273412345'],
+    ['🍕','Malaterra','4.5','Viale XXI Aprile 75','Pizza gourmet leve, feita na hora, das melhores da zona.','Malaterra+Viale+XXI+Aprile+Roma',41.9148692,12.5206389,'pizza','€€','+390645471930'],
+    ['🍝','Da Enrico','4.4','Via Michele di Lando 28','Trattoria histórica, excelente amatriciana e almôndegas, ambiente animado.','Da+Enrico+Via+Michele+di+Lando+Roma',41.9137907,12.5224039,'romana','€€','+390644237738'],
+    ['🍷','Osteria Urbana','4.1','Via Bari 9','Uma das melhores carbonaras de Roma, equipa que fala inglês.','Osteria+Urbana+Via+Bari+Roma',41.9110697,12.5147991,'romana','€€','+390692099110'],
+    ['🍕','Da Mamma','4.0','Via Lorenzo il Magnifico 62','Trattoria familiar, cozinha caseira genuína a preços muito justos.','Da+Mamma+Via+Lorenzo+il+Magnifico+Roma',41.9126707,12.5232376,'romana','€','+390644242613'],
+    ['🐟','Ristorante da Franco','4.5','Via Stamira 23','Peixe fresco de qualidade, muito frequentado pelos moradores da zona.','Ristorante+da+Franco+Via+Stamira+Roma',41.913242,12.5234063,'pesce','€€','+390644236122'],
+    ['🍝','Rigatoni Ristorante Pizzeria','4.5','Via Luigi Pigorini 31','Massas e pizzas clássicas, sempre fiáveis, ótimo para famílias.','Rigatoni+Ristorante+Pizzeria+Piazza+Bologna+Roma',41.9160952,12.5222681,'pizza','€€','+390699702398'],
+    ['🌱','Col Cavolo - Vegan Bistrot','4.8','Via Cesare Bosi 7 · Trieste','Cozinha vegana refinada, das mais apreciadas de Roma.','Col+Cavolo+Vegan+Bistrot+Via+Cesare+Bosi+Roma',41.9119436,12.500445,'vegano','€€','+393517675734'],
+    ['🌮','Casa Sánchez','4.6','Via Catanzaro 6b · Trieste','Autêntica cozinha mexicana, ótimos tacos e margaritas.','Casa+Sanchez+Via+Catanzaro+Roma',41.9119562,12.5175178,'messicano','€€','+390645542607'],
+    ['🍛','Suresh Food & Drinks','4.7','Via Arno 73 · Trieste','Cozinha indiana refinada, das mais bem avaliadas da cidade.','Suresh+Food+Drinks+Via+Arno+Roma',41.9195212,12.4997278,'indiano','€€','+393888528172'],
+    ['🍔','Hamburgeseria Burger Bar','4.4','Via dei Reti 40 · San Lorenzo','Hambúrgueres gourmet e batatas fritas estaladiças, ambiente informal.','Hamburgeseria+Burger+Bar+Via+dei+Reti+Roma',41.8982015,12.5186568,'hamburgeria','€€','+390644701298'],
+    ['🍨','Gelato Romano','4.9','Via Giacomo Boni 33','Excelente gelado artesanal, um dos mais bem avaliados de Roma.','Gelato+Romano+Via+Giacomo+Boni+Roma',41.9150989,12.5222429,'gelateria','€',''],
+    ['🍹','Mood Café','4.2','Piazza Bologna 7','Aperitivo generoso a preço justo, ótimo para depois do jantar.','Mood+Cafe+Piazza+Bologna+Roma',41.912979,12.521305,'aperitivo','€€','']
   ],
   foodRoma:[
-    ['🥖','All\'Antico Vinaio','4.3','Piazza della Maddalena 3 · Centro Storico','Schiacciate lendárias, recheadas até não poder mais: a instituição florentina que também conquistou Roma.','All+Antico+Vinaio+Piazza+della+Maddalena+Roma',41.8999637,12.4764773,'streetfood','€'],
-    ['🔺','Trapizzino','4.6','Via Giovanni Branca 88 · Testaccio','O triângulo de pizza recheado inventado aqui: as almôndegas e o frango à caçadora são imperdíveis.','Trapizzino+Testaccio+Via+Giovanni+Branca+Roma',41.8796102,12.4736352,'streetfood','€'],
-    ['🍕','Antico Forno Roscioli','4.5','Via dei Chiavari 34 · Campo de’ Fiori','Forno histórico e pizza ao corte perto de Campo de’ Fiori, a mortadela é lendária.','Antico+Forno+Roscioli+Via+dei+Chiavari+Roma',41.8945667,12.4742778,'pizza','€'],
-    ['🍚','Supplizio','4.5','Via dei Banchi Vecchi 143 · Centro Storico','Só supplì, feitos na perfeição: cacio e pepe, amatriciana, o clássico.','Supplizio+Via+dei+Banchi+Vecchi+Roma',41.897487,12.467911,'streetfood','€'],
-    ['🍕','Bonci Pizzarium','4.1','Via della Meloria 43 · Prati/Aurelio','Pizza ao corte de autor perto do Vaticano, massa de longa fermentação.','Bonci+Pizzarium+Via+della+Meloria+Roma',41.9066758,12.4466709,'pizza','€€'],
-    ['🍨','Giolitti','4.4','Via degli Uffici del Vicario 40 · Pantheon','Gelataria histórica desde 1900, uma instituição romana a poucos passos do Panteão.','Giolitti+Via+degli+Uffici+del+Vicario+Roma',41.9010245,12.4772026,'gelateria','€'],
-    ['🍝','Trattoria Da Enzo','4.3','Via dei Vascellari 29 · Trastevere','Trattoria romana genuína em Trastevere, há fila mas vale a pena.','Trattoria+Da+Enzo+Via+dei+Vascellari+Trastevere+Roma',41.8880847,12.4778554,'romana','€€'],
-    ['🍷','Roscioli Salumeria con Cucina','4.3','Via dei Giubbonari 21 · Campo de’ Fiori','Experiência gourmet entre enchidos, queijos e o melhor cacio e pepe de Roma.','Roscioli+Salumeria+con+Cucina+Via+dei+Giubbonari+Roma',41.894256,12.4742417,'esperienza','€€€']
+    ['🥖','All\'Antico Vinaio','4.3','Piazza della Maddalena 3 · Centro Storico','Schiacciate lendárias, recheadas até não poder mais: a instituição florentina que também conquistou Roma.','All+Antico+Vinaio+Piazza+della+Maddalena+Roma',41.8999637,12.4764773,'streetfood','€',''],
+    ['🔺','Trapizzino | Testaccio','4.6','Via Giovanni Branca 88 · Testaccio','O triângulo de pizza recheado inventado aqui: as almôndegas e o frango à caçadora são imperdíveis.','Trapizzino+Testaccio+Via+Giovanni+Branca+Roma',41.8796102,12.4736352,'streetfood','€',''],
+    ['🍕','Antico Forno Roscioli','4.5','Via dei Chiavari 34 · Campo de’ Fiori','Forno histórico e pizza ao corte perto de Campo de’ Fiori, a mortadela é lendária.','Antico+Forno+Roscioli+Via+dei+Chiavari+Roma',41.8945667,12.4742778,'pizza','€',''],
+    ['🍚','Supplizio','4.5','Via dei Banchi Vecchi 143 · Centro Storico','Só supplì, feitos na perfeição: cacio e pepe, amatriciana, o clássico.','Supplizio+Via+dei+Banchi+Vecchi+Roma',41.897487,12.467911,'streetfood','€',''],
+    ['🍕','Bonci Pizzarium','4.1','Via della Meloria 43 · Prati/Aurelio','Pizza ao corte de autor perto do Vaticano, massa de longa fermentação.','Bonci+Pizzarium+Via+della+Meloria+Roma',41.9066758,12.4466709,'pizza','€€',''],
+    ['🍨','Giolitti','4.4','Via degli Uffici del Vicario 40 · Pantheon','Gelataria histórica desde 1900, uma instituição romana a poucos passos do Panteão.','Giolitti+Via+degli+Uffici+del+Vicario+Roma',41.9010245,12.4772026,'gelateria','€',''],
+    ['🍝','Trattoria Da Enzo','4.3','Via dei Vascellari 29 · Trastevere','Trattoria romana genuína em Trastevere, há fila mas vale a pena — não aceitam reservas.','Trattoria+Da+Enzo+Via+dei+Vascellari+Trastevere+Roma',41.8880847,12.4778554,'romana','€€',''],
+    ['🍷','Roscioli Salumeria con Cucina','4.3','Via dei Giubbonari 21 · Campo de’ Fiori','Experiência gourmet entre enchidos, queijos e o melhor cacio e pepe de Roma.','Roscioli+Salumeria+con+Cucina+Via+dei+Giubbonari+Roma',41.894256,12.4742417,'esperienza','€€€','+390686875287']
   ],
   tours:{
     ghetto:{t:'Ghetto e Testaccio',d:'Do coração judaico de Roma ao bairro mais autêntico: lendas, sabores e histórias que não encontra nos guias.'},
@@ -855,33 +884,35 @@ zh:{
   ],
   t_food_roma:'罗马美食精选', t_food_roma_sub:'如果去市中心,这些值得专程一试',
   filter_all:'全部', filter_cuisine:'菜系类型', filter_price:'价格区间',
+  book_cta:'📞 预订',
   food_cats:{colazione:'早餐',romana:'罗马菜',sushi:'寿司',pizza:'披萨',pesce:'海鲜',vegano:'素食',messicano:'墨西哥菜',indiano:'印度菜',hamburgeria:'汉堡',gelateria:'冰淇淋',aperitivo:'开胃小食',streetfood:'街头小吃',esperienza:'特色体验'},
   food:[
-    ['☕','Bar Stendal','','Piazzale delle Provincie 1','最近的咖啡吧,早餐甜点的绝佳选择。','Bar+Stendal+Roma',41.9090953,12.521502,'colazione','€'],
-    ['🍝','Strada Romana','4.7','Via Teodorico 34 · 06 8339 8501','正宗罗马菜与披萨,环境雅致,性价比很高。','Strada+Romana+Via+Teodorico+34+Roma',41.9105217,12.5279991,'romana','€€'],
-    ['🍣','Kimi Sushi Experience','4.5','Via della Lega Lombarda 48C','高品质自助餐,生食熟食选择非常丰富。','Kimi+Sushi+Experience+Roma',41.9084043,12.5247835,'sushi','€€'],
-    ['🍕','Malaterra','4.5','Viale XXI Aprile 75','现烤轻盈的美食披萨,本区口碑最佳之一。','Malaterra+Viale+XXI+Aprile+Roma',41.9148692,12.5206389,'pizza','€€'],
-    ['🍝','Da Enrico','4.4','Via Michele di Lando 28','历史悠久的老饭馆,经典番茄培根意面和肉丸出色,氛围热闹。','Da+Enrico+Via+Michele+di+Lando+Roma',41.9137907,12.5224039,'romana','€€'],
-    ['🍷','Osteria Urbana','4.1','Via Bari 9','罗马最佳卡邦纳拉之一,员工会说英语。','Osteria+Urbana+Via+Bari+Roma',41.9110697,12.5147991,'romana','€€'],
-    ['🍕','Da Mamma','4.0','Via Lorenzo il Magnifico 62','家庭经营的小饭馆,家常菜地道,价格非常实惠。','Da+Mamma+Via+Lorenzo+il+Magnifico+Roma',41.9126707,12.5232376,'romana','€'],
-    ['🐟','Ristorante da Franco','4.5','Via Stamira 23','新鲜优质海鲜,深受本地居民喜爱。','Ristorante+da+Franco+Via+Stamira+Roma',41.913242,12.5234063,'pesce','€€'],
-    ['🍝','Rigatoni Ristorante Pizzeria','4.5','Via Luigi Pigorini 31','经典意面与披萨,品质稳定,适合家庭用餐。','Rigatoni+Ristorante+Pizzeria+Piazza+Bologna+Roma',41.9160952,12.5222681,'pizza','€€'],
-    ['🌱','Col Cavolo - Vegan Bistrot','4.8','Via Cesare Bosi 7 · Trieste','精致素食料理,罗马最受欢迎的素食餐厅之一。','Col+Cavolo+Vegan+Bistrot+Via+Cesare+Bosi+Roma',41.9119436,12.500445,'vegano','€€'],
-    ['🌮','Casa Sánchez','4.6','Via Catanzaro 6b · Trieste','正宗墨西哥菜,塔可与玛格丽特出色。','Casa+Sanchez+Via+Catanzaro+Roma',41.9119562,12.5175178,'messicano','€€'],
-    ['🍛','Suresh Food & Drinks','4.7','Via Arno 73 · Trieste','精致印度菜,全城评价最高的餐厅之一。','Suresh+Food+Drinks+Via+Arno+Roma',41.9195212,12.4997278,'indiano','€€'],
-    ['🍔','Hamburgeseria Burger Bar','4.4','Via dei Reti 40 · San Lorenzo','精品汉堡与香脆薯条,氛围轻松随意。','Hamburgeseria+Burger+Bar+Via+dei+Reti+Roma',41.8982015,12.5186568,'hamburgeria','€€'],
-    ['🍨','Gelato Romano','4.9','Via Giacomo Boni 33','手工冰淇淋出色,罗马评价最高的冰淇淋店之一。','Gelato+Romano+Via+Giacomo+Boni+Roma',41.9150989,12.5222429,'gelateria','€'],
-    ['🍹','Mood Café','4.2','Piazza Bologna 7','丰盛的开胃小食,价格实惠,晚餐后小酌的好去处。','Mood+Cafe+Piazza+Bologna+Roma',41.912979,12.521305,'aperitivo','€€']
+    ['☕','Bar Stendal','','Piazzale delle Provincie 1','最近的咖啡吧,早餐甜点的绝佳选择。','Bar+Stendal+Roma',41.9090953,12.521502,'colazione','€',''],
+    ['🔺','Trapizzino | P.le Provincie','4.5','Piazzale delle Provincie 9','距我们仅200米:如果想在附近快速吃点地道的东西,这里绝对是最保险的选择。','Trapizzino+Piazzale+delle+Provincie+Roma',41.90954,12.521587,'streetfood','€',''],
+    ['🍝','Strada Romana','4.7','Via Teodorico 34 · 06 8339 8501','正宗罗马菜与披萨,环境雅致,性价比很高。','Strada+Romana+Via+Teodorico+34+Roma',41.9105217,12.5279991,'romana','€€','+390683398501'],
+    ['🍣','Kimi Sushi Experience','4.5','Via della Lega Lombarda 48C','高品质自助餐,生食熟食选择非常丰富。','Kimi+Sushi+Experience+Roma',41.9084043,12.5247835,'sushi','€€','+393273412345'],
+    ['🍕','Malaterra','4.5','Viale XXI Aprile 75','现烤轻盈的美食披萨,本区口碑最佳之一。','Malaterra+Viale+XXI+Aprile+Roma',41.9148692,12.5206389,'pizza','€€','+390645471930'],
+    ['🍝','Da Enrico','4.4','Via Michele di Lando 28','历史悠久的老饭馆,经典番茄培根意面和肉丸出色,氛围热闹。','Da+Enrico+Via+Michele+di+Lando+Roma',41.9137907,12.5224039,'romana','€€','+390644237738'],
+    ['🍷','Osteria Urbana','4.1','Via Bari 9','罗马最佳卡邦纳拉之一,员工会说英语。','Osteria+Urbana+Via+Bari+Roma',41.9110697,12.5147991,'romana','€€','+390692099110'],
+    ['🍕','Da Mamma','4.0','Via Lorenzo il Magnifico 62','家庭经营的小饭馆,家常菜地道,价格非常实惠。','Da+Mamma+Via+Lorenzo+il+Magnifico+Roma',41.9126707,12.5232376,'romana','€','+390644242613'],
+    ['🐟','Ristorante da Franco','4.5','Via Stamira 23','新鲜优质海鲜,深受本地居民喜爱。','Ristorante+da+Franco+Via+Stamira+Roma',41.913242,12.5234063,'pesce','€€','+390644236122'],
+    ['🍝','Rigatoni Ristorante Pizzeria','4.5','Via Luigi Pigorini 31','经典意面与披萨,品质稳定,适合家庭用餐。','Rigatoni+Ristorante+Pizzeria+Piazza+Bologna+Roma',41.9160952,12.5222681,'pizza','€€','+390699702398'],
+    ['🌱','Col Cavolo - Vegan Bistrot','4.8','Via Cesare Bosi 7 · Trieste','精致素食料理,罗马最受欢迎的素食餐厅之一。','Col+Cavolo+Vegan+Bistrot+Via+Cesare+Bosi+Roma',41.9119436,12.500445,'vegano','€€','+393517675734'],
+    ['🌮','Casa Sánchez','4.6','Via Catanzaro 6b · Trieste','正宗墨西哥菜,塔可与玛格丽特出色。','Casa+Sanchez+Via+Catanzaro+Roma',41.9119562,12.5175178,'messicano','€€','+390645542607'],
+    ['🍛','Suresh Food & Drinks','4.7','Via Arno 73 · Trieste','精致印度菜,全城评价最高的餐厅之一。','Suresh+Food+Drinks+Via+Arno+Roma',41.9195212,12.4997278,'indiano','€€','+393888528172'],
+    ['🍔','Hamburgeseria Burger Bar','4.4','Via dei Reti 40 · San Lorenzo','精品汉堡与香脆薯条,氛围轻松随意。','Hamburgeseria+Burger+Bar+Via+dei+Reti+Roma',41.8982015,12.5186568,'hamburgeria','€€','+390644701298'],
+    ['🍨','Gelato Romano','4.9','Via Giacomo Boni 33','手工冰淇淋出色,罗马评价最高的冰淇淋店之一。','Gelato+Romano+Via+Giacomo+Boni+Roma',41.9150989,12.5222429,'gelateria','€',''],
+    ['🍹','Mood Café','4.2','Piazza Bologna 7','丰盛的开胃小食,价格实惠,晚餐后小酌的好去处。','Mood+Cafe+Piazza+Bologna+Roma',41.912979,12.521305,'aperitivo','€€','']
   ],
   foodRoma:[
-    ['🥖','All\'Antico Vinaio','4.3','Piazza della Maddalena 3 · Centro Storico','传说级佛卡夏三明治,馅料丰盛到夸张:征服了佛罗伦萨也征服了罗马。','All+Antico+Vinaio+Piazza+della+Maddalena+Roma',41.8999637,12.4764773,'streetfood','€'],
-    ['🔺','Trapizzino','4.6','Via Giovanni Branca 88 · Testaccio','三角披萨夹馅小吃的发源地:肉丸和猎人烩鸡馅料不容错过。','Trapizzino+Testaccio+Via+Giovanni+Branca+Roma',41.8796102,12.4736352,'streetfood','€'],
-    ['🍕','Antico Forno Roscioli','4.5','Via dei Chiavari 34 · Campo de’ Fiori','历史悠久的老面包房,在鲜花广场附近,摩泰台拉香肠口味堪称传奇。','Antico+Forno+Roscioli+Via+dei+Chiavari+Roma',41.8945667,12.4742778,'pizza','€'],
-    ['🍚','Supplizio','4.5','Via dei Banchi Vecchi 143 · Centro Storico','只卖炸饭团,做到极致:卡邦纳拉、番茄培根、经典原味。','Supplizio+Via+dei+Banchi+Vecchi+Roma',41.897487,12.467911,'streetfood','€'],
-    ['🍕','Bonci Pizzarium','4.1','Via della Meloria 43 · Prati/Aurelio','梵蒂冈附近的名家披萨,长时间发酵面团。','Bonci+Pizzarium+Via+della+Meloria+Roma',41.9066758,12.4466709,'pizza','€€'],
-    ['🍨','Giolitti','4.4','Via degli Uffici del Vicario 40 · Pantheon','自1900年营业的老牌冰淇淋店,万神殿附近的罗马地标。','Giolitti+Via+degli+Uffici+del+Vicario+Roma',41.9010245,12.4772026,'gelateria','€'],
-    ['🍝','Trattoria Da Enzo','4.3','Via dei Vascellari 29 · Trastevere','特拉斯提弗列地道罗马小饭馆,需要排队但绝对值得。','Trattoria+Da+Enzo+Via+dei+Vascellari+Trastevere+Roma',41.8880847,12.4778554,'romana','€€'],
-    ['🍷','Roscioli Salumeria con Cucina','4.3','Via dei Giubbonari 21 · Campo de’ Fiori','在熟食与奶酪间享受美食体验,罗马最佳卡邦纳拉之一。','Roscioli+Salumeria+con+Cucina+Via+dei+Giubbonari+Roma',41.894256,12.4742417,'esperienza','€€€']
+    ['🥖','All\'Antico Vinaio','4.3','Piazza della Maddalena 3 · Centro Storico','传说级佛卡夏三明治,馅料丰盛到夸张:征服了佛罗伦萨也征服了罗马。','All+Antico+Vinaio+Piazza+della+Maddalena+Roma',41.8999637,12.4764773,'streetfood','€',''],
+    ['🔺','Trapizzino | Testaccio','4.6','Via Giovanni Branca 88 · Testaccio','三角披萨夹馅小吃的发源地:肉丸和猎人烩鸡馅料不容错过。','Trapizzino+Testaccio+Via+Giovanni+Branca+Roma',41.8796102,12.4736352,'streetfood','€',''],
+    ['🍕','Antico Forno Roscioli','4.5','Via dei Chiavari 34 · Campo de’ Fiori','历史悠久的老面包房,在鲜花广场附近,摩泰台拉香肠口味堪称传奇。','Antico+Forno+Roscioli+Via+dei+Chiavari+Roma',41.8945667,12.4742778,'pizza','€',''],
+    ['🍚','Supplizio','4.5','Via dei Banchi Vecchi 143 · Centro Storico','只卖炸饭团,做到极致:卡邦纳拉、番茄培根、经典原味。','Supplizio+Via+dei+Banchi+Vecchi+Roma',41.897487,12.467911,'streetfood','€',''],
+    ['🍕','Bonci Pizzarium','4.1','Via della Meloria 43 · Prati/Aurelio','梵蒂冈附近的名家披萨,长时间发酵面团。','Bonci+Pizzarium+Via+della+Meloria+Roma',41.9066758,12.4466709,'pizza','€€',''],
+    ['🍨','Giolitti','4.4','Via degli Uffici del Vicario 40 · Pantheon','自1900年营业的老牌冰淇淋店,万神殿附近的罗马地标。','Giolitti+Via+degli+Uffici+del+Vicario+Roma',41.9010245,12.4772026,'gelateria','€',''],
+    ['🍝','Trattoria Da Enzo','4.3','Via dei Vascellari 29 · Trastevere','特拉斯提弗列地道罗马小饭馆,需要排队但绝对值得——不接受预订。','Trattoria+Da+Enzo+Via+dei+Vascellari+Trastevere+Roma',41.8880847,12.4778554,'romana','€€',''],
+    ['🍷','Roscioli Salumeria con Cucina','4.3','Via dei Giubbonari 21 · Campo de’ Fiori','在熟食与奶酪间享受美食体验,罗马最佳卡邦纳拉之一。','Roscioli+Salumeria+con+Cucina+Via+dei+Giubbonari+Roma',41.894256,12.4742417,'esperienza','€€€','+390686875287']
   ],
   tours:{
     ghetto:{t:'犹太区与泰斯塔乔',d:'从罗马的犹太文化中心到最地道的市井街区:传说、风味与向导书上找不到的故事。'},
@@ -946,7 +977,7 @@ function render(){
        <div class="top"><h3>${s[6]==='metro' ? '<span class="m-badge">M</span>' : s[0]} ${s[1]}</h3></div><div class="addr">${s[2]}</div>
      </div>`).join('');
   $$('#servizi .poi').forEach(el => {
-    el.querySelector('[data-navbtn]').addEventListener('click', e => e.stopPropagation());
+    el.querySelectorAll('[data-navbtn]').forEach(nb => nb.addEventListener('click', e => e.stopPropagation()));
     el.addEventListener('click', () => {
       const s = T().servizi[+el.dataset.poi];
       $$('#tabbar button').forEach(x => x.classList.remove('on'));
@@ -999,6 +1030,7 @@ function foodCardHTML(f){
     </a>
     <div class="top"><h3>${f[0]} ${f[1]}</h3>${f[2]?`<span class="star">★ ${f[2]}</span>`:''}<span class="poi-price${f[2]?'':' pushright'}">${f[9]||''}</span></div>
     <div class="addr">${f[3]}</div><div class="desc">${f[4]}</div>
+    ${f[10] ? `<a class="book-btn" href="tel:${f[10]}" data-navbtn>${T().book_cta}</a>` : ''}
   </div>`;
 }
 
@@ -1008,7 +1040,7 @@ function renderFoodFiltered(){
   $('#foodlist').innerHTML = filtered.map(foodCardHTML).join('');
   $$('#foodlist .poi').forEach((el, i) => {
     const f = filtered[i];
-    el.querySelector('[data-navbtn]').addEventListener('click', e => e.stopPropagation());
+    el.querySelectorAll('[data-navbtn]').forEach(nb => nb.addEventListener('click', e => e.stopPropagation()));
     if(f[6] != null && f[7] != null){
       el.addEventListener('click', () => {
         initFoodMap();
@@ -1022,13 +1054,18 @@ function renderFoodFiltered(){
 function renderFilterChips(){
   const all = foodBaseList();
   const cuisines = [...new Set(all.map(f => f[8]).filter(Boolean))];
-  $('#filterCuisine').innerHTML = [
-    `<button class="chip${foodCuisine===null?' on':''}" data-cuisine="">${T().filter_all}</button>`,
-    ...cuisines.map(c => `<button class="chip${foodCuisine===c?' on':''}" data-cuisine="${c}">${T().food_cats[c]||c}</button>`)
+
+  const cuisineLabel = foodCuisine ? (T().food_cats[foodCuisine] || foodCuisine) : T().filter_all;
+  $('#cuisineFilterBtn').textContent = `${T().filter_cuisine}: ${cuisineLabel}`;
+
+  $('#cuisineModalList').innerHTML = [
+    `<button class="lang-row${foodCuisine===null?' on':''}" data-cuisine="">${T().filter_all}${foodCuisine===null?'<span class="check">✓</span>':''}</button>`,
+    ...cuisines.map(c => `<button class="lang-row${foodCuisine===c?' on':''}" data-cuisine="${c}">${T().food_cats[c]||c}${foodCuisine===c?'<span class="check">✓</span>':''}</button>`)
   ].join('');
-  $$('#filterCuisine .chip').forEach(b => b.addEventListener('click', () => {
+  $$('#cuisineModalList .lang-row').forEach(b => b.addEventListener('click', () => {
     foodCuisine = b.dataset.cuisine || null;
     renderFilterChips(); renderFoodFiltered();
+    $('#cuisineModalOverlay').classList.remove('show');
   }));
 
   const prices = [...new Set(all.map(f => f[9]).filter(Boolean))].sort((a,b)=>a.length-b.length);
@@ -1161,6 +1198,9 @@ $$('#tabbar button').forEach(b => b.addEventListener('click', () => {
 $('#langBtn').addEventListener('click', () => { $('#langModalOverlay').classList.add('show'); });
 $('#langModalClose').addEventListener('click', () => { $('#langModalOverlay').classList.remove('show'); });
 $('#langModalOverlay').addEventListener('click', e => { if(e.target.id === 'langModalOverlay') e.currentTarget.classList.remove('show'); });
+$('#cuisineFilterBtn').addEventListener('click', () => { $('#cuisineModalOverlay').classList.add('show'); });
+$('#cuisineModalClose').addEventListener('click', () => { $('#cuisineModalOverlay').classList.remove('show'); });
+$('#cuisineModalOverlay').addEventListener('click', e => { if(e.target.id === 'cuisineModalOverlay') e.currentTarget.classList.remove('show'); });
 
 /* ================= CHAT ================= */
 const chatHistory = [];
