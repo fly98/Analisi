@@ -223,90 +223,62 @@ async function refreshConcerti(env, slug, city) {
   return { ok: true, count: concerti.length };
 }
 
-// ---------------- Eventi: refresh da API ufficiale Roma Capitale (060608) ----------------
-const CAT_EMOJI = {
-  "Mostre": "🖼️", "Manifestazioni": "🎪", "Teatro": "🎭", "Danza": "💃",
-  "Visite guidate e didattica": "🚶", "Incontri": "🎤", "Cinema": "🎬"
-};
-
-function parseItDate(s) {
-  // "DD/MM/YYYY" -> {y,m,d}
-  const [d, m, y] = s.split("/").map(Number);
-  return { y, m, d };
+// ---------------- Eventi: refresh da Wanted in Rome (curato editorialmente) ----------------
+const TITLE_EMOJI = [
+  [/exhibition|mostra|museum|gallery/i, "🖼️"],
+  [/festival/i, "🎪"],
+  [/opera|ballet|dance/i, "🎭"],
+  [/concert|music|jazz|orchestra/i, "🎵"],
+  [/food|market|wine|taste|mercat/i, "🍕"],
+  [/pride|parade/i, "🏳️‍🌈"],
+  [/film|cinema|movie/i, "🎬"],
+  [/sport|rally|race/i, "🏁"]
+];
+function guessEmoji(titolo) {
+  for (const [re, emoji] of TITLE_EMOJI) if (re.test(titolo)) return emoji;
+  return "📌";
+}
+function fmtIsoDate(iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (isNaN(d)) return "";
+  return `${d.getUTCDate()} ${MESI[d.getUTCMonth()]}`;
 }
 
-function fmtComuneDate(dataStr) {
-  if (!dataStr) return "";
-  const range = dataStr.match(/^da (\d{2}\/\d{2}\/\d{4}) a (\d{2}\/\d{2}\/\d{4})$/);
-  if (range) {
-    const a = parseItDate(range[1]), b = parseItDate(range[2]);
-    return `${a.d} ${MESI[a.m - 1]} - ${b.d} ${MESI[b.m - 1]}`;
-  }
-  const single = dataStr.match(/^(\d{2}\/\d{2}\/\d{4})$/);
-  if (single) {
-    const a = parseItDate(single[1]);
-    return `${a.d} ${MESI[a.m - 1]}`;
-  }
-  return dataStr;
+async function fetchMeta(html, prop) {
+  const re = new RegExp(`<meta (?:property|name)="${prop}" content="([^"]*)"`, "i");
+  const m = html.match(re);
+  return m ? m[1].replace(/&amp;/g, "&").replace(/&#039;/g, "'").replace(/&quot;/g, '"') : "";
 }
 
-function comuneDateEndPasses(dataStr) {
-  // ritorna true se l'evento non è ancora concluso
-  const oggi = new Date(); oggi.setUTCHours(0, 0, 0, 0);
-  const range = dataStr?.match(/a (\d{2}\/\d{2}\/\d{4})$/);
-  const dateStr = range ? range[1] : (dataStr?.match(/^(\d{2}\/\d{2}\/\d{4})/) || [])[1];
-  if (!dateStr) return true;
-  const { y, m, d } = parseItDate(dateStr);
-  const end = new Date(Date.UTC(y, m - 1, d));
-  return end >= oggi;
-}
+async function refreshEventi(env, slug) {
+  const resp = await fetch("https://www.wantedinrome.com/whatson");
+  if (!resp.ok) return { ok: false, error: `Wanted in Rome ${resp.status}` };
+  const html = await resp.text();
 
-function voceValore(voci, chiave) {
-  return voci.find(v => v.chiave === chiave)?.valore || "";
-}
+  const urls = [...new Set(
+    [...html.matchAll(/https:\/\/www\.wantedinrome\.com\/whatson\/[a-zA-Z0-9\-]+\.html/g)].map(m => m[0])
+  )].slice(0, 10);
 
-function parseVenue(ospitatoIn) {
-  if (!ospitatoIn) return "";
-  const primo = ospitatoIn.split("§§")[0];
-  const parts = primo.split("~");
-  return parts.length > 1 ? parts[1] : primo;
-}
-
-async function refreshEventiComune(env, slug) {
-  const resp = await fetch("https://ws.comune.roma.it/060608/api/public/entita/ricerca?size=100&sort=data,asc", {
-    method: "POST", headers: { "Content-Type": "application/json" }, body: "{}"
-  });
-  if (!resp.ok) return { ok: false, error: `Comune Roma ${resp.status}` };
-  const data = await resp.json();
-  const raw = data.page?.content || [];
-
-  const escluse = new Set(["Musica"]); // già coperta dalla tab Concerti
-  const perCategoria = {};
   const eventi = [];
-
-  for (const item of raw) {
-    const cat = item.categoria;
-    if (escluse.has(cat)) continue;
-    const voci = item.voci || [];
-    const dataVal = voceValore(voci, "Data");
-    if (!comuneDateEndPasses(dataVal)) continue;
-    perCategoria[cat] = (perCategoria[cat] || 0) + 1;
-    if (perCategoria[cat] > 4) continue; // varietà: max 4 per categoria
-
-    const nav = item.navigazione || {};
-    const link = nav.slug && nav.categoria?.codice
-      ? `https://060608.comune.roma.it/eventi/${nav.categoria.codice}/${nav.slug}-${nav.id}`
-      : (voceValore(voci, "Sito web") ? `https://${voceValore(voci, "Sito web").replace(/^https?:\/\//, "")}` : "");
-
-    eventi.push({
-      emoji: CAT_EMOJI[cat] || "🎫",
-      titolo: item.nome,
-      quando: fmtComuneDate(dataVal),
-      dove: parseVenue(voceValore(voci, "Ospitato in")) || item.zona || "",
-      descr: cat,
-      link
-    });
-    if (eventi.length >= 12) break;
+  for (const link of urls) {
+    try {
+      const dResp = await fetch(link);
+      if (!dResp.ok) continue;
+      const dHtml = await dResp.text();
+      const titolo = await fetchMeta(dHtml, "og:title");
+      const descr = await fetchMeta(dHtml, "description");
+      const pubDate = await fetchMeta(dHtml, "article:published_time");
+      if (!titolo) continue;
+      eventi.push({
+        emoji: guessEmoji(titolo),
+        titolo,
+        quando: fmtIsoDate(pubDate),
+        dove: "",
+        descr,
+        link
+      });
+    } catch (e) { /* salta questo link, continua con gli altri */ }
   }
 
   await env.WB_KV.put(`wb:${slug}:eventi`, JSON.stringify(eventi), { expirationTtl: 60 * 60 * 24 * 7 });
@@ -316,7 +288,7 @@ async function refreshEventiComune(env, slug) {
 async function handleRefreshEventi(request, env, slug, url) {
   const key = url.searchParams.get("key");
   if (!env.WB_ADMIN_KEY || key !== env.WB_ADMIN_KEY) return json({ error: "non autorizzato" }, 401);
-  const result = await refreshEventiComune(env, slug);
+  const result = await refreshEventi(env, slug);
   return json(result, result.ok ? 200 : 502);
 }
 
@@ -391,7 +363,7 @@ export default {
 
   async scheduled(event, env, ctx) {
     // Aggiornamento giornaliero eventi + concerti Roma per tutte le strutture attive
-    ctx.waitUntil(refreshEventiComune(env, "campaldino"));
+    ctx.waitUntil(refreshEventi(env, "campaldino"));
     ctx.waitUntil(refreshConcerti(env, "campaldino", "Roma"));
   }
 };
