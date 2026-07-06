@@ -32,11 +32,11 @@ const KNOWLEDGE = {
 STRUTTURA: InternoUno — Via Campaldino 6, Roma (zona Piazza Bologna / San Lorenzo).
 CHECK-IN: dalle 14:00. CHECK-OUT: entro le 10:00; se non trovi lo staff lascia la chiave sul bancone reception.
 DEPOSITO BAGAGLI: gratuito il giorno della partenza, nell'armadio a specchio a destra della reception; ritiro in giornata, lasciare poi la chiave sul bancone. Non è custodito: evitare oggetti di valore.
-PARCHEGGIO: Via Campaldino e Via Cupa sono strade condominiali private, gratuito se c'è posto. Alternativa: Garage Di Nezza sotto la struttura, ingresso da Via Cupa, tel +39 320 8667617, Lun-Sab 6:30-01:00, Dom 7:00-11:00 e 19:00-23:00.
+PARCHEGGIO: Via Campaldino e Via Cupa sono strade condominiali private, gratuito se c'è posto. Alternativa: Garage Di Nezza sotto la struttura, ingresso da Via Cupa, tel +39 320 8667617, 25€/giorno per vetture standard (tariffa maggiore per auto di grande valore o dimensioni importanti), Lun-Sab 6:30-01:00, Dom 7:00-11:00 e 19:00-23:00.
 METRO: Piazza Bologna, Linea B, 400m/10 min a piedi. Termini 3 fermate, Colosseo 5 fermate. Orari dom-gio 5:30-23:30, ven-sab 5:30-01:30.
 BIGLIETTI ATAC: 1,50€ (100 min), 7€ (24h), 12,50€ (48h), 18€ (72h). In vendita in metro, tabacchi, edicole, o app TicketAppy.
 WIFI: nome rete e password sono affissi in camera su un cartoncino; se l'ospite non lo trova, invitalo a scrivere su WhatsApp.
-NETFLIX: gratuito su smart TV, tasto dedicato sul telecomando. Se chiede un codice, invitalo a mandare foto del QR via WhatsApp.
+NETFLIX: gratuito, basta premere il tasto dedicato sul telecomando. Se l'account risulta disconnesso, invita l'ospite a mandare su WhatsApp una foto del QR a schermo.
 SILENZIO: 22:00-08:00, ridurre al minimo i rumori.
 ARIA CONDIZIONATA: va sempre spenta uscendo dalla camera.
 ANIMALI: benvenuti gratuitamente, non devono salire sui letti né restare liberi nelle aree comuni.
@@ -49,14 +49,14 @@ CONTATTO DIRETTO: WhatsApp +39 392 2999914 per qualsiasi necessità non coperta 
 
   lorenzo: `
 STRUTTURA: InternoUno Deluxe — Via Lorenzo il Magnifico 158, Roma (zona Tiburtina).
-A pochi passi dalla Stazione Tiburtina (metro Linea B + treni Alta Velocità e regionali). Camere con bagno privato, angolo cottura, aria condizionata; jacuzzi privata in tutte le camere tranne la camera economica "Cinque".
+A pochi passi dalla Stazione Tiburtina (metro Linea B + treni Alta Velocità e regionali). Camere con bagno privato, angolo cottura, aria condizionata; la tua camera è dotata di vasca idromassaggio (se non parte, controlla l'interruttore vicino alla luce del bagno).
 CHECK-IN: dalle 14:00. CHECK-OUT: entro le 10:00; se non trovi lo staff lascia la chiave sul bancone reception.
 DEPOSITO BAGAGLI: al check-out chiedi allo staff, ti indicheranno dove lasciarli in sicurezza per la giornata.
-PARCHEGGIO: Garage Bologna, Via Lorenzo il Magnifico 83 (a pochi passi), tel +39 06 4424 2664, a pagamento, Lun-Sab 6:00-01:00, Dom 6:00-10:00 e 19:00-01:00.
-METRO: Stazione Tiburtina, Linea B, 300m/5 min a piedi — anche stazione ferroviaria Alta Velocità e regionali. Termini 4 fermate, Colosseo 6 fermate.
+PARCHEGGIO: Garage Bologna, Via Lorenzo il Magnifico 83 (a pochi passi), tel +39 06 4424 2664, 25€/giorno per vetture standard (tariffa maggiore per auto di grande valore o dimensioni importanti), Lun-Sab 6:00-01:00, Dom 6:00-10:00 e 19:00-01:00. C'è un garage più vicino a destra dell'entrata ma con tariffe molto più alte.
+METRO: Stazione Tiburtina, Linea B, a soli 10 metri (meno di 1 minuto a piedi, davanti al nostro cancello) — anche stazione ferroviaria Alta Velocità e regionali. Termini 4 fermate, Colosseo 6 fermate.
 BIGLIETTI ATAC: 1,50€ (100 min), 7€ (24h), 12,50€ (48h), 18€ (72h). In vendita in metro, tabacchi, edicole, o app TicketAppy.
 WIFI: nome rete e password affissi in camera; se non trovato, scrivere su WhatsApp.
-NETFLIX: gratuito su smart TV, tasto dedicato sul telecomando.
+NETFLIX: gratuito, premi il tasto dedicato sul telecomando oppure seleziona l'ingresso HDMI dedicato sulla TV per accedere al menu e scegliere l'icona Netflix. Se l'account risulta disconnesso, invita l'ospite a mandare su WhatsApp una foto del QR a schermo.
 SILENZIO: 22:00-08:00.
 ARIA CONDIZIONATA: va sempre spenta uscendo dalla camera.
 ANIMALI: benvenuti gratuitamente, non sui letti né liberi nelle aree comuni.
