@@ -1,0 +1,1427 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1a1a1a">
+<title>InternoUno Life · Via Lorenzo il Magnifico</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Michroma&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f5f4f0;
+  --surface:#ffffff;
+  --sidebar:#f0efe9;
+  --border:rgba(0,0,0,.08);
+  --border-s:rgba(0,0,0,.15);
+  --text:#1a1a1a;
+  --muted:#666;
+  --faint:#999;
+  --orange:#FF6628;
+  --orange-bg:#FFEDE4;
+  --blue:#1a4a7a;  --blue-bg:#eef4fd;
+  --green:#1a7a4a; --green-bg:#e8f5ee;
+  --red:#b83232;   --red-bg:#fdf0f0;
+  --dark:#1a1a1a;
+  --radius:12px;
+  --tabbar-h:62px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',sans-serif;
+  background:var(--bg);color:var(--text);
+  font-size:16px;line-height:1.5;
+  max-width:520px;margin:0 auto;
+  padding-bottom:calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 12px);
+}
+a{color:var(--blue)}
+/* ---------- header scuro con wordmark ---------- */
+header{
+  position:sticky;top:0;z-index:20;
+  background:#2a2622;
+  border-radius:0 0 20px 20px;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 16px calc(14px);
+  padding-top:calc(14px + env(safe-area-inset-top));
+}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-icon{display:block;flex-shrink:0;width:42px;height:31px;object-fit:contain}
+.wordmark{
+  font-family:'Michroma',-apple-system,sans-serif;font-weight:400;
+  font-size:17px;text-transform:uppercase;letter-spacing:.04em;color:#fff;
+  display:flex;flex-direction:column;align-items:flex-start;
+}
+.wordmark .name{display:block}
+.wordmark .uno{color:var(--orange)}
+.wordmark .tagline{
+  display:block;font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+  font-weight:700;font-size:.6rem;letter-spacing:.1em;
+  color:#fff;text-transform:uppercase;margin-top:4px;line-height:1.35;
+}
+.wordmark .tagline .u{color:var(--orange)}
+.wordmark .addr{
+  display:block;font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+  font-weight:500;font-size:.6rem;letter-spacing:.1em;
+  color:rgba(255,255,255,.55);text-transform:uppercase;margin-top:1px;line-height:1.35;
+}
+.lang-btn{width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,.25);
+  background:rgba(255,255,255,.08);font-size:17px;display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;cursor:pointer}
+.lang-modal-overlay{position:fixed;inset:0;background:rgba(20,17,14,.55);z-index:700;
+  display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;
+  transition:opacity .2s}
+.lang-modal-overlay.show{opacity:1;pointer-events:auto}
+.lang-modal{width:100%;max-width:480px;background:#fff;border-radius:20px 20px 0 0;
+  padding:18px 18px calc(18px + env(safe-area-inset-bottom));
+  transform:translateY(20px);transition:transform .25s;max-height:70vh;overflow-y:auto}
+.lang-modal-overlay.show .lang-modal{transform:translateY(0)}
+.lang-modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.lang-modal-head h3{font-size:16px;margin:0}
+.lang-modal-close{width:30px;height:30px;border-radius:50%;border:none;background:var(--bg2,#f0efe9);
+  font-size:14px;cursor:pointer}
+.lang-modal-list{display:flex;flex-direction:column;gap:4px}
+.lang-row{display:flex;align-items:center;gap:12px;padding:12px 10px;border-radius:12px;
+  border:none;background:none;width:100%;text-align:left;font-size:15px;cursor:pointer;color:inherit}
+.lang-row:active{background:rgba(0,0,0,.04)}
+.lang-row.on{background:rgba(255,102,40,.1);font-weight:700;color:var(--orange)}
+.lang-row .flag{font-size:20px}
+.lang-row .check{margin-left:auto;color:var(--orange)}
+.wifi-card{padding:4px 2px 8px}
+.wifi-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border)}
+.wifi-row span{color:var(--muted);font-size:.9rem}
+.wifi-row b{font-size:1rem;letter-spacing:.02em}
+#wifiCopyBtn{width:100%;margin-top:16px;background:var(--orange);color:#fff;border:none;border-radius:var(--radius);
+  padding:13px;font-size:.95rem;font-weight:700;cursor:pointer}
+#wifiCopyBtn.copied{background:#3c9a5f}
+/* ---------- section headers ---------- */
+.targa{margin:26px 16px 10px;text-align:left;background:none;border:none;box-shadow:none;padding:0}
+.targa h2{font-size:1.25rem;font-weight:700;letter-spacing:-.01em;color:var(--text);text-transform:none}
+.targa p{font-size:.8rem;color:var(--muted);margin-top:2px}
+/* ---------- screens & cards ---------- */
+.screen{display:none;animation:fade .18s ease}
+.screen.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.screen{animation:none}}
+.wrap{padding:0 16px}
+.card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:14px 16px;margin-bottom:10px;
+}
+/* hero */
+.hero{padding:22px 16px 2px;text-align:left}
+.hero .benvenuti{font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--orange);font-weight:700;margin-bottom:4px}
+.hero h1{font-size:1.7rem;font-weight:700;letter-spacing:-.02em;line-height:1.1;margin:0 0 4px}
+.hero p{color:var(--muted);font-size:.9rem;max-width:38ch}
+/* quick actions */
+.quick{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;padding:16px 16px 2px}
+.quick a, .quick button{
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:12px 4px;text-decoration:none;color:var(--text);
+  font-size:.68rem;font-weight:600;transition:transform .15s;
+  font-family:inherit;cursor:pointer;
+}
+.quick a span.i, .quick button span.i{width:24px;height:24px;display:flex;align-items:center;justify-content:center;color:var(--text)}
+.quick a span.i svg, .quick button span.i svg{width:24px;height:24px}
+.quick a:active, .quick button:active{transform:scale(.96);border-color:var(--border-s)}
+/* accordion */
+details.acc{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  margin:0 16px 8px;overflow:hidden;
+}
+details.acc[open]{border-color:var(--border-s)}
+details.acc summary{
+  list-style:none;display:flex;align-items:center;gap:12px;
+  padding:14px 16px;cursor:pointer;font-weight:600;font-size:.93rem;
+}
+details.acc summary::-webkit-details-marker{display:none}
+details.acc summary .i{font-size:1.25rem}
+details.acc summary::after{content:"+";margin-left:auto;color:var(--orange);font-size:1.25rem;font-weight:400}
+details.acc[open] summary::after{content:"–"}
+details.acc .body{padding:0 16px 15px;color:var(--muted);font-size:.9rem}
+details.acc .body b,details.acc .body strong{color:var(--text)}
+details.acc .body p+p{margin-top:8px}
+/* pill row (biglietti) */
+.pills{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.pill{background:var(--blue-bg);border:1px solid var(--blue);border-radius:16px;padding:4px 11px;font-size:.78rem;font-weight:700;color:var(--blue)}
+.pill small{font-weight:500;opacity:.75}
+/* numeri utili */
+.numrow{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
+.numrow:last-child{border-bottom:0}
+.numrow .n{margin-left:auto;font-weight:700;color:var(--red);text-decoration:none;font-size:.98rem}
+/* ristoranti / poi */
+.poi{display:block;text-decoration:none;color:inherit}
+.poi .top{display:flex;align-items:baseline;gap:8px}
+.poi h3{font-size:.98rem;font-weight:700;color:var(--text)}
+.poi .star{margin-left:auto;font-size:.8rem;font-weight:700;color:var(--amber,#7a5a00);background:#fef8e8;border-radius:8px;padding:1px 7px;white-space:nowrap}
+.poi .addr{font-size:.78rem;color:var(--faint);margin:2px 0 3px}
+.poi .desc{font-size:.87rem;color:var(--muted)}
+.badge{display:inline-block;font-size:.62rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--green);background:var(--green-bg);border-radius:6px;padding:2px 7px;margin-left:8px;vertical-align:middle}
+/* buttons & map */
+.btn{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  background:var(--dark);color:#fff;border:0;border-radius:10px;
+  padding:13px;font-family:inherit;font-size:.93rem;font-weight:600;
+  text-decoration:none;margin-bottom:10px;width:100%;cursor:pointer;
+}
+.btn.alt{background:var(--surface);color:var(--text);border:1px solid var(--border-s)}
+.map-wrap{border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);margin-bottom:10px;position:relative;z-index:1}
+#map, #foodMap{height:280px;width:100%;background:#e9e6df}
+.leaflet-control-attribution{font-size:9px !important}
+.poi-pin{width:28px;height:28px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);
+  display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.35)}
+.poi-pin span{transform:rotate(45deg);font-size:13px;line-height:1}
+.poi-pin.cat-casa{background:var(--orange)}
+.m-badge{display:inline-flex;align-items:center;justify-content:center;width:1.3em;height:1.3em;
+  background:#e2231a;color:#fff;font-weight:900;font-family:Arial,Helvetica,sans-serif;
+  font-size:.9em;border-radius:3px;vertical-align:-3px;line-height:1}
+.t-badge{display:inline-flex;align-items:center;justify-content:center;width:1.3em;height:1.3em;
+  background:#1a1a1a;color:#fff;font-weight:900;font-family:Arial,Helvetica,sans-serif;
+  font-size:.9em;border-radius:3px;vertical-align:-3px;line-height:1}
+.poi-pin.cat-metro{background:#e2231a;border-radius:4px;transform:none;width:24px;height:24px}
+.poi-pin.cat-metro span{transform:none;font-weight:900;font-size:15px;font-family:Arial,Helvetica,sans-serif}
+.poi-pin.cat-spesa{background:#4a9e6b}
+.poi-pin.cat-bancomat{background:#8b5fbf}
+.poi-pin.cat-lavanderia{background:#2f9bb0}
+.poi-pin.cat-farmacia{background:#e0555f}
+.poi-pin.cat-garage{background:#6b6b6b}
+.poi-pin.cat-food{background:var(--orange)}
+.poi-pin.cat-ospedale{background:#d32f2f}
+.poi-pin.cat-posta{background:#c9960c}
+.poi-pin.cat-tabacchi{background:#1a1a1a;border-radius:4px;transform:none;width:24px;height:24px}
+.poi-pin.cat-tabacchi span{transform:none;font-weight:900;font-size:15px;font-family:Arial,Helvetica,sans-serif}
+.poi-tooltip{background:rgba(30,28,25,.92) !important;border:none !important;color:#fff !important;
+  font-family:inherit !important;font-size:11px !important;font-weight:600;padding:3px 8px !important;
+  border-radius:6px !important;box-shadow:none !important}
+.poi-tooltip::before{display:none !important}
+.card.poi{position:relative}
+.card.poi .navbtn{position:absolute;top:12px;right:12px;width:34px;height:34px;border-radius:50%;
+  background:rgba(255,102,40,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.card.poi .navbtn svg{width:16px;height:16px;stroke:var(--orange)}
+.book-btn{display:inline-block;margin-top:8px;font-size:.78rem;font-weight:700;color:var(--orange);
+  border:1px solid rgba(255,102,40,.35);border-radius:20px;padding:5px 12px;text-decoration:none}
+.filter-row{display:flex;gap:6px;overflow-x:auto;padding:2px 0 8px;-webkit-overflow-scrolling:touch}
+.filter-row::-webkit-scrollbar{display:none}
+.chip{flex-shrink:0;border:1px solid var(--border);background:var(--surface);border-radius:20px;
+  padding:6px 13px;font-size:.78rem;font-weight:600;color:var(--muted);white-space:nowrap;cursor:pointer}
+.chip.on{background:var(--orange);border-color:var(--orange);color:#fff}
+.subtab-row{display:flex;gap:8px;padding:2px 16px 14px}
+.subtab{flex:1;padding:10px;border-radius:12px;border:1px solid var(--border);background:var(--surface);
+  font-size:.85rem;font-weight:700;color:var(--muted);cursor:pointer}
+.subtab.on{background:var(--orange);border-color:var(--orange);color:#fff}
+.sub-panel{display:none}
+.sub-panel.on{display:block}
+.filter-select-btn{display:flex;align-items:center;gap:8px;width:100%;text-align:left;
+  border:1px solid var(--border);background:var(--surface);border-radius:12px;
+  padding:11px 14px;font-size:.85rem;font-weight:600;color:var(--text);margin-bottom:8px;cursor:pointer}
+.filter-select-btn::after{content:'▾';margin-left:auto;color:var(--muted)}
+.poi-price{margin-left:6px;font-size:.75rem;font-weight:700;color:var(--muted)}
+.poi-price.pushright{margin-left:auto}
+/* chat */
+#chatlog{min-height:40vh;display:flex;flex-direction:column;gap:9px;padding:4px 0 12px}
+.msg{max-width:84%;padding:10px 14px;border-radius:16px;font-size:.92rem}
+.msg.guest{align-self:flex-end;background:var(--dark);color:#fff;border-bottom-right-radius:4px}
+.msg.bot{align-self:flex-start;background:var(--surface);border:1px solid var(--border);border-bottom-left-radius:4px}
+.msg.bot a{color:var(--orange);font-weight:700}
+.chatbar{display:flex;gap:8px;position:sticky;bottom:calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 10px)}
+.chatbar input{
+  flex:1;border:1px solid var(--border-s);border-radius:22px;padding:12px 16px;
+  font-family:inherit;font-size:1rem;background:var(--surface);color:var(--text);
+}
+.chatbar input:focus{outline:none;border-color:var(--orange)}
+.chatbar button{
+  background:var(--orange);color:#fff;border:0;border-radius:50%;width:46px;height:46px;
+  font-size:1.15rem;cursor:pointer;flex-shrink:0;
+}
+/* tab bar */
+nav{
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);z-index:30;width:100%;max-width:520px;
+  background:rgba(255,255,255,.96);backdrop-filter:blur(10px);
+  border-top:1px solid var(--border);
+  display:flex;height:calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  padding-bottom:env(safe-area-inset-bottom);
+}
+nav button{
+  flex:1;background:none;border:0;font-family:inherit;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  font-size:.62rem;font-weight:600;color:var(--faint);transition:color .2s;
+}
+nav button .i{width:23px;height:23px;display:flex;align-items:center;justify-content:center;color:var(--faint);transition:color .2s}
+nav button .i svg{width:23px;height:23px}
+nav button.on{color:var(--orange)}
+nav button.on .i{color:var(--orange)}
+footer{padding:24px 16px 14px;text-align:left;font-size:.82rem;color:var(--muted)}
+footer b{color:var(--text)}
+.note{font-size:.78rem;color:var(--faint);text-align:center;margin:8px 16px}
+
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand"><img class="brand-icon" src="data:image/png;base64,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" alt="" width="27" height="20"><div class="wordmark"><div class="name">INTERNO<span class="uno">UNO</span></div><small class="tagline">Interno<span class="u">Uno</span> Experience</small><small class="addr">Via Lorenzo il Magnifico 158</small></div></div>
+  <button class="lang-btn" id="langBtn" aria-label="Lingua"></button>
+</header>
+
+<div class="lang-modal-overlay" id="langModalOverlay">
+  <div class="lang-modal">
+    <div class="lang-modal-head">
+      <h3 data-i="lang_pick"></h3>
+      <button class="lang-modal-close" id="langModalClose">✕</button>
+    </div>
+    <div class="lang-modal-list" id="langModalList"></div>
+  </div>
+</div>
+
+<div class="lang-modal-overlay" id="wifiModalOverlay">
+  <div class="lang-modal">
+    <div class="lang-modal-head">
+      <h3 data-i="wifi_title"></h3>
+      <button class="lang-modal-close" id="wifiModalClose">✕</button>
+    </div>
+    <div class="wifi-card">
+      <div class="wifi-row"><span data-i="wifi_name"></span><b id="wifiSSIDshow"></b></div>
+      <div class="wifi-row"><span data-i="wifi_pass"></span><b id="wifiPassShow"></b></div>
+      <button class="btn" id="wifiCopyBtn"><span data-i="wifi_copy"></span></button>
+    </div>
+  </div>
+</div>
+
+<div class="lang-modal-overlay" id="cuisineModalOverlay">
+  <div class="lang-modal">
+    <div class="lang-modal-head">
+      <h3 data-i="filter_cuisine"></h3>
+      <button class="lang-modal-close" id="cuisineModalClose">✕</button>
+    </div>
+    <div class="lang-modal-list" id="cuisineModalList"></div>
+  </div>
+</div>
+
+<!-- ============ CASA ============ -->
+<section class="screen on" id="scr-casa">
+  <div class="hero">
+    <div class="benvenuti" data-i="hero_kicker"></div>
+    <h1>Welcome Book</h1>
+    <p data-i="hero_sub"></p>
+  </div>
+  <div class="quick">
+    <a href="https://wa.me/393922999914" target="_blank">
+      <span class="i"><svg viewBox="0 0 24 24" width="24" height="24"><circle cx="12" cy="12" r="12" fill="#25D366"/><path fill="#fff" d="M17.47 14.38c-.28-.14-1.67-.82-1.93-.92-.26-.09-.45-.14-.64.14-.19.28-.73.92-.9 1.1-.16.19-.33.21-.61.07-.28-.14-1.19-.44-2.26-1.39-.84-.75-1.4-1.67-1.57-1.95-.16-.28-.02-.43.12-.57.13-.13.28-.33.42-.5.14-.16.19-.28.28-.47.09-.19.05-.35-.02-.49-.07-.14-.64-1.54-.87-2.11-.23-.55-.47-.48-.64-.49-.16-.01-.35-.01-.54-.01-.19 0-.49.07-.75.35-.26.28-.98.96-.98 2.34s1.01 2.72 1.15 2.9c.14.19 1.98 3.02 4.79 4.24.67.29 1.19.46 1.6.59.67.21 1.28.18 1.76.11.54-.08 1.67-.68 1.9-1.34.24-.66.24-1.22.16-1.34-.07-.12-.26-.19-.54-.33z"/><path fill="#fff" d="M12.05 3.6c-4.63 0-8.39 3.75-8.39 8.38 0 1.48.39 2.92 1.12 4.19L3.6 20.4l4.36-1.14a8.4 8.4 0 0 0 4.08 1.04h.01c4.63 0 8.39-3.75 8.39-8.38a8.33 8.33 0 0 0-2.46-5.92 8.34 8.34 0 0 0-5.93-2.4zm0 15.34h-.01a7 7 0 0 1-3.56-.97l-.26-.15-2.65.69.71-2.58-.17-.27a6.95 6.95 0 0 1-1.07-3.68c0-3.85 3.14-6.98 6.99-6.98a6.95 6.95 0 0 1 4.94 2.05 6.93 6.93 0 0 1 2.05 4.94c0 3.85-3.14 6.95-6.97 6.95z"/></svg></span>
+      <span>WhatsApp</span>
+    </a>
+    <a href="https://www.google.com/maps/dir/?api=1&destination=Via+Lorenzo+il+Magnifico+158,+Roma" target="_blank">
+      <span class="i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l18-8-8 18-2-8-8-2z"/></svg></span>
+      <span data-i="q_nav"></span>
+    </a>
+    <a href="tel:112">
+      <span class="i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.3 2.7 20h18.6L12 3.3z"/><path d="M12 10v3.6"/><circle cx="12" cy="16.6" r=".9" fill="currentColor" stroke="none"/></svg></span>
+      <span>SOS 112</span>
+    </a>
+    <button id="wifiBtn">
+      <span class="i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 9.8a11 11 0 0 1 15 0"/><path d="M7.5 13.2a7 7 0 0 1 9 0"/><path d="M10.5 16.6a3 3 0 0 1 3 0"/><circle cx="12" cy="19.6" r=".9" fill="currentColor" stroke="none"/></svg></span>
+      <span data-i="q_wifi"></span>
+    </button>
+  </div>
+  <div class="targa"><h2 data-i="t_casa"></h2><p data-i="t_casa_sub"></p></div>
+  <div id="accordions"></div>
+  <details class="acc"><summary><span class="i">☎️</span><span data-i="t_numeri"></span></summary><div class="body" id="numeri"></div></details>
+  <footer id="farewell"></footer>
+</section>
+
+<!-- ============ MAPPA ============ -->
+<section class="screen" id="scr-mappa">
+  <div class="targa"><h2 data-i="t_mappa"></h2><p data-i="t_mappa_sub"></p></div>
+  <div class="wrap">
+    <div class="map-wrap"><div id="map"></div></div>
+    <button class="btn alt" id="mapOverviewBtn" data-i="m_overview"></button>
+  </div>
+  <div class="targa"><h2 data-i="t_servizi"></h2></div>
+  <div class="wrap" id="servizi"></div>
+</section>
+
+<!-- ============ MANGIARE ============ -->
+<section class="screen" id="scr-food">
+  <div class="targa"><h2 data-i="t_food"></h2><p data-i="t_food_sub"></p></div>
+  <div class="wrap">
+    <div class="map-wrap"><div id="foodMap"></div></div>
+    <button class="btn alt" id="foodOverviewBtn" data-i="m_overview"></button>
+  </div>
+  <div class="wrap">
+    <button class="filter-select-btn" id="cuisineFilterBtn"></button>
+    <div class="filter-row" id="filterPrice"></div>
+  </div>
+  <div class="wrap" id="foodlist"></div>
+  <p class="note" data-i="food_note"></p>
+
+  <div class="targa"><h2 data-i="t_food_roma"></h2><p data-i="t_food_roma_sub"></p></div>
+  <div class="wrap" id="foodRomaList"></div>
+</section>
+
+<!-- ============ EVENTI + CONCERTI ============ -->
+<section class="screen" id="scr-eventi">
+  <div class="targa"><h2 data-i="t_eventi"></h2><p data-i="t_eventi_sub"></p></div>
+  <div class="subtab-row">
+    <button class="subtab on" data-sub="eventi"><span data-i="tab_eventi"></span></button>
+    <button class="subtab" data-sub="concerti"><span data-i="tab_concerti"></span></button>
+  </div>
+  <div class="sub-panel on" id="panel-eventi">
+    <div class="wrap" id="eventi"><div class="card" data-i="eventi_soon"></div></div>
+  </div>
+  <div class="sub-panel" id="panel-concerti">
+    <div class="wrap" id="concerti"><div class="card" data-i="concerti_soon"></div></div>
+  </div>
+</section>
+
+<!-- ============ TOUR ============ -->
+<section class="screen" id="scr-tour">
+  <div class="targa"><h2 data-i="t_tour"></h2><p data-i="t_tour_sub"></p></div>
+  <div class="wrap" id="tours"></div>
+</section>
+
+<!-- ============ CHIEDI ============ -->
+<section class="screen" id="scr-chat">
+  <div class="targa"><h2 data-i="t_chat"></h2><p data-i="t_chat_sub"></p></div>
+  <div class="wrap">
+    <div id="chatlog"></div>
+    <div class="chatbar">
+      <input id="chatinput" type="text" autocomplete="off">
+      <button id="chatsend" aria-label="Send">➤</button>
+    </div>
+  </div>
+</section>
+
+<nav id="tabbar">
+  <button data-scr="casa" class="on">
+    <span class="i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.8 12 4l8 6.8"/><path d="M6 9.3V19a1 1 0 0 0 1 1h3v-5.8h4V20h3a1 1 0 0 0 1-1V9.3"/></svg></span>
+    <span data-i="tab_casa"></span>
+  </button>
+  <button data-scr="mappa">
+    <span class="i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 4 6.2v14L9 18l6 2 5-2.2v-14L15 6l-6-2z"/><path d="M9 4v14M15 6v14"/></svg></span>
+    <span data-i="tab_mappa"></span>
+  </button>
+  <button data-scr="food">
+    <span class="i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v6.5"/><path d="M12 3v6.5"/><path d="M8 9.5c0 1.7 1.2 2.8 2 2.8s2-1.1 2-2.8"/><path d="M10 12.3V21"/><path d="M16.5 3c-1.1 0-2 1.6-2 4s.9 4 2 4"/><path d="M16.5 11V21"/></svg></span>
+    <span data-i="tab_food"></span>
+  </button>
+  <button data-scr="eventi">
+    <span class="i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5.3" width="16" height="15" rx="2.6"/><path d="M8 3.3v4M16 3.3v4M4 10.3h16"/><circle cx="9" cy="15" r="1" fill="currentColor" stroke="none"/><circle cx="13" cy="15" r="1" fill="currentColor" stroke="none"/><circle cx="17" cy="15" r="1" fill="currentColor" stroke="none"/></svg></span>
+    <span data-i="tab_eventi"></span>
+  </button>
+  <button data-scr="tour">
+    <span class="i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.3"/><path d="M14.6 9.4 13 13l-3.6 1.6L11 11z" fill="currentColor" stroke="none"/></svg></span>
+    <span data-i="tab_tour"></span>
+  </button>
+  <button data-scr="chat">
+    <span class="i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5.5h14a2 2 0 0 1 2 2v7.5a2 2 0 0 1-2 2H9.5L5.5 21v-4H5a2 2 0 0 1-2-2V7.5a2 2 0 0 1 2-2z"/><circle cx="9" cy="11" r="1" fill="currentColor" stroke="none"/><circle cx="12.3" cy="11" r="1" fill="currentColor" stroke="none"/><circle cx="15.6" cy="11" r="1" fill="currentColor" stroke="none"/></svg></span>
+    <span data-i="tab_chat"></span>
+
+  </button>
+</nav>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+/* ================= CONFIG STRUTTURA ================= */
+const CFG = {
+  slug: 'lorenzo',
+  nome: 'InternoUno',
+  indirizzo: 'Via Lorenzo il Magnifico 158, Roma',
+  lat: 41.9108676,
+  lon: 12.5285824,
+  whatsapp: '393922999914',
+  api: 'https://wb-worker.f-castiglioni.workers.dev', // live
+  flytour: [
+    {id:'ghetto',   url:'https://fly98.github.io/FlyTour/ghetto-testaccio/index.html', em:'🕍'},
+    {id:'trastevere', url:'https://fly98.github.io/FlyTour/trastevere/index.html', em:'🌿'}
+  ],
+  flytourAll: 'https://fly98.github.io/FlyTour/index.html?city=roma',
+  wifiSSID: 'DA COMPLETARE',
+  wifiPass: 'DA COMPLETARE'
+};
+
+/* ================= I18N ================= */
+const I18N = {
+it:{
+  hdr_sub:'Welcome Book · Via Lorenzo il Magnifico 158',
+  hero_kicker:'Benvenuti a Roma', 
+  hero_sub:'Tutto quello che serve per il tuo soggiorno, in due tocchi.',
+  q_nav:'Naviga', q_site:'Sito', q_wifi:'WiFi', wifi_title:'Wi-Fi', wifi_name:'Nome rete', wifi_pass:'Password', wifi_copy:'Copia password', wifi_copied:'Copiata ✓',
+  t_casa:'La Casa', t_casa_sub:'Regole e istruzioni pratiche',
+  t_numeri:'Numeri Utili',
+  t_mappa:'Il Quartiere', t_mappa_sub:'Mappa e punti di riferimento', m_overview:'↺ Vista d\u2019insieme', lang_pick:'Scegli la lingua',
+  t_servizi:'Servizi Utili',
+  t_food:'Mangiare e Bere', t_food_sub:'I migliori nelle vicinanze',
+  food_note:'Selezione aggiornata periodicamente in base alle recensioni della zona.',
+  t_eventi:'Eventi a Roma', t_eventi_sub:'Cosa succede in città in questi giorni',
+  t_concerti:'Concerti', t_concerti_sub:'I prossimi live in città, con biglietti',
+  eventi_soon:'📅 Il calendario eventi si aggiorna automaticamente ogni giorno.', eventi_info:'Info e biglietti →',
+  concerti_soon:'🎵 Il calendario concerti si aggiorna automaticamente ogni giorno.',
+  t_tour:'Tour Audio Gratuiti', t_tour_sub:'Un regalo della casa: passeggiate con audioguida GPS',
+  t_chat:'Chiedi a InternoUno', t_chat_sub:'Risposte immediate, in ogni lingua, 24/7',
+  tab_casa:'Casa', tab_mappa:'Mappa', tab_food:'Mangiare', tab_chat:'Chiedi', tab_eventi:'Eventi', tab_concerti:'Concerti', tab_tour:'Tour',
+  chat_hello:'Ciao! Sono l\u2019assistente di InternoUno. Chiedimi qualsiasi cosa sul soggiorno: orari, WiFi, trasporti, consigli in zona.',
+  chat_ph:'Scrivi una domanda…',
+  chat_err:'Il concierge digitale non è ancora attivo. Nel frattempo scrivici su WhatsApp: rispondiamo velocemente!',
+  chat_wa:'Apri WhatsApp',
+  farewell:'<b>Alla prossima!</b><br>Grazie per aver scelto InternoUno. Se il soggiorno è andato bene, una recensione fa davvero la differenza (su Booking, 8 è appena sufficiente!). Se qualcosa non va, scrivici subito su WhatsApp.<br><br>Per tornare a trovarci, la tariffa migliore è su <b>www.interno1.it</b>.<br><br><i>Buon viaggio! — Filippo</i>',
+  acc:[
+    {i:'🚗',t:'Parcheggio',b:'<p><b>Garage Bologna</b>, a pochi passi dalla struttura: <b>+39 06 4424 2664</b>.<br>Lun–Sab 6:00–01:00 · Dom 6:00–10:00 e 19:00–01:00</p>'},
+    {i:'🕙',t:'Check-out entro le 10:00',b:'<p>Se alla partenza non trovi lo staff, lascia la chiave sul bancone della reception.</p>'},
+    {i:'🧳',t:'Deposito bagagli',b:'<p>Al check-out, chiedi al nostro staff il deposito bagagli: ti indicheremo dove lasciarli in sicurezza per la giornata.</p>'},
+    {i:'🚇',t:'Metro, bus e biglietti',b:'<p><b>Metro/Stazione Tiburtina:</b> Linea B, a 300 m (5 min a piedi) — anche stazione ferroviaria per Alta Velocità e regionali. Termini a 4 fermate, Colosseo a 6.<br>Orari metro: dom–gio 5:30–23:30 · ven–sab 5:30–01:30</p><p><b>Bus:</b> fermata a pochi metri dall\u2019ingresso. Usa Google Maps per il percorso migliore.</p><div class="pills"><span class="pill">€1,50 <small>100 min</small></span><span class="pill">€7 <small>24H</small></span><span class="pill">€12,50 <small>48H</small></span><span class="pill">€18 <small>72H</small></span></div><p style="margin-top:8px">🎟️ In metro, tabacchi, edicole o con l\u2019app <a href="https://www.ticketappy.it">TicketAppy</a>.</p>'},
+    {i:'📺',t:'Netflix gratuito',b:'<p>Disponibile sulla TV: tasto dedicato sul telecomando o icona Smart TV, senza configurazioni.</p><p>Se chiede un codice, manda su WhatsApp la foto del QR sullo schermo e lo riattiviamo appena possibile.</p>'},
+    {i:'🛁',t:'Jacuzzi in camera',b:'<p>Tutte le camere hanno la jacuzzi privata, tranne la camera economica \u201cCinque\u201d. È inclusa nel soggiorno, pronta all\u2019uso: nessuna prenotazione necessaria.</p>'},
+    {i:'🤫',t:'Ore di silenzio 22:00–08:00',b:'<p>Ti chiediamo di ridurre al minimo i rumori per garantire tranquillità a tutti gli ospiti.</p>'},
+    {i:'💡',t:'Energia e aria condizionata',b:'<p>Spegni luci e dispositivi quando esci. <b>L\u2019aria condizionata va sempre spenta uscendo dalla camera.</b></p>'},
+    {i:'🐾',t:'Animali domestici',b:'<p>Benvenuti gratuitamente, nel rispetto di pulizia e sicurezza. Non devono salire sui letti né restare liberi nelle aree comuni.</p>'},
+    {i:'🚭',t:'Vietato fumare',b:'<p>L\u2019alloggio è rigorosamente non fumatori.</p>'}
+  ],
+  numeri:[['🚓','Emergenze (Polizia/Carabinieri)','112'],['🚑','Emergenza medica','118'],['🚕','Taxi Roma','063570'],['ℹ️','Info turistiche Roma','060606']],
+  servizi:[
+    ['🛒','Market Magnificio','Via Lorenzo il Magnifico 55 — il market più vicino','Market+Magnificio+Via+Lorenzo+il+Magnifico+Roma',41.912222,12.5252672,'spesa'],
+    ['💊','Farmacia Lorenzo il Magnifico','Via Lorenzo il Magnifico 56 — la più vicina','Farmacia+Lorenzo+il+Magnifico+Roma',41.9127643,12.5228587,'farmacia'],
+    ['🏧','Bancomat Mediobanca','Piazza Bologna 12 — il più vicino','Mediobanca+Piazza+Bologna+Roma',41.912732,12.5209393,'bancomat'],
+    ['🧺','Lavanderia Onda Blu','Via Giuseppe Marcotti 52 — self-service, ben recensita','Onda+Blu+Lavanderia+Roma',41.9094291,12.5394627,'lavanderia'],
+    ['🚬','Tabaccheria Magnifico','Via Giovanni da Procida 24 — biglietti metro, francobolli','Tabaccheria+Magnifico+Roma',41.9122801,12.5250464,'tabacchi'],
+    ['📮','Ufficio Postale','Via Giuseppe Marcotti 45 — per cartoline e pacchi','Ufficio+Postale+Via+Giuseppe+Marcotti+Roma',41.9096223,12.5392195,'posta'],
+    ['🏥','Pronto Soccorso Sandro Pertini','Via dei Monti Tiburtini 385 — pronto soccorso 24h','Ospedale+Sandro+Pertini+Roma',41.9205526,12.5380699,'ospedale'],
+    ['🚇','Metro/Stazione Tiburtina','Linea B — 300 m, 5 min a piedi, anche stazione Alta Velocità','Stazione+Tiburtina+Roma',41.9111184,12.5314223,'metro'],
+    ['🅿️','Garage Bologna','Via Lorenzo il Magnifico 83 — parcheggio a pagamento','Garage+Bologna+Via+Lorenzo+il+Magnifico+Roma',41.9119992,12.525884,'garage']
+  ],
+  t_food_roma:'Perle di Roma', t_food_roma_sub:'Se ti sposti in centro, questi valgono la deviazione',
+  filter_all:'Tutti', filter_cuisine:'Tipo di cucina', filter_price:'Fascia di prezzo',
+  book_cta:'📅 Prenota',
+  food_cats:{colazione:'Colazione',romana:'Romana',sushi:'Sushi',pizza:'Pizza',pesce:'Pesce',vegano:'Vegano',messicano:'Messicano',indiano:'Indiano',hamburgeria:'Hamburgeria',gelateria:'Gelateria',aperitivo:'Aperitivo',streetfood:'Street food',esperienza:'Esperienza'},
+  food:[
+    ['☕','Bar Stendal','','Piazzale delle Provincie 1','Il bar più vicino: perfetto per colazione e dolci.','Bar+Stendal+Roma',41.9090953,12.521502,'colazione','€',''],
+    ['🔺','Trapizzino | P.le Provincie','4.5','Piazzale delle Provincie 9','A 200 m da noi: se cerchi qualcosa di veloce e genuino in zona, è la scelta più sicura.','Trapizzino+Piazzale+delle+Provincie+Roma',41.90954,12.521587,'streetfood','€',''],
+    ['🍝','Strada Romana','4.7','Via Teodorico 34 · 06 8339 8501','Cucina romana e pizza, ambiente curato, ottimo rapporto qualità-prezzo.','Strada+Romana+Via+Teodorico+34+Roma',41.9105217,12.5279991,'romana','€€','https://www.thefork.it/ristorante/strada-romana-pizza-and-grill-r749904'],
+    ['🍣','Kimi Sushi Experience','4.5','Via della Lega Lombarda 48C','All-you-can-eat di qualità, tantissime opzioni tra crudo e cotto.','Kimi+Sushi+Experience+Roma',41.9084043,12.5247835,'sushi','€€','+393273412345'],
+    ['🍕','Malaterra','4.5','Viale XXI Aprile 75','Pizza gourmet leggerissima cotta al momento, tra le migliori della zona.','Malaterra+Viale+XXI+Aprile+Roma',41.9148692,12.5206389,'pizza','€€','+390645471930'],
+    ['🍝','Da Enrico','4.4','Via Michele di Lando 28','Trattoria storica, ottima amatriciana e polpette, atmosfera vivace.','Da+Enrico+Via+Michele+di+Lando+Roma',41.9137907,12.5224039,'romana','€€','+390644237738'],
+    ['🍷','Osteria Urbana','4.1','Via Bari 9','Carbonara tra le migliori di Roma, personale che parla inglese.','Osteria+Urbana+Via+Bari+Roma',41.9110697,12.5147991,'romana','€€','https://www.thefork.it/ristorante/osteria-urbana-r390539'],
+    ['🍕','Da Mamma','4.0','Via Lorenzo il Magnifico 62','Trattoria familiare, cucina genuina a prezzi molto onesti.','Da+Mamma+Via+Lorenzo+il+Magnifico+Roma',41.9126707,12.5232376,'romana','€','+390644242613'],
+    ['🐟','Ristorante da Franco','4.5','Via Stamira 23','Pesce fresco di qualità, molto frequentato dai romani del quartiere.','Ristorante+da+Franco+Via+Stamira+Roma',41.913242,12.5234063,'pesce','€€','+390644236122'],
+    ['🍝','Rigatoni Ristorante Pizzeria','4.5','Via Luigi Pigorini 31','Pasta e pizza classiche, sempre affidabili, buona scelta per famiglie.','Rigatoni+Ristorante+Pizzeria+Piazza+Bologna+Roma',41.9160952,12.5222681,'pizza','€€','+390699702398'],
+    ['🌱','Col Cavolo - Vegan Bistrot','4.8','Via Cesare Bosi 7 · Trieste','Cucina vegana raffinata, tra le più apprezzate di Roma.','Col+Cavolo+Vegan+Bistrot+Via+Cesare+Bosi+Roma',41.9119436,12.500445,'vegano','€€','+393517675734'],
+    ['🌮','Casa Sánchez','4.6','Via Catanzaro 6b · Trieste','Autentica cucina messicana, ottimi tacos e margarita.','Casa+Sanchez+Via+Catanzaro+Roma',41.9119562,12.5175178,'messicano','€€','+390645542607'],
+    ['🍛','Suresh Food & Drinks','4.7','Via Arno 73 · Trieste','Cucina indiana raffinata, tra le migliori recensite della città.','Suresh+Food+Drinks+Via+Arno+Roma',41.9195212,12.4997278,'indiano','€€','+393888528172'],
+    ['🍔','Hamburgeseria Burger Bar','4.4','Via dei Reti 40 · San Lorenzo','Burger gourmet e patatine croccanti, atmosfera informale.','Hamburgeseria+Burger+Bar+Via+dei+Reti+Roma',41.8982015,12.5186568,'hamburgeria','€€','+390644701298'],
+    ['🍨','Gelato Romano','4.9','Via Giacomo Boni 33','Gelato artigianale eccellente, tra i meglio recensiti di Roma.','Gelato+Romano+Via+Giacomo+Boni+Roma',41.9150989,12.5222429,'gelateria','€',''],
+    ['🍹','Mood Café','4.2','Piazza Bologna 7','Aperitivo abbondante a prezzo onesto, ottimo per un dopo-cena.','Mood+Cafe+Piazza+Bologna+Roma',41.912979,12.521305,'aperitivo','€€',''],
+    ['🍕','La Pizzetta Tiburtina','4.5','Via Cipriano Facchinetti 5/7','Pizzette tonde e fritti eccellenti, molto ben recensita.','La+Pizzetta+Tiburtina+Roma',41.9090097,12.5465998,'pizza','€'],
+    ['🍨','Gelateria Belsito','4.6','Via Livorno 39','Gelato artigianale ottimo e prezzi giusti, molto amata dai romani.','Gelateria+Belsito+Roma',41.9154058,12.5233853,'gelateria','€']
+  ],
+  foodRoma:[
+    ['🥖','All\'Antico Vinaio','4.3','Piazza della Maddalena 3 · Centro Storico','Schiacciate leggendarie, farcite all’inverosimile: l’istituzione fiorentina che ha conquistato anche Roma.','All+Antico+Vinaio+Piazza+della+Maddalena+Roma',41.8999637,12.4764773,'streetfood','€',''],
+    ['🔺','Trapizzino | Testaccio','4.6','Via Giovanni Branca 88 · Testaccio','Il triangolo di pizza farcito inventato qui: polpette e pollo alla cacciatora imperdibili.','Trapizzino+Testaccio+Via+Giovanni+Branca+Roma',41.8796102,12.4736352,'streetfood','€',''],
+    ['🍕','Antico Forno Roscioli','4.5','Via dei Chiavari 34 · Campo de’ Fiori','Pizza al taglio e forno storico a Campo de’ Fiori, la mortadella è leggendaria.','Antico+Forno+Roscioli+Via+dei+Chiavari+Roma',41.8945667,12.4742778,'pizza','€',''],
+    ['🍚','Supplizio','4.5','Via dei Banchi Vecchi 143 · Centro Storico','Solo supplì, fatti alla perfezione: cacio e pepe, amatriciana, il classico.','Supplizio+Via+dei+Banchi+Vecchi+Roma',41.897487,12.467911,'streetfood','€',''],
+    ['🍕','Bonci Pizzarium','4.1','Via della Meloria 43 · Prati/Aurelio','Pizza al trancio d’autore vicino al Vaticano, impasto a lunga lievitazione.','Bonci+Pizzarium+Via+della+Meloria+Roma',41.9066758,12.4466709,'pizza','€€',''],
+    ['🍨','Giolitti','4.4','Via degli Uffici del Vicario 40 · Pantheon','Gelateria storica dal 1900, un’istituzione romana a due passi dal Pantheon.','Giolitti+Via+degli+Uffici+del+Vicario+Roma',41.9010245,12.4772026,'gelateria','€',''],
+    ['🍝','Trattoria Da Enzo','4.3','Via dei Vascellari 29 · Trastevere','Trattoria romana verace a Trastevere, si fa la fila ma ne vale la pena — non prendono prenotazioni.','Trattoria+Da+Enzo+Via+dei+Vascellari+Trastevere+Roma',41.8880847,12.4778554,'romana','€€',''],
+    ['🍷','Roscioli Salumeria con Cucina','4.3','Via dei Giubbonari 21 · Campo de’ Fiori','Esperienza gourmet tra salumi, formaggi e la migliore cacio e pepe di Roma.','Roscioli+Salumeria+con+Cucina+Via+dei+Giubbonari+Roma',41.894256,12.4742417,'esperienza','€€€','https://salumeriaroscioli.com/en/pages/prenota']
+  ],
+  tours:{
+    ghetto:{t:'Ghetto e Testaccio',d:'Dal cuore ebraico di Roma al quartiere più verace: leggende, sapori e storie che non trovi sulle guide.'},
+    trastevere:{t:'Trastevere',d:'Vicoli, misteri e aneddoti del rione più amato, raccontati passo dopo passo dal GPS.'}
+  },
+  tour_cta:'Inizia il tour',
+  tour_all_t:'Tutti i tour di Roma', tour_all_d:'Altri percorsi GPS narrati nella capitale, su FlyTour'
+},
+en:{
+  hdr_sub:'Welcome Book · Via Lorenzo il Magnifico 158',
+  hero_kicker:'Welcome to Rome',
+  hero_sub:'Everything you need for your stay, two taps away.',
+  q_nav:'Navigate', q_site:'Website', q_wifi:'WiFi', wifi_title:'Wi-Fi', wifi_name:'Network name', wifi_pass:'Password', wifi_copy:'Copy password', wifi_copied:'Copied ✓',
+  t_casa:'The House', t_casa_sub:'Practical rules and instructions',
+  t_numeri:'Useful Numbers',
+  t_mappa:'The Neighborhood', t_mappa_sub:'Map and points of reference', m_overview:'↺ Overview', lang_pick:'Choose language',
+  t_servizi:'Useful Services',
+  t_food:'Eat and Drink', t_food_sub:'The best places nearby',
+  food_note:'Selection updated periodically based on local reviews.',
+  t_eventi:'Events in Rome', t_eventi_sub:'What\u2019s on in the city these days',
+  t_concerti:'Concerts', t_concerti_sub:'Upcoming live shows in the city, with tickets',
+  eventi_soon:'📅 The events calendar updates automatically every day.', eventi_info:'Info and tickets →',
+  concerti_soon:'🎵 The concerts calendar updates automatically every day.',
+  t_tour:'Free Audio Tours', t_tour_sub:'A gift from the house: GPS-guided walks',
+  t_chat:'Ask InternoUno', t_chat_sub:'Instant answers, in any language, 24/7',
+  tab_casa:'Home', tab_mappa:'Map', tab_food:'Eat', tab_chat:'Ask', tab_eventi:'Events', tab_concerti:'Concerts', tab_tour:'Tours',
+  chat_hello:'Hi! I\u2019m the InternoUno assistant. Ask me anything about your stay: times, WiFi, transport, local tips.',
+  chat_ph:'Type a question…',
+  chat_err:'The digital concierge is not active yet. Meanwhile, message us on WhatsApp — we reply fast!',
+  chat_wa:'Open WhatsApp',
+  farewell:'<b>See you soon!</b><br>Thank you for choosing InternoUno. If you enjoyed your stay, a review really makes a difference (on Booking, 8 is barely sufficient!). If anything is wrong, message us right away on WhatsApp.<br><br>For future stays, the best rate is on <b>www.interno1.it</b>.<br><br><i>Have a great trip! — Filippo</i>',
+  acc:[
+    {i:'🚗',t:'Parking',b:'<p><b>Garage Bologna</b>, a few steps from the property: <b>+39 06 4424 2664</b>.<br>Mon–Sat 6:00–01:00 · Sun 6:00–10:00 and 19:00–01:00</p>'},
+    {i:'🕙',t:'Check-out by 10:00 AM',b:'<p>If no staff is present when you leave, simply leave the key on the reception desk.</p>'},
+    {i:'🧳',t:'Luggage storage',b:'<p>At check-out, ask our staff about luggage storage: we’ll show you where to safely leave your bags for the day.</p>'},
+    {i:'🚇',t:'Metro, bus and tickets',b:'<p><b>Metro/Tiburtina Station:</b> Line B, 300 m away (5 min walk) — also a train station for High-Speed and regional trains. Termini in 4 stops, Colosseum in 6.<br>Metro hours: Sun–Thu 5:30–23:30 · Fri–Sat 5:30–01:30</p><p><b>Bus:</b> stop just a few metres from the entrance. Use Google Maps for the best route.</p><div class="pills"><span class="pill">€1.50 <small>100 min</small></span><span class="pill">€7 <small>24H</small></span><span class="pill">€12.50 <small>48H</small></span><span class="pill">€18 <small>72H</small></span></div><p style="margin-top:8px">🎟️ Sold in metro stations, tobacco shops, newsstands or via the <a href="https://www.ticketappy.it">TicketAppy</a> app.</p>'},
+    {i:'📺',t:'Free Netflix',b:'<p>Available on the TV: dedicated remote button or Smart TV icon, no setup needed.</p><p>If a code is requested, send us a WhatsApp photo of the QR on screen and we\u2019ll restore access as soon as possible.</p>'},
+    {i:'🛁',t:'In-room jacuzzi',b:'<p>All rooms have a private jacuzzi, except the budget room \u201cFive\u201d. It\u2019s included in your stay and ready to use: no booking needed.</p>'},
+    {i:'🤫',t:'Quiet hours 10 PM–8 AM',b:'<p>Please keep noise to a minimum so every guest can rest.</p>'},
+    {i:'💡',t:'Energy and air conditioning',b:'<p>Switch off lights and devices when you go out. <b>Air conditioning must always be off when leaving the room.</b></p>'},
+    {i:'🐾',t:'Pets',b:'<p>Welcome free of charge, respecting cleanliness and safety. They must not get on the beds or roam freely in common areas.</p>'},
+    {i:'🚭',t:'No smoking',b:'<p>The property is strictly non-smoking.</p>'}
+  ],
+  numeri:[['🚓','Emergencies (Police)','112'],['🚑','Medical emergency','118'],['🚕','Taxi Rome','063570'],['ℹ️','Rome tourist info','060606']],
+  servizi:[
+    ['🛒','Market Magnificio','Via Lorenzo il Magnifico 55 — the nearest market','Market+Magnificio+Via+Lorenzo+il+Magnifico+Roma',41.912222,12.5252672,'spesa'],
+    ['💊','Lorenzo il Magnifico Pharmacy','Via Lorenzo il Magnifico 56 — the nearest one','Farmacia+Lorenzo+il+Magnifico+Roma',41.9127643,12.5228587,'farmacia'],
+    ['🏧','Mediobanca ATM','Piazza Bologna 12 — the nearest one','Mediobanca+Piazza+Bologna+Roma',41.912732,12.5209393,'bancomat'],
+    ['🧺','Onda Blu Laundromat','Via Giuseppe Marcotti 52 — self-service, well reviewed','Onda+Blu+Lavanderia+Roma',41.9094291,12.5394627,'lavanderia'],
+    ['🚬','Tabaccheria Magnifico','Via Giovanni da Procida 24 — metro tickets, stamps','Tabaccheria+Magnifico+Roma',41.9122801,12.5250464,'tabacchi'],
+    ['📮','Post Office','Via Giuseppe Marcotti 45 — for postcards and parcels','Ufficio+Postale+Via+Giuseppe+Marcotti+Roma',41.9096223,12.5392195,'posta'],
+    ['🏥','Sandro Pertini Emergency Room','Via dei Monti Tiburtini 385 — 24h emergency room','Ospedale+Sandro+Pertini+Roma',41.9205526,12.5380699,'ospedale'],
+    ['🚇','Metro/Tiburtina Station','Line B — 300 m, 5 min walk, also a High-Speed rail station','Stazione+Tiburtina+Roma',41.9111184,12.5314223,'metro'],
+    ['🅿️','Garage Bologna','Via Lorenzo il Magnifico 83 — paid parking','Garage+Bologna+Via+Lorenzo+il+Magnifico+Roma',41.9119992,12.525884,'garage']
+  ],
+  t_food_roma:'Rome’s Best Bites', t_food_roma_sub:'Heading downtown? These are worth the detour',
+  filter_all:'All', filter_cuisine:'Cuisine type', filter_price:'Price range',
+  book_cta:'📅 Book',
+  food_cats:{colazione:'Breakfast',romana:'Roman',sushi:'Sushi',pizza:'Pizza',pesce:'Seafood',vegano:'Vegan',messicano:'Mexican',indiano:'Indian',hamburgeria:'Burgers',gelateria:'Ice cream',aperitivo:'Aperitivo',streetfood:'Street food',esperienza:'Experience'},
+  food:[
+    ['☕','Bar Stendal','','Piazzale delle Provincie 1','The nearest café: great for breakfast and pastries.','Bar+Stendal+Roma',41.9090953,12.521502,'colazione','€',''],
+    ['🔺','Trapizzino | P.le Provincie','4.5','Piazzale delle Provincie 9','Just 200 m from us: if you want something quick and genuine nearby, this is the safest bet.','Trapizzino+Piazzale+delle+Provincie+Roma',41.90954,12.521587,'streetfood','€',''],
+    ['🍝','Strada Romana','4.7','Via Teodorico 34 · 06 8339 8501','Roman cuisine and pizza, nice setting, excellent value for money.','Strada+Romana+Via+Teodorico+34+Roma',41.9105217,12.5279991,'romana','€€','https://www.thefork.it/ristorante/strada-romana-pizza-and-grill-r749904'],
+    ['🍣','Kimi Sushi Experience','4.5','Via della Lega Lombarda 48C','Quality all-you-can-eat, a huge choice of raw and cooked dishes.','Kimi+Sushi+Experience+Roma',41.9084043,12.5247835,'sushi','€€','+393273412345'],
+    ['🍕','Malaterra','4.5','Viale XXI Aprile 75','Ultra-light gourmet pizza cooked to order, among the best around here.','Malaterra+Viale+XXI+Aprile+Roma',41.9148692,12.5206389,'pizza','€€','+390645471930'],
+    ['🍝','Da Enrico','4.4','Via Michele di Lando 28','Historic trattoria, excellent amatriciana and meatballs, lively atmosphere.','Da+Enrico+Via+Michele+di+Lando+Roma',41.9137907,12.5224039,'romana','€€','+390644237738'],
+    ['🍷','Osteria Urbana','4.1','Via Bari 9','Some of the best carbonara in Rome, English-speaking staff.','Osteria+Urbana+Via+Bari+Roma',41.9110697,12.5147991,'romana','€€','https://www.thefork.it/ristorante/osteria-urbana-r390539'],
+    ['🍕','Da Mamma','4.0','Via Lorenzo il Magnifico 62','Family-run trattoria, genuine home cooking at very fair prices.','Da+Mamma+Via+Lorenzo+il+Magnifico+Roma',41.9126707,12.5232376,'romana','€','+390644242613'],
+    ['🐟','Ristorante da Franco','4.5','Via Stamira 23','Quality fresh fish, a favourite with locals in the area.','Ristorante+da+Franco+Via+Stamira+Roma',41.913242,12.5234063,'pesce','€€','+390644236122'],
+    ['🍝','Rigatoni Ristorante Pizzeria','4.5','Via Luigi Pigorini 31','Classic pasta and pizza, always reliable, great for families.','Rigatoni+Ristorante+Pizzeria+Piazza+Bologna+Roma',41.9160952,12.5222681,'pizza','€€','+390699702398'],
+    ['🌱','Col Cavolo - Vegan Bistrot','4.8','Via Cesare Bosi 7 · Trieste','Refined vegan cuisine, one of the most loved in Rome.','Col+Cavolo+Vegan+Bistrot+Via+Cesare+Bosi+Roma',41.9119436,12.500445,'vegano','€€','+393517675734'],
+    ['🌮','Casa Sánchez','4.6','Via Catanzaro 6b · Trieste','Authentic Mexican food, great tacos and margaritas.','Casa+Sanchez+Via+Catanzaro+Roma',41.9119562,12.5175178,'messicano','€€','+390645542607'],
+    ['🍛','Suresh Food & Drinks','4.7','Via Arno 73 · Trieste','Refined Indian cuisine, one of the best-reviewed in the city.','Suresh+Food+Drinks+Via+Arno+Roma',41.9195212,12.4997278,'indiano','€€','+393888528172'],
+    ['🍔','Hamburgeseria Burger Bar','4.4','Via dei Reti 40 · San Lorenzo','Gourmet burgers and crispy fries, casual vibe.','Hamburgeseria+Burger+Bar+Via+dei+Reti+Roma',41.8982015,12.5186568,'hamburgeria','€€','+390644701298'],
+    ['🍨','Gelato Romano','4.9','Via Giacomo Boni 33','Excellent artisanal gelato, one of the best-reviewed in Rome.','Gelato+Romano+Via+Giacomo+Boni+Roma',41.9150989,12.5222429,'gelateria','€',''],
+    ['🍹','Mood Café','4.2','Piazza Bologna 7','Generous aperitivo at a fair price, great for after dinner.','Mood+Cafe+Piazza+Bologna+Roma',41.912979,12.521305,'aperitivo','€€',''],
+    ['🍕','La Pizzetta Tiburtina','4.5','Via Cipriano Facchinetti 5/7','Excellent round pizzette and fried snacks, very well reviewed.','La+Pizzetta+Tiburtina+Roma',41.9090097,12.5465998,'pizza','€'],
+    ['🍨','Gelateria Belsito','4.6','Via Livorno 39','Great artisanal gelato at fair prices, a local favourite.','Gelateria+Belsito+Roma',41.9154058,12.5233853,'gelateria','€']
+  ],
+  foodRoma:[
+    ['🥖','All\'Antico Vinaio','4.3','Piazza della Maddalena 3 · Centro Storico','Legendary overstuffed schiacciate: the Florentine institution that conquered Rome too.','All+Antico+Vinaio+Piazza+della+Maddalena+Roma',41.8999637,12.4764773,'streetfood','€',''],
+    ['🔺','Trapizzino | Testaccio','4.6','Via Giovanni Branca 88 · Testaccio','The stuffed pizza triangle invented here: meatballs and chicken cacciatore are unmissable.','Trapizzino+Testaccio+Via+Giovanni+Branca+Roma',41.8796102,12.4736352,'streetfood','€',''],
+    ['🍕','Antico Forno Roscioli','4.5','Via dei Chiavari 34 · Campo de’ Fiori','Historic bakery and pizza al taglio near Campo de’ Fiori, the mortadella slice is legendary.','Antico+Forno+Roscioli+Via+dei+Chiavari+Roma',41.8945667,12.4742778,'pizza','€',''],
+    ['🍚','Supplizio','4.5','Via dei Banchi Vecchi 143 · Centro Storico','Only suppli, done to perfection: cacio e pepe, amatriciana, the classic.','Supplizio+Via+dei+Banchi+Vecchi+Roma',41.897487,12.467911,'streetfood','€',''],
+    ['🍕','Bonci Pizzarium','4.1','Via della Meloria 43 · Prati/Aurelio','Signature pizza by the slice near the Vatican, long-leavened dough.','Bonci+Pizzarium+Via+della+Meloria+Roma',41.9066758,12.4466709,'pizza','€€',''],
+    ['🍨','Giolitti','4.4','Via degli Uffici del Vicario 40 · Pantheon','Historic gelateria since 1900, a Roman institution steps from the Pantheon.','Giolitti+Via+degli+Uffici+del+Vicario+Roma',41.9010245,12.4772026,'gelateria','€',''],
+    ['🍝','Trattoria Da Enzo','4.3','Via dei Vascellari 29 · Trastevere','Authentic Roman trattoria in Trastevere, you’ll queue but it’s worth it — no reservations taken.','Trattoria+Da+Enzo+Via+dei+Vascellari+Trastevere+Roma',41.8880847,12.4778554,'romana','€€',''],
+    ['🍷','Roscioli Salumeria con Cucina','4.3','Via dei Giubbonari 21 · Campo de’ Fiori','A gourmet experience among cured meats, cheeses and Rome’s best cacio e pepe.','Roscioli+Salumeria+con+Cucina+Via+dei+Giubbonari+Roma',41.894256,12.4742417,'esperienza','€€€','https://salumeriaroscioli.com/en/pages/prenota']
+  ],
+  tours:{
+    ghetto:{t:'Ghetto and Testaccio',d:'From Rome\u2019s Jewish heart to its most authentic district: legends, flavours and stories you won\u2019t find in guidebooks.'},
+    trastevere:{t:'Trastevere',d:'Alleys, mysteries and anecdotes of Rome\u2019s best-loved quarter, narrated step by step by GPS.'}
+  },
+  tour_cta:'Start the tour',
+  tour_all_t:'All Rome tours', tour_all_d:'More GPS-narrated walks around the capital, on FlyTour'
+},
+es:{
+  hdr_sub:'Welcome Book · Via Lorenzo il Magnifico 158',
+  hero_kicker:'Bienvenidos a Roma',
+  hero_sub:'Todo lo que necesitas para tu estancia, a dos toques.',
+  q_nav:'Navegar', q_site:'Web', q_wifi:'WiFi', wifi_title:'Wi-Fi', wifi_name:'Nombre de la red', wifi_pass:'Contraseña', wifi_copy:'Copiar contraseña', wifi_copied:'Copiada ✓',
+  t_casa:'La Casa', t_casa_sub:'Normas e instrucciones prácticas',
+  t_numeri:'Números Útiles',
+  t_mappa:'El Barrio', t_mappa_sub:'Mapa y puntos de referencia', m_overview:'↺ Vista general', lang_pick:'Elige el idioma',
+  t_servizi:'Servicios Útiles',
+  t_food:'Comer y Beber', t_food_sub:'Los mejores de la zona',
+  food_note:'Selección actualizada periódicamente según las reseñas de la zona.',
+  t_eventi:'Eventos en Roma', t_eventi_sub:'Qué pasa en la ciudad estos días',
+  t_concerti:'Conciertos', t_concerti_sub:'Los próximos conciertos en la ciudad, con entradas',
+  eventi_soon:'📅 El calendario de eventos se actualiza automáticamente cada día.', eventi_info:'Info y entradas →',
+  concerti_soon:'🎵 El calendario de conciertos se actualiza automáticamente cada día.',
+  t_tour:'Tours de Audio Gratis', t_tour_sub:'Un regalo de la casa: paseos con audioguía GPS',
+  t_chat:'Pregunta a InternoUno', t_chat_sub:'Respuestas al instante, en cualquier idioma, 24/7',
+  tab_casa:'Casa', tab_mappa:'Mapa', tab_food:'Comer', tab_chat:'Pregunta', tab_eventi:'Eventos', tab_concerti:'Conciertos', tab_tour:'Tours',
+  chat_hello:'¡Hola! Soy el asistente de InternoUno. Pregúntame lo que quieras sobre tu estancia: horarios, WiFi, transporte, consejos de la zona.',
+  chat_ph:'Escribe una pregunta…',
+  chat_err:'El conserje digital aún no está activo. Mientras tanto, escríbenos por WhatsApp: ¡respondemos rápido!',
+  chat_wa:'Abrir WhatsApp',
+  farewell:'<b>¡Hasta pronto!</b><br>Gracias por elegir InternoUno. Si la estancia ha ido bien, una reseña marca la diferencia (¡en Booking, un 8 es apenas suficiente!). Si algo no va bien, escríbenos enseguida por WhatsApp.<br><br>Para volver, la mejor tarifa está en <b>www.interno1.it</b>.<br><br><i>¡Buen viaje! — Filippo</i>',
+  acc:[
+    {i:'🚗',t:'Aparcamiento',b:'<p><b>Garage Bologna</b>, a pocos pasos del alojamiento: <b>+39 06 4424 2664</b>.<br>Lun–Sáb 6:00–01:00 · Dom 6:00–10:00 y 19:00–01:00</p>'},
+    {i:'🕙',t:'Check-out antes de las 10:00',b:'<p>Si no hay personal al salir, deja la llave en el mostrador de recepción.</p>'},
+    {i:'🧳',t:'Consigna de equipaje',b:'<p>En el check-out, pregunta a nuestro personal por el depósito de equipaje: te indicaremos dónde dejarlo de forma segura durante el día.</p>'},
+    {i:'🚇',t:'Metro, bus y billetes',b:'<p><b>Metro/Estación Tiburtina:</b> Línea B, a 300 m (5 min a pie) — también estación de tren de Alta Velocidad y regionales. Termini a 4 paradas, Coliseo a 6.<br>Horario metro: dom–jue 5:30–23:30 · vie–sáb 5:30–01:30</p><p><b>Bus:</b> parada a pocos metros de la entrada. Usa Google Maps para la mejor ruta.</p><div class="pills"><span class="pill">€1,50 <small>100 min</small></span><span class="pill">€7 <small>24H</small></span><span class="pill">€12,50 <small>48H</small></span><span class="pill">€18 <small>72H</small></span></div><p style="margin-top:8px">🎟️ En el metro, estancos, quioscos o con la app <a href="https://www.ticketappy.it">TicketAppy</a>.</p>'},
+    {i:'📺',t:'Netflix gratis',b:'<p>Disponible en la TV: botón dedicado del mando o icono Smart TV, sin configuración.</p><p>Si pide un código, envíanos por WhatsApp una foto del QR de la pantalla y lo reactivamos lo antes posible.</p>'},
+    {i:'🛁',t:'Jacuzzi en la habitación',b:'<p>Todas las habitaciones tienen jacuzzi privada, excepto la habitación económica \u201cCinco\u201d. Está incluida en la estancia, lista para usar: no hace falta reservarla.</p>'},
+    {i:'🤫',t:'Silencio 22:00–08:00',b:'<p>Se ruega reducir al mínimo los ruidos para garantizar el descanso de todos.</p>'},
+    {i:'💡',t:'Energía y aire acondicionado',b:'<p>Apaga luces y aparatos al salir. <b>El aire acondicionado debe quedar siempre apagado al salir de la habitación.</b></p>'},
+    {i:'🐾',t:'Mascotas',b:'<p>Bienvenidas sin coste, respetando limpieza y seguridad. No deben subir a las camas ni circular libres por las zonas comunes.</p>'},
+    {i:'🚭',t:'Prohibido fumar',b:'<p>El alojamiento es estrictamente libre de humo.</p>'}
+  ],
+  numeri:[['🚓','Emergencias (Policía)','112'],['🚑','Emergencia médica','118'],['🚕','Taxi Roma','063570'],['ℹ️','Información turística','060606']],
+  servizi:[
+    ['🛒','Market Magnificio','Via Lorenzo il Magnifico 55 — el market más cercano','Market+Magnificio+Via+Lorenzo+il+Magnifico+Roma',41.912222,12.5252672,'spesa'],
+    ['💊','Farmacia Lorenzo il Magnifico','Via Lorenzo il Magnifico 56 — la más cercana','Farmacia+Lorenzo+il+Magnifico+Roma',41.9127643,12.5228587,'farmacia'],
+    ['🏧','Cajero Mediobanca','Piazza Bologna 12 — el más cercano','Mediobanca+Piazza+Bologna+Roma',41.912732,12.5209393,'bancomat'],
+    ['🧺','Lavandería Onda Blu','Via Giuseppe Marcotti 52 — autoservicio, bien valorada','Onda+Blu+Lavanderia+Roma',41.9094291,12.5394627,'lavanderia'],
+    ['🚬','Tabaccheria Magnifico','Via Giovanni da Procida 24 — billetes de metro, sellos','Tabaccheria+Magnifico+Roma',41.9122801,12.5250464,'tabacchi'],
+    ['📮','Oficina de Correos','Via Giuseppe Marcotti 45 — para postales y paquetes','Ufficio+Postale+Via+Giuseppe+Marcotti+Roma',41.9096223,12.5392195,'posta'],
+    ['🏥','Urgencias Sandro Pertini','Via dei Monti Tiburtini 385 — urgencias 24h','Ospedale+Sandro+Pertini+Roma',41.9205526,12.5380699,'ospedale'],
+    ['🚇','Metro/Estación Tiburtina','Línea B — 300 m, 5 min a pie, también estación de Alta Velocidad','Stazione+Tiburtina+Roma',41.9111184,12.5314223,'metro'],
+    ['🅿️','Garage Bologna','Via Lorenzo il Magnifico 83 — aparcamiento de pago','Garage+Bologna+Via+Lorenzo+il+Magnifico+Roma',41.9119992,12.525884,'garage']
+  ],
+  t_food_roma:'Joyas de Roma', t_food_roma_sub:'Si te acercas al centro, estos valen la pena',
+  filter_all:'Todos', filter_cuisine:'Tipo de cocina', filter_price:'Rango de precio',
+  book_cta:'📅 Reservar',
+  food_cats:{colazione:'Desayuno',romana:'Romana',sushi:'Sushi',pizza:'Pizza',pesce:'Pescado',vegano:'Vegano',messicano:'Mexicano',indiano:'Indio',hamburgeria:'Hamburguesas',gelateria:'Heladería',aperitivo:'Aperitivo',streetfood:'Street food',esperienza:'Experiencia'},
+  food:[
+    ['☕','Bar Stendal','','Piazzale delle Provincie 1','El bar más cercano: ideal para desayunar.','Bar+Stendal+Roma',41.9090953,12.521502,'colazione','€',''],
+    ['🔺','Trapizzino | P.le Provincie','4.5','Piazzale delle Provincie 9','A 200 m de nosotros: si buscas algo rápido y genuino en la zona, es la opción más segura.','Trapizzino+Piazzale+delle+Provincie+Roma',41.90954,12.521587,'streetfood','€',''],
+    ['🍝','Strada Romana','4.7','Via Teodorico 34 · 06 8339 8501','Cocina romana y pizza, ambiente cuidado, muy buena relación calidad-precio.','Strada+Romana+Via+Teodorico+34+Roma',41.9105217,12.5279991,'romana','€€','https://www.thefork.it/ristorante/strada-romana-pizza-and-grill-r749904'],
+    ['🍣','Kimi Sushi Experience','4.5','Via della Lega Lombarda 48C','Buffet libre de calidad, enorme variedad entre crudo y cocinado.','Kimi+Sushi+Experience+Roma',41.9084043,12.5247835,'sushi','€€','+393273412345'],
+    ['🍕','Malaterra','4.5','Viale XXI Aprile 75','Pizza gourmet ligerísima recién horneada, de las mejores de la zona.','Malaterra+Viale+XXI+Aprile+Roma',41.9148692,12.5206389,'pizza','€€','+390645471930'],
+    ['🍝','Da Enrico','4.4','Via Michele di Lando 28','Trattoria histórica, excelente amatriciana y albóndigas, ambiente animado.','Da+Enrico+Via+Michele+di+Lando+Roma',41.9137907,12.5224039,'romana','€€','+390644237738'],
+    ['🍷','Osteria Urbana','4.1','Via Bari 9','Una de las mejores carbonaras de Roma, personal que habla inglés.','Osteria+Urbana+Via+Bari+Roma',41.9110697,12.5147991,'romana','€€','https://www.thefork.it/ristorante/osteria-urbana-r390539'],
+    ['🍕','Da Mamma','4.0','Via Lorenzo il Magnifico 62','Trattoria familiar, cocina casera genuina a precios muy honestos.','Da+Mamma+Via+Lorenzo+il+Magnifico+Roma',41.9126707,12.5232376,'romana','€','+390644242613'],
+    ['🐟','Ristorante da Franco','4.5','Via Stamira 23','Pescado fresco de calidad, muy frecuentado por los vecinos.','Ristorante+da+Franco+Via+Stamira+Roma',41.913242,12.5234063,'pesce','€€','+390644236122'],
+    ['🍝','Rigatoni Ristorante Pizzeria','4.5','Via Luigi Pigorini 31','Pasta y pizza clásicas, siempre fiables, ideal para familias.','Rigatoni+Ristorante+Pizzeria+Piazza+Bologna+Roma',41.9160952,12.5222681,'pizza','€€','+390699702398'],
+    ['🌱','Col Cavolo - Vegan Bistrot','4.8','Via Cesare Bosi 7 · Trieste','Cocina vegana refinada, de las más apreciadas de Roma.','Col+Cavolo+Vegan+Bistrot+Via+Cesare+Bosi+Roma',41.9119436,12.500445,'vegano','€€','+393517675734'],
+    ['🌮','Casa Sánchez','4.6','Via Catanzaro 6b · Trieste','Auténtica cocina mexicana, excelentes tacos y margaritas.','Casa+Sanchez+Via+Catanzaro+Roma',41.9119562,12.5175178,'messicano','€€','+390645542607'],
+    ['🍛','Suresh Food & Drinks','4.7','Via Arno 73 · Trieste','Cocina india refinada, de las mejor valoradas de la ciudad.','Suresh+Food+Drinks+Via+Arno+Roma',41.9195212,12.4997278,'indiano','€€','+393888528172'],
+    ['🍔','Hamburgeseria Burger Bar','4.4','Via dei Reti 40 · San Lorenzo','Hamburguesas gourmet y patatas crujientes, ambiente informal.','Hamburgeseria+Burger+Bar+Via+dei+Reti+Roma',41.8982015,12.5186568,'hamburgeria','€€','+390644701298'],
+    ['🍨','Gelato Romano','4.9','Via Giacomo Boni 33','Excelente helado artesanal, uno de los mejor valorados de Roma.','Gelato+Romano+Via+Giacomo+Boni+Roma',41.9150989,12.5222429,'gelateria','€',''],
+    ['🍹','Mood Café','4.2','Piazza Bologna 7','Aperitivo abundante a precio justo, perfecto después de cenar.','Mood+Cafe+Piazza+Bologna+Roma',41.912979,12.521305,'aperitivo','€€',''],
+    ['🍕','La Pizzetta Tiburtina','4.5','Via Cipriano Facchinetti 5/7','Excelentes pizzetas redondas y fritos, muy bien valorada.','La+Pizzetta+Tiburtina+Roma',41.9090097,12.5465998,'pizza','€'],
+    ['🍨','Gelateria Belsito','4.6','Via Livorno 39','Helado artesanal excelente a precio justo, muy querida por los romanos.','Gelateria+Belsito+Roma',41.9154058,12.5233853,'gelateria','€']
+  ],
+  foodRoma:[
+    ['🥖','All\'Antico Vinaio','4.3','Piazza della Maddalena 3 · Centro Storico','Schiacciate legendarias, rellenas hasta el límite: la institución florentina que también conquistó Roma.','All+Antico+Vinaio+Piazza+della+Maddalena+Roma',41.8999637,12.4764773,'streetfood','€',''],
+    ['🔺','Trapizzino | Testaccio','4.6','Via Giovanni Branca 88 · Testaccio','El triángulo de pizza relleno inventado aquí: las albóndigas y el pollo a la cazadora son imprescindibles.','Trapizzino+Testaccio+Via+Giovanni+Branca+Roma',41.8796102,12.4736352,'streetfood','€',''],
+    ['🍕','Antico Forno Roscioli','4.5','Via dei Chiavari 34 · Campo de’ Fiori','Horno histórico y pizza al taglio cerca de Campo de’ Fiori, la mortadela es legendaria.','Antico+Forno+Roscioli+Via+dei+Chiavari+Roma',41.8945667,12.4742778,'pizza','€',''],
+    ['🍚','Supplizio','4.5','Via dei Banchi Vecchi 143 · Centro Storico','Solo suppli, hechos a la perfección: cacio e pepe, amatriciana, el clásico.','Supplizio+Via+dei+Banchi+Vecchi+Roma',41.897487,12.467911,'streetfood','€',''],
+    ['🍕','Bonci Pizzarium','4.1','Via della Meloria 43 · Prati/Aurelio','Pizza al corte de autor cerca del Vaticano, masa de larga fermentación.','Bonci+Pizzarium+Via+della+Meloria+Roma',41.9066758,12.4466709,'pizza','€€',''],
+    ['🍨','Giolitti','4.4','Via degli Uffici del Vicario 40 · Pantheon','Heladería histórica desde 1900, una institución romana a pasos del Panteón.','Giolitti+Via+degli+Uffici+del+Vicario+Roma',41.9010245,12.4772026,'gelateria','€',''],
+    ['🍝','Trattoria Da Enzo','4.3','Via dei Vascellari 29 · Trastevere','Trattoria romana auténtica en Trastevere, hay cola pero vale la pena — no aceptan reservas.','Trattoria+Da+Enzo+Via+dei+Vascellari+Trastevere+Roma',41.8880847,12.4778554,'romana','€€',''],
+    ['🍷','Roscioli Salumeria con Cucina','4.3','Via dei Giubbonari 21 · Campo de’ Fiori','Experiencia gourmet entre embutidos, quesos y el mejor cacio e pepe de Roma.','Roscioli+Salumeria+con+Cucina+Via+dei+Giubbonari+Roma',41.894256,12.4742417,'esperienza','€€€','https://salumeriaroscioli.com/en/pages/prenota']
+  ],
+  tours:{
+    ghetto:{t:'Ghetto y Testaccio',d:'Del corazón judío de Roma al barrio más auténtico: leyendas, sabores e historias que no están en las guías.'},
+    trastevere:{t:'Trastevere',d:'Callejones, misterios y anécdotas del barrio más querido, narrados paso a paso por GPS.'}
+  },
+  tour_cta:'Empezar el tour',
+  tour_all_t:'Todos los tours de Roma', tour_all_d:'Más recorridos narrados con GPS por la capital, en FlyTour'
+},
+fr:{
+  hdr_sub:'Welcome Book · Via Lorenzo il Magnifico 158',
+  hero_kicker:'Bienvenue à Rome',
+  hero_sub:'Tout ce qu\u2019il faut pour votre séjour, en deux clics.',
+  q_nav:'Itinéraire', q_site:'Site web', q_wifi:'WiFi', wifi_title:'Wi-Fi', wifi_name:'Nom du réseau', wifi_pass:'Mot de passe', wifi_copy:'Copier le mot de passe', wifi_copied:'Copié ✓',
+  t_casa:'La Maison', t_casa_sub:'Règles et instructions pratiques',
+  t_numeri:'Numéros Utiles',
+  t_mappa:'Le Quartier', t_mappa_sub:'Carte et points de repère', m_overview:'↺ Vue d\u2019ensemble', lang_pick:'Choisissez la langue',
+  t_servizi:'Services Utiles',
+  t_food:'Manger et Boire', t_food_sub:'Les meilleures adresses à proximité',
+  food_note:'Sélection mise à jour périodiquement selon les avis du quartier.',
+  t_eventi:'Événements à Rome', t_eventi_sub:'Ce qui se passe en ville ces jours-ci',
+  t_concerti:'Concerts', t_concerti_sub:'Les prochains concerts en ville, avec billets',
+  eventi_soon:'📅 Le calendrier des événements se met à jour automatiquement chaque jour.', eventi_info:'Infos et billets →',
+  concerti_soon:'🎵 Le calendrier des concerts se met à jour automatiquement chaque jour.',
+  t_tour:'Visites Audio Gratuites', t_tour_sub:'Un cadeau de la maison : des balades avec audioguide GPS',
+  t_chat:'Demandez à InternoUno', t_chat_sub:'Réponses immédiates, dans toutes les langues, 24/7',
+  tab_casa:'Maison', tab_mappa:'Carte', tab_food:'Manger', tab_chat:'Demander', tab_eventi:'Événements', tab_concerti:'Concerts', tab_tour:'Visites',
+  chat_hello:'Bonjour ! Je suis l\u2019assistant InternoUno. Posez-moi vos questions sur votre séjour : horaires, WiFi, transports, conseils locaux.',
+  chat_ph:'Écrivez une question…',
+  chat_err:'Le concierge numérique n\u2019est pas encore actif. En attendant, écrivez-nous sur WhatsApp : nous répondons vite !',
+  chat_wa:'Ouvrir WhatsApp',
+  farewell:'<b>À bientôt !</b><br>Merci d\u2019avoir choisi InternoUno. Si votre séjour s\u2019est bien passé, un avis fait vraiment la différence (sur Booking, un 8 est à peine suffisant !). Si quelque chose ne va pas, écrivez-nous tout de suite sur WhatsApp.<br><br>Pour revenir, le meilleur tarif est sur <b>www.interno1.it</b>.<br><br><i>Bon voyage ! — Filippo</i>',
+  acc:[
+    {i:'🚗',t:'Parking',b:'<p><b>Garage Bologna</b>, à quelques pas du logement : <b>+39 06 4424 2664</b>.<br>Lun–Sam 6h00–01h00 · Dim 6h00–10h00 et 19h00–01h00</p>'},
+    {i:'🕙',t:'Départ avant 10h00',b:'<p>Si le personnel n\u2019est pas présent à votre départ, laissez la clé sur le comptoir de la réception.</p>'},
+    {i:'🧳',t:'Consigne à bagages',b:'<p>Au moment du check-out, demandez à notre personnel pour la consigne à bagages : nous vous indiquerons où les laisser en sécurité pour la journée.</p>'},
+    {i:'🚇',t:'Métro, bus et billets',b:'<p><b>Métro/Gare de Tiburtina :</b> Ligne B, à 300 m (5 min à pied) — aussi une gare pour les trains à grande vitesse et régionaux. Termini à 4 arrêts, Colisée à 6.<br>Horaires métro : dim–jeu 5h30–23h30 · ven–sam 5h30–01h30</p><p><b>Bus :</b> arrêt à quelques mètres de l\u2019entrée. Utilisez Google Maps pour le meilleur itinéraire.</p><div class="pills"><span class="pill">1,50 € <small>100 min</small></span><span class="pill">7 € <small>24H</small></span><span class="pill">12,50 € <small>48H</small></span><span class="pill">18 € <small>72H</small></span></div><p style="margin-top:8px">🎟️ Dans le métro, les bureaux de tabac, les kiosques ou avec l\u2019appli <a href="https://www.ticketappy.it">TicketAppy</a>.</p>'},
+    {i:'📺',t:'Netflix gratuit',b:'<p>Disponible sur la télé : touche dédiée sur la télécommande ou icône Smart TV, sans configuration.</p><p>Si un code est demandé, envoyez-nous par WhatsApp une photo du QR affiché à l\u2019écran, nous le réactivons rapidement.</p>'},
+    {i:'🛁',t:'Jacuzzi dans la chambre',b:'<p>Toutes les chambres ont un jacuzzi privé, sauf la chambre économique \u201cCinque\u201d. Il est inclus dans le séjour, prêt à l\u2019emploi : aucune réservation nécessaire.</p>'},
+    {i:'🤫',t:'Heures de silence 22h00–08h00',b:'<p>Merci de réduire au maximum le bruit pour garantir la tranquillité de tous les hôtes.</p>'},
+    {i:'💡',t:'Énergie et climatisation',b:'<p>Éteignez lumières et appareils en sortant. <b>La climatisation doit toujours être éteinte en quittant la chambre.</b></p>'},
+    {i:'🐾',t:'Animaux domestiques',b:'<p>Bienvenus gratuitement, dans le respect de la propreté et de la sécurité. Ils ne doivent pas monter sur les lits ni rester en liberté dans les espaces communs.</p>'},
+    {i:'🚭',t:'Interdiction de fumer',b:'<p>Le logement est strictement non-fumeur.</p>'}
+  ],
+  numeri:[['🚓','Urgences (Police)','112'],['🚑','Urgence médicale','118'],['🚕','Taxi Rome','063570'],['ℹ️','Infos touristiques Rome','060606']],
+  servizi:[
+    ['🛒','Market Magnificio','Via Lorenzo il Magnifico 55 — l’épicerie la plus proche','Market+Magnificio+Via+Lorenzo+il+Magnifico+Roma',41.912222,12.5252672,'spesa'],
+    ['💊','Pharmacie Lorenzo il Magnifico','Via Lorenzo il Magnifico 56 — la plus proche','Farmacia+Lorenzo+il+Magnifico+Roma',41.9127643,12.5228587,'farmacia'],
+    ['🏧','Distributeur Mediobanca','Piazza Bologna 12 — le plus proche','Mediobanca+Piazza+Bologna+Roma',41.912732,12.5209393,'bancomat'],
+    ['🧺','Laverie Onda Blu','Via Giuseppe Marcotti 52 — libre-service, bien notée','Onda+Blu+Lavanderia+Roma',41.9094291,12.5394627,'lavanderia'],
+    ['🚬','Bureau de Tabac Magnifico','Via Giovanni da Procida 24 — tickets de métro, timbres','Tabaccheria+Magnifico+Roma',41.9122801,12.5250464,'tabacchi'],
+    ['📮','Bureau de Poste','Via Giuseppe Marcotti 45 — pour cartes postales et colis','Ufficio+Postale+Via+Giuseppe+Marcotti+Roma',41.9096223,12.5392195,'posta'],
+    ['🏥','Urgences Sandro Pertini','Via dei Monti Tiburtini 385 — urgences 24h/24','Ospedale+Sandro+Pertini+Roma',41.9205526,12.5380699,'ospedale'],
+    ['🚇','Métro/Gare de Tiburtina','Ligne B — 300 m, 5 min à pied, aussi une gare grande vitesse','Stazione+Tiburtina+Roma',41.9111184,12.5314223,'metro'],
+    ['🅿️','Garage Bologna','Via Lorenzo il Magnifico 83 — parking payant','Garage+Bologna+Via+Lorenzo+il+Magnifico+Roma',41.9119992,12.525884,'garage']
+  ],
+  t_food_roma:'Les Pépites de Rome', t_food_roma_sub:'Si vous allez dans le centre, ça vaut le détour',
+  filter_all:'Tous', filter_cuisine:'Type de cuisine', filter_price:'Gamme de prix',
+  book_cta:'📅 Réserver',
+  food_cats:{colazione:'Petit-déj',romana:'Romaine',sushi:'Sushi',pizza:'Pizza',pesce:'Poisson',vegano:'Végane',messicano:'Mexicain',indiano:'Indien',hamburgeria:'Burgers',gelateria:'Glacier',aperitivo:'Apéritif',streetfood:'Street food',esperienza:'Expérience'},
+  food:[
+    ['☕','Bar Stendal','','Piazzale delle Provincie 1','Le café le plus proche : parfait pour le petit-déjeuner.','Bar+Stendal+Roma',41.9090953,12.521502,'colazione','€',''],
+    ['🔺','Trapizzino | P.le Provincie','4.5','Piazzale delle Provincie 9','À 200 m de chez nous : pour un repas rapide et authentique dans le quartier, c’est la valeur sûre.','Trapizzino+Piazzale+delle+Provincie+Roma',41.90954,12.521587,'streetfood','€',''],
+    ['🍝','Strada Romana','4.7','Via Teodorico 34 · 06 8339 8501','Cuisine romaine et pizza, cadre soigné, excellent rapport qualité-prix.','Strada+Romana+Via+Teodorico+34+Roma',41.9105217,12.5279991,'romana','€€','https://www.thefork.it/ristorante/strada-romana-pizza-and-grill-r749904'],
+    ['🍣','Kimi Sushi Experience','4.5','Via della Lega Lombarda 48C','Buffet à volonté de qualité, un grand choix entre cru et cuit.','Kimi+Sushi+Experience+Roma',41.9084043,12.5247835,'sushi','€€','+393273412345'],
+    ['🍕','Malaterra','4.5','Viale XXI Aprile 75','Pizza gourmet très légère, cuite à la commande, parmi les meilleures du quartier.','Malaterra+Viale+XXI+Aprile+Roma',41.9148692,12.5206389,'pizza','€€','+390645471930'],
+    ['🍝','Da Enrico','4.4','Via Michele di Lando 28','Trattoria historique, excellente amatriciana et boulettes, ambiance animée.','Da+Enrico+Via+Michele+di+Lando+Roma',41.9137907,12.5224039,'romana','€€','+390644237738'],
+    ['🍷','Osteria Urbana','4.1','Via Bari 9','Une des meilleures carbonara de Rome, personnel anglophone.','Osteria+Urbana+Via+Bari+Roma',41.9110697,12.5147991,'romana','€€','https://www.thefork.it/ristorante/osteria-urbana-r390539'],
+    ['🍕','Da Mamma','4.0','Via Lorenzo il Magnifico 62','Trattoria familiale, cuisine maison authentique à prix très honnêtes.','Da+Mamma+Via+Lorenzo+il+Magnifico+Roma',41.9126707,12.5232376,'romana','€','+390644242613'],
+    ['🐟','Ristorante da Franco','4.5','Via Stamira 23','Poisson frais de qualité, très fréquenté par les habitants du quartier.','Ristorante+da+Franco+Via+Stamira+Roma',41.913242,12.5234063,'pesce','€€','+390644236122'],
+    ['🍝','Rigatoni Ristorante Pizzeria','4.5','Via Luigi Pigorini 31','Pâtes et pizzas classiques, toujours fiables, idéal en famille.','Rigatoni+Ristorante+Pizzeria+Piazza+Bologna+Roma',41.9160952,12.5222681,'pizza','€€','+390699702398'],
+    ['🌱','Col Cavolo - Vegan Bistrot','4.8','Via Cesare Bosi 7 · Trieste','Cuisine végane raffinée, parmi les plus appréciées de Rome.','Col+Cavolo+Vegan+Bistrot+Via+Cesare+Bosi+Roma',41.9119436,12.500445,'vegano','€€','+393517675734'],
+    ['🌮','Casa Sánchez','4.6','Via Catanzaro 6b · Trieste','Authentique cuisine mexicaine, excellents tacos et margaritas.','Casa+Sanchez+Via+Catanzaro+Roma',41.9119562,12.5175178,'messicano','€€','+390645542607'],
+    ['🍛','Suresh Food & Drinks','4.7','Via Arno 73 · Trieste','Cuisine indienne raffinée, parmi les mieux notées de la ville.','Suresh+Food+Drinks+Via+Arno+Roma',41.9195212,12.4997278,'indiano','€€','+393888528172'],
+    ['🍔','Hamburgeseria Burger Bar','4.4','Via dei Reti 40 · San Lorenzo','Burgers gourmets et frites croustillantes, ambiance décontractée.','Hamburgeseria+Burger+Bar+Via+dei+Reti+Roma',41.8982015,12.5186568,'hamburgeria','€€','+390644701298'],
+    ['🍨','Gelato Romano','4.9','Via Giacomo Boni 33','Excellente glace artisanale, parmi les mieux notées de Rome.','Gelato+Romano+Via+Giacomo+Boni+Roma',41.9150989,12.5222429,'gelateria','€',''],
+    ['🍹','Mood Café','4.2','Piazza Bologna 7','Apéritif généreux à prix honnête, parfait après le dîner.','Mood+Cafe+Piazza+Bologna+Roma',41.912979,12.521305,'aperitivo','€€',''],
+    ['🍕','La Pizzetta Tiburtina','4.5','Via Cipriano Facchinetti 5/7','Excellentes pizzettes rondes et fritures, très bien notée.','La+Pizzetta+Tiburtina+Roma',41.9090097,12.5465998,'pizza','€'],
+    ['🍨','Gelateria Belsito','4.6','Via Livorno 39','Excellente glace artisanale à prix juste, adorée des Romains.','Gelateria+Belsito+Roma',41.9154058,12.5233853,'gelateria','€']
+  ],
+  foodRoma:[
+    ['🥖','All\'Antico Vinaio','4.3','Piazza della Maddalena 3 · Centro Storico','Schiacciate légendaires, généreusement garnies : l’institution florentine qui a aussi conquis Rome.','All+Antico+Vinaio+Piazza+della+Maddalena+Roma',41.8999637,12.4764773,'streetfood','€',''],
+    ['🔺','Trapizzino | Testaccio','4.6','Via Giovanni Branca 88 · Testaccio','Le triangle de pizza farci inventé ici : boulettes et poulet chasseur incontournables.','Trapizzino+Testaccio+Via+Giovanni+Branca+Roma',41.8796102,12.4736352,'streetfood','€',''],
+    ['🍕','Antico Forno Roscioli','4.5','Via dei Chiavari 34 · Campo de’ Fiori','Four historique et pizza à la coupe près de Campo de’ Fiori, la mortadelle est légendaire.','Antico+Forno+Roscioli+Via+dei+Chiavari+Roma',41.8945667,12.4742778,'pizza','€',''],
+    ['🍚','Supplizio','4.5','Via dei Banchi Vecchi 143 · Centro Storico','Que des suppli, réalisés à la perfection : cacio e pepe, amatriciana, le classique.','Supplizio+Via+dei+Banchi+Vecchi+Roma',41.897487,12.467911,'streetfood','€',''],
+    ['🍕','Bonci Pizzarium','4.1','Via della Meloria 43 · Prati/Aurelio','Pizza à la part signature près du Vatican, pâte à longue fermentation.','Bonci+Pizzarium+Via+della+Meloria+Roma',41.9066758,12.4466709,'pizza','€€',''],
+    ['🍨','Giolitti','4.4','Via degli Uffici del Vicario 40 · Pantheon','Glacier historique depuis 1900, une institution romaine à deux pas du Panthéon.','Giolitti+Via+degli+Uffici+del+Vicario+Roma',41.9010245,12.4772026,'gelateria','€',''],
+    ['🍝','Trattoria Da Enzo','4.3','Via dei Vascellari 29 · Trastevere','Authentique trattoria romaine à Trastevere, on fait la queue mais ça en vaut la peine — pas de réservations.','Trattoria+Da+Enzo+Via+dei+Vascellari+Trastevere+Roma',41.8880847,12.4778554,'romana','€€',''],
+    ['🍷','Roscioli Salumeria con Cucina','4.3','Via dei Giubbonari 21 · Campo de’ Fiori','Expérience gourmande entre charcuteries, fromages et le meilleur cacio e pepe de Rome.','Roscioli+Salumeria+con+Cucina+Via+dei+Giubbonari+Roma',41.894256,12.4742417,'esperienza','€€€','https://salumeriaroscioli.com/en/pages/prenota']
+  ],
+  tours:{
+    ghetto:{t:'Ghetto et Testaccio',d:'Du cœur juif de Rome au quartier le plus authentique : légendes, saveurs et histoires que l\u2019on ne trouve pas dans les guides.'},
+    trastevere:{t:'Trastevere',d:'Ruelles, mystères et anecdotes du quartier le plus aimé, racontés pas à pas par GPS.'}
+  },
+  tour_cta:'Commencer la visite',
+  tour_all_t:'Tous les tours de Rome', tour_all_d:'D\u2019autres balades narrées par GPS dans la capitale, sur FlyTour'
+},
+de:{
+  hdr_sub:'Welcome Book · Via Lorenzo il Magnifico 158',
+  hero_kicker:'Willkommen in Rom',
+  hero_sub:'Alles, was Sie für Ihren Aufenthalt brauchen, zwei Fingertipps entfernt.',
+  q_nav:'Navigation', q_site:'Webseite', q_wifi:'WLAN', wifi_title:'WLAN', wifi_name:'Netzwerkname', wifi_pass:'Passwort', wifi_copy:'Passwort kopieren', wifi_copied:'Kopiert ✓',
+  t_casa:'Das Haus', t_casa_sub:'Praktische Regeln und Hinweise',
+  t_numeri:'Nützliche Nummern',
+  t_mappa:'Die Umgebung', t_mappa_sub:'Karte und Orientierungspunkte', m_overview:'↺ Gesamtübersicht', lang_pick:'Sprache wählen',
+  t_servizi:'Nützliche Dienste',
+  t_food:'Essen und Trinken', t_food_sub:'Die besten Adressen in der Nähe',
+  food_note:'Die Auswahl wird regelmäßig anhand lokaler Bewertungen aktualisiert.',
+  t_eventi:'Veranstaltungen in Rom', t_eventi_sub:'Was in der Stadt gerade los ist',
+  t_concerti:'Konzerte', t_concerti_sub:'Die nächsten Live-Konzerte in der Stadt, mit Tickets',
+  eventi_soon:'📅 Der Veranstaltungskalender aktualisiert sich automatisch jeden Tag.', eventi_info:'Infos und Tickets →',
+  concerti_soon:'🎵 Der Konzertkalender aktualisiert sich automatisch jeden Tag.',
+  t_tour:'Kostenlose Audio-Touren', t_tour_sub:'Ein Geschenk des Hauses: Spaziergänge mit GPS-Audioguide',
+  t_chat:'Frag InternoUno', t_chat_sub:'Sofortige Antworten, in jeder Sprache, rund um die Uhr',
+  tab_casa:'Haus', tab_mappa:'Karte', tab_food:'Essen', tab_chat:'Fragen', tab_eventi:'Events', tab_concerti:'Konzerte', tab_tour:'Touren',
+  chat_hello:'Hallo! Ich bin der InternoUno-Assistent. Fragen Sie mich alles zu Ihrem Aufenthalt: Zeiten, WLAN, Verkehrsmittel, Tipps vor Ort.',
+  chat_ph:'Frage eingeben…',
+  chat_err:'Der digitale Concierge ist noch nicht aktiv. Schreiben Sie uns in der Zwischenzeit auf WhatsApp — wir antworten schnell!',
+  chat_wa:'WhatsApp öffnen',
+  farewell:'<b>Bis bald!</b><br>Danke, dass Sie sich für InternoUno entschieden haben. Wenn Ihr Aufenthalt schön war, macht eine Bewertung wirklich einen Unterschied (bei Booking ist eine 8 gerade so ausreichend!). Sollte etwas nicht stimmen, schreiben Sie uns sofort auf WhatsApp.<br><br>Für Ihren nächsten Besuch finden Sie die besten Preise auf <b>www.interno1.it</b>.<br><br><i>Gute Reise! — Filippo</i>',
+  acc:[
+    {i:'🚗',t:'Parken',b:'<p><b>Garage Bologna</b>, nur wenige Schritte von der Unterkunft entfernt: <b>+39 06 4424 2664</b>.<br>Mo–Sa 6:00–01:00 · So 6:00–10:00 und 19:00–01:00</p>'},
+    {i:'🕙',t:'Check-out bis 10:00 Uhr',b:'<p>Falls bei der Abreise niemand vom Personal da ist, legen Sie den Schlüssel einfach an der Rezeptionstheke ab.</p>'},
+    {i:'🧳',t:'Gepäckaufbewahrung',b:'<p>Fragen Sie beim Check-out unser Personal nach der Gepäckaufbewahrung: Wir zeigen Ihnen, wo Sie Ihr Gepäck sicher für den Tag lassen können.</p>'},
+    {i:'🚇',t:'U-Bahn, Bus und Fahrkarten',b:'<p><b>U-Bahn/Bahnhof Tiburtina:</b> Linie B, 300 m entfernt (5 Min. zu Fuß) — auch Bahnhof für Hochgeschwindigkeits- und Regionalzüge. Termini 4 Stationen, Kolosseum 6 Stationen.<br>U-Bahn-Öffnungszeiten: So–Do 5:30–23:30 · Fr–Sa 5:30–01:30</p><p><b>Bus:</b> Haltestelle wenige Meter vom Eingang entfernt. Nutzen Sie Google Maps für die beste Route.</p><div class="pills"><span class="pill">1,50 € <small>100 Min.</small></span><span class="pill">7 € <small>24H</small></span><span class="pill">12,50 € <small>48H</small></span><span class="pill">18 € <small>72H</small></span></div><p style="margin-top:8px">🎟️ In der U-Bahn, an Tabakläden, Kiosken oder mit der App <a href="https://www.ticketappy.it">TicketAppy</a>.</p>'},
+    {i:'📺',t:'Kostenloses Netflix',b:'<p>Verfügbar auf dem Fernseher: eigene Taste auf der Fernbedienung oder Smart-TV-Symbol, ohne Einrichtung.</p><p>Falls ein Code verlangt wird, schicken Sie uns per WhatsApp ein Foto des QR-Codes auf dem Bildschirm — wir aktivieren ihn schnellstmöglich neu.</p>'},
+    {i:'🛁',t:'Whirlpool im Zimmer',b:'<p>Alle Zimmer haben einen privaten Whirlpool, außer dem preiswerten Zimmer \u201cCinque\u201d. Er ist im Aufenthalt inbegriffen und einsatzbereit: keine Reservierung nötig.</p>'},
+    {i:'🤫',t:'Ruhezeiten 22:00–08:00 Uhr',b:'<p>Wir bitten Sie, Lärm auf ein Minimum zu reduzieren, damit alle Gäste ihre Ruhe haben.</p>'},
+    {i:'💡',t:'Energie und Klimaanlage',b:'<p>Schalten Sie Licht und Geräte beim Verlassen des Zimmers aus. <b>Die Klimaanlage muss beim Verlassen des Zimmers immer ausgeschaltet werden.</b></p>'},
+    {i:'🐾',t:'Haustiere',b:'<p>Kostenlos willkommen, unter Wahrung von Sauberkeit und Sicherheit. Sie dürfen nicht auf die Betten oder sich frei in den Gemeinschaftsbereichen bewegen.</p>'},
+    {i:'🚭',t:'Rauchen verboten',b:'<p>Die Unterkunft ist strikt Nichtraucher.</p>'}
+  ],
+  numeri:[['🚓','Notruf (Polizei)','112'],['🚑','Medizinischer Notfall','118'],['🚕','Taxi Rom','063570'],['ℹ️','Touristeninfo Rom','060606']],
+  servizi:[
+    ['🛒','Market Magnificio','Via Lorenzo il Magnifico 55 — der nächstgelegene Markt','Market+Magnificio+Via+Lorenzo+il+Magnifico+Roma',41.912222,12.5252672,'spesa'],
+    ['💊','Apotheke Lorenzo il Magnifico','Via Lorenzo il Magnifico 56 — die nächstgelegene','Farmacia+Lorenzo+il+Magnifico+Roma',41.9127643,12.5228587,'farmacia'],
+    ['🏧','Geldautomat Mediobanca','Piazza Bologna 12 — der nächstgelegene','Mediobanca+Piazza+Bologna+Roma',41.912732,12.5209393,'bancomat'],
+    ['🧺','Waschsalon Onda Blu','Via Giuseppe Marcotti 52 — Selbstbedienung, gut bewertet','Onda+Blu+Lavanderia+Roma',41.9094291,12.5394627,'lavanderia'],
+    ['🚬','Tabakladen Magnifico','Via Giovanni da Procida 24 — U-Bahn-Tickets, Briefmarken','Tabaccheria+Magnifico+Roma',41.9122801,12.5250464,'tabacchi'],
+    ['📮','Postamt','Via Giuseppe Marcotti 45 — für Postkarten und Pakete','Ufficio+Postale+Via+Giuseppe+Marcotti+Roma',41.9096223,12.5392195,'posta'],
+    ['🏥','Notaufnahme Sandro Pertini','Via dei Monti Tiburtini 385 — 24-Stunden-Notaufnahme','Ospedale+Sandro+Pertini+Roma',41.9205526,12.5380699,'ospedale'],
+    ['🚇','U-Bahn/Bahnhof Tiburtina','Linie B — 300 m, 5 Min. zu Fuß, auch Hochgeschwindigkeitsbahnhof','Stazione+Tiburtina+Roma',41.9111184,12.5314223,'metro'],
+    ['🅿️','Garage Bologna','Via Lorenzo il Magnifico 83 — kostenpflichtiges Parken','Garage+Bologna+Via+Lorenzo+il+Magnifico+Roma',41.9119992,12.525884,'garage']
+  ],
+  t_food_roma:'Roms Highlights', t_food_roma_sub:'Wenn Sie ins Zentrum fahren, lohnt sich der Umweg',
+  filter_all:'Alle', filter_cuisine:'Küchenart', filter_price:'Preisklasse',
+  book_cta:'📅 Reservieren',
+  food_cats:{colazione:'Frühstück',romana:'Römisch',sushi:'Sushi',pizza:'Pizza',pesce:'Fisch',vegano:'Vegan',messicano:'Mexikanisch',indiano:'Indisch',hamburgeria:'Burger',gelateria:'Eisdiele',aperitivo:'Aperitivo',streetfood:'Street Food',esperienza:'Erlebnis'},
+  food:[
+    ['☕','Bar Stendal','','Piazzale delle Provincie 1','Das nächstgelegene Café: perfekt zum Frühstücken.','Bar+Stendal+Roma',41.9090953,12.521502,'colazione','€',''],
+    ['🔺','Trapizzino | P.le Provincie','4.5','Piazzale delle Provincie 9','Nur 200 m von uns entfernt: für eine schnelle, authentische Mahlzeit in der Gegend die sicherste Wahl.','Trapizzino+Piazzale+delle+Provincie+Roma',41.90954,12.521587,'streetfood','€',''],
+    ['🍝','Strada Romana','4.7','Via Teodorico 34 · 06 8339 8501','Römische Küche und Pizza, gepflegtes Ambiente, ausgezeichnetes Preis-Leistungs-Verhältnis.','Strada+Romana+Via+Teodorico+34+Roma',41.9105217,12.5279991,'romana','€€','https://www.thefork.it/ristorante/strada-romana-pizza-and-grill-r749904'],
+    ['🍣','Kimi Sushi Experience','4.5','Via della Lega Lombarda 48C','Hochwertiges All-you-can-eat mit riesiger Auswahl an Rohem und Gekochtem.','Kimi+Sushi+Experience+Roma',41.9084043,12.5247835,'sushi','€€','+393273412345'],
+    ['🍕','Malaterra','4.5','Viale XXI Aprile 75','Superleichte Gourmet-Pizza, frisch gebacken, eine der besten der Gegend.','Malaterra+Viale+XXI+Aprile+Roma',41.9148692,12.5206389,'pizza','€€','+390645471930'],
+    ['🍝','Da Enrico','4.4','Via Michele di Lando 28','Traditionsreiche Trattoria, ausgezeichnete Amatriciana und Fleischbällchen, lebendige Atmosphäre.','Da+Enrico+Via+Michele+di+Lando+Roma',41.9137907,12.5224039,'romana','€€','+390644237738'],
+    ['🍷','Osteria Urbana','4.1','Via Bari 9','Eine der besten Carbonaras Roms, englischsprachiges Personal.','Osteria+Urbana+Via+Bari+Roma',41.9110697,12.5147991,'romana','€€','https://www.thefork.it/ristorante/osteria-urbana-r390539'],
+    ['🍕','Da Mamma','4.0','Via Lorenzo il Magnifico 62','Familiäre Trattoria, ehrliche Hausmannskost zu sehr fairen Preisen.','Da+Mamma+Via+Lorenzo+il+Magnifico+Roma',41.9126707,12.5232376,'romana','€','+390644242613'],
+    ['🐟','Ristorante da Franco','4.5','Via Stamira 23','Frischer, hochwertiger Fisch, sehr beliebt bei Anwohnern.','Ristorante+da+Franco+Via+Stamira+Roma',41.913242,12.5234063,'pesce','€€','+390644236122'],
+    ['🍝','Rigatoni Ristorante Pizzeria','4.5','Via Luigi Pigorini 31','Klassische Pasta und Pizza, immer verlässlich, gut für Familien.','Rigatoni+Ristorante+Pizzeria+Piazza+Bologna+Roma',41.9160952,12.5222681,'pizza','€€','+390699702398'],
+    ['🌱','Col Cavolo - Vegan Bistrot','4.8','Via Cesare Bosi 7 · Trieste','Raffinierte vegane Küche, eine der beliebtesten in Rom.','Col+Cavolo+Vegan+Bistrot+Via+Cesare+Bosi+Roma',41.9119436,12.500445,'vegano','€€','+393517675734'],
+    ['🌮','Casa Sánchez','4.6','Via Catanzaro 6b · Trieste','Authentische mexikanische Küche, hervorragende Tacos und Margaritas.','Casa+Sanchez+Via+Catanzaro+Roma',41.9119562,12.5175178,'messicano','€€','+390645542607'],
+    ['🍛','Suresh Food & Drinks','4.7','Via Arno 73 · Trieste','Raffinierte indische Küche, eine der bestbewerteten der Stadt.','Suresh+Food+Drinks+Via+Arno+Roma',41.9195212,12.4997278,'indiano','€€','+393888528172'],
+    ['🍔','Hamburgeseria Burger Bar','4.4','Via dei Reti 40 · San Lorenzo','Gourmet-Burger und knusprige Pommes, lockere Atmosphäre.','Hamburgeseria+Burger+Bar+Via+dei+Reti+Roma',41.8982015,12.5186568,'hamburgeria','€€','+390644701298'],
+    ['🍨','Gelato Romano','4.9','Via Giacomo Boni 33','Ausgezeichnetes handwerkliches Eis, eines der bestbewerteten Roms.','Gelato+Romano+Via+Giacomo+Boni+Roma',41.9150989,12.5222429,'gelateria','€',''],
+    ['🍹','Mood Café','4.2','Piazza Bologna 7','Reichhaltiger Aperitivo zu fairem Preis, ideal nach dem Abendessen.','Mood+Cafe+Piazza+Bologna+Roma',41.912979,12.521305,'aperitivo','€€',''],
+    ['🍕','La Pizzetta Tiburtina','4.5','Via Cipriano Facchinetti 5/7','Ausgezeichnete runde Pizzette und Frittiertes, sehr gut bewertet.','La+Pizzetta+Tiburtina+Roma',41.9090097,12.5465998,'pizza','€'],
+    ['🍨','Gelateria Belsito','4.6','Via Livorno 39','Hervorragendes handwerkliches Eis zu fairen Preisen, bei Römern sehr beliebt.','Gelateria+Belsito+Roma',41.9154058,12.5233853,'gelateria','€']
+  ],
+  foodRoma:[
+    ['🥖','All\'Antico Vinaio','4.3','Piazza della Maddalena 3 · Centro Storico','Legendäre, üppig gefüllte Schiacciate: die Florentiner Institution, die auch Rom erobert hat.','All+Antico+Vinaio+Piazza+della+Maddalena+Roma',41.8999637,12.4764773,'streetfood','€',''],
+    ['🔺','Trapizzino | Testaccio','4.6','Via Giovanni Branca 88 · Testaccio','Das gefüllte Pizza-Dreieck, hier erfunden: Fleischbällchen und Hühnchen alla cacciatora sind Pflicht.','Trapizzino+Testaccio+Via+Giovanni+Branca+Roma',41.8796102,12.4736352,'streetfood','€',''],
+    ['🍕','Antico Forno Roscioli','4.5','Via dei Chiavari 34 · Campo de’ Fiori','Historischer Ofen und Pizza al taglio nahe Campo de’ Fiori, die Mortadella ist legendär.','Antico+Forno+Roscioli+Via+dei+Chiavari+Roma',41.8945667,12.4742778,'pizza','€',''],
+    ['🍚','Supplizio','4.5','Via dei Banchi Vecchi 143 · Centro Storico','Nur Suppli, perfekt zubereitet: Cacio e Pepe, Amatriciana, der Klassiker.','Supplizio+Via+dei+Banchi+Vecchi+Roma',41.897487,12.467911,'streetfood','€',''],
+    ['🍕','Bonci Pizzarium','4.1','Via della Meloria 43 · Prati/Aurelio','Pizza vom Blech mit Autorenanspruch nahe dem Vatikan, lang geführter Teig.','Bonci+Pizzarium+Via+della+Meloria+Roma',41.9066758,12.4466709,'pizza','€€',''],
+    ['🍨','Giolitti','4.4','Via degli Uffici del Vicario 40 · Pantheon','Historische Eisdiele seit 1900, eine römische Institution nur Schritte vom Pantheon entfernt.','Giolitti+Via+degli+Uffici+del+Vicario+Roma',41.9010245,12.4772026,'gelateria','€',''],
+    ['🍝','Trattoria Da Enzo','4.3','Via dei Vascellari 29 · Trastevere','Authentische römische Trattoria in Trastevere, man wartet, aber es lohnt sich — keine Reservierungen.','Trattoria+Da+Enzo+Via+dei+Vascellari+Trastevere+Roma',41.8880847,12.4778554,'romana','€€',''],
+    ['🍷','Roscioli Salumeria con Cucina','4.3','Via dei Giubbonari 21 · Campo de’ Fiori','Gourmet-Erlebnis zwischen Wurstwaren, Käse und der besten Cacio e Pepe Roms.','Roscioli+Salumeria+con+Cucina+Via+dei+Giubbonari+Roma',41.894256,12.4742417,'esperienza','€€€','https://salumeriaroscioli.com/en/pages/prenota']
+  ],
+  tours:{
+    ghetto:{t:'Ghetto und Testaccio',d:'Vom jüdischen Herzen Roms zum urigsten Viertel: Legenden, Aromen und Geschichten, die man in keinem Reiseführer findet.'},
+    trastevere:{t:'Trastevere',d:'Gassen, Geheimnisse und Anekdoten des beliebtesten Viertels, Schritt für Schritt per GPS erzählt.'}
+  },
+  tour_cta:'Tour starten',
+  tour_all_t:'Alle Rom-Touren', tour_all_d:'Weitere GPS-geführte Spaziergänge in der Hauptstadt, auf FlyTour'
+},
+pt:{
+  hdr_sub:'Welcome Book · Via Lorenzo il Magnifico 158',
+  hero_kicker:'Bem-vindos a Roma',
+  hero_sub:'Tudo o que precisa para a sua estadia, a dois toques.',
+  q_nav:'Navegar', q_site:'Site', q_wifi:'WiFi', wifi_title:'Wi-Fi', wifi_name:'Nome da rede', wifi_pass:'Palavra-passe', wifi_copy:'Copiar palavra-passe', wifi_copied:'Copiada ✓',
+  t_casa:'A Casa', t_casa_sub:'Regras e instruções práticas',
+  t_numeri:'Números Úteis',
+  t_mappa:'O Bairro', t_mappa_sub:'Mapa e pontos de referência', m_overview:'↺ Vista geral', lang_pick:'Escolha o idioma',
+  t_servizi:'Serviços Úteis',
+  t_food:'Comer e Beber', t_food_sub:'Os melhores locais nas proximidades',
+  food_note:'Seleção atualizada periodicamente com base nas avaliações da zona.',
+  t_eventi:'Eventos em Roma', t_eventi_sub:'O que acontece na cidade nestes dias',
+  t_concerti:'Concertos', t_concerti_sub:'Os próximos concertos na cidade, com bilhetes',
+  eventi_soon:'📅 O calendário de eventos atualiza-se automaticamente todos os dias.', eventi_info:'Info e bilhetes →',
+  concerti_soon:'🎵 O calendário de concertos atualiza-se automaticamente todos os dias.',
+  t_tour:'Tours Áudio Gratuitos', t_tour_sub:'Uma oferta da casa: passeios com áudioguia GPS',
+  t_chat:'Pergunte à InternoUno', t_chat_sub:'Respostas imediatas, em qualquer idioma, 24 horas por dia',
+  tab_casa:'Casa', tab_mappa:'Mapa', tab_food:'Comer', tab_chat:'Perguntar', tab_eventi:'Eventos', tab_concerti:'Concertos', tab_tour:'Tours',
+  chat_hello:'Olá! Sou o assistente da InternoUno. Pergunte-me qualquer coisa sobre a sua estadia: horários, WiFi, transportes, dicas locais.',
+  chat_ph:'Escreva uma pergunta…',
+  chat_err:'O concierge digital ainda não está ativo. Entretanto, escreva-nos no WhatsApp — respondemos rapidamente!',
+  chat_wa:'Abrir WhatsApp',
+  farewell:'<b>Até breve!</b><br>Obrigado por escolher a InternoUno. Se a estadia correu bem, uma avaliação faz mesmo a diferença (no Booking, um 8 é apenas suficiente!). Se algo não correu bem, escreva-nos já no WhatsApp.<br><br>Para voltar, a melhor tarifa está em <b>www.interno1.it</b>.<br><br><i>Boa viagem! — Filippo</i>',
+  acc:[
+    {i:'🚗',t:'Estacionamento',b:'<p><b>Garage Bologna</b>, a poucos passos do alojamento: <b>+39 06 4424 2664</b>.<br>Seg–Sáb 6:00–01:00 · Dom 6:00–10:00 e 19:00–01:00</p>'},
+    {i:'🕙',t:'Check-out até às 10:00',b:'<p>Se não encontrar a equipa à partida, deixe a chave no balcão da receção.</p>'},
+    {i:'🧳',t:'Guarda-volumes',b:'<p>No check-out, pergunte à nossa equipa sobre o depósito de bagagem: indicamos onde a deixar em segurança durante o dia.</p>'},
+    {i:'🚇',t:'Metro, autocarro e bilhetes',b:'<p><b>Metro/Estação Tiburtina:</b> Linha B, a 300 m (5 min a pé) — também estação ferroviária de Alta Velocidade e regionais. Termini a 4 paragens, Coliseu a 6.<br>Horário do metro: dom–qui 5:30–23:30 · sex–sáb 5:30–01:30</p><p><b>Autocarro:</b> paragem a poucos metros da entrada. Use o Google Maps para o melhor trajeto.</p><div class="pills"><span class="pill">1,50 € <small>100 min</small></span><span class="pill">7 € <small>24H</small></span><span class="pill">12,50 € <small>48H</small></span><span class="pill">18 € <small>72H</small></span></div><p style="margin-top:8px">🎟️ No metro, em tabacarias, quiosques ou com a app <a href="https://www.ticketappy.it">TicketAppy</a>.</p>'},
+    {i:'📺',t:'Netflix gratuito',b:'<p>Disponível na TV: botão dedicado no comando ou ícone Smart TV, sem configuração.</p><p>Se pedir um código, envie-nos por WhatsApp uma foto do QR no ecrã e reativamo-lo assim que possível.</p>'},
+    {i:'🛁',t:'Jacuzzi no quarto',b:'<p>Todos os quartos têm jacuzzi privada, exceto o quarto económico \u201cCinque\u201d. Está incluída na estadia, pronta a usar: não é preciso reservar.</p>'},
+    {i:'🤫',t:'Horário de silêncio 22:00–08:00',b:'<p>Pedimos que reduza ao mínimo o ruído para garantir o sossego de todos os hóspedes.</p>'},
+    {i:'💡',t:'Energia e ar condicionado',b:'<p>Apague luzes e desligue aparelhos ao sair. <b>O ar condicionado deve estar sempre desligado ao sair do quarto.</b></p>'},
+    {i:'🐾',t:'Animais de estimação',b:'<p>Bem-vindos gratuitamente, respeitando a limpeza e a segurança. Não devem subir para as camas nem circular livremente nas áreas comuns.</p>'},
+    {i:'🚭',t:'Proibido fumar',b:'<p>O alojamento é rigorosamente não-fumador.</p>'}
+  ],
+  numeri:[['🚓','Emergências (Polícia)','112'],['🚑','Emergência médica','118'],['🚕','Táxi Roma','063570'],['ℹ️','Informação turística','060606']],
+  servizi:[
+    ['🛒','Market Magnificio','Via Lorenzo il Magnifico 55 — o mercado mais próximo','Market+Magnificio+Via+Lorenzo+il+Magnifico+Roma',41.912222,12.5252672,'spesa'],
+    ['💊','Farmácia Lorenzo il Magnifico','Via Lorenzo il Magnifico 56 — a mais próxima','Farmacia+Lorenzo+il+Magnifico+Roma',41.9127643,12.5228587,'farmacia'],
+    ['🏧','Multibanco Mediobanca','Piazza Bologna 12 — o mais próximo','Mediobanca+Piazza+Bologna+Roma',41.912732,12.5209393,'bancomat'],
+    ['🧺','Lavandaria Onda Blu','Via Giuseppe Marcotti 52 — self-service, bem avaliada','Onda+Blu+Lavanderia+Roma',41.9094291,12.5394627,'lavanderia'],
+    ['🚬','Tabacaria Magnifico','Via Giovanni da Procida 24 — bilhetes de metro, selos','Tabaccheria+Magnifico+Roma',41.9122801,12.5250464,'tabacchi'],
+    ['📮','Correios','Via Giuseppe Marcotti 45 — para postais e encomendas','Ufficio+Postale+Via+Giuseppe+Marcotti+Roma',41.9096223,12.5392195,'posta'],
+    ['🏥','Urgências Sandro Pertini','Via dei Monti Tiburtini 385 — urgências 24h','Ospedale+Sandro+Pertini+Roma',41.9205526,12.5380699,'ospedale'],
+    ['🚇','Metro/Estação Tiburtina','Linha B — 300 m, 5 min a pé, também estação de Alta Velocidade','Stazione+Tiburtina+Roma',41.9111184,12.5314223,'metro'],
+    ['🅿️','Garage Bologna','Via Lorenzo il Magnifico 83 — estacionamento pago','Garage+Bologna+Via+Lorenzo+il+Magnifico+Roma',41.9119992,12.525884,'garage']
+  ],
+  t_food_roma:'Pérolas de Roma', t_food_roma_sub:'Se for ao centro, valem bem o desvio',
+  filter_all:'Todos', filter_cuisine:'Tipo de cozinha', filter_price:'Faixa de preço',
+  book_cta:'📅 Reservar',
+  food_cats:{colazione:'Pequeno-almoço',romana:'Romana',sushi:'Sushi',pizza:'Pizza',pesce:'Peixe',vegano:'Vegano',messicano:'Mexicano',indiano:'Indiano',hamburgeria:'Hambúrgueres',gelateria:'Gelataria',aperitivo:'Aperitivo',streetfood:'Street food',esperienza:'Experiência'},
+  food:[
+    ['☕','Bar Stendal','','Piazzale delle Provincie 1','O café mais próximo: perfeito para o pequeno-almoço.','Bar+Stendal+Roma',41.9090953,12.521502,'colazione','€',''],
+    ['🔺','Trapizzino | P.le Provincie','4.5','Piazzale delle Provincie 9','A 200 m de nós: se procura algo rápido e genuíno na zona, é a escolha mais segura.','Trapizzino+Piazzale+delle+Provincie+Roma',41.90954,12.521587,'streetfood','€',''],
+    ['🍝','Strada Romana','4.7','Via Teodorico 34 · 06 8339 8501','Cozinha romana e pizza, ambiente cuidado, ótima relação qualidade-preço.','Strada+Romana+Via+Teodorico+34+Roma',41.9105217,12.5279991,'romana','€€','https://www.thefork.it/ristorante/strada-romana-pizza-and-grill-r749904'],
+    ['🍣','Kimi Sushi Experience','4.5','Via della Lega Lombarda 48C','Rodízio de qualidade, enorme variedade entre cru e cozinhado.','Kimi+Sushi+Experience+Roma',41.9084043,12.5247835,'sushi','€€','+393273412345'],
+    ['🍕','Malaterra','4.5','Viale XXI Aprile 75','Pizza gourmet leve, feita na hora, das melhores da zona.','Malaterra+Viale+XXI+Aprile+Roma',41.9148692,12.5206389,'pizza','€€','+390645471930'],
+    ['🍝','Da Enrico','4.4','Via Michele di Lando 28','Trattoria histórica, excelente amatriciana e almôndegas, ambiente animado.','Da+Enrico+Via+Michele+di+Lando+Roma',41.9137907,12.5224039,'romana','€€','+390644237738'],
+    ['🍷','Osteria Urbana','4.1','Via Bari 9','Uma das melhores carbonaras de Roma, equipa que fala inglês.','Osteria+Urbana+Via+Bari+Roma',41.9110697,12.5147991,'romana','€€','https://www.thefork.it/ristorante/osteria-urbana-r390539'],
+    ['🍕','Da Mamma','4.0','Via Lorenzo il Magnifico 62','Trattoria familiar, cozinha caseira genuína a preços muito justos.','Da+Mamma+Via+Lorenzo+il+Magnifico+Roma',41.9126707,12.5232376,'romana','€','+390644242613'],
+    ['🐟','Ristorante da Franco','4.5','Via Stamira 23','Peixe fresco de qualidade, muito frequentado pelos moradores da zona.','Ristorante+da+Franco+Via+Stamira+Roma',41.913242,12.5234063,'pesce','€€','+390644236122'],
+    ['🍝','Rigatoni Ristorante Pizzeria','4.5','Via Luigi Pigorini 31','Massas e pizzas clássicas, sempre fiáveis, ótimo para famílias.','Rigatoni+Ristorante+Pizzeria+Piazza+Bologna+Roma',41.9160952,12.5222681,'pizza','€€','+390699702398'],
+    ['🌱','Col Cavolo - Vegan Bistrot','4.8','Via Cesare Bosi 7 · Trieste','Cozinha vegana refinada, das mais apreciadas de Roma.','Col+Cavolo+Vegan+Bistrot+Via+Cesare+Bosi+Roma',41.9119436,12.500445,'vegano','€€','+393517675734'],
+    ['🌮','Casa Sánchez','4.6','Via Catanzaro 6b · Trieste','Autêntica cozinha mexicana, ótimos tacos e margaritas.','Casa+Sanchez+Via+Catanzaro+Roma',41.9119562,12.5175178,'messicano','€€','+390645542607'],
+    ['🍛','Suresh Food & Drinks','4.7','Via Arno 73 · Trieste','Cozinha indiana refinada, das mais bem avaliadas da cidade.','Suresh+Food+Drinks+Via+Arno+Roma',41.9195212,12.4997278,'indiano','€€','+393888528172'],
+    ['🍔','Hamburgeseria Burger Bar','4.4','Via dei Reti 40 · San Lorenzo','Hambúrgueres gourmet e batatas fritas estaladiças, ambiente informal.','Hamburgeseria+Burger+Bar+Via+dei+Reti+Roma',41.8982015,12.5186568,'hamburgeria','€€','+390644701298'],
+    ['🍨','Gelato Romano','4.9','Via Giacomo Boni 33','Excelente gelado artesanal, um dos mais bem avaliados de Roma.','Gelato+Romano+Via+Giacomo+Boni+Roma',41.9150989,12.5222429,'gelateria','€',''],
+    ['🍹','Mood Café','4.2','Piazza Bologna 7','Aperitivo generoso a preço justo, ótimo para depois do jantar.','Mood+Cafe+Piazza+Bologna+Roma',41.912979,12.521305,'aperitivo','€€',''],
+    ['🍕','La Pizzetta Tiburtina','4.5','Via Cipriano Facchinetti 5/7','Excelentes pizzetas redondas e fritos, muito bem avaliada.','La+Pizzetta+Tiburtina+Roma',41.9090097,12.5465998,'pizza','€'],
+    ['🍨','Gelateria Belsito','4.6','Via Livorno 39','Ótimo gelado artesanal a preço justo, muito querida pelos romanos.','Gelateria+Belsito+Roma',41.9154058,12.5233853,'gelateria','€']
+  ],
+  foodRoma:[
+    ['🥖','All\'Antico Vinaio','4.3','Piazza della Maddalena 3 · Centro Storico','Schiacciate lendárias, recheadas até não poder mais: a instituição florentina que também conquistou Roma.','All+Antico+Vinaio+Piazza+della+Maddalena+Roma',41.8999637,12.4764773,'streetfood','€',''],
+    ['🔺','Trapizzino | Testaccio','4.6','Via Giovanni Branca 88 · Testaccio','O triângulo de pizza recheado inventado aqui: as almôndegas e o frango à caçadora são imperdíveis.','Trapizzino+Testaccio+Via+Giovanni+Branca+Roma',41.8796102,12.4736352,'streetfood','€',''],
+    ['🍕','Antico Forno Roscioli','4.5','Via dei Chiavari 34 · Campo de’ Fiori','Forno histórico e pizza ao corte perto de Campo de’ Fiori, a mortadela é lendária.','Antico+Forno+Roscioli+Via+dei+Chiavari+Roma',41.8945667,12.4742778,'pizza','€',''],
+    ['🍚','Supplizio','4.5','Via dei Banchi Vecchi 143 · Centro Storico','Só supplì, feitos na perfeição: cacio e pepe, amatriciana, o clássico.','Supplizio+Via+dei+Banchi+Vecchi+Roma',41.897487,12.467911,'streetfood','€',''],
+    ['🍕','Bonci Pizzarium','4.1','Via della Meloria 43 · Prati/Aurelio','Pizza ao corte de autor perto do Vaticano, massa de longa fermentação.','Bonci+Pizzarium+Via+della+Meloria+Roma',41.9066758,12.4466709,'pizza','€€',''],
+    ['🍨','Giolitti','4.4','Via degli Uffici del Vicario 40 · Pantheon','Gelataria histórica desde 1900, uma instituição romana a poucos passos do Panteão.','Giolitti+Via+degli+Uffici+del+Vicario+Roma',41.9010245,12.4772026,'gelateria','€',''],
+    ['🍝','Trattoria Da Enzo','4.3','Via dei Vascellari 29 · Trastevere','Trattoria romana genuína em Trastevere, há fila mas vale a pena — não aceitam reservas.','Trattoria+Da+Enzo+Via+dei+Vascellari+Trastevere+Roma',41.8880847,12.4778554,'romana','€€',''],
+    ['🍷','Roscioli Salumeria con Cucina','4.3','Via dei Giubbonari 21 · Campo de’ Fiori','Experiência gourmet entre enchidos, queijos e o melhor cacio e pepe de Roma.','Roscioli+Salumeria+con+Cucina+Via+dei+Giubbonari+Roma',41.894256,12.4742417,'esperienza','€€€','https://salumeriaroscioli.com/en/pages/prenota']
+  ],
+  tours:{
+    ghetto:{t:'Ghetto e Testaccio',d:'Do coração judaico de Roma ao bairro mais autêntico: lendas, sabores e histórias que não encontra nos guias.'},
+    trastevere:{t:'Trastevere',d:'Vielas, mistérios e histórias do bairro mais amado, narrados passo a passo por GPS.'}
+  },
+  tour_cta:'Iniciar o tour',
+  tour_all_t:'Todos os tours de Roma', tour_all_d:'Mais percursos narrados por GPS na capital, no FlyTour'
+},
+zh:{
+  hdr_sub:'Welcome Book · Via Lorenzo il Magnifico 158',
+  hero_kicker:'欢迎来到罗马',
+  hero_sub:'轻点两下,即可获取入住所需的一切信息。',
+  q_nav:'导航', q_site:'官网', q_wifi:'WiFi', wifi_title:'无线网络', wifi_name:'网络名称', wifi_pass:'密码', wifi_copy:'复制密码', wifi_copied:'已复制 ✓',
+  t_casa:'入住须知', t_casa_sub:'实用规则与说明',
+  t_numeri:'实用电话',
+  t_mappa:'周边地图', t_mappa_sub:'地图与周边地标', m_overview:'↺ 查看全图', lang_pick:'选择语言',
+  t_servizi:'周边服务',
+  t_food:'餐饮推荐', t_food_sub:'附近最佳去处',
+  food_note:'根据当地评价定期更新推荐列表。',
+  t_eventi:'罗马活动', t_eventi_sub:'近期城市活动',
+  t_concerti:'演唱会', t_concerti_sub:'城市近期演出,可购票',
+  eventi_soon:'📅 活动日历每天自动更新。', eventi_info:'详情及购票 →',
+  concerti_soon:'🎵 演唱会日历每天自动更新。',
+  t_tour:'免费语音导览', t_tour_sub:'民宿赠送:GPS语音导览漫步之旅',
+  t_chat:'咨询 InternoUno', t_chat_sub:'全天候即时回复,支持任何语言',
+  tab_casa:'住宿', tab_mappa:'地图', tab_food:'美食', tab_chat:'咨询', tab_eventi:'活动', tab_concerti:'演唱会', tab_tour:'导览',
+  chat_hello:'您好!我是 InternoUno 的智能助理。关于入住的任何问题都可以问我:时间、WiFi、交通、周边推荐等。',
+  chat_ph:'请输入您的问题…',
+  chat_err:'智能礼宾服务暂未开通。请先通过 WhatsApp 联系我们,我们会尽快回复!',
+  chat_wa:'打开 WhatsApp',
+  farewell:'<b>期待再见!</b><br>感谢您选择 InternoUno。如果您对入住体验满意,一条评价对我们非常重要(在 Booking 上,8分只是刚刚及格!)。如有任何问题,请立即通过 WhatsApp 联系我们。<br><br>如需再次入住,最优惠的价格请前往 <b>www.interno1.it</b>。<br><br><i>祝旅途愉快!— Filippo</i>',
+  acc:[
+    {i:'🚗',t:'停车',b:'<p><b>Garage Bologna 车库</b>,距离民宿仅几步之遥:<b>+39 06 4424 2664</b>。<br>周一至周六 6:00–01:00 · 周日 6:00–10:00 及 19:00–01:00</p>'},
+    {i:'🕙',t:'退房时间为10:00前',b:'<p>如离店时未见工作人员,请将钥匙留在前台柜台上即可。</p>'},
+    {i:'🧳',t:'行李寄存',b:'<p>退房时请向我们的工作人员咨询行李寄存事宜，我们会告知您当天可安全存放行李的地点。</p>'},
+    {i:'🚇',t:'地铁、公交与车票',b:'<p><b>地铁/蒂布尔蒂纳车站:</b>B线,距离300米(步行约5分钟)——同时也是高铁和地区列车的火车站。距离特米尼站4站,距离斗兽场6站。<br>地铁运营时间:周日至周四 5:30–23:30 · 周五至周六 5:30–01:30</p><p><b>公交:</b>站点就在入口附近几米处,建议使用谷歌地图规划最佳路线。</p><div class="pills"><span class="pill">1.50€ <small>100分钟</small></span><span class="pill">7€ <small>24小时</small></span><span class="pill">12.50€ <small>48小时</small></span><span class="pill">18€ <small>72小时</small></span></div><p style="margin-top:8px">🎟️ 可在地铁站、烟草店、报刊亭购买,或使用 <a href="https://www.ticketappy.it">TicketAppy</a> 应用购票。</p>'},
+    {i:'📺',t:'免费 Netflix',b:'<p>电视上即可观看:遥控器上有专用按键,或直接点击智能电视图标,无需额外设置。</p><p>如需要验证码,请通过 WhatsApp 发送屏幕上二维码的照片给我们,我们会尽快为您重新激活。</p>'},
+    {i:'🛁',t:'客房按摩浴缸',b:'<p>除经济房型\u201cCinque\u201d外,所有客房均配备独立按摩浴缸。已包含在住宿费用中,随时可用,无需预约。</p>'},
+    {i:'🤫',t:'安静时段 22:00–08:00',b:'<p>请尽量保持安静,以确保所有客人都能得到充分休息。</p>'},
+    {i:'💡',t:'节能与空调使用',b:'<p>离开房间时请关闭灯光和电器。<b>离开房间时空调必须关闭。</b></p>'},
+    {i:'🐾',t:'宠物',b:'<p>欢迎携带宠物入住,免费且需注意卫生与安全。请勿让宠物上床或在公共区域自由活动。</p>'},
+    {i:'🚭',t:'禁止吸烟',b:'<p>本住宿严格禁止吸烟。</p>'}
+  ],
+  numeri:[['🚓','紧急报警(警察)','112'],['🚑','医疗急救','118'],['🚕','罗马出租车','063570'],['ℹ️','罗马旅游咨询','060606']],
+  servizi:[
+    ['🛒','Market Magnificio 超市','Via Lorenzo il Magnifico 55 — 最近的超市','Market+Magnificio+Via+Lorenzo+il+Magnifico+Roma',41.912222,12.5252672,'spesa'],
+    ['💊','Lorenzo il Magnifico 药店','Via Lorenzo il Magnifico 56 — 最近的药店','Farmacia+Lorenzo+il+Magnifico+Roma',41.9127643,12.5228587,'farmacia'],
+    ['🏧','Mediobanca 取款机','Piazza Bologna 12 — 最近的取款机','Mediobanca+Piazza+Bologna+Roma',41.912732,12.5209393,'bancomat'],
+    ['🧺','Onda Blu 自助洗衣店','Via Giuseppe Marcotti 52 — 自助式,口碑很好','Onda+Blu+Lavanderia+Roma',41.9094291,12.5394627,'lavanderia'],
+    ['🚬','Tabaccheria Magnifico 烟草店','Via Giovanni da Procida 24 — 地铁票、邮票','Tabaccheria+Magnifico+Roma',41.9122801,12.5250464,'tabacchi'],
+    ['📮','邮局','Via Giuseppe Marcotti 45 — 寄明信片及包裹','Ufficio+Postale+Via+Giuseppe+Marcotti+Roma',41.9096223,12.5392195,'posta'],
+    ['🏥','Sandro Pertini 急诊室','Via dei Monti Tiburtini 385 — 24小时急诊','Ospedale+Sandro+Pertini+Roma',41.9205526,12.5380699,'ospedale'],
+    ['🚇','地铁/蒂布尔蒂纳车站','B线 — 300米,步行5分钟,同时也是高铁车站','Stazione+Tiburtina+Roma',41.9111184,12.5314223,'metro'],
+    ['🅿️','Garage Bologna 车库','Via Lorenzo il Magnifico 83 — 收费停车场','Garage+Bologna+Via+Lorenzo+il+Magnifico+Roma',41.9119992,12.525884,'garage']
+  ],
+  t_food_roma:'罗马美食精选', t_food_roma_sub:'如果去市中心,这些值得专程一试',
+  filter_all:'全部', filter_cuisine:'菜系类型', filter_price:'价格区间',
+  book_cta:'📅 预订',
+  food_cats:{colazione:'早餐',romana:'罗马菜',sushi:'寿司',pizza:'披萨',pesce:'海鲜',vegano:'素食',messicano:'墨西哥菜',indiano:'印度菜',hamburgeria:'汉堡',gelateria:'冰淇淋',aperitivo:'开胃小食',streetfood:'街头小吃',esperienza:'特色体验'},
+  food:[
+    ['☕','Bar Stendal','','Piazzale delle Provincie 1','最近的咖啡吧,早餐甜点的绝佳选择。','Bar+Stendal+Roma',41.9090953,12.521502,'colazione','€',''],
+    ['🔺','Trapizzino | P.le Provincie','4.5','Piazzale delle Provincie 9','距我们仅200米:如果想在附近快速吃点地道的东西,这里绝对是最保险的选择。','Trapizzino+Piazzale+delle+Provincie+Roma',41.90954,12.521587,'streetfood','€',''],
+    ['🍝','Strada Romana','4.7','Via Teodorico 34 · 06 8339 8501','正宗罗马菜与披萨,环境雅致,性价比很高。','Strada+Romana+Via+Teodorico+34+Roma',41.9105217,12.5279991,'romana','€€','https://www.thefork.it/ristorante/strada-romana-pizza-and-grill-r749904'],
+    ['🍣','Kimi Sushi Experience','4.5','Via della Lega Lombarda 48C','高品质自助餐,生食熟食选择非常丰富。','Kimi+Sushi+Experience+Roma',41.9084043,12.5247835,'sushi','€€','+393273412345'],
+    ['🍕','Malaterra','4.5','Viale XXI Aprile 75','现烤轻盈的美食披萨,本区口碑最佳之一。','Malaterra+Viale+XXI+Aprile+Roma',41.9148692,12.5206389,'pizza','€€','+390645471930'],
+    ['🍝','Da Enrico','4.4','Via Michele di Lando 28','历史悠久的老饭馆,经典番茄培根意面和肉丸出色,氛围热闹。','Da+Enrico+Via+Michele+di+Lando+Roma',41.9137907,12.5224039,'romana','€€','+390644237738'],
+    ['🍷','Osteria Urbana','4.1','Via Bari 9','罗马最佳卡邦纳拉之一,员工会说英语。','Osteria+Urbana+Via+Bari+Roma',41.9110697,12.5147991,'romana','€€','https://www.thefork.it/ristorante/osteria-urbana-r390539'],
+    ['🍕','Da Mamma','4.0','Via Lorenzo il Magnifico 62','家庭经营的小饭馆,家常菜地道,价格非常实惠。','Da+Mamma+Via+Lorenzo+il+Magnifico+Roma',41.9126707,12.5232376,'romana','€','+390644242613'],
+    ['🐟','Ristorante da Franco','4.5','Via Stamira 23','新鲜优质海鲜,深受本地居民喜爱。','Ristorante+da+Franco+Via+Stamira+Roma',41.913242,12.5234063,'pesce','€€','+390644236122'],
+    ['🍝','Rigatoni Ristorante Pizzeria','4.5','Via Luigi Pigorini 31','经典意面与披萨,品质稳定,适合家庭用餐。','Rigatoni+Ristorante+Pizzeria+Piazza+Bologna+Roma',41.9160952,12.5222681,'pizza','€€','+390699702398'],
+    ['🌱','Col Cavolo - Vegan Bistrot','4.8','Via Cesare Bosi 7 · Trieste','精致素食料理,罗马最受欢迎的素食餐厅之一。','Col+Cavolo+Vegan+Bistrot+Via+Cesare+Bosi+Roma',41.9119436,12.500445,'vegano','€€','+393517675734'],
+    ['🌮','Casa Sánchez','4.6','Via Catanzaro 6b · Trieste','正宗墨西哥菜,塔可与玛格丽特出色。','Casa+Sanchez+Via+Catanzaro+Roma',41.9119562,12.5175178,'messicano','€€','+390645542607'],
+    ['🍛','Suresh Food & Drinks','4.7','Via Arno 73 · Trieste','精致印度菜,全城评价最高的餐厅之一。','Suresh+Food+Drinks+Via+Arno+Roma',41.9195212,12.4997278,'indiano','€€','+393888528172'],
+    ['🍔','Hamburgeseria Burger Bar','4.4','Via dei Reti 40 · San Lorenzo','精品汉堡与香脆薯条,氛围轻松随意。','Hamburgeseria+Burger+Bar+Via+dei+Reti+Roma',41.8982015,12.5186568,'hamburgeria','€€','+390644701298'],
+    ['🍨','Gelato Romano','4.9','Via Giacomo Boni 33','手工冰淇淋出色,罗马评价最高的冰淇淋店之一。','Gelato+Romano+Via+Giacomo+Boni+Roma',41.9150989,12.5222429,'gelateria','€',''],
+    ['🍹','Mood Café','4.2','Piazza Bologna 7','丰盛的开胃小食,价格实惠,晚餐后小酌的好去处。','Mood+Cafe+Piazza+Bologna+Roma',41.912979,12.521305,'aperitivo','€€',''],
+    ['🍕','La Pizzetta Tiburtina','4.5','Via Cipriano Facchinetti 5/7','圆形披萨与炸物出色,口碑很好。','La+Pizzetta+Tiburtina+Roma',41.9090097,12.5465998,'pizza','€'],
+    ['🍨','Gelateria Belsito','4.6','Via Livorno 39','手工冰淇淋出色,价格公道,深受本地人喜爱。','Gelateria+Belsito+Roma',41.9154058,12.5233853,'gelateria','€']
+  ],
+  foodRoma:[
+    ['🥖','All\'Antico Vinaio','4.3','Piazza della Maddalena 3 · Centro Storico','传说级佛卡夏三明治,馅料丰盛到夸张:征服了佛罗伦萨也征服了罗马。','All+Antico+Vinaio+Piazza+della+Maddalena+Roma',41.8999637,12.4764773,'streetfood','€',''],
+    ['🔺','Trapizzino | Testaccio','4.6','Via Giovanni Branca 88 · Testaccio','三角披萨夹馅小吃的发源地:肉丸和猎人烩鸡馅料不容错过。','Trapizzino+Testaccio+Via+Giovanni+Branca+Roma',41.8796102,12.4736352,'streetfood','€',''],
+    ['🍕','Antico Forno Roscioli','4.5','Via dei Chiavari 34 · Campo de’ Fiori','历史悠久的老面包房,在鲜花广场附近,摩泰台拉香肠口味堪称传奇。','Antico+Forno+Roscioli+Via+dei+Chiavari+Roma',41.8945667,12.4742778,'pizza','€',''],
+    ['🍚','Supplizio','4.5','Via dei Banchi Vecchi 143 · Centro Storico','只卖炸饭团,做到极致:卡邦纳拉、番茄培根、经典原味。','Supplizio+Via+dei+Banchi+Vecchi+Roma',41.897487,12.467911,'streetfood','€',''],
+    ['🍕','Bonci Pizzarium','4.1','Via della Meloria 43 · Prati/Aurelio','梵蒂冈附近的名家披萨,长时间发酵面团。','Bonci+Pizzarium+Via+della+Meloria+Roma',41.9066758,12.4466709,'pizza','€€',''],
+    ['🍨','Giolitti','4.4','Via degli Uffici del Vicario 40 · Pantheon','自1900年营业的老牌冰淇淋店,万神殿附近的罗马地标。','Giolitti+Via+degli+Uffici+del+Vicario+Roma',41.9010245,12.4772026,'gelateria','€',''],
+    ['🍝','Trattoria Da Enzo','4.3','Via dei Vascellari 29 · Trastevere','特拉斯提弗列地道罗马小饭馆,需要排队但绝对值得——不接受预订。','Trattoria+Da+Enzo+Via+dei+Vascellari+Trastevere+Roma',41.8880847,12.4778554,'romana','€€',''],
+    ['🍷','Roscioli Salumeria con Cucina','4.3','Via dei Giubbonari 21 · Campo de’ Fiori','在熟食与奶酪间享受美食体验,罗马最佳卡邦纳拉之一。','Roscioli+Salumeria+con+Cucina+Via+dei+Giubbonari+Roma',41.894256,12.4742417,'esperienza','€€€','https://salumeriaroscioli.com/en/pages/prenota']
+  ],
+  tours:{
+    ghetto:{t:'犹太区与泰斯塔乔',d:'从罗马的犹太文化中心到最地道的市井街区:传说、风味与向导书上找不到的故事。'},
+    trastevere:{t:'特拉斯提弗列',d:'最受喜爱街区的小巷、传说与轶事,由GPS一步步为您讲述。'}
+  },
+  tour_cta:'开始导览',
+  tour_all_t:'罗马全部导览', tour_all_d:'更多罗马市内的GPS语音导览路线,尽在FlyTour'
+}
+};
+
+/* ================= STATO & RENDER ================= */
+const LANGS = [
+  {code:'it', flag:'🇮🇹', label:'Italiano'},
+  {code:'en', flag:'🇬🇧', label:'English'},
+  {code:'es', flag:'🇪🇸', label:'Español'},
+  {code:'fr', flag:'🇫🇷', label:'Français'},
+  {code:'de', flag:'🇩🇪', label:'Deutsch'},
+  {code:'pt', flag:'🇵🇹', label:'Português'},
+  {code:'zh', flag:'🇨🇳', label:'中文'}
+];
+let lang = (navigator.language || 'it').slice(0,2).toLowerCase();
+if(!I18N[lang]) lang = 'en';
+
+const $ = s => document.querySelector(s);
+const $$ = s => document.querySelectorAll(s);
+const T = () => I18N[lang];
+
+function renderLangUI(){
+  const cur = LANGS.find(l => l.code === lang) || LANGS[1];
+  $('#langBtn').textContent = cur.flag;
+  $('#langModalList').innerHTML = LANGS.map(l =>
+    `<button class="lang-row${l.code===lang?' on':''}" data-lang="${l.code}">
+       <span class="flag">${l.flag}</span><span>${l.label}</span>
+       ${l.code===lang?'<span class="check">✓</span>':''}
+     </button>`).join('');
+  $$('#langModalList .lang-row').forEach(b => b.addEventListener('click', () => {
+    lang = b.dataset.lang;
+    render();
+    trackEvent('lang', lang);
+    $('#langModalOverlay').classList.remove('show');
+  }));
+}
+
+function render(){
+  document.documentElement.lang = lang;
+  renderLangUI();
+  $$('[data-i]').forEach(el => { const v = T()[el.dataset.i]; if(v !== undefined) el.innerHTML = v; });
+
+  // accordions
+  $('#accordions').innerHTML = T().acc.map(a =>
+    `<details class="acc"><summary><span class="i">${a.i}</span>${a.t}</summary><div class="body">${a.b}</div></details>`).join('');
+
+  // numeri utili
+  $('#numeri').innerHTML = T().numeri.map(n =>
+    `<div class="numrow"><span>${n[0]}</span><span>${n[1]}</span><a class="n" href="tel:${n[2]}">${n[2]==='063570'?'06 3570':n[2]==='060606'?'06 0606':n[2]}</a></div>`).join('');
+
+  // servizi
+  $('#servizi').innerHTML = T().servizi.map((s,i) =>
+    `<div class="card poi" data-poi="${i}">
+       <a class="navbtn" href="https://www.google.com/maps/dir/?api=1&destination=${s[4]},${s[5]}" target="_blank" title="Naviga" data-navbtn>
+         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l18-8-8 18-2-8-8-2z"/></svg>
+       </a>
+       <div class="top"><h3>${s[6]==='metro' ? '<span class="m-badge">M</span>' : s[6]==='tabacchi' ? '<span class="t-badge">T</span>' : s[0]} ${s[1]}</h3></div><div class="addr">${s[2]}</div>
+     </div>`).join('');
+  $$('#servizi .poi').forEach(el => {
+    el.querySelectorAll('[data-navbtn]').forEach(nb => nb.addEventListener('click', e => e.stopPropagation()));
+    el.addEventListener('click', () => {
+      const s = T().servizi[+el.dataset.poi];
+      $$('#tabbar button').forEach(x => x.classList.remove('on'));
+      $('#tabbar button[data-scr="mappa"]').classList.add('on');
+      $$('.screen').forEach(x => x.classList.remove('on'));
+      $('#scr-mappa').classList.add('on');
+      initMap();
+      setTimeout(() => { map.invalidateSize(); zoomToPoi(s[4], s[5]); }, 60);
+    });
+  });
+  refreshMapLabels();
+
+  // food (zona, con filtri) + Roma
+  renderFilterChips();
+  renderFoodFiltered();
+  $('#foodRomaList').innerHTML = T().foodRoma.map(foodCardHTML).join('');
+  $$('#foodRomaList [data-navbtn]').forEach(b => b.addEventListener('click', e => e.stopPropagation()));
+
+  // tours
+  $('#tours').innerHTML = CFG.flytour.map(t => {
+    const tt = T().tours[t.id];
+    return `<a class="card poi" href="${t.url}" target="_blank">
+      <div class="top"><h3>${t.em} ${tt.t}</h3><span class="badge">GPS</span></div>
+      <div class="desc">${tt.d}</div>
+      <div class="addr" style="margin-top:6px;color:var(--orange);font-weight:700">▶ ${T().tour_cta}</div></a>`;
+  }).join('') + `<a class="card poi" href="${CFG.flytourAll}" target="_blank">
+      <div class="top"><h3>🧭 ${T().tour_all_t}</h3></div>
+      <div class="desc">${T().tour_all_d}</div></a>`;
+
+  $('#farewell').innerHTML = T().farewell;
+  $('#chatinput').placeholder = T().chat_ph;
+  if(!$('#chatlog').children.length) botSay(T().chat_hello);
+}
+
+/* ================= FOOD: card, filtri, mappa ================= */
+let foodOverrideList = null; // dati dinamici dal worker, quando disponibili
+let foodCuisine = null;      // categoria selezionata (null = tutte)
+let foodPrice = null;        // fascia di prezzo selezionata (null = tutte)
+let foodMap = null;
+let foodMarkers = [];
+let foodMapBounds = null;
+
+function foodBaseList(){ return foodOverrideList || T().food; }
+
+function foodCardHTML(f){
+  const nav = (f[6] != null && f[7] != null)
+    ? `https://www.google.com/maps/dir/?api=1&destination=${f[6]},${f[7]}`
+    : `https://www.google.com/maps/search/?api=1&query=${f[5]}`;
+  const isUrl = f[10] && /^https?:\/\//.test(f[10]);
+  const bookHref = isUrl ? f[10] : (f[10] ? `tel:${f[10]}` : '');
+  return `<div class="card poi">
+    <a class="navbtn" href="${nav}" target="_blank" title="Naviga" data-navbtn>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l18-8-8 18-2-8-8-2z"/></svg>
+    </a>
+    <div class="top"><h3>${f[0]} ${f[1]}</h3>${f[2]?`<span class="star">★ ${f[2]}</span>`:''}<span class="poi-price${f[2]?'':' pushright'}">${f[9]||''}</span></div>
+    <div class="addr">${f[3]}</div><div class="desc">${f[4]}</div>
+    ${bookHref ? `<a class="book-btn" href="${bookHref}"${isUrl?' target="_blank"':''} data-navbtn>${T().book_cta}</a>` : ''}
+  </div>`;
+}
+
+function renderFoodFiltered(){
+  const all = foodBaseList();
+  const filtered = all.filter(f => (!foodCuisine || f[8]===foodCuisine) && (!foodPrice || f[9]===foodPrice));
+  $('#foodlist').innerHTML = filtered.map(foodCardHTML).join('');
+  $$('#foodlist .poi').forEach((el, i) => {
+    const f = filtered[i];
+    el.querySelectorAll('[data-navbtn]').forEach(nb => nb.addEventListener('click', e => e.stopPropagation()));
+    if(f[6] != null && f[7] != null){
+      el.addEventListener('click', () => {
+        initFoodMap();
+        setTimeout(() => { foodMap.invalidateSize(); zoomToFoodPoi(f[6], f[7]); }, 60);
+      });
+    }
+  });
+  renderFoodMarkers(filtered);
+}
+
+function renderFilterChips(){
+  const all = foodBaseList();
+  const cuisines = [...new Set(all.map(f => f[8]).filter(Boolean))];
+
+  const cuisineLabel = foodCuisine ? (T().food_cats[foodCuisine] || foodCuisine) : T().filter_all;
+  $('#cuisineFilterBtn').textContent = `${T().filter_cuisine}: ${cuisineLabel}`;
+
+  $('#cuisineModalList').innerHTML = [
+    `<button class="lang-row${foodCuisine===null?' on':''}" data-cuisine="">${T().filter_all}${foodCuisine===null?'<span class="check">✓</span>':''}</button>`,
+    ...cuisines.map(c => `<button class="lang-row${foodCuisine===c?' on':''}" data-cuisine="${c}">${T().food_cats[c]||c}${foodCuisine===c?'<span class="check">✓</span>':''}</button>`)
+  ].join('');
+  $$('#cuisineModalList .lang-row').forEach(b => b.addEventListener('click', () => {
+    foodCuisine = b.dataset.cuisine || null;
+    renderFilterChips(); renderFoodFiltered();
+    $('#cuisineModalOverlay').classList.remove('show');
+  }));
+
+  const prices = [...new Set(all.map(f => f[9]).filter(Boolean))].sort((a,b)=>a.length-b.length);
+  $('#filterPrice').innerHTML = [
+    `<button class="chip${foodPrice===null?' on':''}" data-price="">${T().filter_all}</button>`,
+    ...prices.map(p => `<button class="chip${foodPrice===p?' on':''}" data-price="${p}">${p}</button>`)
+  ].join('');
+  $$('#filterPrice .chip').forEach(b => b.addEventListener('click', () => {
+    foodPrice = b.dataset.price || null;
+    renderFilterChips(); renderFoodFiltered();
+  }));
+}
+
+function initFoodMap(){
+  if(foodMap) return;
+  foodMap = L.map('foodMap', {zoomControl:false, attributionControl:true}).setView([CFG.lat, CFG.lon], 15);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; OpenStreetMap &copy; CARTO', maxZoom: 20
+  }).addTo(foodMap);
+}
+function renderFoodMarkers(list){
+  if(!foodMap) return;
+  foodMarkers.forEach(m => m.remove());
+  foodMarkers = [];
+  const coords = [];
+  list.forEach(f => {
+    if(f[6] == null || f[7] == null) return;
+    const icon = L.divIcon({className:'', html:`<div class="poi-pin cat-food"><span>${f[0]}</span></div>`, iconSize:[28,28], iconAnchor:[14,28]});
+    const m = L.marker([f[6], f[7]], {icon}).addTo(foodMap).bindTooltip(f[1], {direction:'top', offset:[0,-24], className:'poi-tooltip'});
+    foodMarkers.push(m);
+    coords.push([f[6], f[7]]);
+  });
+  if(coords.length){
+    foodMapBounds = coords;
+    if(foodMap) foodMap.fitBounds(coords, {padding:[36,36]});
+  }
+}
+function zoomToFoodPoi(lat, lon){ if(foodMap) foodMap.flyTo([lat, lon], 18, {duration:0.6}); }
+function zoomFoodOverview(){ if(foodMap && foodMapBounds) foodMap.flyToBounds(foodMapBounds, {padding:[36,36], duration:0.6}); }
+
+
+/* dati dinamici dal worker (quando esisterà) */
+function eventCardHTML(e){
+  const meta = [e.quando, e.dove].filter(Boolean).join(' · ');
+  return `<div class="card"><div class="top"><h3>${e.emoji||'🎭'} ${e.titolo}</h3></div>
+    ${meta ? `<div class="addr">${meta}</div>` : ''}<div class="desc">${e.descr||''}</div>
+    ${e.link?`<div class="addr" style="margin-top:6px"><a href="${e.link}" target="_blank">${T().eventi_info}</a></div>`:''}</div>`;
+}
+async function loadDynamic(){
+  try{
+    const r = await fetch(`${CFG.api}/wb/${CFG.slug}/data?lang=${lang}`, {signal: AbortSignal.timeout(4000)});
+    if(!r.ok) return;
+    const d = await r.json();
+    if(d.food?.length){ foodOverrideList = d.food; renderFilterChips(); renderFoodFiltered(); }
+    if(d.eventi?.length){
+      $('#eventi').innerHTML = d.eventi.map(eventCardHTML).join('');
+    }
+    if(d.concerti?.length){
+      $('#concerti').innerHTML = d.concerti.map(eventCardHTML).join('');
+    }
+  }catch(e){/* fallback statico già visibile */}
+}
+
+/* ================= TRACKING ================= */
+function trackEvent(event, section){
+  try{
+    fetch(`${CFG.api}/wb/${CFG.slug}/track`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({event, section, lang}),
+      keepalive:true
+    }).catch(()=>{});
+  }catch(e){/* mai bloccare l'esperienza per un ping di analytics */}
+}
+
+/* ================= MAPPA ================= */
+let map = null;
+let poiMarkers = [];
+let mapBounds = null;
+
+function initMap(){
+  if(map) return;
+  const home = [CFG.lat, CFG.lon];
+  map = L.map('map', {zoomControl:false, attributionControl:true}).setView(home, 16);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; OpenStreetMap &copy; CARTO', maxZoom: 20
+  }).addTo(map);
+
+  const homeIcon = L.divIcon({className:'', html:'<div class="poi-pin cat-casa"><span>🏠</span></div>', iconSize:[28,28], iconAnchor:[14,28]});
+  L.marker(home, {icon:homeIcon}).addTo(map).bindTooltip(CFG.nome, {direction:'top', offset:[0,-24], className:'poi-tooltip'});
+
+  const coords = [home];
+  T().servizi.forEach((s,i) => {
+    const lat = s[4], lon = s[5], cat = s[6];
+    const isFlatBadge = cat === 'metro' || cat === 'tabacchi';
+    const glyph = cat === 'metro' ? 'M' : cat === 'tabacchi' ? 'T' : s[0];
+    const icon = L.divIcon({
+      className: '', html: `<div class="poi-pin cat-${cat}"><span>${glyph}</span></div>`,
+      iconSize: isFlatBadge ? [24,24] : [28,28],
+      iconAnchor: isFlatBadge ? [12,12] : [14,28]
+    });
+    poiMarkers[i] = L.marker([lat, lon], {icon}).addTo(map).bindTooltip(s[1], {direction:'top', offset:[0,isFlatBadge?-16:-24], className:'poi-tooltip'});
+    coords.push([lat, lon]);
+  });
+  mapBounds = coords;
+  map.fitBounds(coords, {padding:[36,36]});
+}
+function zoomToPoi(lat, lon){ if(map) map.flyTo([lat, lon], 18, {duration:0.6}); }
+function zoomOverview(){ if(map && mapBounds) map.flyToBounds(mapBounds, {padding:[36,36], duration:0.6}); }
+function refreshMapLabels(){
+  if(!map) return;
+  T().servizi.forEach((s,i) => { if(poiMarkers[i]) poiMarkers[i].setTooltipContent(s[1]); });
+}
+$('#mapOverviewBtn').addEventListener('click', zoomOverview);
+$('#foodOverviewBtn').addEventListener('click', zoomFoodOverview);
+
+/* ================= TABS ================= */
+$$('#tabbar button').forEach(b => b.addEventListener('click', () => {
+  $$('#tabbar button').forEach(x => x.classList.remove('on'));
+  b.classList.add('on');
+  $$('.screen').forEach(s => s.classList.remove('on'));
+  $('#scr-' + b.dataset.scr).classList.add('on');
+  window.scrollTo(0,0);
+  trackEvent('tab', b.dataset.scr);
+  if(b.dataset.scr === 'mappa'){
+    initMap();
+    setTimeout(() => map.invalidateSize(), 60);
+  }
+  if(b.dataset.scr === 'food'){
+    initFoodMap();
+    renderFoodMarkers(foodBaseList().filter(f => (!foodCuisine || f[8]===foodCuisine) && (!foodPrice || f[9]===foodPrice)));
+    setTimeout(() => foodMap.invalidateSize(), 60);
+  }
+}));
+
+$$('.subtab-row .subtab').forEach(b => b.addEventListener('click', () => {
+  $$('.subtab-row .subtab').forEach(x => x.classList.remove('on'));
+  b.classList.add('on');
+  $$('.sub-panel').forEach(p => p.classList.remove('on'));
+  $('#panel-' + b.dataset.sub).classList.add('on');
+  trackEvent('subtab', b.dataset.sub);
+}));
+
+$('#langBtn').addEventListener('click', () => { $('#langModalOverlay').classList.add('show'); });
+$('#langModalClose').addEventListener('click', () => { $('#langModalOverlay').classList.remove('show'); });
+$('#langModalOverlay').addEventListener('click', e => { if(e.target.id === 'langModalOverlay') e.currentTarget.classList.remove('show'); });
+
+$('#wifiBtn').addEventListener('click', () => {
+  $('#wifiSSIDshow').textContent = CFG.wifiSSID;
+  $('#wifiPassShow').textContent = CFG.wifiPass;
+  $('#wifiModalOverlay').classList.add('show');
+  trackEvent('wifi_open', 'casa');
+});
+$('#wifiModalClose').addEventListener('click', () => { $('#wifiModalOverlay').classList.remove('show'); });
+$('#wifiModalOverlay').addEventListener('click', e => { if(e.target.id === 'wifiModalOverlay') e.currentTarget.classList.remove('show'); });
+$('#wifiCopyBtn').addEventListener('click', async () => {
+  try{ await navigator.clipboard.writeText(CFG.wifiPass); }catch(e){}
+  const btn = $('#wifiCopyBtn');
+  const original = btn.innerHTML;
+  btn.classList.add('copied');
+  btn.innerHTML = `<span>${T().wifi_copied}</span>`;
+  setTimeout(() => { btn.classList.remove('copied'); btn.innerHTML = original; }, 1800);
+});
+$('#cuisineFilterBtn').addEventListener('click', () => { $('#cuisineModalOverlay').classList.add('show'); });
+$('#cuisineModalClose').addEventListener('click', () => { $('#cuisineModalOverlay').classList.remove('show'); });
+$('#cuisineModalOverlay').addEventListener('click', e => { if(e.target.id === 'cuisineModalOverlay') e.currentTarget.classList.remove('show'); });
+
+/* ================= CHAT ================= */
+const chatHistory = [];
+function botSay(txt, withWA){
+  const d = document.createElement('div');
+  d.className = 'msg bot';
+  d.innerHTML = txt + (withWA ? `<br><a href="https://wa.me/${CFG.whatsapp}" target="_blank" style="color:var(--orange);font-weight:700">💬 ${T().chat_wa}</a>` : '');
+  $('#chatlog').appendChild(d);
+  d.scrollIntoView({behavior:'smooth'});
+}
+function guestSay(txt){
+  const d = document.createElement('div');
+  d.className = 'msg guest'; d.textContent = txt;
+  $('#chatlog').appendChild(d);
+  d.scrollIntoView({behavior:'smooth'});
+}
+async function sendChat(){
+  const inp = $('#chatinput');
+  const q = inp.value.trim();
+  if(!q) return;
+  inp.value = '';
+  guestSay(q);
+  chatHistory.push({role:'user', content:q});
+  trackEvent('chat_msg', 'chat');
+  try{
+    const r = await fetch(`${CFG.api}/wb/${CFG.slug}/chat`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({messages: chatHistory.slice(-10), lang}),
+      signal: AbortSignal.timeout(30000)
+    });
+    if(!r.ok) throw new Error('api');
+    const d = await r.json();
+    chatHistory.push({role:'assistant', content:d.reply});
+    botSay(d.reply.replace(/\n/g,'<br>'));
+  }catch(e){
+    botSay(T().chat_err, true);
+  }
+}
+$('#chatsend').addEventListener('click', sendChat);
+$('#chatinput').addEventListener('keydown', e => { if(e.key === 'Enter') sendChat(); });
+
+/* ================= INIT ================= */
+render();
+loadDynamic();
+trackEvent('view', 'casa');
+</script>
+
+</body>
+</html>
