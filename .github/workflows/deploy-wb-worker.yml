@@ -13,6 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       HAS_ANTHROPIC_KEY: ${{ secrets.WB_ANTHROPIC_API_KEY }}
+      HAS_TM_KEY: ${{ secrets.TM_API_KEY }}
     steps:
       - uses: actions/checkout@v4
 
@@ -26,6 +27,9 @@ jobs:
           [[kv_namespaces]]
           binding = "WB_KV"
           id = "6f30ec561fed4d4ca3398f699c08b37f"
+
+          [triggers]
+          crons = ["0 5 * * *"]
           EOF
 
       - name: Deploy with Wrangler
@@ -49,6 +53,15 @@ jobs:
         run: |
           npm install -g wrangler@3
           echo "${{ secrets.WB_ANTHROPIC_API_KEY }}" | wrangler secret put ANTHROPIC_API_KEY --name wb-worker --config wrangler_wb_deploy.toml
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+
+      - name: Set Ticketmaster key (once provided)
+        if: ${{ env.HAS_TM_KEY != '' }}
+        run: |
+          npm install -g wrangler@3
+          echo "${{ secrets.TM_API_KEY }}" | wrangler secret put TM_API_KEY --name wb-worker --config wrangler_wb_deploy.toml
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
