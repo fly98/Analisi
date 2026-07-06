@@ -1,0 +1,45 @@
+name: Deploy WB Worker
+
+on:
+  push:
+    paths:
+      - 'wb_worker.js'
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create wrangler config
+        run: |
+          cat > wrangler_wb_deploy.toml << 'EOF'
+          name = "wb-worker"
+          main = "wb_worker.js"
+          compatibility_date = "2024-09-23"
+
+          [[kv_namespaces]]
+          binding = "WB_KV"
+          id = "6f30ec561fed4d4ca3398f699c08b37f"
+          EOF
+
+      - name: Deploy with Wrangler
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CF_API_TOKEN }}
+          accountId: ${{ secrets.CF_ACCOUNT_ID }}
+          wranglerVersion: '3'
+          command: deploy --config wrangler_wb_deploy.toml
+
+      - name: Set secrets (Anthropic + Admin key)
+        if: ${{ secrets.WB_ANTHROPIC_API_KEY != '' }}
+        run: |
+          npm install -g wrangler@3
+          echo "${{ secrets.WB_ANTHROPIC_API_KEY }}" | wrangler secret put ANTHROPIC_API_KEY --name wb-worker --config wrangler_wb_deploy.toml
+          echo "${{ secrets.WB_ADMIN_KEY }}" | wrangler secret put WB_ADMIN_KEY --name wb-worker --config wrangler_wb_deploy.toml
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
