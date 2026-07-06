@@ -168,7 +168,7 @@ async function handleData(request, env, slug, url) {
   let eventi = null;
   if (eventiRaw) {
     const parsed = JSON.parse(eventiRaw);
-    eventi = Array.isArray(parsed) ? parsed : (parsed[lang] || parsed.en || null);
+    eventi = Array.isArray(parsed) ? parsed : (parsed[lang] || parsed.it || null);
   }
 
   return json({
@@ -231,26 +231,20 @@ async function refreshConcerti(env, slug, city) {
   return { ok: true, count: concerti.length };
 }
 
-// ---------------- Eventi: refresh da Wanted in Rome (curato editorialmente) ----------------
+// ---------------- Eventi: refresh da RomaToday (categorie ampie: sagre, mercatini, mostre, manifestazioni...) ----------------
 const TITLE_EMOJI = [
-  [/exhibition|mostra|museum|gallery/i, "🖼️"],
+  [/mostra|esposizion|museo|galleria/i, "🖼️"],
+  [/sagra|street food|mercatino|degustazion|vino|food/i, "🍕"],
   [/festival/i, "🎪"],
-  [/opera|ballet|dance/i, "🎭"],
-  [/concert|music|jazz|orchestra/i, "🎵"],
-  [/food|market|wine|taste|mercat/i, "🍕"],
-  [/pride|parade/i, "🏳️‍🌈"],
-  [/film|cinema|movie/i, "🎬"],
-  [/sport|rally|race/i, "🏁"]
+  [/opera|balletto|danza/i, "🎭"],
+  [/concerto|live|musica|jazz|orchestra/i, "🎵"],
+  [/pride|parata/i, "🏳️‍🌈"],
+  [/film|cinema/i, "🎬"],
+  [/sport|rally|gara|corsa/i, "🏁"]
 ];
 function guessEmoji(titolo) {
   for (const [re, emoji] of TITLE_EMOJI) if (re.test(titolo)) return emoji;
   return "📌";
-}
-function fmtIsoDate(iso) {
-  if (!iso) return "";
-  const d = new Date(iso);
-  if (isNaN(d)) return "";
-  return `${d.getUTCDate()} ${MESI[d.getUTCMonth()]}`;
 }
 async function fetchMeta(html, prop) {
   const re = new RegExp(`<meta (?:property|name)="${prop}" content="([^"]*)"`, "i");
@@ -258,11 +252,50 @@ async function fetchMeta(html, prop) {
   return m ? m[1].replace(/&amp;/g, "&").replace(/&#039;/g, "'").replace(/&quot;/g, '"') : "";
 }
 
-const EVENTI_LANGS = ["it", "es", "fr", "de", "pt", "zh"];
+function parseItDate(s) {
+  const [d, m, y] = s.split("/").map(Number);
+  return { y, m, d };
+}
+function fmtItDate(dateStr) {
+  const { m, d } = parseItDate(dateStr);
+  return `${d} ${MESI[m - 1]}`;
+}
+function extractQuandoDove(html) {
+  let quando = "";
+  const qm = html.match(/>Quando<\/span>[\s\S]{0,60}Dal <span[^>]*>(\d{2}\/\d{2}\/\d{4})<\/span>[\s\S]{0,80}al <span[^>]*>(\d{2}\/\d{2}\/\d{4})<\/span>/);
+  if (qm) {
+    quando = `${fmtItDate(qm[1])} - ${fmtItDate(qm[2])}`;
+  } else {
+    const single = html.match(/>Quando<\/span>[\s\S]{0,60}<span[^>]*>(\d{2}\/\d{2}\/\d{4})<\/span>/);
+    if (single) quando = fmtItDate(single[1]);
+  }
 
-async function translateEventi(env, eventiEn) {
-  if (!env.ANTHROPIC_API_KEY || !eventiEn.length) return null;
-  const input = eventiEn.map((e, i) => ({ id: i, titolo: e.titolo, descr: e.descr }));
+  let dove = "";
+  const dm = html.match(/>Dove<\/span>[\s\S]{0,60}o-link-primary[^>]*>\s*([^<]+?)\s*</);
+  if (dm) dove = dm[1].trim();
+
+  // ultima data valida per il filtro di scadenza (fine evento, o data singola)
+  let endDate = null;
+  if (qm) endDate = parseItDate(qm[2]);
+  else {
+    const single = html.match(/>Quando<\/span>[\s\S]{0,60}<span[^>]*>(\d{2}\/\d{2}\/\d{4})<\/span>/);
+    if (single) endDate = parseItDate(single[1]);
+  }
+  return { quando, dove, endDate };
+}
+function dateStillValid(endDate) {
+  if (!endDate) return true; // nessuna data trovata: includi comunque
+  const oggi = new Date(); oggi.setUTCHours(0, 0, 0, 0);
+  const end = new Date(Date.UTC(endDate.y, endDate.m - 1, endDate.d));
+  return end >= oggi;
+}
+
+const EVENTI_LANGS = ["it", "en", "es", "fr", "de", "pt", "zh"];
+
+async function translateEventi(env, eventiSrc, sourceLang) {
+  if (!env.ANTHROPIC_API_KEY || !eventiSrc.length) return null;
+  const targets = EVENTI_LANGS.filter(l => l !== sourceLang);
+  const input = eventiSrc.map((e, i) => ({ id: i, titolo: e.titolo, descr: e.descr }));
   try {
     const resp = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -274,7 +307,7 @@ async function translateEventi(env, eventiEn) {
       body: JSON.stringify({
         model: "claude-haiku-4-5",
         max_tokens: 8000,
-        system: "Sei un traduttore professionista per un'app di ospitalità turistica a Roma. Ricevi un array JSON di oggetti {id,titolo,descr} in inglese. Restituisci SOLO un oggetto JSON valido (nessun testo extra, nessun blocco markdown) con questa struttura esatta: {\"it\":[{\"titolo\":\"\",\"descr\":\"\"}],\"es\":[...],\"fr\":[...],\"de\":[...],\"pt\":[...],\"zh\":[...]}. Ogni array deve avere esattamente lo stesso numero di elementi, nello stesso ordine dell'input. Traduci in modo naturale e scorrevole, non letterale, mantenendo nomi propri di luoghi/eventi quando appropriato.",
+        system: `Sei un traduttore professionista per un'app di ospitalità turistica a Roma. Ricevi un array JSON di oggetti {id,titolo,descr} nella lingua sorgente "${sourceLang}". Restituisci SOLO un oggetto JSON valido (nessun testo extra, nessun blocco markdown) con questa struttura esatta: {${targets.map(l => `"${l}":[{"titolo":"","descr":""}]`).join(",")}}. Ogni array deve avere esattamente lo stesso numero di elementi, nello stesso ordine dell'input. Traduci in modo naturale e scorrevole, non letterale, mantenendo nomi propri di luoghi/eventi quando appropriato.`,
         messages: [{ role: "user", content: JSON.stringify(input) }]
       })
     });
@@ -282,52 +315,50 @@ async function translateEventi(env, eventiEn) {
     const data = await resp.json();
     const text = (data.content || []).filter(b => b.type === "text").map(b => b.text).join("");
     const parsed = JSON.parse(text.replace(/```json|```/g, "").trim());
-    for (const lang of EVENTI_LANGS) {
-      if (!Array.isArray(parsed[lang]) || parsed[lang].length !== eventiEn.length) return null;
+    for (const lang of targets) {
+      if (!Array.isArray(parsed[lang]) || parsed[lang].length !== eventiSrc.length) return null;
     }
     return parsed;
   } catch (e) { return null; }
 }
 
 async function refreshEventi(env, slug) {
-  const resp = await fetch("https://www.wantedinrome.com/whatson");
-  if (!resp.ok) return { ok: false, error: `Wanted in Rome ${resp.status}` };
+  const UA = "Mozilla/5.0 (compatible; wb-worker/1.0)";
+  const resp = await fetch("https://www.romatoday.it/eventi/", { headers: { "User-Agent": UA } });
+  if (!resp.ok) return { ok: false, error: `RomaToday ${resp.status}` };
   const html = await resp.text();
 
   const urls = [...new Set(
-    [...html.matchAll(/https:\/\/www\.wantedinrome\.com\/whatson\/[a-zA-Z0-9\-]+\.html/g)].map(m => m[0])
-  )].slice(0, 10);
+    [...html.matchAll(/href="(\/eventi\/[a-zA-Z0-9\-]+\.html)"/g)].map(m => `https://www.romatoday.it${m[1]}`)
+  )].slice(0, 20);
 
-  const eventi = [];
+  const eventiSrc = [];
   for (const link of urls) {
+    if (eventiSrc.length >= 12) break;
     try {
-      const dResp = await fetch(link);
+      const dResp = await fetch(link, { headers: { "User-Agent": UA } });
       if (!dResp.ok) continue;
       const dHtml = await dResp.text();
       const titolo = await fetchMeta(dHtml, "og:title");
-      const descr = await fetchMeta(dHtml, "description");
       if (!titolo) continue;
-      eventi.push({
-        emoji: guessEmoji(titolo),
-        titolo,
-        quando: "",
-        dove: "",
-        descr,
-        link
-      });
+      const descr = await fetchMeta(dHtml, "description");
+      const { quando, dove, endDate } = extractQuandoDove(dHtml);
+      if (!dateStillValid(endDate)) continue;
+      eventiSrc.push({ emoji: guessEmoji(titolo), titolo, quando, dove, descr, link });
     } catch (e) { /* salta questo link, continua con gli altri */ }
   }
 
-  const translations = await translateEventi(env, eventi);
-  const multiLang = { en: eventi };
+  const translations = await translateEventi(env, eventiSrc, "it");
+  const multiLang = { it: eventiSrc };
   for (const lang of EVENTI_LANGS) {
+    if (lang === "it") continue;
     multiLang[lang] = translations
-      ? eventi.map((e, i) => ({ ...e, titolo: translations[lang][i].titolo, descr: translations[lang][i].descr }))
-      : eventi;
+      ? eventiSrc.map((e, i) => ({ ...e, titolo: translations[lang][i].titolo, descr: translations[lang][i].descr }))
+      : eventiSrc;
   }
 
   await env.WB_KV.put(`wb:${slug}:eventi`, JSON.stringify(multiLang), { expirationTtl: 60 * 60 * 24 * 7 });
-  return { ok: true, count: eventi.length, translated: !!translations };
+  return { ok: true, count: eventiSrc.length, translated: !!translations };
 }
 
 async function handleRefreshEventi(request, env, slug, url) {
