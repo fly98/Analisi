@@ -150,6 +150,7 @@ details.acc .body p+p{margin-top:8px}
 .poi-pin span{transform:rotate(45deg);font-size:13px;line-height:1}
 .poi-pin.cat-casa{background:var(--orange)}
 .poi-pin.cat-metro{background:#2f6fed}
+.poi-pin.cat-metro span{font-weight:800;font-size:16px;font-family:Georgia,serif}
 .poi-pin.cat-spesa{background:#4a9e6b}
 .poi-pin.cat-bancomat{background:#8b5fbf}
 .poi-pin.cat-lavanderia{background:#2f9bb0}
@@ -337,7 +338,7 @@ it:{
     ['🧺','Lavanderia a gettoni Al.Ba.','Via Giuseppe de Mattheis 11 — 5 min a piedi','lavanderia+Via+Giuseppe+de+Mattheis+11+Roma',41.9094028,12.5200431,'lavanderia'],
     ['💊','Farmacia Caluori','Piazzale delle Provincie 8 — la più vicina','Farmacia+Caluori+Roma',41.9096302,12.521481,'farmacia'],
     ['🚇','Metro Piazza Bologna','Linea B — 400m, 10 min a piedi','Piazza+Bologna+Metro+B+Roma',41.9136626,12.5208135,'metro'],
-    ['🅿️','Garage Di Nezza','Ingresso da Via Cupa — parcheggio sotterraneo','Via+Cupa+Roma',41.908091,12.522909,'garage']
+    ['🅿️','Garage Di Nezza','Ingresso da Via Cupa 35 — parcheggio sotterraneo','Via+Cupa+35+Roma',41.9085477,12.5218817,'garage']
   ],
   food:[
     ['☕','Bar Stendal','','Piazzale delle Provincie 1 — 1 min a piedi','Il bar più vicino: perfetto per colazione e dolci.','Bar+Stendal+Roma'],
@@ -393,7 +394,7 @@ en:{
     ['🧺','Laundromat Al.Ba.','Via Giuseppe de Mattheis 11 — 5 min walk','lavanderia+Via+Giuseppe+de+Mattheis+11+Roma',41.9094028,12.5200431,'lavanderia'],
     ['💊','Pharmacy Caluori','Piazzale delle Provincie 8 — the nearest','Farmacia+Caluori+Roma',41.9096302,12.521481,'farmacia'],
     ['🚇','Piazza Bologna Metro','Line B — 400m, 10 min walk','Piazza+Bologna+Metro+B+Roma',41.9136626,12.5208135,'metro'],
-    ['🅿️','Garage Di Nezza','Entrance from Via Cupa — underground parking','Via+Cupa+Roma',41.908091,12.522909,'garage']
+    ['🅿️','Garage Di Nezza','Entrance from Via Cupa 35 — underground parking','Via+Cupa+35+Roma',41.9085477,12.5218817,'garage']
   ],
   food:[
     ['☕','Bar Stendal','','Piazzale delle Provincie 1 — 1 min walk','The nearest café: great for breakfast and pastries.','Bar+Stendal+Roma'],
@@ -449,7 +450,7 @@ es:{
     ['🧺','Lavandería Al.Ba.','Via Giuseppe de Mattheis 11 — 5 min a pie','lavanderia+Via+Giuseppe+de+Mattheis+11+Roma',41.9094028,12.5200431,'lavanderia'],
     ['💊','Farmacia Caluori','Piazzale delle Provincie 8 — la más cercana','Farmacia+Caluori+Roma',41.9096302,12.521481,'farmacia'],
     ['🚇','Metro Piazza Bologna','Línea B — 400m, 10 min a pie','Piazza+Bologna+Metro+B+Roma',41.9136626,12.5208135,'metro'],
-    ['🅿️','Garaje Di Nezza','Entrada desde Via Cupa — parking subterráneo','Via+Cupa+Roma',41.908091,12.522909,'garage']
+    ['🅿️','Garaje Di Nezza','Entrada desde Via Cupa 35 — parking subterráneo','Via+Cupa+35+Roma',41.9085477,12.5218817,'garage']
   ],
   food:[
     ['☕','Bar Stendal','','Piazzale delle Provincie 1 — 1 min a pie','El bar más cercano: ideal para desayunar.','Bar+Stendal+Roma'],
@@ -581,7 +582,8 @@ function initMap(){
   const coords = [home];
   T().servizi.forEach((s,i) => {
     const lat = s[4], lon = s[5], cat = s[6];
-    const icon = L.divIcon({className:'', html:`<div class="poi-pin cat-${cat}"><span>${s[0]}</span></div>`, iconSize:[28,28], iconAnchor:[14,28]});
+    const glyph = cat === 'metro' ? 'M' : s[0];
+    const icon = L.divIcon({className:'', html:`<div class="poi-pin cat-${cat}"><span>${glyph}</span></div>`, iconSize:[28,28], iconAnchor:[14,28]});
     poiMarkers[i] = L.marker([lat, lon], {icon}).addTo(map).bindTooltip(s[1], {direction:'top', offset:[0,-24], className:'poi-tooltip'});
     coords.push([lat, lon]);
   });
