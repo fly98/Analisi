@@ -11,6 +11,8 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      HAS_ANTHROPIC_KEY: ${{ secrets.WB_ANTHROPIC_API_KEY }}
     steps:
       - uses: actions/checkout@v4
 
@@ -43,7 +45,7 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
 
       - name: Set Anthropic key (once provided)
-        if: ${{ secrets.WB_ANTHROPIC_API_KEY != '' }}
+        if: ${{ env.HAS_ANTHROPIC_KEY != '' }}
         run: |
           npm install -g wrangler@3
           echo "${{ secrets.WB_ANTHROPIC_API_KEY }}" | wrangler secret put ANTHROPIC_API_KEY --name wb-worker --config wrangler_wb_deploy.toml
