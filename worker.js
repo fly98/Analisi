@@ -471,7 +471,7 @@ function subjectFor(lng, isLorenzo) {
   return `${propName} — ${SUBJ[lng]||SUBJ.en}`;
 }
 
-async function runAutoSend(env, daysBack) {
+async function runAutoSend(env, daysBack, dryRun) {
   const oggi = new Date();
   const to = oggi.toISOString().slice(0,10);
   const da = new Date(oggi);
@@ -509,10 +509,14 @@ async function runAutoSend(env, daysBack) {
     const propKey = isLorenzo ? "lor" : "camp";
     const lng = lingua(booker.language, booker.phone || "");
     const nome = (booker.first_name || "").trim();
-
-    const html = buildExpHtml(propKey, lng, nome);
     const subject = subjectFor(lng, isLorenzo);
 
+    if (dryRun) {
+      risultati.push({ bookingId, email, nome, roomName, propKey, lng, subject, wouldSend: true });
+      continue;
+    }
+
+    const html = buildExpHtml(propKey, lng, nome);
     const sendRes = await sendGmailHtml(env, email, subject, html);
     if (sendRes.ok) {
       await env.ARRIVI_KV.put(dedupKey, JSON.stringify({ sentAt: new Date().toISOString(), email, lng, propKey }), { expirationTtl: 60*60*24*180 });
@@ -520,7 +524,7 @@ async function runAutoSend(env, daysBack) {
     risultati.push({ bookingId, email, propKey, lng, sendRes });
   }
 
-  return { ok: true, from, to, totalBookingsChecked: (bookings||[]).length, inviate: risultati.filter(r=>r.sendRes.ok).length, risultati };
+  return { ok: true, dryRun: !!dryRun, from, to, totalBookingsChecked: (bookings||[]).length, inviate: dryRun ? 0 : risultati.filter(r=>r.sendRes && r.sendRes.ok).length, risultati };
 }
 
 async function cercaEmailBooking(bookingId, env) {
@@ -596,7 +600,7 @@ function htmlPage(inner) {
 
 export default {
   async scheduled(event, env, ctx) {
-    ctx.waitUntil(runAutoSend(env, 2));
+    ctx.waitUntil(runAutoSend(env, 2, false));
   },
 
   async fetch(request, env) {
@@ -609,7 +613,8 @@ export default {
 
       if (action === "runAutoSend") {
         const daysBack = parseInt(url.searchParams.get("days") || "2", 10);
-        const result = await runAutoSend(env, daysBack);
+        const dryRun = url.searchParams.get("dryRun") === "true";
+        const result = await runAutoSend(env, daysBack, dryRun);
         return new Response(JSON.stringify(result), { headers: { ...CORS, "Content-Type": "application/json" } });
       }
 
