@@ -88,6 +88,13 @@ header{
 .lang-row.on{background:rgba(255,102,40,.1);font-weight:700;color:var(--orange)}
 .lang-row .flag{font-size:20px}
 .lang-row .check{margin-left:auto;color:var(--orange)}
+.wifi-card{padding:4px 2px 8px}
+.wifi-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border)}
+.wifi-row span{color:var(--muted);font-size:.9rem}
+.wifi-row b{font-size:1rem;letter-spacing:.02em}
+#wifiCopyBtn{width:100%;margin-top:16px;background:var(--orange);color:#fff;border:none;border-radius:var(--radius);
+  padding:13px;font-size:.95rem;font-weight:700;cursor:pointer}
+#wifiCopyBtn.copied{background:#3c9a5f}
 /* ---------- section headers ---------- */
 .targa{margin:26px 16px 10px;text-align:left;background:none;border:none;box-shadow:none;padding:0}
 .targa h2{font-size:1.25rem;font-weight:700;letter-spacing:-.01em;color:var(--text);text-transform:none}
@@ -109,14 +116,15 @@ header{
 .hero p{color:var(--muted);font-size:.9rem;max-width:38ch}
 /* quick actions */
 .quick{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;padding:16px 16px 2px}
-.quick a{
+.quick a, .quick button{
   display:flex;flex-direction:column;align-items:center;gap:6px;
   background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
   padding:12px 4px;text-decoration:none;color:var(--text);
   font-size:.68rem;font-weight:600;transition:transform .15s;
+  font-family:inherit;cursor:pointer;
 }
-.quick a span.i{font-size:1.4rem;line-height:1}
-.quick a:active{transform:scale(.96);border-color:var(--border-s)}
+.quick a span.i, .quick button span.i{font-size:1.4rem;line-height:1}
+.quick a:active, .quick button:active{transform:scale(.96);border-color:var(--border-s)}
 /* accordion */
 details.acc{
   background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
@@ -267,6 +275,20 @@ footer b{color:var(--text)}
   </div>
 </div>
 
+<div class="lang-modal-overlay" id="wifiModalOverlay">
+  <div class="lang-modal">
+    <div class="lang-modal-head">
+      <h3 data-i="wifi_title"></h3>
+      <button class="lang-modal-close" id="wifiModalClose">✕</button>
+    </div>
+    <div class="wifi-card">
+      <div class="wifi-row"><span data-i="wifi_name"></span><b id="wifiSSIDshow"></b></div>
+      <div class="wifi-row"><span data-i="wifi_pass"></span><b id="wifiPassShow"></b></div>
+      <button class="btn" id="wifiCopyBtn"><span data-i="wifi_copy"></span></button>
+    </div>
+  </div>
+</div>
+
 <div class="lang-modal-overlay" id="cuisineModalOverlay">
   <div class="lang-modal">
     <div class="lang-modal-head">
@@ -288,12 +310,11 @@ footer b{color:var(--text)}
     <a href="https://wa.me/393922999914" target="_blank"><span class="i">💬</span><span>WhatsApp</span></a>
     <a href="https://www.google.com/maps/dir/?api=1&destination=Via+Campaldino+6,+Roma" target="_blank"><span class="i">📍</span><span data-i="q_nav"></span></a>
     <a href="tel:112"><span class="i">🚨</span><span>SOS 112</span></a>
-    <a href="https://www.interno1.it" target="_blank"><span class="i">🌐</span><span data-i="q_site"></span></a>
+    <button id="wifiBtn"><span class="i">📶</span><span data-i="q_wifi"></span></button>
   </div>
   <div class="targa"><h2 data-i="t_casa"></h2><p data-i="t_casa_sub"></p></div>
   <div id="accordions"></div>
-  <div class="targa"><h2 data-i="t_numeri"></h2></div>
-  <div class="card wrap-in" id="numeri"></div>
+  <details class="acc"><summary><span class="i">☎️</span><span data-i="t_numeri"></span></summary><div class="body" id="numeri"></div></details>
   <footer id="farewell"></footer>
 </section>
 
@@ -402,7 +423,9 @@ const CFG = {
     {id:'ghetto',   url:'https://fly98.github.io/FlyTour/ghetto-testaccio/index.html', em:'🕍'},
     {id:'trastevere', url:'https://fly98.github.io/FlyTour/trastevere/index.html', em:'🌿'}
   ],
-  flytourAll: 'https://fly98.github.io/FlyTour/index.html?city=roma'
+  flytourAll: 'https://fly98.github.io/FlyTour/index.html?city=roma',
+  wifiSSID: 'DA COMPLETARE',
+  wifiPass: 'DA COMPLETARE'
 };
 
 /* ================= I18N ================= */
@@ -411,7 +434,7 @@ it:{
   hdr_sub:'Welcome Book · Via Campaldino 6',
   hero_kicker:'Benvenuti a Roma', 
   hero_sub:'Tutto quello che serve per il tuo soggiorno, in due tocchi.',
-  q_nav:'Naviga', q_site:'Sito',
+  q_nav:'Naviga', q_site:'Sito', q_wifi:'WiFi', wifi_title:'Wi-Fi', wifi_name:'Nome rete', wifi_pass:'Password', wifi_copy:'Copia password', wifi_copied:'Copiata ✓',
   t_casa:'La Casa', t_casa_sub:'Regole e istruzioni pratiche',
   t_numeri:'Numeri Utili',
   t_mappa:'Il Quartiere', t_mappa_sub:'Mappa e punti di riferimento', m_overview:'↺ Vista d\u2019insieme', lang_pick:'Scegli la lingua',
@@ -498,7 +521,7 @@ en:{
   hdr_sub:'Welcome Book · Via Campaldino 6',
   hero_kicker:'Welcome to Rome',
   hero_sub:'Everything you need for your stay, two taps away.',
-  q_nav:'Navigate', q_site:'Website',
+  q_nav:'Navigate', q_site:'Website', q_wifi:'WiFi', wifi_title:'Wi-Fi', wifi_name:'Network name', wifi_pass:'Password', wifi_copy:'Copy password', wifi_copied:'Copied ✓',
   t_casa:'The House', t_casa_sub:'Practical rules and instructions',
   t_numeri:'Useful Numbers',
   t_mappa:'The Neighborhood', t_mappa_sub:'Map and points of reference', m_overview:'↺ Overview', lang_pick:'Choose language',
@@ -585,7 +608,7 @@ es:{
   hdr_sub:'Welcome Book · Via Campaldino 6',
   hero_kicker:'Bienvenidos a Roma',
   hero_sub:'Todo lo que necesitas para tu estancia, a dos toques.',
-  q_nav:'Navegar', q_site:'Web',
+  q_nav:'Navegar', q_site:'Web', q_wifi:'WiFi', wifi_title:'Wi-Fi', wifi_name:'Nombre de la red', wifi_pass:'Contraseña', wifi_copy:'Copiar contraseña', wifi_copied:'Copiada ✓',
   t_casa:'La Casa', t_casa_sub:'Normas e instrucciones prácticas',
   t_numeri:'Números Útiles',
   t_mappa:'El Barrio', t_mappa_sub:'Mapa y puntos de referencia', m_overview:'↺ Vista general', lang_pick:'Elige el idioma',
@@ -672,7 +695,7 @@ fr:{
   hdr_sub:'Welcome Book · Via Campaldino 6',
   hero_kicker:'Bienvenue à Rome',
   hero_sub:'Tout ce qu\u2019il faut pour votre séjour, en deux clics.',
-  q_nav:'Itinéraire', q_site:'Site web',
+  q_nav:'Itinéraire', q_site:'Site web', q_wifi:'WiFi', wifi_title:'Wi-Fi', wifi_name:'Nom du réseau', wifi_pass:'Mot de passe', wifi_copy:'Copier le mot de passe', wifi_copied:'Copié ✓',
   t_casa:'La Maison', t_casa_sub:'Règles et instructions pratiques',
   t_numeri:'Numéros Utiles',
   t_mappa:'Le Quartier', t_mappa_sub:'Carte et points de repère', m_overview:'↺ Vue d\u2019ensemble', lang_pick:'Choisissez la langue',
@@ -759,7 +782,7 @@ de:{
   hdr_sub:'Welcome Book · Via Campaldino 6',
   hero_kicker:'Willkommen in Rom',
   hero_sub:'Alles, was Sie für Ihren Aufenthalt brauchen, zwei Fingertipps entfernt.',
-  q_nav:'Navigation', q_site:'Webseite',
+  q_nav:'Navigation', q_site:'Webseite', q_wifi:'WLAN', wifi_title:'WLAN', wifi_name:'Netzwerkname', wifi_pass:'Passwort', wifi_copy:'Passwort kopieren', wifi_copied:'Kopiert ✓',
   t_casa:'Das Haus', t_casa_sub:'Praktische Regeln und Hinweise',
   t_numeri:'Nützliche Nummern',
   t_mappa:'Die Umgebung', t_mappa_sub:'Karte und Orientierungspunkte', m_overview:'↺ Gesamtübersicht', lang_pick:'Sprache wählen',
@@ -846,7 +869,7 @@ pt:{
   hdr_sub:'Welcome Book · Via Campaldino 6',
   hero_kicker:'Bem-vindos a Roma',
   hero_sub:'Tudo o que precisa para a sua estadia, a dois toques.',
-  q_nav:'Navegar', q_site:'Site',
+  q_nav:'Navegar', q_site:'Site', q_wifi:'WiFi', wifi_title:'Wi-Fi', wifi_name:'Nome da rede', wifi_pass:'Palavra-passe', wifi_copy:'Copiar palavra-passe', wifi_copied:'Copiada ✓',
   t_casa:'A Casa', t_casa_sub:'Regras e instruções práticas',
   t_numeri:'Números Úteis',
   t_mappa:'O Bairro', t_mappa_sub:'Mapa e pontos de referência', m_overview:'↺ Vista geral', lang_pick:'Escolha o idioma',
@@ -933,7 +956,7 @@ zh:{
   hdr_sub:'Welcome Book · Via Campaldino 6',
   hero_kicker:'欢迎来到罗马',
   hero_sub:'轻点两下,即可获取入住所需的一切信息。',
-  q_nav:'导航', q_site:'官网',
+  q_nav:'导航', q_site:'官网', q_wifi:'WiFi', wifi_title:'无线网络', wifi_name:'网络名称', wifi_pass:'密码', wifi_copy:'复制密码', wifi_copied:'已复制 ✓',
   t_casa:'入住须知', t_casa_sub:'实用规则与说明',
   t_numeri:'实用电话',
   t_mappa:'周边地图', t_mappa_sub:'地图与周边地标', m_overview:'↺ 查看全图', lang_pick:'选择语言',
@@ -1310,6 +1333,23 @@ $$('.subtab-row .subtab').forEach(b => b.addEventListener('click', () => {
 $('#langBtn').addEventListener('click', () => { $('#langModalOverlay').classList.add('show'); });
 $('#langModalClose').addEventListener('click', () => { $('#langModalOverlay').classList.remove('show'); });
 $('#langModalOverlay').addEventListener('click', e => { if(e.target.id === 'langModalOverlay') e.currentTarget.classList.remove('show'); });
+
+$('#wifiBtn').addEventListener('click', () => {
+  $('#wifiSSIDshow').textContent = CFG.wifiSSID;
+  $('#wifiPassShow').textContent = CFG.wifiPass;
+  $('#wifiModalOverlay').classList.add('show');
+  trackEvent('wifi_open', 'casa');
+});
+$('#wifiModalClose').addEventListener('click', () => { $('#wifiModalOverlay').classList.remove('show'); });
+$('#wifiModalOverlay').addEventListener('click', e => { if(e.target.id === 'wifiModalOverlay') e.currentTarget.classList.remove('show'); });
+$('#wifiCopyBtn').addEventListener('click', async () => {
+  try{ await navigator.clipboard.writeText(CFG.wifiPass); }catch(e){}
+  const btn = $('#wifiCopyBtn');
+  const original = btn.innerHTML;
+  btn.classList.add('copied');
+  btn.innerHTML = `<span>${T().wifi_copied}</span>`;
+  setTimeout(() => { btn.classList.remove('copied'); btn.innerHTML = original; }, 1800);
+});
 $('#cuisineFilterBtn').addEventListener('click', () => { $('#cuisineModalOverlay').classList.add('show'); });
 $('#cuisineModalClose').addEventListener('click', () => { $('#cuisineModalOverlay').classList.remove('show'); });
 $('#cuisineModalOverlay').addEventListener('click', e => { if(e.target.id === 'cuisineModalOverlay') e.currentTarget.classList.remove('show'); });
