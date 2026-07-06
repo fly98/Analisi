@@ -169,6 +169,9 @@ details.acc .body p+p{margin-top:8px}
 .m-badge{display:inline-flex;align-items:center;justify-content:center;width:1.3em;height:1.3em;
   background:#e2231a;color:#fff;font-weight:900;font-family:Arial,Helvetica,sans-serif;
   font-size:.9em;border-radius:3px;vertical-align:-3px;line-height:1}
+.t-badge{display:inline-flex;align-items:center;justify-content:center;width:1.3em;height:1.3em;
+  background:#1a1a1a;color:#fff;font-weight:900;font-family:Arial,Helvetica,sans-serif;
+  font-size:.9em;border-radius:3px;vertical-align:-3px;line-height:1}
 .poi-pin.cat-metro{background:#e2231a;border-radius:4px;transform:none;width:24px;height:24px}
 .poi-pin.cat-metro span{transform:none;font-weight:900;font-size:15px;font-family:Arial,Helvetica,sans-serif}
 .poi-pin.cat-spesa{background:#4a9e6b}
@@ -177,6 +180,10 @@ details.acc .body p+p{margin-top:8px}
 .poi-pin.cat-farmacia{background:#e0555f}
 .poi-pin.cat-garage{background:#6b6b6b}
 .poi-pin.cat-food{background:var(--orange)}
+.poi-pin.cat-ospedale{background:#d32f2f}
+.poi-pin.cat-posta{background:#c9960c}
+.poi-pin.cat-tabacchi{background:#1a1a1a;border-radius:4px;transform:none;width:24px;height:24px}
+.poi-pin.cat-tabacchi span{transform:none;font-weight:900;font-size:15px;font-family:Arial,Helvetica,sans-serif}
 .poi-tooltip{background:rgba(30,28,25,.92) !important;border:none !important;color:#fff !important;
   font-family:inherit !important;font-size:11px !important;font-weight:600;padding:3px 8px !important;
   border-radius:6px !important;box-shadow:none !important}
@@ -376,9 +383,10 @@ const CFG = {
   whatsapp: '393922999914',
   api: 'https://wb-worker.f-castiglioni.workers.dev', // live
   flytour: [
-    {id:'ghetto',   url:'https://fly98.github.io/FlyTour/', em:'🕍'},
-    {id:'trastevere', url:'https://fly98.github.io/FlyTour/', em:'🌿'}
-  ]
+    {id:'ghetto',   url:'https://fly98.github.io/FlyTour/ghetto-testaccio/index.html', em:'🕍'},
+    {id:'trastevere', url:'https://fly98.github.io/FlyTour/trastevere/index.html', em:'🌿'}
+  ],
+  flytourAll: 'https://fly98.github.io/FlyTour/index.html?city=roma'
 };
 
 /* ================= I18N ================= */
@@ -423,7 +431,11 @@ it:{
     ['🧺','Lavanderia a gettoni Al.Ba.','Via Giuseppe de Mattheis 11 — 5 min a piedi','lavanderia+Via+Giuseppe+de+Mattheis+11+Roma',41.9094028,12.5200431,'lavanderia'],
     ['💊','Farmacia Caluori','Piazzale delle Provincie 8 — la più vicina','Farmacia+Caluori+Roma',41.9096302,12.521481,'farmacia'],
     ['🚇','Metro Piazza Bologna','Linea B — 400m, 10 min a piedi','Piazza+Bologna+Metro+B+Roma',41.9136626,12.5208135,'metro'],
-    ['🅿️','Garage Di Nezza','Ingresso da Via Cupa 35 — parcheggio sotterraneo','Via+Cupa+35+Roma',41.9085477,12.5218817,'garage']
+    ['🅿️','Garage Di Nezza','Ingresso da Via Cupa 35 — parcheggio sotterraneo','Via+Cupa+35+Roma',41.9085477,12.5218817,'garage'],
+    ['🏥','Pronto Soccorso Umberto I','Viale del Policlinico 155 — pronto soccorso più vicino','Pronto+Soccorso+Policlinico+Umberto+I+Roma',41.9067826,12.5106437,'ospedale'],
+    ['💊','Farmacia Piazza Bologna','Piazza Bologna 19 — aperta fino alle 22:00, alternativa alla più vicina','Farmacia+Piazza+Bologna+Roma',41.9129592,12.5205207,'farmacia'],
+    ['📮','Ufficio Postale','Piazza Bologna 39 — per cartoline, pacchi e pratiche','Ufficio+Postale+Piazza+Bologna+Roma',41.9137245,12.5203352,'posta'],
+    ['🚬','Tabaccheria','Piazza Bologna 16/17 — biglietti metro, francobolli, sigarette','Tabaccheria+Piazza+Bologna+Roma',41.9128888,12.5205306,'tabacchi'],
   ],
   t_food_roma:'Perle di Roma', t_food_roma_sub:'Se ti sposti in centro, questi valgono la deviazione',
   filter_all:'Tutti', filter_cuisine:'Tipo di cucina', filter_price:'Fascia di prezzo',
@@ -461,7 +473,8 @@ it:{
     ghetto:{t:'Ghetto e Testaccio',d:'Dal cuore ebraico di Roma al quartiere più verace: leggende, sapori e storie che non trovi sulle guide.'},
     trastevere:{t:'Trastevere',d:'Vicoli, misteri e aneddoti del rione più amato, raccontati passo dopo passo dal GPS.'}
   },
-  tour_cta:'Inizia il tour'
+  tour_cta:'Inizia il tour',
+  tour_all_t:'Tutti i tour di Roma', tour_all_d:'Altri percorsi GPS narrati nella capitale, su FlyTour'
 },
 en:{
   hdr_sub:'Welcome Book · Via Campaldino 6',
@@ -503,7 +516,11 @@ en:{
     ['🧺','Laundromat Al.Ba.','Via Giuseppe de Mattheis 11 — 5 min walk','lavanderia+Via+Giuseppe+de+Mattheis+11+Roma',41.9094028,12.5200431,'lavanderia'],
     ['💊','Pharmacy Caluori','Piazzale delle Provincie 8 — the nearest','Farmacia+Caluori+Roma',41.9096302,12.521481,'farmacia'],
     ['🚇','Piazza Bologna Metro','Line B — 400m, 10 min walk','Piazza+Bologna+Metro+B+Roma',41.9136626,12.5208135,'metro'],
-    ['🅿️','Garage Di Nezza','Entrance from Via Cupa 35 — underground parking','Via+Cupa+35+Roma',41.9085477,12.5218817,'garage']
+    ['🅿️','Garage Di Nezza','Entrance from Via Cupa 35 — underground parking','Via+Cupa+35+Roma',41.9085477,12.5218817,'garage'],
+    ['🏥','Umberto I Emergency Room','Viale del Policlinico 155 — nearest emergency room','Pronto+Soccorso+Policlinico+Umberto+I+Roma',41.9067826,12.5106437,'ospedale'],
+    ['💊','Piazza Bologna Pharmacy','Piazza Bologna 19 — open until 10pm, backup option','Farmacia+Piazza+Bologna+Roma',41.9129592,12.5205207,'farmacia'],
+    ['📮','Post Office','Piazza Bologna 39 — for postcards, parcels and paperwork','Ufficio+Postale+Piazza+Bologna+Roma',41.9137245,12.5203352,'posta'],
+    ['🚬','Tobacconist','Piazza Bologna 16/17 — metro tickets, stamps, cigarettes','Tabaccheria+Piazza+Bologna+Roma',41.9128888,12.5205306,'tabacchi'],
   ],
   t_food_roma:'Rome’s Best Bites', t_food_roma_sub:'Heading downtown? These are worth the detour',
   filter_all:'All', filter_cuisine:'Cuisine type', filter_price:'Price range',
@@ -541,7 +558,8 @@ en:{
     ghetto:{t:'Ghetto and Testaccio',d:'From Rome\u2019s Jewish heart to its most authentic district: legends, flavours and stories you won\u2019t find in guidebooks.'},
     trastevere:{t:'Trastevere',d:'Alleys, mysteries and anecdotes of Rome\u2019s best-loved quarter, narrated step by step by GPS.'}
   },
-  tour_cta:'Start the tour'
+  tour_cta:'Start the tour',
+  tour_all_t:'All Rome tours', tour_all_d:'More GPS-narrated walks around the capital, on FlyTour'
 },
 es:{
   hdr_sub:'Welcome Book · Via Campaldino 6',
@@ -583,7 +601,11 @@ es:{
     ['🧺','Lavandería Al.Ba.','Via Giuseppe de Mattheis 11 — 5 min a pie','lavanderia+Via+Giuseppe+de+Mattheis+11+Roma',41.9094028,12.5200431,'lavanderia'],
     ['💊','Farmacia Caluori','Piazzale delle Provincie 8 — la más cercana','Farmacia+Caluori+Roma',41.9096302,12.521481,'farmacia'],
     ['🚇','Metro Piazza Bologna','Línea B — 400m, 10 min a pie','Piazza+Bologna+Metro+B+Roma',41.9136626,12.5208135,'metro'],
-    ['🅿️','Garaje Di Nezza','Entrada desde Via Cupa 35 — parking subterráneo','Via+Cupa+35+Roma',41.9085477,12.5218817,'garage']
+    ['🅿️','Garaje Di Nezza','Entrada desde Via Cupa 35 — parking subterráneo','Via+Cupa+35+Roma',41.9085477,12.5218817,'garage'],
+    ['🏥','Urgencias Umberto I','Viale del Policlinico 155 — urgencias más cercanas','Pronto+Soccorso+Policlinico+Umberto+I+Roma',41.9067826,12.5106437,'ospedale'],
+    ['💊','Farmacia Piazza Bologna','Piazza Bologna 19 — abierta hasta las 22:00, alternativa','Farmacia+Piazza+Bologna+Roma',41.9129592,12.5205207,'farmacia'],
+    ['📮','Oficina de Correos','Piazza Bologna 39 — postales, paquetes y gestiones','Ufficio+Postale+Piazza+Bologna+Roma',41.9137245,12.5203352,'posta'],
+    ['🚬','Estanco','Piazza Bologna 16/17 — billetes de metro, sellos, tabaco','Tabaccheria+Piazza+Bologna+Roma',41.9128888,12.5205306,'tabacchi'],
   ],
   t_food_roma:'Joyas de Roma', t_food_roma_sub:'Si te acercas al centro, estos valen la pena',
   filter_all:'Todos', filter_cuisine:'Tipo de cocina', filter_price:'Rango de precio',
@@ -621,7 +643,8 @@ es:{
     ghetto:{t:'Ghetto y Testaccio',d:'Del corazón judío de Roma al barrio más auténtico: leyendas, sabores e historias que no están en las guías.'},
     trastevere:{t:'Trastevere',d:'Callejones, misterios y anécdotas del barrio más querido, narrados paso a paso por GPS.'}
   },
-  tour_cta:'Empezar el tour'
+  tour_cta:'Empezar el tour',
+  tour_all_t:'Todos los tours de Roma', tour_all_d:'Más recorridos narrados con GPS por la capital, en FlyTour'
 },
 fr:{
   hdr_sub:'Welcome Book · Via Campaldino 6',
@@ -663,7 +686,11 @@ fr:{
     ['🧺','Laverie Al.Ba.','Via Giuseppe de Mattheis 11 — 5 min à pied','lavanderia+Via+Giuseppe+de+Mattheis+11+Roma',41.9094028,12.5200431,'lavanderia'],
     ['💊','Pharmacie Caluori','Piazzale delle Provincie 8 — la plus proche','Farmacia+Caluori+Roma',41.9096302,12.521481,'farmacia'],
     ['🚇','Métro Piazza Bologna','Ligne B — 400 m, 10 min à pied','Piazza+Bologna+Metro+B+Roma',41.9136626,12.5208135,'metro'],
-    ['🅿️','Garage Di Nezza','Entrée par Via Cupa 35 — parking souterrain','Via+Cupa+35+Roma',41.9085477,12.5218817,'garage']
+    ['🅿️','Garage Di Nezza','Entrée par Via Cupa 35 — parking souterrain','Via+Cupa+35+Roma',41.9085477,12.5218817,'garage'],
+    ['🏥','Urgences Umberto I','Viale del Policlinico 155 — urgences les plus proches','Pronto+Soccorso+Policlinico+Umberto+I+Roma',41.9067826,12.5106437,'ospedale'],
+    ['💊','Pharmacie Piazza Bologna','Piazza Bologna 19 — ouverte jusqu’à 22h, alternative','Farmacia+Piazza+Bologna+Roma',41.9129592,12.5205207,'farmacia'],
+    ['📮','Bureau de Poste','Piazza Bologna 39 — cartes postales, colis, démarches','Ufficio+Postale+Piazza+Bologna+Roma',41.9137245,12.5203352,'posta'],
+    ['🚬','Bureau de Tabac','Piazza Bologna 16/17 — tickets de métro, timbres, cigarettes','Tabaccheria+Piazza+Bologna+Roma',41.9128888,12.5205306,'tabacchi'],
   ],
   t_food_roma:'Les Pépites de Rome', t_food_roma_sub:'Si vous allez dans le centre, ça vaut le détour',
   filter_all:'Tous', filter_cuisine:'Type de cuisine', filter_price:'Gamme de prix',
@@ -701,7 +728,8 @@ fr:{
     ghetto:{t:'Ghetto et Testaccio',d:'Du cœur juif de Rome au quartier le plus authentique : légendes, saveurs et histoires que l\u2019on ne trouve pas dans les guides.'},
     trastevere:{t:'Trastevere',d:'Ruelles, mystères et anecdotes du quartier le plus aimé, racontés pas à pas par GPS.'}
   },
-  tour_cta:'Commencer la visite'
+  tour_cta:'Commencer la visite',
+  tour_all_t:'Tous les tours de Rome', tour_all_d:'D\u2019autres balades narrées par GPS dans la capitale, sur FlyTour'
 },
 de:{
   hdr_sub:'Welcome Book · Via Campaldino 6',
@@ -743,7 +771,11 @@ de:{
     ['🧺','Waschsalon Al.Ba.','Via Giuseppe de Mattheis 11 — 5 Min. zu Fuß','lavanderia+Via+Giuseppe+de+Mattheis+11+Roma',41.9094028,12.5200431,'lavanderia'],
     ['💊','Apotheke Caluori','Piazzale delle Provincie 8 — die nächstgelegene','Farmacia+Caluori+Roma',41.9096302,12.521481,'farmacia'],
     ['🚇','U-Bahn Piazza Bologna','Linie B — 400 m, 10 Min. zu Fuß','Piazza+Bologna+Metro+B+Roma',41.9136626,12.5208135,'metro'],
-    ['🅿️','Garage Di Nezza','Einfahrt über Via Cupa 35 — Tiefgarage','Via+Cupa+35+Roma',41.9085477,12.5218817,'garage']
+    ['🅿️','Garage Di Nezza','Einfahrt über Via Cupa 35 — Tiefgarage','Via+Cupa+35+Roma',41.9085477,12.5218817,'garage'],
+    ['🏥','Notaufnahme Umberto I','Viale del Policlinico 155 — nächstgelegene Notaufnahme','Pronto+Soccorso+Policlinico+Umberto+I+Roma',41.9067826,12.5106437,'ospedale'],
+    ['💊','Apotheke Piazza Bologna','Piazza Bologna 19 — bis 22 Uhr geöffnet, Alternative','Farmacia+Piazza+Bologna+Roma',41.9129592,12.5205207,'farmacia'],
+    ['📮','Postamt','Piazza Bologna 39 — Postkarten, Pakete, Behördenkram','Ufficio+Postale+Piazza+Bologna+Roma',41.9137245,12.5203352,'posta'],
+    ['🚬','Tabakladen','Piazza Bologna 16/17 — U-Bahn-Tickets, Briefmarken, Zigaretten','Tabaccheria+Piazza+Bologna+Roma',41.9128888,12.5205306,'tabacchi'],
   ],
   t_food_roma:'Roms Highlights', t_food_roma_sub:'Wenn Sie ins Zentrum fahren, lohnt sich der Umweg',
   filter_all:'Alle', filter_cuisine:'Küchenart', filter_price:'Preisklasse',
@@ -781,7 +813,8 @@ de:{
     ghetto:{t:'Ghetto und Testaccio',d:'Vom jüdischen Herzen Roms zum urigsten Viertel: Legenden, Aromen und Geschichten, die man in keinem Reiseführer findet.'},
     trastevere:{t:'Trastevere',d:'Gassen, Geheimnisse und Anekdoten des beliebtesten Viertels, Schritt für Schritt per GPS erzählt.'}
   },
-  tour_cta:'Tour starten'
+  tour_cta:'Tour starten',
+  tour_all_t:'Alle Rom-Touren', tour_all_d:'Weitere GPS-geführte Spaziergänge in der Hauptstadt, auf FlyTour'
 },
 pt:{
   hdr_sub:'Welcome Book · Via Campaldino 6',
@@ -823,7 +856,11 @@ pt:{
     ['🧺','Lavandaria Al.Ba.','Via Giuseppe de Mattheis 11 — 5 min a pé','lavanderia+Via+Giuseppe+de+Mattheis+11+Roma',41.9094028,12.5200431,'lavanderia'],
     ['💊','Farmácia Caluori','Piazzale delle Provincie 8 — a mais próxima','Farmacia+Caluori+Roma',41.9096302,12.521481,'farmacia'],
     ['🚇','Metro Piazza Bologna','Linha B — 400 m, 10 min a pé','Piazza+Bologna+Metro+B+Roma',41.9136626,12.5208135,'metro'],
-    ['🅿️','Garage Di Nezza','Entrada pela Via Cupa 35 — parque subterrâneo','Via+Cupa+35+Roma',41.9085477,12.5218817,'garage']
+    ['🅿️','Garage Di Nezza','Entrada pela Via Cupa 35 — parque subterrâneo','Via+Cupa+35+Roma',41.9085477,12.5218817,'garage'],
+    ['🏥','Urgências Umberto I','Viale del Policlinico 155 — urgências mais próximas','Pronto+Soccorso+Policlinico+Umberto+I+Roma',41.9067826,12.5106437,'ospedale'],
+    ['💊','Farmácia Piazza Bologna','Piazza Bologna 19 — aberta até às 22:00, alternativa','Farmacia+Piazza+Bologna+Roma',41.9129592,12.5205207,'farmacia'],
+    ['📮','Correios','Piazza Bologna 39 — postais, encomendas e burocracia','Ufficio+Postale+Piazza+Bologna+Roma',41.9137245,12.5203352,'posta'],
+    ['🚬','Tabacaria','Piazza Bologna 16/17 — bilhetes de metro, selos, tabaco','Tabaccheria+Piazza+Bologna+Roma',41.9128888,12.5205306,'tabacchi'],
   ],
   t_food_roma:'Pérolas de Roma', t_food_roma_sub:'Se for ao centro, valem bem o desvio',
   filter_all:'Todos', filter_cuisine:'Tipo de cozinha', filter_price:'Faixa de preço',
@@ -861,7 +898,8 @@ pt:{
     ghetto:{t:'Ghetto e Testaccio',d:'Do coração judaico de Roma ao bairro mais autêntico: lendas, sabores e histórias que não encontra nos guias.'},
     trastevere:{t:'Trastevere',d:'Vielas, mistérios e histórias do bairro mais amado, narrados passo a passo por GPS.'}
   },
-  tour_cta:'Iniciar o tour'
+  tour_cta:'Iniciar o tour',
+  tour_all_t:'Todos os tours de Roma', tour_all_d:'Mais percursos narrados por GPS na capital, no FlyTour'
 },
 zh:{
   hdr_sub:'Welcome Book · Via Campaldino 6',
@@ -903,7 +941,11 @@ zh:{
     ['🧺','Al.Ba. 自助洗衣店','Via Giuseppe de Mattheis 11 — 步行5分钟','lavanderia+Via+Giuseppe+de+Mattheis+11+Roma',41.9094028,12.5200431,'lavanderia'],
     ['💊','Caluori 药店','Piazzale delle Provincie 8 — 最近的药店','Farmacia+Caluori+Roma',41.9096302,12.521481,'farmacia'],
     ['🚇','博洛尼亚广场地铁站','B线 — 400米,步行10分钟','Piazza+Bologna+Metro+B+Roma',41.9136626,12.5208135,'metro'],
-    ['🅿️','Di Nezza 车库','Via Cupa 35号入口 — 地下停车场','Via+Cupa+35+Roma',41.9085477,12.5218817,'garage']
+    ['🅿️','Di Nezza 车库','Via Cupa 35号入口 — 地下停车场','Via+Cupa+35+Roma',41.9085477,12.5218817,'garage'],
+    ['🏥','Umberto I 急诊室','Viale del Policlinico 155 — 最近的急诊室','Pronto+Soccorso+Policlinico+Umberto+I+Roma',41.9067826,12.5106437,'ospedale'],
+    ['💊','Piazza Bologna 药店','Piazza Bologna 19 — 营业至22:00,备用选择','Farmacia+Piazza+Bologna+Roma',41.9129592,12.5205207,'farmacia'],
+    ['📮','邮局','Piazza Bologna 39 — 寄明信片、包裹及办理事务','Ufficio+Postale+Piazza+Bologna+Roma',41.9137245,12.5203352,'posta'],
+    ['🚬','烟草店','Piazza Bologna 16/17 — 地铁票、邮票、香烟','Tabaccheria+Piazza+Bologna+Roma',41.9128888,12.5205306,'tabacchi'],
   ],
   t_food_roma:'罗马美食精选', t_food_roma_sub:'如果去市中心,这些值得专程一试',
   filter_all:'全部', filter_cuisine:'菜系类型', filter_price:'价格区间',
@@ -941,7 +983,8 @@ zh:{
     ghetto:{t:'犹太区与泰斯塔乔',d:'从罗马的犹太文化中心到最地道的市井街区:传说、风味与向导书上找不到的故事。'},
     trastevere:{t:'特拉斯提弗列',d:'最受喜爱街区的小巷、传说与轶事,由GPS一步步为您讲述。'}
   },
-  tour_cta:'开始导览'
+  tour_cta:'开始导览',
+  tour_all_t:'罗马全部导览', tour_all_d:'更多罗马市内的GPS语音导览路线,尽在FlyTour'
 }
 };
 
@@ -997,7 +1040,7 @@ function render(){
        <a class="navbtn" href="https://www.google.com/maps/dir/?api=1&destination=${s[4]},${s[5]}" target="_blank" title="Naviga" data-navbtn>
          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l18-8-8 18-2-8-8-2z"/></svg>
        </a>
-       <div class="top"><h3>${s[6]==='metro' ? '<span class="m-badge">M</span>' : s[0]} ${s[1]}</h3></div><div class="addr">${s[2]}</div>
+       <div class="top"><h3>${s[6]==='metro' ? '<span class="m-badge">M</span>' : s[6]==='tabacchi' ? '<span class="t-badge">T</span>' : s[0]} ${s[1]}</h3></div><div class="addr">${s[2]}</div>
      </div>`).join('');
   $$('#servizi .poi').forEach(el => {
     el.querySelectorAll('[data-navbtn]').forEach(nb => nb.addEventListener('click', e => e.stopPropagation()));
@@ -1026,7 +1069,9 @@ function render(){
       <div class="top"><h3>${t.em} ${tt.t}</h3><span class="badge">GPS</span></div>
       <div class="desc">${tt.d}</div>
       <div class="addr" style="margin-top:6px;color:var(--orange);font-weight:700">▶ ${T().tour_cta}</div></a>`;
-  }).join('');
+  }).join('') + `<a class="card poi" href="${CFG.flytourAll}" target="_blank">
+      <div class="top"><h3>🧭 ${T().tour_all_t}</h3></div>
+      <div class="desc">${T().tour_all_d}</div></a>`;
 
   $('#farewell').innerHTML = T().farewell;
   $('#chatinput').placeholder = T().chat_ph;
@@ -1177,14 +1222,14 @@ function initMap(){
   const coords = [home];
   T().servizi.forEach((s,i) => {
     const lat = s[4], lon = s[5], cat = s[6];
-    const glyph = cat === 'metro' ? 'M' : s[0];
-    const isMetro = cat === 'metro';
+    const isFlatBadge = cat === 'metro' || cat === 'tabacchi';
+    const glyph = cat === 'metro' ? 'M' : cat === 'tabacchi' ? 'T' : s[0];
     const icon = L.divIcon({
       className: '', html: `<div class="poi-pin cat-${cat}"><span>${glyph}</span></div>`,
-      iconSize: isMetro ? [24,24] : [28,28],
-      iconAnchor: isMetro ? [12,12] : [14,28]
+      iconSize: isFlatBadge ? [24,24] : [28,28],
+      iconAnchor: isFlatBadge ? [12,12] : [14,28]
     });
-    poiMarkers[i] = L.marker([lat, lon], {icon}).addTo(map).bindTooltip(s[1], {direction:'top', offset:[0,isMetro?-16:-24], className:'poi-tooltip'});
+    poiMarkers[i] = L.marker([lat, lon], {icon}).addTo(map).bindTooltip(s[1], {direction:'top', offset:[0,isFlatBadge?-16:-24], className:'poi-tooltip'});
     coords.push([lat, lon]);
   });
   mapBounds = coords;
