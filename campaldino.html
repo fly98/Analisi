@@ -149,8 +149,11 @@ details.acc .body p+p{margin-top:8px}
   display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.35)}
 .poi-pin span{transform:rotate(45deg);font-size:13px;line-height:1}
 .poi-pin.cat-casa{background:var(--orange)}
-.poi-pin.cat-metro{background:#2f6fed}
-.poi-pin.cat-metro span{font-weight:800;font-size:16px;font-family:Georgia,serif}
+.m-badge{display:inline-flex;align-items:center;justify-content:center;width:1.3em;height:1.3em;
+  background:#e2231a;color:#fff;font-weight:900;font-family:Arial,Helvetica,sans-serif;
+  font-size:.9em;border-radius:3px;vertical-align:-3px;line-height:1}
+.poi-pin.cat-metro{background:#e2231a;border-radius:4px;transform:none;width:24px;height:24px}
+.poi-pin.cat-metro span{transform:none;font-weight:900;font-size:15px;font-family:Arial,Helvetica,sans-serif}
 .poi-pin.cat-spesa{background:#4a9e6b}
 .poi-pin.cat-bancomat{background:#8b5fbf}
 .poi-pin.cat-lavanderia{background:#2f9bb0}
@@ -495,7 +498,7 @@ function render(){
        <a class="navbtn" href="https://www.google.com/maps/dir/?api=1&destination=${s[4]},${s[5]}" target="_blank" title="Naviga" data-navbtn>
          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l18-8-8 18-2-8-8-2z"/></svg>
        </a>
-       <div class="top"><h3>${s[0]} ${s[1]}</h3></div><div class="addr">${s[2]}</div>
+       <div class="top"><h3>${s[6]==='metro' ? '<span class="m-badge">M</span>' : s[0]} ${s[1]}</h3></div><div class="addr">${s[2]}</div>
      </div>`).join('');
   $$('#servizi .poi').forEach(el => {
     el.querySelector('[data-navbtn]').addEventListener('click', e => e.stopPropagation());
@@ -583,8 +586,13 @@ function initMap(){
   T().servizi.forEach((s,i) => {
     const lat = s[4], lon = s[5], cat = s[6];
     const glyph = cat === 'metro' ? 'M' : s[0];
-    const icon = L.divIcon({className:'', html:`<div class="poi-pin cat-${cat}"><span>${glyph}</span></div>`, iconSize:[28,28], iconAnchor:[14,28]});
-    poiMarkers[i] = L.marker([lat, lon], {icon}).addTo(map).bindTooltip(s[1], {direction:'top', offset:[0,-24], className:'poi-tooltip'});
+    const isMetro = cat === 'metro';
+    const icon = L.divIcon({
+      className: '', html: `<div class="poi-pin cat-${cat}"><span>${glyph}</span></div>`,
+      iconSize: isMetro ? [24,24] : [28,28],
+      iconAnchor: isMetro ? [12,12] : [14,28]
+    });
+    poiMarkers[i] = L.marker([lat, lon], {icon}).addTo(map).bindTooltip(s[1], {direction:'top', offset:[0,isMetro?-16:-24], className:'poi-tooltip'});
     coords.push([lat, lon]);
   });
   mapBounds = coords;
