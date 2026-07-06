@@ -1,30 +1,15 @@
-name: WB Worker Test 3
+name: WB Worker Test 4
 
 on:
+  push:
+    paths:
+      - 'wb_worker.js'
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Create wrangler config
-        run: |
-          cat > wrangler_wb_deploy.toml << 'EOF2'
-          name = "wb-worker"
-          main = "wb_worker.js"
-          compatibility_date = "2024-09-23"
-
-          [[kv_namespaces]]
-          binding = "WB_KV"
-          id = "6f30ec561fed4d4ca3398f699c08b37f"
-          EOF2
-
-      - name: Deploy with Wrangler
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CF_API_TOKEN }}
-          accountId: ${{ secrets.CF_ACCOUNT_ID }}
-          wranglerVersion: '3'
-          command: deploy --config wrangler_wb_deploy.toml
+      - run: echo "hello"
