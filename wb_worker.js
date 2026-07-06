@@ -246,10 +246,23 @@ function guessEmoji(titolo) {
   for (const [re, emoji] of TITLE_EMOJI) if (re.test(titolo)) return emoji;
   return "📌";
 }
+function decodeEntities(s) {
+  if (!s) return s;
+  return s
+    .replace(/&rsquo;|&lsquo;/g, "'")
+    .replace(/&rdquo;|&ldquo;/g, '"')
+    .replace(/&ndash;/g, "–").replace(/&mdash;/g, "—")
+    .replace(/&agrave;/g, "à").replace(/&egrave;/g, "è").replace(/&igrave;/g, "ì")
+    .replace(/&ograve;/g, "ò").replace(/&ugrave;/g, "ù")
+    .replace(/&Agrave;/g, "À").replace(/&Egrave;/g, "È")
+    .replace(/&eacute;/g, "é").replace(/&ograve;/g, "ó")
+    .replace(/&amp;/g, "&").replace(/&#039;/g, "'").replace(/&quot;/g, '"')
+    .replace(/&nbsp;/g, " ");
+}
 async function fetchMeta(html, prop) {
   const re = new RegExp(`<meta (?:property|name)="${prop}" content="([^"]*)"`, "i");
   const m = html.match(re);
-  return m ? m[1].replace(/&amp;/g, "&").replace(/&#039;/g, "'").replace(/&quot;/g, '"') : "";
+  return m ? decodeEntities(m[1]) : "";
 }
 
 function parseItDate(s) {
@@ -264,7 +277,7 @@ function extractQuandoDove(html) {
   let quando = "";
   const qm = html.match(/>Quando<\/span>[\s\S]{0,220}Dal <span[^>]*>(\d{2}\/\d{2}\/\d{4})<\/span>[\s\S]{0,220}al <span[^>]*>(\d{2}\/\d{2}\/\d{4})<\/span>/);
   if (qm) {
-    quando = `${fmtItDate(qm[1])} - ${fmtItDate(qm[2])}`;
+    quando = qm[1] === qm[2] ? fmtItDate(qm[1]) : `${fmtItDate(qm[1])} - ${fmtItDate(qm[2])}`;
   } else {
     const single = html.match(/>Quando<\/span>[\s\S]{0,220}<span[^>]*>(\d{2}\/\d{2}\/\d{4})<\/span>/);
     if (single) quando = fmtItDate(single[1]);
@@ -272,7 +285,7 @@ function extractQuandoDove(html) {
 
   let dove = "";
   const dm = html.match(/>Dove<\/span>[\s\S]{0,220}o-link-primary[^>]*>\s*([^<]+?)\s*</);
-  if (dm) dove = dm[1].trim();
+  if (dm) dove = decodeEntities(dm[1].trim());
 
   // ultima data valida per il filtro di scadenza (fine evento, o data singola)
   let endDate = null;
