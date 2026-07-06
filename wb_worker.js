@@ -244,7 +244,6 @@ function fmtIsoDate(iso) {
   if (isNaN(d)) return "";
   return `${d.getUTCDate()} ${MESI[d.getUTCMonth()]}`;
 }
-
 async function fetchMeta(html, prop) {
   const re = new RegExp(`<meta (?:property|name)="${prop}" content="([^"]*)"`, "i");
   const m = html.match(re);
@@ -268,12 +267,11 @@ async function refreshEventi(env, slug) {
       const dHtml = await dResp.text();
       const titolo = await fetchMeta(dHtml, "og:title");
       const descr = await fetchMeta(dHtml, "description");
-      const pubDate = await fetchMeta(dHtml, "article:published_time");
       if (!titolo) continue;
       eventi.push({
         emoji: guessEmoji(titolo),
         titolo,
-        quando: fmtIsoDate(pubDate),
+        quando: "",
         dove: "",
         descr,
         link
