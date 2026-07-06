@@ -1,3 +1,106 @@
+// worker.js
+const HOTEL_UUID = "8aec6938-18cb-43fd-b85f-fc00b8ef3bc9";
+const BASE = "https://api.amenitiz.io/vendor_api/v1";
+const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
+const CORS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+  "Access-Control-Allow-Headers": "*",
+  "Access-Control-Max-Age": "86400"
+};
+
+async function getGmailAccessToken(env) {
+  const tokenResp = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      client_id: env.GMAIL_CLIENT_ID,
+      client_secret: env.GMAIL_CLIENT_SECRET,
+      refresh_token: env.GMAIL_REFRESH_TOKEN,
+      grant_type: "refresh_token"
+    })
+  });
+  return tokenResp.json();
+}
+
+async function cercaEmailBooking(bookingId, env) {
+  try {
+    function trovaTestoPlain(part) {
+      if (!part) return "";
+      if (part.mimeType === "text/plain" && part.body && part.body.data) {
+        return atob(part.body.data.replace(/-/g, "+").replace(/_/g, "/"));
+      }
+      if (part.parts && part.parts.length) {
+        for (const sub of part.parts) {
+          const t = trovaTestoPlain(sub);
+          if (t) return t;
+        }
+      }
+      return "";
+    }
+    const tokenData = await getGmailAccessToken(env);
+    if (!tokenData.access_token) return null;
+    const accessToken = tokenData.access_token;
+    const query = encodeURIComponent(`subject:[${bookingId}] Nuova prenotazione`);
+    const searchResp = await fetch(
+      `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${query}&maxResults=1`,
+      { headers: { Authorization: `Bearer ${accessToken}` } }
+    );
+    const searchData = await searchResp.json();
+    if (!searchData.messages || !searchData.messages[0]) return null;
+    const msgId = searchData.messages[0].id;
+    const msgResp = await fetch(
+      `https://gmail.googleapis.com/gmail/v1/users/me/messages/${msgId}?format=full`,
+      { headers: { Authorization: `Bearer ${accessToken}` } }
+    );
+    const msgData = await msgResp.json();
+    let testo = trovaTestoPlain(msgData.payload);
+    if (!testo && msgData.payload && msgData.payload.body && msgData.payload.body.data) {
+      testo = atob(msgData.payload.body.data.replace(/-/g, "+").replace(/_/g, "/"));
+    }
+    const nomeMatch = testo.match(new RegExp("Nome:\\s*\\r?\\n([^\\r\\n]+)"));
+    const telMatch = testo.match(new RegExp("Telefono\\s*\\r?\\n([^\\r\\n]+)"));
+    const nome = nomeMatch ? nomeMatch[1].trim() : null;
+    const telefono = telMatch ? telMatch[1].trim() : null;
+    if (!nome && !telefono) return null;
+    const parti = nome ? nome.trim().split(" ") : [];
+    const lastName = parti[0] || "";
+    const firstName = parti.slice(1).join(" ") || "";
+    return { first_name: firstName, last_name: lastName, phone: telefono };
+  } catch (e) {
+    return null;
+  }
+}
+
+async function amenitizGet(path, env) {
+  const resp = await fetch(`${BASE}${path}`, {
+    headers: {
+      "User-Agent": UA,
+      "Accept": "application/json",
+      "Authorization": "Bearer " + env.AMENITIZ_TOKEN
+    }
+  });
+  return resp;
+}
+
+function b64urlEncode(str) {
+  return btoa(unescape(encodeURIComponent(str)))
+    .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+const REDIRECT_URI = "https://little-shadow-145e.f-castiglioni.workers.dev/oauth2callback";
+
+function htmlPage(inner) {
+  return new Response(
+    "<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'>" +
+    "<style>body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;max-width:640px;margin:40px auto;padding:0 16px;line-height:1.5;color:#111}code{background:#eee;padding:2px 6px;border-radius:4px;font-size:13px}a{color:#007aff}textarea{font-size:13px}</style></head><body>" +
+    inner + "</body></html>",
+    { headers: { "Content-Type": "text/html; charset=utf-8" } }
+  );
+}
+
+
+// ====== CONTENUTO MULTILINGUA InternoUno Experience (stesso del frontend arrivi.html) ======
 const EXP_COMMON = {
   it: {
     saluto_default:`Gentile ospite`,
@@ -374,66 +477,35 @@ ${mezziHtml}
 </div>`;
 }
 
-const CAMPALDINO = {
-  "Gialla":  {let:"G", tipo:"apt", pos:"first-right", col:"#e0a92e"},
-  "Marrone": {let:"M", tipo:"room", pos:"first-left", col:"#7a5230"},
-  "Rossa":   {let:"R", tipo:"room", pos:"second-left", col:"#b03a2e"},
-  "Verde":   {let:"V", tipo:"room", pos:"third-left", col:"#5c6b52"},
-  "Azzurra": {let:"A", tipo:"room", pos:"end-corridor", col:"#5b8fb0"},
-};
-const LORENZO = {"Uno":"1","Due":"2","Tre":"3","Quattro":"4","Cinque":"5"};
+// ====== MAPPATURE CAMERE (per riconoscere la struttura dal nome camera) ======
+const CAMPALDINO_ROOMS = new Set(["Gialla","Marrone","Rossa","Verde","Azzurra"]);
+const LORENZO_ROOMS = new Set(["Uno","Due","Tre","Quattro","Cinque"]);
 
-function lingua(language,phone){
-  const p=(phone||"").replace(/[\s-]/g,"");
-  if(p.startsWith("+39"))return"it";
-  if(p.startsWith("+34"))return"es";
-  if(p.startsWith("+52")||p.startsWith("+54")||p.startsWith("+57")||p.startsWith("+56")||p.startsWith("+51"))return"es";
-  if(p.startsWith("+33"))return"fr";
-  if(p.startsWith("+351"))return"pt";
-  if(p.startsWith("+55"))return"pt";
-  if(p.startsWith("+49")||p.startsWith("+43")||p.startsWith("+41"))return"de";
-  if(p.startsWith("+86")||p.startsWith("+852")||p.startsWith("+853")||p.startsWith("+886"))return"zh";
-  const l=(language||"").toUpperCase();
-  const map={IT:"it",EN:"en",ES:"es",FR:"fr",PT:"pt",DE:"de",ZH:"zh",CN:"zh"};
-  if(map[l])return map[l];
-  return"en";
+function proprietaDiCamera(roomName){
+  if (CAMPALDINO_ROOMS.has(roomName)) return "camp";
+  if (LORENZO_ROOMS.has(roomName)) return "lor";
+  return null;
 }
 
-function isBookingSource(source){
-  return (source||"").toLowerCase().includes("booking");
+// ====== RILEVAMENTO LINGUA (stessa logica del frontend arrivi.html) ======
+function lingua(language, phone) {
+  const p = (phone || "").replace(/[\s-]/g, "");
+  if (p.startsWith("+39")) return "it";
+  if (p.startsWith("+34")) return "es";
+  if (p.startsWith("+52") || p.startsWith("+54") || p.startsWith("+57") || p.startsWith("+56") || p.startsWith("+51")) return "es";
+  if (p.startsWith("+33")) return "fr";
+  if (p.startsWith("+351")) return "pt";
+  if (p.startsWith("+55")) return "pt";
+  if (p.startsWith("+49") || p.startsWith("+43") || p.startsWith("+41")) return "de";
+  if (p.startsWith("+86") || p.startsWith("+852") || p.startsWith("+853") || p.startsWith("+886")) return "zh";
+  const l = (language || "").toUpperCase();
+  const map = { IT: "it", EN: "en", ES: "es", FR: "fr", PT: "pt", DE: "de", ZH: "zh", CN: "zh" };
+  if (map[l]) return map[l];
+  return "en";
 }
 
-// ====== HEADER WORKER ESISTENTE ======
-const HOTEL_UUID = "8aec6938-18cb-43fd-b85f-fc00b8ef3bc9";
-const BASE = "https://api.amenitiz.io/vendor_api/v1";
-const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
-const CORS = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-  "Access-Control-Allow-Headers": "*",
-  "Access-Control-Max-Age": "86400"
-};
+const SUBJ_TABLE = { it:"Il suo arrivo", en:"Your arrival", es:"Su llegada", fr:"Votre arrivée", de:"Ihre Anreise", pt:"A sua chegada", zh:"您的入住信息" };
 
-async function getGmailAccessToken(env) {
-  const tokenResp = await fetch("https://oauth2.googleapis.com/token", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      client_id: env.GMAIL_CLIENT_ID,
-      client_secret: env.GMAIL_CLIENT_SECRET,
-      refresh_token: env.GMAIL_REFRESH_TOKEN,
-      grant_type: "refresh_token"
-    })
-  });
-  return tokenResp.json();
-}
-
-function b64urlEncode(str) {
-  return btoa(unescape(encodeURIComponent(str)))
-    .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-}
-
-// ====== INVIO GMAIL (riutilizzabile: manuale + automazione) ======
 async function sendGmailHtml(env, to, subject, html) {
   const tokenData = await getGmailAccessToken(env);
   if (!tokenData.access_token) {
@@ -464,145 +536,64 @@ async function sendGmailHtml(env, to, subject, html) {
   return { ok: true, messageId: sendData.id };
 }
 
-// ====== FUNZIONE AUTOMAZIONE: manda Experience alle prenotazioni nuove non-Booking ======
-function subjectFor(lng, isLorenzo) {
-  const SUBJ = {it:"Il suo arrivo",en:"Your arrival",es:"Su llegada",fr:"Votre arrivée",de:"Ihre Anreise",pt:"A sua chegada",zh:"您的入住信息"};
-  const propName = isLorenzo ? "InternoUno Deluxe" : "InternoUno";
-  return `${propName} — ${SUBJ[lng]||SUBJ.en}`;
-}
-
-async function runAutoSend(env, daysBack, dryRun) {
+// ====== AUTOMAZIONE NOTTURNA: nuove prenotazioni non-Booking con email ======
+async function runAutoSend(env, testMode) {
   const oggi = new Date();
-  const to = oggi.toISOString().slice(0,10);
-  const da = new Date(oggi);
-  da.setDate(da.getDate() - (daysBack || 2));
-  const from = da.toISOString().slice(0,10);
+  const to = oggi.toISOString().slice(0, 10);
+  const daData = new Date(oggi);
+  daData.setDate(daData.getDate() - 2); // finestra di sicurezza: ultime 48h, per non perdere nulla per ritardi/fusi orari
+  const from = daData.toISOString().slice(0, 10);
 
-  const resp = await fetch(`${BASE}/bookings/updated?hotel_id=${HOTEL_UUID}&from=${from}&to=${to}`, {
-    headers: { "User-Agent": UA, "Accept": "application/json", "Authorization": "Bearer " + env.AMENITIZ_TOKEN }
-  });
+  const resp = await amenitizGet(`/bookings/updated?from=${from}&to=${to}&hotel_id=${HOTEL_UUID}&locale=it`, env);
   if (!resp.ok) {
-    return { ok: false, error: "API Amenitiz /bookings/updated", status: resp.status };
+    return { error: "Errore API Amenitiz", status: resp.status };
   }
   const bookings = await resp.json();
-  const risultati = [];
+  const dettagli = [];
+  let inviate = 0, saltate = 0;
 
-  for (const b of (bookings || [])) {
-    const bookingId = b.booking_id;
-    const status = (b.status || "").toLowerCase();
-    const source = b.source || "";
-
-    if (status !== "new") continue;
-    if (isBookingSource(source)) continue;
-
+  for (const b of (Array.isArray(bookings) ? bookings : [])) {
+    if (b.status !== "new") { saltate++; continue; }
+    const source = (b.source || "").toLowerCase();
+    if (source.includes("booking")) { saltate++; continue; }
     const booker = b.booker || {};
     const email = booker.email || "";
-    if (!email || email.indexOf("@") <= 0) continue;
+    if (!email || email.indexOf("@") < 0) { saltate++; continue; }
+    const bookingId = b.booking_id;
+    const kvKey = `expauto_${bookingId}`;
+    const giaInviata = await env.ARRIVI_KV.get(kvKey);
+    if (giaInviata) { saltate++; continue; }
 
-    const dedupKey = `expauto_${bookingId}`;
-    const already = await env.ARRIVI_KV.get(dedupKey);
-    if (already) continue;
+    const roomName = (b.rooms && b.rooms[0] && b.rooms[0].individual_room_name) || "";
+    const propKey = proprietaDiCamera(roomName);
+    if (!propKey) { saltate++; continue; }
 
-    const rooms = b.rooms || [];
-    const roomName = (rooms[0] && rooms[0].individual_room_name) || "";
-    const isLorenzo = !CAMPALDINO[roomName];
-    const propKey = isLorenzo ? "lor" : "camp";
-    const lng = lingua(booker.language, booker.phone || "");
+    const phone = booker.phone || "";
+    const lng = lingua(booker.language, phone);
     const nome = (booker.first_name || "").trim();
-    const subject = subjectFor(lng, isLorenzo);
+    const html = buildExpHtml(propKey, lng, nome);
+    const propName = propKey === "lor" ? "InternoUno Deluxe" : "InternoUno";
+    const subject = `${propName} — ${SUBJ_TABLE[lng] || SUBJ_TABLE.en}`;
 
-    if (dryRun) {
-      risultati.push({ bookingId, email, nome, roomName, propKey, lng, subject, wouldSend: true });
+    if (testMode) {
+      dettagli.push({ bookingId, email, propKey, lng, nome, roomName, wouldSend: true });
       continue;
     }
 
-    const html = buildExpHtml(propKey, lng, nome);
-    const sendRes = await sendGmailHtml(env, email, subject, html);
-    if (sendRes.ok) {
-      await env.ARRIVI_KV.put(dedupKey, JSON.stringify({ sentAt: new Date().toISOString(), email, lng, propKey }), { expirationTtl: 60*60*24*180 });
+    const result = await sendGmailHtml(env, email, subject, html);
+    if (result.ok) {
+      await env.ARRIVI_KV.put(kvKey, new Date().toISOString());
+      inviate++;
+      dettagli.push({ bookingId, email, propKey, lng, sent: true });
+    } else {
+      dettagli.push({ bookingId, email, sent: false, error: result.error });
     }
-    risultati.push({ bookingId, email, propKey, lng, sendRes });
   }
 
-  return { ok: true, dryRun: !!dryRun, from, to, totalBookingsChecked: (bookings||[]).length, inviate: dryRun ? 0 : risultati.filter(r=>r.sendRes && r.sendRes.ok).length, risultati };
-}
-
-async function cercaEmailBooking(bookingId, env) {
-  try {
-    function trovaTestoPlain(part) {
-      if (!part) return "";
-      if (part.mimeType === "text/plain" && part.body && part.body.data) {
-        return atob(part.body.data.replace(/-/g, "+").replace(/_/g, "/"));
-      }
-      if (part.parts && part.parts.length) {
-        for (const sub of part.parts) {
-          const t = trovaTestoPlain(sub);
-          if (t) return t;
-        }
-      }
-      return "";
-    }
-    const tokenData = await getGmailAccessToken(env);
-    if (!tokenData.access_token) return null;
-    const accessToken = tokenData.access_token;
-    const query = encodeURIComponent(`subject:[${bookingId}] Nuova prenotazione`);
-    const searchResp = await fetch(
-      `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${query}&maxResults=1`,
-      { headers: { Authorization: `Bearer ${accessToken}` } }
-    );
-    const searchData = await searchResp.json();
-    if (!searchData.messages || !searchData.messages[0]) return null;
-    const msgId = searchData.messages[0].id;
-    const msgResp = await fetch(
-      `https://gmail.googleapis.com/gmail/v1/users/me/messages/${msgId}?format=full`,
-      { headers: { Authorization: `Bearer ${accessToken}` } }
-    );
-    const msgData = await msgResp.json();
-    let testo = trovaTestoPlain(msgData.payload);
-    if (!testo && msgData.payload && msgData.payload.body && msgData.payload.body.data) {
-      testo = atob(msgData.payload.body.data.replace(/-/g, "+").replace(/_/g, "/"));
-    }
-    const nomeMatch = testo.match(new RegExp("Nome:\\s*\\r?\\n([^\\r\\n]+)"));
-    const telMatch = testo.match(new RegExp("Telefono\\s*\\r?\\n([^\\r\\n]+)"));
-    const nome = nomeMatch ? nomeMatch[1].trim() : null;
-    const telefono = telMatch ? telMatch[1].trim() : null;
-    if (!nome && !telefono) return null;
-    const parti = nome ? nome.trim().split(" ") : [];
-    const lastName = parti[0] || "";
-    const firstName = parti.slice(1).join(" ") || "";
-    return { first_name: firstName, last_name: lastName, phone: telefono };
-  } catch (e) {
-    return null;
-  }
-}
-
-async function amenitizGet(path, env) {
-  const resp = await fetch(`${BASE}${path}`, {
-    headers: {
-      "User-Agent": UA,
-      "Accept": "application/json",
-      "Authorization": "Bearer " + env.AMENITIZ_TOKEN
-    }
-  });
-  return resp;
-}
-
-const REDIRECT_URI = "https://little-shadow-145e.f-castiglioni.workers.dev/oauth2callback";
-
-function htmlPage(inner) {
-  return new Response(
-    "<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'>" +
-    "<style>body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;max-width:640px;margin:40px auto;padding:0 16px;line-height:1.5;color:#111}code{background:#eee;padding:2px 6px;border-radius:4px;font-size:13px}a{color:#007aff}textarea{font-size:13px}</style></head><body>" +
-    inner + "</body></html>",
-    { headers: { "Content-Type": "text/html; charset=utf-8" } }
-  );
+  return { finestra: { from, to }, totaleControllate: (bookings || []).length, inviate, saltate, dettagli };
 }
 
 export default {
-  async scheduled(event, env, ctx) {
-    ctx.waitUntil(runAutoSend(env, 2, false));
-  },
-
   async fetch(request, env) {
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: CORS });
@@ -611,27 +602,7 @@ export default {
       const url = new URL(request.url);
       const action = url.searchParams.get("action");
 
-      if (action === "debugUpdated") {
-        const daysBack = parseInt(url.searchParams.get("days") || "30", 10);
-        const oggi = new Date();
-        const to2 = oggi.toISOString().slice(0,10);
-        const da2 = new Date(oggi);
-        da2.setDate(da2.getDate() - daysBack);
-        const from2 = da2.toISOString().slice(0,10);
-        const r = await fetch(`${BASE}/bookings/updated?hotel_id=${HOTEL_UUID}&from=${from2}&to=${to2}`, {
-          headers: { "User-Agent": UA, "Accept": "application/json", "Authorization": "Bearer " + env.AMENITIZ_TOKEN }
-        });
-        const raw = await r.text();
-        return new Response(raw, { status: r.status, headers: { ...CORS, "Content-Type": "application/json" } });
-      }
-
-      if (action === "runAutoSend") {
-        const daysBack = parseInt(url.searchParams.get("days") || "2", 10);
-        const dryRun = url.searchParams.get("dryRun") === "true";
-        const result = await runAutoSend(env, daysBack, dryRun);
-        return new Response(JSON.stringify(result), { headers: { ...CORS, "Content-Type": "application/json" } });
-      }
-
+      // Avvio re-autorizzazione Gmail: apri questo URL nel browser una sola volta
       if (action === "authStart") {
         const p = new URLSearchParams({
           client_id: env.GMAIL_CLIENT_ID,
@@ -644,6 +615,7 @@ export default {
         return Response.redirect("https://accounts.google.com/o/oauth2/v2/auth?" + p.toString(), 302);
       }
 
+      // Callback OAuth: Google torna qui con ?code=...
       if (url.pathname.endsWith("/oauth2callback")) {
         const code = url.searchParams.get("code");
         const oauthErr = url.searchParams.get("error");
@@ -671,6 +643,14 @@ export default {
           "<textarea readonly style='width:100%;height:90px' onclick='this.select()'>" + td.refresh_token + "</textarea>");
       }
 
+      if (action === "runAutoSend") {
+        const testMode = url.searchParams.get("test") === "true";
+        const result = await runAutoSend(env, testMode);
+        return new Response(JSON.stringify(result), {
+          headers: { ...CORS, "Content-Type": "application/json" }
+        });
+      }
+
       if (action === "sendExperience") {
         let body;
         try { body = await request.json(); } catch (e) {
@@ -690,7 +670,9 @@ export default {
             status: result.status || 502, headers: { ...CORS, "Content-Type": "application/json" }
           });
         }
-        return new Response(JSON.stringify(result), { headers: { ...CORS, "Content-Type": "application/json" } });
+        return new Response(JSON.stringify(result), {
+          headers: { ...CORS, "Content-Type": "application/json" }
+        });
       }
 
       if (action === "deleteOrario") {
@@ -1098,5 +1080,8 @@ export default {
         headers: { ...CORS, "Content-Type": "application/json" }
       });
     }
+  },
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil(runAutoSend(env, false));
   }
 };
