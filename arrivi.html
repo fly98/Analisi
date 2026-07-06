@@ -199,6 +199,10 @@
   <div class="modal" id="msgModalBox"></div>
 </div>
 
+<div class="modal-bg" id="expModal">
+  <div class="modal" id="expModalBox" style="max-width:600px"></div>
+</div>
+
 <div class="modal-bg" id="infoModal">
   <div class="modal" id="infoModalBox"></div>
 </div>
@@ -529,6 +533,8 @@ function render(iso,bookings){
     const room=rooms[0]||{};
     const roomName=room.individual_room_name||"";
     const source=b.source||"";
+    const nonBooking=!source.toLowerCase().includes("booking");
+    const expBtn=nonBooking?`<button class="msg-open-btn" onclick="apriExperience(${i})">📱 Experience</button>`:"";
     let accent,roomLabel,testo,struttura;
     let isLorenzo=false;
 
@@ -601,6 +607,7 @@ function render(iso,bookings){
           <a class="wa-btn" href="${waLink}">${waIcon}WhatsApp</a>
           <button class="msg-open-btn" onclick="apriMsg(${i})">✉️ Messaggio</button>
           <button class="tax-btn" onclick="apriTassa(${i})">💶 Tassa</button>
+          ${expBtn}
         </div>`;
     }else{
       const warn=source.toLowerCase().includes("expedia")?"Numero virtuale Expedia":(source==="manual"?"Prenotazione manuale":"Numero assente");
@@ -608,6 +615,7 @@ function render(iso,bookings){
         <div class="actions">
           <button class="msg-open-btn" onclick="apriMsg(${i})">✉️ Messaggio</button>
           <button class="tax-btn" onclick="apriTassa(${i})">💶 Tassa</button>
+          ${expBtn}
         </div>`;
     }
     // se manca il nome, sovrascrivi action con warning semplice
@@ -624,11 +632,13 @@ function render(iso,bookings){
           <a class="wa-btn" href="${waLink}">${waIcon}WhatsApp</a>
           <button class="msg-open-btn" onclick="apriMsg(${i})">✉️ Messaggio</button>
           <button class="tax-btn" onclick="apriTassa(${i})">💶 Tassa</button>
+          ${expBtn}
         </div>`;
       } else {
         action=avvisoMismatch+`<div class="actions">
           <button class="msg-open-btn" onclick="apriMsg(${i})">✉️ Messaggio</button>
           <button class="tax-btn" onclick="apriTassa(${i})">💶 Tassa</button>
+          ${expBtn}
         </div>`;
       }
     } else if(guestFallback){
@@ -637,11 +647,13 @@ function render(iso,bookings){
         <div class="actions">
           <button class="msg-open-btn" onclick="apriMsg(${i})">✉️ Messaggio</button>
           <button class="tax-btn" onclick="apriTassa(${i})">💶 Tassa</button>
+          ${expBtn}
         </div>`;
     }
     // salva dati per le modali
     taxStore[i]={nome,lng,notti,phone:numeroValido(phone)?phone:""};
     msgFull[i]={testo:testoCopia, email:(booker.email||""), nome, lng, waLink};
+    expStore[i]={nome:nomeMsg, isLorenzo};
     infoStore[i]={
       nome:`${nome} ${cognome}`.trim(), struttura, room:roomName, roomLabel,
       checkin:iso, checkout:b.checkout||"", notti, adults:b.adults||"", children:b.children||0,
@@ -682,6 +694,133 @@ function copia(i,btn){
 }
 
 // ====== MODALE MESSAGGIO (Copia + Invia email) ======
+// ====== EMAIL "INTERNOUNO EXPERIENCE" (solo non-Booking) ======
+function expHtmlCampaldino(nome){
+  const saluto=nome?`Gentile ${nome}`:"Gentile ospite";
+  return `<div style="font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.55;color:#222">
+<p>${saluto},</p>
+<p>la ringrazio per aver scelto InternoUno e le confermo la sua prenotazione.</p>
+<p>Per garantirle la massima comodità e rapidità, abbiamo organizzato per lei un <b>CHECK-IN IN AUTONOMIA</b>: potrà gestire il suo arrivo in totale libertà, senza attese, ritirando la chiave della sua camera da una cassetta di sicurezza esterna con codice. Le invierò con anticipo tutte le istruzioni necessarie per raggiungere la struttura e ritirare le chiavi.</p>
+<p>Le saremmo comunque grati se volesse comunicarci in anticipo l'orario approssimativo del suo arrivo, così da poterci organizzare al meglio.</p>
+<p>Per quanto riguarda il <b>pagamento</b> del soggiorno (importo totale, saldo residuo se ha già versato un acconto, o la sola tassa di soggiorno se il totale è già stato saldato): posso inviarle un link sicuro per il pagamento online con carta di credito, oppure può saldare in contanti il giorno successivo con il mio collega, a partire dalle ore 8:00.</p>
+<h3 style="color:#2a2622;font-size:15px;margin:20px 0 6px">IL CHECK-IN È POSSIBILE DALLE ORE 13:00.</h3>
+<p>Dalle 8:00 potrà comunque passare per effettuare la registrazione, lasciare i bagagli e ritirare le chiavi (la camera sarà accessibile una volta pulita e pronta dopo la partenza dell'ospite precedente).</p>
+<p>Riceverà inoltre un messaggio per effettuare il check-in online: la invitiamo gentilmente a completarlo prima dell'arrivo per semplificare e velocizzare le procedure.</p>
+<h3 style="color:#2a2622;font-size:15px;margin:20px 0 6px">IL CHECK-OUT DOVRÀ AVVENIRE ENTRO LE 10:00.</h3>
+<p>È comunque possibile lasciare gratuitamente i bagagli in deposito (non custodito) dopo la partenza.</p>
+<h2 style="color:#FF6628;font-size:18px;margin:26px 0 10px">📱 InternoUno Experience</h2>
+<p>Le consiglio di utilizzare la nostra InternoUno Experience durante tutto il soggiorno: una vera e propria app pensata per rendere la sua permanenza a Roma un'esperienza unica, sempre aggiornata e disponibile nella sua lingua.</p>
+<p>Vi troverà:</p>
+<ul style="margin:6px 0 6px 18px;padding:0">
+  <li>tutte le informazioni sulla casa (check-in, WiFi, parcheggio, regole della struttura)</li>
+  <li>la mappa della zona con servizi utili e ristoranti selezionati da noi</li>
+  <li>eventi e concerti a Roma, aggiornati ogni giorno</li>
+  <li>i nostri tour audio gratuiti per esplorare la città a piedi</li>
+  <li>un assistente virtuale che risponde alle sue domande in qualsiasi momento e in qualsiasi lingua</li>
+</ul>
+<p style="text-align:center"><a href="https://fly98.github.io/Analisi/campaldino.html" style="display:inline-block;background:#FF6628;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:bold;margin:6px 0">Apra qui la sua InternoUno Experience →</a></p>
+<p>Un consiglio: la salvi sulla schermata Home del telefono (basta un tap su "Aggiungi a Home" dal menu di condivisione del browser) — l'avrà sempre a portata di mano come una vera app, senza bisogno di scaricare nulla dagli store.</p>
+<hr style="border:none;border-top:1px solid #e5e3df;margin:24px 0">
+<h2 style="color:#FF6628;font-size:18px;margin:26px 0 10px">🚆 Come raggiungerci</h2>
+<h3 style="color:#2a2622;font-size:15px;margin:20px 0 6px">Mezzi pubblici</h3>
+<ul style="margin:6px 0 6px 18px;padding:0">
+  <li>Se arrivate in treno e potete scendere a Stazione Tiburtina, ci troviamo a circa 600 metri (15 minuti a piedi o 5 minuti con gli autobus 490 o 495).</li>
+  <li>Se il vostro treno ferma solo a Stazione Termini, prendete la metro linea B fino a Piazza Bologna: da lì siamo a circa 500 metri (10 minuti a piedi).</li>
+  <li>Siamo inoltre vicini alla stazione degli autobus TIBUS, a circa 400 metri (10 minuti a piedi).</li>
+</ul>
+<h3 style="color:#2a2622;font-size:15px;margin:20px 0 6px">Parcheggio</h3>
+<p>Via Campaldino e Via Cupa sono strade condominiali private: se disponibile, il parcheggio è gratuito. In alternativa, disponiamo di una convenzione con il Garage Di Nezza, situato sotto la struttura con ingresso da Via Cupa (tel. <a href="tel:+393208667617" style="color:#FF6628">+39 320 8667617</a>), al costo di 25 € al giorno per vetture standard (tariffa maggiore per auto di grande valore o dimensioni importanti).</p>
+<h3 style="color:#2a2622;font-size:15px;margin:20px 0 6px">Taxi / Transfer aeroportuale</h3>
+<p>Offriamo un servizio transfer privato dagli aeroporti di Roma al costo di 65 € (fino a 4 persone). Se desidera prenotarlo, la prego di rispondere a questa email indicando aeroporto di arrivo, numero del volo e orario esatto.</p>
+<h2 style="color:#FF6628;font-size:18px;margin:26px 0 10px">📸 Ci trovi anche sui social</h2>
+<p>Seguici su <a href="https://www.instagram.com/internounoguesthouse" style="color:#FF6628">Instagram @internounoguesthouse</a> e su <a href="https://www.facebook.com/internounobb" style="color:#FF6628">Facebook</a> per un assaggio di Roma, consigli di zona e le novità della struttura.</p>
+<hr style="border:none;border-top:1px solid #e5e3df;margin:24px 0">
+<p>La ringrazio nuovamente per la fiducia e resto a completa disposizione per qualsiasi informazione o richiesta.</p>
+<p>A presto,<br><b>Filippo</b><br>InternoUno<br>📍 Via Campaldino 6, 00162 Roma<br>📞 Tel. e WhatsApp: +39 392 299 9914<br>✉️ info@interno1.it</p>
+</div>`;
+}
+
+function expHtmlLorenzo(nome){
+  const saluto=nome?`Gentile ${nome}`:"Gentile ospite";
+  return `<div style="font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.55;color:#222">
+<p>${saluto},</p>
+<p>la ringrazio per aver scelto InternoUno Deluxe e le confermo la sua prenotazione.</p>
+<p>Per garantirle la massima comodità e rapidità, abbiamo organizzato per lei un <b>CHECK-IN IN AUTONOMIA</b>: potrà gestire il suo arrivo in totale libertà, senza attese, ritirando la chiave della sua camera da una cassetta di sicurezza esterna con codice. Le invierò con anticipo tutte le istruzioni necessarie per raggiungere la struttura e ritirare le chiavi.</p>
+<p>Le saremmo comunque grati se volesse comunicarci in anticipo l'orario approssimativo del suo arrivo, così da poterci organizzare al meglio.</p>
+<p>Per quanto riguarda il <b>pagamento</b> del soggiorno (importo totale, saldo residuo se ha già versato un acconto, o la sola tassa di soggiorno se il totale è già stato saldato): posso inviarle un link sicuro per il pagamento online con carta di credito, oppure può saldare in contanti il giorno successivo con il mio collega, a partire dalle ore 8:00.</p>
+<h3 style="color:#2a2622;font-size:15px;margin:20px 0 6px">IL CHECK-IN POTRÀ ESSERE EFFETTUATO DALLE ORE 13:00.</h3>
+<p>A partire dalle 8:00, sarà comunque possibile passare per lasciare i bagagli e ritirare le chiavi, anche se la camera sarà disponibile solo dopo la pulizia e la partenza del cliente precedente.</p>
+<p>Riceverà inoltre un messaggio per effettuare il check-in online: la invito a completarlo prima dell'arrivo, così da rendere più rapido e semplice il suo ingresso in struttura.</p>
+<h3 style="color:#2a2622;font-size:15px;margin:20px 0 6px">IL CHECK-OUT DOVRÀ ESSERE EFFETTUATO ENTRO LE ORE 10:00.</h3>
+<p>In caso di necessità, potrà lasciare gratuitamente i bagagli in deposito (non custodito).</p>
+<h2 style="color:#FF6628;font-size:18px;margin:26px 0 10px">📱 InternoUno Experience</h2>
+<p>Le consiglio di utilizzare la nostra InternoUno Experience durante tutto il soggiorno: una vera e propria app pensata per rendere la sua permanenza a Roma un'esperienza unica, sempre aggiornata e disponibile nella sua lingua.</p>
+<p>Vi troverà:</p>
+<ul style="margin:6px 0 6px 18px;padding:0">
+  <li>tutte le informazioni sulla casa (check-in, WiFi, parcheggio, regole della struttura)</li>
+  <li>la mappa della zona con servizi utili e ristoranti selezionati da noi</li>
+  <li>eventi e concerti a Roma, aggiornati ogni giorno</li>
+  <li>i nostri tour audio gratuiti per esplorare la città a piedi</li>
+  <li>un assistente virtuale che risponde alle sue domande in qualsiasi momento e in qualsiasi lingua</li>
+</ul>
+<p style="text-align:center"><a href="https://fly98.github.io/Analisi/lorenzo.html" style="display:inline-block;background:#FF6628;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:bold;margin:6px 0">Apra qui la sua InternoUno Experience →</a></p>
+<p>Un consiglio: la salvi sulla schermata Home del telefono (basta un tap su "Aggiungi a Home" dal menu di condivisione del browser) — l'avrà sempre a portata di mano come una vera app, senza bisogno di scaricare nulla dagli store.</p>
+<hr style="border:none;border-top:1px solid #e5e3df;margin:24px 0">
+<h2 style="color:#FF6628;font-size:18px;margin:26px 0 10px">🚆 Come raggiungerci</h2>
+<h3 style="color:#2a2622;font-size:15px;margin:20px 0 6px">Mezzi pubblici</h3>
+<ul style="margin:6px 0 6px 18px;padding:0">
+  <li>Se arriva in treno alla Stazione Tiburtina, siamo proprio di fronte: sarà sufficiente attraversare la strada.</li>
+  <li>Se il suo treno ferma solo a Stazione Termini, può prendere la metro linea B fino a Stazione Tiburtina (circa 10 minuti di tragitto).</li>
+  <li>Siamo inoltre molto vicini alla stazione degli autobus TIBUS, a circa 300 metri (5 minuti a piedi).</li>
+</ul>
+<h3 style="color:#2a2622;font-size:15px;margin:20px 0 6px">Parcheggio</h3>
+<p>Disponiamo di una convenzione con il Garage Bologna (Via Lorenzo il Magnifico, 83 – Tel. <a href="tel:+390644242664" style="color:#FF6628">06 4424 2664</a>), situato a 200 metri dalla struttura, al costo di 25 € al giorno per vetture standard (tariffa maggiore per auto di grande valore o dimensioni importanti).</p>
+<h3 style="color:#2a2622;font-size:15px;margin:20px 0 6px">Taxi / Transfer aeroportuale</h3>
+<p>È disponibile un servizio di transfer privato da e per l'aeroporto, al costo di 65 € fino a 4 persone. Se desidera prenotarlo, la prego di rispondere a questa email indicando l'aeroporto di arrivo, il numero del volo e l'orario esatto di arrivo.</p>
+<h2 style="color:#FF6628;font-size:18px;margin:26px 0 10px">📸 Ci trovi anche sui social</h2>
+<p>Seguici su <a href="https://www.instagram.com/internounoguesthouse" style="color:#FF6628">Instagram @internounoguesthouse</a> e su <a href="https://www.facebook.com/internounobb" style="color:#FF6628">Facebook</a> per un assaggio di Roma, consigli di zona e le novità della struttura.</p>
+<hr style="border:none;border-top:1px solid #e5e3df;margin:24px 0">
+<p>La ringrazio nuovamente per la fiducia e le porgo i miei più cordiali saluti. Non vedo l'ora di accoglierla a Roma!</p>
+<p>Filippo<br><b>InternoUno Deluxe</b><br>📍 Via Lorenzo il Magnifico 158, 00162 Roma<br>📞 Tel / WhatsApp: +39 392 299 9914<br>✉️ info@interno1.it</p>
+</div>`;
+}
+
+let expStore={};
+function apriExperience(i){
+  const e=expStore[i];
+  const html = e.isLorenzo ? expHtmlLorenzo(e.nome) : expHtmlCampaldino(e.nome);
+  const box=document.getElementById("expModalBox");
+  box.innerHTML=`
+    <h3>InternoUno Experience — ${e.nome||"ospite"} (${e.isLorenzo?"Lorenzo il Magnifico":"Via Campaldino"})</h3>
+    <div class="msg-box" id="expRenderedBox" style="margin-bottom:14px;max-height:50vh;overflow:auto;background:#fff;border:1px solid #e5e3df;white-space:normal">${html}</div>
+    <div class="copy-note" style="margin-bottom:10px">Il pulsante copia il testo già formattato: incollalo direttamente in una nuova mail Gmail, grassetti e link resteranno intatti.</div>
+    <div class="modal-actions">
+      <button class="copy-btn" id="expCopyBtn">Copia formattato</button>
+      <button class="m-cancel" onclick="chiudiExperience()">Chiudi</button>
+    </div>`;
+  document.getElementById("expCopyBtn").onclick=function(){
+    const btn=this;
+    const node=document.getElementById("expRenderedBox");
+    try{
+      const htmlBlob=new Blob([node.innerHTML],{type:"text/html"});
+      const textBlob=new Blob([node.innerText],{type:"text/plain"});
+      navigator.clipboard.write([new ClipboardItem({"text/html":htmlBlob,"text/plain":textBlob})]).then(()=>{
+        btn.textContent="Copiato ✓"; btn.classList.add("done");
+        setTimeout(()=>{btn.textContent="Copia formattato";btn.classList.remove("done");},2500);
+      });
+    }catch(err){
+      // fallback: seleziona il nodo e usa execCommand
+      const range=document.createRange(); range.selectNodeContents(node);
+      const sel=window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
+      document.execCommand("copy"); sel.removeAllRanges();
+      btn.textContent="Copiato ✓"; btn.classList.add("done");
+      setTimeout(()=>{btn.textContent="Copia formattato";btn.classList.remove("done");},2500);
+    }
+  };
+  document.getElementById("expModal").classList.add("show");
+}
+function chiudiExperience(){document.getElementById("expModal").classList.remove("show");}
+
 function apriMsg(i){
   const m=msgFull[i];
   const box=document.getElementById("msgModalBox");
