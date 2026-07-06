@@ -403,7 +403,7 @@ it:{
   t_food:'Mangiare e Bere', t_food_sub:'I migliori nelle vicinanze',
   food_note:'Selezione aggiornata periodicamente in base alle recensioni della zona.',
   t_eventi:'Eventi a Roma', t_eventi_sub:'Cosa succede in città in questi giorni',
-  eventi_soon:'📅 Il calendario eventi si aggiorna automaticamente ogni settimana. Prima attivazione in arrivo.',
+  eventi_soon:'📅 Il calendario eventi si aggiorna automaticamente ogni giorno.', eventi_info:'Info e biglietti →',
   t_tour:'Tour Audio Gratuiti', t_tour_sub:'Un regalo della casa: passeggiate con audioguida GPS',
   t_chat:'Chiedi a InternoUno', t_chat_sub:'Risposte immediate, in ogni lingua, 24/7',
   tab_casa:'Casa', tab_mappa:'Mappa', tab_food:'Mangiare', tab_chat:'Chiedi', tab_eventi:'Eventi', tab_tour:'Tour',
@@ -488,7 +488,7 @@ en:{
   t_food:'Eat and Drink', t_food_sub:'The best places nearby',
   food_note:'Selection updated periodically based on local reviews.',
   t_eventi:'Events in Rome', t_eventi_sub:'What\u2019s on in the city these days',
-  eventi_soon:'📅 The events calendar updates automatically every week. Coming soon.',
+  eventi_soon:'📅 The events calendar updates automatically every day.', eventi_info:'Info and tickets →',
   t_tour:'Free Audio Tours', t_tour_sub:'A gift from the house: GPS-guided walks',
   t_chat:'Ask InternoUno', t_chat_sub:'Instant answers, in any language, 24/7',
   tab_casa:'Home', tab_mappa:'Map', tab_food:'Eat', tab_chat:'Ask', tab_eventi:'Events', tab_tour:'Tours',
@@ -573,7 +573,7 @@ es:{
   t_food:'Comer y Beber', t_food_sub:'Los mejores de la zona',
   food_note:'Selección actualizada periódicamente según las reseñas de la zona.',
   t_eventi:'Eventos en Roma', t_eventi_sub:'Qué pasa en la ciudad estos días',
-  eventi_soon:'📅 El calendario de eventos se actualiza automáticamente cada semana. Muy pronto.',
+  eventi_soon:'📅 El calendario de eventos se actualiza automáticamente cada día.', eventi_info:'Info y entradas →',
   t_tour:'Tours de Audio Gratis', t_tour_sub:'Un regalo de la casa: paseos con audioguía GPS',
   t_chat:'Pregunta a InternoUno', t_chat_sub:'Respuestas al instante, en cualquier idioma, 24/7',
   tab_casa:'Casa', tab_mappa:'Mapa', tab_food:'Comer', tab_chat:'Pregunta', tab_eventi:'Eventos', tab_tour:'Tours',
@@ -658,7 +658,7 @@ fr:{
   t_food:'Manger et Boire', t_food_sub:'Les meilleures adresses à proximité',
   food_note:'Sélection mise à jour périodiquement selon les avis du quartier.',
   t_eventi:'Événements à Rome', t_eventi_sub:'Ce qui se passe en ville ces jours-ci',
-  eventi_soon:'📅 Le calendrier des événements se met à jour automatiquement chaque semaine. Bientôt disponible.',
+  eventi_soon:'📅 Le calendrier des événements se met à jour automatiquement chaque jour.', eventi_info:'Infos et billets →',
   t_tour:'Visites Audio Gratuites', t_tour_sub:'Un cadeau de la maison : des balades avec audioguide GPS',
   t_chat:'Demandez à InternoUno', t_chat_sub:'Réponses immédiates, dans toutes les langues, 24/7',
   tab_casa:'Maison', tab_mappa:'Carte', tab_food:'Manger', tab_chat:'Demander', tab_eventi:'Événements', tab_tour:'Visites',
@@ -743,7 +743,7 @@ de:{
   t_food:'Essen und Trinken', t_food_sub:'Die besten Adressen in der Nähe',
   food_note:'Die Auswahl wird regelmäßig anhand lokaler Bewertungen aktualisiert.',
   t_eventi:'Veranstaltungen in Rom', t_eventi_sub:'Was in der Stadt gerade los ist',
-  eventi_soon:'📅 Der Veranstaltungskalender aktualisiert sich automatisch jede Woche. Bald verfügbar.',
+  eventi_soon:'📅 Der Veranstaltungskalender aktualisiert sich automatisch jeden Tag.', eventi_info:'Infos und Tickets →',
   t_tour:'Kostenlose Audio-Touren', t_tour_sub:'Ein Geschenk des Hauses: Spaziergänge mit GPS-Audioguide',
   t_chat:'Frag InternoUno', t_chat_sub:'Sofortige Antworten, in jeder Sprache, rund um die Uhr',
   tab_casa:'Haus', tab_mappa:'Karte', tab_food:'Essen', tab_chat:'Fragen', tab_eventi:'Events', tab_tour:'Touren',
@@ -828,7 +828,7 @@ pt:{
   t_food:'Comer e Beber', t_food_sub:'Os melhores locais nas proximidades',
   food_note:'Seleção atualizada periodicamente com base nas avaliações da zona.',
   t_eventi:'Eventos em Roma', t_eventi_sub:'O que acontece na cidade nestes dias',
-  eventi_soon:'📅 O calendário de eventos atualiza-se automaticamente todas as semanas. Brevemente disponível.',
+  eventi_soon:'📅 O calendário de eventos atualiza-se automaticamente todos os dias.', eventi_info:'Info e bilhetes →',
   t_tour:'Tours Áudio Gratuitos', t_tour_sub:'Uma oferta da casa: passeios com áudioguia GPS',
   t_chat:'Pergunte à InternoUno', t_chat_sub:'Respostas imediatas, em qualquer idioma, 24 horas por dia',
   tab_casa:'Casa', tab_mappa:'Mapa', tab_food:'Comer', tab_chat:'Perguntar', tab_eventi:'Eventos', tab_tour:'Tours',
@@ -913,7 +913,7 @@ zh:{
   t_food:'餐饮推荐', t_food_sub:'附近最佳去处',
   food_note:'根据当地评价定期更新推荐列表。',
   t_eventi:'罗马活动', t_eventi_sub:'近期城市活动',
-  eventi_soon:'📅 活动日历每周自动更新,即将上线。',
+  eventi_soon:'📅 活动日历每天自动更新。', eventi_info:'详情及购票 →',
   t_tour:'免费语音导览', t_tour_sub:'民宿赠送:GPS语音导览漫步之旅',
   t_chat:'咨询 InternoUno', t_chat_sub:'全天候即时回复,支持任何语言',
   tab_casa:'住宿', tab_mappa:'地图', tab_food:'美食', tab_chat:'咨询', tab_eventi:'活动', tab_tour:'导览',
@@ -1186,7 +1186,7 @@ async function loadDynamic(){
       $('#eventi').innerHTML = d.eventi.map(e =>
         `<div class="card"><div class="top"><h3>${e.emoji||'🎭'} ${e.titolo}</h3></div>
          <div class="addr">${e.quando} · ${e.dove}</div><div class="desc">${e.descr||''}</div>
-         ${e.link?`<div class="addr" style="margin-top:6px"><a href="${e.link}" target="_blank">Info e biglietti →</a></div>`:''}</div>`).join('');
+         ${e.link?`<div class="addr" style="margin-top:6px"><a href="${e.link}" target="_blank">${T().eventi_info}</a></div>`:''}</div>`).join('');
     }
   }catch(e){/* fallback statico già visibile */}
 }
