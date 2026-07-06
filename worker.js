@@ -611,6 +611,20 @@ export default {
       const url = new URL(request.url);
       const action = url.searchParams.get("action");
 
+      if (action === "debugUpdated") {
+        const daysBack = parseInt(url.searchParams.get("days") || "30", 10);
+        const oggi = new Date();
+        const to2 = oggi.toISOString().slice(0,10);
+        const da2 = new Date(oggi);
+        da2.setDate(da2.getDate() - daysBack);
+        const from2 = da2.toISOString().slice(0,10);
+        const r = await fetch(`${BASE}/bookings/updated?hotel_id=${HOTEL_UUID}&from=${from2}&to=${to2}`, {
+          headers: { "User-Agent": UA, "Accept": "application/json", "Authorization": "Bearer " + env.AMENITIZ_TOKEN }
+        });
+        const raw = await r.text();
+        return new Response(raw, { status: r.status, headers: { ...CORS, "Content-Type": "application/json" } });
+      }
+
       if (action === "runAutoSend") {
         const daysBack = parseInt(url.searchParams.get("days") || "2", 10);
         const dryRun = url.searchParams.get("dryRun") === "true";
