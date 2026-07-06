@@ -199,6 +199,12 @@ details.acc .body p+p{margin-top:8px}
 .chip{flex-shrink:0;border:1px solid var(--border);background:var(--surface);border-radius:20px;
   padding:6px 13px;font-size:.78rem;font-weight:600;color:var(--muted);white-space:nowrap;cursor:pointer}
 .chip.on{background:var(--orange);border-color:var(--orange);color:#fff}
+.subtab-row{display:flex;gap:8px;padding:2px 16px 14px}
+.subtab{flex:1;padding:10px;border-radius:12px;border:1px solid var(--border);background:var(--surface);
+  font-size:.85rem;font-weight:700;color:var(--muted);cursor:pointer}
+.subtab.on{background:var(--orange);border-color:var(--orange);color:#fff}
+.sub-panel{display:none}
+.sub-panel.on{display:block}
 .filter-select-btn{display:flex;align-items:center;gap:8px;width:100%;text-align:left;
   border:1px solid var(--border);background:var(--surface);border-radius:12px;
   padding:11px 14px;font-size:.85rem;font-weight:600;color:var(--text);margin-bottom:8px;cursor:pointer}
@@ -320,16 +326,19 @@ footer b{color:var(--text)}
   <div class="wrap" id="foodRomaList"></div>
 </section>
 
-<!-- ============ EVENTI ============ -->
+<!-- ============ EVENTI + CONCERTI ============ -->
 <section class="screen" id="scr-eventi">
   <div class="targa"><h2 data-i="t_eventi"></h2><p data-i="t_eventi_sub"></p></div>
-  <div class="wrap" id="eventi"><div class="card" data-i="eventi_soon"></div></div>
-</section>
-
-<!-- ============ CONCERTI ============ -->
-<section class="screen" id="scr-concerti">
-  <div class="targa"><h2 data-i="t_concerti"></h2><p data-i="t_concerti_sub"></p></div>
-  <div class="wrap" id="concerti"><div class="card" data-i="concerti_soon"></div></div>
+  <div class="subtab-row">
+    <button class="subtab on" data-sub="eventi"><span data-i="tab_eventi"></span></button>
+    <button class="subtab" data-sub="concerti"><span data-i="tab_concerti"></span></button>
+  </div>
+  <div class="sub-panel on" id="panel-eventi">
+    <div class="wrap" id="eventi"><div class="card" data-i="eventi_soon"></div></div>
+  </div>
+  <div class="sub-panel" id="panel-concerti">
+    <div class="wrap" id="concerti"><div class="card" data-i="concerti_soon"></div></div>
+  </div>
 </section>
 
 <!-- ============ TOUR ============ -->
@@ -367,10 +376,6 @@ footer b{color:var(--text)}
     <span class="i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5.3" width="16" height="15" rx="2.6"/><path d="M8 3.3v4M16 3.3v4M4 10.3h16"/><circle cx="9" cy="15" r="1" fill="currentColor" stroke="none"/><circle cx="13" cy="15" r="1" fill="currentColor" stroke="none"/><circle cx="17" cy="15" r="1" fill="currentColor" stroke="none"/></svg></span>
     <span data-i="tab_eventi"></span>
   </button>
-  <button data-scr="concerti">
-    <span class="i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5.5l10-2v12.5"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="15.5" r="2.5"/></svg></span>
-    <span data-i="tab_concerti"></span>
-  </button>
   <button data-scr="tour">
     <span class="i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.3"/><path d="M14.6 9.4 13 13l-3.6 1.6L11 11z" fill="currentColor" stroke="none"/></svg></span>
     <span data-i="tab_tour"></span>
@@ -378,6 +383,7 @@ footer b{color:var(--text)}
   <button data-scr="chat">
     <span class="i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5.5h14a2 2 0 0 1 2 2v7.5a2 2 0 0 1-2 2H9.5L5.5 21v-4H5a2 2 0 0 1-2-2V7.5a2 2 0 0 1 2-2z"/><circle cx="9" cy="11" r="1" fill="currentColor" stroke="none"/><circle cx="12.3" cy="11" r="1" fill="currentColor" stroke="none"/><circle cx="15.6" cy="11" r="1" fill="currentColor" stroke="none"/></svg></span>
     <span data-i="tab_chat"></span>
+
   </button>
 </nav>
 
@@ -1291,6 +1297,14 @@ $$('#tabbar button').forEach(b => b.addEventListener('click', () => {
     renderFoodMarkers(foodBaseList().filter(f => (!foodCuisine || f[8]===foodCuisine) && (!foodPrice || f[9]===foodPrice)));
     setTimeout(() => foodMap.invalidateSize(), 60);
   }
+}));
+
+$$('.subtab-row .subtab').forEach(b => b.addEventListener('click', () => {
+  $$('.subtab-row .subtab').forEach(x => x.classList.remove('on'));
+  b.classList.add('on');
+  $$('.sub-panel').forEach(p => p.classList.remove('on'));
+  $('#panel-' + b.dataset.sub).classList.add('on');
+  trackEvent('subtab', b.dataset.sub);
 }));
 
 $('#langBtn').addEventListener('click', () => { $('#langModalOverlay').classList.add('show'); });
