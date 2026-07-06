@@ -273,7 +273,7 @@ async function translateEventi(env, eventiEn) {
       },
       body: JSON.stringify({
         model: "claude-haiku-4-5",
-        max_tokens: 4000,
+        max_tokens: 8000,
         system: "Sei un traduttore professionista per un'app di ospitalità turistica a Roma. Ricevi un array JSON di oggetti {id,titolo,descr} in inglese. Restituisci SOLO un oggetto JSON valido (nessun testo extra, nessun blocco markdown) con questa struttura esatta: {\"it\":[{\"titolo\":\"\",\"descr\":\"\"}],\"es\":[...],\"fr\":[...],\"de\":[...],\"pt\":[...],\"zh\":[...]}. Ogni array deve avere esattamente lo stesso numero di elementi, nello stesso ordine dell'input. Traduci in modo naturale e scorrevole, non letterale, mantenendo nomi propri di luoghi/eventi quando appropriato.",
         messages: [{ role: "user", content: JSON.stringify(input) }]
       })
