@@ -49,17 +49,21 @@ CONTATTO DIRETTO: WhatsApp +39 392 2999914 per qualsiasi necessità non coperta 
 
   lorenzo: `
 STRUTTURA: InternoUno Deluxe — Via Lorenzo il Magnifico 158, Roma (zona Tiburtina).
-Di fronte alla stazione Tiburtina e alla stazione bus TIBUS. Camere con bagno privato, angolo cottura, aria condizionata, terrazza.
+A pochi passi dalla Stazione Tiburtina (metro Linea B + treni Alta Velocità e regionali). Camere con bagno privato, angolo cottura, aria condizionata; jacuzzi privata in tutte le camere tranne la camera economica "Cinque".
 CHECK-IN: dalle 14:00. CHECK-OUT: entro le 10:00; se non trovi lo staff lascia la chiave sul bancone reception.
-PARCHEGGIO: Garage Bologna nelle vicinanze (indicazioni in loco).
-METRO: Stazione Tiburtina (Linea B) a pochi minuti a piedi.
+DEPOSITO BAGAGLI: al check-out chiedi allo staff, ti indicheranno dove lasciarli in sicurezza per la giornata.
+PARCHEGGIO: Garage Bologna, Via Lorenzo il Magnifico 83 (a pochi passi), tel +39 06 4424 2664, a pagamento, Lun-Sab 6:00-01:00, Dom 6:00-10:00 e 19:00-01:00.
+METRO: Stazione Tiburtina, Linea B, 300m/5 min a piedi — anche stazione ferroviaria Alta Velocità e regionali. Termini 4 fermate, Colosseo 6 fermate.
+BIGLIETTI ATAC: 1,50€ (100 min), 7€ (24h), 12,50€ (48h), 18€ (72h). In vendita in metro, tabacchi, edicole, o app TicketAppy.
 WIFI: nome rete e password affissi in camera; se non trovato, scrivere su WhatsApp.
 NETFLIX: gratuito su smart TV, tasto dedicato sul telecomando.
 SILENZIO: 22:00-08:00.
 ARIA CONDIZIONATA: va sempre spenta uscendo dalla camera.
 ANIMALI: benvenuti gratuitamente, non sui letti né liberi nelle aree comuni.
 FUMO: vietato in tutta la struttura.
-EMERGENZE: Polizia/Carabinieri 112, Emergenza medica 118, Taxi Roma 06 3570, Info turistiche Roma 06 0606.
+EMERGENZE: Polizia/Carabinieri 112, Emergenza medica 118, Taxi Roma 06 3570, Info turistiche Roma 06 0606. Pronto Soccorso più vicino: Ospedale Sandro Pertini, Via dei Monti Tiburtini 385.
+SERVIZI VICINI: Market Magnificio (Via Lorenzo il Magnifico 55), Farmacia Lorenzo il Magnifico (Via Lorenzo il Magnifico 56), Bancomat Mediobanca (Piazza Bologna 12), Lavanderia Onda Blu (Via Giuseppe Marcotti 52), Tabaccheria Magnifico (Via Giovanni da Procida 24), Ufficio Postale (Via Giuseppe Marcotti 45).
+RISTORANTI CONSIGLIATI: Da Mamma (trattoria romana, Via Lorenzo il Magnifico 62, tel 06 4424 2613); La Pizzetta Tiburtina (pizzette e fritti, Via Cipriano Facchinetti 5/7); Gelateria Belsito (Via Livorno 39).
 CONTATTO DIRETTO: WhatsApp +39 392 2999914 per qualsiasi necessità non coperta da queste informazioni.
 `.trim()
 };
@@ -162,8 +166,9 @@ async function handleTrack(request, env, slug) {
 async function handleData(request, env, slug, url) {
   const lang = (url.searchParams.get("lang") || "en").slice(0, 2);
   const food = await env.WB_KV.get(`wb:${slug}:food`);
-  const eventiRaw = await env.WB_KV.get(`wb:${slug}:eventi`);
-  const concerti = await env.WB_KV.get(`wb:${slug}:concerti`);
+  // eventi/concerti sono contenuti "città" (Roma), condivisi tra tutte le strutture
+  const eventiRaw = await env.WB_KV.get(`wb:roma:eventi`);
+  const concerti = await env.WB_KV.get(`wb:roma:concerti`);
 
   let eventi = null;
   if (eventiRaw) {
@@ -227,7 +232,7 @@ async function refreshConcerti(env, slug, city) {
       };
     });
 
-  await env.WB_KV.put(`wb:${slug}:concerti`, JSON.stringify(concerti), { expirationTtl: 60 * 60 * 24 * 7 });
+  await env.WB_KV.put(`wb:roma:concerti`, JSON.stringify(concerti), { expirationTtl: 60 * 60 * 24 * 7 });
   return { ok: true, count: concerti.length };
 }
 
@@ -370,7 +375,7 @@ async function refreshEventi(env, slug) {
       : eventiSrc;
   }
 
-  await env.WB_KV.put(`wb:${slug}:eventi`, JSON.stringify(multiLang), { expirationTtl: 60 * 60 * 24 * 7 });
+  await env.WB_KV.put(`wb:roma:eventi`, JSON.stringify(multiLang), { expirationTtl: 60 * 60 * 24 * 7 });
   return { ok: true, count: eventiSrc.length, translated: !!translations };
 }
 
