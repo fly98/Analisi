@@ -1,4 +1,4 @@
-name: WB Worker Test 6
+name: WB Worker Test 7
 
 on:
   workflow_dispatch:
@@ -9,6 +9,6 @@ jobs:
     steps:
       - run: echo "base step"
 
-      - name: Conditional step
-        if: ${{ secrets.WB_ANTHROPIC_API_KEY != '' }}
+      - name: Conditional step existing secret
+        if: ${{ secrets.WB_ADMIN_KEY != '' }}
         run: echo "would run"
