@@ -158,21 +158,24 @@ async function handleTrack(request, env, slug) {
   return json({ ok: true });
 }
 
-// ---------------- Dati dinamici (food/eventi) ----------------
+// ---------------- Dati dinamici (food/eventi/concerti) ----------------
 async function handleData(request, env, slug, url) {
   const food = await env.WB_KV.get(`wb:${slug}:food`);
   const eventi = await env.WB_KV.get(`wb:${slug}:eventi`);
+  const concerti = await env.WB_KV.get(`wb:${slug}:concerti`);
   return json({
     food: food ? JSON.parse(food) : null,
-    eventi: eventi ? JSON.parse(eventi) : null
+    eventi: eventi ? JSON.parse(eventi) : null,
+    concerti: concerti ? JSON.parse(concerti) : null
   });
 }
 
-// ---------------- Eventi: refresh da Ticketmaster Discovery API ----------------
+const MESI = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+// ---------------- Concerti: refresh da Ticketmaster Discovery API ----------------
 const SEGMENT_EMOJI = {
   "Music": "🎵", "Sports": "⚽", "Arts & Theatre": "🎭", "Film": "🎬", "Miscellaneous": "🎪"
 };
-const MESI = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
 function fmtEventDate(localDate, localTime) {
   if (!localDate) return "";
@@ -182,7 +185,7 @@ function fmtEventDate(localDate, localTime) {
   return giorno;
 }
 
-async function refreshEventi(env, slug, city) {
+async function refreshConcerti(env, slug, city) {
   if (!env.TM_API_KEY) return { ok: false, error: "TM_API_KEY non configurata" };
   const apiUrl = `https://app.ticketmaster.com/discovery/v2/events.json?apikey=${env.TM_API_KEY}&city=${encodeURIComponent(city)}&countryCode=IT&size=20&sort=date,asc`;
   const resp = await fetch(apiUrl);
@@ -195,7 +198,7 @@ async function refreshEventi(env, slug, city) {
   limite.setUTCDate(limite.getUTCDate() + 90);
   const dataLimite = limite.toISOString().slice(0, 10);
 
-  const eventi = rawEvents
+  const concerti = rawEvents
     .filter(e => {
       const d = e.dates?.start?.localDate;
       return d && d >= oggi && d <= dataLimite;
@@ -216,6 +219,96 @@ async function refreshEventi(env, slug, city) {
       };
     });
 
+  await env.WB_KV.put(`wb:${slug}:concerti`, JSON.stringify(concerti), { expirationTtl: 60 * 60 * 24 * 7 });
+  return { ok: true, count: concerti.length };
+}
+
+// ---------------- Eventi: refresh da API ufficiale Roma Capitale (060608) ----------------
+const CAT_EMOJI = {
+  "Mostre": "🖼️", "Manifestazioni": "🎪", "Teatro": "🎭", "Danza": "💃",
+  "Visite guidate e didattica": "🚶", "Incontri": "🎤", "Cinema": "🎬"
+};
+
+function parseItDate(s) {
+  // "DD/MM/YYYY" -> {y,m,d}
+  const [d, m, y] = s.split("/").map(Number);
+  return { y, m, d };
+}
+
+function fmtComuneDate(dataStr) {
+  if (!dataStr) return "";
+  const range = dataStr.match(/^da (\d{2}\/\d{2}\/\d{4}) a (\d{2}\/\d{2}\/\d{4})$/);
+  if (range) {
+    const a = parseItDate(range[1]), b = parseItDate(range[2]);
+    return `${a.d} ${MESI[a.m - 1]} - ${b.d} ${MESI[b.m - 1]}`;
+  }
+  const single = dataStr.match(/^(\d{2}\/\d{2}\/\d{4})$/);
+  if (single) {
+    const a = parseItDate(single[1]);
+    return `${a.d} ${MESI[a.m - 1]}`;
+  }
+  return dataStr;
+}
+
+function comuneDateEndPasses(dataStr) {
+  // ritorna true se l'evento non è ancora concluso
+  const oggi = new Date(); oggi.setUTCHours(0, 0, 0, 0);
+  const range = dataStr?.match(/a (\d{2}\/\d{2}\/\d{4})$/);
+  const dateStr = range ? range[1] : (dataStr?.match(/^(\d{2}\/\d{2}\/\d{4})/) || [])[1];
+  if (!dateStr) return true;
+  const { y, m, d } = parseItDate(dateStr);
+  const end = new Date(Date.UTC(y, m - 1, d));
+  return end >= oggi;
+}
+
+function voceValore(voci, chiave) {
+  return voci.find(v => v.chiave === chiave)?.valore || "";
+}
+
+function parseVenue(ospitatoIn) {
+  if (!ospitatoIn) return "";
+  const primo = ospitatoIn.split("§§")[0];
+  const parts = primo.split("~");
+  return parts.length > 1 ? parts[1] : primo;
+}
+
+async function refreshEventiComune(env, slug) {
+  const resp = await fetch("https://ws.comune.roma.it/060608/api/public/entita/ricerca?size=100&sort=data,asc", {
+    method: "POST", headers: { "Content-Type": "application/json" }, body: "{}"
+  });
+  if (!resp.ok) return { ok: false, error: `Comune Roma ${resp.status}` };
+  const data = await resp.json();
+  const raw = data.page?.content || [];
+
+  const escluse = new Set(["Musica"]); // già coperta dalla tab Concerti
+  const perCategoria = {};
+  const eventi = [];
+
+  for (const item of raw) {
+    const cat = item.categoria;
+    if (escluse.has(cat)) continue;
+    const voci = item.voci || [];
+    const dataVal = voceValore(voci, "Data");
+    if (!comuneDateEndPasses(dataVal)) continue;
+    perCategoria[cat] = (perCategoria[cat] || 0) + 1;
+    if (perCategoria[cat] > 4) continue; // varietà: max 4 per categoria
+
+    const nav = item.navigazione || {};
+    const link = nav.slug && nav.categoria?.codice
+      ? `https://060608.comune.roma.it/eventi/${nav.categoria.codice}/${nav.slug}-${nav.id}`
+      : (voceValore(voci, "Sito web") ? `https://${voceValore(voci, "Sito web").replace(/^https?:\/\//, "")}` : "");
+
+    eventi.push({
+      emoji: CAT_EMOJI[cat] || "🎫",
+      titolo: item.nome,
+      quando: fmtComuneDate(dataVal),
+      dove: parseVenue(voceValore(voci, "Ospitato in")) || item.zona || "",
+      descr: cat,
+      link
+    });
+    if (eventi.length >= 12) break;
+  }
+
   await env.WB_KV.put(`wb:${slug}:eventi`, JSON.stringify(eventi), { expirationTtl: 60 * 60 * 24 * 7 });
   return { ok: true, count: eventi.length };
 }
@@ -223,8 +316,15 @@ async function refreshEventi(env, slug, city) {
 async function handleRefreshEventi(request, env, slug, url) {
   const key = url.searchParams.get("key");
   if (!env.WB_ADMIN_KEY || key !== env.WB_ADMIN_KEY) return json({ error: "non autorizzato" }, 401);
+  const result = await refreshEventiComune(env, slug);
+  return json(result, result.ok ? 200 : 502);
+}
+
+async function handleRefreshConcerti(request, env, slug, url) {
+  const key = url.searchParams.get("key");
+  if (!env.WB_ADMIN_KEY || key !== env.WB_ADMIN_KEY) return json({ error: "non autorizzato" }, 401);
   const city = url.searchParams.get("city") || "Roma";
-  const result = await refreshEventi(env, slug, city);
+  const result = await refreshConcerti(env, slug, city);
   return json(result, result.ok ? 200 : 502);
 }
 
@@ -281,6 +381,7 @@ export default {
       if (action === "data" && request.method === "GET") return await handleData(request, env, slug, url);
       if (action === "stats" && request.method === "GET") return await handleStats(request, env, slug, url);
       if (action === "refresh-eventi" && request.method === "GET") return await handleRefreshEventi(request, env, slug, url);
+      if (action === "refresh-concerti" && request.method === "GET") return await handleRefreshConcerti(request, env, slug, url);
 
       return json({ error: "Rotta non trovata" }, 404);
     } catch (e) {
@@ -289,7 +390,8 @@ export default {
   },
 
   async scheduled(event, env, ctx) {
-    // Aggiornamento giornaliero eventi Roma per tutte le strutture attive
-    ctx.waitUntil(refreshEventi(env, "campaldino", "Roma"));
+    // Aggiornamento giornaliero eventi + concerti Roma per tutte le strutture attive
+    ctx.waitUntil(refreshEventiComune(env, "campaldino"));
+    ctx.waitUntil(refreshConcerti(env, "campaldino", "Roma"));
   }
 };
