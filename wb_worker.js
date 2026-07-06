@@ -262,23 +262,23 @@ function fmtItDate(dateStr) {
 }
 function extractQuandoDove(html) {
   let quando = "";
-  const qm = html.match(/>Quando<\/span>[\s\S]{0,60}Dal <span[^>]*>(\d{2}\/\d{2}\/\d{4})<\/span>[\s\S]{0,80}al <span[^>]*>(\d{2}\/\d{2}\/\d{4})<\/span>/);
+  const qm = html.match(/>Quando<\/span>[\s\S]{0,220}Dal <span[^>]*>(\d{2}\/\d{2}\/\d{4})<\/span>[\s\S]{0,220}al <span[^>]*>(\d{2}\/\d{2}\/\d{4})<\/span>/);
   if (qm) {
     quando = `${fmtItDate(qm[1])} - ${fmtItDate(qm[2])}`;
   } else {
-    const single = html.match(/>Quando<\/span>[\s\S]{0,60}<span[^>]*>(\d{2}\/\d{2}\/\d{4})<\/span>/);
+    const single = html.match(/>Quando<\/span>[\s\S]{0,220}<span[^>]*>(\d{2}\/\d{2}\/\d{4})<\/span>/);
     if (single) quando = fmtItDate(single[1]);
   }
 
   let dove = "";
-  const dm = html.match(/>Dove<\/span>[\s\S]{0,60}o-link-primary[^>]*>\s*([^<]+?)\s*</);
+  const dm = html.match(/>Dove<\/span>[\s\S]{0,220}o-link-primary[^>]*>\s*([^<]+?)\s*</);
   if (dm) dove = dm[1].trim();
 
   // ultima data valida per il filtro di scadenza (fine evento, o data singola)
   let endDate = null;
   if (qm) endDate = parseItDate(qm[2]);
   else {
-    const single = html.match(/>Quando<\/span>[\s\S]{0,60}<span[^>]*>(\d{2}\/\d{2}\/\d{4})<\/span>/);
+    const single = html.match(/>Quando<\/span>[\s\S]{0,220}<span[^>]*>(\d{2}\/\d{2}\/\d{4})<\/span>/);
     if (single) endDate = parseItDate(single[1]);
   }
   return { quando, dove, endDate };
@@ -429,20 +429,6 @@ export default {
       if (action === "data" && request.method === "GET") return await handleData(request, env, slug, url);
       if (action === "stats" && request.method === "GET") return await handleStats(request, env, slug, url);
       if (action === "refresh-eventi" && request.method === "GET") return await handleRefreshEventi(request, env, slug, url);
-      if (action === "debug-fetch" && request.method === "GET") {
-        const key = url.searchParams.get("key");
-        if (!env.WB_ADMIN_KEY || key !== env.WB_ADMIN_KEY) return json({ error: "non autorizzato" }, 401);
-        const target = url.searchParams.get("url");
-        const r = await fetch(target, { headers: { "User-Agent": "Mozilla/5.0 (compatible; wb-worker/1.0)" } });
-        const t = await r.text();
-        const qIdx = t.indexOf("Quando");
-        const dIdx = t.indexOf(">Dove<");
-        return json({
-          status: r.status, length: t.length,
-          aroundQuando: qIdx > -1 ? t.slice(qIdx - 30, qIdx + 400) : null,
-          aroundDove: dIdx > -1 ? t.slice(dIdx - 30, dIdx + 400) : null
-        });
-      }
       if (action === "refresh-concerti" && request.method === "GET") return await handleRefreshConcerti(request, env, slug, url);
 
       return json({ error: "Rotta non trovata" }, 404);
