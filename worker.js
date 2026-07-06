@@ -550,23 +550,24 @@ async function runAutoSend(env, testMode) {
   }
   const bookings = await resp.json();
   const dettagli = [];
+  const scartiPerMotivo = { non_nuova: 0, booking_com: 0, senza_email: 0, gia_inviata: 0, camera_sconosciuta: 0 };
   let inviate = 0, saltate = 0;
 
   for (const b of (Array.isArray(bookings) ? bookings : [])) {
-    if (b.status !== "new") { saltate++; continue; }
+    if (b.status !== "new") { saltate++; scartiPerMotivo.non_nuova++; continue; }
     const source = (b.source || "").toLowerCase();
-    if (source.includes("booking")) { saltate++; continue; }
+    if (source.includes("booking")) { saltate++; scartiPerMotivo.booking_com++; continue; }
     const booker = b.booker || {};
     const email = booker.email || "";
-    if (!email || email.indexOf("@") < 0) { saltate++; continue; }
+    if (!email || email.indexOf("@") < 0) { saltate++; scartiPerMotivo.senza_email++; continue; }
     const bookingId = b.booking_id;
     const kvKey = `expauto_${bookingId}`;
     const giaInviata = await env.ARRIVI_KV.get(kvKey);
-    if (giaInviata) { saltate++; continue; }
+    if (giaInviata) { saltate++; scartiPerMotivo.gia_inviata++; continue; }
 
     const roomName = (b.rooms && b.rooms[0] && b.rooms[0].individual_room_name) || "";
     const propKey = proprietaDiCamera(roomName);
-    if (!propKey) { saltate++; continue; }
+    if (!propKey) { saltate++; scartiPerMotivo.camera_sconosciuta++; continue; }
 
     const phone = booker.phone || "";
     const lng = lingua(booker.language, phone);
@@ -590,7 +591,7 @@ async function runAutoSend(env, testMode) {
     }
   }
 
-  return { finestra: { from, to }, totaleControllate: (bookings || []).length, inviate, saltate, dettagli };
+  return { finestra: { from, to }, totaleControllate: (bookings || []).length, inviate, saltate, scartiPerMotivo, dettagli };
 }
 
 export default {
