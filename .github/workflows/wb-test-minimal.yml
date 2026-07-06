@@ -1,4 +1,4 @@
-name: WB Worker Test Minimal
+name: WB Worker Test 2
 
 on:
   workflow_dispatch:
@@ -7,4 +7,18 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - run: echo "hello"
+      - uses: actions/checkout@v4
+
+      - name: Create wrangler config
+        run: |
+          cat > wrangler_wb_deploy.toml << 'EOF2'
+          name = "wb-worker"
+          main = "wb_worker.js"
+          compatibility_date = "2024-09-23"
+
+          [[kv_namespaces]]
+          binding = "WB_KV"
+          id = "6f30ec561fed4d4ca3398f699c08b37f"
+          EOF2
+
+      - run: cat wrangler_wb_deploy.toml
