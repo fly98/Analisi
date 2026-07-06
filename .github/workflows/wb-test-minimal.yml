@@ -1,4 +1,4 @@
-name: WB Worker Test 2
+name: WB Worker Test 3
 
 on:
   workflow_dispatch:
@@ -21,4 +21,10 @@ jobs:
           id = "6f30ec561fed4d4ca3398f699c08b37f"
           EOF2
 
-      - run: cat wrangler_wb_deploy.toml
+      - name: Deploy with Wrangler
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CF_API_TOKEN }}
+          accountId: ${{ secrets.CF_ACCOUNT_ID }}
+          wranglerVersion: '3'
+          command: deploy --config wrangler_wb_deploy.toml
