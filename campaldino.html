@@ -227,9 +227,10 @@ nav button{
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
   font-size:.62rem;font-weight:600;color:var(--faint);transition:color .2s;
 }
-nav button .i{font-size:1.3rem;line-height:1;filter:grayscale(1) opacity(.55);transition:filter .2s}
+nav button .i{width:23px;height:23px;display:flex;align-items:center;justify-content:center;color:var(--faint);transition:color .2s}
+nav button .i svg{width:23px;height:23px}
 nav button.on{color:var(--orange)}
-nav button.on .i{filter:none}
+nav button.on .i{color:var(--orange)}
 footer{padding:24px 16px 14px;text-align:left;font-size:.82rem;color:var(--muted)}
 footer b{color:var(--text)}
 .note{font-size:.78rem;color:var(--faint);text-align:center;margin:8px 16px}
@@ -312,10 +313,14 @@ footer b{color:var(--text)}
   <div class="wrap" id="foodRomaList"></div>
 </section>
 
-<!-- ============ ROMA ============ -->
-<section class="screen" id="scr-roma">
+<!-- ============ EVENTI ============ -->
+<section class="screen" id="scr-eventi">
   <div class="targa"><h2 data-i="t_eventi"></h2><p data-i="t_eventi_sub"></p></div>
   <div class="wrap" id="eventi"><div class="card" data-i="eventi_soon"></div></div>
+</section>
+
+<!-- ============ TOUR ============ -->
+<section class="screen" id="scr-tour">
   <div class="targa"><h2 data-i="t_tour"></h2><p data-i="t_tour_sub"></p></div>
   <div class="wrap" id="tours"></div>
 </section>
@@ -333,11 +338,30 @@ footer b{color:var(--text)}
 </section>
 
 <nav id="tabbar">
-  <button data-scr="casa" class="on"><span class="i">🏠</span><span data-i="tab_casa"></span></button>
-  <button data-scr="mappa"><span class="i">🗺️</span><span data-i="tab_mappa"></span></button>
-  <button data-scr="food"><span class="i">🍝</span><span data-i="tab_food"></span></button>
-  <button data-scr="roma"><span class="i">🏛️</span><span>Roma</span></button>
-  <button data-scr="chat"><span class="i">💬</span><span data-i="tab_chat"></span></button>
+  <button data-scr="casa" class="on">
+    <span class="i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.8 12 4l8 6.8"/><path d="M6 9.3V19a1 1 0 0 0 1 1h3v-5.8h4V20h3a1 1 0 0 0 1-1V9.3"/></svg></span>
+    <span data-i="tab_casa"></span>
+  </button>
+  <button data-scr="mappa">
+    <span class="i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 4 6.2v14L9 18l6 2 5-2.2v-14L15 6l-6-2z"/><path d="M9 4v14M15 6v14"/></svg></span>
+    <span data-i="tab_mappa"></span>
+  </button>
+  <button data-scr="food">
+    <span class="i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v6.5"/><path d="M12 3v6.5"/><path d="M8 9.5c0 1.7 1.2 2.8 2 2.8s2-1.1 2-2.8"/><path d="M10 12.3V21"/><path d="M16.5 3c-1.1 0-2 1.6-2 4s.9 4 2 4"/><path d="M16.5 11V21"/></svg></span>
+    <span data-i="tab_food"></span>
+  </button>
+  <button data-scr="eventi">
+    <span class="i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5.3" width="16" height="15" rx="2.6"/><path d="M8 3.3v4M16 3.3v4M4 10.3h16"/><circle cx="9" cy="15" r="1" fill="currentColor" stroke="none"/><circle cx="13" cy="15" r="1" fill="currentColor" stroke="none"/><circle cx="17" cy="15" r="1" fill="currentColor" stroke="none"/></svg></span>
+    <span data-i="tab_eventi"></span>
+  </button>
+  <button data-scr="tour">
+    <span class="i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.3"/><path d="M14.6 9.4 13 13l-3.6 1.6L11 11z" fill="currentColor" stroke="none"/></svg></span>
+    <span data-i="tab_tour"></span>
+  </button>
+  <button data-scr="chat">
+    <span class="i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5.5h14a2 2 0 0 1 2 2v7.5a2 2 0 0 1-2 2H9.5L5.5 21v-4H5a2 2 0 0 1-2-2V7.5a2 2 0 0 1 2-2z"/><circle cx="9" cy="11" r="1" fill="currentColor" stroke="none"/><circle cx="12.3" cy="11" r="1" fill="currentColor" stroke="none"/><circle cx="15.6" cy="11" r="1" fill="currentColor" stroke="none"/></svg></span>
+    <span data-i="tab_chat"></span>
+  </button>
 </nav>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
@@ -374,7 +398,7 @@ it:{
   eventi_soon:'📅 Il calendario eventi si aggiorna automaticamente ogni settimana. Prima attivazione in arrivo.',
   t_tour:'Tour Audio Gratuiti', t_tour_sub:'Un regalo della casa: passeggiate con audioguida GPS',
   t_chat:'Chiedi a InternoUno', t_chat_sub:'Risposte immediate, in ogni lingua, 24/7',
-  tab_casa:'Casa', tab_mappa:'Mappa', tab_food:'Mangiare', tab_chat:'Chiedi',
+  tab_casa:'Casa', tab_mappa:'Mappa', tab_food:'Mangiare', tab_chat:'Chiedi', tab_eventi:'Eventi', tab_tour:'Tour',
   chat_hello:'Ciao! Sono l\u2019assistente di InternoUno. Chiedimi qualsiasi cosa sul soggiorno: orari, WiFi, trasporti, consigli in zona.',
   chat_ph:'Scrivi una domanda…',
   chat_err:'Il concierge digitale non è ancora attivo. Nel frattempo scrivici su WhatsApp: rispondiamo velocemente!',
@@ -454,7 +478,7 @@ en:{
   eventi_soon:'📅 The events calendar updates automatically every week. Coming soon.',
   t_tour:'Free Audio Tours', t_tour_sub:'A gift from the house: GPS-guided walks',
   t_chat:'Ask InternoUno', t_chat_sub:'Instant answers, in any language, 24/7',
-  tab_casa:'Home', tab_mappa:'Map', tab_food:'Eat', tab_chat:'Ask',
+  tab_casa:'Home', tab_mappa:'Map', tab_food:'Eat', tab_chat:'Ask', tab_eventi:'Events', tab_tour:'Tours',
   chat_hello:'Hi! I\u2019m the InternoUno assistant. Ask me anything about your stay: times, WiFi, transport, local tips.',
   chat_ph:'Type a question…',
   chat_err:'The digital concierge is not active yet. Meanwhile, message us on WhatsApp — we reply fast!',
@@ -534,7 +558,7 @@ es:{
   eventi_soon:'📅 El calendario de eventos se actualiza automáticamente cada semana. Muy pronto.',
   t_tour:'Tours de Audio Gratis', t_tour_sub:'Un regalo de la casa: paseos con audioguía GPS',
   t_chat:'Pregunta a InternoUno', t_chat_sub:'Respuestas al instante, en cualquier idioma, 24/7',
-  tab_casa:'Casa', tab_mappa:'Mapa', tab_food:'Comer', tab_chat:'Pregunta',
+  tab_casa:'Casa', tab_mappa:'Mapa', tab_food:'Comer', tab_chat:'Pregunta', tab_eventi:'Eventos', tab_tour:'Tours',
   chat_hello:'¡Hola! Soy el asistente de InternoUno. Pregúntame lo que quieras sobre tu estancia: horarios, WiFi, transporte, consejos de la zona.',
   chat_ph:'Escribe una pregunta…',
   chat_err:'El conserje digital aún no está activo. Mientras tanto, escríbenos por WhatsApp: ¡respondemos rápido!',
@@ -614,7 +638,7 @@ fr:{
   eventi_soon:'📅 Le calendrier des événements se met à jour automatiquement chaque semaine. Bientôt disponible.',
   t_tour:'Visites Audio Gratuites', t_tour_sub:'Un cadeau de la maison : des balades avec audioguide GPS',
   t_chat:'Demandez à InternoUno', t_chat_sub:'Réponses immédiates, dans toutes les langues, 24/7',
-  tab_casa:'Maison', tab_mappa:'Carte', tab_food:'Manger', tab_chat:'Demander',
+  tab_casa:'Maison', tab_mappa:'Carte', tab_food:'Manger', tab_chat:'Demander', tab_eventi:'Événements', tab_tour:'Visites',
   chat_hello:'Bonjour ! Je suis l\u2019assistant InternoUno. Posez-moi vos questions sur votre séjour : horaires, WiFi, transports, conseils locaux.',
   chat_ph:'Écrivez une question…',
   chat_err:'Le concierge numérique n\u2019est pas encore actif. En attendant, écrivez-nous sur WhatsApp : nous répondons vite !',
@@ -694,7 +718,7 @@ de:{
   eventi_soon:'📅 Der Veranstaltungskalender aktualisiert sich automatisch jede Woche. Bald verfügbar.',
   t_tour:'Kostenlose Audio-Touren', t_tour_sub:'Ein Geschenk des Hauses: Spaziergänge mit GPS-Audioguide',
   t_chat:'Frag InternoUno', t_chat_sub:'Sofortige Antworten, in jeder Sprache, rund um die Uhr',
-  tab_casa:'Haus', tab_mappa:'Karte', tab_food:'Essen', tab_chat:'Fragen',
+  tab_casa:'Haus', tab_mappa:'Karte', tab_food:'Essen', tab_chat:'Fragen', tab_eventi:'Events', tab_tour:'Touren',
   chat_hello:'Hallo! Ich bin der InternoUno-Assistent. Fragen Sie mich alles zu Ihrem Aufenthalt: Zeiten, WLAN, Verkehrsmittel, Tipps vor Ort.',
   chat_ph:'Frage eingeben…',
   chat_err:'Der digitale Concierge ist noch nicht aktiv. Schreiben Sie uns in der Zwischenzeit auf WhatsApp — wir antworten schnell!',
@@ -774,7 +798,7 @@ pt:{
   eventi_soon:'📅 O calendário de eventos atualiza-se automaticamente todas as semanas. Brevemente disponível.',
   t_tour:'Tours Áudio Gratuitos', t_tour_sub:'Uma oferta da casa: passeios com áudioguia GPS',
   t_chat:'Pergunte à InternoUno', t_chat_sub:'Respostas imediatas, em qualquer idioma, 24 horas por dia',
-  tab_casa:'Casa', tab_mappa:'Mapa', tab_food:'Comer', tab_chat:'Perguntar',
+  tab_casa:'Casa', tab_mappa:'Mapa', tab_food:'Comer', tab_chat:'Perguntar', tab_eventi:'Eventos', tab_tour:'Tours',
   chat_hello:'Olá! Sou o assistente da InternoUno. Pergunte-me qualquer coisa sobre a sua estadia: horários, WiFi, transportes, dicas locais.',
   chat_ph:'Escreva uma pergunta…',
   chat_err:'O concierge digital ainda não está ativo. Entretanto, escreva-nos no WhatsApp — respondemos rapidamente!',
@@ -854,7 +878,7 @@ zh:{
   eventi_soon:'📅 活动日历每周自动更新,即将上线。',
   t_tour:'免费语音导览', t_tour_sub:'民宿赠送:GPS语音导览漫步之旅',
   t_chat:'咨询 InternoUno', t_chat_sub:'全天候即时回复,支持任何语言',
-  tab_casa:'住宿', tab_mappa:'地图', tab_food:'美食', tab_chat:'咨询',
+  tab_casa:'住宿', tab_mappa:'地图', tab_food:'美食', tab_chat:'咨询', tab_eventi:'活动', tab_tour:'导览',
   chat_hello:'您好!我是 InternoUno 的智能助理。关于入住的任何问题都可以问我:时间、WiFi、交通、周边推荐等。',
   chat_ph:'请输入您的问题…',
   chat_err:'智能礼宾服务暂未开通。请先通过 WhatsApp 联系我们,我们会尽快回复!',
