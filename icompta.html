@@ -3,20 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Quadra — InternoUno</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Michroma&display=swap" rel="stylesheet">
+<title>iCompta — InternoUno</title>
 <link rel="manifest" href="/Analisi/manifest.json">
-<link rel="apple-touch-icon" href="/Analisi/icons/icon-192.png?v=10">
-<link rel="apple-touch-icon" sizes="512x512" href="/Analisi/icons/icon-512.png?v=10">
-<link rel="icon" type="image/png" sizes="192x192" href="/Analisi/icons/icon-192.png?v=10">
-<link rel="icon" type="image/png" sizes="512x512" href="/Analisi/icons/icon-512.png?v=10">
-<link rel="icon" type="image/png" sizes="180x180" href="/Analisi/icons/icon-180.png?v=10">
-<link rel="shortcut icon" href="/Analisi/icons/icon-192.png?v=10">
+<link rel="apple-touch-icon" href="/Analisi/icons/icon-192.png">
+<link rel="apple-touch-icon" sizes="512x512" href="/Analisi/icons/icon-512.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
-<meta name="apple-mobile-web-app-title" content="Quadra">
+<meta name="apple-mobile-web-app-title" content="Conti">
 <meta name="mobile-web-app-capable" content="yes">
 <style>
 :root {
@@ -71,8 +64,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif
 .header-actions { display: flex; gap: 8px; }
 
 /* ── Sidebar ── */
-#sidebar-header { padding: 0 16px; flex-shrink: 0; box-sizing: border-box; min-height: 68px;
-  display: flex; flex-direction: column; justify-content: center; }
+#sidebar-header { padding: 14px 16px 6px; flex-shrink: 0; }
 #total-box { margin: 8px 12px 4px; padding: 14px 16px; border-radius: 10px;
   background: var(--surface); border: 1px solid var(--border);
   display: flex; align-items: center; justify-content: space-between;
@@ -80,15 +72,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif
 #total-box .total-label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
 #total-box .total-amount { font-size: 20px; font-weight: 700; color: var(--text); }
 #sidebar-header h2 { font-size: 18px; font-weight: 700; margin-bottom: 6px; color: var(--text); }
-.quadra-plate { display: flex; align-items: center; justify-content: center; gap: 9px;
-  padding: 9px 14px; border-radius: 9px; background: #ecebe4;
-  border: 1px solid rgba(0,0,0,.10);
-  box-shadow: inset 0 1px 3px rgba(0,0,0,.20), inset 0 -1px 2px rgba(255,255,255,.55), 0 1px 0 rgba(255,255,255,.85); }
-.quadra-plate h2 { margin: 0 !important; font-family: 'Michroma', -apple-system, sans-serif;
-  font-weight: 400; font-size: 20px; text-transform: uppercase; letter-spacing: .03em;
-  color: var(--text); text-shadow: 0 1px 0 rgba(255,255,255,.7); }
-.quadra-plate img { width: 30px; height: 30px; border-radius: 7px; flex-shrink: 0;
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,.3), 0 1px 2px rgba(0,0,0,.25); }
 .search-box { width: 100%; padding: 7px 12px; border-radius: 10px;
   background: var(--gray2); border: none; font-size: 14px; outline: none; }
 #accounts-list { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 4px 0 12px;
@@ -273,8 +256,6 @@ select.form-input { height: 42px; }
 .settings-body { flex: 1; overflow-y: auto; padding: 16px; }
 .settings-section { margin-bottom: 4px; }
 .cat-row:hover { background: var(--gray2); }
-.cat-range-btn { padding:6px 12px; border-radius:8px; border:1.5px solid var(--border); background:none; font-size:12px; font-weight:600; cursor:pointer; color:var(--text); }
-.cat-range-btn.active { background:#1a4aaa; border-color:#1a4aaa; color:#fff; }
 .settings-section-header { display:flex; align-items:center; justify-content:space-between; cursor:pointer; padding:8px 4px; user-select:none; }
 .settings-section-header:hover { opacity:.8; }
 .settings-section-chevron { font-size:11px; color:var(--gray4); transition:transform .2s; }
@@ -649,14 +630,13 @@ select.form-input { height: 42px; }
 }
 </style>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
-<!-- rebuild 233954x -->
 </head>
 <body>
 
 <div id="login-screen">
   <div class="login-card">
     <div style="font-size:48px;margin-bottom:12px">📒</div>
-    <h2>Quadra</h2>
+    <h2>iCompta</h2>
     <p>InternoUno Contabilità</p>
     <input type="password" id="token-input" placeholder="Token di accesso" autocomplete="current-password">
     <button onclick="doLogin()">Accedi</button>
@@ -668,10 +648,7 @@ select.form-input { height: 42px; }
   <!-- Sidebar -->
   <div id="sidebar"><div id="sidebar-resizer"></div>
     <div id="sidebar-header">
-      <div class="quadra-plate">
-        <img src="icons/icon-192.png?v=6" alt="Quadra" onerror="this.style.display='none'">
-        <h2>Quadra</h2>
-      </div>
+      <h2>Conti</h2>
     </div>
     <div id="total-box">
       <span class="total-label">💰 Disponibile</span>
@@ -718,10 +695,7 @@ select.form-input { height: 42px; }
       <div id="strumenti-view" style="display:none;padding:20px;flex:1;overflow-y:auto">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
           <span id="fineco-inv-info" style="font-size:11px;color:var(--muted)"></span>
-          <div style="display:flex;gap:6px;align-items:center">
-            <button onclick="aggiornaFinecoOra(this)" style="padding:4px 10px;border-radius:8px;border:1px solid var(--border);background:none;cursor:pointer;color:var(--muted);font-size:12px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:4px">Aggiorna <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="2,3 5,7 8,3"/></svg></button>
-            <button onclick="goAnalisi()" style="padding:4px 10px;border-radius:8px;border:1px solid var(--border);background:none;cursor:pointer;color:var(--muted);font-size:12px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:4px">Analisi <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="3,2 7,5 3,8"/></svg></button>
-          </div>
+          <button onclick="openFinecoInvModal()" style="padding:4px 10px;border-radius:8px;border:1px solid var(--border);background:none;cursor:pointer;color:var(--muted);font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:4px">Aggiorna <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="2,3 5,7 8,3"/></svg></button>
         </div>
         <div id="strumenti-view-content"></div>
       </div>
@@ -806,14 +780,6 @@ select.form-input { height: 42px; }
             <span class="s-arrow">›</span>
           </div>
 
-          <!-- Import UniCredit -->
-          <div class="s-text" style="padding:10px 12px 2px"><div class="s-label" style="font-size:11px;color:var(--gray4);text-transform:uppercase;letter-spacing:.5px">UniCredit</div></div>
-          <div class="settings-item" onclick="closeSettings();openUnicreditModal()">
-            <span class="s-icon" style="background:#fde8e8"><svg viewBox="0 0 24 24" fill="none" stroke="#b83232" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></span>
-            <div class="s-text"><div class="s-label">Genius</div><div class="s-desc">Movimenti carta Genius UniCredit</div></div>
-            <span class="s-arrow">›</span>
-          </div>
-
           <!-- Import Leo -->
           <div class="s-text" style="padding:10px 12px 2px"><div class="s-label" style="font-size:11px;color:var(--gray4);text-transform:uppercase;letter-spacing:.5px">Leo</div></div>
           <div class="settings-item" onclick="closeSettings();openLeoFrame()">
@@ -854,11 +820,6 @@ select.form-input { height: 42px; }
             <div class="s-text"><div class="s-label">Gestione categorie</div><div class="s-desc">Albero, rinomina, unisci, icone</div></div>
             <span class="s-arrow">›</span>
           </div>
-          <div class="settings-item" onclick="closeSettings();openSellaRegole()">
-            <span class="s-icon" style="background:#eafaf0"><svg viewBox="0 0 24 24" fill="none" stroke="#1a7a4a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg></span>
-            <div class="s-text"><div class="s-label">Regole categoria</div><div class="s-desc">Auto-compilazione appresa: vedi, modifica, elimina</div></div>
-            <span class="s-arrow">›</span>
-          </div>
           <div class="settings-item" onclick="closeSettings();openBackupModal()">
             <span class="s-icon" style="background:#eef4fd"><svg viewBox="0 0 24 24" fill="none" stroke="#1a4a7a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 5 17 10"/><line x1="12" y1="5" x2="12" y2="19"/></svg></span>
             <div class="s-text"><div class="s-label">Backup & Ripristino</div><div class="s-desc">Salva e ripristina dati anno corrente</div></div>
@@ -882,7 +843,7 @@ select.form-input { height: 42px; }
 
     </div>
     <div style="padding:10px 16px 14px;text-align:center;border-top:1px solid var(--border);margin-top:4px">
-      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v1.8.4</span>
+      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">iCompta InternoUno &mdash; v1.1</span>
     </div>
   </div>
 </div>
@@ -967,7 +928,6 @@ let balances = null;      // {accounts: {id: amount}, groups: {id: amount}}
 let currentTxs = [];      // TX caricate per l'anno corrente
 let filteredTxs = [];     // TX dopo filtri
 let selectedAccountId = null;
-let currentViewAccId = null;   // ultimo conto selezionato (per "Indietro" da Analisi)
 let selectedYear = new Date().getFullYear().toString();
 let txCache = {};
 let loadedYears = new Set();
@@ -1035,14 +995,6 @@ async function init(metaData) {
 
   // Seleziona InternoUno di default
   setTimeout(async () => {
-    // Ritorno da Analisi: ripristina il conto da cui si proveniva (una tantum)
-    let rid = null;
-    try { rid = sessionStorage.getItem('quadra_return_acc'); } catch(e) {}
-    if (rid) {
-      try { sessionStorage.removeItem('quadra_return_acc'); } catch(e) {}
-      const racc = meta.accounts.find(a => a.id === rid);
-      if (racc) { await selectAccount(racc.id, racc.name); return; }
-    }
     const acc = meta.accounts.find(a => a.name === 'InternoUno');
     if (acc) await selectAccount(acc.id, acc.name);
   }, 50);
@@ -1085,38 +1037,7 @@ const ACCOUNT_ICONS = {
   'InternoRoma': '🏘️',
   'Operazioni future': '🔮',
 };
-function accIcon(a) {
-  if (a && typeof a === 'object') return a.icon || ACCOUNT_ICONS[a.name] || '🏦';
-  return ACCOUNT_ICONS[a] || '🏦';
-}
-
-// Allinea la cima del box "Disponibile" alla cima della riga DATA (tx-header),
-// centrando la targhetta QUADRA nello spazio in alto. Robusto a resize/safe-area.
-function alignSidebarTop(){
-  try{
-    var sh=document.getElementById('sidebar-header');
-    var tb=document.getElementById('total-box');
-    if(!sh||!tb) return;
-    var db=document.getElementById('date-bar');
-    var hdr=document.querySelector('#main .header');
-    var target=null;
-    if(db && db.offsetParent!==null && db.style.display!=='none'){
-      target=db.getBoundingClientRect().bottom;
-    } else if(hdr){
-      target=hdr.getBoundingClientRect().bottom;
-    }
-    if(target==null) return;
-    var cur=tb.getBoundingClientRect().top;
-    var curH=sh.getBoundingClientRect().height;
-    var newH=Math.round(curH + (target - cur));
-    if(newH<56) newH=56;
-    if(Math.abs(newH-curH)>0.5) sh.style.height=newH+'px';
-  }catch(e){}
-}
-var _alignRAF=null;
-function scheduleAlign(){ if(_alignRAF) cancelAnimationFrame(_alignRAF); _alignRAF=requestAnimationFrame(alignSidebarTop); }
-window.addEventListener('resize', scheduleAlign);
-window.addEventListener('load', function(){ scheduleAlign(); setTimeout(alignSidebarTop,300); });
+function accIcon(name) { return ACCOUNT_ICONS[name] || '🏦'; }
 
 function renderSidebar() {
   const list = document.getElementById('accounts-list');
@@ -1145,17 +1066,16 @@ function renderSidebar() {
   for (const acc of standaloneAccs) sections.push({ type:'standalone', acc, idx: acc.sidebarIndex !== undefined ? acc.sidebarIndex : 1000 });
   sections.sort((a,b) => a.idx - b.idx);
 
-  // Ciclo UNICO: rispetta l'ordine interlacciato (sidebarIndex) di standalone e gruppi
   for (const sec of sections) {
     if (sec.type === 'standalone') {
       list.appendChild(makeAccountRow(sec.acc));
-      continue;
     }
-    const g = groupById[sec.g.id];
-    if (!g) continue;
+  }
+
+  for (const sec of sections) { if (sec.type !== 'group') continue; const g = groupById[sec.g.id]; if (!g) continue;
     if (g.accounts.length === 0) continue;
     const gBal = balances?.groups?.[g.id] ?? null;
-
+    
     const gRow = document.createElement('div');
     gRow.className = 'group-row';
     gRow.dataset.groupId = g.id;
@@ -1185,7 +1105,7 @@ function makeAccountRow(acc) {
   row.className = 'account-row' + (acc.id === selectedAccountId ? ' active' : '');
   row.dataset.accId = acc.id;
   row.innerHTML = `
-    <span class="acc-icon">${accIcon(acc)}</span>
+    <span class="acc-icon">${accIcon(acc.name)}</span>
     <span class="acc-name">${acc.name}</span>
     ${bal !== null ? `<span class="acc-balance ${balClass(bal)}">${fmt(bal)}</span>` : ''}
   `;
@@ -1286,16 +1206,9 @@ function showTxView() {
   var sv=document.getElementById('strumenti-view'); if(sv) sv.style.display='none';
   var wrap=document.getElementById('tx-scroll-wrap'); if(wrap) wrap.style.cssText='flex:1;display:flex;flex-direction:column;min-height:0';
   ['date-bar','rec-pending-box','tx-header','tx-body'].forEach(function(id){var e=document.getElementById(id);if(e)e.style.display='';});
-  scheduleAlign();
-}
-
-function goAnalisi() {
-  try { if (currentViewAccId) sessionStorage.setItem('quadra_return_acc', currentViewAccId); } catch(e) {}
-  location.href = 'analisi.html';
 }
 
 async function selectAccount(id, name) {
-  currentViewAccId = id;
   if (id === 'ACC-FINECO-INV') {
     selectStrumenti('fineco-inv', name);
     return;
@@ -1373,7 +1286,6 @@ function applyFilters() {
   txs.sort((a,b) => b.date.localeCompare(a.date));
   filteredTxs = txs;
   renderTxList();
-  scheduleAlign();
 }
 
 var _txPageSize = 60;
@@ -1531,10 +1443,6 @@ async function quickDelete(id, year) {
           break;
         }
       }
-    } else {
-      // "Solo questa": scollega la collegata per non lasciare un riferimento orfano
-      await unlinkTx(linkedId, year);
-      currentTxs.forEach(t => { if (t.id === linkedId) t.linkedTxId = null; });
     }
   } else {
     if (!confirm('Eliminare questa transazione?')) return;
@@ -1586,7 +1494,7 @@ function openNewTx() {
   document.getElementById('tx-modal').style.display = 'flex';
 }
 
-async function openEditTx(tx) {
+function openEditTx(tx) {
   editingTx = tx;
   document.getElementById('modal-title').textContent = 'Modifica transazione';
   document.getElementById('btn-delete').style.display = 'block';
@@ -1610,32 +1518,7 @@ async function openEditTx(tx) {
   document.getElementById('splits-container').innerHTML = '';
   for (const s of splits) addSplit(s);
 
-  // ── Sezione trasferimento: inizializza SEMPRE (evita stato residuo del modale)
-  populateTransferAccounts(tx.accountId);
-  resetTransfer();
   document.getElementById('tx-modal').style.display = 'flex';
-
-  // Se è un trasferimento, ripristina toggle ON + conto di destinazione (la controparte)
-  if (tx.linkedTxId) {
-    document.getElementById('transfer-toggle').classList.add('on');
-    document.getElementById('transfer-body').classList.add('open');
-    let linkedAccId = null;
-    for (const yr of Object.keys(txCache)) {
-      const l = (txCache[yr] || []).find(t => t.id === tx.linkedTxId);
-      if (l) { linkedAccId = l.accountId; break; }
-    }
-    if (!linkedAccId) {
-      for (const yr of (meta.years || [])) {
-        try {
-          const txs = await api('GET', '/api/tx/' + yr);
-          txCache[yr] = txs;
-          const l = txs.find(t => t.id === tx.linkedTxId);
-          if (l) { linkedAccId = l.accountId; break; }
-        } catch (e) {}
-      }
-    }
-    if (linkedAccId) document.getElementById('transfer-account').value = linkedAccId;
-  }
 }
 
 function addSplit(split = null) {
@@ -1817,66 +1700,65 @@ async function saveTx() {
   const result = await api('POST', '/api/tx', { tx });
   if (result.error) { alert('Errore: ' + result.error); return; }
 
-  // ── Trasferimento collegato ──
+  // Trasferimento: crea TX collegata se toggle attivo
   const tOn = document.getElementById('transfer-toggle').classList.contains('on');
   const tAccId = document.getElementById('transfer-account').value;
-  const existingLinkedId = editingTx ? editingTx.linkedTxId : null;
-  const total = splits.reduce((s, sp) => s + (sp.amount || 0), 0);
-  const linkedCatId = splits[0]?.categoryId || null;
+  if (tOn && tAccId && result && result.id) {
+    const total = splits.reduce((s, sp) => s + (sp.amount || 0), 0);
+    const srcName = meta.accounts.find(function(a) { return a.id === tx.accountId; })?.name || '';
+    const existingLinkedId = editingTx ? editingTx.linkedTxId : null;
 
-  if (tOn && existingLinkedId && result && result.id) {
-    // Modifica di una tx GIÀ collegata → sincronizza la collegata (importo inverso + data/nome/nota)
-    const updateLinked = confirm('Questa transazione è collegata a un trasferimento.\nVuoi aggiornare anche la transazione collegata?');
-    if (updateLinked) {
-      let linked = null;
-      for (const yr of Object.keys(txCache)) {
-        linked = (txCache[yr] || []).find(t => t.id === existingLinkedId);
-        if (linked) break;
-      }
-      if (!linked) {
-        for (const yr of (meta.years || [])) {
-          const txs = await api('GET', '/api/tx/' + yr);
-          linked = txs.find(t => t.id === existingLinkedId);
-          if (linked) { txCache[yr] = txs; break; }
+    if (existingLinkedId) {
+      // TX esistente con collegamento — chiedi conferma
+      const updateLinked = confirm('Questa transazione è collegata a un trasferimento.\nVuoi aggiornare anche la transazione collegata?');
+      if (updateLinked) {
+        // Cerca TX collegata in cache e KV
+        let linked = null;
+        for (const yr of Object.keys(txCache)) {
+          linked = (txCache[yr] || []).find(t => t.id === existingLinkedId);
+          if (linked) break;
+        }
+        if (!linked) {
+          for (const yr of (meta.years || [])) {
+            const txs = await api('GET', '/api/tx/' + yr);
+            linked = txs.find(t => t.id === existingLinkedId);
+            if (linked) { txCache[yr] = txs; break; }
+          }
+        }
+        if (linked) {
+          // Aggiorna importo inverso + sync note e categoria
+          const newAmt = -total;
+          const linkedCatId = splits[0]?.categoryId || null;
+          const updatedLinked = Object.assign({}, linked, {
+            date: tx.date,
+            name: tx.name,
+            comment: tx.comment,
+            splits: [{ amount: newAmt, categoryId: linkedCatId, comment: splits[0]?.comment || null }],
+            linkedTxId: result.id
+          });
+          await api('POST', '/api/tx', { tx: updatedLinked });
+          delete txCache[linked.date.slice(0,4)];
+          loadedYears.delete(linked.date.slice(0,4));
         }
       }
-      if (linked) {
-        const updatedLinked = Object.assign({}, linked, {
-          date: tx.date,
-          name: tx.name,
-          comment: tx.comment,
-          splits: [{ amount: -total, categoryId: linkedCatId, comment: splits[0]?.comment || null }],
-          linkedTxId: result.id
-        });
-        await api('POST', '/api/tx', { tx: updatedLinked });
-        delete txCache[linked.date.slice(0,4)];
-        loadedYears.delete(linked.date.slice(0,4));
+    } else {
+      // Nuova TX di trasferimento — crea la collegata
+      const linkedCatId = splits[0]?.categoryId || null;
+      const linkedTx = {
+        id: null, date: tx.date, name: tx.name,
+        accountId: tAccId, status: 'created',
+        comment: tx.comment,
+        useSumOfSplits: true, amount: null,
+        linkedTxId: result.id,
+        splits: [{ amount: -total, categoryId: linkedCatId, comment: splits[0]?.comment || null }]
+      };
+      const linkedResult = await api('POST', '/api/tx', { tx: linkedTx });
+      if (linkedResult && linkedResult.id) {
+        // Aggiorna TX originale con linkedTxId
+        const txUpdate = Object.assign({}, tx, { id: result.id, linkedTxId: linkedResult.id });
+        await api('POST', '/api/tx', { tx: txUpdate });
       }
     }
-    delete txCache[tx.date.slice(0,4)];
-    loadedYears.delete(tx.date.slice(0,4));
-  } else if (tOn && tAccId && result && result.id) {
-    // Nuovo trasferimento (o conversione di una tx esistente) → crea la collegata
-    const linkedTx = {
-      id: null, date: tx.date, name: tx.name,
-      accountId: tAccId, status: 'created',
-      comment: tx.comment,
-      useSumOfSplits: true, amount: null,
-      linkedTxId: result.id,
-      splits: [{ amount: -total, categoryId: linkedCatId, comment: splits[0]?.comment || null }]
-    };
-    const linkedResult = await api('POST', '/api/tx', { tx: linkedTx });
-    if (linkedResult && linkedResult.id) {
-      const txUpdate = Object.assign({}, tx, { id: result.id, linkedTxId: linkedResult.id });
-      await api('POST', '/api/tx', { tx: txUpdate });
-    }
-    delete txCache[tx.date.slice(0,4)];
-    loadedYears.delete(tx.date.slice(0,4));
-  } else if (existingLinkedId && !tOn && result && result.id) {
-    // Toggle spento su una tx collegata → scollega ENTRAMBE
-    const selfUnlinked = Object.assign({}, tx, { id: result.id, linkedTxId: null });
-    await api('POST', '/api/tx', { tx: selfUnlinked });
-    await unlinkTx(existingLinkedId, (tx.date || '').slice(0,4));
     delete txCache[tx.date.slice(0,4)];
     loadedYears.delete(tx.date.slice(0,4));
   }
@@ -2174,7 +2056,7 @@ function closeSettings() {
 
 
 function doLogout() {
-  if (!confirm('Esci da Quadra?')) return;
+  if (!confirm('Esci da iCompta?')) return;
   localStorage.removeItem('icompta_token');
   location.reload();
 }
@@ -2254,75 +2136,25 @@ function sellaCatFromName(catName) {
   return null;
 }
 
-// Normalizza una descrizione in una "firma" stabile: maschera numeri, date,
-// importi e riferimenti variabili, tiene le parole (causale + negoziante).
-// Es: "BS 323978547168 2906" -> "bs #" | "POS 2206 AMZN MKTP IT" -> "pos amzn mktp it"
-function sellaNormSig(desc) {
-  var toks = (desc || '').toLowerCase().split(/[\s\/.\-\u2013\u2014:;,*]+/);
-  var out = [];
-  for (var i = 0; i < toks.length; i++) {
-    var t = toks[i];
-    if (!t) continue;
-    if (/^\d+$/.test(t)) { out.push('#'); continue; }                                 // numero puro (id POS, data DDMM, importo intero)
-    if (/^\d{1,2}[\/\-]\d{1,2}([\/\-]\d{2,4})?$/.test(t)) { out.push('#'); continue; } // data gg/mm(/aaaa)
-    if (/^\d+[.,]\d{2}$/.test(t)) { out.push('#'); continue; }                         // importo 12,50
-    var digits = (t.match(/\d/g) || []).length;
-    if (digits >= 4 && t.length >= 6) { out.push('#'); continue; }                     // ref / CRO / frammento IBAN
-    out.push(t);
-  }
-  var res = [];
-  for (var j = 0; j < out.length; j++) {
-    if (out[j] === '#' && res.length && res[res.length - 1] === '#') continue;         // collassa # consecutivi
-    res.push(out[j]);
-  }
-  return res.join(' ').trim();
-}
-function sellaSignOf(importo) { return (typeof importo === 'number' && importo < 0) ? '-' : '+'; }
-
-// Conto corrente dell'import in corso ('azienda','personale','fineco','unicredit').
-// Le regole a firma possono essere specifiche del conto e VINCONO sulle globali/default.
-var _importScope = null;
-
-function sellaGuessCategory(desc, etich, importo) {
+function sellaGuessCategory(desc, etich) {
   var d = (desc + ' ' + (etich || '')).toLowerCase();
-  var sign = sellaSignOf(importo);
-  var sig = sellaNormSig(desc);
-  var scope = _importScope || 'global';
-  // 1) regola SPECIFICA del conto (segno + firma) — vince su tutto, default compresi
-  if (sig) {
-    var ak = 'acc:' + scope + '|' + sign + '|' + sig;
-    if (sellaRegole[ak]) { var oa = sellaCatFromName(sellaRegole[ak]); if (oa) return oa; }
-  }
-  // 2) regole di default cablate (globali, per parola-chiave)
   for (var k in SELLA_REG_DEF) {
     if (d.indexOf(k) >= 0) return SELLA_REG_DEF[k];
   }
-  // 3) regola a firma GLOBALE (apprese senza conto, valgono ovunque come fallback)
-  if (sig) {
-    var sk = 'sig:' + sign + '|' + sig;
-    if (sellaRegole[sk]) { var o1 = sellaCatFromName(sellaRegole[sk]); if (o1) return o1; }
-  }
-  // 4) regole a parola-chiave apprese (+ legacy senza prefisso), sottostringa
-  for (var k2 in sellaRegole) {
-    if (k2.indexOf('sig:') === 0 || k2.indexOf('acc:') === 0) continue;
-    var kw = (k2.indexOf('kw:') === 0) ? k2.slice(3) : k2;
-    if (!kw) continue;
-    if (d.indexOf(kw.toLowerCase()) >= 0) {
-      var o2 = sellaCatFromName(sellaRegole[k2]);
-      if (o2) return o2;
+  for (var k in sellaRegole) {
+    if (d.indexOf(k.toLowerCase()) >= 0) {
+      var obj = sellaCatFromName(sellaRegole[k]);
+      if (obj) return obj;
     }
   }
   return null;
 }
 
-function sellaLearnRule(desc, catObj, importo) {
+function sellaLearnRule(desc, catObj) {
   if (!catObj || !desc) return;
-  var sig = sellaNormSig(desc);
-  if (!sig || !/[a-z]{2,}/.test(sig)) return;   // serve almeno un token alfabetico: mai firme "solo numeri"
-  var scope = _importScope || 'global';
-  // Impara SPECIFICO del conto: così Airbnb su azienda ≠ Airbnb sul personale.
-  // Le regole globali già esistenti restano come fallback (vedi guess).
-  sellaRegole['acc:' + scope + '|' + sellaSignOf(importo) + '|' + sig] = catObj.name;
+  var words = desc.toLowerCase().split(/\s+/).filter(function(w) { return w.length > 3; });
+  if (!words[0] || SELLA_REG_FIXED.has(words[0]) || SELLA_REG_DEF[words[0]]) return;
+  sellaRegole[words[0]] = catObj.name;
   _sellaSaveRegole();
 }
 
@@ -2337,91 +2169,6 @@ async function sellaLoadRegole() {
     var r = await api('GET', '/api/sella-regole');
     if (r && !r.error) sellaRegole = r;
   } catch(e) { console.warn('Regole:', e); }
-}
-
-// ---- Pannello gestione regole categoria apprese ----
-function sellaRegoleParseKey(k) {
-  if (k.indexOf('acc:') === 0) {
-    var r = k.slice(4).split('|');
-    return { type:'acc', scope: r[0]||'', sign: r[1]||'', text: r.slice(2).join('|') };
-  }
-  if (k.indexOf('sig:') === 0) {
-    var rest = k.slice(4), bar = rest.indexOf('|');
-    return { type:'sig', sign: bar>=0?rest.slice(0,bar):'', text: bar>=0?rest.slice(bar+1):rest };
-  }
-  if (k.indexOf('kw:') === 0) return { type:'kw', sign:'', text:k.slice(3) };
-  return { type:'legacy', sign:'', text:k };
-}
-async function openSellaRegole() {
-  await sellaLoadRegole();
-  sellaRegoleRender();
-  document.getElementById('sella-regole-overlay').style.display = 'flex';
-}
-function closeSellaRegole() { document.getElementById('sella-regole-overlay').style.display = 'none'; }
-function sellaRegoleRender() {
-  var body = document.getElementById('sella-regole-body');
-  var order = { acc:0, sig:1, kw:2, legacy:3 };
-  window._sellaRegoleKeys = Object.keys(sellaRegole).sort(function(a,b){
-    var pa=sellaRegoleParseKey(a), pb=sellaRegoleParseKey(b);
-    if (order[pa.type]!==order[pb.type]) return order[pa.type]-order[pb.type];
-    return pa.text.localeCompare(pb.text);
-  });
-  var keys = window._sellaRegoleKeys;
-  if (!keys.length) {
-    body.innerHTML = '<div style="text-align:center;color:var(--faint);font-size:14px;padding:40px 20px">Nessuna regola appresa finora.<br>Assegna una categoria durante un import e comparir\u00e0 qui.</div>';
-    document.getElementById('sella-regole-count').textContent = '';
-    return;
-  }
-  var rows = '';
-  for (var i = 0; i < keys.length; i++) {
-    var p = sellaRegoleParseKey(keys[i]);
-    var catObj = sellaCatFromName(sellaRegole[keys[i]]);
-    var inert = (p.type==='legacy') && !/[a-z]{2,}/i.test(p.text);
-    var signBadge = p.sign==='-' ? '<span style="color:var(--red);font-weight:700">\u2212</span>'
-                  : p.sign==='+' ? '<span style="color:var(--green);font-weight:700">+</span>'
-                  : '<span style="color:var(--faint)">\u00b7</span>';
-    var typeLbl = p.type==='acc' ? ('conto: ' + p.scope) : (p.type==='sig' ? 'firma' : (p.type==='kw' ? 'parola' : 'vecchia'));
-    rows += '<div style="display:flex;align-items:center;gap:8px;padding:8px 4px;border-bottom:1px solid var(--gray2)'+(inert?';opacity:.5':'')+'">'
-      + '<div style="width:14px;text-align:center;flex-shrink:0">'+signBadge+'</div>'
-      + '<div style="flex:1;min-width:0">'
-        + '<div style="font-family:ui-monospace,Menlo,monospace;font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(p.text)+'</div>'
-        + '<div style="font-size:10px;color:var(--faint);text-transform:uppercase;letter-spacing:.4px">'+typeLbl+(inert?' \u00b7 inerte':'')+'</div>'
-      + '</div>'
-      + '<select class="sella-cat-sel" style="max-width:190px" onchange="sellaRegoleSetCat('+i+',this.value)">'+buildCatOptions(catObj?catObj.id:null)+'</select>'
-      + '<button onclick="sellaRegoleDelete('+i+')" title="Elimina" style="background:none;border:none;color:var(--red);font-size:20px;line-height:1;cursor:pointer;flex-shrink:0;padding:0 4px">\u00d7</button>'
-      + '</div>';
-  }
-  body.innerHTML = rows;
-  var sels = body.querySelectorAll('.sella-cat-sel');
-  for (var j = 0; j < keys.length; j++) {
-    var co = sellaCatFromName(sellaRegole[keys[j]]);
-    if (co && sels[j]) sels[j].value = co.id;
-  }
-  var nSig = keys.filter(function(k){ return k.indexOf('sig:')===0; }).length;
-  document.getElementById('sella-regole-count').textContent = keys.length + ' regole \u00b7 ' + nSig + ' a firma';
-}
-function sellaRegoleSetCat(i, catId) {
-  var key = (window._sellaRegoleKeys||[])[i]; if (!key) return;
-  if (catId && meta) {
-    var cat = meta.categories.find(function(c){ return c.id === catId; });
-    if (cat) { sellaRegole[key] = cat.name; _sellaSaveRegole(); }
-  } else {
-    delete sellaRegole[key]; _sellaSaveRegole(); sellaRegoleRender();
-  }
-}
-function sellaRegoleDelete(i) {
-  var key = (window._sellaRegoleKeys||[])[i]; if (!key) return;
-  delete sellaRegole[key]; _sellaSaveRegole(); sellaRegoleRender();
-}
-function sellaRegolePulisciLegacy() {
-  var removed = 0;
-  Object.keys(sellaRegole).forEach(function(k){
-    var p = sellaRegoleParseKey(k);
-    if (p.type==='legacy' && !/[a-z]{2,}/i.test(p.text)) { delete sellaRegole[k]; removed++; }
-  });
-  if (removed) { _sellaSaveRegole(); sellaRegoleRender(); }
-  var c = document.getElementById('sella-regole-count');
-  if (c) c.textContent = removed ? ('Rimosse '+removed+' regole legacy inerti') : 'Nessuna regola legacy da rimuovere';
 }
 
 function sellaParseCSVLine(line) {
@@ -2490,7 +2237,6 @@ function sellaOnDrop(e) {
 
 async function sellaHandleFile(file) {
   if (!file) return;
-  _importScope = 'azienda';
   document.getElementById('sella-progress').textContent='Analisi\u2026';
   var lines=(await file.text()).split('\n').filter(function(l){return l.trim();});
   var existingKeys=await sellaGetExistingKeys();
@@ -2508,7 +2254,7 @@ async function sellaHandleFile(file) {
     var storKey=sellaStorKey(dateISO,importo,desc.substring(0,32));
     sellaMovimenti.push({dateISO:dateISO,dataOp:dataOp,desc:desc,etich:etich,
       importo:importo,storKey:storKey,isDup:existingKeys.has(storKey),includi:!existingKeys.has(storKey),
-      catObj:sellaGuessCategory(desc,etich,importo)});
+      catObj:sellaGuessCategory(desc,etich)});
   }
   // Mostra la tabella nel pannello corretto
   if (tipo === 'personale') {
@@ -2560,7 +2306,7 @@ function sellaSetCat(i, catId) {
   if(catId&&meta){
     var cat=meta.categories.find(function(c){return c.id===catId;});
     sellaMovimenti[i].catObj=cat?{name:cat.name,id:cat.id}:null;
-    if(cat) sellaLearnRule(sellaMovimenti[i].desc,sellaMovimenti[i].catObj,sellaMovimenti[i].importo);
+    if(cat) sellaLearnRule(sellaMovimenti[i].desc,sellaMovimenti[i].catObj);
   } else { sellaMovimenti[i].catObj=null; }
   sellaUpdateStats();
 }
@@ -2934,25 +2680,19 @@ function renderAcctsMgmt() {
     var ib = b.type==='group' ? b.g.sidebarIndex : b.acc.sidebarIndex;
     return (ia||0) - (ib||0);
   });
-  // Normalizza SEMPRE sidebarIndex in 0..N: elimina le collisioni (lo swap di valori uguali era un no-op)
-  function _reindexSections() {
-    sections.forEach(function(s, i) {
-      if (s.type === 'group') s.g.sidebarIndex = i; else s.acc.sidebarIndex = i;
-    });
-  }
-  _reindexSections();
 
   function moveSectionUp(idx) {
-    if (idx <= 0) return;
-    var t = sections[idx-1]; sections[idx-1] = sections[idx]; sections[idx] = t;
-    _reindexSections();
+    if (idx === 0) return;
+    var a = sections[idx-1], b = sections[idx];
+    var ia = a.type==='group' ? a.g.sidebarIndex : a.acc.sidebarIndex;
+    var ib = b.type==='group' ? b.g.sidebarIndex : b.acc.sidebarIndex;
+    if (a.type==='group') a.g.sidebarIndex = ib; else a.acc.sidebarIndex = ib;
+    if (b.type==='group') b.g.sidebarIndex = ia; else b.acc.sidebarIndex = ia;
     renderAcctsMgmt();
   }
   function moveSectionDown(idx) {
     if (idx >= sections.length-1) return;
-    var t = sections[idx+1]; sections[idx+1] = sections[idx]; sections[idx] = t;
-    _reindexSections();
-    renderAcctsMgmt();
+    moveSectionUp(idx+1);
   }
 
   sections.forEach(function(sec, idx) {
@@ -3017,17 +2757,10 @@ function makeAcctRow(acc) {
   drag.textContent = '⠿';
   drag.title = 'Trascina per riordinare';
 
-  // Icona (cliccabile per cambiarla)
+  // Icona
   var icon = document.createElement('span');
   icon.className = 'acct-icon';
-  icon.textContent = accIcon(acc);
-  icon.style.cursor = 'pointer';
-  icon.title = 'Tocca per cambiare icona';
-  icon.addEventListener('click', function() {
-    var cur = acc.icon || accIcon(acc);
-    var e = prompt('Icona (emoji) per "' + acc.name + '":', cur);
-    if (e !== null) { e = e.trim(); acc.icon = e || null; renderAcctsMgmt(); }
-  });
+  icon.textContent = accIcon(acc.name);
 
   // Nome
   var nameEl = document.createElement('input');
@@ -3204,12 +2937,6 @@ async function saveAcctsMgmt() {
   saveBtn.textContent = 'Salvataggio...';
   try {
     // Normalizza sidebarIndex prima di salvare
-    // Prima: azzera i groupId orfani (puntano a gruppi inesistenti) → diventano standalone veri
-    var _grpIds = {};
-    _acctsDraft.groups.forEach(function(g){ _grpIds[g.id] = true; });
-    _acctsDraft.accounts.forEach(function(a){
-      if (a.groupId && !_grpIds[a.groupId]) { a.groupId = null; a.groupName = null; }
-    });
     var _all = [];
     _acctsDraft.groups.forEach(function(g){ _all.push({type:'g',obj:g,idx:g.sidebarIndex!==undefined?g.sidebarIndex:0}); });
     _acctsDraft.accounts.filter(function(a){return !a.groupId;}).forEach(function(a){ _all.push({type:'a',obj:a,idx:a.sidebarIndex!==undefined?a.sidebarIndex:999}); });
@@ -3640,6 +3367,14 @@ window.addEventListener('message',function(ev){
   if(m.type==='leo:ready'){
     var ld=document.getElementById('leoframe-loader'); if(ld) ld.style.display='none';
   }
+  if(m.type==='leo:imported'){
+    // Leo ha appena creato transazioni via API: invalida la cache e ricarica conti + movimenti
+    try{
+      txCache={}; if(loadedYears&&loadedYears.clear) loadedYears.clear();
+      if(typeof reloadTxForRange==='function') reloadTxForRange();
+      if(typeof loadBalances==='function') loadBalances();
+    }catch(e){}
+  }
 });
 
 function _autoLog(logId, msg, type) {
@@ -3675,17 +3410,11 @@ function _autoLog(logId, msg, type) {
       accountIndex: 1,
       iComptaAccId: 'ACC-FINECO-CC',
       label: 'Fineco CC'
-    },
-    'unicredit': {
-      sessionKey: 'icompta:eb:session:UniCredit:personal',
-      ibanSuffix: '5895',
-      iComptaAccId: '164E70BD-E589-4380-877D-1308AAEDFFF1',
-      label: 'UniCredit Genius'
     }
   };
 
   function _ebLog(tipo, msg) {
-    var id = (tipo === 'fineco' || tipo === 'unicredit') ? 'eb-log-fineco' : tipo === 'personale' ? 'eb-log-personale' : 'eb-log-azienda';
+    var id = tipo === 'fineco' ? 'eb-log-fineco' : tipo === 'personale' ? 'eb-log-personale' : 'eb-log-azienda';
     var el = document.getElementById(id);
     if (!el) return;
     el.style.display = 'block';
@@ -3724,7 +3453,6 @@ function _autoLog(logId, msg, type) {
   async function _ebImportMovimenti(tipo) {
     var cfg = EB_ACCOUNTS[tipo];
     if (!cfg) return;
-    _importScope = tipo;  // regole categoria specifiche del conto
     // Calcola date: ultimi 90 giorni
     var days = window._ebDays || 30;
     var dateFrom = new Date(Date.now() - days*24*3600*1000).toISOString().slice(0,10);
@@ -3853,7 +3581,7 @@ function _autoLog(logId, msg, type) {
         ebRef: ebRef,
         isDup: isDup,
         includi: !isDup,
-        catObj: sellaGuessCategory(desc, '', amt),
+        catObj: (tipo === 'fineco') ? null : sellaGuessCategory(desc, ''),
         _ebTipo: tipo,
         _ebAccId: accId
       });
@@ -3872,9 +3600,9 @@ function _autoLog(logId, msg, type) {
       _ebLog('personale', '✅ Pronto');
       var prog=document.getElementById('sellap-progress'); if(prog) prog.textContent='';
     } else {
-      // Per fineco/unicredit: usa l'overlay Conto Corrente dedicato
-      if (tipo === 'fineco' || tipo === 'unicredit') {
-        // Overlay Fineco CC dedicato (riusato anche per UniCredit)
+      // Per fineco: chiudi modal e apri pannello Sella Azienda come contenitore
+      if (tipo === 'fineco') {
+        // Overlay Fineco CC dedicato
         var fov = document.getElementById('fineco-cc-overlay');
         if (fov) fov.style.display = 'flex';
         var fst = document.getElementById('fineco-cc-stats'); if(fst) fst.style.display = 'flex';
@@ -3910,11 +3638,7 @@ function _autoLog(logId, msg, type) {
         var tx = txs[j];
         if (tx.accountId !== accId) continue;
         matchTx++;
-        // Se la TX ha già un ebRef, il dedup è ESATTO via _ebExistingRefs: NON aggiungerla ai
-        // fallback fuzzy (data+importo+descrizione). Altrimenti una TX gemella legittima
-        // (stesso giorno, importo e descrizione, ma codice univoco diverso) verrebbe
-        // scartata per errore — es. due commissioni bonifico da 0,50 € lo stesso giorno.
-        if (tx.ebRef) { _ebExistingRefs.add(tx.ebRef); continue; }
+        if (tx.ebRef) _ebExistingRefs.add(tx.ebRef);
         var amt = 0;
         if (tx.useSumOfSplits && tx.splits && tx.splits.length > 0) {
           for (var s=0; s<tx.splits.length; s++) amt += (tx.splits[s].amount || 0);
@@ -4037,7 +3761,6 @@ function _autoLog(logId, msg, type) {
     if (catId && meta) {
       var cat = meta.categories.find(function(c){ return c.id === catId; });
       sellaMovimenti[i].catObj = cat ? { name: cat.name, id: cat.id } : null;
-      if (cat) sellaLearnRule(sellaMovimenti[i].desc, sellaMovimenti[i].catObj, sellaMovimenti[i].importo);
     } else {
       sellaMovimenti[i].catObj = null;
     }
@@ -4086,9 +3809,7 @@ function _autoLog(logId, msg, type) {
     var inc = sellaMovimenti.filter(function(m){ return m.includi; });
     if (!inc.length) return;
     _finecoImporting = true;
-    var isUC = (window._ebOverlayMode === 'unicredit');
-    var accId = isUC ? (sellaGetAccId('Genius Unicredit') || '164E70BD-E589-4380-877D-1308AAEDFFF1') : (sellaGetAccId('Fineco CC') || 'ACC-FINECO-CC');
-    var accLabel = isUC ? 'UniCredit Genius' : 'Fineco CC';
+    var accId = sellaGetAccId('Fineco CC') || 'ACC-FINECO-CC';
     var btn = document.getElementById('fineco-cc-import-btn');
     if (btn) { btn.disabled = true; btn.innerHTML = '⏳ Importazione...'; }
     var ids = [], errs = 0;
@@ -4110,7 +3831,7 @@ function _autoLog(logId, msg, type) {
     try {
       await api('POST', '/api/sella-log', { session: {
         id: 'fineco-' + Date.now(),
-        label: accLabel + ' ' + new Date().toLocaleString('it-IT'),
+        label: 'Fineco CC ' + new Date().toLocaleString('it-IT'),
         txBanca: ids, txEco: []
       }});
     } catch(e) {}
@@ -4118,16 +3839,8 @@ function _autoLog(logId, msg, type) {
     var pr2 = document.getElementById('fineco-cc-progress');
     if (pr2) pr2.textContent = '';
     _finecoImporting = false;
-    alert('✅ Importati ' + ids.length + ' movimenti su ' + accLabel + (errs ? ' (⚠️ ' + errs + ' errori)' : ''));
+    alert('✅ Importati ' + ids.length + ' movimenti su Fineco CC' + (errs ? ' (⚠️ ' + errs + ' errori)' : ''));
     document.getElementById('fineco-cc-overlay').style.display = 'none';
-    // Invalida la cache degli anni importati: altrimenti reloadTxForRange legge dalla cache
-    // e i movimenti appena inseriti non compaiono senza ricaricare la pagina.
-    var _yrs = {};
-    inc.forEach(function(m){ if (m.dateISO) _yrs[m.dateISO.slice(0,4)] = 1; });
-    Object.keys(_yrs).forEach(function(y){ delete txCache[y]; loadedYears.delete(y); });
-    try { await loadBalances(); } catch(e) {}
-    if (meta && typeof renderSidebar === 'function') renderSidebar();
-    if (typeof updateTotalBalance === 'function') updateTotalBalance();
     if (typeof reloadTxForRange === 'function') await reloadTxForRange();
   }
 
@@ -4157,7 +3870,7 @@ async function loadBackupList() {
       row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--gray2)';
       row.innerHTML =
         '<div style="flex:1">' +
-          '<div style="font-size:14px;font-weight:600">' + esc(b.date) + (b.auto ? ' <span style="font-size:10px;font-weight:700;color:var(--blue);background:var(--blue-bg);padding:1px 6px;border-radius:5px;vertical-align:middle">' + (b.preRestore ? '\u21a9 pre-ripristino' : '\uD83C\uDF19 auto') + '</span>' : '') + '</div>' +
+          '<div style="font-size:14px;font-weight:600">' + esc(b.date) + '</div>' +
           '<div style="font-size:11.5px;color:var(--muted);margin-top:2px">Anno ' + b.year + ' \u00b7 ' + (b.txCount||0) + ' transazioni</div>' +
         '</div>';
       var restBtn = document.createElement('button');
@@ -4249,7 +3962,6 @@ async function sellapGetExistingKeys() {
 
 async function sellapHandleFile(file) {
   if (!file) return;
-  _importScope = 'personale';
   document.getElementById('sellap-progress').textContent = 'Analisi\u2026';
   var lines = (await file.text()).split('\n').filter(function(l){ return l.trim(); });
   var existingKeys = await sellapGetExistingKeys();
@@ -4273,7 +3985,7 @@ async function sellapHandleFile(file) {
       importo: importo, storKey: storKey,
       isDup: existingKeys.has(storKey),
       includi: !existingKeys.has(storKey),
-      catObj: sellaGuessCategory(desc, '', importo)
+      catObj: sellaGuessCategory(desc, '')
     });
   }
   document.getElementById('sellap-drop').style.display = 'none';
@@ -4311,7 +4023,6 @@ function sellapSetCat(i, catId) {
   if (catId && meta) {
     var cat = meta.categories.find(function(c){ return c.id === catId; });
     sellapMovimenti[i].catObj = cat ? {name:cat.name,id:cat.id} : null;
-    if (cat) sellaLearnRule(sellapMovimenti[i].desc, sellapMovimenti[i].catObj, sellapMovimenti[i].importo);
   } else { sellapMovimenti[i].catObj = null; }
   sellapUpdateStats();
 }
@@ -4371,7 +4082,6 @@ async function sellapDoImport() {
     <div id="sella-panel-header">
       <span style="font-size:22px">🏦</span>
       <h3>Import da Banca Sella</h3>
-      <button onclick="openSellaRegole()" title="Regole categoria apprese" style="background:var(--gray2);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:15px">⚙️</button>
       <button onclick="closeSellaImport()" style="background:var(--gray2);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:16px">✕</button>
     </div>
     <div id="sella-panel-body">
@@ -4382,7 +4092,6 @@ async function sellapDoImport() {
           <option value="7">7 gg</option>
           <option value="15">15 gg</option>
           <option value="30" selected>1 mese</option>
-          <option value="88">3 mesi</option>
         </select>
       </div>
       <div id="eb-log-azienda" style="display:none;background:#1a1a1a;border-radius:8px;padding:8px 10px;max-height:100px;overflow-y:auto;font-family:monospace;font-size:11px;margin-bottom:8px"></div>
@@ -4438,23 +4147,6 @@ async function sellapDoImport() {
   </div>
 </div>
 
-<!-- Modal Regole categoria apprese -->
-<div id="sella-regole-overlay" style="display:none;position:fixed;inset:0;z-index:9500;background:rgba(0,0,0,.45);align-items:flex-end;justify-content:center" onclick="if(event.target===this)closeSellaRegole()">
-  <div style="width:100%;max-width:720px;background:var(--surface);border-radius:20px 20px 0 0;height:85vh;display:flex;flex-direction:column;box-shadow:0 -4px 32px rgba(0,0,0,.2)">
-    <div style="padding:18px 20px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0">
-      <span style="font-size:20px">⚙️</span>
-      <h3 style="flex:1;font-size:18px;font-weight:700">Regole categoria apprese</h3>
-      <button onclick="sellaRegolePulisciLegacy()" title="Rimuovi le vecchie regole inerti" style="background:var(--gray2);border:none;border-radius:8px;padding:7px 10px;cursor:pointer;font-size:12px;color:var(--muted)">🧹 Legacy</button>
-      <button onclick="closeSellaRegole()" style="background:var(--gray2);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:16px">✕</button>
-    </div>
-    <div style="padding:8px 16px;font-size:11px;color:var(--faint);line-height:1.4;border-bottom:1px solid var(--gray2);flex-shrink:0">Le modifiche valgono solo per i <b>prossimi import</b>. Le assegnazioni già fatte non cambiano e restano modificabili a mano.</div>
-    <div id="sella-regole-body" style="flex:1;overflow-y:auto;padding:8px 14px"></div>
-    <div style="padding:12px 20px calc(12px + env(safe-area-inset-bottom,0));border-top:1px solid var(--border);flex-shrink:0">
-      <div id="sella-regole-count" style="font-size:12px;color:var(--faint)"></div>
-    </div>
-  </div>
-</div>
-
 <!-- Modal Import Sella Personale -->
 <div id="sellap-overlay" style="display:none" onclick="if(event.target===this)closeSellaPImport()">
   <div id="sellap-panel" style="max-height:90vh">
@@ -4471,7 +4163,6 @@ async function sellapDoImport() {
           <option value="7">7 gg</option>
           <option value="15">15 gg</option>
           <option value="30" selected>1 mese</option>
-          <option value="88">3 mesi</option>
         </select>
       </div>
       <div id="eb-log-personale" style="display:none;background:#1a1a1a;border-radius:8px;padding:8px 10px;max-height:100px;overflow-y:auto;font-family:monospace;font-size:11px;margin-bottom:8px"></div>
@@ -4584,95 +4275,12 @@ async function sellapDoImport() {
 // Mappa conti con import automatico
 function openFinecoInvModal() { var m=document.getElementById('modal-fineco-inv'); if(m) m.style.display='flex'; }
 function closeFinecoInvModal() { var m=document.getElementById('modal-fineco-inv'); if(m) m.style.display='none'; }
-function openFinecoCCModal() {
-  window._ebOverlayMode = 'fineco';
-  var t = document.getElementById('fcc-title'); if (t) t.textContent = 'Import Fineco Conto Corrente';
-  var xb = document.getElementById('fcc-xlsx-btn'); if (xb) xb.style.display = '';
-  var ov=document.getElementById('fineco-cc-overlay'); if(ov){ ov.style.display='flex'; }
-}
-function openUnicreditModal() {
-  window._ebOverlayMode = 'unicredit';
-  var t = document.getElementById('fcc-title'); if (t) t.textContent = 'Import UniCredit Genius';
-  var xb = document.getElementById('fcc-xlsx-btn'); if (xb) xb.style.display = 'none'; // niente XLSX per UniCredit
-  var ov=document.getElementById('fineco-cc-overlay'); if(ov){ ov.style.display='flex'; }
-}
-// Dispatcher del bottone "Scarica via Enable Banking" nell'overlay CC (Fineco o UniCredit)
-function ebScaricaCorrente() {
-  if (window._ebOverlayMode === 'unicredit') { unicreditEBDownload(); }
-  else { finecoEBDownload(); }
-}
-async function unicreditEBDownload() {
-  try {
-    window._ebOverlayMode = 'unicredit';
-    var _fl = document.getElementById('eb-log-fineco'); if (_fl) _fl.innerHTML = '';
-    _ebLog('unicredit', '🏦 Connessione UniCredit via Enable Banking...');
-    await _ebImportMovimenti('unicredit');
-    window._ebCurrentTipo = 'unicredit';
-  } catch(e) {
-    var msg = e.message || '';
-    if (msg.indexOf('429') !== -1 || msg.indexOf('Too Many') !== -1 || msg.indexOf('quota') !== -1) {
-      if (confirm('⚠️ Limite accessi UniCredit raggiunto.\n\nVuoi rinnovare l\'autorizzazione ora?')) {
-        api('GET', '/api/enable-banking/auth?bank=UniCredit&psu_type=personal')
-          .then(function(d){ if(d.ok) window.location.href = d.url; }); // same-tab: più affidabile
-      }
-    } else {
-      alert('❌ Enable Banking UniCredit errore:\n' + msg);
-    }
-    console.error('unicreditEBDownload:', e);
-  }
-}
+function openFinecoCCModal() { var ov=document.getElementById('fineco-cc-overlay'); if(ov){ ov.style.display='flex'; } }
 function closeFinecoCCModal() { var m=document.getElementById('modal-fineco-cc'); if(m) m.style.display='none'; }
 
-// Aggiornamento diretto (come comando rapido): lancia la procedura Mac/Fineco,
-// ricarica i titoli e il timestamp. Nessuna conferma: il successo si vede dall'orario.
-async function aggiornaFinecoOra(btn) {
-  if (btn) { if (btn.dataset.busy) return; btn.dataset.busy = '1'; btn.style.opacity = '0.5'; btn.style.pointerEvents = 'none'; }
-  var info = document.getElementById('fineco-inv-info');
-  var prev = info ? info.textContent : '';
-  if (info) info.textContent = '⏳ Avvio…';
-  // Polling stato live: mostra l'ultima riga del processo (Mac) dove prima c'era "in corso"
-  var startTs = Date.now();
-  var lastStep = '';
-  var poll = setInterval(async function() {
-    try {
-      var s = await api('GET', '/api/fineco-status');
-      if (s && s.step && (s.ts || 0) >= startTs - 8000) {
-        lastStep = s.step;
-        if (info) info.textContent = (s.stato === 'error' ? '⚠️ ' : '⏳ ') + s.step;
-      }
-    } catch (e) {}
-  }, 1500);
-  try {
-    var r = await api('GET', '/api/fineco-auto-now');
-    clearInterval(poll);
-    if (r && r.ok) {
-      var res = await titoliApi('GET', '/api/titoli/strumenti/fineco-inv');
-      if (res.ok && Array.isArray(res.data)) {
-        _finecoStrumenti = res.data;
-        try { localStorage.setItem('fineco_inv', JSON.stringify(res.data)); } catch(e) {}
-      }
-      _finecoLastUpd = '';
-      // Rinfresca tutto lo stato derivato (box P&L Portafoglio, sidebar, disponibile) senza reload
-      aggiornaBilancesTitoli();
-      if (meta) renderSidebar();
-      updateTotalBalance();
-      if (typeof renderStrumentiView === 'function') renderStrumentiView();
-      loadFinecoLastUpd();
-    } else {
-      if (info) { info.textContent = '⚠️ ' + (lastStep || 'aggiornamento non riuscito'); setTimeout(function(){ if (info && info.textContent.indexOf('⚠️')===0) info.textContent = prev; }, 6000); }
-    }
-  } catch (e) {
-    if (info) { info.textContent = '⚠️ ' + (lastStep || 'aggiornamento non riuscito'); setTimeout(function(){ if (info && info.textContent.indexOf('⚠️')===0) info.textContent = prev; }, 6000); }
-  } finally {
-    clearInterval(poll);
-    if (btn) { delete btn.dataset.busy; btn.style.opacity = ''; btn.style.pointerEvents = ''; }
-  }
-}
-
 var IMPORT_MAP = {
-  'ACC-FINECO-INV':  { label: 'Aggiorna', fn: function() { aggiornaFinecoOra(document.getElementById('btn-import-contestuale')); } },
+  'ACC-FINECO-INV':  { label: 'Aggiorna', fn: function() { openFinecoInvModal(); } },
   'ACC-FINECO-CC':   { label: 'Aggiorna', fn: function() { document.getElementById('fineco-cc-overlay').style.display='flex'; } },
-  '164E70BD-E589-4380-877D-1308AAEDFFF1': { label: 'Aggiorna', fn: function() { openUnicreditModal(); } },
 };
 // Conti Sella e InternoUno Banca identificati per nome
 var IMPORT_MAP_AUTO = {
@@ -4758,104 +4366,6 @@ function closeCategorieModal() {
   document.getElementById('modal-categorie').style.display = 'none';
 }
 
-// ── Dettaglio categoria: transazioni cross-conto + totale ──────────
-var _catDetailId = null;
-var _catDetailRange = 'all';
-var _catDetailSign = 'all';
-
-async function openCatDetail(catId) {
-  _catDetailId = catId;
-  var cat = meta && meta.categories && meta.categories.find(function(c){ return c.id === catId; });
-  var ttl = document.getElementById('cat-detail-title');
-  if (ttl) ttl.textContent = (cat && cat.icon ? cat.icon + ' ' : '') + (cat ? cat.name : 'Categoria');
-  _catDetailRange = 'all';
-  var rangeBox = document.getElementById('cat-detail-range');
-  rangeBox.querySelectorAll('.cat-range-btn').forEach(function(b){ b.classList.toggle('active', b.getAttribute('data-r')==='all'); });
-  rangeBox.onclick = function(e){
-    var b = e.target.closest('.cat-range-btn'); if (!b) return;
-    _catDetailRange = b.getAttribute('data-r');
-    rangeBox.querySelectorAll('.cat-range-btn').forEach(function(x){ x.classList.remove('active'); });
-    b.classList.add('active');
-    _catDetailRender();
-  };
-  _catDetailSign = 'all';
-  var signBox = document.getElementById('cat-detail-sign');
-  signBox.querySelectorAll('.cat-range-btn').forEach(function(b){ b.classList.toggle('active', b.getAttribute('data-s')==='all'); });
-  signBox.onclick = function(e){
-    var b = e.target.closest('.cat-range-btn'); if (!b) return;
-    _catDetailSign = b.getAttribute('data-s');
-    signBox.querySelectorAll('.cat-range-btn').forEach(function(x){ x.classList.remove('active'); });
-    b.classList.add('active');
-    _catDetailRender();
-  };
-  document.getElementById('modal-cat-detail').style.display = 'flex';
-  _catDetailRender();
-}
-function closeCatDetail() { document.getElementById('modal-cat-detail').style.display = 'none'; }
-
-function _catDetailRangeDates() {
-  var now = new Date();
-  var toStr = now.toISOString().slice(0,10);
-  var f = new Date(now);
-  if (_catDetailRange === 'y1')   { f.setFullYear(f.getFullYear()-1); return { from: f.toISOString().slice(0,10), to: toStr }; }
-  if (_catDetailRange === 'm3')   { f.setMonth(f.getMonth()-3);       return { from: f.toISOString().slice(0,10), to: toStr }; }
-  if (_catDetailRange === 'year') { return { from: now.getFullYear()+'-01-01', to: toStr }; }
-  return { from: '2000-01-01', to: toStr }; // Tutto
-}
-function _catAccName(id) {
-  var a = meta && meta.accounts && meta.accounts.find(function(x){ return x.id === id; });
-  return a ? a.name : '—';
-}
-async function _catDetailRender() {
-  var body = document.getElementById('cat-detail-body');
-  var catId = _catDetailId;
-  var rng = _catDetailRangeDates();
-  body.innerHTML = '<div style="text-align:center;color:var(--muted);padding:30px">Caricamento…</div>';
-  var fromY = parseInt(rng.from.slice(0,4)), toY = parseInt(rng.to.slice(0,4));
-  var years = (meta && meta.years) ? meta.years : [];
-  var all = [];
-  for (var y = toY; y >= fromY; y--) {
-    var yr = String(y);
-    if (years.indexOf(yr) === -1) continue;
-    if (!txCache[yr]) { try { txCache[yr] = await api('GET','/api/tx/'+yr); loadedYears.add(yr); } catch(e){ txCache[yr]=[]; } }
-    all = all.concat(txCache[yr]);
-  }
-  var rows = [], total = 0, accs = {};
-  all.forEach(function(t){
-    if (!t.date || t.date < rng.from || t.date > rng.to) return;
-    if (!t.splits) return;
-    var amt = 0, has = false;
-    t.splits.forEach(function(s){ if (s.categoryId === catId) { amt += (s.amount||0); has = true; } });
-    if (has) {
-      if ((_catDetailSign === 'in' && amt <= 0) || (_catDetailSign === 'out' && amt >= 0)) return;
-      var an=_catAccName(t.accountId); rows.push({ date:t.date, acc:an, name:t.name||'', amount:amt }); total += amt; accs[an]=1;
-    }
-  });
-  rows.sort(function(a,b){ return b.date.localeCompare(a.date); });
-  if (!rows.length) {
-    body.innerHTML = '<div style="text-align:center;color:var(--muted);padding:30px">Nessuna transazione in questo periodo.</div>';
-  } else {
-    var html = '';
-    rows.forEach(function(r){
-      var dd = r.date.split('-'); var dLabel = dd[2]+'/'+dd[1]+'/'+dd[0].slice(2);
-      var amtCol = r.amount < 0 ? 'var(--red)' : 'var(--green)';
-      html += '<div style="display:flex;align-items:center;gap:8px;padding:8px 6px;border-bottom:1px solid var(--gray2)">' +
-        '<div style="width:64px;flex-shrink:0;font-size:12px;color:var(--muted)">' + dLabel + '</div>' +
-        '<div style="flex:1;min-width:0">' +
-          '<div style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(r.name) + '</div>' +
-          '<div style="font-size:11px;color:var(--faint)">' + esc(r.acc) + '</div>' +
-        '</div>' +
-        '<div style="font-size:13px;font-weight:600;white-space:nowrap;color:' + amtCol + '">' + fmt(r.amount) + '</div>' +
-      '</div>';
-    });
-    body.innerHTML = html;
-  }
-  var cEl = document.getElementById('cat-detail-count');
-  if (cEl) cEl.textContent = rows.length + ' TX · ' + Object.keys(accs).length + ' conti';
-  var totEl = document.getElementById('cat-detail-total');
-  if (totEl) { totEl.textContent = fmt(total); totEl.style.color = total < 0 ? 'var(--red)' : 'var(--green)'; }
-}
-
 function renderCategorieTree() {
   var body = document.getElementById('cat-tree-body');
   if (!body || !meta || !meta.categories) return;
@@ -4903,7 +4413,7 @@ function renderCategorieTree() {
 
     var id = c.id;
     var html = '<div class="cat-row" style="display:flex;align-items:center;gap:6px;padding:6px 4px 6px ' + (8+indent) + 'px;border-radius:8px" data-catid="' + id + '">' +
-      '<span data-act="detail" data-id="' + id + '" title="Vedi transazioni e totale" style="flex:1;cursor:pointer;font-size:' + (level===0?'14':'13') + 'px;font-weight:' + (level===0?'600':'400') + '">' + catBadge(c) + '</span>' +
+      '<span style="flex:1;font-size:' + (level===0?'14':'13') + 'px;font-weight:' + (level===0?'600':'400') + '">' + catBadge(c) + '</span>' +
       '<span style="font-size:11px;color:var(--muted);min-width:30px;text-align:right">' + (nTx>0?nTx+' TX':'') + '</span>' +
       '<button data-act="add" data-id="' + id + '" title="Aggiungi sottocategoria" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:14px;padding:2px 4px">+</button>' +
       '<button data-act="edit" data-id="' + id + '" title="Modifica" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:13px;padding:2px 4px">✏️</button>' +
@@ -4928,7 +4438,6 @@ function renderCategorieTree() {
     if (!btn) return;
     var act = btn.dataset.act;
     var id  = btn.dataset.id;
-    if (act === 'detail') openCatDetail(id);
     if (act === 'add')    openNuovaCategoria(id);
     if (act === 'edit')   openEditCategoria(id);
     if (act === 'toggle') toggleCategoriaHidden(id);
@@ -4945,7 +4454,6 @@ function openNuovaCategoria(parentId) {
   document.getElementById('cat-edit-name').value = '';
   document.getElementById('cat-edit-icon').value = '';
   document.getElementById('cat-edit-color').value = '';
-  _catSyncColorPicker('');
   document.getElementById('cat-edit-hidden').checked = false;
   document.getElementById('cat-edit-title').textContent = parentId ? 'Nuova sottocategoria' : 'Nuova categoria';
   _fillParentSelect(parentId);
@@ -4960,7 +4468,6 @@ function openEditCategoria(catId) {
   document.getElementById('cat-edit-name').value = cat.name;
   document.getElementById('cat-edit-icon').value = cat.icon || '';
   document.getElementById('cat-edit-color').value = cat.color || '';
-  _catSyncColorPicker(cat.color || '');
   document.getElementById('cat-edit-hidden').checked = cat.hidden === true;
   document.getElementById('cat-edit-title').textContent = 'Modifica categoria';
   _fillParentSelect(cat.parentId || null);
@@ -4991,23 +4498,11 @@ function _fillParentSelect(selectedParentId) {
 
 function selectCatColor(el, color) {
   document.getElementById('cat-edit-color').value = color;
-  document.querySelectorAll('#cat-color-picker span, #cat-color-picker button').forEach(function(s) {
+  document.querySelectorAll('#cat-color-picker span').forEach(function(s) {
     s.style.outline = '';
   });
   el.style.outline = '3px solid var(--blue)';
   el.style.outlineOffset = '2px';
-}
-
-// Evidenzia nel picker il colore attualmente assegnato (usato in nuova/modifica)
-function _catSyncColorPicker(color) {
-  var target = (color || '').toLowerCase();
-  document.querySelectorAll('#cat-color-picker span, #cat-color-picker button').forEach(function(s) {
-    var oc = s.getAttribute('onclick') || '';
-    var m = /'(#?[0-9a-fA-F]{0,8})'/.exec(oc);
-    var sw = m ? m[1].toLowerCase() : '';
-    if (sw === target) { s.style.outline = '3px solid var(--blue)'; s.style.outlineOffset = '2px'; }
-    else { s.style.outline = ''; }
-  });
 }
 
 function closeCatEdit() {
@@ -5257,19 +4752,6 @@ function _selectCat(catId, catName) {
 
 var _finecoStrumenti = [];
 var _finecoTabAttivo = 'tutti';
-var _finecoLastUpd = '';
-
-async function loadFinecoLastUpd() {
-  try {
-    var lu = await api('GET', '/api/import-log?key=icompta:fineco-inv:last-update');
-    if (lu && lu.at) {
-      var d = new Date(lu.at);
-      _finecoLastUpd = d.toLocaleString('it-IT', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
-      var el = document.getElementById('fineco-inv-info');
-      if (el && _finecoStrumenti.length) el.textContent = _finecoStrumenti.length + ' strumenti · agg. ' + _finecoLastUpd;
-    }
-  } catch(e) {}
-}
 
 function _saveFinecoStrumenti(s) {
   _finecoStrumenti = s;
@@ -5338,7 +4820,6 @@ function selectStrumenti(contoId, nome) {
   document.querySelectorAll('.account-row').forEach(function(r){r.classList.remove('active');});
   ['date-bar','rec-pending-box','tx-header','tx-body'].forEach(function(id){var e=document.getElementById(id);if(e)e.style.display='none';});
   var wrap2=document.getElementById('tx-scroll-wrap'); if(wrap2) wrap2.style.display='none';
-  scheduleAlign();
   var sv = document.getElementById('strumenti-view');
   sv.style.display = 'flex';
   sv.style.flexDirection = 'column';
@@ -5394,8 +4875,7 @@ function renderStrumentiView() {
 
   // Aggiorna info sopra la view
   var infoEl = document.getElementById('fineco-inv-info');
-  if (infoEl) infoEl.textContent = strumenti.length>0 ? strumenti.length+' strumenti'+(_finecoLastUpd?' · agg. '+_finecoLastUpd:'') : '';
-  loadFinecoLastUpd();
+  if (infoEl) infoEl.textContent = strumenti.length>0 ? strumenti.length+' strumenti · '+( localStorage.getItem('fineco_inv_date')||'—') : '';
   var toolbar = '';
 
   if (strumenti.length===0) {
@@ -5921,7 +5401,6 @@ function openImportXLS(contoId) {
           <option value="7">7 gg</option>
           <option value="15">15 gg</option>
           <option value="30" selected>1 mese</option>
-          <option value="88">3 mesi</option>
         </select>
       </div>
       <div id="eb-log-fineco-legacy" style="display:none;background:#1a1a1a;border-radius:8px;padding:8px 10px;max-height:80px;overflow-y:auto;font-family:monospace;font-size:11px;margin-bottom:8px;color:#ccc"></div>
@@ -5954,32 +5433,6 @@ function openImportXLS(contoId) {
 </div>
 
 <!-- ══ MODAL GESTIONE CATEGORIE ══════════════════════════════════════════ -->
-<!-- Modal dettaglio categoria: transazioni cross-conto + totale -->
-<div id="modal-cat-detail" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2100;align-items:flex-start;justify-content:center;padding-top:40px" onclick="if(event.target===this)closeCatDetail()">
-  <div style="background:var(--bg);border-radius:20px;width:min(760px,96vw);max-height:88vh;display:flex;flex-direction:column;box-shadow:0 8px 40px rgba(0,0,0,.25)">
-    <div style="display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid var(--border)">
-      <span id="cat-detail-title" style="flex:1;font-size:17px;font-weight:700">Categoria</span>
-      <button onclick="closeCatDetail()" style="background:var(--gray2);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:16px">✕</button>
-    </div>
-    <div id="cat-detail-range" style="padding:10px 16px 6px;display:flex;gap:6px;flex-wrap:wrap">
-      <button class="cat-range-btn" data-r="y1">Ultimi 12 mesi</button>
-      <button class="cat-range-btn" data-r="m3">3 mesi</button>
-      <button class="cat-range-btn" data-r="year">Quest'anno</button>
-      <button class="cat-range-btn active" data-r="all">Tutto</button>
-    </div>
-    <div id="cat-detail-sign" style="padding:0 16px 10px;border-bottom:1px solid var(--border);display:flex;gap:6px">
-      <button class="cat-range-btn active" data-s="all">Tutto</button>
-      <button class="cat-range-btn" data-s="in">Solo entrate</button>
-      <button class="cat-range-btn" data-s="out">Solo uscite</button>
-    </div>
-    <div id="cat-detail-body" style="flex:1;overflow-y:auto;padding:8px 12px"><div style="text-align:center;color:var(--muted);padding:30px">Caricamento…</div></div>
-    <div style="padding:12px 20px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
-      <span id="cat-detail-count" style="font-size:12px;color:var(--muted)"></span>
-      <span id="cat-detail-total" style="font-size:16px;font-weight:800">—</span>
-    </div>
-  </div>
-</div>
-
 <div id="modal-categorie" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2000;align-items:flex-start;justify-content:center;padding-top:40px" onclick="if(event.target===this)closeCategorieModal()">
   <div style="background:var(--bg);border-radius:20px;width:min(640px,96vw);max-height:85vh;display:flex;flex-direction:column;box-shadow:0 8px 40px rgba(0,0,0,.25)">
     <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0">
@@ -6011,7 +5464,6 @@ function openImportXLS(contoId) {
     <div style="margin-bottom:10px">
       <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">Colore</label>
       <div id="cat-color-picker" style="display:flex;gap:5px;flex-wrap:wrap">
-        <button type="button" onclick="selectCatColor(this,'')" title="Nessun colore" style="width:22px;height:22px;border-radius:50%;background:var(--bg);cursor:pointer;border:1px dashed var(--muted);color:var(--muted);font-size:12px;line-height:1;padding:0">✕</button>
         <span onclick="selectCatColor(this,'#ef4444')" style="width:22px;height:22px;border-radius:50%;background:#ef4444;cursor:pointer;border:1px solid rgba(0,0,0,.15)"></span>
         <span onclick="selectCatColor(this,'#f97316')" style="width:22px;height:22px;border-radius:50%;background:#f97316;cursor:pointer;border:1px solid rgba(0,0,0,.15)"></span>
         <span onclick="selectCatColor(this,'#fb923c')" style="width:22px;height:22px;border-radius:50%;background:#fb923c;cursor:pointer;border:1px solid rgba(0,0,0,.15)"></span>
@@ -6082,12 +5534,12 @@ document.getElementById('fineco-xls-input').addEventListener('change', function(
 <div id="fineco-cc-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:960;align-items:flex-start;justify-content:center;overflow-y:auto;padding:16px">
   <div style="background:var(--bg);border-radius:20px;width:min(680px,98vw);box-shadow:0 8px 40px rgba(0,0,0,.2);margin:auto">
     <div style="display:flex;justify-content:space-between;align-items:center;padding:18px 20px;border-bottom:1px solid var(--border)">
-      <div style="display:flex;align-items:center;gap:10px;font-size:16px;font-weight:700"><span>🏧</span> <span id="fcc-title">Import Fineco Conto Corrente</span></div>
+      <div style="display:flex;align-items:center;gap:10px;font-size:16px;font-weight:700"><span>🏧</span> Import Fineco Conto Corrente</div>
       <button onclick="document.getElementById('fineco-cc-overlay').style.display='none'" style="background:var(--gray2);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:16px">✕</button>
     </div>
     <div style="padding:16px">
       <div style="display:flex;gap:6px;margin-bottom:10px;align-items:center">
-        <button onclick="ebScaricaCorrente()" style="flex:1;padding:12px;border-radius:10px;border:none;background:#1a7a4a;color:#fff;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
+        <button onclick="finecoEBDownload()" style="flex:1;padding:12px;border-radius:10px;border:none;background:#1a7a4a;color:#fff;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
           <span>🏦</span> <span><b>Scarica via Enable Banking</b></span>
         </button>
         <select onchange="window._ebDays=parseInt(this.value)" style="padding:9px;border-radius:8px;border:1.5px solid #e4e3dd;font-size:12px;background:#f5f4f0;color:#1a1a1a;cursor:pointer">
@@ -6095,10 +5547,9 @@ document.getElementById('fineco-xls-input').addEventListener('change', function(
           <option value="7">7 gg</option>
           <option value="15">15 gg</option>
           <option value="30" selected>1 mese</option>
-          <option value="88">3 mesi</option>
         </select>
       </div>
-      <button id="fcc-xlsx-btn" onclick="document.getElementById('fineco-cc-overlay').style.display='none';selectAccount('ACC-FINECO-CC','Fineco CC');setTimeout(openImportMovimentiCC,300)" style="width:100%;padding:11px;border-radius:10px;border:1.5px solid var(--border);background:none;font-size:13px;font-weight:600;cursor:pointer;margin-bottom:12px;display:flex;align-items:center;gap:8px">
+      <button onclick="document.getElementById('fineco-cc-overlay').style.display='none';selectAccount('ACC-FINECO-CC','Fineco CC');setTimeout(openImportMovimentiCC,300)" style="width:100%;padding:11px;border-radius:10px;border:1.5px solid var(--border);background:none;font-size:13px;font-weight:600;cursor:pointer;margin-bottom:12px;display:flex;align-items:center;gap:8px">
         <span>📂</span> <span>Importa da file XLSX</span>
       </button>
       <div id="eb-log-fineco" style="background:#1a1a1a;border-radius:8px;padding:10px 12px;min-height:60px;max-height:120px;overflow-y:auto;font-family:monospace;font-size:11px;margin-bottom:12px;color:#888;line-height:1.6"><span style="color:#555">In attesa di scaricare...</span></div>
