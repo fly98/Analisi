@@ -1238,16 +1238,29 @@ async function buildIComptaTx(s) {
     }
     return null;
   };
+  // Disambigua per categoria padre: esistono piu' categorie con lo stesso nome
+  // (es. "Weekend"), quella giusta e' figlia di "Spese Interno1".
+  const findCatUnder = (name, parentName) => {
+    const cats = meta.categories || [];
+    const parent = cats.find(c => c && c.name === parentName);
+    if (parent) {
+      let c = cats.find(x => x && x.parentId === parent.id && x.name === name);
+      if (c) return c.id;
+      c = cats.find(x => x && x.parentId === parent.id && typeof x.name==='string' && x.name.toLowerCase() === name.toLowerCase());
+      if (c) return c.id;
+    }
+    return findCat(name); // fallback: primo match per nome
+  };
 
   const accInterno = findAcc('InternoUno');
   const accBabbo   = findAcc('Babbo');
   if (!accInterno) throw new Error('Conto InternoUno non trovato');
 
   const catClienti     = '600FE5ED-A4B4-4876-A785-33627FFF0FDC';
-  const catWeekend     = findCat('Weekend')     || findCat('weekend');
-  const catFerie       = findCat('Ferie')       || findCat('ferie');
+  const catWeekend     = findCatUnder('Weekend', 'Spese Interno1');
+  const catFerie       = findCatUnder('Ferie', 'Spese Interno1');
   const catPulizia     = '4DE42F08-CBBE-43B4-8D4B-6C8FAB4D142F';
-  const catManutenzione= findCat('Manutenzione')|| findCat('manutenzione');
+  const catManutenzione= findCatUnder('Manutenzione', 'Spese Interno1');
 
   const dataSal = s.dataSalvataggio ? new Date(s.dataSalvataggio) : new Date();
   const dateISO = dataSal.toISOString().slice(0,10);
