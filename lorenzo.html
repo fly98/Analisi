@@ -1216,10 +1216,8 @@ function renderFoodMarkers(list){
     foodMarkers.push(m);
     coords.push([f[6], f[7]]);
   });
-  if(coords.length){
-    foodMapBounds = coords;
-    if(foodMap) foodMap.fitBounds(coords, {padding:[36,36]});
-  }
+  if(coords.length) foodMapBounds = coords;
+  // Vista fissa su casa (vedi nota in initMap): niente fitBounds automatico sui filtri.
 }
 function zoomToFoodPoi(lat, lon){ if(foodMap) foodMap.flyTo([lat, lon], 18, {duration:0.6}); }
 function zoomFoodOverview(){ if(foodMap && foodMapBounds) foodMap.flyToBounds(foodMapBounds, {padding:[36,36], duration:0.6}); }
@@ -1311,7 +1309,9 @@ function initMap(){
     coords.push([lat, lon]);
   });
   mapBounds = coords;
-  map.fitBounds(coords, {padding:[36,36]});
+  // Vista iniziale fissa e centrata su casa (niente fitBounds automatico: con punti lontani come
+  // l'ospedale lo zoom calcolato risultava troppo ampio). "Mostra tutti" resta disponibile a parte.
+  map.setView(home, 16);
 }
 function zoomToPoi(lat, lon){ if(map) map.flyTo([lat, lon], 18, {duration:0.6}); }
 function zoomOverview(){ if(map && mapBounds) map.flyToBounds(mapBounds, {padding:[36,36], duration:0.6}); }
