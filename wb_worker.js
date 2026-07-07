@@ -30,8 +30,8 @@ function todayStr() {
 const KNOWLEDGE = {
   campaldino: `
 STRUTTURA: InternoUno — Via Campaldino 6, Roma (zona Piazza Bologna / San Lorenzo).
-CHECK-IN: dalle 13:00 (dalle 8:00 è comunque possibile passare per registrarsi, lasciare i bagagli e ritirare le chiavi; la camera sarà accessibile una volta pulita e pronta dopo la partenza dell'ospite precedente). CHECK-OUT: entro le 10:00; se non trovi lo staff lascia la chiave sul bancone reception.
-DEPOSITO BAGAGLI: gratuito il giorno della partenza, nell'armadio a specchio a destra della reception; ritiro in giornata, lasciare poi la chiave sul bancone. Non è custodito: evitare oggetti di valore.
+CHECK-IN: dalle 13:00 (dalle 8:00 è comunque possibile passare per registrarsi e lasciare i bagagli nell'armadio a specchio a destra della reception, ritirando le chiavi; porta con te le chiavi quando esci e lasciale sul bancone reception solo al ritorno. La camera sarà accessibile una volta pulita e pronta dopo la partenza dell'ospite precedente). CHECK-OUT: entro le 10:00; se non trovi lo staff lascia la chiave sul bancone reception.
+DEPOSITO BAGAGLI: gratuito anche il giorno della partenza, stesso armadio a specchio a destra della reception: porta con te le chiavi quando esci, e lasciale sul bancone reception solo al ritorno, dopo aver ripreso i bagagli. Non è custodito: siamo comunque una struttura piccola e molto sicura, ma consigliamo di portare con sé gli oggetti di valore.
 PARCHEGGIO: Via Campaldino e Via Cupa sono strade condominiali private, gratuito se c'è posto. Alternativa: Garage Di Nezza sotto la struttura, ingresso da Via Cupa, tel +39 320 8667617, 25€/giorno per vetture standard (tariffa maggiore per auto di grande valore o dimensioni importanti), Lun-Sab 6:30-01:00, Dom 7:00-11:00 e 19:00-23:00.
 METRO: Piazza Bologna, Linea B, 400m/10 min a piedi. Termini 3 fermate, Colosseo 5 fermate. Orari dom-gio 5:30-23:30, ven-sab 5:30-01:30.
 BIGLIETTI ATAC: 1,50€ (100 min), 7€ (24h), 12,50€ (48h), 18€ (72h). In vendita in metro, tabacchi, edicole, o app TicketAppy.
@@ -50,8 +50,8 @@ CONTATTO DIRETTO: WhatsApp +39 392 2999914 per qualsiasi necessità non coperta 
   lorenzo: `
 STRUTTURA: InternoUno Deluxe — Via Lorenzo il Magnifico 158, Roma (zona Tiburtina).
 A pochi passi dalla Stazione Tiburtina (metro Linea B + treni Alta Velocità e regionali). Camere con bagno privato, angolo cottura, aria condizionata; la tua camera è dotata di vasca idromassaggio (se non parte, controlla l'interruttore vicino alla luce del bagno).
-CHECK-IN: dalle 13:00 (dalle 8:00 è comunque possibile passare per lasciare i bagagli e ritirare le chiavi; la camera sarà disponibile solo dopo la pulizia e la partenza del cliente precedente). CHECK-OUT: entro le 10:00; se non trovi lo staff lascia la chiave sul bancone reception.
-DEPOSITO BAGAGLI: al check-out chiedi allo staff, ti indicheranno dove lasciarli in sicurezza per la giornata.
+CHECK-IN: dalle 13:00 (dalle 8:00 è comunque possibile passare per lasciare i bagagli nello stanzino con la porta bianca a destra della reception, ritirando le chiavi; porta con te le chiavi quando esci e lasciale sul bancone reception solo al ritorno. La camera sarà disponibile solo dopo la pulizia e la partenza del cliente precedente). CHECK-OUT: entro le 10:00; se non trovi lo staff lascia la chiave sul bancone reception.
+DEPOSITO BAGAGLI: gratuito anche il giorno della partenza, stesso stanzino con la porta bianca a destra della reception: porta con te le chiavi quando esci, e lasciale sul bancone reception solo al ritorno, dopo aver ripreso i bagagli. Non è custodito: siamo comunque una struttura piccola e molto sicura, ma consigliamo di portare con sé gli oggetti di valore.
 PARCHEGGIO: Garage Bologna, Via Lorenzo il Magnifico 83 (a pochi passi), tel +39 06 4424 2664, 25€/giorno per vetture standard (tariffa maggiore per auto di grande valore o dimensioni importanti), Lun-Sab 6:00-01:00, Dom 6:00-10:00 e 19:00-01:00. C'è un garage più vicino a destra dell'entrata ma con tariffe molto più alte.
 METRO: Stazione Tiburtina, Linea B, a soli 10 metri (meno di 1 minuto a piedi, davanti al nostro cancello) — anche stazione ferroviaria Alta Velocità e regionali. Termini 4 fermate, Colosseo 6 fermate.
 BIGLIETTI ATAC: 1,50€ (100 min), 7€ (24h), 12,50€ (48h), 18€ (72h). In vendita in metro, tabacchi, edicole, o app TicketAppy.
