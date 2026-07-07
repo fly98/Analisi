@@ -606,6 +606,30 @@ export default {
       const url = new URL(request.url);
       const action = url.searchParams.get("action");
 
+      if (action === "dbgCancMail") {
+        const td = await getGmailAccessToken(env);
+        if (!td.access_token) return new Response(JSON.stringify({ error: "no token" }), { headers: { ...CORS, "Content-Type": "application/json" } });
+        const q = encodeURIComponent("subject:(annullata OR annullamento) newer_than:90d");
+        const sr = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${q}&maxResults=5`, { headers: { Authorization: `Bearer ${td.access_token}` } });
+        const sd = await sr.json();
+        const out = [];
+        for (const m of (sd.messages || []).slice(0, 3)) {
+          const mr = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${m.id}?format=full`, { headers: { Authorization: `Bearer ${td.access_token}` } });
+          const md = await mr.json();
+          function plain(part) {
+            if (!part) return "";
+            if (part.mimeType === "text/plain" && part.body && part.body.data) return atob(part.body.data.replace(/-/g, "+").replace(/_/g, "/"));
+            if (part.parts) { for (const s of part.parts) { const t = plain(s); if (t) return t; } }
+            return "";
+          }
+          const subj = (md.payload.headers.find(h => h.name === "Subject") || {}).value || "";
+          let body = plain(md.payload);
+          if (!body && md.payload.body && md.payload.body.data) body = atob(md.payload.body.data.replace(/-/g, "+").replace(/_/g, "/"));
+          out.push({ internalDate: md.internalDate, subject: subj, bodyPlain: body.slice(0, 2000) });
+        }
+        return new Response(JSON.stringify({ total: (sd.messages || []).length, samples: out }, null, 2), { headers: { ...CORS, "Content-Type": "application/json" } });
+      }
+
       // Avvio re-autorizzazione Gmail: apri questo URL nel browser una sola volta
       if (action === "authStart") {
         const p = new URLSearchParams({
