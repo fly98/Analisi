@@ -1289,11 +1289,12 @@ function cityTaxDi(c){
   return adulti*Math.min(notti,10)*5;
 }
 // Sconto solo sulla tariffa camera; tassa piena aggiunta dopo; totale arrotondato all'euro.
-// tariffa e tassa arrivano già separate dalla mail (c.rate, c.city_tax).
+// Base = totale − tassa (etichette affidabili nella mail), più robusto della riga tariffa.
 function prezziDi(c){
-  const base=(c.rate!=null&&c.rate>0)?c.rate:(c.total||0);
   const tax=(c.city_tax!=null)?c.city_tax:cityTaxDi(c);
-  const origTotal=Math.round(c.total||(base+tax));
+  const total=c.total||0;
+  const base=Math.max(0,total-tax);
+  const origTotal=Math.round(total||(base+tax));
   const finalTotal=Math.round(base*(1-c.sconto/100)+tax);
   return {base, tax, origTotal, finalTotal};
 }
