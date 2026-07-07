@@ -1111,6 +1111,26 @@ export default {
           }
         }
         out.sort((a, b) => (a.checkin || "").localeCompare(b.checkin || ""));
+        // DEBUG temporaneo: espone i campi grezzi della prima annullata
+        if (url.searchParams.get("debug") === "1") {
+          let raw = null;
+          for (const batch of fetched) {
+            for (const b of batch) {
+              const s = (b.status || "").toLowerCase();
+              if (s === "cancelled" || s === "canceled") { raw = b; break; }
+            }
+            if (raw) break;
+          }
+          const dateLike = {};
+          if (raw) for (const k of Object.keys(raw)) {
+            if (/date|cancel|created|updated|_at|time/i.test(k)) dateLike[k] = raw[k];
+          }
+          return new Response(JSON.stringify({
+            keys: raw ? Object.keys(raw) : [],
+            dateLike,
+            bookerKeys: raw && raw.booker ? Object.keys(raw.booker) : [],
+          }, null, 2), { headers: { ...CORS, "Content-Type": "application/json" } });
+        }
         return new Response(JSON.stringify({ from, to, count: out.length, cancellations: out }), {
           headers: { ...CORS, "Content-Type": "application/json" }
         });
