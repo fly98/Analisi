@@ -1,6 +1,45 @@
 {
   "sessioni": [
     {
+      "id": 1783433673914,
+      "dataSalvataggio": "2026-07-07T14:14:33.914Z",
+      "periodo": "24/06/2026 - 07/07/2026",
+      "periodoWk": "24/06/2026 - 07/07/2026",
+      "cashIds": [
+        "06/07/2026|Jana Vrbova|50",
+        "06/07/2026|Romans Aleksejevs|70",
+        "05/07/2026|Erika Franceschini|10",
+        "01/07/2026|Antonio Nirta|90",
+        "01/07/2026|Vytautas Kaminskas|30",
+        "30/06/2026|Stefano Paparelli|10",
+        "28/06/2026|Alberto Felici|80",
+        "25/06/2026|Francesco Falzetta|20",
+        "25/06/2026|Sofia Pollano|10",
+        "24/06/2026|Deborah Costantino|165.1"
+      ],
+      "cash": 535.1,
+      "stripe": 0,
+      "totContanti": 535.1,
+      "wkTot": 240,
+      "wkN": 4,
+      "wkDateSel": [
+        "27/06/2026",
+        "28/06/2026",
+        "04/07/2026",
+        "05/07/2026"
+      ],
+      "sp": 129,
+      "man": 0,
+      "bab": 0,
+      "ferie": 60,
+      "stip": 200,
+      "spTot": 129,
+      "daMe": 629,
+      "saldo": -93.89999999999998,
+      "ferieDal": null,
+      "ferieAl": null
+    },
+    {
       "id": 1782224389815,
       "dataSalvataggio": "2026-06-23T14:19:49.815Z",
       "periodo": "04/06/2026 - 23/06/2026",
@@ -127,6 +166,5 @@
       "daMe": 1157,
       "saldo": -185.92
     }
-  ],
-  "sha": "0acc21fd8a1d31a417648978f80dead60e149a74"
+  ]
 }
