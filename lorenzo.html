@@ -1268,12 +1268,28 @@ async function loadDynamic(){
 }
 
 /* ================= TRACKING ================= */
+// ID anonimo persistente per dispositivo: nessun dato personale, serve solo a contare visitatori unici
+function getOrCreateSid(){
+  let sid = localStorage.getItem('wb_sid');
+  if(!sid){
+    sid = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now()+'-'+Math.random().toString(36).slice(2));
+    localStorage.setItem('wb_sid', sid);
+  }
+  return sid;
+}
+// esclusione test dalle statistiche: apri con ?notrack=1 una volta per disattivare su questo dispositivo (resta memorizzato); ?notrack=0 per riattivare
+(function(){
+  const p = new URLSearchParams(location.search).get('notrack');
+  if(p === '1') localStorage.setItem('wb_notrack', '1');
+  if(p === '0') localStorage.removeItem('wb_notrack');
+})();
 function trackEvent(event, section){
+  if(localStorage.getItem('wb_notrack') === '1') return;
   try{
     fetch(`${CFG.api}/wb/${CFG.slug}/track`, {
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({event, section, lang}),
+      body: JSON.stringify({event, section, lang, sid: getOrCreateSid()}),
       keepalive:true
     }).catch(()=>{});
   }catch(e){/* mai bloccare l'esperienza per un ping di analytics */}
