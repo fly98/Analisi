@@ -1228,7 +1228,7 @@ let flytourTours = [];
 function renderTours(){
   $('#tours').innerHTML = flytourTours.map(t => {
     return `<a class="card poi" href="${t.url}" target="_blank">
-      <div class="top"><h3>🎧 ${t.title[lang] || t.title.en}</h3><span class="badge">GPS</span></div>
+      <div class="top"><h3>🎧 ${t.title[lang] || t.title.en}</h3>${t.gps === false ? '' : '<span class="badge">GPS</span>'}</div>
       <div class="desc">${t.desc[lang] || t.desc.en}</div>
       <div class="addr" style="margin-top:6px;color:var(--orange);font-weight:700">▶ ${T().tour_cta}</div></a>`;
   }).join('') + `<a class="card poi" href="${CFG.flytourAll}" target="_blank">
