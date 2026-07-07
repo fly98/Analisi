@@ -172,6 +172,7 @@
   .canc-badge.lm{color:#1d1d1f;background:#fff;border:2px solid var(--line);}
   .canc-meta{font-size:12.5px;color:var(--muted);margin-bottom:12px;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;}
   .canc-meta b{color:var(--sage);font-weight:600;}
+  .canc-disdetta{display:inline-block;font-size:12px;font-weight:700;color:var(--terra);background:#fdf0ec;border-radius:7px;padding:4px 10px;margin-bottom:10px;}
   .canc-prezzo{font-size:14px;margin-bottom:12px;color:var(--ink);}
   .canc-prezzo .old{color:var(--muted);text-decoration:line-through;margin-right:8px;}
   .canc-prezzo .new{font-weight:700;color:var(--sage);font-size:16px;}
@@ -1248,9 +1249,9 @@ function cancDataLoc(iso,lng){
 
 function apriCancellazioni(){
   const oggi=new Date();
-  const piu90=new Date(); piu90.setDate(piu90.getDate()+90);
-  document.getElementById("cancFrom").value=cancIso(oggi);
-  document.getElementById("cancTo").value=cancIso(piu90);
+  const menoSette=new Date(); menoSette.setDate(menoSette.getDate()-7);
+  document.getElementById("cancFrom").value=cancIso(menoSette);
+  document.getElementById("cancTo").value=cancIso(oggi);
   document.getElementById("cancResult").innerHTML="";
   document.getElementById("cancModal").classList.add("show");
   cercaCancellazioni();
@@ -1266,7 +1267,7 @@ async function cercaCancellazioni(){
   try{
     const data=await fetch(`${WORKER}/?action=cancellations&from=${from}&to=${to}`).then(r=>r.json());
     cancStore=(data.cancellations||[]).map((c,i)=>{
-      const lng=lingua(c.language,c.phone);
+      const lng=lingua(c.language||"",c.phone);
       return {...c, i, lng, msgLng:lng, sconto:15};
     });
     renderCanc();
@@ -1275,30 +1276,31 @@ async function cercaCancellazioni(){
   }
 }
 
-function propDiCanc(roomName){
-  if(CAMPALDINO[roomName]) return {key:"camp", name:"InternoUno", let:CAMPALDINO[roomName].let, col:CAMPALDINO[roomName].col, lm:false};
-  if(LORENZO[roomName]) return {key:"lor", name:"InternoUno Deluxe", let:LORENZO[roomName], col:"#3a3a3c", lm:true};
-  return {key:"?", name:"InternoUno", let:"·", col:"#86868b", lm:false};
+function propInfo(c){
+  if(c.property==="lor") return {name:"InternoUno Deluxe", badge:"L", col:"#3a3a3c", lm:true};
+  if(c.property==="camp") return {name:"InternoUno", badge:"C", col:"#c45a3a", lm:false};
+  return {name:"InternoUno", badge:"·", col:"#86868b", lm:false};
 }
 
-// Tassa di soggiorno: 5€ a persona a notte, max 10 notti (non scontabile)
+// Tassa di soggiorno: 5€ a persona a notte, max 10 notti (fallback se non nella mail)
 function cityTaxDi(c){
-  const notti=c.checkin&&c.checkout?Math.round((new Date(c.checkout)-new Date(c.checkin))/864e5):0;
-  const adulti=c.adults||1;
+  const notti=c.nights||(c.checkin&&c.checkout?Math.round((new Date(c.checkout)-new Date(c.checkin))/864e5):0);
+  const adulti=c.guests||1;
   return adulti*Math.min(notti,10)*5;
 }
-// Sconto solo sulla tariffa; tassa piena aggiunta dopo; totale arrotondato all'euro
+// Sconto solo sulla tariffa camera; tassa piena aggiunta dopo; totale arrotondato all'euro.
+// tariffa e tassa arrivano già separate dalla mail (c.rate, c.city_tax).
 function prezziDi(c){
-  const base=c.total||0;
-  const tax=cityTaxDi(c);
-  const origTotal=Math.round(base+tax);
+  const base=(c.rate!=null&&c.rate>0)?c.rate:(c.total||0);
+  const tax=(c.city_tax!=null)?c.city_tax:cityTaxDi(c);
+  const origTotal=Math.round(c.total||(base+tax));
   const finalTotal=Math.round(base*(1-c.sconto/100)+tax);
   return {base, tax, origTotal, finalTotal};
 }
 
 function testoRecupero(c,lngOverride){
   const lng=lngOverride||c.lng;
-  const p=propDiCanc(c.room_name);
+  const p=propInfo(c);
   const nome=(c.first_name||"").trim()||"";
   const dal=cancDataLoc(c.checkin,lng), al=cancDataLoc(c.checkout,lng);
   const {origTotal,finalTotal}=prezziDi(c);
@@ -1324,18 +1326,18 @@ function waLinkCanc(c,lngOverride){
 function renderCanc(){
   const res=document.getElementById("cancResult");
   if(!cancStore.length){res.innerHTML='<div class="disp-status">Nessuna cancellazione nel periodo selezionato. 🎉</div>';return;}
-  let html=`<div style="font-size:12px;color:var(--muted);margin-bottom:10px;">${cancStore.length} cancellazion${cancStore.length===1?'e':'i'} nel periodo</div>`;
+  let html=`<div style="font-size:12px;color:var(--muted);margin-bottom:10px;">${cancStore.length} cancellazion${cancStore.length===1?'e':'i'} · più recenti in alto</div>`;
   cancStore.forEach(c=>{
-    const p=propDiCanc(c.room_name);
+    const p=propInfo(c);
     const nome=(c.first_name+" "+c.last_name).trim()||"Ospite";
     const flag=FLAGS[c.lng]||"🌐";
-    const notti=c.checkin&&c.checkout?Math.round((new Date(c.checkout)-new Date(c.checkin))/864e5):0;
+    const notti=c.nights||0;
     const dal=cancDataLoc(c.checkin,"it"), al=cancDataLoc(c.checkout,"it");
-    const orig=Math.round(c.total);
-    const scont=Math.round(c.total*(1-c.sconto/100));
+    const disdetta=c.cancel_date?cancDataLoc(c.cancel_date,"it"):"—";
     const {origTotal,finalTotal}=prezziDi(c);
     const waOk=numeroValido(c.phone);
     const badgeCls=p.lm?"canc-badge lm":"canc-badge";
+    const chi=(c.cancelled_by||"").toLowerCase().includes("ospite")?"dall'ospite":(c.cancelled_by?("da "+c.cancelled_by.toLowerCase()):"");
     html+=`
     <div class="canc-card${c.sent?' sent':''}" id="canc-card-${c.i}" style="--accent:${p.col}">
       <div class="canc-top">
@@ -1343,9 +1345,11 @@ function renderCanc(){
           <div class="canc-name">${flag} ${nome}</div>
           <div class="canc-meta" style="margin-bottom:0">${badgeCanale(c.source)} <span>${p.name}</span></div>
         </div>
-        <div class="${badgeCls}" style="background:${p.lm?'#fff':p.col}">${p.let}</div>
+        <div class="${badgeCls}" style="background:${p.lm?'#fff':p.col}">${p.badge}</div>
       </div>
-      <div class="canc-meta"><b>${dal} → ${al}</b> · ${notti} nott${notti===1?'e':'i'} · ${c.adults} osp. · #${c.booking_id}</div>
+      <div class="canc-disdetta">🔄 Disdetta ${disdetta}${chi?` ${chi}`:""}</div>
+      <div class="canc-meta">${c.room_type?`<span>${c.room_type}</span> · `:""}<b>${dal} → ${al}</b> · ${notti} nott${notti===1?'e':'i'} · ${c.guests} osp.</div>
+      <div class="canc-meta" style="margin-top:-6px">#${c.booking_id}</div>
       <div class="canc-prezzo" id="canc-prezzo-${c.i}">
         <span class="old">${origTotal}€</span><span class="new">${finalTotal}€</span> <span style="color:var(--muted);font-size:12px">(-${c.sconto}% sulla tariffa · tassa incl.)</span>
       </div>
