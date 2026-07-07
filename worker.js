@@ -23,6 +23,104 @@ async function getGmailAccessToken(env) {
   return tokenResp.json();
 }
 
+// Decodifica base64url Gmail -> stringa UTF-8 corretta (evita mojibake su accenti/€)
+function b64UrlToUtf8(data) {
+  const std = (data || "").replace(/-/g, "+").replace(/_/g, "/");
+  const bin = atob(std);
+  const bytes = Uint8Array.from(bin, (c) => c.charCodeAt(0));
+  return new TextDecoder("utf-8").decode(bytes);
+}
+function gmailPlainText(part) {
+  if (!part) return "";
+  if (part.mimeType === "text/plain" && part.body && part.body.data) return b64UrlToUtf8(part.body.data);
+  if (part.parts) { for (const s of part.parts) { const t = gmailPlainText(s); if (t) return t; } }
+  return "";
+}
+const IT_MESI = { gennaio:1, febbraio:2, marzo:3, aprile:4, maggio:5, giugno:6, luglio:7, agosto:8, settembre:9, ottobre:10, novembre:11, dicembre:12 };
+function itDateToIso(str) {
+  if (!str) return "";
+  const m = str.match(/(\d{1,2})\s+(gennaio|febbraio|marzo|aprile|maggio|giugno|luglio|agosto|settembre|ottobre|novembre|dicembre)\s+(\d{4})/i);
+  if (!m) return "";
+  const d = String(m[1]).padStart(2, "0");
+  const mm = String(IT_MESI[m[2].toLowerCase()]).padStart(2, "0");
+  return `${m[3]}-${mm}-${d}`;
+}
+function numDaTesto(s) {
+  if (!s) return 0;
+  const m = s.replace(/\s/g, "").replace(/€|â¬|EUR/gi, "").match(/([\d.]*\d)(,\d+)?/);
+  if (!m) return 0;
+  const intero = (m[1] || "0").replace(/\./g, "");
+  const dec = m[2] ? m[2].replace(",", ".") : "";
+  return parseFloat(intero + dec) || 0;
+}
+// Parsa il corpo testuale di una mail di cancellazione Amenitiz
+function parseCancEmail(text) {
+  if (!text) return null;
+  const val = (label, stop) => {
+    // valore sulla/e riga/e dopo l'etichetta, fino alla prossima riga vuota o etichetta nota
+    const re = new RegExp(label + "\\s*\\r?\\n+([\\s\\S]*?)(?:\\r?\\n\\r?\\n|$)", "i");
+    const m = text.match(re);
+    return m ? m[1].replace(/\r/g, "").split("\n").join(" ").trim() : "";
+  };
+  const idM = text.match(/ID di prenotazione\s*\r?\n+\s*(\d+)/i) || text.match(/prenotazione\s+(\d{6,})/i);
+  const bookingId = idM ? idM[1].trim() : "";
+  if (!bookingId) return null;
+  const perLine = val("Prenotazione per");           // "5 notti, 1 camera"
+  const nottiM = perLine.match(/(\d+)\s*nott/i);
+  const arrivo = val("Data d'arrivo");
+  const partenza = val("Data di partenza");
+  const source = val("Provenienza");
+  const cancelledBy = val("Annullato da");
+  // Nome cliente: riga dopo "Informazioni cliente" (blocco isolato)
+  let nome = "";
+  const nm = text.match(/Informazioni cliente\s*\r?\n+([^\r\n]+)/i);
+  if (nm) nome = nm[1].trim();
+  const emailM = text.match(/Email\s+([^\s\r\n]+@[^\s\r\n]+)/i);
+  const telM = text.match(/Telefono\s+([+\d][^\r\n]*)/i);
+  const indM = text.match(/Indirizzo\s+([^\r\n]+)/i);
+  // Riga dettaglio camera (dopo "Dettagli prenotazione")
+  const detM = text.match(/Dettagli prenotazione\s*\r?\n+([\s\S]*?)\r?\n\r?\n/i);
+  const detRaw = detM ? detM[1].replace(/\r/g, "").split("\n").join(" ").replace(/\s+/g, " ").trim() : "";
+  const ospitiM = detRaw.match(/\((\d+)\s*osp/i);
+  // Proprietà dalla via / nome nel dettaglio
+  let property = "?";
+  if (/Lorenzo il Magnifico|InternoUno Deluxe/i.test(detRaw)) property = "lor";
+  else if (/Campaldino|InternoUno/i.test(detRaw)) property = "camp";
+  // Tipo camera = parte prima di " - InternoUno"
+  let roomType = detRaw.split(/\s*-\s*InternoUno/i)[0].trim();
+  roomType = roomType.replace(/\s*\(\d+\s*osp.*$/i, "").trim();
+  // Prezzi: tariffa camera (importo che precede "Tassa di soggiorno"), tassa, totale
+  const taxM = text.match(/Tassa di soggiorno\s*\r?\n+\s*([^\r\n]+)/i);
+  const totM = text.match(/Prezzo totale:?\s*\r?\n+\s*([^\r\n]+)/i);
+  // la tariffa è l'ultimo importo prima di "Tassa di soggiorno"
+  let rate = 0;
+  const beforeTax = text.split(/Tassa di soggiorno/i)[0];
+  const importi = beforeTax.match(/([\d.]*\d(?:,\d+)?)\s*(?:€|â¬)/g);
+  if (importi && importi.length) rate = numDaTesto(importi[importi.length - 1]);
+  const cityTax = taxM ? numDaTesto(taxM[1]) : 0;
+  const total = totM ? numDaTesto(totM[1]) : (rate + cityTax);
+  const parti = nome ? nome.split(/\s+/) : [];
+  const first_name = parti.slice(0, -1).join(" ") || parti[0] || "";
+  const last_name = parti.length > 1 ? parti[parti.length - 1] : "";
+  const country = indM ? (indM[1].replace(/[.,]/g, " ").trim().split(/\s+/).pop() || "") : "";
+  return {
+    booking_id: bookingId,
+    cancelled_by: cancelledBy,
+    first_name, last_name, full_name: nome,
+    email: emailM ? emailM[1].trim() : "",
+    phone: telM ? telM[1].trim() : "",
+    country,
+    checkin: itDateToIso(arrivo),
+    checkout: itDateToIso(partenza),
+    nights: nottiM ? parseInt(nottiM[1]) : 0,
+    guests: ospitiM ? parseInt(ospitiM[1]) : 0,
+    source: source || "",
+    property,
+    room_type: roomType,
+    rate, city_tax: cityTax, total,
+  };
+}
+
 async function cercaEmailBooking(bookingId, env) {
   try {
     function trovaTestoPlain(part) {
@@ -606,29 +704,6 @@ export default {
       const url = new URL(request.url);
       const action = url.searchParams.get("action");
 
-      if (action === "dbgCancMail") {
-        const td = await getGmailAccessToken(env);
-        if (!td.access_token) return new Response(JSON.stringify({ error: "no token" }), { headers: { ...CORS, "Content-Type": "application/json" } });
-        const q = encodeURIComponent("subject:(annullata OR annullamento) newer_than:90d");
-        const sr = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${q}&maxResults=5`, { headers: { Authorization: `Bearer ${td.access_token}` } });
-        const sd = await sr.json();
-        const out = [];
-        for (const m of (sd.messages || []).slice(0, 3)) {
-          const mr = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${m.id}?format=full`, { headers: { Authorization: `Bearer ${td.access_token}` } });
-          const md = await mr.json();
-          function plain(part) {
-            if (!part) return "";
-            if (part.mimeType === "text/plain" && part.body && part.body.data) return atob(part.body.data.replace(/-/g, "+").replace(/_/g, "/"));
-            if (part.parts) { for (const s of part.parts) { const t = plain(s); if (t) return t; } }
-            return "";
-          }
-          const subj = (md.payload.headers.find(h => h.name === "Subject") || {}).value || "";
-          let body = plain(md.payload);
-          if (!body && md.payload.body && md.payload.body.data) body = atob(md.payload.body.data.replace(/-/g, "+").replace(/_/g, "/"));
-          out.push({ internalDate: md.internalDate, subject: subj, bodyPlain: body.slice(0, 2000) });
-        }
-        return new Response(JSON.stringify({ total: (sd.messages || []).length, samples: out }, null, 2), { headers: { ...CORS, "Content-Type": "application/json" } });
-      }
 
       // Avvio re-autorizzazione Gmail: apri questo URL nel browser una sola volta
       if (action === "authStart") {
@@ -1071,70 +1146,76 @@ export default {
         }), { headers: { ...CORS, "Content-Type": "application/json" } });
       }
 
-      // ===== CANCELLAZIONI: prenotazioni annullate in una finestra di check-in =====
-      // Nota: l'API Amenitiz non filtra per data di cancellazione, quindi filtriamo
-      // per data di CHECK-IN (dimensione recuperabile: interessano gli arrivi futuri).
-      // Entrambi gli endpoint /bookings/checkin restituiscono anche le annullate.
+      // ===== CANCELLAZIONI: lette dalle mail di notifica Amenitiz =====
+      // La mail contiene la DATA REALE di disdetta (timestamp) + tutti i dati.
+      // from/to = finestra sulla DATA DI CANCELLAZIONE (ISO YYYY-MM-DD).
       if (action === "cancellations") {
-        const from = url.searchParams.get("from"); // inizio finestra check-in
-        const to   = url.searchParams.get("to");   // fine finestra check-in
+        const from = url.searchParams.get("from");
+        const to   = url.searchParams.get("to");
         if (!from || !to) {
           return new Response(JSON.stringify({ error: "Parametri from/to mancanti" }), {
             status: 400, headers: { ...CORS, "Content-Type": "application/json" }
           });
         }
-        function getMonthChunks(f, t) {
-          const res = [], end = new Date(t);
-          let cur = new Date(f);
-          while (cur <= end) {
-            const y = cur.getFullYear(), m = cur.getMonth();
-            const s = new Date(y, m, 1);
-            const e = new Date(y, m + 1, 0);
-            const fmt = (d) => d.toISOString().slice(0, 10);
-            res.push({ from: fmt(s < new Date(f) ? new Date(f) : s), to: fmt(e > end ? end : e) });
-            cur = new Date(y, m + 1, 1);
-          }
-          return res;
+        const td = await getGmailAccessToken(env);
+        if (!td.access_token) {
+          return new Response(JSON.stringify({ error: "Gmail non autorizzato" }), {
+            status: 502, headers: { ...CORS, "Content-Type": "application/json" }
+          });
         }
-        const chunks = getMonthChunks(from, to);
-        const fetched = await Promise.all(chunks.map(
-          (c) => amenitizGet(`/bookings/checkin?from=${c.from}&to=${c.to}&hotel_id=${HOTEL_UUID}`, env)
-            .then(async (r) => { const d = await r.json(); return Array.isArray(d) ? d : []; })
-            .catch(() => [])
-        ));
+        const gd = (iso) => iso.replace(/-/g, "/"); // YYYY/MM/DD per Gmail
+        const beforeD = new Date(to + "T00:00:00Z"); beforeD.setUTCDate(beforeD.getUTCDate() + 1);
+        const beforeIso = beforeD.toISOString().slice(0, 10);
+        const q = encodeURIComponent(`subject:(annullata OR annullamento) after:${gd(from)} before:${gd(beforeIso)}`);
+
+        // Raccogli gli ID messaggio (con paginazione, cap di sicurezza)
+        const msgIds = [];
+        let pageToken = "";
+        for (let p = 0; p < 5; p++) {
+          const listResp = await fetch(
+            `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${q}&maxResults=100${pageToken ? "&pageToken=" + pageToken : ""}`,
+            { headers: { Authorization: `Bearer ${td.access_token}` } }
+          );
+          const ld = await listResp.json();
+          (ld.messages || []).forEach((m) => msgIds.push(m.id));
+          if (!ld.nextPageToken) break;
+          pageToken = ld.nextPageToken;
+        }
+
+        // Scarica e parsa (in parallelo a blocchi)
+        const results = [];
+        const chunk = 12;
+        for (let i = 0; i < msgIds.length; i += chunk) {
+          const slice = msgIds.slice(i, i + chunk);
+          const parts = await Promise.all(slice.map(async (id) => {
+            try {
+              const mr = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${id}?format=full`, { headers: { Authorization: `Bearer ${td.access_token}` } });
+              const md = await mr.json();
+              let body = gmailPlainText(md.payload);
+              if (!body && md.payload && md.payload.body && md.payload.body.data) body = b64UrlToUtf8(md.payload.body.data);
+              const parsed = parseCancEmail(body);
+              if (!parsed) return null;
+              const ts = parseInt(md.internalDate) || 0;
+              parsed.cancel_ts = ts;
+              parsed.cancel_date = new Date(ts).toISOString().slice(0, 10);
+              return parsed;
+            } catch (e) { return null; }
+          }));
+          parts.forEach((p) => { if (p) results.push(p); });
+        }
+
+        // Dedup per booking_id tenendo la disdetta più recente
+        results.sort((a, b) => b.cancel_ts - a.cancel_ts);
         const seen = new Set();
         const out = [];
-        for (const batch of fetched) {
-          for (const b of batch) {
-            const s = (b.status || "").toLowerCase();
-            if (s !== "cancelled" && s !== "canceled") continue;
-            if (seen.has(b.booking_id)) continue;
-            seen.add(b.booking_id);
-            const booker = b.booker || {};
-            const guest  = (b.guests && b.guests[0]) || {};
-            const room   = (b.rooms && b.rooms[0]) || {};
-            const bid    = b.booking_id;
-            const sentRaw = await env.ARRIVI_KV.get(`cancel_sent_${bid}`);
-            out.push({
-              booking_id: bid,
-              status: s,
-              first_name: (booker.first_name || guest.first_name || "").trim(),
-              last_name:  (booker.last_name  || guest.last_name  || "").trim(),
-              email: booker.email || "",
-              phone: booker.phone || "",
-              language: booker.language || "",
-              checkin: b.checkin || "",
-              checkout: b.checkout || "",
-              adults: b.adults || 0,
-              room_name: room.individual_room_name || "",
-              source: b.source || "",
-              total: parseFloat(b.total_amount_after_tax) || 0,
-              sent: !!sentRaw,
-              sent_at: sentRaw || null,
-            });
-          }
+        for (const r of results) {
+          if (seen.has(r.booking_id)) continue;
+          seen.add(r.booking_id);
+          const sentRaw = await env.ARRIVI_KV.get(`cancel_sent_${r.booking_id}`);
+          r.sent = !!sentRaw;
+          r.sent_at = sentRaw || null;
+          out.push(r);
         }
-        out.sort((a, b) => (a.checkin || "").localeCompare(b.checkin || ""));
         return new Response(JSON.stringify({ from, to, count: out.length, cancellations: out }), {
           headers: { ...CORS, "Content-Type": "application/json" }
         });
