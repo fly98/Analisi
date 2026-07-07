@@ -94,8 +94,8 @@
 
 
   /* ====== DISPONIBILITÀ & PREZZI ====== */
-  .fab-row{display:flex;gap:10px;justify-content:center;margin:12px auto 0;padding:0 16px;max-width:400px;}
-  .disp-fab{flex:1;background:#e0e0e3;color:#3a3a3c;border:none;border-radius:10px;padding:9px 20px;font-size:13px;font-weight:600;font-family:var(--sysfont);cursor:pointer;letter-spacing:0.01em;}
+  .fab-row{display:flex;gap:7px;justify-content:center;margin:12px auto 0;padding:0 14px;max-width:480px;}
+  .disp-fab{flex:1;background:#e0e0e3;color:#3a3a3c;border:none;border-radius:10px;padding:9px 8px;font-size:12px;font-weight:600;font-family:var(--sysfont);cursor:pointer;letter-spacing:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .disp-fab.active{background:var(--sage);color:#fff;}
   .disp-fab:active{filter:brightness(0.92);}
   .disp-fab:active{filter:brightness(0.93);}
@@ -160,6 +160,29 @@
   .orario-actions button{flex:1;border:none;border-radius:10px;font-weight:600;font-size:15px;padding:12px;cursor:pointer;font-family:var(--sysfont);}
   .altri-ospiti{font-size:12px;color:var(--muted);margin:4px 0 6px;padding:4px 8px;background:var(--paper);border-radius:7px;}
   .nota-preview{font-size:11.5px;color:var(--muted);margin-top:8px;padding:6px 10px;background:var(--paper);border-radius:8px;border-left:3px solid var(--terra);line-height:1.4;word-break:break-word;}
+  /* ====== CANCELLAZIONI / RECUPERI ====== */
+  .canc-periodo{display:flex;gap:8px;align-items:center;margin-bottom:14px;flex-wrap:wrap;}
+  .canc-periodo input[type=date]{flex:1;min-width:130px;font-family:var(--sysfont);font-size:15px;padding:11px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);}
+  .canc-card{background:var(--paper);border-radius:16px;padding:16px 16px 14px;margin-bottom:12px;position:relative;overflow:hidden;transition:opacity 0.2s;}
+  .canc-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--accent,var(--terra));}
+  .canc-card.sent{opacity:0.5;}
+  .canc-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:6px;}
+  .canc-name{font-size:18px;font-weight:600;letter-spacing:-0.01em;}
+  .canc-badge{flex-shrink:0;font-weight:700;font-size:15px;color:#fff;min-width:34px;height:34px;padding:0 8px;border-radius:10px;display:flex;align-items:center;justify-content:center;}
+  .canc-badge.lm{color:#1d1d1f;background:#fff;border:2px solid var(--line);}
+  .canc-meta{font-size:12.5px;color:var(--muted);margin-bottom:12px;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;}
+  .canc-meta b{color:var(--sage);font-weight:600;}
+  .canc-prezzo{font-size:14px;margin-bottom:12px;color:var(--ink);}
+  .canc-prezzo .old{color:var(--muted);text-decoration:line-through;margin-right:8px;}
+  .canc-prezzo .new{font-weight:700;color:var(--sage);font-size:16px;}
+  .canc-sconto-row{display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+  .canc-sconto-row label{font-size:13px;color:var(--muted);font-weight:600;}
+  .canc-sconto-row input{width:64px;font-family:var(--sysfont);font-size:15px;padding:8px 10px;border:1.5px solid var(--line);border-radius:9px;background:var(--card);color:var(--ink);text-align:center;font-weight:700;}
+  .canc-actions{display:flex;gap:7px;flex-wrap:nowrap;}
+  .canc-check{display:flex;align-items:center;gap:7px;margin-top:11px;padding-top:11px;border-top:1px solid var(--line);font-size:13px;color:var(--muted);font-weight:600;cursor:pointer;user-select:none;}
+  .canc-check input{width:19px;height:19px;accent-color:var(--sage);cursor:pointer;}
+  .canc-check.done{color:var(--sage);}
+  .canc-nowa{flex:1;text-align:center;font-size:12px;color:var(--muted);padding:11px 6px;background:var(--card);border:1px dashed var(--line);border-radius:10px;}
   @media(prefers-reduced-motion:reduce){*{transition:none!important;}}
 </style>
 </head>
@@ -171,6 +194,7 @@
   <div class="fab-row">
     <button class="disp-fab" onclick="apriDisp()">📅 Prezzi</button>
     <button class="disp-fab" id="inCasaBtn" onclick="apriInCasa()">🏠 In casa</button>
+    <button class="disp-fab" onclick="apriCancellazioni()">🔄 Cancellazioni</button>
   </div>
 </header>
 
@@ -1209,6 +1233,208 @@ async function cercaDisp(){
   }
 }
 
+// ====== CANCELLAZIONI / RECUPERI ======
+let cancStore=[];
+const CANC_LOCALE={it:"it-IT",en:"en-GB",es:"es-ES",fr:"fr-FR",de:"de-DE",pt:"pt-PT",zh:"zh-CN"};
+
+function cancIso(d){return d.toISOString().slice(0,10);}
+function cancDataLoc(iso,lng){
+  if(!iso) return "";
+  const[y,m,d]=iso.split("-").map(Number);
+  const dt=new Date(y,m-1,d);
+  try{return new Intl.DateTimeFormat(CANC_LOCALE[lng]||"en-GB",{day:"numeric",month:"long"}).format(dt);}
+  catch(e){return `${d}/${m}`;}
+}
+
+function apriCancellazioni(){
+  const oggi=new Date();
+  const piu90=new Date(); piu90.setDate(piu90.getDate()+90);
+  document.getElementById("cancFrom").value=cancIso(oggi);
+  document.getElementById("cancTo").value=cancIso(piu90);
+  document.getElementById("cancResult").innerHTML="";
+  document.getElementById("cancModal").classList.add("show");
+  cercaCancellazioni();
+}
+function chiudiCancellazioni(){document.getElementById("cancModal").classList.remove("show");}
+
+async function cercaCancellazioni(){
+  const from=document.getElementById("cancFrom").value;
+  const to=document.getElementById("cancTo").value;
+  const res=document.getElementById("cancResult");
+  if(!from||!to){res.innerHTML='<div class="disp-status">Seleziona un periodo.</div>';return;}
+  res.innerHTML='<div class="disp-status">Cerco cancellazioni…</div>';
+  try{
+    const data=await fetch(`${WORKER}/?action=cancellations&from=${from}&to=${to}`).then(r=>r.json());
+    cancStore=(data.cancellations||[]).map((c,i)=>{
+      const lng=lingua(c.language,c.phone);
+      return {...c, i, lng, msgLng:lng, sconto:15};
+    });
+    renderCanc();
+  }catch(e){
+    res.innerHTML=`<div class="disp-status">Errore: ${e.message}</div>`;
+  }
+}
+
+function propDiCanc(roomName){
+  if(CAMPALDINO[roomName]) return {key:"camp", name:"InternoUno", let:CAMPALDINO[roomName].let, col:CAMPALDINO[roomName].col, lm:false};
+  if(LORENZO[roomName]) return {key:"lor", name:"InternoUno Deluxe", let:LORENZO[roomName], col:"#3a3a3c", lm:true};
+  return {key:"?", name:"InternoUno", let:"·", col:"#86868b", lm:false};
+}
+
+// Tassa di soggiorno: 5€ a persona a notte, max 10 notti (non scontabile)
+function cityTaxDi(c){
+  const notti=c.checkin&&c.checkout?Math.round((new Date(c.checkout)-new Date(c.checkin))/864e5):0;
+  const adulti=c.adults||1;
+  return adulti*Math.min(notti,10)*5;
+}
+// Sconto solo sulla tariffa; tassa piena aggiunta dopo; totale arrotondato all'euro
+function prezziDi(c){
+  const base=c.total||0;
+  const tax=cityTaxDi(c);
+  const origTotal=Math.round(base+tax);
+  const finalTotal=Math.round(base*(1-c.sconto/100)+tax);
+  return {base, tax, origTotal, finalTotal};
+}
+
+function testoRecupero(c,lngOverride){
+  const lng=lngOverride||c.lng;
+  const p=propDiCanc(c.room_name);
+  const nome=(c.first_name||"").trim()||"";
+  const dal=cancDataLoc(c.checkin,lng), al=cancDataLoc(c.checkout,lng);
+  const {origTotal,finalTotal}=prezziDi(c);
+  const s=c.sconto;
+  const T={
+   it:`Ciao ${nome},\n\nsiamo ${p.name} a Roma. Abbiamo visto che la tua prenotazione dal ${dal} al ${al} è stata annullata.\n\nCi farebbe piacere ospitarti comunque: se confermi direttamente con noi possiamo offrirti uno sconto del ${s}% sulla tariffa. Prezzo totale, tassa di soggiorno inclusa: ${origTotal}€ → ${finalTotal}€.\n\nSe ti interessa, rispondi a questo messaggio e ti invieremo un link di pagamento sicuro per confermare.\n\nA presto!\n${p.name} · Roma`,
+   en:`Hi ${nome},\n\nthis is ${p.name} in Rome. We saw that your booking from ${dal} to ${al} was cancelled.\n\nWe'd love to host you anyway: if you book directly with us we can offer you a ${s}% discount on the room rate. Total price, city tax included: ${origTotal}€ → ${finalTotal}€.\n\nIf you're interested, just reply to this message and we'll send you a secure payment link to confirm.\n\nHope to see you soon!\n${p.name} · Rome`,
+   es:`Hola ${nome},\n\nsomos ${p.name} en Roma. Hemos visto que su reserva del ${dal} al ${al} ha sido cancelada.\n\nNos encantaría recibirle igualmente: si confirma directamente con nosotros podemos ofrecerle un ${s}% de descuento sobre la tarifa. Precio total, tasa turística incluida: ${origTotal}€ → ${finalTotal}€.\n\nSi le interesa, responda a este mensaje y le enviaremos un enlace de pago seguro para confirmar.\n\n¡Hasta pronto!\n${p.name} · Roma`,
+   fr:`Bonjour ${nome},\n\nici ${p.name} à Rome. Nous avons vu que votre réservation du ${dal} au ${al} a été annulée.\n\nNous serions ravis de vous accueillir malgré tout : si vous réservez directement avec nous, nous pouvons vous offrir une réduction de ${s}% sur le tarif. Prix total, taxe de séjour incluse : ${origTotal}€ → ${finalTotal}€.\n\nSi cela vous intéresse, répondez à ce message et nous vous enverrons un lien de paiement sécurisé.\n\nÀ bientôt !\n${p.name} · Rome`,
+   de:`Hallo ${nome},\n\nhier ist ${p.name} in Rom. Wir haben gesehen, dass Ihre Buchung vom ${dal} bis ${al} storniert wurde.\n\nWir würden Sie trotzdem gerne bei uns begrüßen: Wenn Sie direkt bei uns buchen, können wir Ihnen ${s}% Rabatt auf den Zimmerpreis anbieten. Gesamtpreis inkl. Kurtaxe: ${origTotal}€ → ${finalTotal}€.\n\nBei Interesse antworten Sie einfach auf diese Nachricht und wir senden Ihnen einen sicheren Zahlungslink.\n\nBis bald!\n${p.name} · Rom`,
+   pt:`Olá ${nome},\n\naqui é ${p.name} em Roma. Vimos que a sua reserva de ${dal} a ${al} foi cancelada.\n\nGostaríamos muito de o receber na mesma: se confirmar diretamente connosco, podemos oferecer-lhe um desconto de ${s}% sobre a tarifa. Preço total, taxa turística incluída: ${origTotal}€ → ${finalTotal}€.\n\nSe tiver interesse, responda a esta mensagem e enviaremos um link de pagamento seguro.\n\nAté breve!\n${p.name} · Roma`,
+   zh:`您好 ${nome}，\n\n我们是罗马的 ${p.name}。我们注意到您从 ${dal} 到 ${al} 的预订已被取消。\n\n我们仍非常希望能接待您：如果您直接与我们预订，我们可以为您提供房费 ${s}% 的折扣。含城市税总价：${origTotal}€ → ${finalTotal}€。\n\n如果您有兴趣，请回复此消息，我们将向您发送安全付款链接以确认预订。\n\n期待您的光临！\n${p.name} · 罗马`
+  };
+  return T[lng]||T.en;
+}
+
+function waLinkCanc(c,lngOverride){
+  const testo=testoRecupero(c,lngOverride);
+  const num=(c.phone||"").replace(/\s/g,"").replace("+","");
+  return `whatsapp://send?phone=${num}&text=${encodeURIComponent(testo)}`;
+}
+
+function renderCanc(){
+  const res=document.getElementById("cancResult");
+  if(!cancStore.length){res.innerHTML='<div class="disp-status">Nessuna cancellazione nel periodo selezionato. 🎉</div>';return;}
+  let html=`<div style="font-size:12px;color:var(--muted);margin-bottom:10px;">${cancStore.length} cancellazion${cancStore.length===1?'e':'i'} nel periodo</div>`;
+  cancStore.forEach(c=>{
+    const p=propDiCanc(c.room_name);
+    const nome=(c.first_name+" "+c.last_name).trim()||"Ospite";
+    const flag=FLAGS[c.lng]||"🌐";
+    const notti=c.checkin&&c.checkout?Math.round((new Date(c.checkout)-new Date(c.checkin))/864e5):0;
+    const dal=cancDataLoc(c.checkin,"it"), al=cancDataLoc(c.checkout,"it");
+    const orig=Math.round(c.total);
+    const scont=Math.round(c.total*(1-c.sconto/100));
+    const {origTotal,finalTotal}=prezziDi(c);
+    const waOk=numeroValido(c.phone);
+    const badgeCls=p.lm?"canc-badge lm":"canc-badge";
+    html+=`
+    <div class="canc-card${c.sent?' sent':''}" id="canc-card-${c.i}" style="--accent:${p.col}">
+      <div class="canc-top">
+        <div>
+          <div class="canc-name">${flag} ${nome}</div>
+          <div class="canc-meta" style="margin-bottom:0">${badgeCanale(c.source)} <span>${p.name}</span></div>
+        </div>
+        <div class="${badgeCls}" style="background:${p.lm?'#fff':p.col}">${p.let}</div>
+      </div>
+      <div class="canc-meta"><b>${dal} → ${al}</b> · ${notti} nott${notti===1?'e':'i'} · ${c.adults} osp. · #${c.booking_id}</div>
+      <div class="canc-prezzo" id="canc-prezzo-${c.i}">
+        <span class="old">${origTotal}€</span><span class="new">${finalTotal}€</span> <span style="color:var(--muted);font-size:12px">(-${c.sconto}% sulla tariffa · tassa incl.)</span>
+      </div>
+      <div class="canc-sconto-row">
+        <label>Sconto %</label>
+        <input type="number" min="0" max="90" value="${c.sconto}" oninput="aggiornaSconto(${c.i}, this.value)">
+      </div>
+      <div class="canc-actions">
+        ${waOk?`<a class="wa-btn" id="canc-wa-${c.i}" href="${waLinkCanc(c)}">${waIcon}WhatsApp</a>`:`<div class="canc-nowa">Nessun numero valido</div>`}
+        <button class="msg-open-btn" onclick="apriMsgCanc(${c.i})">💬 Messaggio</button>
+      </div>
+      <label class="canc-check${c.sent?' done':''}" id="canc-check-lbl-${c.i}">
+        <input type="checkbox" ${c.sent?'checked':''} onchange="toggleSentCanc(${c.i}, this.checked)">
+        <span class="canc-check-txt">${c.sent?'Messaggio inviato ✓':'Segna come inviato'}</span>
+      </label>
+    </div>`;
+  });
+  res.innerHTML=html;
+}
+
+function aggiornaSconto(i,val){
+  const c=cancStore.find(x=>x.i===i); if(!c) return;
+  let s=parseInt(val); if(isNaN(s)) s=0; if(s<0)s=0; if(s>90)s=90;
+  c.sconto=s;
+  const {origTotal,finalTotal}=prezziDi(c);
+  const pz=document.getElementById("canc-prezzo-"+i);
+  if(pz) pz.innerHTML=`<span class="old">${origTotal}€</span><span class="new">${finalTotal}€</span> <span style="color:var(--muted);font-size:12px">(-${s}% sulla tariffa · tassa incl.)</span>`;
+  const wa=document.getElementById("canc-wa-"+i);
+  if(wa) wa.href=waLinkCanc(c);
+}
+
+async function toggleSentCanc(i,checked){
+  const c=cancStore.find(x=>x.i===i); if(!c) return;
+  c.sent=checked;
+  const card=document.getElementById("canc-card-"+i);
+  const lbl=document.getElementById("canc-check-lbl-"+i);
+  if(card) card.classList.toggle("sent",checked);
+  if(lbl){
+    lbl.classList.toggle("done",checked);
+    const txt=lbl.querySelector(".canc-check-txt");
+    if(txt) txt.textContent=checked?'Messaggio inviato ✓':'Segna come inviato';
+  }
+  try{ await fetch(`${WORKER}/?action=setCancelSent&booking_id=${encodeURIComponent(c.booking_id)}&sent=${checked}`); }catch(e){}
+}
+
+// ---- modale messaggio cancellazione (copia + lingua + email + WhatsApp) ----
+let cancMsgCurrent=null;
+function apriMsgCanc(i){
+  cancMsgCurrent=i;
+  const c=cancStore.find(x=>x.i===i);
+  if(c) c.msgLng=c.lng;
+  disegnaMsgCanc();
+  document.getElementById("cancMsgModal").classList.add("show");
+}
+function chiudiMsgCanc(){document.getElementById("cancMsgModal").classList.remove("show");}
+function cambiaLinguaCanc(lng){
+  const c=cancStore.find(x=>x.i===cancMsgCurrent);
+  if(c) c.msgLng=lng;
+  disegnaMsgCanc();
+}
+function disegnaMsgCanc(){
+  const c=cancStore.find(x=>x.i===cancMsgCurrent); if(!c) return;
+  const lng=c.msgLng||c.lng;
+  const testo=testoRecupero(c,lng);
+  const box=document.getElementById("cancMsgBox");
+  const testoEsc=testo.replace(/</g,"&lt;");
+  const nome=(c.first_name+" "+c.last_name).trim()||"ospite";
+  const haEmail=c.email && c.email.indexOf("@")>0;
+  const subject=encodeURIComponent("InternoUno — La tua prenotazione");
+  const mailto=haEmail?`mailto:${c.email}?subject=${subject}&body=${encodeURIComponent(testo)}`:"";
+  const waOk=numeroValido(c.phone);
+  const waLink=waOk?waLinkCanc(c,lng):"";
+  let langBtns='<div class="lang-row">';
+  LINGUE_SEL.forEach(([code,label])=>{ langBtns+=`<button class="lang-btn${code===lng?' active':''}" onclick="cambiaLinguaCanc('${code}')">${label}</button>`; });
+  langBtns+='</div>';
+  box.innerHTML=`
+    <h3>Messaggio per ${nome}</h3>
+    ${langBtns}
+    <div class="msg-box" style="margin:12px 0 14px"><button class="copy-btn" id="cancMsgCopyBtn">Copia</button>${testoEsc}</div>
+    <div class="modal-actions">
+      ${waOk?`<a class="wa-btn" href="${waLink}">${waIcon}WhatsApp</a>`:""}
+      ${haEmail?`<a class="m-email" href="${mailto}">✉️ Email</a>`:`<button class="m-email disabled" disabled>✉️ No email</button>`}
+      <button class="m-cancel" onclick="chiudiMsgCanc()">Chiudi</button>
+    </div>`;
+  document.getElementById("cancMsgCopyBtn").onclick=function(){
+    navigator.clipboard.writeText(testo).then(()=>{ this.textContent="Copiato ✓"; this.classList.add("done"); setTimeout(()=>{this.textContent="Copia";this.classList.remove("done");},2000); });
+  };
+}
+
 // avvio: mostra domani
 vaiA(1);
 </script>
@@ -1274,6 +1500,27 @@ vaiA(1);
     <div class="disp-result" id="dispResult"></div>
     <button class="btn sec" style="width:100%;margin-top:14px" onclick="chiudiDisp()">Chiudi</button>
   </div>
+</div>
+
+<!-- ====== MODALE CANCELLAZIONI / RECUPERI ====== -->
+<div class="disp-modal-bg" id="cancModal">
+  <div class="disp-sheet">
+    <h3>🔄 Cancellazioni</h3>
+    <p>Prenotazioni annullate per <b>data di arrivo</b>. Proponi uno sconto e recupera il cliente.</p>
+    <div class="canc-periodo">
+      <input type="date" id="cancFrom">
+      <span class="disp-sep">→</span>
+      <input type="date" id="cancTo">
+      <button class="btn" onclick="cercaCancellazioni()">Cerca</button>
+    </div>
+    <div class="disp-result" id="cancResult"></div>
+    <button class="btn sec" style="width:100%;margin-top:14px" onclick="chiudiCancellazioni()">Chiudi</button>
+  </div>
+</div>
+
+<!-- ====== MODALE MESSAGGIO CANCELLAZIONE ====== -->
+<div class="modal-bg" id="cancMsgModal">
+  <div class="modal" id="cancMsgBox"></div>
 </div>
 
 </body>
