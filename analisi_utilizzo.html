@@ -105,6 +105,9 @@ const NOMI_LINGUA = { it:"Italiano", en:"Inglese", es:"Spagnolo", fr:"Francese",
 const BANDIERE = { it:"🇮🇹", en:"🇬🇧", es:"🇪🇸", fr:"🇫🇷", de:"🇩🇪", pt:"🇵🇹", zh:"🇨🇳" };
 const NOMI_EVENTO = { view:"Aperture pagina", tab:"Cambi sezione", subtab:"Sotto-sezioni", wifi_open:"WiFi consultato", chat_msg:"Messaggi al concierge", lang:"Cambi lingua", tour_open:"Tour aperti", stop_view:"Tappe visualizzate", audio_play:"Audio riprodotti" };
 
+if (new URLSearchParams(location.search).get('reset') === '1') {
+  localStorage.removeItem('wb_admin_key');
+}
 let adminKey = localStorage.getItem('wb_admin_key') || '';
 let appAttiva = 'experience';
 let rangeGiorni = 14;
