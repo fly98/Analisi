@@ -170,7 +170,7 @@ export default {
           client_id: env.GMAIL_CLIENT_ID,
           redirect_uri: REDIRECT_URI,
           response_type: "code",
-          scope: "https://www.googleapis.com/auth/gmail.readonly",
+          scope: "https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send",
           access_type: "offline",
           prompt: "consent"
         });
