@@ -869,12 +869,10 @@ async function getStorico(){
   }catch(e){return{sessioni:[]};}
 }
 
-async function salva(){
-  if(!S.loaded){alert('Carica prima il report.');return;}
-  const btn=event.currentTarget; btn.textContent='⏳ Salvataggio...'; btn.disabled=true;
+// Core salvataggio storico (senza dipendenze da event/pulsante) — usato da salva() e dall'import
+async function _salvaStoricoCore(){
   const hist=_cache||await getStorico();
   const sessioni=hist.sessioni||[];
-
   // IDs selezionati da tracciare nello storico — formato: "DD/MM/YYYY|Nome Ospite|importo"
   const cashIds=[];
   document.querySelectorAll('#cash-tbody input[type=checkbox]:checked').forEach(cb=>{
@@ -885,7 +883,6 @@ async function salva(){
     const r=S.stripeRows[parseInt(cb.dataset.i)];
     cashIds.push((r.date?fmtDate(r.date):'?')+'|'+(r.cliente||'?')+'|'+r.importo);
   });
-
   const nuova={
     id:Date.now(),
     dataSalvataggio:new Date().toISOString(),
@@ -895,17 +892,22 @@ async function salva(){
     ...S.lastCalc
   };
   sessioni.unshift(nuova);
+  const r=await fetch(WORKER+'?action=saveStorico',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessioni})});
+  const d=await r.json();
+  if(d.error) throw new Error(d.error);
+  _cache={sessioni};
+  if(window.LEO_EMBED){try{parent.postMessage({type:'leo:saved'},'https://fly98.github.io');}catch(e){}}
+}
+
+async function salva(){
+  if(!S.loaded){alert('Carica prima il report.');return;}
+  const btn=event.currentTarget; btn.textContent='⏳ Salvataggio...'; btn.disabled=true;
   try{
-    const r=await fetch(WORKER+'?action=saveStorico',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessioni})});
-    const d=await r.json();
-    if(d.error) throw new Error(d.error);
-    _cache={sessioni};
-    if(window.LEO_EMBED){try{parent.postMessage({type:'leo:saved'},'https://fly98.github.io');}catch(e){}}
+    await _salvaStoricoCore();
     btn.textContent='✅ Salvato!';
     setTimeout(()=>{btn.textContent='💾 Salva in storico';btn.disabled=false;},2000);
   }catch(e){btn.textContent='💾 Salva in storico';btn.disabled=false;alert('Errore: '+e.message);}
 }
-
 async function loadStoTab(){
   document.getElementById('sto-load').classList.remove('hidden');
   document.getElementById('sto-list').innerHTML='';
@@ -1222,9 +1224,17 @@ async function buildIComptaTx(s) {
   const meta = await iComptaApi('GET', '/api/meta');
   const findAcc = name => (meta.accounts.find(a => a.name === name) || {}).id;
   const findCat = name => {
-    for (const g of (meta.categories || [])) {
-      const c = (g.categories || []).find(c => c.name === name);
-      if (c) return c.id;
+    const cats = meta.categories || [];
+    // meta.categories e' un array PIATTO di categorie {id,name,...}
+    let c = cats.find(x => x && x.name === name);
+    if (c) return c.id;
+    // fallback case-insensitive
+    c = cats.find(x => x && typeof x.name==='string' && x.name.toLowerCase() === name.toLowerCase());
+    if (c) return c.id;
+    // fallback eventuale struttura a gruppi {categories:[...]}
+    for (const g of cats) {
+      const cc = ((g && g.categories) || []).find(x => x && typeof x.name==='string' && x.name.toLowerCase() === name.toLowerCase());
+      if (cc) return cc.id;
     }
     return null;
   };
@@ -1273,26 +1283,28 @@ async function buildIComptaTx(s) {
 async function esportaICompta() {
   if (!S.loaded || !S.lastCalc) { alert('Calcola prima la liquidazione.'); return; }
   const fakeSession = {...S.lastCalc, dataSalvataggio: new Date().toISOString()};
-  await _doExportICompta(fakeSession);
+  await _doExportICompta(fakeSession, true);   // true = salva anche nello storico
 }
 
 async function esportaIComptaSto(idx) {
   const hist = _cache || {sessioni:[]};
   const s = hist.sessioni[idx];
   if (!s) return;
-  await _doExportICompta(s);
+  await _doExportICompta(s, false);            // gia' presente nello storico
 }
 
-async function _doExportICompta(s) {
+async function _doExportICompta(s, saveStorico) {
   const btn = event && event.currentTarget;
+  const origLabel = btn ? btn.textContent : '';
+  const reenable = () => { if (btn) { btn.disabled = false; btn.textContent = origLabel; } };
   if (btn) { btn.disabled = true; btn.textContent = '⏳...'; }
   try {
     const txs = await buildIComptaTx(s);
-    if (!txs.length) { alert('Nessuna voce da esportare.'); return; }
+    if (!txs.length) { alert('Nessuna voce da esportare.'); reenable(); return; }
 
     // Preview
     const lines = txs.map(t => (t.splits[0].amount>0?'+':'')+t.splits[0].amount.toFixed(2)+'€ '+t.name).join('\n');
-    if (!confirm('Importare su iCompta?\n\n'+lines+'\n\nConfermi?')) return;
+    if (!confirm('Importare su iCompta?\n\n'+lines+'\n\nConfermi?')) { reenable(); return; }
 
     // Crea TX
     let ok = 0;
@@ -1300,11 +1312,22 @@ async function _doExportICompta(s) {
       const r = await iComptaApi('POST', '/api/tx', {tx});
       if (r && r.id) ok++;
     }
-    alert('✅ '+ok+' transazioni importate su iCompta!\n\nRicarica iCompta per vederle.');
+
+    // Salvataggio storico automatico (solo per import fresco, non per re-import da storico)
+    if (saveStorico) {
+      try { await _salvaStoricoCore(); }
+      catch(e) { alert('⚠️ Transazioni importate ma salvataggio storico fallito: '+e.message); }
+    }
+
+    // Notifica iCompta: aggiorna conti e movimenti senza ricaricare la pagina
+    if (window.LEO_EMBED) { try { parent.postMessage({type:'leo:imported', count: ok}, 'https://fly98.github.io'); } catch(e){} }
+
+    // Successo: il pulsante RESTA disabilitato per impedire un doppio import
+    if (btn) { btn.textContent = '✅ Importato ('+ok+')'; }
+    else alert('✅ '+ok+' transazioni importate su iCompta!');
   } catch(e) {
     alert('Errore: '+e.message);
-  } finally {
-    if (btn) { btn.disabled = false; btn.textContent = '📲 iCompta'; }
+    reenable();
   }
 }
 </script>
