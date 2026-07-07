@@ -151,6 +151,7 @@ async function handleTrack(request, env, slug) {
   const event = (body.event || "").slice(0, 40);
   const section = (body.section || "").slice(0, 40);
   const lang = (body.lang || "").slice(0, 5);
+  const sid = (body.sid || "").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 40);
   if (!event) return json({ error: "event mancante" }, 400);
 
   const day = todayStr();
@@ -164,6 +165,8 @@ async function handleTrack(request, env, slug) {
     await incr(`wb:${slug}:day:${day}:evt:${event}`);
     if (section) await incr(`wb:${slug}:day:${day}:sec:${section}`);
     if (lang) await incr(`wb:${slug}:day:${day}:lang:${lang}`);
+    // marcatore di visitatore unico: una entry per sid al giorno, non incrementale (idempotente)
+    if (sid) await env.WB_KV.put(`wb:${slug}:day:${day}:visitor:${sid}`, "1", { expirationTtl: 60 * 60 * 24 * 120 });
   } catch (e) { /* limite KV giornaliero o altro errore: non deve mai rompere la pagina dell'ospite */ }
 
   return json({ ok: true });
@@ -407,7 +410,8 @@ async function handleStats(request, env, slug, url) {
   if (!env.WB_ADMIN_KEY || key !== env.WB_ADMIN_KEY) return json({ error: "non autorizzato" }, 401);
 
   const days = Math.min(parseInt(url.searchParams.get("days") || "14", 10), 90);
-  const out = { slug, days, byDay: {}, sections: {}, langs: {}, events: {} };
+  const out = { slug, days, byDay: {}, uniqueByDay: {}, sections: {}, langs: {}, events: {} };
+  const sidVisti = new Set();
 
   for (let i = 0; i < days; i++) {
     const d = new Date();
@@ -416,16 +420,25 @@ async function handleStats(request, env, slug, url) {
     const prefix = `wb:${slug}:day:${day}:`;
     const list = await env.WB_KV.list({ prefix });
     let total = 0;
+    let visitatoriGiorno = 0;
     for (const k of list.keys) {
-      const val = parseInt((await env.WB_KV.get(k.name)) || "0", 10);
       const rest = k.name.slice(prefix.length);
+      if (rest.startsWith("visitor:")) {
+        visitatoriGiorno++;
+        sidVisti.add(rest.slice(8));
+        continue;
+      }
+      const val = parseInt((await env.WB_KV.get(k.name)) || "0", 10);
       if (rest === "total") { total = val; continue; }
       if (rest.startsWith("sec:")) out.sections[rest.slice(4)] = (out.sections[rest.slice(4)] || 0) + val;
       else if (rest.startsWith("lang:")) out.langs[rest.slice(5)] = (out.langs[rest.slice(5)] || 0) + val;
       else if (rest.startsWith("evt:")) out.events[rest.slice(4)] = (out.events[rest.slice(4)] || 0) + val;
     }
     out.byDay[day] = total;
+    out.uniqueByDay[day] = visitatoriGiorno;
   }
+  // visitatori unici distinti nell'intero periodo (una persona che torna più giorni conta una volta sola)
+  out.uniqueVisitorsTotal = sidVisti.size;
 
   // domande recenti al concierge (ultime 40)
   const qList = await env.WB_KV.list({ prefix: `wb:${slug}:q:`, limit: 1000 });
