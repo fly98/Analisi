@@ -4,6 +4,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Arrivi · InternoUno</title>
+<link rel="manifest" href="manifest-arrivi.json">
+<!-- iOS -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Arrivi">
+<link rel="apple-touch-icon" href="icons-arrivi/icon-180.png?v=1">
+<link rel="apple-touch-icon" sizes="512x512" href="icons-arrivi/icon-512.png?v=1">
+<link rel="icon" type="image/png" sizes="192x192" href="icons-arrivi/icon-192.png?v=1">
+<link rel="icon" type="image/png" sizes="512x512" href="icons-arrivi/icon-512.png?v=1">
+<link rel="icon" type="image/png" sizes="180x180" href="icons-arrivi/icon-180.png?v=1">
+<link rel="shortcut icon" href="icons-arrivi/icon-192.png?v=1">
+<!-- Android / Chrome -->
+<meta name="theme-color" content="#f5f5f7">
 <style>
   :root{
     --ink:#1d1d1f; --paper:#f5f5f7; --card:#ffffff; --line:#e3e3e6;
@@ -26,7 +39,7 @@
   .list{padding:18px 16px 0;max-width:560px;margin:0 auto;}
   .status{text-align:center;color:var(--muted);padding:30px 16px;font-size:15px;}
   .subtitle{font-size:15px;color:var(--muted);margin-top:4px;}
-  .daytitle{font-size:17px;font-weight:600;color:var(--ink);text-align:center;margin:6px 0 4px;text-transform:capitalize;letter-spacing:-0.01em;}
+  .daytitle{font-size:17px;font-weight:600;color:var(--ink);text-align:center;margin:18px 0 18px;text-transform:capitalize;letter-spacing:-0.01em;}
   .card{background:var(--card);border:none;border-radius:20px;padding:22px 22px 20px;margin-bottom:18px;position:relative;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.06),0 6px 22px rgba(0,0,0,0.05);}
   .card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:6px;background:var(--accent,var(--terra));}
   .card-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:7px;}
@@ -51,12 +64,7 @@
   .modal input{width:100%;font-family:var(--sysfont);font-size:16px;padding:12px;border:1.5px solid var(--line);border-radius:10px;margin-bottom:16px;}
   .modal-actions{display:flex;gap:8px;flex-wrap:wrap;}
   .modal-actions>*{flex:1;min-width:120px;}
-  .modal-actions .wa-btn{font-size:15px;padding:12px;text-decoration:none;}
   .m-email{display:flex;align-items:center;justify-content:center;gap:6px;background:#3a3a3c;color:#fff;text-decoration:none;border:none;border-radius:10px;font-weight:600;font-size:15px;padding:12px;cursor:pointer;font-family:var(--sysfont);}
-  .lang-row{display:flex;flex-wrap:wrap;gap:6px;}
-  .lang-btn{flex:1;min-width:56px;background:#f0f0f2;color:var(--muted);border:1.5px solid var(--line);border-radius:9px;font-weight:600;font-size:13px;padding:8px 6px;cursor:pointer;font-family:var(--sysfont);white-space:nowrap;}
-  .lang-btn.active{background:var(--ink);color:#fff;border-color:var(--ink);}
-  .lang-btn:active{filter:brightness(0.95);}
   .m-email.disabled{background:var(--line);color:var(--muted);cursor:not-allowed;}
   .info-table{width:100%;border-collapse:collapse;font-size:14px;}
   .info-table tr{border-bottom:1px solid var(--line);}
@@ -77,6 +85,76 @@
   .msg-box{position:relative;background:#f5f5f7;border:1px solid var(--line);border-radius:12px;padding:14px;font-size:13px;line-height:1.5;color:#3a3a3c;white-space:pre-wrap;}
   .copy-btn{position:absolute;top:8px;right:8px;background:var(--ink);color:#fff;border:none;border-radius:8px;font-family:var(--sysfont);font-size:11px;font-weight:600;padding:6px 11px;cursor:pointer;}
   .copy-btn.done{background:var(--sage);}
+  .nome-ignoto{color:var(--gold);font-style:italic;}
+
+
+  /* ====== DISPONIBILITÀ & PREZZI ====== */
+  .fab-row{display:flex;gap:10px;justify-content:center;margin:12px auto 0;padding:0 16px;max-width:400px;}
+  .disp-fab{flex:1;background:#e0e0e3;color:#3a3a3c;border:none;border-radius:10px;padding:9px 20px;font-size:13px;font-weight:600;font-family:var(--sysfont);cursor:pointer;letter-spacing:0.01em;}
+  .disp-fab.active{background:var(--sage);color:#fff;}
+  .disp-fab:active{filter:brightness(0.92);}
+  .disp-fab:active{filter:brightness(0.93);}
+  .disp-modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.45);display:none;align-items:flex-end;justify-content:center;z-index:200;padding:0;}
+  .disp-modal-bg.show{display:flex;}
+  .disp-sheet{background:var(--card);border-radius:22px 22px 0 0;padding:24px 20px 40px;width:100%;max-width:560px;max-height:85vh;overflow-y:auto;}
+  .disp-sheet h3{font-size:19px;font-weight:700;letter-spacing:-0.01em;margin-bottom:4px;}
+  .disp-sheet p{font-size:13px;color:var(--muted);margin-bottom:16px;}
+  .disp-row{display:flex;gap:8px;align-items:center;margin-bottom:14px;flex-wrap:wrap;}
+  .disp-row input[type=date]{flex:1;min-width:130px;font-family:var(--sysfont);font-size:15px;padding:11px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);}
+  .disp-row .btn{white-space:nowrap;}
+  .disp-sep{color:var(--muted);font-weight:600;font-size:18px;}
+  .disp-result{margin-top:6px;}
+  .disp-status{text-align:center;color:var(--muted);padding:20px;font-size:14px;}
+  .disp-card{background:var(--paper);border-radius:14px;padding:14px 16px;margin-bottom:10px;}
+  .disp-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+  .disp-cam-name{font-weight:700;font-size:15px;display:flex;align-items:center;gap:8px;}
+  .disp-pip{width:11px;height:11px;border-radius:50%;flex-shrink:0;}
+  .disp-badge{font-size:11px;font-weight:700;padding:3px 9px;border-radius:7px;}
+  .disp-badge.free{background:#e8f5e9;color:#2e7d32;}
+  .disp-badge.busy{background:#fce4ec;color:#c62828;}
+  .disp-prices{display:flex;flex-wrap:wrap;gap:6px;}
+  .disp-price-chip{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:5px 9px;font-size:12px;text-align:center;min-width:58px;}
+  .disp-price-chip .dc-date{color:var(--muted);font-size:10px;display:block;margin-bottom:1px;}
+  .disp-price-chip .dc-val{font-weight:700;color:var(--ink);}
+  .disp-price-chip.dc-busy{opacity:0.35;}
+  .disp-note{font-size:11px;color:var(--muted);text-align:center;margin-top:14px;padding-top:10px;border-top:1px solid var(--line);}
+  .cal-wrap{background:var(--paper);border-radius:14px;padding:12px;}
+  .cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+  .cal-nav-btn{background:none;border:1px solid var(--line);border-radius:8px;font-size:18px;width:34px;height:34px;cursor:pointer;color:var(--ink);font-family:var(--sysfont);}
+  .cal-titolo{font-weight:700;font-size:15px;text-transform:capitalize;}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;text-align:center;}
+  .cal-gi{font-size:11px;font-weight:600;color:var(--muted);padding:4px 0;}
+  .cal-day{font-size:14px;padding:8px 2px;border-radius:8px;cursor:pointer;transition:background 0.1s;user-select:none;}
+  .cal-day:hover:not(.cal-vuoto):not(.cal-past){background:var(--line);}
+  .cal-past{color:var(--line);cursor:default;}
+  .cal-vuoto{cursor:default;}
+  .cal-day.sel-start,.cal-day.sel-end{background:var(--terra);color:#fff;font-weight:700;}
+  .cal-day.sel-range{background:#f0ddd7;color:var(--terra);}
+  .cal-selezione{margin-top:10px;font-size:13px;font-weight:600;color:var(--terra);text-align:center;min-height:20px;}
+  .disp-totali{display:flex;flex-direction:column;gap:0;border-top:1px solid var(--line);margin-top:10px;padding-top:8px;}
+  .disp-riga{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:14px;color:var(--ink);}
+  .disp-riga span:first-child{color:var(--muted);}
+  .disp-riga span:last-child{font-weight:600;}
+  .disp-totale{border-top:1.5px solid var(--line);margin-top:4px;padding-top:8px;}
+  .disp-totale span{font-size:16px!important;font-weight:700!important;color:var(--ink)!important;}
+  .disp-sconto span{color:var(--sage)!important;}
+  .disp-sconto span:last-child{font-weight:700!important;}
+  .orario-chip,.nota-chip{display:inline-flex;align-items:center;font-size:11px;font-weight:600;padding:3px 8px;border-radius:6px;background:var(--paper);border:1.5px solid var(--line);color:var(--muted);cursor:pointer;user-select:none;}
+  .nota-chip.set{color:var(--terra);border-color:var(--terra);background:#fdf0ec;font-weight:700;}
+  .orario-chip:active,.nota-chip:active{filter:brightness(0.93);}
+  .orario-chip.set{color:var(--sage);border-color:var(--sage);background:#f0f4ee;}
+  .nota-textarea{width:100%;font-family:var(--sysfont);font-size:15px;padding:12px;border:1.5px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);resize:none;height:120px;margin-bottom:16px;}
+  .orario-modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.4);display:none;align-items:center;justify-content:center;z-index:300;padding:20px;}
+  .orario-modal-bg.show{display:flex;}
+  .orario-modal{background:var(--card);border-radius:18px;padding:24px;max-width:300px;width:100%;box-shadow:0 10px 40px rgba(0,0,0,0.2);}
+  .orario-modal h3{font-size:17px;font-weight:600;margin-bottom:16px;}
+  .orario-selects{display:flex;align-items:center;gap:10px;justify-content:center;margin-bottom:20px;}
+  .orario-sel{font-family:var(--sysfont);font-size:22px;font-weight:700;padding:10px 8px;border:1.5px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);text-align:center;width:80px;}
+  .orario-sep{font-size:24px;font-weight:700;color:var(--ink);}
+  .orario-actions{display:flex;gap:8px;}
+  .orario-actions button{flex:1;border:none;border-radius:10px;font-weight:600;font-size:15px;padding:12px;cursor:pointer;font-family:var(--sysfont);}
+  .altri-ospiti{font-size:12px;color:var(--muted);margin:4px 0 6px;padding:4px 8px;background:var(--paper);border-radius:7px;}
+  .nota-preview{font-size:11.5px;color:var(--muted);margin-top:8px;padding:6px 10px;background:var(--paper);border-radius:8px;border-left:3px solid var(--terra);line-height:1.4;word-break:break-word;}
   @media(prefers-reduced-motion:reduce){*{transition:none!important;}}
 </style>
 </head>
@@ -85,6 +163,10 @@
   <div class="eyebrow">Gestione Check-in</div>
   <h1>InternoUno</h1>
   <div class="subtitle">Arrivi &amp; messaggi di benvenuto</div>
+  <div class="fab-row">
+    <button class="disp-fab" onclick="apriDisp()">📅 Prezzi</button>
+    <button class="disp-fab" id="inCasaBtn" onclick="apriInCasa()">🏠 In casa</button>
+  </div>
 </header>
 
 <div class="controls">
@@ -117,6 +199,7 @@
   <div class="modal" id="msgModalBox"></div>
 </div>
 
+
 <div class="modal-bg" id="infoModal">
   <div class="modal" id="infoModalBox"></div>
 </div>
@@ -141,6 +224,11 @@ const GIORNI=["domenica","lunedì","martedì","mercoledì","giovedì","venerdì"
 const FLAGS={it:"🇮🇹",en:"🇬🇧",es:"🇪🇸",fr:"🇫🇷",pt:"🇵🇹",de:"🇩🇪",zh:"🇨🇳"};
 
 function dataLunga(iso){const[y,m,d]=iso.split("-").map(Number);const dt=new Date(y,m-1,d);return `${GIORNI[dt.getDay()]} ${d} ${MESI[m]} ${y}`;}
+function dataCompatta(iso){
+  if(!iso)return"";
+  const[y,m,d]=iso.split("-");
+  return `${d}/${m}`;
+}
 function dataBreve(iso){const[y,m,d]=iso.split("-").map(Number);return `${d} ${MESI[m]}`;}
 
 function lingua(language,phone){
@@ -188,101 +276,165 @@ function parolaCamera(tipo,let,lng){
   return `${w} ${let}`;                      // es. "camera R"
 }
 
-function msgCampaldino(nome,iso,c,lng){
+function fmtOspiti(n, lng){
+  const m={it:`${n} person${n===1?"a":"e"}`,en:`${n} guest${n===1?"":"s"}`,es:`${n} persona${n===1?"":"s"}`,fr:`${n} personne${n===1?"":"s"}`,de:`${n} Person${n===1?"":"en"}`,pt:`${n} pessoa${n===1?"":"s"}`,zh:`${n}人`};
+  return m[lng]||`${n} guests`;
+}
+
+function testoExtraCamere(camereExtra, lng){
+  if(!camereExtra||!camereExtra.length) return "";
+  return camereExtra.map(e=>{
+    const rn=e.rn;
+    const adulti=e.adulti;
+    const info=CAMPALDINO[rn];
+    const num=LORENZO[rn]||rn;
+    const lbl=info?info.let:num;
+    const pos=info?(POS[info.pos]&&POS[info.pos][lng]||POS[info.pos].en):null;
+    const ospiti=fmtOspiti(adulti,lng);
+    if(info&&pos){
+      const etich=parolaCamera(info.tipo,info.let,lng);
+      const T={
+        it:`La *${etich}* (${ospiti}) ${pos}.`,
+        en:`Your *${etich}* (${ospiti}) ${pos}.`,
+        es:`Su *${etich}* (${ospiti}) ${pos}.`,
+        fr:`Votre *${etich}* (${ospiti}) ${pos}.`,
+        de:`Ihr *${etich}* (${ospiti}) ${pos}.`,
+        pt:`O seu *${etich}* (${ospiti}) ${pos}.`,
+        zh:`您的 *${etich}*（${ospiti}）${pos}。`
+      };
+      return T[lng]||T.en;
+    }
+    return "";
+  }).filter(Boolean).join("\n");
+}
+
+function msgCampaldino(nome,iso,c,lng,adultiPrima=0,camereExtra=[]){
   const d=dataBreve(iso);
   const etich=parolaCamera(c.tipo,c.let,lng);
   const descr=(POS[c.pos]&&POS[c.pos][lng])||POS[c.pos].en;
+  const extraTesto=testoExtraCamere(camereExtra,lng);
+  const etichConOspiti=adultiPrima>0?`${etich} (${fmtOspiti(adultiPrima,lng)})`:etich;
   const T={
-it:`Buongiorno ${nome}! 😊
+it:`Buongiorno${nome?" "+nome:""}! 😊
 Sono Filippo di *InternoUno*. La contatto per la sua prenotazione del ${d}.
 Gestendo più strutture, non disponiamo di una reception fissa, quindi le invio le istruzioni per accedere comodamente in autonomia:
-All'arrivo in Via Campaldino, inserisca nella cassetta sulla sinistra della porta d'ingresso il codice *3044 + tasto B* (in basso a destra) e troverà all'interno le chiavi. La sua *${etich}* ${descr}.
+All'arrivo in Via Campaldino, inserisca nella cassetta sulla sinistra della porta d'ingresso il codice *3044 + tasto B* (in basso a destra) e troverà all'interno le chiavi. La sua *${etichConOspiti}* ${descr}.${extraTesto?"\n"+extraTesto:""}
 Il check-in è possibile dalle *13:00*. Potrebbe indicarmi a che ora pensa di arrivare, così possiamo organizzarci al meglio?
+📱 Durante il vostro soggiorno, la nostra app InternoUno Experience sarà la vostra compagna ideale: troverete tutte le info sulla casa, la mappa della zona, i ristoranti che vi consigliamo, i nostri tour audio per esplorare Roma a piedi, eventi e concerti in città e un assistente virtuale sempre disponibile.
+👉 https://fly98.github.io/Analisi/campaldino.html
 Per qualsiasi necessità sono disponibile su WhatsApp o telefonicamente. A presto! 🏠`,
-en:`Good morning, ${nome}! 😊
+en:`Good morning${nome?", "+nome:""}! 😊
 I am Filippo from *InternoUno*. I am contacting you about your booking for ${d}.
 As we manage multiple properties, we do not have a fixed reception, so I am sending you the check-in instructions:
-Upon arrival at Via Campaldino, enter code *3044 + button B* (bottom right) in the key box on the left of the entrance door — the keys are inside. Your *${etich}* ${descr}.
+Upon arrival at Via Campaldino, enter code *3044 + button B* (bottom right) in the key box on the left of the entrance door — the keys are inside. Your *${etichConOspiti}* ${descr}.${extraTesto?"\n"+extraTesto:""}
 Check-in is available from *1:00 PM*. Could you let me know what time you plan to arrive, so we can organize accordingly?
+📱 During your stay, our InternoUno Experience app will be your ideal companion: you'll find all the info about the house, the area map, our recommended restaurants, our audio tours to explore Rome on foot, events and concerts in the city, and a virtual assistant always available.
+👉 https://fly98.github.io/Analisi/campaldino.html
 For any need I am available on WhatsApp or by phone. See you soon! 🏠`,
-es:`¡Buenos días, ${nome}! 😊
+es:`¡Buenos días${nome?", "+nome:""}! 😊
 Soy Filippo de *InternoUno*. Le escribo en relación con su reserva del ${d}.
 Gestionando varias propiedades, no disponemos de una recepción fija, por lo que le envío las instrucciones para acceder cómodamente de forma autónoma:
-Al llegar a Via Campaldino, introduzca en la caja de llaves a la izquierda de la puerta de entrada el código *3044 + botón B* (abajo a la derecha) y encontrará las llaves dentro. Su *${etich}* ${descr}.
+Al llegar a Via Campaldino, introduzca en la caja de llaves a la izquierda de la puerta de entrada el código *3044 + botón B* (abajo a la derecha) y encontrará las llaves dentro. Su *${etichConOspiti}* ${descr}.${extraTesto?"\\n"+extraTesto:""}
 El check-in está disponible a partir de las *13:00*. ¿Podría indicarme a qué hora piensa llegar, para organizarnos mejor?
+📱 Durante su estancia, nuestra app InternoUno Experience será su compañera ideal: encontrará toda la información sobre la casa, el mapa de la zona, los restaurantes que le recomendamos, nuestros tours de audio para explorar Roma a pie, eventos y conciertos en la ciudad y un asistente virtual siempre disponible.
+👉 https://fly98.github.io/Analisi/campaldino.html
 Para cualquier necesidad estoy disponible por WhatsApp o teléfono. ¡Hasta pronto! 🏠`,
-fr:`Bonjour ${nome} ! 😊
+fr:`Bonjour${nome?" "+nome:""} ! 😊
 Je suis Filippo de *InternoUno*. Je vous contacte au sujet de votre réservation du ${d}.
 Gérant plusieurs établissements, nous n'avons pas de réception fixe, je vous envoie donc les instructions pour accéder en toute autonomie :
-À votre arrivée à Via Campaldino, saisissez dans la boîte à clés à gauche de la porte d'entrée le code *3044 + bouton B* (en bas à droite) et vous trouverez les clés à l'intérieur. Votre *${etich}* ${descr}.
+À votre arrivée à Via Campaldino, saisissez dans la boîte à clés à gauche de la porte d'entrée le code *3044 + bouton B* (en bas à droite) et vous trouverez les clés à l'intérieur. Votre *${etichConOspiti}* ${descr}.${extraTesto?"\\n"+extraTesto:""}
 Le check-in est possible à partir de *13h00*. Pourriez-vous m'indiquer à quelle heure vous pensez arriver, afin de mieux nous organiser ?
+📱 Pendant votre séjour, notre application InternoUno Experience sera votre compagne idéale : vous y trouverez toutes les infos sur la maison, la carte du quartier, les restaurants que nous vous conseillons, nos visites audio pour explorer Rome à pied, les événements et concerts en ville et un assistant virtuel toujours disponible.
+👉 https://fly98.github.io/Analisi/campaldino.html
 Pour tout besoin je suis disponible sur WhatsApp ou par téléphone. À bientôt ! 🏠`,
-de:`Guten Tag ${nome}! 😊
+de:`Guten Tag${nome?" "+nome:""}! 😊
 Ich bin Filippo von *InternoUno*. Ich kontaktiere Sie bezüglich Ihrer Buchung vom ${d}.
 Da wir mehrere Unterkünfte verwalten, haben wir keine feste Rezeption. Daher sende ich Ihnen die Anweisungen für den selbstständigen Zugang:
-Bei der Ankunft in der Via Campaldino geben Sie im Schlüsselkasten links neben der Eingangstür den Code *3044 + Taste B* (unten rechts) ein, darin finden Sie die Schlüssel. Ihr *${etich}* ${descr}.
+Bei der Ankunft in der Via Campaldino geben Sie im Schlüsselkasten links neben der Eingangstür den Code *3044 + Taste B* (unten rechts) ein, darin finden Sie die Schlüssel. Ihr *${etichConOspiti}* ${descr}.${extraTesto?"\\n"+extraTesto:""}
 Der Check-in ist ab *13:00 Uhr* möglich. Könnten Sie mir mitteilen, um wie viel Uhr Sie ankommen möchten, damit wir uns besser organisieren können?
+📱 Während Ihres Aufenthalts wird unsere App InternoUno Experience Ihr idealer Begleiter sein: Sie finden dort alle Infos zur Unterkunft, die Karte der Umgebung, unsere Restaurant-Empfehlungen, unsere Audio-Touren zur Erkundung Roms zu Fuß, Veranstaltungen und Konzerte in der Stadt sowie einen jederzeit verfügbaren virtuellen Assistenten.
+👉 https://fly98.github.io/Analisi/campaldino.html
 Für alle Anliegen bin ich über WhatsApp oder telefonisch erreichbar. Bis bald! 🏠`,
-pt:`Bom dia, ${nome}! 😊
+pt:`Bom dia${nome?", "+nome:""}! 😊
 Sou o Filippo do *InternoUno*. Contacto-o(a) acerca da sua reserva de ${d}.
 Gerindo várias estruturas, não dispomos de uma receção fixa, por isso envio-lhe as instruções para aceder de forma autónoma:
-À chegada em Via Campaldino, introduza na caixa de chaves à esquerda da porta de entrada o código *3044 + botão B* (em baixo à direita) e encontrará as chaves lá dentro. O seu *${etich}* ${descr}.
+À chegada em Via Campaldino, introduza na caixa de chaves à esquerda da porta de entrada o código *3044 + botão B* (em baixo à direita) e encontrará as chaves lá dentro. O seu *${etichConOspiti}* ${descr}.${extraTesto?"\\n"+extraTesto:""}
 O check-in está disponível a partir das *13:00*. Poderia indicar-me a que horas pensa chegar, para nos organizarmos melhor?
+📱 Durante a sua estadia, a nossa app InternoUno Experience será a sua companheira ideal: encontrará todas as informações sobre a casa, o mapa da zona, os restaurantes que recomendamos, os nossos tours áudio para explorar Roma a pé, eventos e concertos na cidade e um assistente virtual sempre disponível.
+👉 https://fly98.github.io/Analisi/campaldino.html
 Para qualquer necessidade estou disponível no WhatsApp ou por telefone. Até breve! 🏠`,
-zh:`您好，${nome}！😊
+zh:`您好${nome?"，"+nome:""}！😊
 我是 InternoUno 的 Filippo。关于您 ${d} 的预订与您联系。
 由于我们管理多家住宿，没有固定前台，因此提前向您发送自助入住说明：
-抵达 Via Campaldino 后，在入口门左侧的钥匙箱中输入密码 *3044 + B 键*（右下方），即可取到钥匙。您的 *${etich}*，${descr}。
+抵达 Via Campaldino 后，在入口门左侧的钥匙箱中输入密码 *3044 + B 键*（右下方），即可取到钥匙。您的 *${etichConOspiti}*，${descr}。${extraTesto?"\\n"+extraTesto:""}
 入住时间为 *13:00* 起。能否告知您大约几点到达，以便我们更好地安排？
+📱 在您入住期间，我们的 InternoUno Experience 应用将成为您理想的伙伴：您可以找到关于住所的所有信息、周边地图、我们推荐的餐厅、步行探索罗马的语音导览、城市中的活动和音乐会，以及随时可用的虚拟助手。
+👉 https://fly98.github.io/Analisi/campaldino.html
 如有任何需要，可通过 WhatsApp 或电话联系我。期待您的到来！🏠`,
   };
   return T[lng]||T.en;
 }
 
-function msgLorenzo(nome,iso,num,lng){
+function msgLorenzo(nome,iso,num,lng,adultiPrima=0,camereExtra=[]){
   const d=dataBreve(iso); const link="https://www.interno1.it/it/pagina/check-in";
+  const extraTesto=testoExtraCamere(camereExtra,lng);
+  const numConOspiti=adultiPrima>0?`${num} (${fmtOspiti(adultiPrima,lng)})`:num;
   const T={
-it:`Buongiorno ${nome}! 😊
+it:`Buongiorno${nome?" "+nome:""}! 😊
 Sono Filippo di *InternoUno Deluxe*. La contatto per la sua prenotazione del ${d}.
-Gestendo più strutture, non disponiamo di una reception fissa, quindi le invio le istruzioni per accedere comodamente in autonomia alla *camera ${num}*:
+Gestendo più strutture, non disponiamo di una reception fissa, quindi le invio le istruzioni per accedere comodamente in autonomia alla *camera ${numConOspiti}*:
 👉 ${link}
 Il check-in è possibile dalle *13:00*. Potrebbe indicarmi a che ora pensa di arrivare, così possiamo organizzarci al meglio?
+📱 Durante il vostro soggiorno, la nostra app InternoUno Experience sarà la vostra compagna ideale: troverete tutte le info sulla casa, la mappa della zona, i ristoranti che vi consigliamo, i nostri tour audio per esplorare Roma a piedi, eventi e concerti in città e un assistente virtuale sempre disponibile.
+👉 https://fly98.github.io/Analisi/lorenzo.html
 Per qualsiasi necessità sono disponibile su WhatsApp o telefonicamente. A presto! 🏠`,
-en:`Good morning, ${nome}! 😊
+en:`Good morning${nome?", "+nome:""}! 😊
 I am Filippo from *InternoUno Deluxe*. I am contacting you about your booking for ${d}.
-As we manage multiple properties, we do not have a fixed reception, so I am sending you the check-in instructions for *room ${num}*:
+As we manage multiple properties, we do not have a fixed reception, so I am sending you the check-in instructions for *room ${numConOspiti}*:
 👉 ${link}
 Check-in is available from *1:00 PM*. Could you let me know what time you plan to arrive, so we can organize accordingly?
+📱 During your stay, our InternoUno Experience app will be your ideal companion: you'll find all the info about the house, the area map, our recommended restaurants, our audio tours to explore Rome on foot, events and concerts in the city, and a virtual assistant always available.
+👉 https://fly98.github.io/Analisi/lorenzo.html
 For any need I am available on WhatsApp or by phone. See you soon! 🏠`,
-es:`¡Buenos días, ${nome}! 😊
+es:`¡Buenos días${nome?", "+nome:""}! 😊
 Soy Filippo de *InternoUno Deluxe*. Le escribo en relación con su reserva del ${d}.
-Gestionando varias propiedades, no disponemos de una recepción fija, por lo que le envío las instrucciones para acceder cómodamente de forma autónoma a la *habitación ${num}*:
+Gestionando varias propiedades, no disponemos de una recepción fija, por lo que le envío las instrucciones para acceder cómodamente de forma autónoma a la *habitación ${numConOspiti}*:
 👉 ${link}
 El check-in está disponible a partir de las *13:00*. ¿Podría indicarme a qué hora piensa llegar, para organizarnos mejor?
+📱 Durante su estancia, nuestra app InternoUno Experience será su compañera ideal: encontrará toda la información sobre la casa, el mapa de la zona, los restaurantes que le recomendamos, nuestros tours de audio para explorar Roma a pie, eventos y conciertos en la ciudad y un asistente virtual siempre disponible.
+👉 https://fly98.github.io/Analisi/lorenzo.html
 Para cualquier necesidad estoy disponible por WhatsApp o teléfono. ¡Hasta pronto! 🏠`,
-fr:`Bonjour ${nome} ! 😊
+fr:`Bonjour${nome?" "+nome:""} ! 😊
 Je suis Filippo de *InternoUno Deluxe*. Je vous contacte au sujet de votre réservation du ${d}.
-Gérant plusieurs établissements, nous n'avons pas de réception fixe, je vous envoie donc les instructions pour accéder en toute autonomie à la *chambre ${num}* :
+Gérant plusieurs établissements, nous n'avons pas de réception fixe, je vous envoie donc les instructions pour accéder en toute autonomie à la *chambre ${numConOspiti}* :
 👉 ${link}
 Le check-in est possible à partir de *13h00*. Pourriez-vous m'indiquer à quelle heure vous pensez arriver, afin de mieux nous organiser ?
+📱 Pendant votre séjour, notre application InternoUno Experience sera votre compagne idéale : vous y trouverez toutes les infos sur la maison, la carte du quartier, les restaurants que nous vous conseillons, nos visites audio pour explorer Rome à pied, les événements et concerts en ville et un assistant virtuel toujours disponible.
+👉 https://fly98.github.io/Analisi/lorenzo.html
 Pour tout besoin je suis disponible sur WhatsApp ou par téléphone. À bientôt ! 🏠`,
-de:`Guten Tag ${nome}! 😊
+de:`Guten Tag${nome?" "+nome:""}! 😊
 Ich bin Filippo von *InternoUno Deluxe*. Ich kontaktiere Sie bezüglich Ihrer Buchung vom ${d}.
-Da wir mehrere Unterkünfte verwalten, haben wir keine feste Rezeption. Daher sende ich Ihnen die Anweisungen für den selbstständigen Zugang zu *Zimmer ${num}*:
+Da wir mehrere Unterkünfte verwalten, haben wir keine feste Rezeption. Daher sende ich Ihnen die Anweisungen für den selbstständigen Zugang zu *Zimmer ${numConOspiti}*:
 👉 ${link}
 Der Check-in ist ab *13:00 Uhr* möglich. Könnten Sie mir mitteilen, um wie viel Uhr Sie ankommen möchten, damit wir uns besser organisieren können?
+📱 Während Ihres Aufenthalts wird unsere App InternoUno Experience Ihr idealer Begleiter sein: Sie finden dort alle Infos zur Unterkunft, die Karte der Umgebung, unsere Restaurant-Empfehlungen, unsere Audio-Touren zur Erkundung Roms zu Fuß, Veranstaltungen und Konzerte in der Stadt sowie einen jederzeit verfügbaren virtuellen Assistenten.
+👉 https://fly98.github.io/Analisi/lorenzo.html
 Für alle Anliegen bin ich über WhatsApp oder telefonisch erreichbar. Bis bald! 🏠`,
-pt:`Bom dia, ${nome}! 😊
+pt:`Bom dia${nome?", "+nome:""}! 😊
 Sou o Filippo do *InternoUno Deluxe*. Contacto-o(a) acerca da sua reserva de ${d}.
-Gerindo várias estruturas, não dispomos de uma receção fixa, por isso envio-lhe as instruções para aceder de forma autónoma ao *quarto ${num}*:
+Gerindo várias estruturas, não dispomos de uma receção fixa, por isso envio-lhe as instruções para aceder de forma autónoma ao *quarto ${numConOspiti}*:
 👉 ${link}
 O check-in está disponível a partir das *13:00*. Poderia indicar-me a que horas pensa chegar, para nos organizarmos melhor?
+📱 Durante a sua estadia, a nossa app InternoUno Experience será a sua companheira ideal: encontrará todas as informações sobre a casa, o mapa da zona, os restaurantes que recomendamos, os nossos tours áudio para explorar Roma a pé, eventos e concertos na cidade e um assistente virtual sempre disponível.
+👉 https://fly98.github.io/Analisi/lorenzo.html
 Para qualquer necessidade estou disponível no WhatsApp ou por telefone. Até breve! 🏠`,
-zh:`您好，${nome}！😊
+zh:`您好${nome?"，"+nome:""}！😊
 我是 InternoUno Deluxe 的 Filippo。关于您 ${d} 的预订与您联系。
-由于我们管理多家住宿，没有固定前台，因此提前向您发送 *${num} 号房间* 的自助入住说明：
+由于我们管理多家住宿，没有固定前台，因此提前向您发送 *${numConOspiti} 号房间* 的自助入住说明：
 👉 ${link}
 入住时间为 *13:00* 起。能否告知您大约几点到达，以便我们更好地安排？
+📱 在您入住期间，我们的 InternoUno Experience 应用将成为您理想的伙伴：您可以找到关于住所的所有信息、周边地图、我们推荐的餐厅、步行探索罗马的语音导览、城市中的活动和音乐会，以及随时可用的虚拟助手。
+👉 https://fly98.github.io/Analisi/lorenzo.html
 如有任何需要，可通过 WhatsApp 或电话联系我。期待您的到来！🏠`,
   };
   return T[lng]||T.en;
@@ -316,8 +468,6 @@ function msgTassa(nome,lng,notti,link){
         cash:`\nEm alternativa, poderá pagá-la em dinheiro no dia seguinte ao check-in com o pessoal presente.`},
     de:{base:`Die Zahlung für das Zimmer wurde bereits über den Buchungskanal abgewickelt. 😊\nHier ist der Link zur Zahlung der Kurtaxe, die direkt an die Unterkunft entrichtet wird:\n👉 ${link}`,
         cash:`\nAlternativ können Sie diese am Tag nach dem Check-in bar beim anwesenden Personal bezahlen.`},
-    zh:{base:`房费已通过预订平台支付完成。😊\n以下是城市税的支付链接，需直接向住宿支付：\n👉 ${link}`,
-        cash:`\n您也可以在入住次日向住宿现场的工作人员以现金支付。`},
   };
   const t=T[lng]||T.en;
   return t.base+(notti>=2?t.cash:"");
@@ -382,39 +532,83 @@ function ordineDi(b){
 }
 
 function render(iso,bookings){
-  // 1) escludi prenotazioni "fantasma" senza nome del booker (segmenti svuotati dopo un cambio ospite)
-  bookings=(bookings||[]).filter(b=>{
-    const bk=b.booker||{};
-    return ((bk.first_name||"").trim()!=="" || (bk.last_name||"").trim()!=="");
-  });
-  // 2) ordina per camera fissa G-M-R-V-A-1-2-3-4-5
-  bookings.sort((a,b)=>ordineDi(a)-ordineDi(b));
-
-  document.getElementById("daytitle").textContent=`${dataLunga(iso)} — ${bookings.length} ${bookings.length===1?'ospite':'ospiti'}`;
+  bookings = (bookings||[]).slice().sort((a,b)=>ordineDi(a)-ordineDi(b));
+  document.getElementById("daytitle").textContent=`${dataLunga(iso)} — ${bookings.length} ospiti`;
   const list=document.getElementById("list"); list.innerHTML=""; msgStore={};
   if(bookings.length===0){list.innerHTML='<div class="status">Nessun arrivo per questa data.</div>';return;}
 
   bookings.forEach((b,i)=>{
     const booker=b.booker||{};
-    const nome=(booker.first_name||"").trim();
-    const cognome=(booker.last_name||"").trim();
+    const guest=(b.rooms&&b.rooms[0]&&b.rooms[0].guests&&b.rooms[0].guests[0])||{};
+    const nome=((booker.first_name||"").trim()||( guest.first_name||"").trim());
+    const cognome=((booker.last_name||"").trim()||(guest.last_name||"").trim());
+    const guestFallback=!(booker.first_name||"").trim()&&!!(guest.first_name||"").trim();
+    const noNome=!nome&&!cognome;
+    // controlla se prenotante e ospite sono persone diverse
+    const guestNome=((guest.first_name||"").trim()+" "+(guest.last_name||"").trim()).trim();
+    const bookerNome=(nome+" "+cognome).trim();
+    // mismatch solo per prenotazioni con una camera sola
+    // in booking multi-camera è normale che gli ospiti siano diversi dal booker
+    const isMultiRoom=(b.rooms||[]).length>1;
+    const mismatch=!isMultiRoom&&!noNome&&!guestFallback&&guestNome&&bookerNome&&
+      guestNome.toLowerCase()!==bookerNome.toLowerCase();
     const phone=booker.phone||"";
     const lng=lingua(booker.language,phone);
-    const room=(b.rooms&&b.rooms[0])||{};
+    const rooms=b.rooms||[];
+    const room=rooms[0]||{};
     const roomName=room.individual_room_name||"";
     const source=b.source||"";
-    let etichetta,descr,accent,roomLabel,testo,struttura;
-
+    const nonBooking=!source.toLowerCase().includes("booking");
+    let accent,roomLabel,testo,struttura;
     let isLorenzo=false;
+
+    // se prenotante ≠ ospite, non mettere il nome nel messaggio
+    const nomeMsg = (mismatch || guestFallback) ? "" : nome;
+
+    // prima camera: struttura, testo, colore accent
+    // per multi-camera: costruisci array camere extra con adulti
+    const isMulti = rooms.length > 1;
+    const camereExtra = isMulti ? rooms.slice(1).map(r => ({
+      rn: r.individual_room_name||"",
+      adulti: r.adults||0
+    })) : [];
+    const adultiRoom0 = rooms[0] ? (rooms[0].adults||0) : 0;
+
     if(CAMPALDINO[roomName]){
       const c=CAMPALDINO[roomName];
       accent=c.col; roomLabel=c.let; struttura="Via Campaldino";
-      testo=msgCampaldino(nome,iso,c,lng);
+      testo=msgCampaldino(nomeMsg,iso,c,lng,isMulti?adultiRoom0:0,camereExtra);
     }else{
       const num=LORENZO[roomName]||roomName;
       accent="#5c6b52"; roomLabel=num; struttura="Lorenzo il Magnifico"; isLorenzo=true;
-      testo=msgLorenzo(nome,iso,num,lng);
+      testo=msgLorenzo(nomeMsg,iso,num,lng,isMulti?adultiRoom0:0,camereExtra);
     }
+
+    // badge per tutte le camere
+    const roomBadgesHtml=rooms.map(r=>{
+      const rn=r.individual_room_name||"";
+      const isL=!CAMPALDINO[rn];
+      const info=CAMPALDINO[rn];
+      const lbl=info?info.let:(LORENZO[rn]||rn);
+      const col=info?info.col:"#5c6b52";
+      const waNum=numeroValido(phone)?phone.replace(/[\s-]/g,"").replace("+",""):"";
+      const link=waNum?`href="whatsapp://send?phone=${waNum}"`:"";
+      const tag=waNum?"a":"div";
+      const bgStyle=isL?"":"background:"+col;
+      return `<${tag} class="room-badge${isL?" lm":""}" style="min-width:36px;height:36px;font-size:16px;${bgStyle};text-decoration:none" ${link}>${lbl}</${tag}>`;
+    }).join("");
+
+    // ospiti diversi dal booker in qualsiasi camera
+    const bookerNomeCompleto=`${nome} ${cognome}`.trim().toLowerCase();
+    const altriOspiti=rooms.map(r=>{
+      const g=r.guests&&r.guests[0];
+      const gn=g?`${g.first_name||""} ${g.last_name||""}`.trim():"";
+      const rn=r.individual_room_name||"";
+      const info=CAMPALDINO[rn];
+      const lbl=info?info.let:(LORENZO[rn]||rn);
+      if(gn&&gn.toLowerCase()!==bookerNomeCompleto) return `${lbl}: ${gn}`;
+      return null;
+    }).filter(Boolean);
 
     const card=document.createElement("div");
     card.className="card"; card.style.setProperty("--accent",accent);
@@ -446,25 +640,65 @@ function render(iso,bookings){
           <button class="tax-btn" onclick="apriTassa(${i})">💶 Tassa</button>
         </div>`;
     }
+    // se manca il nome, sovrascrivi action con warning semplice
+    if(noNome){
+      action=`<div class="copy-note">⚠️ Prenotazione senza nome — verifica su Amenitiz</div>
+        <div class="actions">
+          <button class="msg-open-btn" onclick="apriInfo(${i})">ⓘ Dettagli</button>
+        </div>`;
+    } else if(mismatch){
+      // prenotante diverso dall'ospite - mostra avviso ma mantieni pulsanti
+      const avvisoMismatch=`<div class="copy-note">⚠️ Prenotante (${bookerNome}) ≠ ospite (${guestNome}) — verifica nome e tel. su Amenitiz</div>`;
+      if(numeroValido(phone)){
+        action=avvisoMismatch+`<div class="actions">
+          <a class="wa-btn" href="${waLink}">${waIcon}WhatsApp</a>
+          <button class="msg-open-btn" onclick="apriMsg(${i})">✉️ Messaggio</button>
+          <button class="tax-btn" onclick="apriTassa(${i})">💶 Tassa</button>
+        </div>`;
+      } else {
+        action=avvisoMismatch+`<div class="actions">
+          <button class="msg-open-btn" onclick="apriMsg(${i})">✉️ Messaggio</button>
+          <button class="tax-btn" onclick="apriTassa(${i})">💶 Tassa</button>
+        </div>`;
+      }
+    } else if(guestFallback){
+      // nome preso da guests[], booker vuoto -> nessun telefono/email dal booker
+      action=`<div class="copy-note">⚠️ Contatti booker assenti — nome da lista ospiti</div>
+        <div class="actions">
+          <button class="msg-open-btn" onclick="apriMsg(${i})">✉️ Messaggio</button>
+          <button class="tax-btn" onclick="apriTassa(${i})">💶 Tassa</button>
+        </div>`;
+    }
     // salva dati per le modali
     taxStore[i]={nome,lng,notti,phone:numeroValido(phone)?phone:""};
-    const roomData=CAMPALDINO[roomName]?{tipo:"campaldino",c:CAMPALDINO[roomName]}:{tipo:"lorenzo",num:(LORENZO[roomName]||roomName)};
-    msgFull[i]={testo:testoCopia, email:(booker.email||""), nome, lng, waLink,
-                iso, phone:(numeroValido(phone)?phone:""), roomData};
+    msgFull[i]={testo:testoCopia, email:(booker.email||""), nome, lng, waLink};
     infoStore[i]={
       nome:`${nome} ${cognome}`.trim(), struttura, room:roomName, roomLabel,
       checkin:iso, checkout:b.checkout||"", notti, adults:b.adults||"", children:b.children||0,
       source, phone:phone||"—", email:booker.email||"—", lng,
       bookingId:b.booking_id||"—", total:b.total_amount_after_tax||"—",
-      checkinUrl:b.online_checkin_url||"", registered:b.online_checkin_registered
+      checkinUrl:b.online_checkin_url||"", registered:b.online_checkin_registered,
+      guestFallback, mismatch, guestNome
     };
 
+    // orario arrivo salvato
+    const orarioSalvato = orariMap[String(b.booking_id)] || "";
+    const notaSalvata = noteMap[String(b.booking_id)] || "";
+
     card.innerHTML=`<div class="card-top">
-        <div class="name" onclick="apriInfo(${i})">${nome} ${cognome} <span class="flag">${FLAGS[lng]||""}</span> <span class="info-dot">ⓘ</span></div>
-        <div class="room-badge${isLorenzo?' lm':''}">${roomLabel}</div>
+        <div class="name${noNome?' nome-ignoto':''}" onclick="apriInfo(${i})">${noNome?'⚠️ Verifica su Amenitiz':`${nome} ${cognome}`} ${noNome?'':('<span class="flag">'+FLAGS[lng]+'</span>')} <span class="info-dot">ⓘ</span></div>
+        <div style="display:flex;gap:5px">${roomBadgesHtml}</div>
       </div>
-      <div class="meta"><span><b>${struttura}</b></span><span>${iso} → ${b.checkout||""}</span>${badgeCanale(source)}</div>
-      ${action}`;
+      ${altriOspiti.length?`<div class="altri-ospiti">👤 ${altriOspiti.join(" · ")}</div>`:""}
+      <div class="meta"><span>${dataCompatta(iso)} → ${dataCompatta(b.checkout||"")}</span><span>${b.adults||""}${b.children?(" +"+b.children+"🧒"):""}👤</span>${badgeCanale(source)}</div><div class="meta"><span class="orario-chip${orarioSalvato?" set":""}" onclick="apriOrarioModal(${i},${b.booking_id},'${iso}')">${orarioSalvato?"🕐 "+orarioSalvato:"🕐 orario"}</span><span class="nota-chip${notaSalvata?" set":""}" onclick="apriNotaModal(${i},${b.booking_id},'${iso}')">${notaSalvata?"📝 note":"📝 note"}</span></div>
+      ${action}
+`;
+    if(notaSalvata){
+      const prev=document.createElement('div');
+      prev.className='nota-preview';
+      prev.textContent=notaSalvata;
+      card.appendChild(prev);
+    }
     list.appendChild(card);
   });
 }
@@ -477,65 +711,31 @@ function copia(i,btn){
   });
 }
 
-// ====== MODALE MESSAGGIO (Copia + cambio lingua + email + WhatsApp) ======
-const LINGUE_SEL=[["it","🇮🇹 IT"],["en","🇬🇧 EN"],["es","🇪🇸 ES"],["fr","🇫🇷 FR"],["de","🇩🇪 DE"],["pt","🇵🇹 PT"],["zh","🇨🇳 ZH"]];
+// ====== MODALE MESSAGGIO (Copia + Invia email) ======
 
-// rigenera il testo completo (con frase WhatsApp) per una lingua qualsiasi
-function testoInLingua(m,lng){
-  let t;
-  if(m.roomData.tipo==="campaldino") t=msgCampaldino(m.nome,m.iso,m.roomData.c,lng);
-  else t=msgLorenzo(m.nome,m.iso,m.roomData.num,lng);
-  return t+"\n"+(FRASE_WA[lng]||FRASE_WA.en);
-}
 
-let msgCurrent=null;      // indice prenotazione aperta
-let msgCurrentLng=null;   // lingua attualmente selezionata nel modal
 
 function apriMsg(i){
-  msgCurrent=i;
-  msgCurrentLng=msgFull[i].lng;
-  disegnaMsg();
-  document.getElementById("msgModal").classList.add("show");
-}
-
-function disegnaMsg(){
-  const m=msgFull[msgCurrent];
-  const lng=msgCurrentLng;
-  const testo=testoInLingua(m,lng);
+  const m=msgFull[i];
   const box=document.getElementById("msgModalBox");
-  const testoEsc=testo.replace(/</g,"&lt;");
+  const testoEsc=m.testo.replace(/</g,"&lt;");
   const haEmail=m.email && m.email.indexOf("@")>0;
   const subject=encodeURIComponent("InternoUno — Check-in");
-  const mailto=haEmail?`mailto:${m.email}?subject=${subject}&body=${encodeURIComponent(testo)}`:"";
-  const waLink=m.phone?`whatsapp://send?phone=${m.phone.replace(/\s/g,"").replace("+","")}&text=${encodeURIComponent(testo)}`:"";
-
-  // pulsanti lingua
-  let langBtns='<div class="lang-row">';
-  LINGUE_SEL.forEach(([code,label])=>{
-    langBtns+=`<button class="lang-btn${code===lng?' active':''}" onclick="cambiaLinguaMsg('${code}')">${label}</button>`;
-  });
-  langBtns+='</div>';
-
+  const mailto=haEmail?`mailto:${m.email}?subject=${subject}&body=${encodeURIComponent(m.testo)}`:"";
   box.innerHTML=`
     <h3>Messaggio per ${m.nome}</h3>
-    ${langBtns}
-    <div class="msg-box" style="margin:12px 0 14px"><button class="copy-btn" id="msgCopyBtn">Copia</button>${testoEsc}</div>
+    <div class="msg-box" style="margin-bottom:14px"><button class="copy-btn" id="msgCopyBtn">Copia</button>${testoEsc}</div>
     <div class="modal-actions">
-      ${m.phone?`<a class="wa-btn" href="${waLink}">${waIcon}WhatsApp</a>`:""}
-      ${haEmail?`<a class="m-email" href="${mailto}">✉️ Email</a>`:`<button class="m-email disabled" disabled>✉️ No email</button>`}
+      ${haEmail?`<a class="m-email" href="${mailto}">✉️ Invia email</a>`:`<button class="m-email disabled" disabled>✉️ Nessuna email</button>`}
       <button class="m-cancel" onclick="chiudiMsg()">Chiudi</button>
     </div>`;
   document.getElementById("msgCopyBtn").onclick=function(){
-    navigator.clipboard.writeText(testo).then(()=>{
+    navigator.clipboard.writeText(m.testo).then(()=>{
       this.textContent="Copiato ✓"; this.classList.add("done");
       setTimeout(()=>{this.textContent="Copia";this.classList.remove("done");},2000);
     });
   };
-}
-
-function cambiaLinguaMsg(lng){
-  msgCurrentLng=lng;
-  disegnaMsg();
+  document.getElementById("msgModal").classList.add("show");
 }
 function chiudiMsg(){document.getElementById("msgModal").classList.remove("show");}
 
@@ -562,26 +762,109 @@ function apriInfo(i){
   let html=`<h3>Dettagli prenotazione</h3><table class="info-table">`;
   righe.forEach(r=>{html+=`<tr><td class="info-k">${r[0]}</td><td class="info-v">${r[1]}</td></tr>`;});
   html+=`</table>`;
+  if(d.guestFallback){html+=`<div class="copy-note" style="margin-top:12px">⚠️ Nome recuperato da lista ospiti — dati booker assenti su Amenitiz</div>`;}
+  if(d.mismatch){html+=`<div class="copy-note" style="margin-top:12px">⚠️ Prenotante (${d.nome}) diverso dall'ospite (${d.guestNome}) — verifica nome e telefono su Amenitiz. Il messaggio è stato generato senza nome.</div>`;}
   html+=`<div class="modal-actions" style="margin-top:14px"><button class="m-cancel" onclick="chiudiInfo()">Chiudi</button></div>`;
   box.innerHTML=html;
   document.getElementById("infoModal").classList.add("show");
 }
 function chiudiInfo(){document.getElementById("infoModal").classList.remove("show");}
 
+let orariMap = {};
+let noteMap = {};
+
 async function caricaData(){
+  // resetta modalità in casa se attiva
+  if(modalitaInCasa){
+    modalitaInCasa=false;
+    const btn=document.getElementById("inCasaBtn");
+    if(btn) btn.classList.remove("active");
+  }
   const iso=document.getElementById("dateInput").value;
   if(!iso){return;}
   const list=document.getElementById("list");
   document.getElementById("daytitle").textContent="";
   list.innerHTML='<div class="status">Carico gli arrivi…</div>';
   try{
-    const r=await fetch(`${WORKER}/?date=${iso}`);
-    const data=await r.json();
-    if(data.error){list.innerHTML=`<div class="status">Errore: ${data.error} (${data.status||''})</div>`;return;}
-    render(iso,data.bookings||[]);
+    // carica arrivi e orari in parallelo
+    const [rArrivi, rOrari, rNote] = await Promise.all([
+      fetch(`${WORKER}/?date=${iso}`).then(r=>r.json()),
+      fetch(`${WORKER}/?action=getOrari&date=${iso}`).then(r=>r.json()).catch(()=>({orari:{}})),
+      fetch(`${WORKER}/?action=getNote&date=${iso}`).then(r=>r.json()).catch(()=>({note:{}})),
+    ]);
+    if(rArrivi.error){list.innerHTML=`<div class="status">Errore: ${rArrivi.error} (${rArrivi.status||''})</div>`;return;}
+    orariMap = rOrari.orari || {};
+    noteMap = rNote.note || {};
+    render(iso,rArrivi.bookings||[]);
   }catch(e){
     list.innerHTML=`<div class="status">Impossibile contattare il server.<br>${e.message}</div>`;
   }
+}
+
+// ── MODAL ORARIO ──
+let orarioCtx = {i:null, bookingId:null, date:null};
+
+function apriOrarioModal(i, bookingId, date){
+  orarioCtx = {i, bookingId, date};
+  // popola ore
+  const selOre = document.getElementById("orarioOre");
+  const selMin = document.getElementById("orarioMinuti");
+  selOre.innerHTML = "";
+  for(let h=6;h<=23;h++){
+    const opt=document.createElement("option");
+    opt.value=String(h).padStart(2,"0");
+    opt.textContent=String(h).padStart(2,"0");
+    selOre.appendChild(opt);
+  }
+  selMin.innerHTML = "";
+  ["00","15","30","45"].forEach(m=>{
+    const opt=document.createElement("option");
+    opt.value=m; opt.textContent=m;
+    selMin.appendChild(opt);
+  });
+  // preseleziona orario salvato se esiste
+  const saved = orariMap[String(bookingId)];
+  if(saved){
+    const [h,m]=saved.split(":");
+    selOre.value=h;
+    selMin.value=m;
+  } else {
+    selOre.value="14";
+    selMin.value="00";
+  }
+  document.getElementById("orarioModal").classList.add("show");
+}
+
+function chiudiOrarioModal(){
+  document.getElementById("orarioModal").classList.remove("show");
+}
+
+async function confermaOrario(){
+  const ore = document.getElementById("orarioOre").value;
+  const min = document.getElementById("orarioMinuti").value;
+  const orario = `${ore}:${min}`;
+  const {i, bookingId, date} = orarioCtx;
+  chiudiOrarioModal();
+  try{
+    const r = await fetch(`${WORKER}/?action=setOrario&booking_id=${bookingId}&date=${date}&orario=${encodeURIComponent(orario)}`);
+    const d = await r.json();
+    if(d.ok){
+      orariMap[String(bookingId)] = orario;
+      const cards = document.querySelectorAll(".orario-chip");
+      if(cards[i]){cards[i].textContent="🕐 "+orario;cards[i].classList.add("set");}
+    }
+  }catch(e){console.error("Errore salvataggio orario:",e);}
+}
+
+async function cancellaOrario(){
+  const {i, bookingId, date} = orarioCtx;
+  chiudiOrarioModal();
+  try{
+    await fetch(`${WORKER}/?action=deleteOrario&booking_id=${bookingId}&date=${date}`);
+    delete orariMap[String(bookingId)];
+    const cards = document.querySelectorAll(".orario-chip");
+    if(cards[i]){cards[i].textContent="🕐 orario";cards[i].classList.remove("set");}
+  }catch(e){console.error("Errore rimozione orario:",e);}
 }
 
 function vaiA(giorniDopo){
@@ -591,8 +874,367 @@ function vaiA(giorniDopo){
   caricaData();
 }
 
+
+// ====== DISPONIBILITÀ & PREZZI ======
+const ROOM_MAP = {
+  "c3c60864-c3f3-46f9-a769-dfc751fb82b6": {nome:"Appartamento 4 pax",       col:"#e0a92e", struttura:"Campaldino"},
+  "98aa5f1e-ce0f-4599-97a6-f93854d1a56f": {nome:"Tripla Standard",           col:"#7a5230", struttura:"Campaldino"},
+  "100441b2-c3c1-44dd-9216-54b685540030": {nome:"Matrimoniale Standard",     col:"#b03a2e", struttura:"Campaldino"},
+  "dd569122-7dfd-42dd-a8e0-65ed5d75ed70": {nome:"Matrimoniale Superior",     col:"#5c6b52", struttura:"Lorenzo"},
+  "10bf4893-7907-4894-8b6c-67f3df0734f6": {nome:"Matrimoniale con Terrazza", col:"#5b8fb0", struttura:"Lorenzo"},
+  "5cfc1387-8c05-43f0-8cb3-489d76397124": {nome:"Economy Double",            col:"#86868b", struttura:"Lorenzo"},
+};
+// ordine di visualizzazione
+const ROOM_ORDER = [
+  "c3c60864-c3f3-46f9-a769-dfc751fb82b6",
+  "98aa5f1e-ce0f-4599-97a6-f93854d1a56f",
+  "100441b2-c3c1-44dd-9216-54b685540030",
+  "dd569122-7dfd-42dd-a8e0-65ed5d75ed70",
+  "10bf4893-7907-4894-8b6c-67f3df0734f6",
+  "5cfc1387-8c05-43f0-8cb3-489d76397124",
+];
+
+// ── IN CASA ──
+function chiudiInCasa(){document.getElementById("inCasaModal").classList.remove("show");}
+
+let modalitaInCasa = false;
+
+function chiudiInCasa(){ /* non più usata */ }
+
+async function apriInCasa(){
+  if(modalitaInCasa){
+    // toggle off: torna agli arrivi di domani
+    modalitaInCasa=false;
+    document.getElementById("inCasaBtn").classList.remove("active");
+    vaiA(1);
+    return;
+  }
+  modalitaInCasa=true;
+  document.getElementById("inCasaBtn").classList.add("active");
+
+  const isoOggi=new Date().toISOString().slice(0,10);
+  const list=document.getElementById("list");
+  document.getElementById("daytitle").textContent="";
+  list.innerHTML='<div class="status">Carico ospiti in struttura…</div>';
+
+  try{
+    const [res, rOrari, rNote]=await Promise.all([
+      fetch(`${WORKER}/?action=incasa`).then(r=>r.json()),
+      fetch(`${WORKER}/?action=getOrari&date=${isoOggi}`).then(r=>r.json()).catch(()=>({orari:{}})),
+      fetch(`${WORKER}/?action=getNote&date=${isoOggi}`).then(r=>r.json()).catch(()=>({note:{}})),
+    ]);
+    orariMap=rOrari.orari||{};
+    noteMap=rNote.note||{};
+    const inCasa=res.bookings||[];
+    const n=inCasa.length;
+    if(n===0){
+      document.getElementById("daytitle").textContent=
+        `🏠 In casa · ${dataLunga(isoOggi)} — nessun ospite`;
+      list.innerHTML='<div class="status">Nessun ospite in struttura.</div>';
+      return;
+    }
+    // usa render (che sovrascrive daytitle), poi lo reimpostiamo
+    render(isoOggi, inCasa);
+    document.getElementById("daytitle").textContent=
+      `🏠 In casa · ${dataLunga(isoOggi)} — ${n} ospiti`;
+  }catch(e){
+    list.innerHTML=`<div class="status">Errore: ${e.message}</div>`;
+  }
+}
+
+// ── MODAL NOTA ──
+let notaCtx = {i:null, bookingId:null, date:null};
+
+function apriNotaModal(i, bookingId, date){
+  notaCtx = {i, bookingId, date};
+  const saved = noteMap[String(bookingId)] || "";
+  document.getElementById("notaText").value = saved;
+  document.getElementById("notaModal").classList.add("show");
+  setTimeout(()=>document.getElementById("notaText").focus(), 100);
+}
+function chiudiNotaModal(){
+  document.getElementById("notaModal").classList.remove("show");
+}
+async function salvaNota(){
+  const nota = document.getElementById("notaText").value.trim();
+  if(!nota){await cancellaNotaModal();return;}
+  const {i, bookingId, date} = notaCtx;
+  chiudiNotaModal();
+  try{
+    await fetch(`${WORKER}/?action=setNota&booking_id=${bookingId}&date=${date}&nota=${encodeURIComponent(nota)}`);
+    noteMap[String(bookingId)] = nota;
+    const chips = document.querySelectorAll(".nota-chip");
+    if(chips[i]){chips[i].classList.add("set");}
+    // aggiorna anteprima nota sulla card
+    const cards = document.querySelectorAll(".card");
+    if(cards[i]){
+      let prev = cards[i].querySelector(".nota-preview");
+      if(!prev){prev=document.createElement("div");prev.className="nota-preview";cards[i].appendChild(prev);}
+      prev.textContent=nota;
+    }
+  }catch(e){console.error("Errore salvataggio nota:",e);}
+}
+async function cancellaNotaModal(){
+  const {i, bookingId, date} = notaCtx;
+  chiudiNotaModal();
+  try{
+    await fetch(`${WORKER}/?action=deleteNota&booking_id=${bookingId}&date=${date}`);
+    delete noteMap[String(bookingId)];
+    const chips = document.querySelectorAll(".nota-chip");
+    if(chips[i]){chips[i].classList.remove("set");}
+    // rimuovi anteprima nota dalla card
+    const cards = document.querySelectorAll(".card");
+    if(cards[i]){
+      const prev = cards[i].querySelector(".nota-preview");
+      if(prev) prev.remove();
+    }
+  }catch(e){console.error("Errore rimozione nota:",e);}
+}
+
+// ── CALENDARIO RANGE ──
+let calAnno, calMese, calFrom=null, calTo=null, calStep=0;
+const MESI_CAL=["Gennaio","Febbraio","Marzo","Aprile","Maggio","Giugno","Luglio","Agosto","Settembre","Ottobre","Novembre","Dicembre"];
+const GG_CAL=["Lu","Ma","Me","Gi","Ve","Sa","Do"];
+
+function calIso(d){return d.toISOString().slice(0,10);}
+function calDaIso(s){const[y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d);}
+function calFormatta(s){const d=calDaIso(s);return `${d.getDate()} ${MESI_CAL[d.getMonth()].slice(0,3)} ${d.getFullYear()}`;}
+
+function calDisegna(){
+  const titolo=document.getElementById("calTitolo");
+  const grid=document.getElementById("calGrid");
+  titolo.textContent=`${MESI_CAL[calMese]} ${calAnno}`;
+  const oggi=calIso(new Date());
+  let html="";
+  GG_CAL.forEach(g=>{ html+=`<div class="cal-gi">${g}</div>`; });
+  const primoGiorno=new Date(calAnno,calMese,1);
+  const offset=(primoGiorno.getDay()+6)%7;
+  for(let i=0;i<offset;i++) html+=`<div class="cal-vuoto"></div>`;
+  const giorniMese=new Date(calAnno,calMese+1,0).getDate();
+  for(let g=1;g<=giorniMese;g++){
+    const iso=`${calAnno}-${String(calMese+1).padStart(2,"0")}-${String(g).padStart(2,"0")}`;
+    const isPast=iso<oggi;
+    let cls="cal-day";
+    if(isPast) cls+=" cal-past";
+    else if(calFrom&&calTo&&iso>calFrom&&iso<calTo) cls+=" sel-range";
+    else if(iso===calFrom||iso===calTo) cls+=" sel-start";
+    html+=`<div class="${cls}" data-iso="${iso}">${g}</div>`;
+  }
+  grid.innerHTML=html;
+  grid.onclick=function(e){
+    const iso=e.target.dataset.iso;
+    if(iso&&!e.target.classList.contains("cal-past")) calClick(iso);
+  };
+  aggiornaSelLabel();
+}
+
+function aggiornaSelLabel(){
+  const el=document.getElementById("calSelezione");
+  const hint=document.getElementById("dispHint");
+  if(!calFrom&&!calTo){
+    el.textContent="Nessuna data selezionata";
+    hint.innerHTML="Tocca il giorno di <b>arrivo</b>, poi quello di <b>partenza</b>.";
+  } else if(calFrom&&!calTo){
+    el.textContent=`Arrivo: ${calFormatta(calFrom)} — seleziona la partenza`;
+    hint.innerHTML="Ora tocca il giorno di <b>partenza</b>.";
+  } else {
+    const notti=Math.round((calDaIso(calTo)-calDaIso(calFrom))/(1000*60*60*24));
+    const label=notti===1?"notte":"notti";
+    el.textContent=`${calFormatta(calFrom)} → ${calFormatta(calTo)} (${notti} ${label})`;
+    hint.innerHTML="Tocca <b>Cerca</b> oppure modifica il periodo.";
+  }
+}
+
+function calClick(iso){
+  if(calStep===0||calTo){
+    calFrom=iso; calTo=null; calStep=1;
+  } else {
+    if(iso<=calFrom){calFrom=iso;calStep=1;calTo=null;}
+    else{calTo=iso;calStep=0;}
+  }
+  calDisegna();
+}
+
+function calSposta(dir){
+  calMese+=dir;
+  if(calMese>11){calMese=0;calAnno++;}
+  if(calMese<0){calMese=11;calAnno--;}
+  calDisegna();
+}
+function apriDisp(){
+  const oggi=new Date();
+  calAnno=oggi.getFullYear(); calMese=oggi.getMonth();
+  calFrom=null; calTo=null; calStep=0;
+  document.getElementById("dispResult").innerHTML="";
+  document.getElementById("dispModal").classList.add("show");
+  calDisegna();
+}
+function chiudiDisp(){document.getElementById("dispModal").classList.remove("show");}
+
+async function cercaDisp(){
+  const from     = calFrom;
+  const to       = calTo;
+  const persone  = parseInt(document.getElementById("dispPersone").value)||2;
+  const res      = document.getElementById("dispResult");
+  if(!from||!to){res.innerHTML='<div class="disp-status">Seleziona arrivo e partenza sul calendario.</div>';return;}
+
+  const notti = Math.round((new Date(to)-new Date(from))/(1000*60*60*24));
+  if(notti<=0){res.innerHTML='<div class="disp-status">Data fine precedente alla data inizio.</div>';return;}
+  if(notti>30){res.innerHTML='<div class="disp-status">Periodo massimo 30 giorni.</div>';return;}
+
+  res.innerHTML='<div class="disp-status">Carico disponibilità e prezzi…</div>';
+
+  try{
+    // L'endpoint prezzi vuole le date delle notti (from inclusa, to esclusa = giorno checkout)
+    const [rAvail, rPrices] = await Promise.all([
+      fetch(`${WORKER}/?action=availabilities&from=${from}&to=${to}`).then(r=>r.json()),
+      fetch(`${WORKER}/?action=prices&from=${from}&to=${to}`).then(r=>r.json()),
+    ]);
+
+    // Indice availability: room_id -> date -> availability
+    const avail = {};
+    (rAvail.availabilities||[]).forEach(a=>{
+      if(!avail[a.room_id]) avail[a.room_id]={};
+      avail[a.room_id][a.date]=a.availability;
+    });
+
+    // Indice prezzi: room_id -> date -> price
+    const prices = {};
+    (rPrices.rate_prices||[]).forEach(rp=>{
+      if(!prices[rp.room_id]) prices[rp.room_id]={};
+      (rp.prices||[]).forEach(p=>{ prices[rp.room_id][p.date]=p.price; });
+    });
+
+    // Date delle notti (dal from al giorno prima del to)
+    const dates = [];
+    const cur = new Date(from);
+    const end = new Date(to);
+    while(cur < end){ dates.push(cur.toISOString().slice(0,10)); cur.setDate(cur.getDate()+1); }
+
+    const TASSA_NOTTE = 5; // €5 per persona per notte (max 10 notti)
+    const nottiTassa  = Math.min(notti, 10);
+    const tassaTot    = TASSA_NOTTE * persone * nottiTassa;
+
+    let html = "";
+    let trovate = 0;
+
+    ROOM_ORDER.forEach(rid=>{
+      const info = ROOM_MAP[rid];
+      if(!info) return;
+      const av = avail[rid]||{};
+      const pr = prices[rid]||{};
+
+      // Libera solo se TUTTE le notti hanno availability > 0
+      const tutteLiberee = dates.every(d=>(av[d]||0)>0);
+      if(!tutteLiberee) return; // non mostrare le occupate
+
+      // Somma prezzi di tutte le notti
+      const prezzoCamera = dates.reduce((sum,d)=>sum+(pr[d]||0),0);
+      const hasSconto = notti >= 3;
+      const sconto = hasSconto ? Math.round(prezzoCamera * 0.08) : 0;
+      const prezzoCameraFinale = prezzoCamera - sconto;
+      const totale = prezzoCameraFinale + tassaTot;
+
+      trovate++;
+      const rigaSconto = hasSconto
+        ? `<div class="disp-riga disp-sconto"><span>Sconto min. 3 notti (-8%)</span><span>-€${sconto}</span></div>`
+        : "";
+      html += `<div class="disp-card">
+        <div class="disp-card-top">
+          <div class="disp-cam-name">
+            <span class="disp-pip" style="background:${info.col}"></span>
+            ${info.nome}
+            <span style="font-size:11px;color:var(--muted);font-weight:400">${info.struttura}</span>
+          </div>
+        </div>
+        <div class="disp-totali">
+          <div class="disp-riga"><span>Camera (${notti} notti)</span><span>€${prezzoCamera}</span></div>
+          ${rigaSconto}
+          <div class="disp-riga"><span>Tassa soggiorno (${persone}×${nottiTassa} notti)</span><span>€${tassaTot}</span></div>
+          <div class="disp-riga disp-totale"><span>Totale</span><span>€${totale}</span></div>
+        </div>
+      </div>`;
+    });
+
+    if(trovate===0){
+      html='<div class="disp-status">Nessuna camera disponibile per il periodo selezionato.</div>';
+    } else {
+      html+=`<div class="disp-note">${trovate} camera${trovate>1?'e':''} disponibil${trovate>1?'i':'e'} · check-in ${from} · check-out ${to} · ${persone} person${persone>1?'e':'a'}</div>`;
+    }
+
+    res.innerHTML = html;
+
+  }catch(e){
+    res.innerHTML=`<div class="disp-status">Errore: ${e.message}</div>`;
+  }
+}
+
 // avvio: mostra domani
 vaiA(1);
 </script>
+  </div>
+</div>
+
+
+<!-- ====== MODAL ORARIO ARRIVO ====== -->
+<div class="orario-modal-bg" id="orarioModal">
+  <div class="orario-modal">
+    <h3>🕐 Orario di arrivo</h3>
+    <div class="orario-selects">
+      <select class="orario-sel" id="orarioOre"></select>
+      <span class="orario-sep">:</span>
+      <select class="orario-sel" id="orarioMinuti"></select>
+    </div>
+    <div class="orario-actions">
+      <button class="m-cancel" onclick="chiudiOrarioModal()">Annulla</button>
+      <button style="flex:1;border:none;border-radius:10px;font-weight:600;font-size:15px;padding:12px;cursor:pointer;font-family:var(--sysfont);background:#fce4ec;color:#c62828;" onclick="cancellaOrario()">🗑 Rimuovi</button>
+      <button class="m-ok" onclick="confermaOrario()">Salva</button>
+    </div>
+  </div>
+</div>
+
+<!-- ====== MODAL NOTA ====== -->
+<div class="orario-modal-bg" id="notaModal">
+  <div class="orario-modal">
+    <h3>📝 Note prenotazione</h3>
+    <textarea class="nota-textarea" id="notaText" placeholder="Inserisci una nota…"></textarea>
+    <div class="orario-actions">
+      <button class="m-cancel" onclick="chiudiNotaModal()">Annulla</button>
+      <button style="flex:1;border:none;border-radius:10px;font-weight:600;font-size:15px;padding:12px;cursor:pointer;font-family:var(--sysfont);background:#fce4ec;color:#c62828;" onclick="cancellaNotaModal()">🗑 Rimuovi</button>
+      <button class="m-ok" onclick="salvaNota()">Salva</button>
+    </div>
+  </div>
+</div>
+
+<!-- ====== MODAL DISPONIBILITÀ & PREZZI ====== -->
+<div class="disp-modal-bg" id="dispModal">
+  <div class="disp-sheet">
+    <h3>📅 Disponibilità &amp; Prezzi</h3>
+    <p id="dispHint">Tocca il giorno di <b>arrivo</b>, poi quello di <b>partenza</b>.</p>
+    <div class="cal-wrap">
+      <div class="cal-nav">
+        <button class="cal-nav-btn" onclick="calSposta(-1)">‹</button>
+        <span class="cal-titolo" id="calTitolo"></span>
+        <button class="cal-nav-btn" onclick="calSposta(1)">›</button>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+      <div class="cal-selezione" id="calSelezione">Nessuna data selezionata</div>
+    </div>
+    <div class="disp-row" style="margin-top:12px">
+      <select id="dispPersone" style="flex:1;font-family:var(--sysfont);font-size:15px;padding:11px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);">
+        <option value="1">1 persona</option>
+        <option value="2" selected>2 persone</option>
+        <option value="3">3 persone</option>
+        <option value="4">4 persone</option>
+        <option value="5">5 persone</option>
+        <option value="6">6 persone</option>
+      </select>
+      <button class="btn" onclick="cercaDisp()">Cerca</button>
+    </div>
+    <div class="disp-result" id="dispResult"></div>
+    <button class="btn sec" style="width:100%;margin-top:14px" onclick="chiudiDisp()">Chiudi</button>
+  </div>
+</div>
+
 </body>
 </html>
