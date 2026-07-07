@@ -143,9 +143,11 @@ async function fetchStats(slug, days){
 }
 
 function sommaStats(lista){
-  const out = { byDay:{}, sections:{}, langs:{}, events:{}, recentQuestions:[] };
+  const out = { byDay:{}, uniqueByDay:{}, uniqueVisitorsTotal:0, sections:{}, langs:{}, events:{}, recentQuestions:[] };
   for(const s of lista){
     for(const [day,val] of Object.entries(s.byDay||{})) out.byDay[day] = (out.byDay[day]||0) + val;
+    for(const [day,val] of Object.entries(s.uniqueByDay||{})) out.uniqueByDay[day] = (out.uniqueByDay[day]||0) + val;
+    out.uniqueVisitorsTotal += s.uniqueVisitorsTotal || 0;
     for(const [k,val] of Object.entries(s.sections||{})) out.sections[k] = (out.sections[k]||0) + val;
     for(const [k,val] of Object.entries(s.langs||{})) out.langs[k] = (out.langs[k]||0) + val;
     for(const [k,val] of Object.entries(s.events||{})) out.events[k] = (out.events[k]||0) + val;
@@ -218,8 +220,8 @@ async function carica(){
 
     content.innerHTML = `
       <div class="kpi-grid">
-        <div class="kpi-card"><div class="kpi-val">${totaleVisite}</div><div class="kpi-label">Visite totali (${rangeGiorni}gg)</div></div>
-        <div class="kpi-card"><div class="kpi-val">${mediaGiorno}</div><div class="kpi-label">Media al giorno</div></div>
+        <div class="kpi-card"><div class="kpi-val">${s.uniqueVisitorsTotal}</div><div class="kpi-label">Visitatori unici (${rangeGiorni}gg)</div></div>
+        <div class="kpi-card"><div class="kpi-val">${totaleVisite}</div><div class="kpi-label">Azioni totali</div></div>
         <div class="kpi-card"><div class="kpi-val">${linguaTop ? (BANDIERE[linguaTop[0]]||'') + ' ' + (NOMI_LINGUA[linguaTop[0]]||linguaTop[0]) : '—'}</div><div class="kpi-label">Lingua più usata</div></div>
         <div class="kpi-card"><div class="kpi-val">${domande}</div><div class="kpi-label">Domande al concierge</div></div>
       </div>
