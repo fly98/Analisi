@@ -1046,6 +1046,93 @@ export default {
           perMese
         }), { headers: { ...CORS, "Content-Type": "application/json" } });
       }
+
+      // ===== CANCELLAZIONI: prenotazioni annullate in una finestra di check-in =====
+      // Nota: l'API Amenitiz non filtra per data di cancellazione, quindi filtriamo
+      // per data di CHECK-IN (dimensione recuperabile: interessano gli arrivi futuri).
+      // Entrambi gli endpoint /bookings/checkin restituiscono anche le annullate.
+      if (action === "cancellations") {
+        const from = url.searchParams.get("from"); // inizio finestra check-in
+        const to   = url.searchParams.get("to");   // fine finestra check-in
+        if (!from || !to) {
+          return new Response(JSON.stringify({ error: "Parametri from/to mancanti" }), {
+            status: 400, headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        }
+        function getMonthChunks(f, t) {
+          const res = [], end = new Date(t);
+          let cur = new Date(f);
+          while (cur <= end) {
+            const y = cur.getFullYear(), m = cur.getMonth();
+            const s = new Date(y, m, 1);
+            const e = new Date(y, m + 1, 0);
+            const fmt = (d) => d.toISOString().slice(0, 10);
+            res.push({ from: fmt(s < new Date(f) ? new Date(f) : s), to: fmt(e > end ? end : e) });
+            cur = new Date(y, m + 1, 1);
+          }
+          return res;
+        }
+        const chunks = getMonthChunks(from, to);
+        const fetched = await Promise.all(chunks.map(
+          (c) => amenitizGet(`/bookings/checkin?from=${c.from}&to=${c.to}&hotel_id=${HOTEL_UUID}`, env)
+            .then(async (r) => { const d = await r.json(); return Array.isArray(d) ? d : []; })
+            .catch(() => [])
+        ));
+        const seen = new Set();
+        const out = [];
+        for (const batch of fetched) {
+          for (const b of batch) {
+            const s = (b.status || "").toLowerCase();
+            if (s !== "cancelled" && s !== "canceled") continue;
+            if (seen.has(b.booking_id)) continue;
+            seen.add(b.booking_id);
+            const booker = b.booker || {};
+            const guest  = (b.guests && b.guests[0]) || {};
+            const room   = (b.rooms && b.rooms[0]) || {};
+            const bid    = b.booking_id;
+            const sentRaw = await env.ARRIVI_KV.get(`cancel_sent_${bid}`);
+            out.push({
+              booking_id: bid,
+              status: s,
+              first_name: (booker.first_name || guest.first_name || "").trim(),
+              last_name:  (booker.last_name  || guest.last_name  || "").trim(),
+              email: booker.email || "",
+              phone: booker.phone || "",
+              language: booker.language || "",
+              checkin: b.checkin || "",
+              checkout: b.checkout || "",
+              adults: b.adults || 0,
+              room_name: room.individual_room_name || "",
+              source: b.source || "",
+              total: parseFloat(b.total_amount_after_tax) || 0,
+              sent: !!sentRaw,
+              sent_at: sentRaw || null,
+            });
+          }
+        }
+        out.sort((a, b) => (a.checkin || "").localeCompare(b.checkin || ""));
+        return new Response(JSON.stringify({ from, to, count: out.length, cancellations: out }), {
+          headers: { ...CORS, "Content-Type": "application/json" }
+        });
+      }
+
+      // ===== SEGNA cancellazione come contattata / non contattata =====
+      if (action === "setCancelSent") {
+        const bid  = url.searchParams.get("booking_id");
+        const sent = url.searchParams.get("sent") === "true";
+        if (!bid) {
+          return new Response(JSON.stringify({ error: "booking_id mancante" }), {
+            status: 400, headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        }
+        const key = `cancel_sent_${bid}`;
+        if (sent) await env.ARRIVI_KV.put(key, new Date().toISOString());
+        else await env.ARRIVI_KV.delete(key);
+        return new Response(JSON.stringify({ ok: true, booking_id: bid, sent }), {
+          headers: { ...CORS, "Content-Type": "application/json" }
+        });
+      }
+
       let date = url.searchParams.get("date");
       if (!date) {
         const d = new Date();
