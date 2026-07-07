@@ -65,11 +65,6 @@
   .modal-actions{display:flex;gap:8px;flex-wrap:wrap;}
   .modal-actions>*{flex:1;min-width:120px;}
   .m-email{display:flex;align-items:center;justify-content:center;gap:6px;background:#3a3a3c;color:#fff;text-decoration:none;border:none;border-radius:10px;font-weight:600;font-size:15px;padding:12px;cursor:pointer;font-family:var(--sysfont);}
-  .lang-row{display:flex;flex-wrap:wrap;gap:6px;}
-  .lang-btn{flex:1;min-width:56px;background:#f0f0f2;color:var(--muted);border:1.5px solid var(--line);border-radius:9px;font-weight:600;font-size:13px;padding:8px 6px;cursor:pointer;font-family:var(--sysfont);white-space:nowrap;}
-  .lang-btn.active{background:var(--ink);color:#fff;border-color:var(--ink);}
-  .lang-btn:active{filter:brightness(0.95);}
-  .modal-actions .wa-btn{font-size:15px;padding:12px;text-decoration:none;}
   .m-email.disabled{background:var(--line);color:var(--muted);cursor:not-allowed;}
   .info-table{width:100%;border-collapse:collapse;font-size:14px;}
   .info-table tr{border-bottom:1px solid var(--line);}
@@ -676,10 +671,7 @@ function render(iso,bookings){
     }
     // salva dati per le modali
     taxStore[i]={nome,lng,notti,phone:numeroValido(phone)?phone:""};
-    const roomDataMsg=CAMPALDINO[roomName]?{tipo:"campaldino",c:CAMPALDINO[roomName]}:{tipo:"lorenzo",num:(LORENZO[roomName]||roomName)};
-    msgFull[i]={testo:testoCopia, email:(booker.email||""), nome, lng, waLink,
-                nomeMsg, iso, phone:(numeroValido(phone)?phone:""),
-                roomData:roomDataMsg, adultiPrima:(isMulti?adultiRoom0:0), camereExtra};
+    msgFull[i]={testo:testoCopia, email:(booker.email||""), nome, lng, waLink};
     infoStore[i]={
       nome:`${nome} ${cognome}`.trim(), struttura, room:roomName, roomLabel,
       checkin:iso, checkout:b.checkout||"", notti, adults:b.adults||"", children:b.children||0,
@@ -723,64 +715,27 @@ function copia(i,btn){
 
 
 
-// ====== MODALE MESSAGGIO (Copia + cambio lingua + email + WhatsApp) ======
-const LINGUE_SEL=[["it","🇮🇹 IT"],["en","🇬🇧 EN"],["es","🇪🇸 ES"],["fr","🇫🇷 FR"],["de","🇩🇪 DE"],["pt","🇵🇹 PT"],["zh","🇨🇳 ZH"]];
-
-// rigenera il testo completo (con frase WhatsApp) per una lingua qualsiasi
-function testoInLingua(m,lng){
-  let t;
-  if(m.roomData.tipo==="campaldino") t=msgCampaldino(m.nomeMsg,m.iso,m.roomData.c,lng,m.adultiPrima,m.camereExtra);
-  else t=msgLorenzo(m.nomeMsg,m.iso,m.roomData.num,lng,m.adultiPrima,m.camereExtra);
-  return t+"\n"+(FRASE_WA[lng]||FRASE_WA.en);
-}
-
-let msgCurrent=null;
-let msgCurrentLng=null;
-
 function apriMsg(i){
-  msgCurrent=i;
-  msgCurrentLng=msgFull[i].lng;
-  disegnaMsg();
-  document.getElementById("msgModal").classList.add("show");
-}
-
-function disegnaMsg(){
-  const m=msgFull[msgCurrent];
-  const lng=msgCurrentLng;
-  const testo=testoInLingua(m,lng);
+  const m=msgFull[i];
   const box=document.getElementById("msgModalBox");
-  const testoEsc=testo.replace(/</g,"&lt;");
+  const testoEsc=m.testo.replace(/</g,"&lt;");
   const haEmail=m.email && m.email.indexOf("@")>0;
   const subject=encodeURIComponent("InternoUno — Check-in");
-  const mailto=haEmail?`mailto:${m.email}?subject=${subject}&body=${encodeURIComponent(testo)}`:"";
-  const waLink=m.phone?`whatsapp://send?phone=${m.phone.replace(/\s/g,"").replace("+","")}&text=${encodeURIComponent(testo)}`:"";
-
-  let langBtns='<div class="lang-row">';
-  LINGUE_SEL.forEach(([code,label])=>{
-    langBtns+=`<button class="lang-btn${code===lng?' active':''}" onclick="cambiaLinguaMsg('${code}')">${label}</button>`;
-  });
-  langBtns+='</div>';
-
+  const mailto=haEmail?`mailto:${m.email}?subject=${subject}&body=${encodeURIComponent(m.testo)}`:"";
   box.innerHTML=`
     <h3>Messaggio per ${m.nome}</h3>
-    ${langBtns}
-    <div class="msg-box" style="margin:12px 0 14px"><button class="copy-btn" id="msgCopyBtn">Copia</button>${testoEsc}</div>
+    <div class="msg-box" style="margin-bottom:14px"><button class="copy-btn" id="msgCopyBtn">Copia</button>${testoEsc}</div>
     <div class="modal-actions">
-      ${m.phone?`<a class="wa-btn" href="${waLink}">${waIcon}WhatsApp</a>`:""}
-      ${haEmail?`<a class="m-email" href="${mailto}">✉️ Email</a>`:`<button class="m-email disabled" disabled>✉️ No email</button>`}
+      ${haEmail?`<a class="m-email" href="${mailto}">✉️ Invia email</a>`:`<button class="m-email disabled" disabled>✉️ Nessuna email</button>`}
       <button class="m-cancel" onclick="chiudiMsg()">Chiudi</button>
     </div>`;
   document.getElementById("msgCopyBtn").onclick=function(){
-    navigator.clipboard.writeText(testo).then(()=>{
+    navigator.clipboard.writeText(m.testo).then(()=>{
       this.textContent="Copiato ✓"; this.classList.add("done");
       setTimeout(()=>{this.textContent="Copia";this.classList.remove("done");},2000);
     });
   };
-}
-
-function cambiaLinguaMsg(lng){
-  msgCurrentLng=lng;
-  disegnaMsg();
+  document.getElementById("msgModal").classList.add("show");
 }
 function chiudiMsg(){document.getElementById("msgModal").classList.remove("show");}
 
