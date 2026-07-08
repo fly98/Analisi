@@ -43,7 +43,35 @@ ANIMALI: benvenuti gratuitamente, non devono salire sui letti né restare liberi
 FUMO: severamente vietato in tutta la struttura.
 EMERGENZE: Polizia/Carabinieri 112, Emergenza medica 118, Taxi Roma 06 3570, Info turistiche Roma 06 0606.
 SERVIZI VICINI: Conad City (Viale delle Provincie 156, di fronte), Lidl (Via della Lega Lombarda 32, 5 min), ATM Banco BPM (Viale delle Provincie 148), Lavanderia a gettoni Al.Ba. (Via Giuseppe de Mattheis 11, 5 min), Farmacia Caluori (Piazzale delle Provincie 8).
-RISTORANTI CONSIGLIATI: Bar Stendal (colazione, Piazzale delle Provincie 1, 1 min); Strada Romana (cucina romana/pizza, Via Teodorico 34, tel 06 8339 8501); Kimi Sushi Experience (Via della Lega Lombarda 48C); Al Tinello d'Abruzzo (Via Arduino 17); La Pagnottella Gourmet (panini/insalate, Viale Ippocrate 25); Burger King (Viale delle Provincie 136, di fronte, aperto fino a tardi).
+RISTORANTI IN ZONA (a piedi dalla struttura):
+- Bar Stendal (Piazzale delle Provincie 1, ~50 m, ~3€/persona) — Il bar più vicino: perfetto per colazione e un dolce.
+- Trapizzino (Piazzale delle Provincie 9, ~150 m, ~8€/persona) — Street food romano: il triangolo di pane caldo farcito con i sughi della tradizione (polpette, pollo alla cacciatora).
+- Burger King (Viale delle Provincie 136, ~50 m, ~10€/persona) — Fast food internazionale, praticamente sotto casa: comodo per un pasto veloce.
+- Milos Greek Food (Viale Regina Margherita 228, ~700 m, ~15€/persona) — Cucina greca genuina: souvlaki, pita e dolmades, con musica greca in sottofondo.
+- StradaRomana (Via Teodorico 34, ~600 m, ~28€/persona) — Cucina romana, grigliate e pizza in ambiente curato. Famoso per il risotto agli scampi.
+- Manco (Via Adolfo Venturi 14, ~600 m, ~30€/persona) — Trattoria moderna e accogliente, ottima amatriciana. Solo cena, meglio prenotare.
+- Da Enrico (Via Michele di Lando 28, ~550 m, ~30€/persona) — Trattoria di quartiere dall’atmosfera vivace: polpette memorabili e amatriciana.
+- Osteria Urbana (Via Bari 9, ~600 m, ~30€/persona) — Carbonara tra le più lodate della zona e supplì ottimi; personale che parla inglese.
+- Taverna del Fuorisede (Via Giovanni da Procida 51, ~450 m, ~25€/persona) — Piccola taverna dalla cucina romana verace e prezzi onesti: cacio e pepe e carbonara.
+- Puerto Fino (Via Eleonora d’Arborea 40, ~500 m, ~50€/persona) — Pesce di qualità e ottima carta vini: il piatto forte sono le linguine all’aragosta.
+- Mamma Orso (Via Arezzo 17, ~500 m, ~45€/persona) — Cucina raffinata e creativa, tempio del vino. Solo cena, prenotazione consigliata.
+- Da Franco (Via Stamira 23, ~650 m, ~40€/persona) — Storica trattoria di pesce amata dai romani: risotto all’astice e crudi freschi.
+- Mojito Sushi (Via Padova 55, ~450 m, ~25€/persona) — Sushi e cucina fusion con cocktail, tra i più apprezzati della zona. Anche all-you-can-eat.
+- Gelato Romano (Via Giacomo Boni 33, ~750 m, ~4€/persona) — Gelato artigianale eccellente, il più votato del quartiere: ingredienti naturali e stagionali.
+- Angry Monkey Bar (Viale delle Provincie 56, ~350 m, ~12€/persona) — Gin bar dall’atmosfera notturna con buona musica; ottimi cocktail e qualche piatto.
+- Blend (Piazza Lotario 5, ~700 m, ~12€/persona) — Cocktail d’autore e taglieri per un aperitivo curato in piazza.
+
+PERLE DI ROMA (nel centro, se l'ospite si sposta):
+- Orma Roma (Via Boncompagni 31 · Veneto, ~150€+/persona) — ⭐ 1 STELLA MICHELIN. Alta cucina creativa dello chef Roy Caceres, con chef’s table. Esperienza da occasione speciale: ~150€+ a persona, prenotazione obbligatoria.
+- All’Antico Vinaio (Piazza della Maddalena 3 · Pantheon, ~10€/persona) — Le schiacciate leggendarie super farcite, l’istituzione fiorentina arrivata a Roma: c’è sempre fila ma scorre veloce.
+- Tonnarello (Piazza Capranica 77 · Pantheon, ~22€/persona) — Pasta romana verace a due passi dal Pantheon: carbonara, cacio e pepe e supplì.
+- Trattoria Antonio al Pantheon (Via dei Pastini 12 · Pantheon, ~30€/persona) — Trattoria intima dal soffitto affrescato: amatriciana e tiramisù memorabili.
+- Da Enzo al 29 (Via dei Vascellari 29 · Trastevere, ~30€/persona) — Istituzione romana verace a Trastevere: carbonara e coda alla vaccinara. Niente prenotazioni, meglio arrivare presto.
+- Felice a Testaccio (Via Mastro Giorgio 29 · Testaccio, ~35€/persona) — Tempio della tradizione: la cacio e pepe viene mantecata al tavolo. Prenotazione obbligatoria.
+- Osteria del Grillo (Via del Seminario 110 · Monti, ~25€/persona) — Carbonara tra le migliori, porchetta e polpette, in un’atmosfera romantica e non turistica.
+- Origano Campo de’ Fiori (Largo dei Chiavari 84 · Campo de’ Fiori, ~25€/persona) — La migliore pizza vegana di Roma (con opzioni classiche): impasto soffice e ottimo formaggio vegetale.
+- Pizzeria della Madonna dei Monti (Via della Madonna dei Monti 110 · Monti, ~15€/persona) — Pizza napoletana di qualità a due passi dal Colosseo, con prezzi onesti.
+- Roscioli (Via dei Giubbonari 21 · Campo de’ Fiori, ~55€/persona) — Esperienza gourmet tra salumi, formaggi e la celebre cacio e pepe, con una carta vini eccezionale.
 CONTATTO DIRETTO: WhatsApp +39 392 2999914 per qualsiasi necessità non coperta da queste informazioni.
 `.trim(),
 
@@ -63,7 +91,35 @@ ANIMALI: benvenuti gratuitamente, non sui letti né liberi nelle aree comuni.
 FUMO: vietato in tutta la struttura.
 EMERGENZE: Polizia/Carabinieri 112, Emergenza medica 118, Taxi Roma 06 3570, Info turistiche Roma 06 0606. Pronto Soccorso più vicino: Ospedale Sandro Pertini, Via dei Monti Tiburtini 385.
 SERVIZI VICINI: Market Magnificio (Via Lorenzo il Magnifico 55), Farmacia Lorenzo il Magnifico (Via Lorenzo il Magnifico 56), Bancomat Mediobanca (Piazza Bologna 12), Lavanderia Onda Blu (Via Giuseppe Marcotti 52), Tabaccheria Magnifico (Via Giovanni da Procida 24), Ufficio Postale (Via Giuseppe Marcotti 45).
-RISTORANTI CONSIGLIATI: Da Mamma (trattoria romana, Via Lorenzo il Magnifico 62, tel 06 4424 2613); La Pizzetta Tiburtina (pizzette e fritti, Via Cipriano Facchinetti 5/7); Gelateria Belsito (Via Livorno 39).
+RISTORANTI IN ZONA (a piedi dalla struttura):
+- Roma Bar (Circonvallazione Nomentana 546, ~50 m, ~3€/persona) — Il bar proprio di fronte: perfetto per colazione e un caffè al volo.
+- Trapizzino (Piazzale delle Provincie 9, ~700 m, ~8€/persona) — Street food romano: il triangolo di pane caldo farcito con i sughi della tradizione (polpette, pollo alla cacciatora).
+- Smash Tag (Via Michele di Lando 22, ~500 m, ~13€/persona) — Hamburger di qualità (smash burger), citato tra i migliori d’Italia: pane morbido e carne fresca.
+- Milos Greek Food (Viale Regina Margherita 228, ~900 m, ~15€/persona) — Cucina greca genuina: souvlaki, pita e dolmades, con musica greca in sottofondo.
+- StradaRomana (Via Teodorico 34, ~250 m, ~28€/persona) — Cucina romana, grigliate e pizza in ambiente curato. Famoso per il risotto agli scampi.
+- Manco (Via Adolfo Venturi 14, ~500 m, ~30€/persona) — Trattoria moderna e accogliente, ottima amatriciana. Solo cena, meglio prenotare.
+- Da Enrico (Via Michele di Lando 28, ~550 m, ~30€/persona) — Trattoria di quartiere dall’atmosfera vivace: polpette memorabili e amatriciana.
+- Osteria Urbana (Via Bari 9, ~650 m, ~30€/persona) — Carbonara tra le più lodate della zona e supplì ottimi; personale che parla inglese.
+- Taverna del Fuorisede (Via Giovanni da Procida 51, ~550 m, ~25€/persona) — Piccola taverna dalla cucina romana verace e prezzi onesti: cacio e pepe e carbonara.
+- Puerto Fino (Via Eleonora d’Arborea 40, ~550 m, ~50€/persona) — Pesce di qualità e ottima carta vini: il piatto forte sono le linguine all’aragosta.
+- Mamma Orso (Via Arezzo 17, ~700 m, ~45€/persona) — Cucina raffinata e creativa, tempio del vino. Solo cena, prenotazione consigliata.
+- Da Franco (Via Stamira 23, ~500 m, ~40€/persona) — Storica trattoria di pesce amata dai romani: risotto all’astice e crudi freschi.
+- Mojito Sushi (Via Padova 55, ~600 m, ~25€/persona) — Sushi e cucina fusion con cocktail, tra i più apprezzati della zona. Anche all-you-can-eat.
+- Gelato Romano (Via Giacomo Boni 33, ~600 m, ~4€/persona) — Gelato artigianale eccellente, il più votato del quartiere: ingredienti naturali e stagionali.
+- Angry Monkey Bar (Viale delle Provincie 56, ~550 m, ~12€/persona) — Gin bar dall’atmosfera notturna con buona musica; ottimi cocktail e qualche piatto.
+- Blend (Piazza Lotario 5, ~700 m, ~12€/persona) — Cocktail d’autore e taglieri per un aperitivo curato in piazza.
+
+PERLE DI ROMA (nel centro, se l'ospite si sposta):
+- Orma Roma (Via Boncompagni 31 · Veneto, ~150€+/persona) — ⭐ 1 STELLA MICHELIN. Alta cucina creativa dello chef Roy Caceres, con chef’s table. Esperienza da occasione speciale: ~150€+ a persona, prenotazione obbligatoria.
+- All’Antico Vinaio (Piazza della Maddalena 3 · Pantheon, ~10€/persona) — Le schiacciate leggendarie super farcite, l’istituzione fiorentina arrivata a Roma: c’è sempre fila ma scorre veloce.
+- Tonnarello (Piazza Capranica 77 · Pantheon, ~22€/persona) — Pasta romana verace a due passi dal Pantheon: carbonara, cacio e pepe e supplì.
+- Trattoria Antonio al Pantheon (Via dei Pastini 12 · Pantheon, ~30€/persona) — Trattoria intima dal soffitto affrescato: amatriciana e tiramisù memorabili.
+- Da Enzo al 29 (Via dei Vascellari 29 · Trastevere, ~30€/persona) — Istituzione romana verace a Trastevere: carbonara e coda alla vaccinara. Niente prenotazioni, meglio arrivare presto.
+- Felice a Testaccio (Via Mastro Giorgio 29 · Testaccio, ~35€/persona) — Tempio della tradizione: la cacio e pepe viene mantecata al tavolo. Prenotazione obbligatoria.
+- Osteria del Grillo (Via del Seminario 110 · Monti, ~25€/persona) — Carbonara tra le migliori, porchetta e polpette, in un’atmosfera romantica e non turistica.
+- Origano Campo de’ Fiori (Largo dei Chiavari 84 · Campo de’ Fiori, ~25€/persona) — La migliore pizza vegana di Roma (con opzioni classiche): impasto soffice e ottimo formaggio vegetale.
+- Pizzeria della Madonna dei Monti (Via della Madonna dei Monti 110 · Monti, ~15€/persona) — Pizza napoletana di qualità a due passi dal Colosseo, con prezzi onesti.
+- Roscioli (Via dei Giubbonari 21 · Campo de’ Fiori, ~55€/persona) — Esperienza gourmet tra salumi, formaggi e la celebre cacio e pepe, con una carta vini eccezionale.
 CONTATTO DIRETTO: WhatsApp +39 392 2999914 per qualsiasi necessità non coperta da queste informazioni.
 `.trim()
 };
@@ -74,6 +130,7 @@ function systemPrompt(slug, lang) {
 Usa SOLO le informazioni qui sotto per rispondere su casa, orari, trasporti, servizi e ristoranti. Se la domanda esula da questi temi o non trovi la risposta nelle informazioni fornite, invita gentilmente a scrivere su WhatsApp al numero indicato, senza inventare nulla.
 Se l'ospite chiede prezzi o disponibilità delle camere, informazioni su prenotazioni future, o vuole allungare/estendere il soggiorno in corso: NON inventare mai prezzi o disponibilità (cambiano di continuo). Invita a consultare www.interno1.it, il sito ufficiale, sempre aggiornato con tariffe e disponibilità reali; specifica che prenotando direttamente lì si ottiene la tariffa più bassa rispetto agli altri canali.
 Non dare mai consigli medici, legali o di sicurezza oltre ai numeri di emergenza forniti.
+Per i ristoranti: consiglia in base a ciò che chiede l'ospite (tipo di cucina, budget, occasione). I locali "IN ZONA" sono raggiungibili a piedi; le "PERLE DI ROMA" sono nel centro storico, da raggiungere spostandosi. Cita sempre il prezzo medio a persona e, se rilevante, il piatto tipico. Per lo stellato Orma Roma avvisa chiaramente che è alta cucina da occasione speciale (~150€+ a persona, prenotazione obbligatoria). Non inventare ristoranti diversi da quelli elencati.
 
 INFORMAZIONI STRUTTURA:
 ${kb}`;
