@@ -1,0 +1,31 @@
+name: Deploy Booking Proxy Worker
+
+on:
+  push:
+    paths:
+      - 'booking_proxy_worker.js'
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create wrangler config
+        run: |
+          cat > wrangler_booking_proxy_deploy.toml << 'EOF'
+          name = "internouno-booking-proxy"
+          main = "booking_proxy_worker.js"
+          compatibility_date = "2024-09-23"
+          EOF
+
+      - name: Deploy with Wrangler
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CF_API_TOKEN }}
+          accountId: ${{ secrets.CF_ACCOUNT_ID }}
+          wranglerVersion: '3'
+          command: deploy --config wrangler_booking_proxy_deploy.toml
