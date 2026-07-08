@@ -497,7 +497,7 @@ it:{
     ['🚬','Tabaccheria','Piazza Bologna 16/17 — biglietti metro, francobolli, sigarette','Tabaccheria+Piazza+Bologna+Roma',41.9128888,12.5205306,'tabacchi'],
   ],
   t_food_roma:'Perle di Roma', t_food_roma_sub:'Se ti sposti in centro, questi valgono la deviazione',
-  filter_all:'Tutti', filter_cuisine:'Tipo di cucina', filter_price:'Fascia di prezzo',
+  filter_all:'Tutti', filter_cuisine:'Tipo di cucina', filter_price:'Fascia di prezzo', filter_none:'Nessun locale con questi filtri.',
   book_cta:'📅 Prenota',
   food_cats:{colazione:'Colazione',romana:'Romana',sushi:'Sushi',pizza:'Pizza',pesce:'Pesce',vegano:'Vegano',messicano:'Messicano',indiano:'Indiano',hamburgeria:'Hamburgeria',gelateria:'Gelateria',aperitivo:'Aperitivo',streetfood:'Street food',esperienza:'Esperienza'},
   food:[
@@ -505,7 +505,7 @@ it:{
     ['🔺','Trapizzino','4.5','Piazzale delle Provincie 9 · a 150 m','Street food romano: il triangolo di pane caldo farcito con i sughi della tradizione (polpette, pollo alla cacciatora).','Trapizzino+Piazzale+delle+Provincie+Roma',41.90954,12.521587,'streetfood','€',''],
     ['🍔','Burger King','4.3','Viale delle Provincie 136 · a 50 m','Fast food internazionale, praticamente sotto casa: comodo per un pasto veloce.','Burger+King+Viale+delle+Provincie+Roma',41.9088508,12.5210473,'hamburgeria','€',''],
     ['🥙','Milos Greek Food','4.4','Viale Regina Margherita 228 · a 700 m','Cucina greca genuina: souvlaki, pita e dolmades, con musica greca in sottofondo.','Milos+Greek+Food+Viale+Regina+Margherita+Roma',41.9134907,12.5056942,'streetfood','€',''],
-    ['🍝','StradaRomana','4.8','Via Teodorico 34 · a 600 m','Cucina romana, grigliate e pizza in ambiente curato. Famoso per il risotto agli scampi.','StradaRomana+Via+Teodorico+Roma',41.9105217,12.5279991,'romana','€€','+390683398501'],
+    ['🍝','StradaRomana','4.8','Via Teodorico 34 · a 600 m','Cucina romana, grigliate e pizza in ambiente curato. Famoso per il risotto agli scampi.','StradaRomana+Via+Teodorico+Roma',41.9105217,12.5279991,['romana','pizza'],'€€','+390683398501'],
     ['🍝','Manco','4.7','Via Adolfo Venturi 14 · a 600 m','Trattoria moderna e accogliente, ottima amatriciana. Solo cena, meglio prenotare.','Manco+Ristorante+Via+Adolfo+Venturi+Roma',41.918579,12.5250107,'romana','€€','+393459836882'],
     ['🍝','Da Enrico','4.4','Via Michele di Lando 28 · a 550 m','Trattoria di quartiere dall’atmosfera vivace: polpette memorabili e amatriciana.','Da+Enrico+Via+Michele+di+Lando+Roma',41.9137907,12.5224039,'romana','€€','+390644237738'],
     ['🍷','Osteria Urbana','4.1','Via Bari 9 · a 600 m','Carbonara tra le più lodate della zona e supplì ottimi; personale che parla inglese.','Osteria+Urbana+Via+Bari+Roma',41.9110697,12.5147991,'romana','€€','https://www.thefork.it/ristorante/osteria-urbana-r390539'],
@@ -525,8 +525,8 @@ it:{
     ['🍝','Trattoria Antonio al Pantheon','4.7','Via dei Pastini 12 · Pantheon','Trattoria intima dal soffitto affrescato: amatriciana e tiramisù memorabili.','Trattoria+Antonio+al+Pantheon+Via+dei+Pastini+Roma',41.8994482,12.4775991,'romana','€€','+390654349921'],
     ['🍝','Da Enzo al 29','4.3','Via dei Vascellari 29 · Trastevere','Istituzione romana verace a Trastevere: carbonara e coda alla vaccinara. Niente prenotazioni, meglio arrivare presto.','Trattoria+Da+Enzo+Via+dei+Vascellari+Trastevere+Roma',41.8880847,12.4778554,'romana','€€',''],
     ['🧀','Felice a Testaccio','4.3','Via Mastro Giorgio 29 · Testaccio','Tempio della tradizione: la cacio e pepe viene mantecata al tavolo. Prenotazione obbligatoria.','Felice+a+Testaccio+Via+Mastro+Giorgio+Roma',41.8785544,12.4774541,'romana','€€','+390657460800'],
-    ['🍝','Osteria del Grillo','4.7','Via del Seminario 110 · Monti','Carbonara tra le migliori, porchetta e polpette, in un’atmosfera romantica e non turistica.','Osteria+del+Grillo+Via+del+Seminario+Roma',41.8990759,12.4779588,'romana','€€','+390655260360'],
-    ['🌱','Origano Campo de’ Fiori','4.6','Largo dei Chiavari 84 · Campo de’ Fiori','La migliore pizza vegana di Roma (con opzioni classiche): impasto soffice e ottimo formaggio vegetale.','Origano+Campo+de+Fiori+Largo+dei+Chiavari+Roma',41.8962888,12.4739083,'vegano','€€','+390668808074'],
+    ['🍝','Osteria del Grillo','4.7','Via del Seminario 110 · Monti','Carbonara tra le migliori, porchetta e polpette, in un’atmosfera romantica e non turistica.','Osteria+del+Grillo+Via+del+Seminario+Roma',41.8990759,12.4779588,['romana','pizza'],'€€','+390655260360'],
+    ['🌱','Origano Campo de’ Fiori','4.6','Largo dei Chiavari 84 · Campo de’ Fiori','La migliore pizza vegana di Roma (con opzioni classiche): impasto soffice e ottimo formaggio vegetale.','Origano+Campo+de+Fiori+Largo+dei+Chiavari+Roma',41.8962888,12.4739083,['vegano','pizza'],'€€','+390668808074'],
     ['🍕','Pizzeria della Madonna dei Monti','4.7','Via della Madonna dei Monti 110 · Monti','Pizza napoletana di qualità a due passi dal Colosseo, con prezzi onesti.','Pizzeria+della+Madonna+dei+Monti+Roma',41.8938333,12.4880582,'pizza','€','+393404848596'],
     ['🍷','Roscioli','4.3','Via dei Giubbonari 21 · Campo de’ Fiori','Esperienza gourmet tra salumi, formaggi e la celebre cacio e pepe, con una carta vini eccezionale.','Roscioli+Salumeria+con+Cucina+Via+dei+Giubbonari+Roma',41.894256,12.4742417,'esperienza','€€€','https://salumeriaroscioli.com/en/pages/prenota']
   ],
@@ -583,7 +583,7 @@ en:{
     ['🚬','Tobacconist','Piazza Bologna 16/17 — metro tickets, stamps, cigarettes','Tabaccheria+Piazza+Bologna+Roma',41.9128888,12.5205306,'tabacchi'],
   ],
   t_food_roma:'Rome’s Best Bites', t_food_roma_sub:'Heading downtown? These are worth the detour',
-  filter_all:'All', filter_cuisine:'Cuisine type', filter_price:'Price range',
+  filter_all:'All', filter_cuisine:'Cuisine type', filter_price:'Price range', filter_none:'No places match these filters.',
   book_cta:'📅 Book',
   food_cats:{colazione:'Breakfast',romana:'Roman',sushi:'Sushi',pizza:'Pizza',pesce:'Seafood',vegano:'Vegan',messicano:'Mexican',indiano:'Indian',hamburgeria:'Burgers',gelateria:'Ice cream',aperitivo:'Aperitivo',streetfood:'Street food',esperienza:'Experience'},
   food:[
@@ -591,7 +591,7 @@ en:{
     ['🔺','Trapizzino','4.5','Piazzale delle Provincie 9 · 150 m away','Roman street food: a warm bread pocket filled with classic sauces (meatballs, chicken cacciatora).','Trapizzino+Piazzale+delle+Provincie+Roma',41.90954,12.521587,'streetfood','€',''],
     ['🍔','Burger King','4.3','Viale delle Provincie 136 · 50 m away','International fast food, right on the doorstep: handy for a quick meal.','Burger+King+Viale+delle+Provincie+Roma',41.9088508,12.5210473,'hamburgeria','€',''],
     ['🥙','Milos Greek Food','4.4','Viale Regina Margherita 228 · 700 m away','Authentic Greek food: souvlaki, pita and dolmades, with Greek music in the background.','Milos+Greek+Food+Viale+Regina+Margherita+Roma',41.9134907,12.5056942,'streetfood','€',''],
-    ['🍝','StradaRomana','4.8','Via Teodorico 34 · 600 m away','Roman cuisine, grill and pizza in a smart setting. Famous for its scampi risotto.','StradaRomana+Via+Teodorico+Roma',41.9105217,12.5279991,'romana','€€','+390683398501'],
+    ['🍝','StradaRomana','4.8','Via Teodorico 34 · 600 m away','Roman cuisine, grill and pizza in a smart setting. Famous for its scampi risotto.','StradaRomana+Via+Teodorico+Roma',41.9105217,12.5279991,['romana','pizza'],'€€','+390683398501'],
     ['🍝','Manco','4.7','Via Adolfo Venturi 14 · 600 m away','Modern, cosy trattoria with excellent amatriciana. Dinner only, booking advised.','Manco+Ristorante+Via+Adolfo+Venturi+Roma',41.918579,12.5250107,'romana','€€','+393459836882'],
     ['🍝','Da Enrico','4.4','Via Michele di Lando 28 · 550 m away','Lively neighbourhood trattoria: memorable meatballs and amatriciana.','Da+Enrico+Via+Michele+di+Lando+Roma',41.9137907,12.5224039,'romana','€€','+390644237738'],
     ['🍷','Osteria Urbana','4.1','Via Bari 9 · 600 m away','One of the area’s most praised carbonaras and great supplì; English-speaking staff.','Osteria+Urbana+Via+Bari+Roma',41.9110697,12.5147991,'romana','€€','https://www.thefork.it/ristorante/osteria-urbana-r390539'],
@@ -611,8 +611,8 @@ en:{
     ['🍝','Trattoria Antonio al Pantheon','4.7','Via dei Pastini 12 · Pantheon','Intimate trattoria with a frescoed ceiling: memorable amatriciana and tiramisù.','Trattoria+Antonio+al+Pantheon+Via+dei+Pastini+Roma',41.8994482,12.4775991,'romana','€€','+390654349921'],
     ['🍝','Da Enzo al 29','4.3','Via dei Vascellari 29 · Trastevere','A genuine Roman institution in Trastevere: carbonara and oxtail stew. No bookings, best to arrive early.','Trattoria+Da+Enzo+Via+dei+Vascellari+Trastevere+Roma',41.8880847,12.4778554,'romana','€€',''],
     ['🧀','Felice a Testaccio','4.3','Via Mastro Giorgio 29 · Testaccio','A temple of tradition: the cacio e pepe is tossed at your table. Booking essential.','Felice+a+Testaccio+Via+Mastro+Giorgio+Roma',41.8785544,12.4774541,'romana','€€','+390657460800'],
-    ['🍝','Osteria del Grillo','4.7','Via del Seminario 110 · Monti','One of the best carbonaras, porchetta and meatballs, in a romantic, non-touristy setting.','Osteria+del+Grillo+Via+del+Seminario+Roma',41.8990759,12.4779588,'romana','€€','+390655260360'],
-    ['🌱','Origano Campo de’ Fiori','4.6','Largo dei Chiavari 84 · Campo de’ Fiori','The best vegan pizza in Rome (with classic options too): fluffy dough and excellent plant-based cheese.','Origano+Campo+de+Fiori+Largo+dei+Chiavari+Roma',41.8962888,12.4739083,'vegano','€€','+390668808074'],
+    ['🍝','Osteria del Grillo','4.7','Via del Seminario 110 · Monti','One of the best carbonaras, porchetta and meatballs, in a romantic, non-touristy setting.','Osteria+del+Grillo+Via+del+Seminario+Roma',41.8990759,12.4779588,['romana','pizza'],'€€','+390655260360'],
+    ['🌱','Origano Campo de’ Fiori','4.6','Largo dei Chiavari 84 · Campo de’ Fiori','The best vegan pizza in Rome (with classic options too): fluffy dough and excellent plant-based cheese.','Origano+Campo+de+Fiori+Largo+dei+Chiavari+Roma',41.8962888,12.4739083,['vegano','pizza'],'€€','+390668808074'],
     ['🍕','Pizzeria della Madonna dei Monti','4.7','Via della Madonna dei Monti 110 · Monti','Quality Neapolitan pizza a short walk from the Colosseum, at fair prices.','Pizzeria+della+Madonna+dei+Monti+Roma',41.8938333,12.4880582,'pizza','€','+393404848596'],
     ['🍷','Roscioli','4.3','Via dei Giubbonari 21 · Campo de’ Fiori','A gourmet experience of cured meats, cheeses and the famous cacio e pepe, with an exceptional wine list.','Roscioli+Salumeria+con+Cucina+Via+dei+Giubbonari+Roma',41.894256,12.4742417,'esperienza','€€€','https://salumeriaroscioli.com/en/pages/prenota']
   ],
@@ -669,7 +669,7 @@ es:{
     ['🚬','Estanco','Piazza Bologna 16/17 — billetes de metro, sellos, tabaco','Tabaccheria+Piazza+Bologna+Roma',41.9128888,12.5205306,'tabacchi'],
   ],
   t_food_roma:'Joyas de Roma', t_food_roma_sub:'Si te acercas al centro, estos valen la pena',
-  filter_all:'Todos', filter_cuisine:'Tipo de cocina', filter_price:'Rango de precio',
+  filter_all:'Todos', filter_cuisine:'Tipo de cocina', filter_price:'Rango de precio', filter_none:'Ningún local con estos filtros.',
   book_cta:'📅 Reservar',
   food_cats:{colazione:'Desayuno',romana:'Romana',sushi:'Sushi',pizza:'Pizza',pesce:'Pescado',vegano:'Vegano',messicano:'Mexicano',indiano:'Indio',hamburgeria:'Hamburguesas',gelateria:'Heladería',aperitivo:'Aperitivo',streetfood:'Street food',esperienza:'Experiencia'},
   food:[
@@ -677,7 +677,7 @@ es:{
     ['🔺','Trapizzino','4.5','Piazzale delle Provincie 9 · a 150 m','Comida callejera romana: el triángulo de pan caliente relleno con salsas tradicionales (albóndigas, pollo a la cazadora).','Trapizzino+Piazzale+delle+Provincie+Roma',41.90954,12.521587,'streetfood','€',''],
     ['🍔','Burger King','4.3','Viale delle Provincie 136 · a 50 m','Comida rápida internacional, prácticamente al lado: cómodo para una comida rápida.','Burger+King+Viale+delle+Provincie+Roma',41.9088508,12.5210473,'hamburgeria','€',''],
     ['🥙','Milos Greek Food','4.4','Viale Regina Margherita 228 · a 700 m','Cocina griega genuina: souvlaki, pita y dolmades, con música griega de fondo.','Milos+Greek+Food+Viale+Regina+Margherita+Roma',41.9134907,12.5056942,'streetfood','€',''],
-    ['🍝','StradaRomana','4.8','Via Teodorico 34 · a 600 m','Cocina romana, parrilla y pizza en un ambiente cuidado. Famoso por su risotto de cigalas.','StradaRomana+Via+Teodorico+Roma',41.9105217,12.5279991,'romana','€€','+390683398501'],
+    ['🍝','StradaRomana','4.8','Via Teodorico 34 · a 600 m','Cocina romana, parrilla y pizza en un ambiente cuidado. Famoso por su risotto de cigalas.','StradaRomana+Via+Teodorico+Roma',41.9105217,12.5279991,['romana','pizza'],'€€','+390683398501'],
     ['🍝','Manco','4.7','Via Adolfo Venturi 14 · a 600 m','Trattoria moderna y acogedora, excelente amatriciana. Solo cena, mejor reservar.','Manco+Ristorante+Via+Adolfo+Venturi+Roma',41.918579,12.5250107,'romana','€€','+393459836882'],
     ['🍝','Da Enrico','4.4','Via Michele di Lando 28 · a 550 m','Trattoria de barrio con ambiente animado: albóndigas memorables y amatriciana.','Da+Enrico+Via+Michele+di+Lando+Roma',41.9137907,12.5224039,'romana','€€','+390644237738'],
     ['🍷','Osteria Urbana','4.1','Via Bari 9 · a 600 m','Una de las carbonaras más elogiadas de la zona y supplì excelentes; personal que habla inglés.','Osteria+Urbana+Via+Bari+Roma',41.9110697,12.5147991,'romana','€€','https://www.thefork.it/ristorante/osteria-urbana-r390539'],
@@ -697,8 +697,8 @@ es:{
     ['🍝','Trattoria Antonio al Pantheon','4.7','Via dei Pastini 12 · Panteón','Trattoria íntima con techo con frescos: amatriciana y tiramisú memorables.','Trattoria+Antonio+al+Pantheon+Via+dei+Pastini+Roma',41.8994482,12.4775991,'romana','€€','+390654349921'],
     ['🍝','Da Enzo al 29','4.3','Via dei Vascellari 29 · Trastevere','Institución romana auténtica en Trastevere: carbonara y rabo de buey. Sin reservas, mejor llegar pronto.','Trattoria+Da+Enzo+Via+dei+Vascellari+Trastevere+Roma',41.8880847,12.4778554,'romana','€€',''],
     ['🧀','Felice a Testaccio','4.3','Via Mastro Giorgio 29 · Testaccio','Templo de la tradición: la cacio e pepe se mezcla en la mesa. Reserva obligatoria.','Felice+a+Testaccio+Via+Mastro+Giorgio+Roma',41.8785544,12.4774541,'romana','€€','+390657460800'],
-    ['🍝','Osteria del Grillo','4.7','Via del Seminario 110 · Monti','Una de las mejores carbonaras, porchetta y albóndigas, en un ambiente romántico y no turístico.','Osteria+del+Grillo+Via+del+Seminario+Roma',41.8990759,12.4779588,'romana','€€','+390655260360'],
-    ['🌱','Origano Campo de’ Fiori','4.6','Largo dei Chiavari 84 · Campo de’ Fiori','La mejor pizza vegana de Roma (también con opciones clásicas): masa esponjosa y excelente queso vegetal.','Origano+Campo+de+Fiori+Largo+dei+Chiavari+Roma',41.8962888,12.4739083,'vegano','€€','+390668808074'],
+    ['🍝','Osteria del Grillo','4.7','Via del Seminario 110 · Monti','Una de las mejores carbonaras, porchetta y albóndigas, en un ambiente romántico y no turístico.','Osteria+del+Grillo+Via+del+Seminario+Roma',41.8990759,12.4779588,['romana','pizza'],'€€','+390655260360'],
+    ['🌱','Origano Campo de’ Fiori','4.6','Largo dei Chiavari 84 · Campo de’ Fiori','La mejor pizza vegana de Roma (también con opciones clásicas): masa esponjosa y excelente queso vegetal.','Origano+Campo+de+Fiori+Largo+dei+Chiavari+Roma',41.8962888,12.4739083,['vegano','pizza'],'€€','+390668808074'],
     ['🍕','Pizzeria della Madonna dei Monti','4.7','Via della Madonna dei Monti 110 · Monti','Pizza napolitana de calidad a dos pasos del Coliseo, a precios justos.','Pizzeria+della+Madonna+dei+Monti+Roma',41.8938333,12.4880582,'pizza','€','+393404848596'],
     ['🍷','Roscioli','4.3','Via dei Giubbonari 21 · Campo de’ Fiori','Experiencia gourmet entre embutidos, quesos y la célebre cacio e pepe, con una carta de vinos excepcional.','Roscioli+Salumeria+con+Cucina+Via+dei+Giubbonari+Roma',41.894256,12.4742417,'esperienza','€€€','https://salumeriaroscioli.com/en/pages/prenota']
   ],
@@ -755,7 +755,7 @@ fr:{
     ['🚬','Bureau de Tabac','Piazza Bologna 16/17 — tickets de métro, timbres, cigarettes','Tabaccheria+Piazza+Bologna+Roma',41.9128888,12.5205306,'tabacchi'],
   ],
   t_food_roma:'Les Pépites de Rome', t_food_roma_sub:'Si vous allez dans le centre, ça vaut le détour',
-  filter_all:'Tous', filter_cuisine:'Type de cuisine', filter_price:'Gamme de prix',
+  filter_all:'Tous', filter_cuisine:'Type de cuisine', filter_price:'Gamme de prix', filter_none:'Aucun endroit avec ces filtres.',
   book_cta:'📅 Réserver',
   food_cats:{colazione:'Petit-déj',romana:'Romaine',sushi:'Sushi',pizza:'Pizza',pesce:'Poisson',vegano:'Végane',messicano:'Mexicain',indiano:'Indien',hamburgeria:'Burgers',gelateria:'Glacier',aperitivo:'Apéritif',streetfood:'Street food',esperienza:'Expérience'},
   food:[
@@ -763,7 +763,7 @@ fr:{
     ['🔺','Trapizzino','4.5','Piazzale delle Provincie 9 · à 150 m','Street food romain : le triangle de pain chaud garni des sauces traditionnelles (boulettes, poulet chasseur).','Trapizzino+Piazzale+delle+Provincie+Roma',41.90954,12.521587,'streetfood','€',''],
     ['🍔','Burger King','4.3','Viale delle Provincie 136 · à 50 m','Fast food international, juste en bas : pratique pour un repas rapide.','Burger+King+Viale+delle+Provincie+Roma',41.9088508,12.5210473,'hamburgeria','€',''],
     ['🥙','Milos Greek Food','4.4','Viale Regina Margherita 228 · à 700 m','Cuisine grecque authentique : souvlaki, pita et dolmades, avec de la musique grecque en fond.','Milos+Greek+Food+Viale+Regina+Margherita+Roma',41.9134907,12.5056942,'streetfood','€',''],
-    ['🍝','StradaRomana','4.8','Via Teodorico 34 · à 600 m','Cuisine romaine, grillades et pizza dans un cadre soigné. Réputé pour son risotto aux langoustines.','StradaRomana+Via+Teodorico+Roma',41.9105217,12.5279991,'romana','€€','+390683398501'],
+    ['🍝','StradaRomana','4.8','Via Teodorico 34 · à 600 m','Cuisine romaine, grillades et pizza dans un cadre soigné. Réputé pour son risotto aux langoustines.','StradaRomana+Via+Teodorico+Roma',41.9105217,12.5279991,['romana','pizza'],'€€','+390683398501'],
     ['🍝','Manco','4.7','Via Adolfo Venturi 14 · à 600 m','Trattoria moderne et chaleureuse, excellente amatriciana. Dîner uniquement, réservation conseillée.','Manco+Ristorante+Via+Adolfo+Venturi+Roma',41.918579,12.5250107,'romana','€€','+393459836882'],
     ['🍝','Da Enrico','4.4','Via Michele di Lando 28 · à 550 m','Trattoria de quartier à l’ambiance animée : boulettes mémorables et amatriciana.','Da+Enrico+Via+Michele+di+Lando+Roma',41.9137907,12.5224039,'romana','€€','+390644237738'],
     ['🍷','Osteria Urbana','4.1','Via Bari 9 · à 600 m','L’une des carbonara les plus appréciées du quartier et d’excellents supplì ; personnel anglophone.','Osteria+Urbana+Via+Bari+Roma',41.9110697,12.5147991,'romana','€€','https://www.thefork.it/ristorante/osteria-urbana-r390539'],
@@ -783,8 +783,8 @@ fr:{
     ['🍝','Trattoria Antonio al Pantheon','4.7','Via dei Pastini 12 · Panthéon','Trattoria intime au plafond peint : amatriciana et tiramisù mémorables.','Trattoria+Antonio+al+Pantheon+Via+dei+Pastini+Roma',41.8994482,12.4775991,'romana','€€','+390654349921'],
     ['🍝','Da Enzo al 29','4.3','Via dei Vascellari 29 · Trastevere','Institution romaine authentique au Trastevere : carbonara et queue de bœuf. Pas de réservation, mieux vaut arriver tôt.','Trattoria+Da+Enzo+Via+dei+Vascellari+Trastevere+Roma',41.8880847,12.4778554,'romana','€€',''],
     ['🧀','Felice a Testaccio','4.3','Via Mastro Giorgio 29 · Testaccio','Un temple de la tradition : la cacio e pepe est mélangée à table. Réservation obligatoire.','Felice+a+Testaccio+Via+Mastro+Giorgio+Roma',41.8785544,12.4774541,'romana','€€','+390657460800'],
-    ['🍝','Osteria del Grillo','4.7','Via del Seminario 110 · Monti','L’une des meilleures carbonara, porchetta et boulettes, dans un cadre romantique et non touristique.','Osteria+del+Grillo+Via+del+Seminario+Roma',41.8990759,12.4779588,'romana','€€','+390655260360'],
-    ['🌱','Origano Campo de’ Fiori','4.6','Largo dei Chiavari 84 · Campo de’ Fiori','La meilleure pizza végane de Rome (avec des options classiques) : pâte moelleuse et excellent fromage végétal.','Origano+Campo+de+Fiori+Largo+dei+Chiavari+Roma',41.8962888,12.4739083,'vegano','€€','+390668808074'],
+    ['🍝','Osteria del Grillo','4.7','Via del Seminario 110 · Monti','L’une des meilleures carbonara, porchetta et boulettes, dans un cadre romantique et non touristique.','Osteria+del+Grillo+Via+del+Seminario+Roma',41.8990759,12.4779588,['romana','pizza'],'€€','+390655260360'],
+    ['🌱','Origano Campo de’ Fiori','4.6','Largo dei Chiavari 84 · Campo de’ Fiori','La meilleure pizza végane de Rome (avec des options classiques) : pâte moelleuse et excellent fromage végétal.','Origano+Campo+de+Fiori+Largo+dei+Chiavari+Roma',41.8962888,12.4739083,['vegano','pizza'],'€€','+390668808074'],
     ['🍕','Pizzeria della Madonna dei Monti','4.7','Via della Madonna dei Monti 110 · Monti','Pizza napolitaine de qualité à deux pas du Colisée, à prix honnêtes.','Pizzeria+della+Madonna+dei+Monti+Roma',41.8938333,12.4880582,'pizza','€','+393404848596'],
     ['🍷','Roscioli','4.3','Via dei Giubbonari 21 · Campo de’ Fiori','Une expérience gourmet entre charcuteries, fromages et la célèbre cacio e pepe, avec une carte des vins exceptionnelle.','Roscioli+Salumeria+con+Cucina+Via+dei+Giubbonari+Roma',41.894256,12.4742417,'esperienza','€€€','https://salumeriaroscioli.com/en/pages/prenota']
   ],
@@ -841,7 +841,7 @@ de:{
     ['🚬','Tabakladen','Piazza Bologna 16/17 — U-Bahn-Tickets, Briefmarken, Zigaretten','Tabaccheria+Piazza+Bologna+Roma',41.9128888,12.5205306,'tabacchi'],
   ],
   t_food_roma:'Roms Highlights', t_food_roma_sub:'Wenn Sie ins Zentrum fahren, lohnt sich der Umweg',
-  filter_all:'Alle', filter_cuisine:'Küchenart', filter_price:'Preisklasse',
+  filter_all:'Alle', filter_cuisine:'Küchenart', filter_price:'Preisklasse', filter_none:'Keine Orte mit diesen Filtern.',
   book_cta:'📅 Reservieren',
   food_cats:{colazione:'Frühstück',romana:'Römisch',sushi:'Sushi',pizza:'Pizza',pesce:'Fisch',vegano:'Vegan',messicano:'Mexikanisch',indiano:'Indisch',hamburgeria:'Burger',gelateria:'Eisdiele',aperitivo:'Aperitivo',streetfood:'Street Food',esperienza:'Erlebnis'},
   food:[
@@ -849,7 +849,7 @@ de:{
     ['🔺','Trapizzino','4.5','Piazzale delle Provincie 9 · 150 m entfernt','Römisches Street Food: die warme Brottasche gefüllt mit traditionellen Saucen (Fleischbällchen, Hühnchen alla cacciatora).','Trapizzino+Piazzale+delle+Provincie+Roma',41.90954,12.521587,'streetfood','€',''],
     ['🍔','Burger King','4.3','Viale delle Provincie 136 · 50 m entfernt','Internationales Fast Food, praktisch vor der Tür: ideal für eine schnelle Mahlzeit.','Burger+King+Viale+delle+Provincie+Roma',41.9088508,12.5210473,'hamburgeria','€',''],
     ['🥙','Milos Greek Food','4.4','Viale Regina Margherita 228 · 700 m entfernt','Authentische griechische Küche: Souvlaki, Pita und Dolmades, mit griechischer Musik.','Milos+Greek+Food+Viale+Regina+Margherita+Roma',41.9134907,12.5056942,'streetfood','€',''],
-    ['🍝','StradaRomana','4.8','Via Teodorico 34 · 600 m entfernt','Römische Küche, Grill und Pizza in gepflegtem Ambiente. Berühmt für sein Scampi-Risotto.','StradaRomana+Via+Teodorico+Roma',41.9105217,12.5279991,'romana','€€','+390683398501'],
+    ['🍝','StradaRomana','4.8','Via Teodorico 34 · 600 m entfernt','Römische Küche, Grill und Pizza in gepflegtem Ambiente. Berühmt für sein Scampi-Risotto.','StradaRomana+Via+Teodorico+Roma',41.9105217,12.5279991,['romana','pizza'],'€€','+390683398501'],
     ['🍝','Manco','4.7','Via Adolfo Venturi 14 · 600 m entfernt','Moderne, gemütliche Trattoria mit hervorragender Amatriciana. Nur abends, Reservierung empfohlen.','Manco+Ristorante+Via+Adolfo+Venturi+Roma',41.918579,12.5250107,'romana','€€','+393459836882'],
     ['🍝','Da Enrico','4.4','Via Michele di Lando 28 · 550 m entfernt','Lebhafte Trattoria im Viertel: unvergessliche Fleischbällchen und Amatriciana.','Da+Enrico+Via+Michele+di+Lando+Roma',41.9137907,12.5224039,'romana','€€','+390644237738'],
     ['🍷','Osteria Urbana','4.1','Via Bari 9 · 600 m entfernt','Eine der beliebtesten Carbonara der Gegend und tolle Supplì; englischsprachiges Personal.','Osteria+Urbana+Via+Bari+Roma',41.9110697,12.5147991,'romana','€€','https://www.thefork.it/ristorante/osteria-urbana-r390539'],
@@ -869,8 +869,8 @@ de:{
     ['🍝','Trattoria Antonio al Pantheon','4.7','Via dei Pastini 12 · Pantheon','Intime Trattoria mit freskiertem Deckengewölbe: unvergessliche Amatriciana und Tiramisù.','Trattoria+Antonio+al+Pantheon+Via+dei+Pastini+Roma',41.8994482,12.4775991,'romana','€€','+390654349921'],
     ['🍝','Da Enzo al 29','4.3','Via dei Vascellari 29 · Trastevere','Eine echte römische Institution in Trastevere: Carbonara und Ochsenschwanz. Keine Reservierung, besser früh kommen.','Trattoria+Da+Enzo+Via+dei+Vascellari+Trastevere+Roma',41.8880847,12.4778554,'romana','€€',''],
     ['🧀','Felice a Testaccio','4.3','Via Mastro Giorgio 29 · Testaccio','Ein Tempel der Tradition: die Cacio e Pepe wird am Tisch angerichtet. Reservierung erforderlich.','Felice+a+Testaccio+Via+Mastro+Giorgio+Roma',41.8785544,12.4774541,'romana','€€','+390657460800'],
-    ['🍝','Osteria del Grillo','4.7','Via del Seminario 110 · Monti','Eine der besten Carbonara, Porchetta und Fleischbällchen, in romantischer, nicht touristischer Atmosphäre.','Osteria+del+Grillo+Via+del+Seminario+Roma',41.8990759,12.4779588,'romana','€€','+390655260360'],
-    ['🌱','Origano Campo de’ Fiori','4.6','Largo dei Chiavari 84 · Campo de’ Fiori','Die beste vegane Pizza Roms (auch mit klassischen Optionen): fluffiger Teig und ausgezeichneter pflanzlicher Käse.','Origano+Campo+de+Fiori+Largo+dei+Chiavari+Roma',41.8962888,12.4739083,'vegano','€€','+390668808074'],
+    ['🍝','Osteria del Grillo','4.7','Via del Seminario 110 · Monti','Eine der besten Carbonara, Porchetta und Fleischbällchen, in romantischer, nicht touristischer Atmosphäre.','Osteria+del+Grillo+Via+del+Seminario+Roma',41.8990759,12.4779588,['romana','pizza'],'€€','+390655260360'],
+    ['🌱','Origano Campo de’ Fiori','4.6','Largo dei Chiavari 84 · Campo de’ Fiori','Die beste vegane Pizza Roms (auch mit klassischen Optionen): fluffiger Teig und ausgezeichneter pflanzlicher Käse.','Origano+Campo+de+Fiori+Largo+dei+Chiavari+Roma',41.8962888,12.4739083,['vegano','pizza'],'€€','+390668808074'],
     ['🍕','Pizzeria della Madonna dei Monti','4.7','Via della Madonna dei Monti 110 · Monti','Hochwertige neapolitanische Pizza nur wenige Schritte vom Kolosseum, zu fairen Preisen.','Pizzeria+della+Madonna+dei+Monti+Roma',41.8938333,12.4880582,'pizza','€','+393404848596'],
     ['🍷','Roscioli','4.3','Via dei Giubbonari 21 · Campo de’ Fiori','Ein Gourmet-Erlebnis aus Wurstwaren, Käse und der berühmten Cacio e Pepe, mit außergewöhnlicher Weinkarte.','Roscioli+Salumeria+con+Cucina+Via+dei+Giubbonari+Roma',41.894256,12.4742417,'esperienza','€€€','https://salumeriaroscioli.com/en/pages/prenota']
   ],
@@ -927,7 +927,7 @@ pt:{
     ['🚬','Tabacaria','Piazza Bologna 16/17 — bilhetes de metro, selos, tabaco','Tabaccheria+Piazza+Bologna+Roma',41.9128888,12.5205306,'tabacchi'],
   ],
   t_food_roma:'Pérolas de Roma', t_food_roma_sub:'Se for ao centro, valem bem o desvio',
-  filter_all:'Todos', filter_cuisine:'Tipo de cozinha', filter_price:'Faixa de preço',
+  filter_all:'Todos', filter_cuisine:'Tipo de cozinha', filter_price:'Faixa de preço', filter_none:'Nenhum local com estes filtros.',
   book_cta:'📅 Reservar',
   food_cats:{colazione:'Pequeno-almoço',romana:'Romana',sushi:'Sushi',pizza:'Pizza',pesce:'Peixe',vegano:'Vegano',messicano:'Mexicano',indiano:'Indiano',hamburgeria:'Hambúrgueres',gelateria:'Gelataria',aperitivo:'Aperitivo',streetfood:'Street food',esperienza:'Experiência'},
   food:[
@@ -935,7 +935,7 @@ pt:{
     ['🔺','Trapizzino','4.5','Piazzale delle Provincie 9 · a 150 m','Comida de rua romana: o triângulo de pão quente recheado com molhos tradicionais (almôndegas, frango à caçadora).','Trapizzino+Piazzale+delle+Provincie+Roma',41.90954,12.521587,'streetfood','€',''],
     ['🍔','Burger King','4.3','Viale delle Provincie 136 · a 50 m','Fast food internacional, praticamente à porta: prático para uma refeição rápida.','Burger+King+Viale+delle+Provincie+Roma',41.9088508,12.5210473,'hamburgeria','€',''],
     ['🥙','Milos Greek Food','4.4','Viale Regina Margherita 228 · a 700 m','Cozinha grega genuína: souvlaki, pita e dolmades, com música grega de fundo.','Milos+Greek+Food+Viale+Regina+Margherita+Roma',41.9134907,12.5056942,'streetfood','€',''],
-    ['🍝','StradaRomana','4.8','Via Teodorico 34 · a 600 m','Cozinha romana, grelhados e pizza num ambiente cuidado. Famoso pelo risoto de lagostim.','StradaRomana+Via+Teodorico+Roma',41.9105217,12.5279991,'romana','€€','+390683398501'],
+    ['🍝','StradaRomana','4.8','Via Teodorico 34 · a 600 m','Cozinha romana, grelhados e pizza num ambiente cuidado. Famoso pelo risoto de lagostim.','StradaRomana+Via+Teodorico+Roma',41.9105217,12.5279991,['romana','pizza'],'€€','+390683398501'],
     ['🍝','Manco','4.7','Via Adolfo Venturi 14 · a 600 m','Trattoria moderna e acolhedora, ótima amatriciana. Só jantar, melhor reservar.','Manco+Ristorante+Via+Adolfo+Venturi+Roma',41.918579,12.5250107,'romana','€€','+393459836882'],
     ['🍝','Da Enrico','4.4','Via Michele di Lando 28 · a 550 m','Trattoria de bairro com ambiente animado: almôndegas memoráveis e amatriciana.','Da+Enrico+Via+Michele+di+Lando+Roma',41.9137907,12.5224039,'romana','€€','+390644237738'],
     ['🍷','Osteria Urbana','4.1','Via Bari 9 · a 600 m','Uma das carbonaras mais elogiadas da zona e ótimos supplì; pessoal que fala inglês.','Osteria+Urbana+Via+Bari+Roma',41.9110697,12.5147991,'romana','€€','https://www.thefork.it/ristorante/osteria-urbana-r390539'],
@@ -955,8 +955,8 @@ pt:{
     ['🍝','Trattoria Antonio al Pantheon','4.7','Via dei Pastini 12 · Panteão','Trattoria intimista com teto afrescado: amatriciana e tiramisù memoráveis.','Trattoria+Antonio+al+Pantheon+Via+dei+Pastini+Roma',41.8994482,12.4775991,'romana','€€','+390654349921'],
     ['🍝','Da Enzo al 29','4.3','Via dei Vascellari 29 · Trastevere','Instituição romana genuína em Trastevere: carbonara e rabo de boi. Sem reservas, melhor chegar cedo.','Trattoria+Da+Enzo+Via+dei+Vascellari+Trastevere+Roma',41.8880847,12.4778554,'romana','€€',''],
     ['🧀','Felice a Testaccio','4.3','Via Mastro Giorgio 29 · Testaccio','Templo da tradição: a cacio e pepe é mexida à mesa. Reserva obrigatória.','Felice+a+Testaccio+Via+Mastro+Giorgio+Roma',41.8785544,12.4774541,'romana','€€','+390657460800'],
-    ['🍝','Osteria del Grillo','4.7','Via del Seminario 110 · Monti','Uma das melhores carbonaras, porchetta e almôndegas, num ambiente romântico e não turístico.','Osteria+del+Grillo+Via+del+Seminario+Roma',41.8990759,12.4779588,'romana','€€','+390655260360'],
-    ['🌱','Origano Campo de’ Fiori','4.6','Largo dei Chiavari 84 · Campo de’ Fiori','A melhor pizza vegana de Roma (também com opções clássicas): massa fofa e excelente queijo vegetal.','Origano+Campo+de+Fiori+Largo+dei+Chiavari+Roma',41.8962888,12.4739083,'vegano','€€','+390668808074'],
+    ['🍝','Osteria del Grillo','4.7','Via del Seminario 110 · Monti','Uma das melhores carbonaras, porchetta e almôndegas, num ambiente romântico e não turístico.','Osteria+del+Grillo+Via+del+Seminario+Roma',41.8990759,12.4779588,['romana','pizza'],'€€','+390655260360'],
+    ['🌱','Origano Campo de’ Fiori','4.6','Largo dei Chiavari 84 · Campo de’ Fiori','A melhor pizza vegana de Roma (também com opções clássicas): massa fofa e excelente queijo vegetal.','Origano+Campo+de+Fiori+Largo+dei+Chiavari+Roma',41.8962888,12.4739083,['vegano','pizza'],'€€','+390668808074'],
     ['🍕','Pizzeria della Madonna dei Monti','4.7','Via della Madonna dei Monti 110 · Monti','Pizza napolitana de qualidade a dois passos do Coliseu, a preços justos.','Pizzeria+della+Madonna+dei+Monti+Roma',41.8938333,12.4880582,'pizza','€','+393404848596'],
     ['🍷','Roscioli','4.3','Via dei Giubbonari 21 · Campo de’ Fiori','Uma experiência gourmet entre enchidos, queijos e a célebre cacio e pepe, com uma carta de vinhos excecional.','Roscioli+Salumeria+con+Cucina+Via+dei+Giubbonari+Roma',41.894256,12.4742417,'esperienza','€€€','https://salumeriaroscioli.com/en/pages/prenota']
   ],
@@ -1013,7 +1013,7 @@ zh:{
     ['🚬','烟草店','Piazza Bologna 16/17 — 地铁票、邮票、香烟','Tabaccheria+Piazza+Bologna+Roma',41.9128888,12.5205306,'tabacchi'],
   ],
   t_food_roma:'罗马美食精选', t_food_roma_sub:'如果去市中心,这些值得专程一试',
-  filter_all:'全部', filter_cuisine:'菜系类型', filter_price:'价格区间',
+  filter_all:'全部', filter_cuisine:'菜系类型', filter_price:'价格区间', filter_none:'没有符合筛选条件的店。',
   book_cta:'📅 预订',
   food_cats:{colazione:'早餐',romana:'罗马菜',sushi:'寿司',pizza:'披萨',pesce:'海鲜',vegano:'素食',messicano:'墨西哥菜',indiano:'印度菜',hamburgeria:'汉堡',gelateria:'冰淇淋',aperitivo:'开胃小食',streetfood:'街头小吃',esperienza:'特色体验'},
   food:[
@@ -1021,7 +1021,7 @@ zh:{
     ['🔺','Trapizzino','4.5','Piazzale delle Provincie 9 · 距约 150 米','罗马街头小吃:温热的三角面包夹传统酱料(肉丸、猎人烩鸡)。','Trapizzino+Piazzale+delle+Provincie+Roma',41.90954,12.521587,'streetfood','€',''],
     ['🍔','Burger King','4.3','Viale delle Provincie 136 · 距约 50 米','国际快餐,就在楼下:快速用餐很方便。','Burger+King+Viale+delle+Provincie+Roma',41.9088508,12.5210473,'hamburgeria','€',''],
     ['🥙','Milos Greek Food','4.4','Viale Regina Margherita 228 · 距约 700 米','地道希腊美食:souvlaki、皮塔饼和葡萄叶卷,还有希腊音乐相伴。','Milos+Greek+Food+Viale+Regina+Margherita+Roma',41.9134907,12.5056942,'streetfood','€',''],
-    ['🍝','StradaRomana','4.8','Via Teodorico 34 · 距约 600 米','罗马菜、烤物和披萨,环境精致。招牌是海螯虾烩饭。','StradaRomana+Via+Teodorico+Roma',41.9105217,12.5279991,'romana','€€','+390683398501'],
+    ['🍝','StradaRomana','4.8','Via Teodorico 34 · 距约 600 米','罗马菜、烤物和披萨,环境精致。招牌是海螯虾烩饭。','StradaRomana+Via+Teodorico+Roma',41.9105217,12.5279991,['romana','pizza'],'€€','+390683398501'],
     ['🍝','Manco','4.7','Via Adolfo Venturi 14 · 距约 600 米','现代温馨的小馆,阿马特里恰纳面极佳。仅供晚餐,建议预订。','Manco+Ristorante+Via+Adolfo+Venturi+Roma',41.918579,12.5250107,'romana','€€','+393459836882'],
     ['🍝','Da Enrico','4.4','Via Michele di Lando 28 · 距约 550 米','热闹的社区小馆:令人难忘的肉丸和阿马特里恰纳面。','Da+Enrico+Via+Michele+di+Lando+Roma',41.9137907,12.5224039,'romana','€€','+390644237738'],
     ['🍷','Osteria Urbana','4.1','Via Bari 9 · 距约 600 米','本区最受好评的卡波纳拉面之一,炸饭团也很棒;店员会说英语。','Osteria+Urbana+Via+Bari+Roma',41.9110697,12.5147991,'romana','€€','https://www.thefork.it/ristorante/osteria-urbana-r390539'],
@@ -1041,8 +1041,8 @@ zh:{
     ['🍝','Trattoria Antonio al Pantheon','4.7','Via dei Pastini 12 · 万神殿','天花板绘有壁画的温馨小馆:令人难忘的阿马特里恰纳面和提拉米苏。','Trattoria+Antonio+al+Pantheon+Via+dei+Pastini+Roma',41.8994482,12.4775991,'romana','€€','+390654349921'],
     ['🍝','Da Enzo al 29','4.3','Via dei Vascellari 29 · 特拉斯特维雷','特拉斯特维雷地道罗马名店:卡波纳拉和炖牛尾。不接受预订,建议早到。','Trattoria+Da+Enzo+Via+dei+Vascellari+Trastevere+Roma',41.8880847,12.4778554,'romana','€€',''],
     ['🧀','Felice a Testaccio','4.3','Via Mastro Giorgio 29 · 泰斯塔乔','传统的殿堂:cacio e pepe 在餐桌旁现拌。必须预订。','Felice+a+Testaccio+Via+Mastro+Giorgio+Roma',41.8785544,12.4774541,'romana','€€','+390657460800'],
-    ['🍝','Osteria del Grillo','4.7','Via del Seminario 110 · 蒙蒂区','最出色的卡波纳拉之一,还有烤猪肉和肉丸,氛围浪漫、不落俗套。','Osteria+del+Grillo+Via+del+Seminario+Roma',41.8990759,12.4779588,'romana','€€','+390655260360'],
-    ['🌱','Origano Campo de’ Fiori','4.6','Largo dei Chiavari 84 · 花之广场','罗马最好的纯素披萨(也有经典口味):面团松软,植物奶酪出色。','Origano+Campo+de+Fiori+Largo+dei+Chiavari+Roma',41.8962888,12.4739083,'vegano','€€','+390668808074'],
+    ['🍝','Osteria del Grillo','4.7','Via del Seminario 110 · 蒙蒂区','最出色的卡波纳拉之一,还有烤猪肉和肉丸,氛围浪漫、不落俗套。','Osteria+del+Grillo+Via+del+Seminario+Roma',41.8990759,12.4779588,['romana','pizza'],'€€','+390655260360'],
+    ['🌱','Origano Campo de’ Fiori','4.6','Largo dei Chiavari 84 · 花之广场','罗马最好的纯素披萨(也有经典口味):面团松软,植物奶酪出色。','Origano+Campo+de+Fiori+Largo+dei+Chiavari+Roma',41.8962888,12.4739083,['vegano','pizza'],'€€','+390668808074'],
     ['🍕','Pizzeria della Madonna dei Monti','4.7','Via della Madonna dei Monti 110 · 蒙蒂区','距斗兽场几步之遥的优质那不勒斯披萨,价格实惠。','Pizzeria+della+Madonna+dei+Monti+Roma',41.8938333,12.4880582,'pizza','€','+393404848596'],
     ['🍷','Roscioli','4.3','Via dei Giubbonari 21 · 花之广场','集腌肉、奶酪与著名 cacio e pepe 于一体的美食体验,酒单极为出色。','Roscioli+Salumeria+con+Cucina+Via+dei+Giubbonari+Roma',41.894256,12.4742417,'esperienza','€€€','https://salumeriaroscioli.com/en/pages/prenota']
   ],
@@ -1119,11 +1119,9 @@ function render(){
   });
   refreshMapLabels();
 
-  // food (zona, con filtri) + Roma
+  // food (zona, con filtri) + Perle di Roma (stessi filtri)
   renderFilterChips();
   renderFoodFiltered();
-  $('#foodRomaList').innerHTML = T().foodRoma.map(foodCardHTML).join('');
-  $$('#foodRomaList [data-navbtn]').forEach(b => b.addEventListener('click', e => e.stopPropagation()));
 
   // tours
   renderTours();
@@ -1143,6 +1141,8 @@ let foodMapBounds = null;
 
 function foodBaseList(){ return foodOverrideList || T().food; }
 
+function foodCats(f){ return Array.isArray(f[8]) ? f[8] : (f[8] ? [f[8]] : []); }
+
 function foodCardHTML(f){
   const nav = (f[6] != null && f[7] != null)
     ? `https://www.google.com/maps/dir/?api=1&destination=${f[6]},${f[7]}`
@@ -1160,8 +1160,9 @@ function foodCardHTML(f){
 }
 
 function renderFoodFiltered(){
+  const match = f => (!foodCuisine || foodCats(f).includes(foodCuisine)) && (!foodPrice || f[9]===foodPrice);
   const all = foodBaseList();
-  const filtered = all.filter(f => (!foodCuisine || f[8]===foodCuisine) && (!foodPrice || f[9]===foodPrice));
+  const filtered = all.filter(match);
   $('#foodlist').innerHTML = filtered.map(foodCardHTML).join('');
   $$('#foodlist .poi').forEach((el, i) => {
     const f = filtered[i];
@@ -1174,11 +1175,19 @@ function renderFoodFiltered(){
     }
   });
   renderFoodMarkers(filtered);
+
+  // stesse regole di filtro applicate alle Perle di Roma
+  const perle = (T().foodRoma || []).filter(match);
+  const romaEl = $('#foodRomaList');
+  if(romaEl){
+    romaEl.innerHTML = perle.length ? perle.map(foodCardHTML).join('') : `<p style="opacity:.6;padding:8px 4px">${T().filter_none || '—'}</p>`;
+    romaEl.querySelectorAll('[data-navbtn]').forEach(b => b.addEventListener('click', e => e.stopPropagation()));
+  }
 }
 
 function renderFilterChips(){
-  const all = foodBaseList();
-  const cuisines = [...new Set(all.map(f => f[8]).filter(Boolean))];
+  const all = [...foodBaseList(), ...(T().foodRoma || [])];
+  const cuisines = [...new Set(all.flatMap(f => foodCats(f)))];
 
   const cuisineLabel = foodCuisine ? (T().food_cats[foodCuisine] || foodCuisine) : T().filter_all;
   $('#cuisineFilterBtn').textContent = `${T().filter_cuisine}: ${cuisineLabel}`;
@@ -1193,7 +1202,7 @@ function renderFilterChips(){
     $('#cuisineModalOverlay').classList.remove('show');
   }));
 
-  const prices = [...new Set(all.map(f => f[9]).filter(Boolean))].sort((a,b)=>a.length-b.length);
+  const prices = ['€','€€','€€€'].filter(p => all.some(f => f[9]===p));
   $('#filterPrice').innerHTML = [
     `<button class="chip${foodPrice===null?' on':''}" data-price="">${T().filter_all}</button>`,
     ...prices.map(p => `<button class="chip${foodPrice===p?' on':''}" data-price="${p}">${p}</button>`)
@@ -1366,7 +1375,7 @@ $$('#tabbar button').forEach(b => b.addEventListener('click', () => {
   }
   if(b.dataset.scr === 'food'){
     initFoodMap();
-    renderFoodMarkers(foodBaseList().filter(f => (!foodCuisine || f[8]===foodCuisine) && (!foodPrice || f[9]===foodPrice)));
+    renderFoodMarkers(foodBaseList().filter(f => (!foodCuisine || foodCats(f).includes(foodCuisine)) && (!foodPrice || f[9]===foodPrice)));
     setTimeout(() => foodMap.invalidateSize(), 60);
   }
 }));
