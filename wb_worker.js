@@ -454,9 +454,10 @@ async function refreshEventi(env, slug) {
       const titolo = await fetchMeta(dHtml, "og:title");
       if (!titolo) continue;
       const descr = await fetchMeta(dHtml, "description");
+      const img = await fetchMeta(dHtml, "og:image");
       const { quando, dove, endDate } = extractQuandoDove(dHtml);
       if (!dateStillValid(endDate)) continue;
-      eventiSrc.push({ emoji: guessEmoji(titolo), titolo, quando, dove, descr, link });
+      eventiSrc.push({ emoji: guessEmoji(titolo), titolo, quando, dove, descr, img, link });
     } catch (e) { /* salta questo link, continua con gli altri */ }
   }
 
