@@ -121,6 +121,33 @@ PERLE DI ROMA (nel centro, se l'ospite si sposta):
 - Pizzeria della Madonna dei Monti (Via della Madonna dei Monti 110 · Monti, ~15€/persona) — Pizza napoletana di qualità a due passi dal Colosseo, con prezzi onesti.
 - Roscioli (Via dei Giubbonari 21 · Campo de’ Fiori, ~55€/persona) — Esperienza gourmet tra salumi, formaggi e la celebre cacio e pepe, con una carta vini eccezionale.
 CONTATTO DIRETTO: WhatsApp +39 392 2999914 per qualsiasi necessità non coperta da queste informazioni.
+`.trim(),
+  sito: `
+InternoUno è un affittacamere a Roma con due sedi, entrambe vicinissime alla metro Linea B:
+
+SEDE 1 - INTERNOUNO: Via Campaldino 6, Roma (zona Piazza Bologna). A 30 metri da Piazzale delle Provincie, 400m dalla metro B Piazza Bologna. Camere con bagno privato, angolo cottura, aria condizionata, TV 43" con Netflix.
+Camere disponibili:
+- Appartamento Bilocale 4pax: 18 m², accoglie 5 persone, bilocale con letto matrimoniale 160cm in una stanza e divano letto (2 singoli) nell'altra, vasca idromassaggio, angolo cottura.
+- Tripla Standard: 14 m², accoglie 3 persone, monolocale con letto matrimoniale e letto singolo a scomparsa, bagno con doccia, angolo cottura.
+- Matrimoniale Standard: 13 m², accoglie 2 persone, monolocale con letto matrimoniale, bagno con doccia, angolo cottura, scrivania a bancone.
+
+SEDE 2 - INTERNOUNO DELUXE: Via Lorenzo il Magnifico 158, Roma (zona Tiburtina). Proprio all'uscita della metro B Tiburtina, anche stazione ferroviaria Alta Velocità e regionali. Camere con bagno privato, angolo cottura, aria condizionata.
+Camere disponibili:
+- Matrimoniale Superior con Terrazza: 15 m², accoglie 2 persone (3° letto singolo su richiesta, a pagamento), letto matrimoniale, terrazza privata con tavolo e sedie, bagno con vasca idromassaggio, TV 50" con Netflix.
+- Matrimoniale con Terrazza: 12 m², accoglie 2 persone, stessi servizi della Superior ma più compatta, TV 32" con Netflix.
+- Matrimoniale Economy: 9 m², accoglie 2 persone, la camera più compatta e più economica, letto matrimoniale 140cm, bagno privato senza bidet, piccolo angolo cottura, TV 32" con Netflix. Attenzione: essendo molto piccola, consigliamo di valutare bene le foto prima di prenotare; è possibile richiedere un upgrade a una camera superiore.
+
+TUTTE LE CAMERE includono: Wifi gratuito, aria condizionata, angolo cottura con piastra/fornello e dotazione essenziale (piatti, pentole, bicchieri, posate) per preparazioni semplici, Smart TV con Netflix incluso, asciugacapelli, self check-in autonomo 24 ore su 24.
+
+PREZZI E DISPONIBILITÀ: cambiano continuamente in base alle date. NON vanno mai inventati: indirizza sempre l'utente a controllare tariffe e disponibilità reali sul sito ufficiale www.interno1.it, specificando che prenotando direttamente lì si ottiene la tariffa più bassa rispetto ad altri portali (Booking.com, ecc).
+
+RECENSIONI: media 8,6/10 su Booking.com ("Favoloso", 703 recensioni), 4,2/5 su Google (80 recensioni).
+
+TOUR GRATUITI: gli ospiti hanno accesso gratuito a un'app di tour guidati con audioguida GPS a Roma (nessun download necessario), con percorsi come Roma in un Giorno, Musei Vaticani, Trastevere Nascosta, San Pietro e Borgo Pio, Dal Ghetto al Mattatoio, Roma Esoterica.
+
+COME ARRIVARE: entrambe le sedi sono a pochi minuti a piedi dalla metro Linea B (Piazza Bologna per InternoUno, Tiburtina per InternoUno Deluxe), ben collegate con Termini (3-4 fermate) e Colosseo (5-6 fermate).
+
+CONTATTO DIRETTO: WhatsApp +39 392 299 9914 per qualsiasi domanda non coperta da queste informazioni, o per richiedere disponibilità e upgrade camera.
 `.trim()
 };
 
