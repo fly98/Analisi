@@ -409,6 +409,32 @@ select.form-input { height: 42px; }
   position:fixed; inset:0; z-index:9000;
   background:rgba(0,0,0,.45); display:flex; align-items:flex-end;
 }
+#amex-overlay {
+  position:fixed; inset:0; z-index:9000;
+  background:rgba(0,0,0,.45); display:flex; align-items:flex-end;
+}
+#amex-panel {
+  width:100%; max-width:800px; margin:0 auto;
+  background:var(--surface); border-radius:20px 20px 0 0;
+  height:90vh; display:flex; flex-direction:column;
+  box-shadow:0 -4px 32px rgba(0,0,0,.2);
+  animation:npSlideUp .22s ease;
+}
+#amex-panel-header {
+  padding:18px 20px 14px; border-bottom:1px solid var(--border);
+  display:flex; align-items:center; gap:12px; flex-shrink:0;
+}
+#amex-panel-header h3 { flex:1; font-size:18px; font-weight:700; }
+#amex-drop.drag { border-color:var(--blue); background:var(--blue-bg); }
+.amex-eco-tog {
+  width:22px; height:22px; border-radius:6px; border:2px solid var(--gray3);
+  background:var(--surface); cursor:pointer; padding:0; position:relative;
+}
+.amex-eco-tog.on { background:var(--blue); border-color:var(--blue); }
+.amex-eco-tog.on::after {
+  content:'✓'; position:absolute; inset:0; color:#fff;
+  font-size:14px; font-weight:700; line-height:18px; text-align:center;
+}
 #sellap-panel-header {
   padding:18px 20px 14px; border-bottom:1px solid var(--border);
   display:flex; align-items:center; gap:12px; flex-shrink:0;
@@ -790,6 +816,14 @@ select.form-input { height: 42px; }
           <div class="settings-item" onclick="closeSettings();openSellaPersonaleImport()">
             <span class="s-icon" style="background:#e8f5ee"><svg viewBox="0 0 24 24" fill="none" stroke="#1a7a4a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-6 9 6v11a1 1 0 01-1 1H4a1 1 0 01-1-1z"/><path d="M9 22V12h6v10"/></svg></span>
             <div class="s-text"><div class="s-label">Personale</div><div class="s-desc">Movimenti conto personale</div></div>
+            <span class="s-arrow">›</span>
+          </div>
+
+          <!-- Import Amex -->
+          <div class="s-text" style="padding:10px 12px 2px"><div class="s-label" style="font-size:11px;color:var(--gray4);text-transform:uppercase;letter-spacing:.5px">American Express</div></div>
+          <div class="settings-item" onclick="closeSettings();openAmexImport()">
+            <span class="s-icon" style="background:#e8f0fe"><svg viewBox="0 0 24 24" fill="none" stroke="#1a4aaa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></span>
+            <div class="s-text"><div class="s-label">Carta Amex</div><div class="s-desc">Movimenti carta American Express</div></div>
             <span class="s-arrow">›</span>
           </div>
 
@@ -4371,6 +4405,266 @@ async function sellapDoImport() {
 }
 
 
+// ════════════════════════════════════════════════════════
+// IMPORT AMEX (American Express)
+// ════════════════════════════════════════════════════════
+var amexMovimenti = [];
+var AMEX_ACC_NAME = 'Amex';
+
+function openAmexImport() {
+  amexMovimenti = [];
+  document.getElementById('amex-overlay').style.display = 'flex';
+  document.getElementById('amex-table').style.display = 'none';
+  document.getElementById('amex-stats').style.display = 'none';
+  document.getElementById('amex-eco-bar').style.display = 'none';
+  document.getElementById('amex-tbody').innerHTML = '';
+  document.getElementById('amex-progress').textContent = '';
+  document.getElementById('amex-import-btn').disabled = true;
+  document.getElementById('amex-drop').style.display = 'block';
+}
+function closeAmexImport() { document.getElementById('amex-overlay').style.display = 'none'; }
+function amexOnDrop(e) {
+  e.preventDefault();
+  document.getElementById('amex-drop').classList.remove('drag');
+  if (e.dataTransfer.files[0]) amexHandleFile(e.dataTransfer.files[0]);
+}
+
+// Chiave dedup: il Riferimento Amex e' univoco
+function amexStorKey(rif) { return 'AMEX|' + rif; }
+
+// Legge i riferimenti gia' presenti sul conto Amex (name = riferimento)
+async function amexGetExistingKeys() {
+  var accId = sellaGetAccId(AMEX_ACC_NAME);
+  if (!accId) return new Set();
+  var keys = new Set();
+  var years = (meta && meta.years) ? meta.years.slice(-3) : [String(new Date().getFullYear())];
+  for (var yi = 0; yi < years.length; yi++) {
+    try {
+      var txs = await api('GET', '/api/tx/' + years[yi]);
+      txs.forEach(function(t) {
+        if (t.accountId === accId && t.name) keys.add(amexStorKey(t.name));
+      });
+    } catch(e) {}
+  }
+  return keys;
+}
+
+// Converte data Amex (Date object o stringa DD/MM/YYYY) in ISO
+function amexDateToISO(v) {
+  if (v instanceof Date) {
+    return v.getFullYear() + '-' + String(v.getMonth()+1).padStart(2,'0') + '-' + String(v.getDate()).padStart(2,'0');
+  }
+  var s = String(v).trim();
+  var p = s.split('/');
+  if (p.length === 3) return p[2] + '-' + p[1].padStart(2,'0') + '-' + p[0].padStart(2,'0');
+  return s;
+}
+
+async function amexHandleFile(file) {
+  if (!file) return;
+  document.getElementById('amex-progress').textContent = 'Analisi\u2026';
+  try {
+    var buf = await file.arrayBuffer();
+    var wb = XLSX.read(buf, { type: 'array', cellDates: true });
+    var sheetName = wb.SheetNames.find(function(n){ return n.indexOf('Dettagli') >= 0; }) || wb.SheetNames[0];
+    var rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], { header: 1, raw: false, dateNF: 'dd/mm/yyyy' });
+
+    // Trova la riga header (contiene "Data" e "Descrizione")
+    var hdrIdx = -1;
+    for (var r = 0; r < rows.length && r < 30; r++) {
+      var row = rows[r] || [];
+      if (String(row[0]||'').trim() === 'Data' && String(row[1]||'').indexOf('Descrizione') >= 0) { hdrIdx = r; break; }
+    }
+    if (hdrIdx < 0) throw new Error('Header non trovato (attesa riga con Data / Descrizione)');
+
+    var hdr = rows[hdrIdx].map(function(h){ return String(h||'').trim(); });
+    var iData = hdr.indexOf('Data');
+    var iDesc = hdr.indexOf('Descrizione');
+    var iImp  = hdr.indexOf('Importo');
+    var iRif  = hdr.indexOf('Riferimento');
+    if (iRif < 0) throw new Error('Colonna Riferimento non trovata');
+
+    var existingKeys = await amexGetExistingKeys();
+    amexMovimenti = [];
+
+    for (var i = hdrIdx + 1; i < rows.length; i++) {
+      var row = rows[i] || [];
+      var rif = String(row[iRif]||'').trim();
+      var dataRaw = row[iData];
+      var desc = String(row[iDesc]||'').replace(/\s+/g,' ').trim();
+      var impRaw = row[iImp];
+      if (!rif || !dataRaw || impRaw === undefined || impRaw === null || impRaw === '') continue;
+
+      // Importo: Amex usa il PUNTO come separatore decimale (es. 38.16).
+      // Gestisce anche l'eventuale formato IT con virgola (es. 1.234,56).
+      var impStr = String(impRaw).trim().replace(/[^0-9.,\-]/g,'');
+      if (impStr.indexOf(',') >= 0) {
+        impStr = impStr.replace(/\./g,'').replace(',','.');   // formato IT
+      }
+      var importo = parseFloat(impStr);
+      if (isNaN(importo)) continue;
+
+      var dateISO = amexDateToISO(dataRaw);
+      var storKey = amexStorKey(rif);
+
+      amexMovimenti.push({
+        rif: rif, dateISO: dateISO,
+        dataOp: dateISO.slice(8,10)+'/'+dateISO.slice(5,7)+'/'+dateISO.slice(0,4),
+        desc: desc, importo: importo, storKey: storKey,
+        isDup: existingKeys.has(storKey),
+        includi: !existingKeys.has(storKey),
+        eco: false,
+        catObj: sellaGuessCategory(desc, '', importo)
+      });
+    }
+
+    if (!amexMovimenti.length) throw new Error('Nessuna transazione trovata nel file');
+
+    document.getElementById('amex-drop').style.display = 'none';
+    document.getElementById('amex-table').style.display = 'table';
+    document.getElementById('amex-eco-bar').style.display = 'flex';
+    amexRenderTable();
+    amexUpdateStats();
+    document.getElementById('amex-progress').textContent = '';
+  } catch(e) {
+    document.getElementById('amex-progress').textContent = '';
+    alert('Errore lettura file: ' + e.message);
+  }
+}
+
+function amexRenderTable() {
+  var tbody = document.getElementById('amex-tbody'), rows = '';
+  for (var i = 0; i < amexMovimenti.length; i++) {
+    var m = amexMovimenti[i];
+    var amtCls = m.importo >= 0 ? 'sella-amt-pos' : 'sella-amt-neg';
+    var amtStr = (m.importo >= 0 ? '+' : '') + m.importo.toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2}) + ' \u20ac';
+    var opts = buildCatOptions(m.catObj ? m.catObj.id : null);
+    rows += '<tr style="'+(m.isDup?'opacity:.45;text-decoration:line-through':'')+'" id="amex-row-'+i+'">'+
+      '<td style="white-space:nowrap;color:var(--muted);font-size:12px;padding:6px 8px">'+m.dataOp+'</td>'+
+      '<td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:6px 8px" title="'+esc(m.desc)+'">'+esc(m.desc)+'</td>'+
+      '<td class="'+amtCls+'" style="white-space:nowrap;text-align:right;padding:6px 8px">'+amtStr+'</td>'+
+      '<td style="padding:4px 8px"><select class="sella-cat-sel" onchange="amexSetCat('+i+',this.value)">'+opts+'</select></td>'+
+      '<td style="text-align:center;padding:6px 8px"><button class="amex-eco-tog '+(m.eco?'on':'')+'" onclick="amexToggleEco('+i+')" title="Riporta su conto economico InternoUno"></button></td>'+
+      '<td style="text-align:center;padding:6px 8px"><button class="sella-tog '+(m.includi?'on':'off')+'" onclick="amexToggle('+i+')" title="'+(m.isDup?'Gi\u00e0 presente':'')+'"></button></td>'+
+      '</tr>';
+  }
+  tbody.innerHTML = rows;
+  for (var i = 0; i < amexMovimenti.length; i++) {
+    if (amexMovimenti[i].catObj) {
+      var sel = tbody.querySelector('#amex-row-'+i+' .sella-cat-sel');
+      if (sel) sel.value = amexMovimenti[i].catObj.id;
+    }
+  }
+}
+
+function amexSetCat(i, catId) {
+  if (catId && meta) {
+    var cat = meta.categories.find(function(c){ return c.id === catId; });
+    amexMovimenti[i].catObj = cat ? {name:cat.name, id:cat.id} : null;
+    if (cat) sellaLearnRule(amexMovimenti[i].desc, amexMovimenti[i].catObj, amexMovimenti[i].importo);
+  } else { amexMovimenti[i].catObj = null; }
+  amexUpdateStats();
+}
+function amexToggle(i) {
+  amexMovimenti[i].includi = !amexMovimenti[i].includi;
+  var btn = document.querySelector('#amex-row-'+i+' .sella-tog');
+  if (btn) btn.className = 'sella-tog ' + (amexMovimenti[i].includi ? 'on' : 'off');
+  amexUpdateStats();
+}
+function amexToggleEco(i) {
+  amexMovimenti[i].eco = !amexMovimenti[i].eco;
+  var btn = document.querySelector('#amex-row-'+i+' .amex-eco-tog');
+  if (btn) btn.className = 'amex-eco-tog ' + (amexMovimenti[i].eco ? 'on' : '');
+  amexUpdateStats();
+}
+function amexEcoAll(val) {
+  for (var i = 0; i < amexMovimenti.length; i++) {
+    if (amexMovimenti[i].isDup) continue;
+    amexMovimenti[i].eco = val;
+  }
+  amexRenderTable();
+  amexUpdateStats();
+}
+function amexUpdateStats() {
+  var inc = amexMovimenti.filter(function(m){ return m.includi; });
+  var eco = inc.filter(function(m){ return m.eco; });
+  document.getElementById('ax-tot').textContent = amexMovimenti.length;
+  document.getElementById('ax-new').textContent = inc.length;
+  document.getElementById('ax-dup').textContent = amexMovimenti.filter(function(m){ return m.isDup; }).length;
+  document.getElementById('ax-eco').textContent = eco.length;
+  if (amexMovimenti.length) document.getElementById('amex-stats').style.display = 'flex';
+  var iBtn = document.getElementById('amex-import-btn');
+  iBtn.textContent = inc.length ? '\u2b06\ufe0f Importa ' + inc.length + ' moviment' + (inc.length===1?'o':'i') + (eco.length ? ' (' + eco.length + ' su economico)' : '') : '\u2b06\ufe0f Importa selezionati';
+  iBtn.disabled = inc.length === 0;
+}
+
+var _amexImporting = false;
+async function amexDoImport() {
+  if (_amexImporting) return;
+  var inc = amexMovimenti.filter(function(m){ return m.includi; });
+  if (!inc.length) return;
+  var amexId = sellaGetAccId(AMEX_ACC_NAME);
+  var ecoId  = sellaGetAccId('InternoUno');
+  if (!amexId) { alert('Conto "' + AMEX_ACC_NAME + '" non trovato'); return; }
+
+  _amexImporting = true;
+  var btn = document.getElementById('amex-import-btn');
+  btn.disabled = true;
+  var ok = 0, okEco = 0, errs = 0;
+
+  // 1) TX sul conto Amex (name = riferimento univoco per dedup futuro)
+  for (var i = 0; i < inc.length; i++) {
+    var m = inc[i];
+    btn.textContent = '\u23f3 Amex ' + (i+1) + '/' + inc.length;
+    var tx = { id:null, date:m.dateISO, name:m.rif, accountId:amexId,
+      status:'cleared', comment:m.desc, useSumOfSplits:true, amount:null, linkedTxId:null,
+      splits:[{amount:m.importo, categoryId:m.catObj?m.catObj.id:null, comment:null}] };
+    try {
+      var r = await api('POST', '/api/tx', {tx:tx});
+      if (r && r.id) ok++; else errs++;
+    } catch(e) { errs++; }
+  }
+
+  // 2) TX aggregate sul conto economico (solo righe con Eco selezionato, segno opposto)
+  var ecoRows = inc.filter(function(m){ return m.eco; });
+  if (ecoRows.length && ecoId) {
+    var bycat = {};
+    ecoRows.forEach(function(m){
+      var k = m.catObj ? m.catObj.id : '__nessuna__';
+      if (!bycat[k]) bycat[k] = { catObj:m.catObj, total:0, dates:[], descs:[] };
+      bycat[k].total += m.importo;
+      bycat[k].dates.push(m.dateISO);
+      bycat[k].descs.push(m.desc);
+    });
+    var catKeys = Object.keys(bycat);
+    for (var ci = 0; ci < catKeys.length; ci++) {
+      var agg = bycat[catKeys[ci]];
+      btn.textContent = '\u23f3 Eco ' + (ci+1) + '/' + catKeys.length;
+      agg.dates.sort();
+      var lastDate = agg.dates[agg.dates.length-1];
+      var nota = 'Amex ' + lastDate.slice(0,7) + ' \u2014 ' + agg.descs.slice(0,3).join(', ');
+      if (nota.length > 120) nota = nota.substring(0,117) + '\u2026';
+      var txe = { id:null, date:lastDate,
+        name: agg.catObj ? agg.catObj.name : 'Varie', accountId:ecoId, status:'cleared',
+        comment:nota, useSumOfSplits:true, amount:null, linkedTxId:null,
+        splits:[{amount:-agg.total, categoryId:agg.catObj?agg.catObj.id:null, comment:null}] };
+      try {
+        var re = await api('POST', '/api/tx', {tx:txe});
+        if (re && re.id) okEco++; else errs++;
+      } catch(e) { errs++; }
+    }
+  }
+
+  _amexImporting = false;
+  txCache = {}; await loadBalances();
+  if (selectedAccountId) {
+    var a = meta.accounts.find(function(x){ return x.id === selectedAccountId; });
+    if (a) await selectAccount(a.id, a.name);
+  }
+  alert('\u2705 ' + ok + ' TX su Amex' + (okEco ? ' + ' + okEco + ' TX aggregate su economico' : '') + (errs ? ' (\u26a0\ufe0f ' + errs + ' errori)' : ''));
+  closeAmexImport();
+}
+
 </script>
 
 <!-- Modal Import Sella -->
@@ -4520,6 +4814,60 @@ async function sellapDoImport() {
     </div>
     <div style="padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px;flex-shrink:0">
       <button id="sellap-import-btn" disabled onclick="sellapDoImport()" style="flex:1;padding:13px;border-radius:12px;border:none;background:var(--blue);color:#fff;font-size:15px;font-weight:700;cursor:pointer">⬆️ Importa selezionati</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- Modal Import Amex -->
+<div id="amex-overlay" style="display:none" onclick="if(event.target===this)closeAmexImport()">
+  <div id="amex-panel">
+    <div id="amex-panel-header">
+      <span style="font-size:22px">💳</span>
+      <h3>Import Carta Amex</h3>
+      <button onclick="closeAmexImport()" style="background:var(--gray2);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:16px">✕</button>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:16px">
+      <div id="amex-drop"
+        ondragover="event.preventDefault();this.classList.add('drag')"
+        ondragleave="this.classList.remove('drag')"
+        ondrop="amexOnDrop(event)"
+        onclick="document.getElementById('amex-file-input').click()"
+        style="border:2px dashed var(--border);border-radius:12px;padding:28px;text-align:center;cursor:pointer;margin-bottom:12px">
+        <h4 style="font-size:15px;font-weight:600;margin-bottom:6px">📂 Carica file Amex</h4>
+        <p style="font-size:13px;color:var(--muted)">Trascina il file qui oppure clicca per selezionarlo</p>
+        <p style="font-size:11px;margin-top:8px;color:var(--faint)">Formato: movimenti.xlsx (Dettagli transazione)</p>
+      </div>
+      <input type="file" id="amex-file-input" accept=".xlsx,.xls" style="display:none" onchange="amexHandleFile(this.files[0])">
+
+      <div id="amex-stats" style="display:none;gap:12px;margin-bottom:14px;flex-wrap:wrap;flex-direction:row">
+        <div class="sella-stat"><div class="sella-stat-n" id="ax-tot">0</div><div class="sella-stat-lbl">Totale</div></div>
+        <div class="sella-stat"><div class="sella-stat-n" id="ax-new" style="color:var(--green)">0</div><div class="sella-stat-lbl">Nuovi</div></div>
+        <div class="sella-stat"><div class="sella-stat-n" id="ax-dup" style="color:var(--faint)">0</div><div class="sella-stat-lbl">Già presenti</div></div>
+        <div class="sella-stat"><div class="sella-stat-n" id="ax-eco" style="color:var(--blue)">0</div><div class="sella-stat-lbl">Su economico</div></div>
+      </div>
+
+      <div id="amex-eco-bar" style="display:none;align-items:center;gap:8px;margin-bottom:10px;padding:8px 10px;background:var(--blue-bg);border-radius:8px">
+        <span style="flex:1;font-size:12px;color:var(--blue);font-weight:600">📊 Colonna &laquo;Eco&raquo;: se selezionata, la TX viene riportata anche sul conto economico InternoUno (segno opposto, aggregata per categoria)</span>
+        <button onclick="amexEcoAll(true)" style="padding:5px 10px;border-radius:7px;border:1px solid var(--blue);background:var(--surface);color:var(--blue);font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap">Tutte</button>
+        <button onclick="amexEcoAll(false)" style="padding:5px 10px;border-radius:7px;border:1px solid var(--gray3);background:var(--surface);color:var(--muted);font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap">Nessuna</button>
+      </div>
+
+      <table id="amex-table" style="display:none;width:100%;border-collapse:collapse;font-size:13px">
+        <thead><tr>
+          <th style="text-align:left;padding:6px 8px;border-bottom:1px solid var(--border);color:var(--muted);font-size:11px">Data</th>
+          <th style="text-align:left;padding:6px 8px;border-bottom:1px solid var(--border);color:var(--muted);font-size:11px">Descrizione</th>
+          <th style="text-align:right;padding:6px 8px;border-bottom:1px solid var(--border);color:var(--muted);font-size:11px">Importo</th>
+          <th style="text-align:left;padding:6px 8px;border-bottom:1px solid var(--border);color:var(--muted);font-size:11px">Categoria</th>
+          <th style="text-align:center;padding:6px 8px;border-bottom:1px solid var(--border);color:var(--blue);font-size:11px;font-weight:700">Eco</th>
+          <th style="text-align:center;padding:6px 8px;border-bottom:1px solid var(--border);color:var(--muted);font-size:11px">✓</th>
+        </tr></thead>
+        <tbody id="amex-tbody"></tbody>
+      </table>
+      <div id="amex-progress" style="font-size:13px;color:var(--muted);padding:4px 0"></div>
+    </div>
+    <div style="padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px;flex-shrink:0">
+      <button id="amex-import-btn" disabled onclick="amexDoImport()" style="flex:1;padding:13px;border-radius:12px;border:none;background:var(--blue);color:#fff;font-size:15px;font-weight:700;cursor:pointer">⬆️ Importa selezionati</button>
     </div>
   </div>
 </div>
