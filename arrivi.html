@@ -578,6 +578,29 @@ function render(iso,bookings){
     const cognome=((booker.last_name||"").trim()||(guest.last_name||"").trim());
     const guestFallback=!(booker.first_name||"").trim()&&!!(guest.first_name||"").trim();
     const noNome=!nome&&!cognome;
+
+    // ---- GESTIONE AZIENDE ----
+    // 1) rileva ragione sociale nel nome (es. first="Srl" last="BSF")
+    const RAGIONI=/^(s\.?r\.?l\.?s?|s\.?p\.?a\.?|s\.?a\.?s\.?|s\.?n\.?c\.?|s\.?s\.?|ltd|llc|inc|gmbh|bv|sa|srl|spa)$/i;
+    const nomeEraz=RAGIONI.test((nome||"").replace(/\./g,"").trim());
+    const cognEraz=RAGIONI.test((cognome||"").replace(/\./g,"").trim());
+    const emailBk=(booker.email||"").trim();
+    // 2) nome ricavato dal dominio email (es. mzuccarelli@cafitalia.net -> "Cafitalia")
+    const nomeDaDominio=(()=>{
+      if(!emailBk||emailBk.indexOf("@")<0) return "";
+      const dom=emailBk.split("@")[1]||"";
+      if(!dom||/guest\.booking\.com|expedia|airbnb|amenitiz/i.test(dom)) return "";
+      let base=dom.split(".")[0]||"";
+      if(!base) return "";
+      return base.charAt(0).toUpperCase()+base.slice(1);
+    })();
+    // è azienda se: ragione sociale nel nome, OPPURE nome vuoto ma con email aziendale
+    const isAzienda=(nomeEraz||cognEraz)||(noNome&&!!nomeDaDominio);
+    // etichetta da mostrare nella card
+    let nomeDisplay;
+    if(isAzienda&&nomeDaDominio) nomeDisplay=nomeDaDominio;
+    else if(nomeEraz||cognEraz) nomeDisplay=[cognome,nome].filter(Boolean).join(" ").trim(); // ricompone "BSF Srl"
+    else nomeDisplay="";
     // controlla se prenotante e ospite sono persone diverse
     const guestNome=((guest.first_name||"").trim()+" "+(guest.last_name||"").trim()).trim();
     const bookerNome=(nome+" "+cognome).trim();
@@ -596,8 +619,8 @@ function render(iso,bookings){
     let accent,roomLabel,testo,struttura;
     let isLorenzo=false;
 
-    // se prenotante ≠ ospite, non mettere il nome nel messaggio
-    const nomeMsg = (mismatch || guestFallback) ? "" : nome;
+    // se prenotante ≠ ospite, o è un'azienda, non mettere il nome nel messaggio
+    const nomeMsg = (mismatch || guestFallback || isAzienda) ? "" : nome;
 
     // prima camera: struttura, testo, colore accent
     // per multi-camera: costruisci array camere extra con adulti
@@ -685,11 +708,27 @@ function render(iso,bookings){
         </div>`;
     }
     // se manca il nome, sovrascrivi action con warning semplice
-    if(noNome){
+    // ECCEZIONE: se è un'azienda identificata dall'email, mantieni i pulsanti normali
+    if(noNome && !isAzienda){
       action=`<div class="copy-note">⚠️ Prenotazione senza nome — verifica su Amenitiz</div>
         <div class="actions">
           <button class="msg-open-btn" onclick="apriInfo(${i})">ⓘ Dettagli</button>
         </div>`;
+    } else if(isAzienda){
+      // azienda: avviso informativo + pulsanti attivi (messaggio senza nome)
+      const avvisoAz=`<div class="copy-note">🏢 Prenotazione aziendale (${nomeDisplay}) — messaggio inviato senza nome</div>`;
+      if(numeroValido(phone)){
+        action=avvisoAz+`<div class="actions">
+          <a class="wa-btn" href="${waLink}">${waIcon}WhatsApp</a>
+          <button class="msg-open-btn" onclick="apriMsg(${i})">✉️ Messaggio</button>
+          <button class="tax-btn" onclick="apriTassa(${i})">💶 Tassa</button>
+        </div>`;
+      } else {
+        action=avvisoAz+`<div class="actions">
+          <button class="msg-open-btn" onclick="apriMsg(${i})">✉️ Messaggio</button>
+          <button class="tax-btn" onclick="apriTassa(${i})">💶 Tassa</button>
+        </div>`;
+      }
     } else if(mismatch){
       // prenotante diverso dall'ospite - mostra avviso ma mantieni pulsanti
       const avvisoMismatch=`<div class="copy-note">⚠️ Prenotante (${bookerNome}) ≠ ospite (${guestNome}) — verifica nome e tel. su Amenitiz</div>`;
@@ -730,7 +769,7 @@ function render(iso,bookings){
     const notaSalvata = noteMap[String(b.booking_id)] || "";
 
     card.innerHTML=`<div class="card-top">
-        <div class="name${noNome?' nome-ignoto':''}" onclick="apriInfo(${i})">${noNome?'⚠️ Verifica su Amenitiz':`${nome} ${cognome}`} ${noNome?'':('<span class="flag">'+FLAGS[lng]+'</span>')} <span class="info-dot">ⓘ</span></div>
+        <div class="name${(noNome&&!isAzienda)?' nome-ignoto':''}" onclick="apriInfo(${i})">${isAzienda?`🏢 ${nomeDisplay}`:(noNome?'⚠️ Verifica su Amenitiz':`${nome} ${cognome}`)} ${noNome&&!isAzienda?'':('<span class="flag">'+FLAGS[lng]+'</span>')} <span class="info-dot">ⓘ</span></div>
         <div style="display:flex;gap:5px">${roomBadgesHtml}</div>
       </div>
       ${altriOspiti.length?`<div class="altri-ospiti">👤 ${altriOspiti.join(" · ")}</div>`:""}
