@@ -4449,15 +4449,21 @@ async function amexGetExistingKeys() {
   return keys;
 }
 
-// Converte data Amex (Date object o stringa DD/MM/YYYY) in ISO
+// Converte data Amex in ISO.
+// ATTENZIONE: Amex esporta in formato AMERICANO MM/DD/YYYY (es. 07/08/2026 = 8 luglio 2026).
+// Euristica di sicurezza: se il primo numero e' > 12 non puo' essere un mese -> e' DD/MM/YYYY.
 function amexDateToISO(v) {
   if (v instanceof Date) {
     return v.getFullYear() + '-' + String(v.getMonth()+1).padStart(2,'0') + '-' + String(v.getDate()).padStart(2,'0');
   }
   var s = String(v).trim();
   var p = s.split('/');
-  if (p.length === 3) return p[2] + '-' + p[1].padStart(2,'0') + '-' + p[0].padStart(2,'0');
-  return s;
+  if (p.length !== 3) return s;
+  var a = parseInt(p[0], 10), b = parseInt(p[1], 10), y = p[2];
+  var mese, giorno;
+  if (a > 12) { giorno = a; mese = b; }   // fallback: e' DD/MM
+  else        { mese = a; giorno = b; }   // default Amex: MM/DD
+  return y + '-' + String(mese).padStart(2,'0') + '-' + String(giorno).padStart(2,'0');
 }
 
 async function amexHandleFile(file) {
