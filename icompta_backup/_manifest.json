@@ -1,7 +1,7 @@
 {
-  "generato": "2026-07-05T06:27:28.163Z",
-  "chiavi": 46,
-  "skippati_backup": 8,
+  "generato": "2026-07-12T05:45:57.446Z",
+  "chiavi": 53,
+  "skippati_backup": 9,
   "errori": 0,
   "manifest": [
     {
@@ -83,6 +83,34 @@
     {
       "key": "icompta:snapshot:2026-07-04",
       "file": "keys/icompta_snapshot_2026-07-04.json"
+    },
+    {
+      "key": "icompta:snapshot:2026-07-05",
+      "file": "keys/icompta_snapshot_2026-07-05.json"
+    },
+    {
+      "key": "icompta:snapshot:2026-07-06",
+      "file": "keys/icompta_snapshot_2026-07-06.json"
+    },
+    {
+      "key": "icompta:snapshot:2026-07-07",
+      "file": "keys/icompta_snapshot_2026-07-07.json"
+    },
+    {
+      "key": "icompta:snapshot:2026-07-08",
+      "file": "keys/icompta_snapshot_2026-07-08.json"
+    },
+    {
+      "key": "icompta:snapshot:2026-07-09",
+      "file": "keys/icompta_snapshot_2026-07-09.json"
+    },
+    {
+      "key": "icompta:snapshot:2026-07-10",
+      "file": "keys/icompta_snapshot_2026-07-10.json"
+    },
+    {
+      "key": "icompta:snapshot:2026-07-11",
+      "file": "keys/icompta_snapshot_2026-07-11.json"
     },
     {
       "key": "icompta:tx:2001",
