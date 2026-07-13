@@ -450,6 +450,28 @@ var icompta_worker_default = {
 
     // ── RICORRENZE GET ───────────────────────────────────────────────────────
     // ── IMPORT LOG GET (log generici: Leo, ecc.) ─────────────────────────────
+    // ── AMEX AUTO: proxy verso Mac locale ────────────────────────────────────
+    // NB: l'xlsx e' BINARIO -> si passa arrayBuffer(), non text()
+    if (path === "/api/amex-auto" && method === "GET") {
+      const MAC_URL = "http://fly98.duckdns.org:3456/amex-xlsx";
+      try {
+        const r = await fetch(MAC_URL, { signal: AbortSignal.timeout(180000) });
+        if (!r.ok) return err("Mac error: " + r.status, 502);
+        const buf = await r.arrayBuffer();
+        const filename = r.headers.get("X-Filename") || "Amex_auto.xlsx";
+        return new Response(buf, {
+          headers: {
+            ...CORS,
+            "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "Access-Control-Expose-Headers": "X-Filename",
+            "X-Filename": filename
+          }
+        });
+      } catch(e) {
+        return err("Mac non raggiungibile: " + e.message, 502);
+      }
+    }
+
     // ── SELLA AUTO: proxy verso Mac locale ───────────────────────────────────
     if (path === "/api/sella-personale-auto" && method === "GET") {
       const MAC_URL = "http://fly98.duckdns.org:3456/sella-personale-csv";
