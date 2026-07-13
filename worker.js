@@ -597,6 +597,43 @@ ${mezziHtml}
 </div>`;
 }
 
+// Versione "essenziale": solo le info pratiche (check-in/check-out, pagamento, come raggiungerci),
+// SENZA il blocco promozionale InternoUno Experience/App e SENZA il blocco social.
+// Pensata per l'invio automatico pre-arrivo su TUTTI i canali (incluso Booking.com), a differenza
+// di buildExpHtml/runAutoSend che è solo per prenotazioni dirette non-Booking.
+function buildEssentialsHtml(propKey, lng, nome){
+  const L = EXP_COMMON[lng] || EXP_COMMON.en;
+  const P = (EXP_PROP[propKey] && EXP_PROP[propKey][lng]) || EXP_PROP[propKey].en;
+  const saluto = nome ? nome : L.saluto_default;
+  const virgola = (lng==="zh") ? "，" : ",";
+  const mezziHtml = P.mezzi_li.map(x=>`  <li>${x}</li>`).join("\n");
+  return `<div style="font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.55;color:#222">
+<p>${saluto}${virgola}</p>
+<p>${P.grazie}</p>
+<p>${L.checkin_autonomia}</p>
+<p>${L.orario_arrivo}</p>
+<p>${L.pagamento}</p>
+<h3 style="color:#2a2622;font-size:15px;margin:20px 0 6px">${P.checkin_titolo}</h3>
+<p>${P.checkin_corpo}</p>
+<p>${P.checkin_online}</p>
+<h3 style="color:#2a2622;font-size:15px;margin:20px 0 6px">${P.checkout_titolo}</h3>
+<p>${P.checkout_corpo}</p>
+<hr style="border:none;border-top:1px solid #e5e3df;margin:24px 0">
+<h2 style="color:#FF6628;font-size:18px;margin:26px 0 10px">${L.raggiungerci_titolo}</h2>
+<h3 style="color:#2a2622;font-size:15px;margin:20px 0 6px">${L.mezzi_titolo}</h3>
+<ul style="margin:6px 0 6px 18px;padding:0">
+${mezziHtml}
+</ul>
+<h3 style="color:#2a2622;font-size:15px;margin:20px 0 6px">${L.parcheggio_titolo}</h3>
+<p>${P.parcheggio_corpo}</p>
+<h3 style="color:#2a2622;font-size:15px;margin:20px 0 6px">${L.taxi_titolo}</h3>
+<p>${P.taxi_corpo}</p>
+<hr style="border:none;border-top:1px solid #e5e3df;margin:24px 0">
+<p>${P.chiusura}</p>
+<p>${P.firma}</p>
+</div>`;
+}
+
 // ====== MAPPATURE CAMERE (per riconoscere la struttura dal nome camera) ======
 const CAMPALDINO_ROOMS = new Set(["Gialla","Marrone","Rossa","Verde","Azzurra"]);
 const LORENZO_ROOMS = new Set(["Uno","Due","Tre","Quattro","Cinque"]);
@@ -625,6 +662,155 @@ function lingua(language, phone) {
 }
 
 const SUBJ_TABLE = { it:"Il suo arrivo", en:"Your arrival", es:"Su llegada", fr:"Votre arrivée", de:"Ihre Anreise", pt:"A sua chegada", zh:"您的入住信息" };
+
+// ====== EMAIL DI RINGRAZIAMENTO POST CHECK-OUT (recensione + buono sconto) ======
+const PROP_NAME = { camp: "InternoUno", lor: "InternoUno Deluxe" };
+const GOOGLE_REVIEW = {
+  camp: { url: "https://search.google.com/local/writereview?placeid=ChIJqe0T1nthLxMRsDSYXZihjYs", rating: "4.2" },
+  lor:  { url: "https://search.google.com/local/writereview?placeid=ChIJbwrMEn1hLxMRPJp7LAxumLU", rating: "4.1" }
+};
+const THANKYOU_SUBJ = {
+  it: "Grazie per il tuo soggiorno! 🎁 Un regalo per te",
+  en: "Thank you for your stay! 🎁 A gift for you",
+  es: "¡Gracias por tu estancia! 🎁 Un regalo para ti",
+  fr: "Merci pour ton séjour ! 🎁 Un cadeau pour toi",
+  de: "Danke für deinen Aufenthalt! 🎁 Ein Geschenk für dich",
+  pt: "Obrigado pela tua estadia! 🎁 Um presente para ti",
+  zh: "感谢入住！🎁 送你一份礼物"
+};
+const THANKYOU_COMMON = {
+  it: {
+    review_intro: `Se hai trascorso un bel soggiorno, ti sarei molto grato se potessi lasciare una recensione sulla piattaforma dove hai prenotato e/o su Google.`,
+    review_cta: `Lascia una recensione su Google →`,
+    review_ratings: (r) => `Attualmente il nostro punteggio medio è superiore a 8 su Booking e ${r} su Google: ogni giudizio positivo ci aiuta a crescere e a far conoscere meglio il nostro impegno.`,
+    feedback_negative: `Se invece qualcosa non ti ha soddisfatto, ti prego di contattarmi direttamente. Sarò felice di ascoltarti e, se possibile, rimediare immediatamente: la tua soddisfazione è la nostra priorità, e ogni feedback ci aiuta a migliorare.`,
+    gift_intro: `Per ringraziarti della fiducia, ti lascio un piccolo omaggio:`,
+    gift_line: `🎁 un buono sconto di 10&nbsp;€, valido per due anni, per il tuo prossimo soggiorno.`,
+    gift_howto: `Per utilizzarlo, prenota direttamente sul nostro sito <a href="https://www.interno1.it" style="color:#FF6628">www.interno1.it</a> e inserisci il codice <b>GIFT10GUEST</b> nel campo "Codice promozionale" subito sotto la scelta delle date.`,
+    gift_note: `Ti ricordiamo che sul nostro sito trovi sempre la tariffa più bassa garantita rispetto a tutti gli altri canali di prenotazione.`,
+    social_intro: `Restiamo in contatto anche sui social 📸 Seguici per consigli sulla zona, eventi a Roma in arrivo e promozioni riservate a chi ci segue online.`,
+    closing: `Spero di rivederti presto!<br>Buon viaggio e grazie ancora,`
+  },
+  en: {
+    review_intro: `If you enjoyed your stay, I would really appreciate it if you could leave a review on the platform where you booked or on Google.`,
+    review_cta: `Leave a review on Google →`,
+    review_ratings: (r) => `Our current average rating is above 8 on Booking.com and ${r} on Google — every positive review helps us grow and show new guests the quality of our service.`,
+    feedback_negative: `If for any reason you were not completely satisfied, please contact me directly. I'll be happy to listen and, whenever possible, make things right. Your satisfaction is our top priority, and your feedback helps us improve every day.`,
+    gift_intro: `As a small token of appreciation for your trust, here's a little gift:`,
+    gift_line: `🎁 a €10 discount voucher, valid for two years, for your next stay with us.`,
+    gift_howto: `To redeem it, simply book directly on our website <a href="https://www.interno1.it" style="color:#FF6628">www.interno1.it</a> and enter the code <b>GIFT10GUEST</b> in the "Promotional code" box, under the date selection.`,
+    gift_note: `Booking directly also guarantees you the lowest available rate compared to any other platform.`,
+    social_intro: `Let's stay in touch on social media too 📸 Follow us for local tips, upcoming events in Rome, and promotions reserved for our online followers.`,
+    closing: `I hope to welcome you again soon!<br>Safe travels and thank you once more,`
+  },
+  es: {
+    review_intro: `Si has disfrutado de tu estancia, te agradecería mucho que dejaras una reseña en la plataforma donde reservaste y/o en Google.`,
+    review_cta: `Deja una reseña en Google →`,
+    review_ratings: (r) => `Nuestra puntuación media actual es superior a 8 en Booking y de ${r} en Google: cada valoración positiva nos ayuda a crecer y a dar a conocer mejor nuestro compromiso.`,
+    feedback_negative: `Si por el contrario algo no te ha satisfecho, por favor contáctame directamente. Estaré encantado de escucharte y, si es posible, solucionarlo de inmediato: tu satisfacción es nuestra prioridad, y cada comentario nos ayuda a mejorar.`,
+    gift_intro: `Para agradecerte tu confianza, te dejo un pequeño regalo:`,
+    gift_line: `🎁 un vale de descuento de 10&nbsp;€, válido durante dos años, para tu próxima estancia.`,
+    gift_howto: `Para utilizarlo, reserva directamente en nuestra web <a href="https://www.interno1.it" style="color:#FF6628">www.interno1.it</a> e introduce el código <b>GIFT10GUEST</b> en el campo "Código promocional", justo debajo de la selección de fechas.`,
+    gift_note: `Recuerda que en nuestra web siempre encontrarás la tarifa más baja garantizada frente a cualquier otro canal de reserva.`,
+    social_intro: `Sigamos en contacto también en redes sociales 📸 Síguenos para consejos sobre la zona, próximos eventos en Roma y promociones exclusivas para nuestros seguidores.`,
+    closing: `¡Espero volver a recibirte pronto!<br>Buen viaje y gracias de nuevo,`
+  },
+  fr: {
+    review_intro: `Si tu as passé un bon séjour, je te serais très reconnaissant de laisser un avis sur la plateforme où tu as réservé et/ou sur Google.`,
+    review_cta: `Laisser un avis sur Google →`,
+    review_ratings: (r) => `Notre note moyenne actuelle est supérieure à 8 sur Booking et de ${r} sur Google : chaque avis positif nous aide à grandir et à mieux faire connaître notre engagement.`,
+    feedback_negative: `Si en revanche quelque chose ne t'a pas satisfait, merci de me contacter directement. Je serai heureux de t'écouter et, si possible, d'y remédier immédiatement : ta satisfaction est notre priorité, et chaque retour nous aide à nous améliorer.`,
+    gift_intro: `Pour te remercier de ta confiance, voici un petit cadeau :`,
+    gift_line: `🎁 un bon de réduction de 10&nbsp;€, valable deux ans, pour ton prochain séjour.`,
+    gift_howto: `Pour l'utiliser, réserve directement sur notre site <a href="https://www.interno1.it" style="color:#FF6628">www.interno1.it</a> et saisis le code <b>GIFT10GUEST</b> dans le champ « Code promo », juste sous le choix des dates.`,
+    gift_note: `Pour rappel, notre site propose toujours le tarif le plus bas garanti par rapport à tous les autres canaux de réservation.`,
+    social_intro: `Restons en contact aussi sur les réseaux sociaux 📸 Suis-nous pour des conseils sur le quartier, les événements à venir à Rome et des promotions réservées à nos abonnés.`,
+    closing: `J'espère te revoir bientôt !<br>Bon voyage et encore merci,`
+  },
+  de: {
+    review_intro: `Wenn dir dein Aufenthalt gefallen hat, würde ich mich sehr über eine Bewertung auf der Plattform freuen, über die du gebucht hast, oder auf Google.`,
+    review_cta: `Bewertung auf Google hinterlassen →`,
+    review_ratings: (r) => `Unsere aktuelle Durchschnittsbewertung liegt bei über 8 auf Booking und bei ${r} auf Google: Jede positive Bewertung hilft uns zu wachsen und unser Engagement bekannter zu machen.`,
+    feedback_negative: `Falls dich hingegen etwas nicht zufriedengestellt hat, kontaktiere mich bitte direkt. Ich höre dir gerne zu und behebe das Problem, wenn möglich, sofort: Deine Zufriedenheit hat für uns Priorität, und jedes Feedback hilft uns, uns zu verbessern.`,
+    gift_intro: `Als kleines Dankeschön für dein Vertrauen möchte ich dir Folgendes schenken:`,
+    gift_line: `🎁 einen Rabattgutschein über 10&nbsp;€, gültig für zwei Jahre, für deinen nächsten Aufenthalt.`,
+    gift_howto: `Um ihn einzulösen, buche einfach direkt auf unserer Website <a href="https://www.interno1.it" style="color:#FF6628">www.interno1.it</a> und gib den Code <b>GIFT10GUEST</b> im Feld „Rabattcode" ein, direkt unter der Datumsauswahl.`,
+    gift_note: `Denk daran, dass du auf unserer Website immer den garantiert niedrigsten Preis im Vergleich zu allen anderen Buchungskanälen findest.`,
+    social_intro: `Bleiben wir auch in den sozialen Medien in Kontakt 📸 Folge uns für Tipps zur Umgebung, kommende Veranstaltungen in Rom und exklusive Aktionen für unsere Follower.`,
+    closing: `Ich hoffe, dich bald wieder begrüßen zu dürfen!<br>Gute Reise und nochmals danke,`
+  },
+  pt: {
+    review_intro: `Se gostaste da tua estadia, ficaria muito grato se deixasses uma avaliação na plataforma onde reservaste e/ou no Google.`,
+    review_cta: `Deixar uma avaliação no Google →`,
+    review_ratings: (r) => `A nossa pontuação média atual é superior a 8 no Booking e de ${r} no Google: cada avaliação positiva ajuda-nos a crescer e a dar a conhecer melhor o nosso empenho.`,
+    feedback_negative: `Se, pelo contrário, algo não te agradou, por favor contacta-me diretamente. Terei todo o gosto em ouvir-te e, se possível, resolver de imediato: a tua satisfação é a nossa prioridade, e cada comentário ajuda-nos a melhorar.`,
+    gift_intro: `Para te agradecer a confiança, deixo-te uma pequena prenda:`,
+    gift_line: `🎁 um vale de desconto de 10&nbsp;€, válido durante dois anos, para a tua próxima estadia.`,
+    gift_howto: `Para o utilizar, reserva diretamente no nosso site <a href="https://www.interno1.it" style="color:#FF6628">www.interno1.it</a> e insere o código <b>GIFT10GUEST</b> no campo "Código promocional", logo abaixo da seleção de datas.`,
+    gift_note: `Lembramos que no nosso site encontras sempre a tarifa mais baixa garantida em relação a qualquer outro canal de reserva.`,
+    social_intro: `Vamos manter-nos em contacto também nas redes sociais 📸 Segue-nos para dicas sobre a zona, próximos eventos em Roma e promoções exclusivas para quem nos segue.`,
+    closing: `Espero receber-te novamente em breve!<br>Boa viagem e mais uma vez obrigado,`
+  },
+  zh: {
+    review_intro: `如果你度过了愉快的住宿，我会非常感激你能在预订平台和/或谷歌上留下评价。`,
+    review_cta: `在谷歌上留下评价 →`,
+    review_ratings: (r) => `目前我们在Booking上的平均评分超过8分，在谷歌上为${r}分——每一个好评都帮助我们成长，让更多人了解我们的用心。`,
+    feedback_negative: `如果有任何不满意的地方，请直接联系我。我很乐意倾听，并尽可能立即解决问题——你的满意是我们的首要任务，每一条反馈都帮助我们不断进步。`,
+    gift_intro: `为了感谢你的信任，送你一个小礼物：`,
+    gift_line: `🎁 一张10欧元优惠券，有效期两年，用于你的下次入住。`,
+    gift_howto: `使用方法：请直接在我们的官网 <a href="https://www.interno1.it" style="color:#FF6628">www.interno1.it</a> 预订，并在日期选择下方的"优惠码"栏中输入代码 <b>GIFT10GUEST</b>。`,
+    gift_note: `请注意，在我们官网预订，价格始终保证低于其他任何预订渠道。`,
+    social_intro: `也欢迎在社交媒体上与我们保持联系 📸 关注我们获取周边攻略、罗马近期活动和专属粉丝优惠。`,
+    closing: `期待很快能再次接待你！<br>一路顺风，再次感谢，`
+  }
+};
+
+function thankYouGreeting(lng, nome, propName) {
+  switch (lng) {
+    case "it": return `Ciao${nome ? " " + nome : ""}, sono Filippo di ${propName}.`;
+    case "es": return `Hola${nome ? " " + nome : ""}, soy Filippo de ${propName}.`;
+    case "fr": return `Bonjour${nome ? " " + nome : ""}, je suis Filippo de ${propName}.`;
+    case "de": return `Hallo${nome ? " " + nome : ""}, hier ist Filippo von ${propName}.`;
+    case "pt": return `Olá${nome ? " " + nome : ""}, aqui é o Filippo da ${propName}.`;
+    case "zh": return `你好${nome ? "，" + nome : ""}，我是${propName}的Filippo。`;
+    default: return `Hi${nome ? " " + nome : ""}, this is Filippo from ${propName}.`;
+  }
+}
+function thankYouThanks(lng) {
+  switch (lng) {
+    case "it": return `Desidero ringraziarti di cuore per aver scelto la mia struttura per il tuo soggiorno a Roma.<br>Spero davvero di essere riuscito a ripagare la tua fiducia: cerco sempre di fare del mio meglio per offrire la miglior esperienza possibile ai miei ospiti.`;
+    case "es": return `Quiero agradecerte de todo corazón por haber elegido mi alojamiento para tu estancia en Roma.<br>Espero de verdad haber estado a la altura de tu confianza: siempre intento dar lo mejor de mí para ofrecer la mejor experiencia posible a mis huéspedes.`;
+    case "fr": return `Je tiens à te remercier sincèrement d'avoir choisi mon établissement pour ton séjour à Rome.<br>J'espère vraiment avoir été à la hauteur de ta confiance : je fais toujours de mon mieux pour offrir la meilleure expérience possible à mes hôtes.`;
+    case "de": return `Ich möchte dir von Herzen danken, dass du für deinen Aufenthalt in Rom meine Unterkunft gewählt hast.<br>Ich hoffe wirklich, dein Vertrauen verdient zu haben: Ich gebe immer mein Bestes, um meinen Gästen das bestmögliche Erlebnis zu bieten.`;
+    case "pt": return `Quero agradecer-te de coração por teres escolhido o meu alojamento para a tua estadia em Roma.<br>Espero mesmo ter correspondido à tua confiança: procuro sempre dar o meu melhor para oferecer a melhor experiência possível aos meus hóspedes.`;
+    case "zh": return `非常感谢你选择我的民宿作为在罗马的住宿。<br>我真心希望没有辜负你的信任——我一直尽力为每一位客人提供最好的体验。`;
+    default: return `I'd like to sincerely thank you for choosing my place for your stay in Rome.<br>I truly hope I've managed to live up to your expectations — I always do my best to make every guest feel comfortable and well taken care of.`;
+  }
+}
+function buildThankYouHtml(propKey, lng, nome) {
+  const L = THANKYOU_COMMON[lng] || THANKYOU_COMMON.en;
+  const propName = PROP_NAME[propKey] || "InternoUno";
+  const gr = GOOGLE_REVIEW[propKey] || GOOGLE_REVIEW.camp;
+  return `<div style="font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.6;color:#222">
+<p>${thankYouGreeting(lng, nome, propName)}</p>
+<p>${thankYouThanks(lng)}</p>
+<p>${L.review_intro}</p>
+<p style="text-align:center"><a href="${gr.url}" style="display:inline-block;background:#FF6628;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:bold;margin:6px 0">${L.review_cta}</a></p>
+<p>${L.review_ratings(gr.rating)}</p>
+<p>${L.feedback_negative}</p>
+<hr style="border:none;border-top:1px solid #e5e3df;margin:24px 0">
+<p>${L.gift_intro}</p>
+<p style="font-size:16px">${L.gift_line}</p>
+<p>${L.gift_howto}</p>
+<p style="font-size:13px;color:#555">${L.gift_note}</p>
+<hr style="border:none;border-top:1px solid #e5e3df;margin:24px 0">
+<p>${L.social_intro}</p>
+<p>👉 Instagram: <a href="https://instagram.com/internounoguesthouse" style="color:#FF6628">@internounoguesthouse</a><br>
+👉 Facebook: <a href="https://facebook.com/internounobb" style="color:#FF6628">InternoUno</a></p>
+<hr style="border:none;border-top:1px solid #e5e3df;margin:24px 0">
+<p>${L.closing}<br><b>Filippo</b><br>InternoUno<br>Tel. +39 392 299 9914<br>www.interno1.it</p>
+</div>`;
+}
 
 async function sendGmailHtml(env, to, subject, html) {
   const tokenData = await getGmailAccessToken(env);
@@ -699,6 +885,56 @@ async function sendGmailHtmlMulti(env, account, to, subject, html, fromOverride)
 }
 
 // ====== AUTOMAZIONE NOTTURNA: nuove prenotazioni non-Booking con email ======
+// ====== AUTOMAZIONE: email di ringraziamento la mattina del check-out (TUTTI i canali) ======
+async function runThankYou(env, testMode) {
+  const oggi = new Date();
+  const to = oggi.toISOString().slice(0, 10);
+  const daData = new Date(oggi);
+  daData.setDate(daData.getDate() - 30);
+  const from = daData.toISOString().slice(0, 10);
+  const resp = await amenitizGet(`/bookings/checkin?from=${from}&to=${to}&hotel_id=${HOTEL_UUID}`, env);
+  if (!resp.ok) {
+    return { error: "Errore API Amenitiz", status: resp.status };
+  }
+  const bookings = await resp.json();
+  const dettagli = [];
+  const scarti = { cancellata: 0, non_oggi: 0, senza_email: 0, gia_inviata: 0, camera_sconosciuta: 0 };
+  let inviate = 0, saltate = 0;
+  for (const b of Array.isArray(bookings) ? bookings : []) {
+    const stato = (b.status || "").toLowerCase();
+    if (stato === "cancelled" || stato === "canceled") { saltate++; scarti.cancellata++; continue; }
+    if (b.checkout !== to) { saltate++; scarti.non_oggi++; continue; }
+    const booker = b.booker || {};
+    const email = booker.email || "";
+    if (!email || email.indexOf("@") < 0) { saltate++; scarti.senza_email++; continue; }
+    const bookingId = b.booking_id;
+    const kvKey = `thankyou_sent_${bookingId}`;
+    const giaInviata = await env.ARRIVI_KV.get(kvKey);
+    if (giaInviata) { saltate++; scarti.gia_inviata++; continue; }
+    const roomName = (b.rooms && b.rooms[0] && b.rooms[0].individual_room_name) || "";
+    const propKey = proprietaDiCamera(roomName);
+    if (!propKey) { saltate++; scarti.camera_sconosciuta++; continue; }
+    const phone = booker.phone || "";
+    const lng = lingua(booker.language, phone);
+    const nome = (booker.first_name || "").trim();
+    const html = buildThankYouHtml(propKey, lng, nome);
+    const subject = THANKYOU_SUBJ[lng] || THANKYOU_SUBJ.en;
+    if (testMode) {
+      dettagli.push({ bookingId, email, propKey, lng, nome, roomName, source: b.source || "", wouldSend: true });
+      continue;
+    }
+    const result = await sendGmailHtmlMulti(env, "business", email, subject, html);
+    if (result.ok) {
+      await env.ARRIVI_KV.put(kvKey, new Date().toISOString());
+      inviate++;
+      dettagli.push({ bookingId, email, propKey, lng, sent: true });
+    } else {
+      dettagli.push({ bookingId, email, sent: false, error: result.error });
+    }
+  }
+  return { data: to, totaleControllate: (bookings || []).length, inviate, saltate, scarti, dettagli };
+}
+
 async function runAutoSend(env, testMode) {
   const oggi = new Date();
   const to = oggi.toISOString().slice(0, 10);
@@ -819,6 +1055,14 @@ export default {
       if (action === "runAutoSend") {
         const testMode = url.searchParams.get("test") === "true";
         const result = await runAutoSend(env, testMode);
+        return new Response(JSON.stringify(result), {
+          headers: { ...CORS, "Content-Type": "application/json" }
+        });
+      }
+
+      if (action === "runThankYou") {
+        const testMode = url.searchParams.get("test") === "true";
+        const result = await runThankYou(env, testMode);
         return new Response(JSON.stringify(result), {
           headers: { ...CORS, "Content-Type": "application/json" }
         });
