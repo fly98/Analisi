@@ -805,25 +805,26 @@ function buildThankYouHtml(propKey, lng, nome, isBookingCom) {
   const L = THANKYOU_COMMON[lng] || THANKYOU_COMMON.en;
   const propName = PROP_NAME[propKey] || "InternoUno";
   const gr = GOOGLE_REVIEW[propKey] || GOOGLE_REVIEW.camp;
+  const P = 'style="margin:8px 0"';
   const reviewBlock = isBookingCom
-    ? `<p>${L.review_intro_booking}</p>\n<p>${L.review_ratings_booking(gr.bookingRating)}</p>`
-    : `<p>${L.review_intro} <a href="${gr.url}" style="display:inline-block;background:#FF6628;color:#fff;text-decoration:none;padding:4px 10px;border-radius:6px;font-weight:bold;font-size:13px;white-space:nowrap;margin-left:4px">${L.review_cta}</a></p>\n<p>${L.review_ratings(gr.bookingRating, gr.rating)}</p>`;
-  return `<div style="font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.6;color:#222">
-<p>${thankYouGreeting(lng, nome, propName)}</p>
-<p>${thankYouThanks(lng)}</p>
+    ? `<p ${P}>${L.review_intro_booking}</p><p ${P}>${L.review_ratings_booking(gr.bookingRating)}</p>`
+    : `<p ${P}>${L.review_intro} <a href="${gr.url}" style="display:inline-block;background:#FF6628;color:#fff;text-decoration:none;padding:4px 10px;border-radius:6px;font-weight:bold;font-size:13px;white-space:nowrap;margin-left:4px">${L.review_cta}</a></p><p ${P}>${L.review_ratings(gr.bookingRating, gr.rating)}</p>`;
+  return `<div style="font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.45;color:#222">
+<p ${P}>${thankYouGreeting(lng, nome, propName)}</p>
+<p ${P}>${thankYouThanks(lng)}</p>
 ${reviewBlock}
-<p>${L.feedback_negative}</p>
-<hr style="border:none;border-top:1px solid #e5e3df;margin:24px 0">
-<p>${L.gift_intro}</p>
-<p style="font-size:16px">${L.gift_line}</p>
-<p>${L.gift_howto}</p>
-<p style="font-size:13px;color:#555">${L.gift_note}</p>
-<hr style="border:none;border-top:1px solid #e5e3df;margin:24px 0">
-<p>${L.social_intro}</p>
-<p>👉 Instagram: <a href="https://instagram.com/internounoguesthouse" style="color:#FF6628">@internounoguesthouse</a><br>
+<p ${P}>${L.feedback_negative}</p>
+<hr style="border:none;border-top:1px solid #e5e3df;margin:12px 0">
+<p ${P}>${L.gift_intro}</p>
+<p style="margin:8px 0;font-size:16px">${L.gift_line}</p>
+<p ${P}>${L.gift_howto}</p>
+<p style="margin:8px 0;font-size:13px;color:#555">${L.gift_note}</p>
+<hr style="border:none;border-top:1px solid #e5e3df;margin:12px 0">
+<p ${P}>${L.social_intro}</p>
+<p ${P}>👉 Instagram: <a href="https://instagram.com/internounoguesthouse" style="color:#FF6628">@internounoguesthouse</a><br>
 👉 Facebook: <a href="https://facebook.com/internounobb" style="color:#FF6628">InternoUno</a></p>
-<hr style="border:none;border-top:1px solid #e5e3df;margin:24px 0">
-<p>${L.closing}<br><b>Filippo</b><br>InternoUno<br>Tel. +39 392 299 9914<br>www.interno1.it</p>
+<hr style="border:none;border-top:1px solid #e5e3df;margin:12px 0">
+<p ${P}>${L.closing}<br><b>Filippo</b><br>InternoUno<br>Tel. +39 392 299 9914<br>www.interno1.it</p>
 </div>`;
 }
 
@@ -844,25 +845,16 @@ function buildThankYouPlainText(propKey, lng, nome, isBookingCom) {
       return (u.startsWith(t)) ? text : `${text}: ${url}`;
     });
   const reviewParts = isBookingCom
-    ? [strip(L.review_intro_booking), strip(L.review_ratings_booking(gr.bookingRating))]
-    : [strip(L.review_intro), `${strip(L.review_cta)}\n${gr.url}`, strip(L.review_ratings(gr.bookingRating, gr.rating))];
-  const parts = [
-    strip(thankYouGreeting(lng, nome, propName)),
-    strip(thankYouThanks(lng)),
-    ...reviewParts,
-    strip(L.feedback_negative),
-    "----------",
-    strip(L.gift_intro),
-    strip(L.gift_line),
-    strip(L.gift_howto),
-    strip(L.gift_note),
-    "----------",
-    strip(L.social_intro),
-    "Instagram: @internounoguesthouse - https://instagram.com/internounoguesthouse\nFacebook: InternoUno - https://facebook.com/internounobb",
-    "----------",
+    ? `${strip(L.review_intro_booking)}\n${strip(L.review_ratings_booking(gr.bookingRating))}`
+    : `${strip(L.review_intro)}\n${strip(L.review_cta)}: ${gr.url}\n${strip(L.review_ratings(gr.bookingRating, gr.rating))}`;
+  const blocks = [
+    `${strip(thankYouGreeting(lng, nome, propName))}\n${strip(thankYouThanks(lng))}`,
+    `${reviewParts}\n${strip(L.feedback_negative)}`,
+    `${strip(L.gift_intro)}\n${strip(L.gift_line)}\n${strip(L.gift_howto)}\n${strip(L.gift_note)}`,
+    `${strip(L.social_intro)}\nInstagram: @internounoguesthouse - https://instagram.com/internounoguesthouse\nFacebook: InternoUno - https://facebook.com/internounobb`,
     `${strip(L.closing)}\nFilippo\nInternoUno\nTel. +39 392 299 9914\nwww.interno1.it`
   ];
-  return parts.join("\n\n");
+  return blocks.join("\n----------\n");
 }
 
 async function sendGmailHtml(env, to, subject, html) {
