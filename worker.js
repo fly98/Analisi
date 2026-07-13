@@ -794,8 +794,7 @@ function buildThankYouHtml(propKey, lng, nome) {
   return `<div style="font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.6;color:#222">
 <p>${thankYouGreeting(lng, nome, propName)}</p>
 <p>${thankYouThanks(lng)}</p>
-<p>${L.review_intro}</p>
-<p style="text-align:center"><a href="${gr.url}" style="display:inline-block;background:#FF6628;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:bold;margin:6px 0">${L.review_cta}</a></p>
+<p>${L.review_intro} <a href="${gr.url}" style="display:inline-block;background:#FF6628;color:#fff;text-decoration:none;padding:4px 10px;border-radius:6px;font-weight:bold;font-size:13px;white-space:nowrap;margin-left:4px">${L.review_cta}</a></p>
 <p>${L.review_ratings(gr.bookingRating, gr.rating)}</p>
 <p>${L.feedback_negative}</p>
 <hr style="border:none;border-top:1px solid #e5e3df;margin:24px 0">
