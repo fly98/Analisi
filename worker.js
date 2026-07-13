@@ -1721,7 +1721,8 @@ export default {
     }
   },
   async scheduled(event, env, ctx) {
-    if (event.cron === "0 10 * * *") {
+    const hourUTC = new Date(event.scheduledTime).getUTCHours();
+    if (hourUTC === 10) {
       ctx.waitUntil(runThankYou(env, false));
     } else {
       ctx.waitUntil(runAutoSend(env, false));
