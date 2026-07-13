@@ -659,7 +659,12 @@ async function sendGmailHtml(env, to, subject, html) {
 // Multi-account send: account = "business" (InternoUno, default) or "personal" (Filippo's Gmail).
 // For "personal" we don't force a From header, so Gmail fills it in automatically with the
 // authenticated account's own address (Gmail API rejects/ignores a spoofed From anyway).
-async function sendGmailHtmlMulti(env, account, to, subject, html) {
+// fromOverride (business only): lets the caller pick any verified Gmail "send as" alias
+// (e.g. "InternoUno <info@interno1.it>", already configured to relay via smtps.aruba.it in
+// Gmail settings) instead of the default interno1bbroma@gmail.com. Gmail API honors this
+// only if the address is a verified alias on the authenticated account; otherwise it's ignored
+// or the send fails.
+async function sendGmailHtmlMulti(env, account, to, subject, html, fromOverride) {
   const tokenData = await getGmailAccessTokenFor(env, account);
   if (!tokenData.access_token) {
     return { ok: false, error: "Token Gmail non ottenuto", detail: tokenData };
@@ -667,7 +672,7 @@ async function sendGmailHtmlMulti(env, account, to, subject, html) {
   const subjectEnc = "=?UTF-8?B?" + btoa(unescape(encodeURIComponent(subject))) + "?=";
   const headers = [];
   if (account !== "personal") {
-    headers.push("From: InternoUno <interno1bbroma@gmail.com>");
+    headers.push(`From: ${fromOverride || "InternoUno <info@interno1.it>"}`);
   }
   headers.push(
     `To: ${to}`,
@@ -851,14 +856,14 @@ export default {
             status: 400, headers: { ...CORS, "Content-Type": "application/json" }
           });
         }
-        const { to, subject, html, account } = body || {};
+        const { to, subject, html, account, from } = body || {};
         if (!to || !subject || !html) {
           return new Response(JSON.stringify({ error: "Parametri mancanti (to, subject, html)" }), {
             status: 400, headers: { ...CORS, "Content-Type": "application/json" }
           });
         }
         const acc = account === "personal" ? "personal" : "business";
-        const result = await sendGmailHtmlMulti(env, acc, to, subject, html);
+        const result = await sendGmailHtmlMulti(env, acc, to, subject, html, from);
         if (!result.ok) {
           return new Response(JSON.stringify(result), {
             status: result.status || 502, headers: { ...CORS, "Content-Type": "application/json" }
