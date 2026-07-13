@@ -925,7 +925,12 @@ async function runThankYou(env, testMode) {
     }
     const result = await sendGmailHtmlMulti(env, "business", email, subject, html);
     if (result.ok) {
-      await env.ARRIVI_KV.put(kvKey, new Date().toISOString());
+      const sentAt = new Date().toISOString();
+      await env.ARRIVI_KV.put(kvKey, sentAt);
+      await env.ARRIVI_KV.put(`thankyou_log_${to}_${bookingId}`, JSON.stringify({
+        bookingId, nome, cognome: (booker.last_name || "").trim(), email, propKey,
+        propName: PROP_NAME[propKey] || propKey, lng, source: b.source || "", roomName, sentAt
+      }));
       inviate++;
       dettagli.push({ bookingId, email, propKey, lng, sent: true });
     } else {
@@ -1064,6 +1069,26 @@ export default {
         const testMode = url.searchParams.get("test") === "true";
         const result = await runThankYou(env, testMode);
         return new Response(JSON.stringify(result), {
+          headers: { ...CORS, "Content-Type": "application/json" }
+        });
+      }
+
+      if (action === "getThankYouLog") {
+        const date2 = url.searchParams.get("date");
+        if (!date2) {
+          return new Response(JSON.stringify({ error: "Parametro date mancante" }), {
+            status: 400, headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        }
+        const prefix = `thankyou_log_${date2}_`;
+        const list = await env.ARRIVI_KV.list({ prefix });
+        const voci = [];
+        for (const key of list.keys) {
+          const val = await env.ARRIVI_KV.get(key.name);
+          if (val) { try { voci.push(JSON.parse(val)); } catch (e) {} }
+        }
+        voci.sort((a, b) => (a.sentAt || "").localeCompare(b.sentAt || ""));
+        return new Response(JSON.stringify({ date: date2, count: voci.length, voci }), {
           headers: { ...CORS, "Content-Type": "application/json" }
         });
       }
