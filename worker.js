@@ -1721,6 +1721,10 @@ export default {
     }
   },
   async scheduled(event, env, ctx) {
-    ctx.waitUntil(runAutoSend(env, false));
+    if (event.cron === "0 10 * * *") {
+      ctx.waitUntil(runThankYou(env, false));
+    } else {
+      ctx.waitUntil(runAutoSend(env, false));
+    }
   }
 };
