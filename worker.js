@@ -1073,6 +1073,33 @@ export default {
         });
       }
 
+      if (action === "testThankYou") {
+        const to2 = url.searchParams.get("to");
+        const propKey = url.searchParams.get("propKey") === "lor" ? "lor" : "camp";
+        const lng = url.searchParams.get("lng") || "it";
+        const nome = url.searchParams.get("nome") || "Filippo";
+        if (!to2) {
+          return new Response(JSON.stringify({ error: "Parametro to mancante" }), {
+            status: 400, headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        }
+        const html = buildThankYouHtml(propKey, lng, nome);
+        const subject = "[TEST] " + (THANKYOU_SUBJ[lng] || THANKYOU_SUBJ.en);
+        const result = await sendGmailHtmlMulti(env, "business", to2, subject, html);
+        if (result.ok) {
+          const oggiStr = new Date().toISOString().slice(0, 10);
+          const testId = "TEST-" + Date.now();
+          await env.ARRIVI_KV.put(`thankyou_log_${oggiStr}_${testId}`, JSON.stringify({
+            bookingId: testId, nome, cognome: "(test)", email: to2, propKey,
+            propName: PROP_NAME[propKey] || propKey, lng, source: "test-manuale", roomName: "-",
+            sentAt: new Date().toISOString()
+          }));
+        }
+        return new Response(JSON.stringify(result), {
+          status: result.ok ? 200 : (result.status || 502), headers: { ...CORS, "Content-Type": "application/json" }
+        });
+      }
+
       if (action === "getThankYouLog") {
         const date2 = url.searchParams.get("date");
         if (!date2) {
