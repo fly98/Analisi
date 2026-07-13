@@ -7,4 +7,4 @@ binding = "ARRIVI_KV"
 id = "48138f095e8b43d2823c85580af22125"
 
 [triggers]
-crons = ["0 4 * * *", "0 10 * * *"]
+crons = ["0 4,10 * * *"]
