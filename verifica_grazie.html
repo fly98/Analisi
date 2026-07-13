@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Verifica Email Ringraziamento</title>
+<style>
+  :root { --arancio:#FF6628; --grigio:#555; --bordo:#e5e3df; }
+  * { box-sizing:border-box; }
+  body {
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    margin:0; padding:20px 16px 60px; background:#fafafa; color:#222;
+  }
+  h1 { font-size:20px; margin:0 0 4px; }
+  p.sub { color:var(--grigio); font-size:13px; margin:0 0 20px; }
+  .controls {
+    display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+    background:#fff; border:1px solid var(--bordo); border-radius:10px;
+    padding:12px 14px; margin-bottom:18px;
+  }
+  input[type=date] {
+    font-size:16px; padding:8px 10px; border:1px solid var(--bordo); border-radius:8px;
+  }
+  button {
+    background:var(--arancio); color:#fff; border:none; border-radius:8px;
+    padding:9px 16px; font-size:15px; font-weight:600; cursor:pointer;
+  }
+  button:disabled { opacity:.5; }
+  button.secondary { background:#fff; color:var(--arancio); border:1px solid var(--arancio); }
+  .stato { font-size:13px; color:var(--grigio); }
+  .card {
+    background:#fff; border:1px solid var(--bordo); border-radius:10px;
+    padding:14px 16px; margin-bottom:10px;
+  }
+  .card .riga1 { display:flex; justify-content:space-between; align-items:baseline; gap:10px; flex-wrap:wrap; }
+  .nome { font-weight:700; font-size:15px; }
+  .lingua {
+    display:inline-block; background:#FFF1E8; color:var(--arancio); font-weight:700;
+    font-size:12px; padding:2px 8px; border-radius:6px; text-transform:uppercase;
+  }
+  .dettagli { font-size:13px; color:var(--grigio); margin-top:6px; line-height:1.5; }
+  .fonte-booking { color:#003580; font-weight:600; }
+  .fonte-diretta { color:#1a7a3c; font-weight:600; }
+  .vuoto { text-align:center; color:var(--grigio); padding:40px 10px; font-size:14px; }
+  .riepilogo { font-size:13px; color:var(--grigio); margin-bottom:14px; }
+</style>
+</head>
+<body>
+
+<h1>📬 Verifica Email di Ringraziamento</h1>
+<p class="sub">Controlla, giorno per giorno, quali email post-check-out sono state inviate e in quale lingua.</p>
+
+<div class="controls">
+  <input type="date" id="dataInput">
+  <button id="btnOggi" class="secondary">Oggi</button>
+  <button id="btnCarica">Carica</button>
+  <span class="stato" id="stato"></span>
+</div>
+
+<div id="riepilogo" class="riepilogo"></div>
+<div id="risultati"></div>
+
+<script>
+const WORKER_URL = "https://little-shadow-145e.f-castiglioni.workers.dev";
+const dataInput = document.getElementById("dataInput");
+const btnCarica = document.getElementById("btnCarica");
+const btnOggi = document.getElementById("btnOggi");
+const statoEl = document.getElementById("stato");
+const risultatiEl = document.getElementById("risultati");
+const riepilogoEl = document.getElementById("riepilogo");
+
+function oggiISO() {
+  return new Date().toISOString().slice(0, 10);
+}
+dataInput.value = oggiISO();
+
+const LINGUA_LABEL = { it:"IT", en:"EN", es:"ES", fr:"FR", de:"DE", pt:"PT", zh:"ZH" };
+
+function renderVoce(v) {
+  const isBooking = (v.source || "").toLowerCase().includes("booking");
+  const fonteClass = isBooking ? "fonte-booking" : "fonte-diretta";
+  const fonteLabel = isBooking ? "Booking.com" : (v.source || "diretta");
+  const ora = v.sentAt ? new Date(v.sentAt).toLocaleTimeString("it-IT", { hour:"2-digit", minute:"2-digit" }) : "";
+  return `
+  <div class="card">
+    <div class="riga1">
+      <span class="nome">${v.nome || ""} ${v.cognome || ""}</span>
+      <span class="lingua">${LINGUA_LABEL[v.lng] || v.lng || "?"}</span>
+    </div>
+    <div class="dettagli">
+      ${v.propName || v.propKey || ""} · camera ${v.roomName || "-"}<br>
+      ${v.email || ""}<br>
+      <span class="${fonteClass}">${fonteLabel}</span> · inviata alle ${ora}
+    </div>
+  </div>`;
+}
+
+async function carica() {
+  const data = dataInput.value;
+  if (!data) return;
+  btnCarica.disabled = true;
+  statoEl.textContent = "Caricamento...";
+  risultatiEl.innerHTML = "";
+  riepilogoEl.textContent = "";
+  try {
+    const resp = await fetch(`${WORKER_URL}/?action=getThankYouLog&date=${data}`);
+    const json = await resp.json();
+    if (json.error) {
+      risultatiEl.innerHTML = `<div class="vuoto">Errore: ${json.error}</div>`;
+    } else if (!json.voci || json.voci.length === 0) {
+      risultatiEl.innerHTML = `<div class="vuoto">Nessuna email inviata in questa data.</div>`;
+    } else {
+      const conteggioLingue = {};
+      json.voci.forEach(v => { conteggioLingue[v.lng] = (conteggioLingue[v.lng] || 0) + 1; });
+      const riassuntoLingue = Object.entries(conteggioLingue)
+        .map(([l, n]) => `${LINGUA_LABEL[l] || l}: ${n}`).join(" · ");
+      riepilogoEl.textContent = `${json.count} email inviate — ${riassuntoLingue}`;
+      risultatiEl.innerHTML = json.voci.map(renderVoce).join("");
+    }
+    statoEl.textContent = "";
+  } catch (e) {
+    statoEl.textContent = "";
+    risultatiEl.innerHTML = `<div class="vuoto">Errore di connessione: ${e.message}</div>`;
+  }
+  btnCarica.disabled = false;
+}
+
+btnCarica.addEventListener("click", carica);
+btnOggi.addEventListener("click", () => { dataInput.value = oggiISO(); carica(); });
+dataInput.addEventListener("change", carica);
+
+carica();
+</script>
+
+</body>
+</html>
