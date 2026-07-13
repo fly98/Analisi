@@ -682,7 +682,9 @@ const THANKYOU_COMMON = {
   it: {
     review_intro: `Se hai trascorso un bel soggiorno, ti sarei molto grato se potessi lasciare una recensione sulla piattaforma dove hai prenotato e/o su Google.`,
     review_cta: `Lascia una recensione su Google →`,
+    review_intro_booking: `Se hai trascorso un bel soggiorno, ti sarei molto grato se potessi lasciare una recensione su Booking.`,
     review_ratings: (b, g) => `Attualmente il nostro punteggio medio è ${b} su Booking e ${g} su Google: ogni giudizio positivo ci aiuta a crescere e a far conoscere meglio il nostro impegno.`,
+    review_ratings_booking: (b) => `Attualmente il nostro punteggio medio su Booking è ${b}: ogni giudizio positivo ci aiuta a crescere e a far conoscere meglio il nostro impegno.`,
     feedback_negative: `Se invece qualcosa non ti ha soddisfatto, ti prego di contattarmi direttamente. Sarò felice di ascoltarti e, se possibile, rimediare immediatamente: la tua soddisfazione è la nostra priorità, e ogni feedback ci aiuta a migliorare.`,
     gift_intro: `Per ringraziarti della fiducia, ti lascio un piccolo omaggio:`,
     gift_line: `🎁 un buono sconto di 10&nbsp;€, valido per due anni, per il tuo prossimo soggiorno.`,
@@ -694,7 +696,9 @@ const THANKYOU_COMMON = {
   en: {
     review_intro: `If you enjoyed your stay, I would really appreciate it if you could leave a review on the platform where you booked or on Google.`,
     review_cta: `Leave a review on Google →`,
+    review_intro_booking: `If you enjoyed your stay, I would really appreciate it if you could leave a review on Booking.com.`,
     review_ratings: (b, g) => `Our current average rating is ${b} on Booking.com and ${g} on Google — every positive review helps us grow and show new guests the quality of our service.`,
+    review_ratings_booking: (b) => `Our current average rating on Booking.com is ${b} — every positive review helps us grow and show new guests the quality of our service.`,
     feedback_negative: `If for any reason you were not completely satisfied, please contact me directly. I'll be happy to listen and, whenever possible, make things right. Your satisfaction is our top priority, and your feedback helps us improve every day.`,
     gift_intro: `As a small token of appreciation for your trust, here's a little gift:`,
     gift_line: `🎁 a €10 discount voucher, valid for two years, for your next stay with us.`,
@@ -706,7 +710,9 @@ const THANKYOU_COMMON = {
   es: {
     review_intro: `Si has disfrutado de tu estancia, te agradecería mucho que dejaras una reseña en la plataforma donde reservaste y/o en Google.`,
     review_cta: `Deja una reseña en Google →`,
+    review_intro_booking: `Si has disfrutado de tu estancia, te agradecería mucho que dejaras una reseña en Booking.`,
     review_ratings: (b, g) => `Nuestra puntuación media actual es de ${b} en Booking y de ${g} en Google: cada valoración positiva nos ayuda a crecer y a dar a conocer mejor nuestro compromiso.`,
+    review_ratings_booking: (b) => `Nuestra puntuación media actual en Booking es de ${b}: cada valoración positiva nos ayuda a crecer y a dar a conocer mejor nuestro compromiso.`,
     feedback_negative: `Si por el contrario algo no te ha satisfecho, por favor contáctame directamente. Estaré encantado de escucharte y, si es posible, solucionarlo de inmediato: tu satisfacción es nuestra prioridad, y cada comentario nos ayuda a mejorar.`,
     gift_intro: `Para agradecerte tu confianza, te dejo un pequeño regalo:`,
     gift_line: `🎁 un vale de descuento de 10&nbsp;€, válido durante dos años, para tu próxima estancia.`,
@@ -718,7 +724,9 @@ const THANKYOU_COMMON = {
   fr: {
     review_intro: `Si tu as passé un bon séjour, je te serais très reconnaissant de laisser un avis sur la plateforme où tu as réservé et/ou sur Google.`,
     review_cta: `Laisser un avis sur Google →`,
+    review_intro_booking: `Si tu as passé un bon séjour, je te serais très reconnaissant de laisser un avis sur Booking.`,
     review_ratings: (b, g) => `Notre note moyenne actuelle est de ${b} sur Booking et de ${g} sur Google : chaque avis positif nous aide à grandir et à mieux faire connaître notre engagement.`,
+    review_ratings_booking: (b) => `Notre note moyenne actuelle sur Booking est de ${b} : chaque avis positif nous aide à grandir et à mieux faire connaître notre engagement.`,
     feedback_negative: `Si en revanche quelque chose ne t'a pas satisfait, merci de me contacter directement. Je serai heureux de t'écouter et, si possible, d'y remédier immédiatement : ta satisfaction est notre priorité, et chaque retour nous aide à nous améliorer.`,
     gift_intro: `Pour te remercier de ta confiance, voici un petit cadeau :`,
     gift_line: `🎁 un bon de réduction de 10&nbsp;€, valable deux ans, pour ton prochain séjour.`,
@@ -730,7 +738,9 @@ const THANKYOU_COMMON = {
   de: {
     review_intro: `Wenn dir dein Aufenthalt gefallen hat, würde ich mich sehr über eine Bewertung auf der Plattform freuen, über die du gebucht hast, oder auf Google.`,
     review_cta: `Bewertung auf Google hinterlassen →`,
+    review_intro_booking: `Wenn dir dein Aufenthalt gefallen hat, würde ich mich sehr über eine Bewertung auf Booking freuen.`,
     review_ratings: (b, g) => `Unsere aktuelle Durchschnittsbewertung liegt bei ${b} auf Booking und bei ${g} auf Google: Jede positive Bewertung hilft uns zu wachsen und unser Engagement bekannter zu machen.`,
+    review_ratings_booking: (b) => `Unsere aktuelle Durchschnittsbewertung auf Booking liegt bei ${b}: Jede positive Bewertung hilft uns zu wachsen und unser Engagement bekannter zu machen.`,
     feedback_negative: `Falls dich hingegen etwas nicht zufriedengestellt hat, kontaktiere mich bitte direkt. Ich höre dir gerne zu und behebe das Problem, wenn möglich, sofort: Deine Zufriedenheit hat für uns Priorität, und jedes Feedback hilft uns, uns zu verbessern.`,
     gift_intro: `Als kleines Dankeschön für dein Vertrauen möchte ich dir Folgendes schenken:`,
     gift_line: `🎁 einen Rabattgutschein über 10&nbsp;€, gültig für zwei Jahre, für deinen nächsten Aufenthalt.`,
@@ -742,7 +752,9 @@ const THANKYOU_COMMON = {
   pt: {
     review_intro: `Se gostaste da tua estadia, ficaria muito grato se deixasses uma avaliação na plataforma onde reservaste e/ou no Google.`,
     review_cta: `Deixar uma avaliação no Google →`,
+    review_intro_booking: `Se gostaste da tua estadia, ficaria muito grato se deixasses uma avaliação no Booking.`,
     review_ratings: (b, g) => `A nossa pontuação média atual é de ${b} no Booking e de ${g} no Google: cada avaliação positiva ajuda-nos a crescer e a dar a conhecer melhor o nosso empenho.`,
+    review_ratings_booking: (b) => `A nossa pontuação média atual no Booking é de ${b}: cada avaliação positiva ajuda-nos a crescer e a dar a conhecer melhor o nosso empenho.`,
     feedback_negative: `Se, pelo contrário, algo não te agradou, por favor contacta-me diretamente. Terei todo o gosto em ouvir-te e, se possível, resolver de imediato: a tua satisfação é a nossa prioridade, e cada comentário ajuda-nos a melhorar.`,
     gift_intro: `Para te agradecer a confiança, deixo-te uma pequena prenda:`,
     gift_line: `🎁 um vale de desconto de 10&nbsp;€, válido durante dois anos, para a tua próxima estadia.`,
@@ -754,7 +766,9 @@ const THANKYOU_COMMON = {
   zh: {
     review_intro: `如果你度过了愉快的住宿，我会非常感激你能在预订平台和/或谷歌上留下评价。`,
     review_cta: `在谷歌上留下评价 →`,
+    review_intro_booking: `如果你度过了愉快的住宿，我会非常感激你能在Booking上留下评价。`,
     review_ratings: (b, g) => `目前我们在Booking上的平均评分为${b}分，在谷歌上为${g}分——每一个好评都帮助我们成长，让更多人了解我们的用心。`,
+    review_ratings_booking: (b) => `目前我们在Booking上的平均评分为${b}分——每一个好评都帮助我们成长，让更多人了解我们的用心。`,
     feedback_negative: `如果有任何不满意的地方，请直接联系我。我很乐意倾听，并尽可能立即解决问题——你的满意是我们的首要任务，每一条反馈都帮助我们不断进步。`,
     gift_intro: `为了感谢你的信任，送你一个小礼物：`,
     gift_line: `🎁 一张10欧元优惠券，有效期两年，用于你的下次入住。`,
@@ -787,15 +801,17 @@ function thankYouThanks(lng) {
     default: return `I'd like to sincerely thank you for choosing my place for your stay in Rome.<br>I truly hope I've managed to live up to your expectations — I always do my best to make every guest feel comfortable and well taken care of.`;
   }
 }
-function buildThankYouHtml(propKey, lng, nome) {
+function buildThankYouHtml(propKey, lng, nome, isBookingCom) {
   const L = THANKYOU_COMMON[lng] || THANKYOU_COMMON.en;
   const propName = PROP_NAME[propKey] || "InternoUno";
   const gr = GOOGLE_REVIEW[propKey] || GOOGLE_REVIEW.camp;
+  const reviewBlock = isBookingCom
+    ? `<p>${L.review_intro_booking}</p>\n<p>${L.review_ratings_booking(gr.bookingRating)}</p>`
+    : `<p>${L.review_intro} <a href="${gr.url}" style="display:inline-block;background:#FF6628;color:#fff;text-decoration:none;padding:4px 10px;border-radius:6px;font-weight:bold;font-size:13px;white-space:nowrap;margin-left:4px">${L.review_cta}</a></p>\n<p>${L.review_ratings(gr.bookingRating, gr.rating)}</p>`;
   return `<div style="font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.6;color:#222">
 <p>${thankYouGreeting(lng, nome, propName)}</p>
 <p>${thankYouThanks(lng)}</p>
-<p>${L.review_intro} <a href="${gr.url}" style="display:inline-block;background:#FF6628;color:#fff;text-decoration:none;padding:4px 10px;border-radius:6px;font-weight:bold;font-size:13px;white-space:nowrap;margin-left:4px">${L.review_cta}</a></p>
-<p>${L.review_ratings(gr.bookingRating, gr.rating)}</p>
+${reviewBlock}
 <p>${L.feedback_negative}</p>
 <hr style="border:none;border-top:1px solid #e5e3df;margin:24px 0">
 <p>${L.gift_intro}</p>
@@ -813,7 +829,8 @@ function buildThankYouHtml(propKey, lng, nome) {
 
 // Versione testo semplice: usata per le prenotazioni Booking.com, la cui messaggistica
 // interna non renderizza l'HTML. Niente tag, link scritti per esteso.
-function buildThankYouPlainText(propKey, lng, nome) {
+// isBookingCom=true: niente riferimento/link Google (le recensioni Booking non hanno un link diretto generabile).
+function buildThankYouPlainText(propKey, lng, nome, isBookingCom) {
   const L = THANKYOU_COMMON[lng] || THANKYOU_COMMON.en;
   const propName = PROP_NAME[propKey] || "InternoUno";
   const gr = GOOGLE_REVIEW[propKey] || GOOGLE_REVIEW.camp;
@@ -826,12 +843,13 @@ function buildThankYouPlainText(propKey, lng, nome) {
       const u = url.replace(/^https?:\/\//i, "").toLowerCase();
       return (u.startsWith(t)) ? text : `${text}: ${url}`;
     });
+  const reviewParts = isBookingCom
+    ? [strip(L.review_intro_booking), strip(L.review_ratings_booking(gr.bookingRating))]
+    : [strip(L.review_intro), `${strip(L.review_cta)}\n${gr.url}`, strip(L.review_ratings(gr.bookingRating, gr.rating))];
   const parts = [
     strip(thankYouGreeting(lng, nome, propName)),
     strip(thankYouThanks(lng)),
-    strip(L.review_intro),
-    `${strip(L.review_cta)}\n${gr.url}`,
-    strip(L.review_ratings(gr.bookingRating, gr.rating)),
+    ...reviewParts,
     strip(L.feedback_negative),
     "----------",
     strip(L.gift_intro),
@@ -954,7 +972,7 @@ async function runThankYou(env, testMode) {
     const lng = lingua(booker.language, phone);
     const nome = (booker.first_name || "").trim();
     const isBookingCom = (b.source || "").toLowerCase().includes("booking");
-    const body = isBookingCom ? buildThankYouPlainText(propKey, lng, nome) : buildThankYouHtml(propKey, lng, nome);
+    const body = isBookingCom ? buildThankYouPlainText(propKey, lng, nome, true) : buildThankYouHtml(propKey, lng, nome, false);
     const formato = isBookingCom ? "text/plain" : "text/html";
     const subject = THANKYOU_SUBJ[lng] || THANKYOU_SUBJ.en;
     if (testMode) {
@@ -1117,12 +1135,13 @@ export default {
         const lng = url.searchParams.get("lng") || "it";
         const nome = url.searchParams.get("nome") || "Filippo";
         const wantPlain = url.searchParams.get("plain") === "true";
+        const wantBooking = url.searchParams.get("booking") === "true";
         if (!to2) {
           return new Response(JSON.stringify({ error: "Parametro to mancante" }), {
             status: 400, headers: { ...CORS, "Content-Type": "application/json" }
           });
         }
-        const body = wantPlain ? buildThankYouPlainText(propKey, lng, nome) : buildThankYouHtml(propKey, lng, nome);
+        const body = wantPlain ? buildThankYouPlainText(propKey, lng, nome, wantBooking) : buildThankYouHtml(propKey, lng, nome, wantBooking);
         const formato = wantPlain ? "text/plain" : "text/html";
         const subject = "[TEST] " + (THANKYOU_SUBJ[lng] || THANKYOU_SUBJ.en);
         const result = await sendGmailHtmlMulti(env, "business", to2, subject, body, null, formato);
