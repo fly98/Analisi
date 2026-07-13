@@ -4421,6 +4421,8 @@ function openAmexImport() {
   document.getElementById('amex-progress').textContent = '';
   document.getElementById('amex-import-btn').disabled = true;
   document.getElementById('amex-drop').style.display = 'block';
+  var ab = document.getElementById('amex-auto-btn');
+  if (ab) { ab.style.display = 'flex'; ab.disabled = false; }
 }
 function closeAmexImport() { document.getElementById('amex-overlay').style.display = 'none'; }
 function amexOnDrop(e) {
@@ -4671,6 +4673,32 @@ async function amexDoImport() {
   closeAmexImport();
 }
 
+async function amexAutoDownload() {
+  var btn = document.getElementById('amex-auto-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span>\u23f3</span> <span>Download in corso (~60 sec)...</span>';
+  try {
+    var TOKEN = localStorage.getItem('icompta_token');
+    var resp = await fetch(WORKER_URL + '/api/amex-auto', {
+      headers: { 'Authorization': 'Bearer ' + TOKEN },
+      signal: AbortSignal.timeout(180000)
+    });
+    if (!resp.ok) throw new Error('Errore server Mac: ' + resp.status);
+    // xlsx = binario -> blob, non text
+    var blob = await resp.blob();
+    if (!blob || blob.size < 100) throw new Error('File vuoto o non valido');
+    btn.innerHTML = '<span>\u2705</span> <span>File ricevuto, analisi...</span>';
+    var file = new File([blob], resp.headers.get('X-Filename') || 'Amex_auto.xlsx',
+      { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    await amexHandleFile(file);
+  } catch(e) {
+    alert('Errore: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<span>\uD83D\uDCE5</span> <span>Scarica automaticamente da Amex</span>';
+  }
+}
+
 </script>
 
 <!-- Modal Import Sella -->
@@ -4834,6 +4862,14 @@ async function amexDoImport() {
       <button onclick="closeAmexImport()" style="background:var(--gray2);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:16px">✕</button>
     </div>
     <div style="flex:1;overflow-y:auto;padding:16px">
+      <button id="amex-auto-btn" onclick="amexAutoDownload()" style="width:100%;padding:12px;border-radius:10px;border:none;background:var(--blue);color:#fff;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:8px">
+        <span>📥</span> <span>Scarica automaticamente da Amex</span>
+      </button>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <div style="flex:1;height:1px;background:var(--border)"></div>
+        <span style="font-size:12px;color:var(--faint)">oppure</span>
+        <div style="flex:1;height:1px;background:var(--border)"></div>
+      </div>
       <div id="amex-drop"
         ondragover="event.preventDefault();this.classList.add('drag')"
         ondragleave="this.classList.remove('drag')"
