@@ -23,6 +23,28 @@ async function getGmailAccessToken(env) {
   return tokenResp.json();
 }
 
+// Multi-account variant: "account" can be "business" (default, existing InternoUno mailbox)
+// or "personal" (Filippo's personal Gmail, uses GMAIL_PERSONAL_REFRESH_TOKEN secret).
+// Same OAuth client (GMAIL_CLIENT_ID/SECRET) is reused across accounts; only the refresh
+// token differs, since each Google account grants its own consent/token.
+async function getGmailAccessTokenFor(env, account) {
+  const refreshToken = account === "personal" ? env.GMAIL_PERSONAL_REFRESH_TOKEN : env.GMAIL_REFRESH_TOKEN;
+  if (!refreshToken) {
+    return { error: `Nessun refresh token configurato per account "${account}"` };
+  }
+  const tokenResp = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      client_id: env.GMAIL_CLIENT_ID,
+      client_secret: env.GMAIL_CLIENT_SECRET,
+      refresh_token: refreshToken,
+      grant_type: "refresh_token"
+    })
+  });
+  return tokenResp.json();
+}
+
 // Decodifica base64url Gmail -> stringa UTF-8 corretta (evita mojibake su accenti/€)
 function b64UrlToUtf8(data) {
   const std = (data || "").replace(/-/g, "+").replace(/_/g, "/");
@@ -634,6 +656,43 @@ async function sendGmailHtml(env, to, subject, html) {
   return { ok: true, messageId: sendData.id };
 }
 
+// Multi-account send: account = "business" (InternoUno, default) or "personal" (Filippo's Gmail).
+// For "personal" we don't force a From header, so Gmail fills it in automatically with the
+// authenticated account's own address (Gmail API rejects/ignores a spoofed From anyway).
+async function sendGmailHtmlMulti(env, account, to, subject, html) {
+  const tokenData = await getGmailAccessTokenFor(env, account);
+  if (!tokenData.access_token) {
+    return { ok: false, error: "Token Gmail non ottenuto", detail: tokenData };
+  }
+  const subjectEnc = "=?UTF-8?B?" + btoa(unescape(encodeURIComponent(subject))) + "?=";
+  const headers = [];
+  if (account !== "personal") {
+    headers.push("From: InternoUno <interno1bbroma@gmail.com>");
+  }
+  headers.push(
+    `To: ${to}`,
+    `Subject: ${subjectEnc}`,
+    "MIME-Version: 1.0",
+    "Content-Type: text/html; charset=UTF-8",
+    "Content-Transfer-Encoding: 8bit",
+    "",
+    html
+  );
+  const mime = headers.join("\r\n");
+  const raw = b64urlEncode(mime);
+  const sendResp = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/messages/send", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${tokenData.access_token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ raw })
+  });
+  if (!sendResp.ok) {
+    const errText = await sendResp.text();
+    return { ok: false, error: "Invio Gmail fallito", status: sendResp.status, detail: errText.slice(0, 500) };
+  }
+  const sendData = await sendResp.json();
+  return { ok: true, messageId: sendData.id };
+}
+
 // ====== AUTOMAZIONE NOTTURNA: nuove prenotazioni non-Booking con email ======
 async function runAutoSend(env, testMode) {
   const oggi = new Date();
@@ -706,14 +765,17 @@ export default {
 
 
       // Avvio re-autorizzazione Gmail: apri questo URL nel browser una sola volta
+      // account=business (default, mailbox InternoUno) oppure account=personal (Gmail personale)
       if (action === "authStart") {
+        const account = url.searchParams.get("account") === "personal" ? "personal" : "business";
         const p = new URLSearchParams({
           client_id: env.GMAIL_CLIENT_ID,
           redirect_uri: REDIRECT_URI,
           response_type: "code",
           scope: "https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send",
           access_type: "offline",
-          prompt: "consent"
+          prompt: "consent",
+          state: account
         });
         return Response.redirect("https://accounts.google.com/o/oauth2/v2/auth?" + p.toString(), 302);
       }
@@ -722,6 +784,7 @@ export default {
       if (url.pathname.endsWith("/oauth2callback")) {
         const code = url.searchParams.get("code");
         const oauthErr = url.searchParams.get("error");
+        const account = url.searchParams.get("state") === "personal" ? "personal" : "business";
         if (oauthErr) return htmlPage("Errore da Google: " + oauthErr);
         if (!code) return htmlPage("Nessun codice ricevuto da Google.");
         const tokResp = await fetch("https://oauth2.googleapis.com/token", {
@@ -740,9 +803,11 @@ export default {
           return htmlPage("Scambio completato ma Google NON ha restituito un refresh_token.<br><br>" +
             "Di solito succede se l'app era gia autorizzata: vai su <a href='https://myaccount.google.com/permissions'>myaccount.google.com/permissions</a>, rimuovi l'accesso a questa app e riprova.<br><br>Risposta: <code>" + JSON.stringify(td) + "</code>");
         }
-        return htmlPage("<b>Nuovo refresh token generato (lettura + invio).</b><br><br>" +
-          "Copialo e incollalo nel secret <code>GMAIL_REFRESH_TOKEN</code> del worker:<br>" +
-          "Cloudflare dashboard &rarr; Workers &amp; Pages &rarr; <b>little-shadow-145e</b> &rarr; Settings &rarr; Variables and Secrets &rarr; modifica <code>GMAIL_REFRESH_TOKEN</code>.<br><br>" +
+        const secretName = account === "personal" ? "GMAIL_PERSONAL_REFRESH_TOKEN" : "GMAIL_REFRESH_TOKEN";
+        return htmlPage("<b>Nuovo refresh token generato (lettura + invio) per account: " + account + ".</b><br><br>" +
+          "Copialo e incollalo nel secret <code>" + secretName + "</code> del worker:<br>" +
+          "Cloudflare dashboard &rarr; Workers &amp; Pages &rarr; <b>little-shadow-145e</b> &rarr; Settings &rarr; Variables and Secrets &rarr; " +
+          (account === "personal" ? "aggiungi nuovo secret <code>" + secretName + "</code>" : "modifica <code>" + secretName + "</code>") + ".<br><br>" +
           "<textarea readonly style='width:100%;height:90px' onclick='this.select()'>" + td.refresh_token + "</textarea>");
       }
 
@@ -768,6 +833,32 @@ export default {
           });
         }
         const result = await sendGmailHtml(env, to, subject, html);
+        if (!result.ok) {
+          return new Response(JSON.stringify(result), {
+            status: result.status || 502, headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        }
+        return new Response(JSON.stringify(result), {
+          headers: { ...CORS, "Content-Type": "application/json" }
+        });
+      }
+
+      // Invio generico multi-account: account="business" (default, InternoUno) o "personal" (Gmail personale Filippo)
+      if (action === "send") {
+        let body;
+        try { body = await request.json(); } catch (e) {
+          return new Response(JSON.stringify({ error: "Corpo JSON non valido" }), {
+            status: 400, headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        }
+        const { to, subject, html, account } = body || {};
+        if (!to || !subject || !html) {
+          return new Response(JSON.stringify({ error: "Parametri mancanti (to, subject, html)" }), {
+            status: 400, headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        }
+        const acc = account === "personal" ? "personal" : "business";
+        const result = await sendGmailHtmlMulti(env, acc, to, subject, html);
         if (!result.ok) {
           return new Response(JSON.stringify(result), {
             status: result.status || 502, headers: { ...CORS, "Content-Type": "application/json" }
