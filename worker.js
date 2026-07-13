@@ -680,102 +680,102 @@ const THANKYOU_SUBJ = {
 };
 const THANKYOU_COMMON = {
   it: {
-    review_intro: `Se hai trascorso un bel soggiorno, ti sarei molto grato se potessi lasciare una recensione sulla piattaforma dove hai prenotato e/o su Google.`,
+    review_intro: `⭐ Se hai trascorso un bel soggiorno, ti sarei molto grato se potessi lasciare una recensione sulla piattaforma dove hai prenotato e/o su Google.`,
     review_cta: `Lascia una recensione su Google →`,
-    review_intro_booking: `Se hai trascorso un bel soggiorno, ti sarei molto grato se potessi lasciare una recensione su Booking.`,
+    review_intro_booking: `⭐ Se hai trascorso un bel soggiorno, ti sarei molto grato se potessi lasciare una recensione su Booking.`,
     review_ratings: (b, g) => `Attualmente il nostro punteggio medio è ${b} su Booking e ${g} su Google: ogni giudizio positivo ci aiuta a crescere e a far conoscere meglio il nostro impegno.`,
     review_ratings_booking: (b) => `Attualmente il nostro punteggio medio su Booking è ${b}: ogni giudizio positivo ci aiuta a crescere e a far conoscere meglio il nostro impegno.`,
-    feedback_negative: `Se invece qualcosa non ti ha soddisfatto, ti prego di contattarmi direttamente. Sarò felice di ascoltarti e, se possibile, rimediare immediatamente: la tua soddisfazione è la nostra priorità, e ogni feedback ci aiuta a migliorare.`,
-    gift_intro: `Per ringraziarti della fiducia, ti lascio un piccolo omaggio:`,
+    feedback_negative: `💬 Se invece qualcosa non ti ha soddisfatto, ti prego di contattarmi direttamente. Sarò felice di ascoltarti e, se possibile, rimediare immediatamente: la tua soddisfazione è la nostra priorità, e ogni feedback ci aiuta a migliorare.`,
+    gift_intro: `🎁 Per ringraziarti della fiducia, ti lascio un piccolo omaggio:`,
     gift_line: `🎁 un buono sconto di 10&nbsp;€, valido per due anni, per il tuo prossimo soggiorno.`,
     gift_howto: `Per utilizzarlo, prenota direttamente sul nostro sito <a href="https://www.interno1.it" style="color:#FF6628">www.interno1.it</a> e inserisci il codice <b>GIFT10GUEST</b> nel campo "Codice promozionale" subito sotto la scelta delle date.`,
     gift_note: `Ti ricordiamo che sul nostro sito trovi sempre la tariffa più bassa garantita rispetto a tutti gli altri canali di prenotazione.`,
     social_intro: `Restiamo in contatto anche sui social 📸 Seguici per consigli sulla zona, eventi a Roma in arrivo e promozioni riservate a chi ci segue online.`,
-    closing: `Spero di rivederti presto!<br>Buon viaggio e grazie ancora,`
+    closing: `✈️ Spero di rivederti presto!<br>Buon viaggio e grazie ancora,`
   },
   en: {
-    review_intro: `If you enjoyed your stay, I would really appreciate it if you could leave a review on the platform where you booked or on Google.`,
+    review_intro: `⭐ If you enjoyed your stay, I would really appreciate it if you could leave a review on the platform where you booked or on Google.`,
     review_cta: `Leave a review on Google →`,
-    review_intro_booking: `If you enjoyed your stay, I would really appreciate it if you could leave a review on Booking.com.`,
+    review_intro_booking: `⭐ If you enjoyed your stay, I would really appreciate it if you could leave a review on Booking.com.`,
     review_ratings: (b, g) => `Our current average rating is ${b} on Booking.com and ${g} on Google — every positive review helps us grow and show new guests the quality of our service.`,
     review_ratings_booking: (b) => `Our current average rating on Booking.com is ${b} — every positive review helps us grow and show new guests the quality of our service.`,
-    feedback_negative: `If for any reason you were not completely satisfied, please contact me directly. I'll be happy to listen and, whenever possible, make things right. Your satisfaction is our top priority, and your feedback helps us improve every day.`,
-    gift_intro: `As a small token of appreciation for your trust, here's a little gift:`,
+    feedback_negative: `💬 If for any reason you were not completely satisfied, please contact me directly. I'll be happy to listen and, whenever possible, make things right. Your satisfaction is our top priority, and your feedback helps us improve every day.`,
+    gift_intro: `🎁 As a small token of appreciation for your trust, here's a little gift:`,
     gift_line: `🎁 a €10 discount voucher, valid for two years, for your next stay with us.`,
     gift_howto: `To redeem it, simply book directly on our website <a href="https://www.interno1.it" style="color:#FF6628">www.interno1.it</a> and enter the code <b>GIFT10GUEST</b> in the "Promotional code" box, under the date selection.`,
     gift_note: `Booking directly also guarantees you the lowest available rate compared to any other platform.`,
     social_intro: `Let's stay in touch on social media too 📸 Follow us for local tips, upcoming events in Rome, and promotions reserved for our online followers.`,
-    closing: `I hope to welcome you again soon!<br>Safe travels and thank you once more,`
+    closing: `✈️ I hope to welcome you again soon!<br>Safe travels and thank you once more,`
   },
   es: {
-    review_intro: `Si has disfrutado de tu estancia, te agradecería mucho que dejaras una reseña en la plataforma donde reservaste y/o en Google.`,
+    review_intro: `⭐ Si has disfrutado de tu estancia, te agradecería mucho que dejaras una reseña en la plataforma donde reservaste y/o en Google.`,
     review_cta: `Deja una reseña en Google →`,
-    review_intro_booking: `Si has disfrutado de tu estancia, te agradecería mucho que dejaras una reseña en Booking.`,
+    review_intro_booking: `⭐ Si has disfrutado de tu estancia, te agradecería mucho que dejaras una reseña en Booking.`,
     review_ratings: (b, g) => `Nuestra puntuación media actual es de ${b} en Booking y de ${g} en Google: cada valoración positiva nos ayuda a crecer y a dar a conocer mejor nuestro compromiso.`,
     review_ratings_booking: (b) => `Nuestra puntuación media actual en Booking es de ${b}: cada valoración positiva nos ayuda a crecer y a dar a conocer mejor nuestro compromiso.`,
-    feedback_negative: `Si por el contrario algo no te ha satisfecho, por favor contáctame directamente. Estaré encantado de escucharte y, si es posible, solucionarlo de inmediato: tu satisfacción es nuestra prioridad, y cada comentario nos ayuda a mejorar.`,
-    gift_intro: `Para agradecerte tu confianza, te dejo un pequeño regalo:`,
+    feedback_negative: `💬 Si por el contrario algo no te ha satisfecho, por favor contáctame directamente. Estaré encantado de escucharte y, si es posible, solucionarlo de inmediato: tu satisfacción es nuestra prioridad, y cada comentario nos ayuda a mejorar.`,
+    gift_intro: `🎁 Para agradecerte tu confianza, te dejo un pequeño regalo:`,
     gift_line: `🎁 un vale de descuento de 10&nbsp;€, válido durante dos años, para tu próxima estancia.`,
     gift_howto: `Para utilizarlo, reserva directamente en nuestra web <a href="https://www.interno1.it" style="color:#FF6628">www.interno1.it</a> e introduce el código <b>GIFT10GUEST</b> en el campo "Código promocional", justo debajo de la selección de fechas.`,
     gift_note: `Recuerda que en nuestra web siempre encontrarás la tarifa más baja garantizada frente a cualquier otro canal de reserva.`,
     social_intro: `Sigamos en contacto también en redes sociales 📸 Síguenos para consejos sobre la zona, próximos eventos en Roma y promociones exclusivas para nuestros seguidores.`,
-    closing: `¡Espero volver a recibirte pronto!<br>Buen viaje y gracias de nuevo,`
+    closing: `✈️ ¡Espero volver a recibirte pronto!<br>Buen viaje y gracias de nuevo,`
   },
   fr: {
-    review_intro: `Si tu as passé un bon séjour, je te serais très reconnaissant de laisser un avis sur la plateforme où tu as réservé et/ou sur Google.`,
+    review_intro: `⭐ Si tu as passé un bon séjour, je te serais très reconnaissant de laisser un avis sur la plateforme où tu as réservé et/ou sur Google.`,
     review_cta: `Laisser un avis sur Google →`,
-    review_intro_booking: `Si tu as passé un bon séjour, je te serais très reconnaissant de laisser un avis sur Booking.`,
+    review_intro_booking: `⭐ Si tu as passé un bon séjour, je te serais très reconnaissant de laisser un avis sur Booking.`,
     review_ratings: (b, g) => `Notre note moyenne actuelle est de ${b} sur Booking et de ${g} sur Google : chaque avis positif nous aide à grandir et à mieux faire connaître notre engagement.`,
     review_ratings_booking: (b) => `Notre note moyenne actuelle sur Booking est de ${b} : chaque avis positif nous aide à grandir et à mieux faire connaître notre engagement.`,
-    feedback_negative: `Si en revanche quelque chose ne t'a pas satisfait, merci de me contacter directement. Je serai heureux de t'écouter et, si possible, d'y remédier immédiatement : ta satisfaction est notre priorité, et chaque retour nous aide à nous améliorer.`,
-    gift_intro: `Pour te remercier de ta confiance, voici un petit cadeau :`,
+    feedback_negative: `💬 Si en revanche quelque chose ne t'a pas satisfait, merci de me contacter directement. Je serai heureux de t'écouter et, si possible, d'y remédier immédiatement : ta satisfaction est notre priorité, et chaque retour nous aide à nous améliorer.`,
+    gift_intro: `🎁 Pour te remercier de ta confiance, voici un petit cadeau :`,
     gift_line: `🎁 un bon de réduction de 10&nbsp;€, valable deux ans, pour ton prochain séjour.`,
     gift_howto: `Pour l'utiliser, réserve directement sur notre site <a href="https://www.interno1.it" style="color:#FF6628">www.interno1.it</a> et saisis le code <b>GIFT10GUEST</b> dans le champ « Code promo », juste sous le choix des dates.`,
     gift_note: `Pour rappel, notre site propose toujours le tarif le plus bas garanti par rapport à tous les autres canaux de réservation.`,
     social_intro: `Restons en contact aussi sur les réseaux sociaux 📸 Suis-nous pour des conseils sur le quartier, les événements à venir à Rome et des promotions réservées à nos abonnés.`,
-    closing: `J'espère te revoir bientôt !<br>Bon voyage et encore merci,`
+    closing: `✈️ J'espère te revoir bientôt !<br>Bon voyage et encore merci,`
   },
   de: {
-    review_intro: `Wenn dir dein Aufenthalt gefallen hat, würde ich mich sehr über eine Bewertung auf der Plattform freuen, über die du gebucht hast, oder auf Google.`,
+    review_intro: `⭐ Wenn dir dein Aufenthalt gefallen hat, würde ich mich sehr über eine Bewertung auf der Plattform freuen, über die du gebucht hast, oder auf Google.`,
     review_cta: `Bewertung auf Google hinterlassen →`,
-    review_intro_booking: `Wenn dir dein Aufenthalt gefallen hat, würde ich mich sehr über eine Bewertung auf Booking freuen.`,
+    review_intro_booking: `⭐ Wenn dir dein Aufenthalt gefallen hat, würde ich mich sehr über eine Bewertung auf Booking freuen.`,
     review_ratings: (b, g) => `Unsere aktuelle Durchschnittsbewertung liegt bei ${b} auf Booking und bei ${g} auf Google: Jede positive Bewertung hilft uns zu wachsen und unser Engagement bekannter zu machen.`,
     review_ratings_booking: (b) => `Unsere aktuelle Durchschnittsbewertung auf Booking liegt bei ${b}: Jede positive Bewertung hilft uns zu wachsen und unser Engagement bekannter zu machen.`,
-    feedback_negative: `Falls dich hingegen etwas nicht zufriedengestellt hat, kontaktiere mich bitte direkt. Ich höre dir gerne zu und behebe das Problem, wenn möglich, sofort: Deine Zufriedenheit hat für uns Priorität, und jedes Feedback hilft uns, uns zu verbessern.`,
-    gift_intro: `Als kleines Dankeschön für dein Vertrauen möchte ich dir Folgendes schenken:`,
+    feedback_negative: `💬 Falls dich hingegen etwas nicht zufriedengestellt hat, kontaktiere mich bitte direkt. Ich höre dir gerne zu und behebe das Problem, wenn möglich, sofort: Deine Zufriedenheit hat für uns Priorität, und jedes Feedback hilft uns, uns zu verbessern.`,
+    gift_intro: `🎁 Als kleines Dankeschön für dein Vertrauen möchte ich dir Folgendes schenken:`,
     gift_line: `🎁 einen Rabattgutschein über 10&nbsp;€, gültig für zwei Jahre, für deinen nächsten Aufenthalt.`,
     gift_howto: `Um ihn einzulösen, buche einfach direkt auf unserer Website <a href="https://www.interno1.it" style="color:#FF6628">www.interno1.it</a> und gib den Code <b>GIFT10GUEST</b> im Feld „Rabattcode" ein, direkt unter der Datumsauswahl.`,
     gift_note: `Denk daran, dass du auf unserer Website immer den garantiert niedrigsten Preis im Vergleich zu allen anderen Buchungskanälen findest.`,
     social_intro: `Bleiben wir auch in den sozialen Medien in Kontakt 📸 Folge uns für Tipps zur Umgebung, kommende Veranstaltungen in Rom und exklusive Aktionen für unsere Follower.`,
-    closing: `Ich hoffe, dich bald wieder begrüßen zu dürfen!<br>Gute Reise und nochmals danke,`
+    closing: `✈️ Ich hoffe, dich bald wieder begrüßen zu dürfen!<br>Gute Reise und nochmals danke,`
   },
   pt: {
-    review_intro: `Se gostaste da tua estadia, ficaria muito grato se deixasses uma avaliação na plataforma onde reservaste e/ou no Google.`,
+    review_intro: `⭐ Se gostaste da tua estadia, ficaria muito grato se deixasses uma avaliação na plataforma onde reservaste e/ou no Google.`,
     review_cta: `Deixar uma avaliação no Google →`,
-    review_intro_booking: `Se gostaste da tua estadia, ficaria muito grato se deixasses uma avaliação no Booking.`,
+    review_intro_booking: `⭐ Se gostaste da tua estadia, ficaria muito grato se deixasses uma avaliação no Booking.`,
     review_ratings: (b, g) => `A nossa pontuação média atual é de ${b} no Booking e de ${g} no Google: cada avaliação positiva ajuda-nos a crescer e a dar a conhecer melhor o nosso empenho.`,
     review_ratings_booking: (b) => `A nossa pontuação média atual no Booking é de ${b}: cada avaliação positiva ajuda-nos a crescer e a dar a conhecer melhor o nosso empenho.`,
-    feedback_negative: `Se, pelo contrário, algo não te agradou, por favor contacta-me diretamente. Terei todo o gosto em ouvir-te e, se possível, resolver de imediato: a tua satisfação é a nossa prioridade, e cada comentário ajuda-nos a melhorar.`,
-    gift_intro: `Para te agradecer a confiança, deixo-te uma pequena prenda:`,
+    feedback_negative: `💬 Se, pelo contrário, algo não te agradou, por favor contacta-me diretamente. Terei todo o gosto em ouvir-te e, se possível, resolver de imediato: a tua satisfação é a nossa prioridade, e cada comentário ajuda-nos a melhorar.`,
+    gift_intro: `🎁 Para te agradecer a confiança, deixo-te uma pequena prenda:`,
     gift_line: `🎁 um vale de desconto de 10&nbsp;€, válido durante dois anos, para a tua próxima estadia.`,
     gift_howto: `Para o utilizar, reserva diretamente no nosso site <a href="https://www.interno1.it" style="color:#FF6628">www.interno1.it</a> e insere o código <b>GIFT10GUEST</b> no campo "Código promocional", logo abaixo da seleção de datas.`,
     gift_note: `Lembramos que no nosso site encontras sempre a tarifa mais baixa garantida em relação a qualquer outro canal de reserva.`,
     social_intro: `Vamos manter-nos em contacto também nas redes sociais 📸 Segue-nos para dicas sobre a zona, próximos eventos em Roma e promoções exclusivas para quem nos segue.`,
-    closing: `Espero receber-te novamente em breve!<br>Boa viagem e mais uma vez obrigado,`
+    closing: `✈️ Espero receber-te novamente em breve!<br>Boa viagem e mais uma vez obrigado,`
   },
   zh: {
-    review_intro: `如果你度过了愉快的住宿，我会非常感激你能在预订平台和/或谷歌上留下评价。`,
+    review_intro: `⭐ 如果你度过了愉快的住宿，我会非常感激你能在预订平台和/或谷歌上留下评价。`,
     review_cta: `在谷歌上留下评价 →`,
-    review_intro_booking: `如果你度过了愉快的住宿，我会非常感激你能在Booking上留下评价。`,
+    review_intro_booking: `⭐ 如果你度过了愉快的住宿，我会非常感激你能在Booking上留下评价。`,
     review_ratings: (b, g) => `目前我们在Booking上的平均评分为${b}分，在谷歌上为${g}分——每一个好评都帮助我们成长，让更多人了解我们的用心。`,
     review_ratings_booking: (b) => `目前我们在Booking上的平均评分为${b}分——每一个好评都帮助我们成长，让更多人了解我们的用心。`,
-    feedback_negative: `如果有任何不满意的地方，请直接联系我。我很乐意倾听，并尽可能立即解决问题——你的满意是我们的首要任务，每一条反馈都帮助我们不断进步。`,
-    gift_intro: `为了感谢你的信任，送你一个小礼物：`,
+    feedback_negative: `💬 如果有任何不满意的地方，请直接联系我。我很乐意倾听，并尽可能立即解决问题——你的满意是我们的首要任务，每一条反馈都帮助我们不断进步。`,
+    gift_intro: `🎁 为了感谢你的信任，送你一个小礼物：`,
     gift_line: `🎁 一张10欧元优惠券，有效期两年，用于你的下次入住。`,
     gift_howto: `使用方法：请直接在我们的官网 <a href="https://www.interno1.it" style="color:#FF6628">www.interno1.it</a> 预订，并在日期选择下方的"优惠码"栏中输入代码 <b>GIFT10GUEST</b>。`,
     gift_note: `请注意，在我们官网预订，价格始终保证低于其他任何预订渠道。`,
     social_intro: `也欢迎在社交媒体上与我们保持联系 📸 关注我们获取周边攻略、罗马近期活动和专属粉丝优惠。`,
-    closing: `期待很快能再次接待你！<br>一路顺风，再次感谢，`
+    closing: `✈️ 期待很快能再次接待你！<br>一路顺风，再次感谢，`
   }
 };
 
@@ -854,7 +854,7 @@ function buildThankYouPlainText(propKey, lng, nome, isBookingCom) {
     `${strip(L.social_intro)}\nInstagram: @internounoguesthouse - https://instagram.com/internounoguesthouse\nFacebook: InternoUno - https://facebook.com/internounobb`,
     `${strip(L.closing)}\nFilippo\nInternoUno\nTel. +39 392 299 9914\nwww.interno1.it`
   ];
-  return blocks.join("\n----------\n");
+  return blocks.join("\n\n");
 }
 
 async function sendGmailHtml(env, to, subject, html) {
