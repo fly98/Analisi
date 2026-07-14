@@ -1,0 +1,35 @@
+name: Deploy TG Worker
+
+on:
+  push:
+    paths:
+      - 'tg_worker.js'
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create wrangler config
+        run: |
+          cat > wrangler_tg_deploy.toml << 'EOF'
+          name = "tg-worker"
+          main = "tg_worker.js"
+          compatibility_date = "2024-09-23"
+
+          [[kv_namespaces]]
+          binding = "TG_KV"
+          id = "48138f095e8b43d2823c85580af22125"
+          EOF
+
+      - name: Deploy with Wrangler
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CF_API_TOKEN }}
+          accountId: ${{ secrets.CF_ACCOUNT_ID }}
+          wranglerVersion: '3'
+          command: deploy --config wrangler_tg_deploy.toml
