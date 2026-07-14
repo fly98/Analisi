@@ -132,13 +132,21 @@ async function prevSnapshot(env, today) {
 }
 
 async function sendTelegram(env, text) {
-  if (!env.TELEGRAM_BOT_TOKEN) { console.log("TELEGRAM_BOT_TOKEN assente, notifica saltata"); return false; }
-  const r = await fetch(TG_WORKER, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "X-Auth": env.TELEGRAM_BOT_TOKEN },
-    body: JSON.stringify({ text, parse_mode: "Markdown" })
-  });
-  return r.ok;
+  if (!env.TELEGRAM_BOT_TOKEN) {
+    console.log("TELEGRAM_BOT_TOKEN assente, notifica saltata");
+    return { ok: false, motivo: "TELEGRAM_BOT_TOKEN non configurato su icompta-worker" };
+  }
+  try {
+    const r = await fetch(TG_WORKER, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Auth": env.TELEGRAM_BOT_TOKEN },
+      body: JSON.stringify({ text, parse_mode: "Markdown" })
+    });
+    const body = await r.text();
+    return { ok: r.ok, status: r.status, risposta: body.slice(0, 300) };
+  } catch (e) {
+    return { ok: false, motivo: "fetch fallita: " + String((e && e.message) || e) };
+  }
 }
 
 // Costruisce il messaggio di chiusura confrontando snapshot di oggi vs precedente.
@@ -215,8 +223,9 @@ var icompta_worker_default = {
             // Variazione zero: borsa chiusa (festivo). Nessuna notifica, nessun flag.
             console.log("Variazione nulla: festivo, notifica saltata");
           } else {
-            const ok = await sendTelegram(env, text);
-            if (ok) await env.ICOMPTA_KV.put(flagKey, "1", { expirationTtl: 172800 });
+            const r = await sendTelegram(env, text);
+            if (r.ok) await env.ICOMPTA_KV.put(flagKey, "1", { expirationTtl: 172800 });
+            else console.error("Notifica Telegram fallita:", JSON.stringify(r));
           }
         }
       } catch (e) {
@@ -647,8 +656,9 @@ var icompta_worker_default = {
       const strumenti = JSON.parse((await env.ICOMPTA_KV.get("icompta:fineco-inv:strumenti")) || "[]");
       const text = buildReport(last, prev, strumenti);
       if (text === null) return json({ sent: false, motivo: "variazione zero (borsa chiusa)", date: last.date });
-      const sent = await sendTelegram(env, text);
-      return json({ sent, date: last.date, prev_date: prev ? prev.date : null, preview: text });
+      const r = await sendTelegram(env, text);
+      return json({ sent: r.ok, diagnostica: r, token_presente: !!env.TELEGRAM_BOT_TOKEN,
+                    date: last.date, prev_date: prev ? prev.date : null, preview: text });
     }
 
     if (path === "/api/fineco-conto-auto" && method === "GET") {
