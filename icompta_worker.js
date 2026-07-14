@@ -141,7 +141,8 @@ async function sendTelegram(env, text) {
   return r.ok;
 }
 
-// Costruisce il messaggio di chiusura confrontando snapshot di oggi vs precedente
+// Costruisce il messaggio di chiusura confrontando snapshot di oggi vs precedente.
+// Restituisce null se non c'è nulla da dire (borsa chiusa: variazione esattamente zero).
 function buildReport(snapshot, prev, strumenti) {
   const d = new Date(snapshot.date + "T12:00:00Z").toLocaleDateString("it-IT", { day: "2-digit", month: "2-digit" });
   const L = [];
@@ -156,16 +157,13 @@ function buildReport(snapshot, prev, strumenti) {
 
   const delta = snapshot.totale - prev.totale;
   const pct = prev.totale ? (delta / prev.totale) * 100 : 0;
-  const flat = Math.abs(delta) < 0.01;
-  const icon = flat ? "😐" : (delta >= 0 ? "📈" : "📉");
 
-  L.push(`${icon} *Fineco — chiusura ${d}*`);
+  // Variazione zero = prezzi fermi = borsa chiusa (festivo). Nessuna notifica.
+  if (Math.abs(delta) < 0.01) return null;
+
+  L.push(`${delta >= 0 ? "📈" : "📉"} *Fineco — chiusura ${d}*`);
   L.push("");
-  if (flat) {
-    L.push("Nessuna variazione — _borsa probabilmente chiusa._");
-  } else {
-    L.push(`Oggi: *${eurSign(delta)}*  (${pctSign(pct)})`);
-  }
+  L.push(`Oggi: *${eurSign(delta)}*  (${pctSign(pct)})`);
   L.push(`Portafoglio: *${eur(snapshot.totale)}*`);
 
   // Utile/perdita latente complessivo (valore di mercato vs valore di carico)
@@ -178,7 +176,7 @@ function buildReport(snapshot, prev, strumenti) {
   }
 
   // Top 3 movimenti del giorno
-  if (!flat && prev.breakdown && snapshot.breakdown) {
+  if (prev.breakdown && snapshot.breakdown) {
     const movers = Object.keys(snapshot.breakdown)
       .filter(k => prev.breakdown[k] != null)
       .map(k => ({ k, v: snapshot.breakdown[k] - prev.breakdown[k] }))
@@ -212,8 +210,14 @@ var icompta_worker_default = {
         const already = await env.ICOMPTA_KV.get(flagKey);
         if (!already && res.snapshot) {
           const prev = await prevSnapshot(env, res.snapshot.date);
-          const ok = await sendTelegram(env, buildReport(res.snapshot, prev, res.strumenti));
-          if (ok) await env.ICOMPTA_KV.put(flagKey, "1", { expirationTtl: 172800 });
+          const text = buildReport(res.snapshot, prev, res.strumenti);
+          if (text === null) {
+            // Variazione zero: borsa chiusa (festivo). Nessuna notifica, nessun flag.
+            console.log("Variazione nulla: festivo, notifica saltata");
+          } else {
+            const ok = await sendTelegram(env, text);
+            if (ok) await env.ICOMPTA_KV.put(flagKey, "1", { expirationTtl: 172800 });
+          }
         }
       } catch (e) {
         const msg = String((e && e.message) || e);
@@ -642,6 +646,7 @@ var icompta_worker_default = {
       const prev = await prevSnapshot(env, last.date);
       const strumenti = JSON.parse((await env.ICOMPTA_KV.get("icompta:fineco-inv:strumenti")) || "[]");
       const text = buildReport(last, prev, strumenti);
+      if (text === null) return json({ sent: false, motivo: "variazione zero (borsa chiusa)", date: last.date });
       const sent = await sendTelegram(env, text);
       return json({ sent, date: last.date, prev_date: prev ? prev.date : null, preview: text });
     }
