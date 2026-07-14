@@ -13,4 +13,4 @@ binding = "TG"
 service = "tg-worker"
 
 [triggers]
-crons = ["0 4,10 * * *"]
+crons = ["0 4,10,15,16 * * *"]
