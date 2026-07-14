@@ -29,6 +29,12 @@ jobs:
           binding = "ICOMPTA_KV"
           id = "1d8d7db930004f9eaa73e17af65b0957"
 
+          # Service binding verso tg-worker: le fetch Worker->Worker via URL
+          # workers.dev sono bloccate da Cloudflare (errore 1042).
+          [[services]]
+          binding = "TG"
+          service = "tg-worker"
+
           # Aggiornamento automatico Fineco investimenti, lun-ven.
           # 16:00 UTC = 18:00 Italia (ora legale) - 17:00 UTC = 18:00 Italia (ora solare).
           # Idempotente: titoli e snapshot sovrascrivono lo stesso giorno.
