@@ -88,6 +88,7 @@ async function runFinecoAuto(env) {
   // Snapshot giornaliero (identico a trySnapshot: sovrascrive stessa data)
   let vmTot = strumenti.reduce((s, x) => s + (x.vm || 0), 0);
   vmTot = Math.round(vmTot * 100) / 100;
+  let snapshot = null;
   if (vmTot > 0) {
     const today = new Date().toISOString().slice(0, 10);
     const breakdown = {};
@@ -96,22 +97,141 @@ async function runFinecoAuto(env) {
       if (k) k = String(k).replace(/\..*$/, "");
       if (k) breakdown[k] = s.vm || 0;
     }
-    await env.ICOMPTA_KV.put("icompta:snapshot:" + today, JSON.stringify({ date: today, totale: vmTot, breakdown }));
+    snapshot = { date: today, totale: vmTot, breakdown };
+    await env.ICOMPTA_KV.put("icompta:snapshot:" + today, JSON.stringify(snapshot));
   }
-  return strumenti.length;
+  // Restituisce anche i dati: chi chiama non deve rileggere la KV appena scritta
+  // (le letture KV sono eventually consistent, cache fino a 60s).
+  return { count: strumenti.length, strumenti, vmTot, snapshot };
 }
 __name(runFinecoAuto, "runFinecoAuto");
+
+// ── NOTIFICA TELEGRAM (report chiusura borsa) ─────────────────────────────────
+const TG_WORKER = "https://tg-worker.f-castiglioni.workers.dev/send";
+
+function eur(n) {
+  return (n || 0).toLocaleString("it-IT", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
+}
+function eurSign(n) {
+  return (n >= 0 ? "+" : "−") + eur(Math.abs(n));
+}
+function pctSign(n) {
+  return (n >= 0 ? "+" : "−") + Math.abs(n).toLocaleString("it-IT", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "%";
+}
+
+// Snapshot più recente con data anteriore a `today`
+async function prevSnapshot(env, today) {
+  const list = await env.ICOMPTA_KV.list({ prefix: "icompta:snapshot:" });
+  const dates = list.keys
+    .map(k => k.name.replace("icompta:snapshot:", ""))
+    .filter(d => d < today)
+    .sort();
+  if (!dates.length) return null;
+  const raw = await env.ICOMPTA_KV.get("icompta:snapshot:" + dates[dates.length - 1]);
+  return raw ? JSON.parse(raw) : null;
+}
+
+async function sendTelegram(env, text) {
+  if (!env.TELEGRAM_BOT_TOKEN) { console.log("TELEGRAM_BOT_TOKEN assente, notifica saltata"); return false; }
+  const r = await fetch(TG_WORKER, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-Auth": env.TELEGRAM_BOT_TOKEN },
+    body: JSON.stringify({ text, parse_mode: "Markdown" })
+  });
+  return r.ok;
+}
+
+// Costruisce il messaggio di chiusura confrontando snapshot di oggi vs precedente
+function buildReport(snapshot, prev, strumenti) {
+  const d = new Date(snapshot.date + "T12:00:00Z").toLocaleDateString("it-IT", { day: "2-digit", month: "2-digit" });
+  const L = [];
+
+  if (!prev) {
+    L.push(`📊 *Fineco — chiusura ${d}*`);
+    L.push("");
+    L.push(`Portafoglio: *${eur(snapshot.totale)}*`);
+    L.push("_(primo snapshot: nessun giorno precedente da confrontare)_");
+    return L.join("\n");
+  }
+
+  const delta = snapshot.totale - prev.totale;
+  const pct = prev.totale ? (delta / prev.totale) * 100 : 0;
+  const flat = Math.abs(delta) < 0.01;
+  const icon = flat ? "😐" : (delta >= 0 ? "📈" : "📉");
+
+  L.push(`${icon} *Fineco — chiusura ${d}*`);
+  L.push("");
+  if (flat) {
+    L.push("Nessuna variazione — _borsa probabilmente chiusa._");
+  } else {
+    L.push(`Oggi: *${eurSign(delta)}*  (${pctSign(pct)})`);
+  }
+  L.push(`Portafoglio: *${eur(snapshot.totale)}*`);
+
+  // Utile/perdita latente complessivo (valore di mercato vs valore di carico)
+  if (Array.isArray(strumenti) && strumenti.length) {
+    const vcTot = strumenti.reduce((s, x) => s + (x.vc || 0), 0);
+    if (vcTot > 0) {
+      const pl = snapshot.totale - vcTot;
+      L.push(`Utile latente: *${eurSign(pl)}*  (${pctSign((pl / vcTot) * 100)})`);
+    }
+  }
+
+  // Top 3 movimenti del giorno
+  if (!flat && prev.breakdown && snapshot.breakdown) {
+    const movers = Object.keys(snapshot.breakdown)
+      .filter(k => prev.breakdown[k] != null)
+      .map(k => ({ k, v: snapshot.breakdown[k] - prev.breakdown[k] }))
+      .filter(m => Math.abs(m.v) >= 0.5)
+      .sort((a, b) => Math.abs(b.v) - Math.abs(a.v))
+      .slice(0, 3);
+    if (movers.length) {
+      L.push("");
+      for (const m of movers) {
+        const name = m.k.length > 26 ? m.k.slice(0, 25) + "…" : m.k;
+        L.push(`${m.v >= 0 ? "🟢" : "🔴"} ${name}  ${eurSign(m.v)}`);
+      }
+    }
+  }
+  return L.join("\n");
+}
+__name(buildReport, "buildReport");
 
 var icompta_worker_default = {
   async scheduled(event, env, ctx) {
     ctx.waitUntil((async () => {
+      const today = new Date().toISOString().slice(0, 10);
+      const flagKey = "icompta:tg-notified:" + today;
       try {
-        const n = await runFinecoAuto(env);
-        await env.ICOMPTA_KV.put("icompta:fineco-inv:last-auto", JSON.stringify({ at: new Date().toISOString(), ok: true, count: n }));
-        console.log("Fineco auto OK:", n, "strumenti");
+        const res = await runFinecoAuto(env);
+        await env.ICOMPTA_KV.put("icompta:fineco-inv:last-auto", JSON.stringify({ at: new Date().toISOString(), ok: true, count: res.count }));
+        console.log("Fineco auto OK:", res.count, "strumenti");
+
+        // Notifica Telegram: una sola volta al giorno, al primo run riuscito.
+        // (i due cron 16/17 UTC coprono ora legale e solare ma partono entrambi)
+        const already = await env.ICOMPTA_KV.get(flagKey);
+        if (!already && res.snapshot) {
+          const prev = await prevSnapshot(env, res.snapshot.date);
+          const ok = await sendTelegram(env, buildReport(res.snapshot, prev, res.strumenti));
+          if (ok) await env.ICOMPTA_KV.put(flagKey, "1", { expirationTtl: 172800 });
+        }
       } catch (e) {
-        await env.ICOMPTA_KV.put("icompta:fineco-inv:last-auto", JSON.stringify({ at: new Date().toISOString(), ok: false, error: String((e && e.message) || e) }));
-        console.error("Fineco auto FAIL:", (e && e.message) || e);
+        const msg = String((e && e.message) || e);
+        await env.ICOMPTA_KV.put("icompta:fineco-inv:last-auto", JSON.stringify({ at: new Date().toISOString(), ok: false, error: msg }));
+        console.error("Fineco auto FAIL:", msg);
+
+        // Avvisa solo al secondo fallimento della giornata: se il Mac non risponde
+        // alle 18 ma risponde alle 19, non ha senso allarmare.
+        const already = await env.ICOMPTA_KV.get(flagKey);
+        if (!already) {
+          const failKey = "icompta:tg-fail:" + today;
+          const fails = parseInt((await env.ICOMPTA_KV.get(failKey)) || "0", 10) + 1;
+          await env.ICOMPTA_KV.put(failKey, String(fails), { expirationTtl: 172800 });
+          if (fails >= 2) {
+            await sendTelegram(env, `⚠️ *Fineco — aggiornamento fallito*\n\nDue tentativi a vuoto oggi.\nUltimo errore: \`${msg}\`\n\n_Controlla che il Mac e il server Playwright siano accesi._`);
+            await env.ICOMPTA_KV.put(flagKey, "1", { expirationTtl: 172800 });
+          }
+        }
       }
     })());
   },
@@ -504,13 +624,26 @@ var icompta_worker_default = {
     // ── FINECO AUTO ORA (test manuale dello stesso flusso del cron) ───────────
     if (path === "/api/fineco-auto-now" && method === "GET") {
       try {
-        const n = await runFinecoAuto(env);
-        await env.ICOMPTA_KV.put("icompta:fineco-inv:last-auto", JSON.stringify({ at: new Date().toISOString(), ok: true, count: n, manual: true }));
-        return json({ ok: true, count: n });
+        const res = await runFinecoAuto(env);
+        await env.ICOMPTA_KV.put("icompta:fineco-inv:last-auto", JSON.stringify({ at: new Date().toISOString(), ok: true, count: res.count, manual: true }));
+        return json({ ok: true, count: res.count });
       } catch(e) {
         await env.ICOMPTA_KV.put("icompta:fineco-inv:last-auto", JSON.stringify({ at: new Date().toISOString(), ok: false, error: String((e && e.message) || e), manual: true }));
         return err("Fineco auto fallito: " + ((e && e.message) || e), 502);
       }
+    }
+
+    // ── TEST REPORT TELEGRAM (usa gli snapshot già in KV, non tocca il Mac) ────
+    if (path === "/api/tg-report-now" && method === "GET") {
+      const list = await env.ICOMPTA_KV.list({ prefix: "icompta:snapshot:" });
+      const dates = list.keys.map(k => k.name.replace("icompta:snapshot:", "")).sort();
+      if (!dates.length) return err("Nessuno snapshot in KV", 404);
+      const last = JSON.parse(await env.ICOMPTA_KV.get("icompta:snapshot:" + dates[dates.length - 1]));
+      const prev = await prevSnapshot(env, last.date);
+      const strumenti = JSON.parse((await env.ICOMPTA_KV.get("icompta:fineco-inv:strumenti")) || "[]");
+      const text = buildReport(last, prev, strumenti);
+      const sent = await sendTelegram(env, text);
+      return json({ sent, date: last.date, prev_date: prev ? prev.date : null, preview: text });
     }
 
     if (path === "/api/fineco-conto-auto" && method === "GET") {
