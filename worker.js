@@ -32,6 +32,56 @@ function tgFonte(source) {
   if (s.includes("direct") || s.includes("website") || s.includes("amenitiz")) return "🟢 Diretta";
   return "⚪️ " + (source || "—");
 }
+
+// Riepilogo arrivi del giorno indicato (default: domani) inviato su Telegram.
+// Usata sia dall'endpoint ?action=tgArrivi sia dal cron delle 17:00.
+async function runArriviTg(env, dateParam, dryRun) {
+  if (!env.TG) return { error: "Service binding TG assente su little-shadow" };
+  if (!env.TELEGRAM_BOT_TOKEN) return { error: "TELEGRAM_BOT_TOKEN non configurato" };
+
+  let date = dateParam;
+  if (!date) {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    date = d.toISOString().slice(0, 10);
+  }
+
+  const r0 = await amenitizGet(`/bookings/checkin?from=${date}&to=${date}&hotel_id=${HOTEL_UUID}`, env);
+  if (!r0.ok) return { error: "API Amenitiz", status: r0.status };
+  const arr = (await r0.json()).filter((b) => {
+    const st = (b.status || "").toLowerCase();
+    return st !== "cancelled" && st !== "canceled";
+  });
+
+  const dLabel = date.slice(8, 10) + "/" + date.slice(5, 7);
+  const L = [];
+
+  if (!arr.length) {
+    L.push(`🛎️ *Arrivi ${dLabel}*`);
+    L.push("");
+    L.push("Nessun arrivo previsto.");
+  } else {
+    L.push(`🛎️ *Arrivi ${dLabel}* — ${arr.length}`);
+    L.push("");
+    for (const b of arr) {
+      const bk = b.booker || {};
+      const nome = [bk.first_name, bk.last_name].filter(Boolean).join(" ").trim() || "Ospite";
+      const room = (b.rooms && b.rooms[0] && b.rooms[0].individual_room_name) || "—";
+      const casa = STANZE_LORENZO.includes(room) ? "Lorenzo" : "Campaldino";
+      const notti = Math.max(1, Math.round((new Date(b.checkout) - new Date(b.checkin)) / 86400000));
+      const ospiti = (b.adults || 0) + (b.children || 0);
+      L.push(`*${nome}*`);
+      L.push(`${casa} · ${room} · ${notti} ${notti === 1 ? "notte" : "notti"} · ${ospiti} ${ospiti === 1 ? "ospite" : "ospiti"}`);
+      L.push(tgFonte(b.source));
+      L.push("");
+    }
+  }
+
+  const text = L.join("\n").trim();
+  const buttons = [{ label: "📋 Apri Arrivi", url: "https://fly98.github.io/Analisi/arrivi.html" }];
+  if (!dryRun) await tgSend(env, { text, buttons });
+  return { data: date, arrivi: arr.length, inviato: !dryRun, preview: text };
+}
 const BASE = "https://api.amenitiz.io/vendor_api/v1";
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
 const CORS = {
@@ -1698,54 +1748,10 @@ export default {
 
       // ===== SEGNA cancellazione come contattata / non contattata =====
       // ── NOTIFICA TELEGRAM ARRIVI (domani) ──────────────────────────────────
-      // Un solo messaggio riepilogativo + bottone per aprire l'app Arrivi.
       if (action === "tgArrivi") {
-        if (!env.TG) return jsonRes({ error: "Service binding TG assente su little-shadow" }, 500);
-        if (!env.TELEGRAM_BOT_TOKEN) return jsonRes({ error: "TELEGRAM_BOT_TOKEN non configurato" }, 500);
-
         const dryRun = url.searchParams.get("dry") === "1";
-        let date = url.searchParams.get("date");
-        if (!date) {
-          const d = new Date();
-          d.setDate(d.getDate() + 1);
-          date = d.toISOString().slice(0, 10);
-        }
-
-        const r0 = await amenitizGet(`/bookings/checkin?from=${date}&to=${date}&hotel_id=${HOTEL_UUID}`, env);
-        if (!r0.ok) return jsonRes({ error: "API Amenitiz", status: r0.status }, r0.status);
-        const arr = (await r0.json()).filter((b) => {
-          const s = (b.status || "").toLowerCase();
-          return s !== "cancelled" && s !== "canceled";
-        });
-
-        const dLabel = date.slice(8, 10) + "/" + date.slice(5, 7);
-        const L = [];
-
-        if (!arr.length) {
-          L.push(`🛎️ *Arrivi ${dLabel}*`);
-          L.push("");
-          L.push("Nessun arrivo previsto.");
-        } else {
-          L.push(`🛎️ *Arrivi ${dLabel}* — ${arr.length}`);
-          L.push("");
-          for (const b of arr) {
-            const bk = b.booker || {};
-            const nome = [bk.first_name, bk.last_name].filter(Boolean).join(" ").trim() || "Ospite";
-            const room = (b.rooms && b.rooms[0] && b.rooms[0].individual_room_name) || "—";
-            const casa = STANZE_LORENZO.includes(room) ? "Lorenzo" : "Campaldino";
-            const notti = Math.max(1, Math.round((new Date(b.checkout) - new Date(b.checkin)) / 86400000));
-            const ospiti = (b.adults || 0) + (b.children || 0);
-            L.push(`*${nome}*`);
-            L.push(`${casa} · ${room} · ${notti} ${notti === 1 ? "notte" : "notti"} · ${ospiti} ${ospiti === 1 ? "ospite" : "ospiti"}`);
-            L.push(`${tgFonte(b.source)}`);
-            L.push("");
-          }
-        }
-
-        const text = L.join("\n").trim();
-        const buttons = [{ label: "📋 Apri Arrivi", url: "https://fly98.github.io/Analisi/arrivi.html" }];
-        if (!dryRun) await tgSend(env, { text, buttons });
-        return jsonRes({ data: date, arrivi: arr.length, inviato: !dryRun, preview: text });
+        const res = await runArriviTg(env, url.searchParams.get("date"), dryRun);
+        return jsonRes(res, res.error ? 500 : 200);
       }
 
       if (action === "setCancelSent") {
@@ -1805,10 +1811,27 @@ export default {
   },
   async scheduled(event, env, ctx) {
     const hourUTC = new Date(event.scheduledTime).getUTCHours();
-    if (hourUTC === 10) {
-      ctx.waitUntil(runThankYou(env, false));
-    } else {
+
+    // Mapping ESPLICITO orario -> job. Niente "else" generico: un orario non
+    // previsto non deve far partire invii di email agli ospiti per sbaglio.
+    if (hourUTC === 4) {
       ctx.waitUntil(runAutoSend(env, false));
+    } else if (hourUTC === 10) {
+      ctx.waitUntil(runThankYou(env, false));
+    } else if (hourUTC === 15 || hourUTC === 16) {
+      // Riepilogo arrivi di domani. I due orari UTC coprono ora legale e solare:
+      // invia solo quello che cade davvero alle 17:00 italiane.
+      const oraRoma = parseInt(
+        new Date().toLocaleString("en-GB", { timeZone: "Europe/Rome", hour: "2-digit", hour12: false }),
+        10
+      );
+      if (oraRoma === 17) {
+        ctx.waitUntil(runArriviTg(env, null, false));
+      } else {
+        console.log("Cron arrivi: ora locale " + oraRoma + ", salto (attendo le 17)");
+      }
+    } else {
+      console.log("Cron a orario non mappato (" + hourUTC + " UTC): nessuna azione");
     }
   }
 };
