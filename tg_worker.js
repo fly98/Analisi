@@ -308,6 +308,9 @@ export default {
       return json({
         chat_id: chatId || null,
         last_action: last ? JSON.parse(last) : null,
+        binding_ICOMPTA: !!env.ICOMPTA,
+        binding_LS: !!env.LS,
+        secret_ICOMPTA_TOKEN: !!env.ICOMPTA_TOKEN,
       });
     }
 
