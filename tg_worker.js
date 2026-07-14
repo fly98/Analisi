@@ -56,29 +56,103 @@ function json(obj, status = 200) {
 
 // ---------- gestione update in arrivo da Telegram ----------
 
-async function handleUpdate(update, env) {
-  // A) messaggio testuale (tipicamente /start)
+const AIUTO =
+  '🤖 *Comandi disponibili*\n\n' +
+  '`saldo` — aggiorna Fineco investimenti e manda utile/perdita del giorno\n' +
+  '`arrivi` — riepilogo arrivi di domani\n' +
+  '`aiuto` — questo messaggio';
+
+// Esegue i comandi. Girata in background (ctx.waitUntil): l'aggiornamento
+// Fineco passa dal Mac e può richiedere fino a 2 minuti, mentre Telegram
+// pretende una risposta al webhook entro pochi secondi.
+async function eseguiComando(cmd, chatId, env) {
+  if (cmd === 'saldo') {
+    if (!env.ICOMPTA || !env.ICOMPTA_TOKEN) {
+      await tg(env, 'sendMessage', { chat_id: chatId, text: '⚠️ Collegamento a iCompta non configurato.' });
+      return;
+    }
+    const H = { Authorization: 'Bearer ' + env.ICOMPTA_TOKEN };
+    try {
+      // 1. Scarica i dati aggiornati da Fineco (via Mac/Playwright)
+      const r1 = await env.ICOMPTA.fetch(new Request('https://icompta-worker/api/fineco-auto-now', { headers: H }));
+      if (!r1.ok) {
+        await tg(env, 'sendMessage', {
+          chat_id: chatId,
+          text: '⚠️ *Aggiornamento Fineco fallito*\n\nIl Mac o il server Playwright non rispondono. Controlla che siano accesi.',
+          parse_mode: 'Markdown',
+        });
+        return;
+      }
+      // 2. Costruisce e invia il report (stesso identico messaggio delle 18:00)
+      const r2 = await env.ICOMPTA.fetch(new Request('https://icompta-worker/api/tg-report-now', { headers: H }));
+      const d = await r2.json();
+      if (!d.sent) {
+        await tg(env, 'sendMessage', {
+          chat_id: chatId,
+          text: '😐 Nessuna variazione rispetto all\'ultimo dato — borsa chiusa o prezzi fermi.',
+        });
+      }
+    } catch (e) {
+      await tg(env, 'sendMessage', { chat_id: chatId, text: '⚠️ Errore: ' + String((e && e.message) || e) });
+    }
+    return;
+  }
+
+  if (cmd === 'arrivi') {
+    if (!env.LS) {
+      await tg(env, 'sendMessage', { chat_id: chatId, text: '⚠️ Collegamento agli arrivi non configurato.' });
+      return;
+    }
+    try {
+      const r = await env.LS.fetch(new Request('https://little-shadow/?action=tgArrivi&notrack=1'));
+      const d = await r.json();
+      if (d.error) await tg(env, 'sendMessage', { chat_id: chatId, text: '⚠️ ' + d.error });
+    } catch (e) {
+      await tg(env, 'sendMessage', { chat_id: chatId, text: '⚠️ Errore: ' + String((e && e.message) || e) });
+    }
+    return;
+  }
+
+  await tg(env, 'sendMessage', { chat_id: chatId, text: AIUTO, parse_mode: 'Markdown' });
+}
+
+async function handleUpdate(update, env, ctx) {
+  // A) messaggio testuale
   if (update.message) {
-    const chatId = update.message.chat.id;
+    const chatId = String(update.message.chat.id);
     const text = (update.message.text || '').trim();
+    const noto = await env.TG_KV.get(K_CHAT);
 
-    await env.TG_KV.put(K_CHAT, String(chatId));
-
-    if (text === '/start') {
+    // Il bot è pubblico: chiunque può scrivergli. Registro il chat ID SOLO la
+    // prima volta e ignoro tutti gli altri, altrimenti un estraneo potrebbe
+    // sovrascriverlo e dirottare le notifiche (saldo, arrivi, portafoglio).
+    if (!noto) {
+      await env.TG_KV.put(K_CHAT, chatId);
       await tg(env, 'sendMessage', {
         chat_id: chatId,
-        text:
-          '🔌 *Bot collegato.*\n\n' +
-          `Chat ID salvato: \`${chatId}\`\n` +
-          'Da ora posso mandarti notifiche e tu puoi rispondere con i bottoni.',
+        text: '🔌 *Bot collegato.*\n\n' + AIUTO,
         parse_mode: 'Markdown',
       });
-    } else {
-      await tg(env, 'sendMessage', {
-        chat_id: chatId,
-        text: `Ricevuto: "${text}"\n(chat ID: ${chatId})`,
-      });
+      return;
     }
+    if (chatId !== noto) {
+      console.warn('Messaggio da chat non autorizzata:', chatId);
+      return;
+    }
+
+    const cmd = text.toLowerCase().replace(/^\//, '').split(/\s+/)[0];
+    if (cmd === 'start' || cmd === 'aiuto' || cmd === 'help') {
+      await tg(env, 'sendMessage', { chat_id: chatId, text: AIUTO, parse_mode: 'Markdown' });
+      return;
+    }
+    if (cmd === 'saldo') {
+      await tg(env, 'sendMessage', { chat_id: chatId, text: '⏳ Aggiorno Fineco investimenti…' });
+    } else if (cmd !== 'arrivi') {
+      await tg(env, 'sendMessage', { chat_id: chatId, text: AIUTO, parse_mode: 'Markdown' });
+      return;
+    }
+    // Lavoro lungo in background: il webhook risponde subito 200 a Telegram.
+    ctx.waitUntil(eseguiComando(cmd, chatId, env));
     return;
   }
 
@@ -86,6 +160,8 @@ async function handleUpdate(update, env) {
   if (update.callback_query) {
     const cq = update.callback_query;
     const chatId = cq.message.chat.id;
+    const noto = await env.TG_KV.get(K_CHAT);
+    if (noto && String(chatId) !== noto) return;
     const msgId = cq.message.message_id;
     const data = cq.data || '';
 
@@ -132,7 +208,7 @@ async function handleUpdate(update, env) {
 // ---------- worker ----------
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     const url = new URL(request.url);
     const path = url.pathname;
 
@@ -160,7 +236,7 @@ export default {
 
       try {
         const update = await request.json();
-        await handleUpdate(update, env);
+        await handleUpdate(update, env, ctx);
       } catch (e) {
         console.error('handleUpdate error', e);
       }
