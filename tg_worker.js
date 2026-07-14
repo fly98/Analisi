@@ -206,13 +206,20 @@ export default {
 
       const body = await request.json();
       const payload = {
-        chat_id: chatId,
+        chat_id: body.chat_id || chatId,
         text: body.text || '(vuoto)',
         parse_mode: body.parse_mode || 'Markdown',
+        disable_web_page_preview: true,
       };
+
+      // buttons: array piatto (una riga) oppure array di righe.
+      // Ogni bottone: {label, url} -> apre un link | {label, action} -> callback
       if (Array.isArray(body.buttons) && body.buttons.length) {
+        const rows = Array.isArray(body.buttons[0]) ? body.buttons : [body.buttons];
         payload.reply_markup = {
-          inline_keyboard: [body.buttons.map((b) => ({ text: b.label, callback_data: b.action }))],
+          inline_keyboard: rows.map((row) =>
+            row.map((b) => (b.url ? { text: b.label, url: b.url } : { text: b.label, callback_data: b.action }))
+          ),
         };
       }
       const res = await tg(env, 'sendMessage', payload);
