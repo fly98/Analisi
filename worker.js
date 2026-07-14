@@ -23,14 +23,38 @@ async function tgSend(env, body) {
   return r.ok;
 }
 
-// Provenienza della prenotazione in forma leggibile.
+// Provenienza della prenotazione: sigla compatta accanto al nome.
 function tgFonte(source) {
   const s = (source || "").toLowerCase();
-  if (s.includes("booking")) return "🔵 Booking.com";
-  if (s.includes("airbnb")) return "🔴 Airbnb";
-  if (s.includes("expedia")) return "🟡 Expedia";
-  if (s.includes("direct") || s.includes("website") || s.includes("amenitiz")) return "🟢 Diretta";
-  return "⚪️ " + (source || "—");
+  if (s.includes("booking")) return "🔵B";
+  if (s.includes("airbnb")) return "🔴Air";
+  if (s.includes("expedia")) return "🟡Ex";
+  if (s.includes("amenitiz") || s.includes("direct") || s.includes("website")) return "🔹Am";
+  if (!source || s.includes("manual") || s.includes("pms")) return "⚪️P";
+  return "⚪️" + source;
+}
+
+// Nazionalità DEDOTTA dal prefisso telefonico (Amenitiz non espone il paese).
+// Fallback sulla lingua dichiarata. È una stima, non un dato certificato.
+const PREFISSI = [
+  ["+380","🇺🇦"],["+351","🇵🇹"],["+353","🇮🇪"],["+358","🇫🇮"],["+359","🇧🇬"],["+385","🇭🇷"],
+  ["+386","🇸🇮"],["+420","🇨🇿"],["+421","🇸🇰"],["+972","🇮🇱"],["+852","🇭🇰"],["+886","🇹🇼"],
+  ["+30","🇬🇷"],["+31","🇳🇱"],["+32","🇧🇪"],["+33","🇫🇷"],["+34","🇪🇸"],["+36","🇭🇺"],
+  ["+39","🇮🇹"],["+40","🇷🇴"],["+41","🇨🇭"],["+43","🇦🇹"],["+44","🇬🇧"],["+45","🇩🇰"],
+  ["+46","🇸🇪"],["+47","🇳🇴"],["+48","🇵🇱"],["+49","🇩🇪"],["+52","🇲🇽"],["+54","🇦🇷"],
+  ["+55","🇧🇷"],["+56","🇨🇱"],["+57","🇨🇴"],["+60","🇲🇾"],["+61","🇦🇺"],["+62","🇮🇩"],
+  ["+63","🇵🇭"],["+64","🇳🇿"],["+65","🇸🇬"],["+66","🇹🇭"],["+81","🇯🇵"],["+82","🇰🇷"],
+  ["+86","🇨🇳"],["+90","🇹🇷"],["+91","🇮🇳"],["+1","🇺🇸"],["+7","🇷🇺"]
+];
+const LINGUA_BANDIERA = { IT:"🇮🇹", ES:"🇪🇸", FR:"🇫🇷", DE:"🇩🇪", PT:"🇵🇹", NL:"🇳🇱",
+  PL:"🇵🇱", RU:"🇷🇺", UK:"🇺🇦", ZH:"🇨🇳", CN:"🇨🇳", JA:"🇯🇵", EN:"" };
+
+function tgBandiera(phone, language) {
+  const p = (phone || "").replace(/[\s\-().]/g, "");
+  for (const [pre, flag] of PREFISSI) {
+    if (p.startsWith(pre)) return flag;
+  }
+  return LINGUA_BANDIERA[(language || "").toUpperCase()] || "";
 }
 
 // Riepilogo arrivi del giorno indicato (default: domani) inviato su Telegram.
@@ -58,11 +82,9 @@ async function runArriviTg(env, dateParam, dryRun) {
 
   if (!arr.length) {
     L.push(`🛎️ *Arrivi ${dLabel}*`);
-    L.push("");
     L.push("Nessun arrivo previsto.");
   } else {
     L.push(`🛎️ *Arrivi ${dLabel}* — ${arr.length}`);
-    L.push("");
     for (const b of arr) {
       const bk = b.booker || {};
       const nome = [bk.first_name, bk.last_name].filter(Boolean).join(" ").trim() || "Ospite";
@@ -70,10 +92,9 @@ async function runArriviTg(env, dateParam, dryRun) {
       const casa = STANZE_LORENZO.includes(room) ? "Lorenzo" : "Campaldino";
       const notti = Math.max(1, Math.round((new Date(b.checkout) - new Date(b.checkin)) / 86400000));
       const ospiti = (b.adults || 0) + (b.children || 0);
-      L.push(`*${nome}*`);
+      const flag = tgBandiera(bk.phone, bk.language);
+      L.push(`*${nome}* ${flag ? flag + " " : ""}${tgFonte(b.source)}`);
       L.push(`${casa} · ${room} · ${notti} ${notti === 1 ? "notte" : "notti"} · ${ospiti} ${ospiti === 1 ? "ospite" : "ospiti"}`);
-      L.push(tgFonte(b.source));
-      L.push("");
     }
   }
 
