@@ -24,6 +24,16 @@ jobs:
           [[kv_namespaces]]
           binding = "TG_KV"
           id = "48138f095e8b43d2823c85580af22125"
+
+          # Service binding verso gli altri worker: le fetch Worker->Worker via
+          # URL workers.dev sono bloccate da Cloudflare (errore 1042).
+          [[services]]
+          binding = "ICOMPTA"
+          service = "icompta-worker"
+
+          [[services]]
+          binding = "LS"
+          service = "little-shadow-145e"
           EOF
 
       - name: Deploy with Wrangler
