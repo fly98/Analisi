@@ -107,10 +107,8 @@ async function runFinecoAuto(env) {
 __name(runFinecoAuto, "runFinecoAuto");
 
 // ── NOTIFICA TELEGRAM (report chiusura borsa) ─────────────────────────────────
-const TG_WORKER = "https://tg-worker.f-castiglioni.workers.dev/send";
-
 function eur(n) {
-  return (n || 0).toLocaleString("it-IT", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
+  return (n || 0).toLocaleString("it-IT", { minimumFractionDigits: 2, maximumFractionDigits: 2, useGrouping: true }) + " €";
 }
 function eurSign(n) {
   return (n >= 0 ? "+" : "−") + eur(Math.abs(n));
@@ -133,17 +131,22 @@ async function prevSnapshot(env, today) {
 
 async function sendTelegram(env, text) {
   if (!env.TELEGRAM_BOT_TOKEN) {
-    console.log("TELEGRAM_BOT_TOKEN assente, notifica saltata");
     return { ok: false, motivo: "TELEGRAM_BOT_TOKEN non configurato su icompta-worker" };
   }
+  if (!env.TG) {
+    return { ok: false, motivo: "Service binding TG assente" };
+  }
   try {
-    const r = await fetch(TG_WORKER, {
+    // Service binding: chiamata interna al runtime, non passa da internet.
+    // (una fetch verso tg-worker.workers.dev verrebbe bloccata: errore 1042)
+    const req = new Request("https://tg-worker/send", {
       method: "POST",
       headers: { "Content-Type": "application/json", "X-Auth": env.TELEGRAM_BOT_TOKEN },
       body: JSON.stringify({ text, parse_mode: "Markdown" })
     });
+    const r = await env.TG.fetch(req);
     const body = await r.text();
-    return { ok: r.ok, status: r.status, risposta: body.slice(0, 300) };
+    return { ok: r.ok, status: r.status, risposta: body.slice(0, 200) };
   } catch (e) {
     return { ok: false, motivo: "fetch fallita: " + String((e && e.message) || e) };
   }
