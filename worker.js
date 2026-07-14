@@ -1,5 +1,58 @@
 // worker.js
 const HOTEL_UUID = "8aec6938-18cb-43fd-b85f-fc00b8ef3bc9";
+
+// ── Helper notifiche Telegram ────────────────────────────────────────────────
+const STANZE_LORENZO = ["Uno", "Due", "Tre", "Quattro", "Cinque"];
+
+function jsonRes(obj, status = 200) {
+  return new Response(JSON.stringify(obj), {
+    status,
+    headers: { ...CORS, "Content-Type": "application/json" }
+  });
+}
+
+// Invio via service binding: la fetch diretta a tg-worker.workers.dev
+// sarebbe bloccata da Cloudflare (errore 1042).
+async function tgSend(env, body) {
+  const req = new Request("https://tg-worker/send", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-Auth": env.TELEGRAM_BOT_TOKEN },
+    body: JSON.stringify(body)
+  });
+  const r = await env.TG.fetch(req);
+  return r.ok;
+}
+
+// Lingua ospite: il prefisso telefonico è più affidabile del campo language
+// di Amenitiz (stessa priorità usata da arrivi.html).
+function tgLingua(language, phone) {
+  const p = (phone || "").replace(/\s/g, "");
+  if (p.startsWith("+39")) return "it";
+  if (p.startsWith("+34")) return "es";
+  if (p.startsWith("+33")) return "fr";
+  if (p.startsWith("+49")) return "de";
+  if (p.startsWith("+351")) return "pt";
+  if (p.startsWith("+86")) return "zh";
+  const l = (language || "").toUpperCase();
+  const map = { IT: "it", ES: "es", FR: "fr", DE: "de", PT: "pt", ZH: "zh", CN: "zh" };
+  return map[l] || "en";
+}
+
+// Saluto breve per aprire la chat WhatsApp. Il messaggio completo di check-in
+// resta in arrivi.html: qui serve solo ad avviare la conversazione.
+function tgSaluto(lng, nome, dLabel) {
+  const n = nome ? " " + nome : "";
+  const T = {
+    it: `Buongiorno${n}! 😊 Sono Filippo di InternoUno. Le scrivo per la sua prenotazione del ${dLabel}.`,
+    en: `Good morning${n ? "," + n : ""}! 😊 I'm Filippo from InternoUno. I'm writing about your booking for ${dLabel}.`,
+    es: `¡Buenos días${n}! 😊 Soy Filippo de InternoUno. Le escribo por su reserva del ${dLabel}.`,
+    fr: `Bonjour${n} ! 😊 Je suis Filippo d'InternoUno. Je vous écris au sujet de votre réservation du ${dLabel}.`,
+    de: `Guten Tag${n}! 😊 Hier ist Filippo von InternoUno. Ich schreibe Ihnen wegen Ihrer Buchung vom ${dLabel}.`,
+    pt: `Bom dia${n}! 😊 Sou o Filippo do InternoUno. Escrevo-lhe sobre a sua reserva de ${dLabel}.`,
+    zh: `您好${nome ? "，" + nome : ""}！😊 我是 InternoUno 的 Filippo，关于您 ${dLabel} 的预订与您联系。`
+  };
+  return T[lng] || T.en;
+}
 const BASE = "https://api.amenitiz.io/vendor_api/v1";
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
 const CORS = {
@@ -1665,6 +1718,73 @@ export default {
       }
 
       // ===== SEGNA cancellazione come contattata / non contattata =====
+      // ── NOTIFICA TELEGRAM ARRIVI (domani) ──────────────────────────────────
+      // Un messaggio per prenotazione, con bottone WhatsApp precompilato.
+      // Il testo completo del check-in resta in arrivi.html (singola fonte di
+      // verità): qui il bottone apre la chat con un saluto breve.
+      if (action === "tgArrivi") {
+        if (!env.TG) return jsonRes({ error: "Service binding TG assente su little-shadow" }, 500);
+        if (!env.TELEGRAM_BOT_TOKEN) return jsonRes({ error: "TELEGRAM_BOT_TOKEN non configurato" }, 500);
+
+        const dryRun = url.searchParams.get("dry") === "1";
+        let date = url.searchParams.get("date");
+        if (!date) {
+          const d = new Date();
+          d.setDate(d.getDate() + 1);
+          date = d.toISOString().slice(0, 10);
+        }
+
+        const r0 = await amenitizGet(`/bookings/checkin?from=${date}&to=${date}&hotel_id=${HOTEL_UUID}`, env);
+        if (!r0.ok) return jsonRes({ error: "API Amenitiz", status: r0.status }, r0.status);
+        const arr = (await r0.json()).filter((b) => {
+          const s = (b.status || "").toLowerCase();
+          return s !== "cancelled" && s !== "canceled";
+        });
+
+        const dLabel = date.slice(8, 10) + "/" + date.slice(5, 7);
+
+        if (!arr.length) {
+          const text = `🛎️ *Arrivi ${dLabel}*\n\nNessun arrivo previsto.`;
+          if (!dryRun) await tgSend(env, { text });
+          return jsonRes({ inviati: dryRun ? 0 : 1, arrivi: 0, preview: [text] });
+        }
+
+        const previews = [];
+        for (const b of arr) {
+          const bk = b.booker || {};
+          const nome = [bk.first_name, bk.last_name].filter(Boolean).join(" ").trim() || "Ospite";
+          const room = (b.rooms && b.rooms[0] && b.rooms[0].individual_room_name) || "—";
+          const struttura = STANZE_LORENZO.includes(room) ? "Lorenzo il Magnifico" : "Campaldino";
+          const notti = Math.max(1, Math.round((new Date(b.checkout) - new Date(b.checkin)) / 86400000));
+          const ospiti = (b.adults || 0) + (b.children || 0);
+          const tel = (bk.phone || "").trim();
+          const lng = tgLingua(bk.language, tel);
+
+          const L = [];
+          L.push(`🛎️ *${nome}*`);
+          L.push("");
+          L.push(`🏠 ${struttura} · camera *${room}*`);
+          L.push(`📅 ${b.checkin.slice(8, 10)}/${b.checkin.slice(5, 7)} → ${b.checkout.slice(8, 10)}/${b.checkout.slice(5, 7)}  (${notti} ${notti === 1 ? "notte" : "notti"})`);
+          L.push(`👥 ${ospiti} ${ospiti === 1 ? "ospite" : "ospiti"}  ·  💶 ${b.total_amount_after_tax} €`);
+          L.push(`🔗 ${b.source || "—"}`);
+          if (tel) L.push(`📱 ${tel}`);
+          L.push(b.online_checkin_registered ? "✅ Check-in online registrato" : "⚠️ Check-in online non registrato");
+
+          const buttons = [];
+          if (tel) {
+            const num = tel.replace(/[^0-9]/g, "");
+            const saluto = tgSaluto(lng, bk.first_name || "", dLabel);
+            buttons.push({ label: "💬 WhatsApp", url: `https://wa.me/${num}?text=${encodeURIComponent(saluto)}` });
+          }
+          buttons.push({ label: "📋 Arrivi", url: "https://fly98.github.io/Analisi/arrivi.html" });
+
+          const text = L.join("\n");
+          previews.push(text);
+          if (!dryRun) await tgSend(env, { text, buttons });
+        }
+        return jsonRes({ data: date, arrivi: arr.length, inviati: dryRun ? 0 : arr.length, preview: previews });
+      }
+
       if (action === "setCancelSent") {
         const bid  = url.searchParams.get("booking_id");
         const sent = url.searchParams.get("sent") === "true";
