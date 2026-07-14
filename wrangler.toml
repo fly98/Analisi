@@ -6,5 +6,11 @@ compatibility_date = "2024-01-01"
 binding = "ARRIVI_KV"
 id = "48138f095e8b43d2823c85580af22125"
 
+# Service binding verso tg-worker: le fetch Worker->Worker via URL
+# workers.dev sono bloccate da Cloudflare (errore 1042).
+[[services]]
+binding = "TG"
+service = "tg-worker"
+
 [triggers]
 crons = ["0 4,10 * * *"]
