@@ -314,11 +314,27 @@ export default {
       });
     }
 
-    // --- 5. Info ---
+    // --- 5. Comando da Shortcut iOS: GET /cmd?key=...&c=saldo ---
+    if (path === '/cmd') {
+      if (!chatId) return json({ error: 'chat_id sconosciuto: manda /start al bot' }, 400);
+      const c = (url.searchParams.get('c') || '').toLowerCase().trim();
+      if (c !== 'saldo' && c !== 'arrivi') {
+        return json({ error: 'comando sconosciuto', disponibili: ['saldo', 'arrivi'] }, 400);
+      }
+      if (c === 'saldo') {
+        await tg(env, 'sendMessage', { chat_id: chatId, text: '\u23f3 Aggiorno Fineco investimenti\u2026' });
+      }
+      // Risposta immediata allo Shortcut: il lavoro prosegue in background
+      // e il risultato arriva su Telegram.
+      ctx.waitUntil(eseguiComando(c, chatId, env));
+      return json({ ok: true, comando: c, nota: 'Il risultato arriva su Telegram.' });
+    }
+
+    // --- 6. Info ---
     return json({
       worker: 'tg-worker',
       chat_id_registrato: !!chatId,
-      endpoints: ['/webhook (POST, Telegram)', '/notify', '/send (POST)', '/state'],
+      endpoints: ['/webhook (POST, Telegram)', '/notify', '/send (POST)', '/state', '/cmd?c=saldo|arrivi'],
     });
   },
 };
