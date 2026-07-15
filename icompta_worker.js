@@ -1098,7 +1098,7 @@ var icompta_worker_default = {
 
       // 3. Fear & Greed CNN (peso 15) — contrarian
       try {
-        const r = await fetch('https://production.dataviz.cnn.io/index/fearandgreed/graphdata', { headers: UA });
+        const r = await fetch('https://production.dataviz.cnn.io/index/fearandgreed/graphdata', { headers: { ...UA, 'Accept': 'application/json', 'Referer': 'https://edition.cnn.com/markets/fear-and-greed', 'Origin': 'https://edition.cnn.com' } });
         const j = await r.json();
         const fg = j.fear_and_greed.score;
         dettagli.push({ nome: 'Fear & Greed', valore: Math.round(fg) + '/100', score: Math.round(clamp(100 - fg, 0, 100)), peso: 15 });
@@ -1115,32 +1115,27 @@ var icompta_worker_default = {
         }
       } catch (e) {}
 
-      // 5. Curva rendimenti 10y-2y FRED (peso 12) — positiva = sana
+      // 5. Curva rendimenti 10a-3m via Yahoo (peso 12) — positiva = sana
       try {
-        const r = await fetch('https://fred.stlouisfed.org/graph/fredgraph.csv?id=T10Y2Y', { headers: UA });
-        const rows = (await r.text()).trim().split('\n');
-        let spread = null;
-        for (let i = rows.length - 1; i > 0; i--) {
-          const v = rows[i].split(',')[1];
-          if (v && v !== '.') { spread = parseFloat(v); break; }
-        }
-        if (spread != null) {
-          dettagli.push({ nome: 'Curva 10a-2a', valore: (spread >= 0 ? '+' : '') + spread.toFixed(2) + '%', score: Math.round(clamp(50 + spread * 50, 0, 100)), peso: 12 });
-        }
+        const [r10, r3] = await Promise.all([
+          fetch('https://query1.finance.yahoo.com/v8/finance/chart/%5ETNX', { headers: UA }),
+          fetch('https://query1.finance.yahoo.com/v8/finance/chart/%5EIRX', { headers: UA })
+        ]);
+        const y10 = (await r10.json()).chart.result[0].meta.regularMarketPrice;
+        const y3 = (await r3.json()).chart.result[0].meta.regularMarketPrice;
+        const spread = y10 - y3;
+        dettagli.push({ nome: 'Curva 10a-3m', valore: (spread >= 0 ? '+' : '') + spread.toFixed(2) + '%', score: Math.round(clamp(50 + spread * 50, 0, 100)), peso: 12 });
       } catch (e) {}
 
-      // 6. Credit spread High Yield FRED (peso 13) — basso = sistema sano
+      // 6. Drawdown S&P500 da massimo 52 settimane (peso 13) — contrarian: correzione = opportunità
       try {
-        const r = await fetch('https://fred.stlouisfed.org/graph/fredgraph.csv?id=BAMLH0A0HYM2', { headers: UA });
-        const rows = (await r.text()).trim().split('\n');
-        let hy = null;
-        for (let i = rows.length - 1; i > 0; i--) {
-          const v = rows[i].split(',')[1];
-          if (v && v !== '.') { hy = parseFloat(v); break; }
-        }
-        if (hy != null) {
-          dettagli.push({ nome: 'Spread High Yield', valore: hy.toFixed(2) + '%', score: Math.round(clamp((6.5 - hy) / 4 * 100, 0, 100)), peso: 13 });
-        }
+        const r = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/%5EGSPC?range=1y&interval=1d', { headers: UA });
+        const j = await r.json();
+        const closes = (j.chart.result[0].indicators.quote[0].close || []).filter(x => x != null);
+        const last = closes[closes.length - 1];
+        const max52 = Math.max(...closes);
+        const dd = (1 - last / max52) * 100; // 0 = ai massimi
+        dettagli.push({ nome: 'Drawdown da max 52sett', valore: '-' + dd.toFixed(1) + '%', score: Math.round(clamp(30 + dd * 3.5, 0, 100)), peso: 13 });
       } catch (e) {}
 
       if (!dettagli.length) return err('Nessun indicatore disponibile', 502);
