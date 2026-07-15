@@ -655,17 +655,39 @@ const EXP_PROP = {
     },
   },
 };
-function buildExpHtml(propKey, lng, nome){
+const SALUTO_PREFIX = { it:"Gentile", en:"Dear", es:"Estimado/a", fr:"Bonjour", de:"Guten Tag", pt:"Caro(a)", zh:"尊敬的" };
+const DATE_PHRASE = {
+  it:(a,b)=>`dal ${a} al ${b}`,
+  en:(a,b)=>`from ${a} to ${b}`,
+  es:(a,b)=>`del ${a} al ${b}`,
+  fr:(a,b)=>`du ${a} au ${b}`,
+  de:(a,b)=>`vom ${a} bis zum ${b}`,
+  pt:(a,b)=>`de ${a} a ${b}`,
+  zh:(a,b)=>`从 ${a} 至 ${b}`
+};
+function fmtDataIt(iso){
+  if(!iso) return "";
+  const p = iso.slice(0,10).split("-");
+  return p.length===3 ? `${p[2]}/${p[1]}/${p[0]}` : iso;
+}
+function buildExpHtml(propKey, lng, nome, cognome, checkin, checkout){
   const L = EXP_COMMON[lng] || EXP_COMMON.en;
   const P = (EXP_PROP[propKey] && EXP_PROP[propKey][lng]) || EXP_PROP[propKey].en;
-  const saluto = nome ? nome : L.saluto_default;
+  const fullName = [nome, cognome].filter(Boolean).join(" ").trim();
+  const prefix = SALUTO_PREFIX[lng] || SALUTO_PREFIX.en;
+  const saluto = fullName ? `${prefix} ${fullName}` : L.saluto_default;
   const virgola = (lng==="zh") ? "，" : ",";
+  const sep = (lng==="zh") ? "" : " ";
+  const punto = (lng==="zh") ? "。" : ".";
+  const grazieDate = (checkin && checkout)
+    ? `${P.grazie.replace(/[.。]\s*$/,"")}${sep}${(DATE_PHRASE[lng]||DATE_PHRASE.en)(fmtDataIt(checkin), fmtDataIt(checkout))}${punto}`
+    : P.grazie;
   const liHtml = L.exp_li.map(x=>`  <li>${x}</li>`).join("\n");
   const mezziHtml = P.mezzi_li.map(x=>`  <li>${x}</li>`).join("\n");
   const url = P.url;
   return `<div style="font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.55;color:#222">
 <p>${saluto}${virgola}</p>
-<p>${P.grazie}</p>
+<p>${grazieDate}</p>
 <p>${L.checkin_autonomia}</p>
 <p>${L.orario_arrivo}</p>
 <p>${L.pagamento}</p>
@@ -1104,7 +1126,7 @@ async function runAutoSend(env, testMode) {
   }
   const bookings = await resp.json();
   const dettagli = [];
-  const scartiPerMotivo = { cancellata: 0, booking_com: 0, senza_email: 0, gia_inviata: 0, camera_sconosciuta: 0 };
+  const scartiPerMotivo = { cancellata: 0, booking_com: 0, airbnb: 0, senza_email: 0, gia_inviata: 0, camera_sconosciuta: 0 };
   let inviate = 0, saltate = 0;
 
   for (const b of (Array.isArray(bookings) ? bookings : [])) {
@@ -1114,6 +1136,7 @@ async function runAutoSend(env, testMode) {
     if (stato === "cancelled" || stato === "canceled") { saltate++; scartiPerMotivo.cancellata++; continue; }
     const source = (b.source || "").toLowerCase();
     if (source.includes("booking")) { saltate++; scartiPerMotivo.booking_com++; continue; }
+    if (source.includes("airbnb")) { saltate++; scartiPerMotivo.airbnb++; continue; }
     const booker = b.booker || {};
     const email = booker.email || "";
     if (!email || email.indexOf("@") < 0) { saltate++; scartiPerMotivo.senza_email++; continue; }
@@ -1129,12 +1152,13 @@ async function runAutoSend(env, testMode) {
     const phone = booker.phone || "";
     const lng = lingua(booker.language, phone);
     const nome = (booker.first_name || "").trim();
-    const html = buildExpHtml(propKey, lng, nome);
+    const cognome = (booker.last_name || "").trim();
+    const html = buildExpHtml(propKey, lng, nome, cognome, b.checkin, b.checkout);
     const propName = propKey === "lor" ? "InternoUno Deluxe" : "InternoUno";
     const subject = `${propName} — ${SUBJ_TABLE[lng] || SUBJ_TABLE.en}`;
 
     if (testMode) {
-      dettagli.push({ bookingId, email, propKey, lng, nome, roomName, wouldSend: true });
+      dettagli.push({ bookingId, email, propKey, lng, nome: `${nome} ${cognome}`.trim(), roomName, checkin: b.checkin, checkout: b.checkout, wouldSend: true });
       continue;
     }
 
