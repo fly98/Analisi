@@ -33,6 +33,46 @@ export default {
       }
     }
 
+    // GET /family - posizioni famiglia da device_tracker e person
+    if (path === '/family') {
+      try {
+        const resp = await fetch(`${HA_URL}/api/states`, {
+          headers: { 'Authorization': `Bearer ${TOKEN}` }
+        })
+        const states = await resp.json()
+
+        const persons = states.filter(e => e.entity_id.startsWith('person.'))
+        const trackers = states.filter(e => e.entity_id.startsWith('device_tracker.'))
+
+        const family = persons.map(p => {
+          const lat = p.attributes.latitude
+          const lon = p.attributes.longitude
+          const source = p.attributes.source
+          // Cerca device_tracker associato per coordinate più precise
+          let tracker = null
+          if (source) {
+            tracker = trackers.find(t => t.entity_id === source)
+          }
+          const finalLat = (tracker?.attributes?.latitude) || lat
+          const finalLon = (tracker?.attributes?.longitude) || lon
+          return {
+            id: p.entity_id,
+            name: p.attributes.friendly_name || p.entity_id,
+            state: p.state,
+            latitude: finalLat || null,
+            longitude: finalLon || null,
+            battery: tracker?.attributes?.battery_level || p.attributes.battery_level || null,
+            source: source || null,
+            gps_accuracy: tracker?.attributes?.gps_accuracy || p.attributes.gps_accuracy || null
+          }
+        })
+
+        return new Response(JSON.stringify(family), { headers: corsHeaders })
+      } catch(e) {
+        return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders })
+      }
+    }
+
     // GET /dump - salva tutti gli stati HA su GitHub e ritorna summary
     if (path === '/dump') {
       try {
