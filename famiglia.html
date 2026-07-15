@@ -6,8 +6,12 @@
 <title>Famiglia</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-<link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
-<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script>
+  (g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})({
+    key: "AIzaSyBWxuW5tFOnRn8FHAoDt9q9Iz_1xdxbjCg",
+    v: "alpha"
+  });
+</script>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -119,14 +123,14 @@ function render(members) {
       </div>
       <div id="live-${sid}">
         ${hasGps ? `<div class="mini-map" id="map-${sid}"></div>
-        <div class="map-actions"><button class="nav-btn" onclick="openMaps(${m.latitude},${m.longitude})">🗺 Indicazioni</button><button class="sat-btn" onclick="openSat('${m.name}',[[${m.latitude},${m.longitude}]])">🛰 Satellite 3D</button></div>`
+        <div class="map-actions"><button class="nav-btn" onclick="openMaps(${m.latitude},${m.longitude})">🗺 Indicazioni</button><button class="sat-btn" onclick="openSat('${m.name}',[[${m.latitude},${m.longitude}]])">🛰 Vista 3D</button></div>`
         : `<div class="loading">Posizione GPS non disponibile</div>`}
       </div>
       <div id="history-${sid}" style="display:none">
         <div class="history-panel">
           <div class="day-picker" id="days-${sid}"></div>
           <div class="mini-map" id="histmap-${sid}" style="border-radius:12px;margin-top:4px"></div>
-          <div class="map-actions" style="padding:12px 0 4px"><button class="sat-btn" id="satbtn-${sid}" onclick="openSatHistory('${sid}')">🛰 Vedi tracciato in Satellite 3D</button></div>
+          <div class="map-actions" style="padding:12px 0 4px"><button class="sat-btn" id="satbtn-${sid}" onclick="openSatHistory('${sid}')">🛰 Vedi tracciato in 3D</button></div>
           <div class="timeline" id="timeline-${sid}"></div>
         </div>
       </div>`
@@ -270,8 +274,7 @@ function buildSegments(points) {
   return segs
 }
 
-const MAPTILER_KEY = 'p9Zdnr4jLQgmAOj82Haj'
-let satMap = null
+let sat3dMap = null
 
 function ensureSatOverlay() {
   if (document.getElementById('sat-overlay')) return
@@ -282,42 +285,56 @@ function ensureSatOverlay() {
   document.body.appendChild(ov)
 }
 
-function openSat(name, coords) {
+async function openSat(name, coords) {
   ensureSatOverlay()
   document.getElementById('sat-overlay').classList.add('open')
   document.getElementById('sat-title').textContent = name
   const center = coords[coords.length - 1]
+  const color = colorFor(name)
 
-  if (satMap) { satMap.remove(); satMap = null }
-  satMap = new maplibregl.Map({
-    container: 'sat-map',
-    style: `https://api.maptiler.com/maps/hybrid/style.json?key=${MAPTILER_KEY}`,
-    center: [center[1], center[0]],
-    zoom: 17, pitch: 60, bearing: -20, attributionControl: false
+  const mapEl = document.getElementById('sat-map')
+  mapEl.innerHTML = ''
+
+  const { Map3DElement, Marker3DElement, Polyline3DElement } = await google.maps.importLibrary("maps3d")
+  const { PinElement } = await google.maps.importLibrary("marker")
+
+  const isTrack = coords.length > 1
+  const map3d = new Map3DElement({
+    center: { lat: center[0], lng: center[1], altitude: 0 },
+    range: isTrack ? 2000 : 400,
+    tilt: 65,
+    heading: 20,
+    mode: 'SATELLITE'
   })
-  satMap.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'bottom-right')
+  mapEl.appendChild(map3d)
+  sat3dMap = map3d
 
-  satMap.on('load', () => {
-    // Terreno 3D
-    satMap.addSource('terrain', { type: 'raster-dem', url: `https://api.maptiler.com/tiles/terrain-rgb-v2/tiles.json?key=${MAPTILER_KEY}` })
-    satMap.setTerrain({ source: 'terrain', exaggeration: 1.3 })
+  // Tracciato storico
+  if (isTrack) {
+    const poly = new Polyline3DElement({
+      altitudeMode: 'CLAMP_TO_GROUND',
+      strokeColor: color,
+      strokeWidth: 8,
+      coordinates: coords.map(c => ({ lat: c[0], lng: c[1] }))
+    })
+    map3d.append(poly)
+    // Inquadra il tracciato
+    const lats = coords.map(c => c[0]), lons = coords.map(c => c[1])
+    const midLat = (Math.min(...lats) + Math.max(...lats)) / 2
+    const midLon = (Math.min(...lons) + Math.max(...lons)) / 2
+    const spread = Math.max(Math.max(...lats)-Math.min(...lats), Math.max(...lons)-Math.min(...lons))
+    map3d.center = { lat: midLat, lng: midLon, altitude: 0 }
+    map3d.range = Math.max(800, spread * 130000)
+  }
 
-    const color = colorFor(name)
-    if (coords.length > 1) {
-      // Tracciato
-      const line = coords.map(c => [c[1], c[0]])
-      satMap.addSource('track', { type: 'geojson', data: { type: 'Feature', geometry: { type: 'LineString', coordinates: line } } })
-      satMap.addLayer({ id: 'track', type: 'line', source: 'track',
-        paint: { 'line-color': color, 'line-width': 5, 'line-opacity': 0.9 } })
-      // Fit
-      const lons = line.map(p => p[0]), lats = line.map(p => p[1])
-      satMap.fitBounds([[Math.min(...lons), Math.min(...lats)], [Math.max(...lons), Math.max(...lats)]], { padding: 60, pitch: 55, duration: 0 })
-    }
-    // Marker sull'ultima posizione
-    const el = document.createElement('div')
-    el.style.cssText = `width:20px;height:20px;border-radius:50%;background:${color};border:3px solid #fff;box-shadow:0 0 0 4px ${color}55`
-    new maplibregl.Marker({ element: el }).setLngLat([center[1], center[0]]).addTo(satMap)
+  // Marker sull'ultima posizione
+  const pin = new PinElement({ background: color, borderColor: '#fff', glyphColor: '#fff', scale: 1.2 })
+  const marker = new Marker3DElement({
+    position: { lat: center[0], lng: center[1], altitude: 0 },
+    altitudeMode: 'CLAMP_TO_GROUND'
   })
+  marker.append(pin)
+  map3d.append(marker)
 }
 
 function openSatHistory(sid) {
@@ -328,7 +345,9 @@ function openSatHistory(sid) {
 
 function closeSat() {
   document.getElementById('sat-overlay').classList.remove('open')
-  if (satMap) { satMap.remove(); satMap = null }
+  const mapEl = document.getElementById('sat-map')
+  if (mapEl) mapEl.innerHTML = ''
+  sat3dMap = null
 }
 
 function openMaps(lat, lon) { window.open(`https://maps.apple.com/?daddr=${lat},${lon}&dirflg=d`, '_blank') }
