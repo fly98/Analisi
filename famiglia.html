@@ -2,165 +2,171 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>Famiglia</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
+  :root {
+    --bg: #14110e;
+    --stone: #2a2622;
+    --stone-2: #3a352f;
+    --line: #4a443c;
+    --limestone: #e8e0d4;
+    --ochre: #c9a15e;
+    --patina: #7c9a82;
+    --muted: #9a9184;
+  }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, sans-serif; background: #1a1a2e; color: #eee; height: 100vh; display: flex; flex-direction: column; }
-  #header { padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; background: #16213e; }
-  h1 { font-size: 1.1rem; color: #e94560; }
-  #ts { font-size: 0.7rem; color: #666; }
-  #refresh-btn { background: #e94560; color: white; border: none; padding: 6px 14px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; }
-  #map { flex: 1; }
-  #members { background: #16213e; padding: 10px 16px; display: flex; gap: 8px; overflow-x: auto; }
-  .member-chip { background: #1a1a2e; border-radius: 20px; padding: 6px 12px; font-size: 0.8rem; cursor: pointer; white-space: nowrap; border: 1px solid #333; display: flex; align-items: center; gap: 6px; }
-  .member-chip.home { border-color: #4caf50; }
-  .member-chip.away { border-color: #e94560; }
-  .member-chip .dot { width: 8px; height: 8px; border-radius: 50%; }
-  .member-chip.home .dot { background: #4caf50; }
-  .member-chip.away .dot { background: #e94560; }
-  #directions-bar { background: #0f3460; padding: 10px 16px; display: none; align-items: center; justify-content: space-between; }
-  #directions-bar .name { font-size: 0.9rem; font-weight: 600; }
-  #directions-btn { background: #007AFF; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 6px; }
-  #msg { text-align: center; padding: 20px; color: #aaa; font-size: 0.85rem; }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--limestone); padding: 16px; max-width: 720px; margin: 0 auto; }
+  h1 { font-family: 'Fraunces', serif; font-size: 1.6rem; color: var(--ochre); margin-bottom: 2px; }
+  .sub { font-size: 0.75rem; color: var(--muted); margin-bottom: 16px; }
+  .person-card { background: var(--stone); border: 1px solid var(--line); border-radius: 16px; margin-bottom: 16px; overflow: hidden; }
+  .person-head { display: flex; align-items: center; gap: 12px; padding: 14px 16px; }
+  .avatar { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Fraunces', serif; font-weight: 700; font-size: 1.1rem; color: #241a12; flex-shrink: 0; }
+  .person-info { flex: 1; min-width: 0; }
+  .person-name { font-family: 'Fraunces', serif; font-weight: 600; font-size: 1.05rem; }
+  .person-status { font-size: 0.78rem; color: var(--muted); display: flex; align-items: center; gap: 6px; margin-top: 2px; }
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .status-dot.home { background: var(--patina); }
+  .status-dot.away { background: var(--ochre); }
+  .battery { font-size: 0.72rem; color: var(--muted); }
+  .tabs { display: flex; gap: 4px; padding: 0 16px; border-bottom: 1px solid var(--line); }
+  .tab { padding: 8px 14px; font-size: 0.82rem; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+  .tab.active { color: var(--ochre); border-bottom-color: var(--ochre); }
+  .tab-content { padding: 0; }
+  .mini-map { width: 100%; height: 200px; background: var(--stone-2); }
+  .map-actions { display: flex; gap: 8px; padding: 12px 16px; }
+  .nav-btn { flex: 1; background: rgba(124,154,130,0.14); color: var(--patina); border: none; padding: 10px; border-radius: 10px; font-size: 0.85rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; font-family: 'Inter', sans-serif; }
+  .history-panel { padding: 16px; }
+  .history-soon { text-align: center; color: var(--muted); padding: 30px 16px; font-size: 0.88rem; line-height: 1.5; }
+  .refresh { background: var(--ochre); color: #241a12; border: none; padding: 8px 16px; border-radius: 10px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; font-size: 0.85rem; margin-bottom: 16px; }
+  .marker-pin { width: 26px; height: 26px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); border: 2px solid var(--stone); box-shadow: 0 2px 6px rgba(0,0,0,0.4); }
+  .me-dot { width: 18px; height: 18px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 0 5px rgba(74,158,255,0.3); }
+  #err { color: #e07a5f; font-size: 0.82rem; margin-bottom: 12px; min-height: 16px; }
 </style>
 </head>
 <body>
-<div id="header">
-  <div>
-    <h1>👨‍👩‍👧‍👧 Famiglia</h1>
-    <div id="ts">Caricamento...</div>
-  </div>
-  <button id="refresh-btn" onclick="loadFamily()">⟳</button>
-</div>
-<div id="members"></div>
-<div id="directions-bar">
-  <div class="name" id="selected-name"></div>
-  <button id="directions-btn" onclick="openAppleMaps()">🗺 Indicazioni</button>
-</div>
-<div id="map"></div>
+<h1>Famiglia</h1>
+<div class="sub" id="ts">Caricamento…</div>
+<div id="err"></div>
+<button class="refresh" onclick="loadFamily()">⟳ Aggiorna</button>
+<div id="people"></div>
 
 <script>
 const WORKER = 'https://ha-worker.f-castiglioni.workers.dev'
-let map = null
-let markers = {}
-let selectedMember = null
+const HOME = { lat: 41.954724, lon: 12.513661 }
 
 const COLORS = {
-  'Filippo': '#007AFF',
-  'Mena': '#e94560',
-  'viola': '#9c27b0',
-  'Alessia': '#ff9800',
-  'FILIPPO': '#007AFF'
+  'Filippo': '#4a9eff', 'Mena': '#e07a5f', 'viola': '#b088d9',
+  'Alessia': '#e0a458', 'FILIPPO': '#7c9a82'
 }
+const maps = {}
 
-function getColor(name) {
-  return COLORS[name] || '#4caf50'
-}
+function colorFor(name) { return COLORS[name] || '#7c9a82' }
 
-function makeIcon(name, state) {
-  const color = getColor(name)
-  const initials = name.substring(0, 2).toUpperCase()
-  const opacity = state === 'home' ? '1' : '0.7'
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="50" viewBox="0 0 40 50">
-    <ellipse cx="20" cy="20" rx="18" ry="18" fill="${color}" fill-opacity="${opacity}" stroke="white" stroke-width="2"/>
-    <text x="20" y="26" text-anchor="middle" font-size="12" font-weight="bold" fill="white" font-family="-apple-system">${initials}</text>
-    <polygon points="20,46 12,30 28,30" fill="${color}" fill-opacity="${opacity}"/>
-  </svg>`
+function personMarkerIcon(name) {
+  const c = colorFor(name)
   return L.divIcon({
-    html: svg,
-    iconSize: [40, 50],
-    iconAnchor: [20, 50],
-    popupAnchor: [0, -50],
-    className: ''
+    className: '',
+    html: `<div class="marker-pin" style="background:${c}"></div>`,
+    iconSize: [26, 26], iconAnchor: [13, 26]
   })
 }
 
+function initTiles(map) {
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    attribution: '© OpenStreetMap © CARTO', maxZoom: 20
+  }).addTo(map)
+}
+
 async function loadFamily() {
-  document.getElementById('ts').textContent = 'Aggiornamento...'
+  document.getElementById('err').textContent = ''
   try {
     const resp = await fetch(WORKER + '/family')
     const members = await resp.json()
-
-    document.getElementById('ts').textContent = 'Aggiornato: ' + new Date().toLocaleTimeString('it-IT')
-
-    // Init mappa al primo caricamento
-    if (!map) {
-      // Centro sull'Italia
-      map = L.map('map').setView([41.9, 12.5], 6)
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap'
-      }).addTo(map)
-    }
-
-    // Pulisco marker vecchi
-    Object.values(markers).forEach(m => map.removeLayer(m))
-    markers = {}
-
-    const membersDiv = document.getElementById('members')
-    membersDiv.innerHTML = ''
-
-    // Gestisci errore dal worker
     if (!Array.isArray(members)) {
-      document.getElementById('ts').textContent = 'Errore worker: ' + JSON.stringify(members)
+      document.getElementById('err').textContent = 'Errore: ' + JSON.stringify(members)
       return
     }
-    const withCoords = members.filter(m => m.latitude && m.longitude)
-    const bounds = []
-
-    members.forEach(m => {
-      // Chip membro
-      const chip = document.createElement('div')
-      chip.className = `member-chip ${m.state === 'home' ? 'home' : 'away'}`
-      chip.innerHTML = `<div class="dot"></div>${m.name}${m.battery ? ' 🔋' + m.battery + '%' : ''}`
-      chip.onclick = () => selectMember(m)
-      membersDiv.appendChild(chip)
-
-      // Marker mappa
-      if (m.latitude && m.longitude) {
-        const marker = L.marker([m.latitude, m.longitude], { icon: makeIcon(m.name, m.state) })
-          .addTo(map)
-          .bindPopup(`<b>${m.name}</b><br>${m.state}${m.battery ? '<br>🔋 ' + m.battery + '%' : ''}`)
-        marker.on('click', () => selectMember(m))
-        markers[m.id] = marker
-        bounds.push([m.latitude, m.longitude])
-      }
-    })
-
-    if (bounds.length > 0) {
-      map.fitBounds(bounds, { padding: [40, 40] })
-    }
-
+    document.getElementById('ts').textContent = 'Aggiornato ' + new Date().toLocaleTimeString('it-IT')
+    render(members)
   } catch(e) {
-    document.getElementById('ts').textContent = 'Errore: ' + e.message
+    document.getElementById('err').textContent = 'Errore: ' + e.message
   }
 }
 
-function selectMember(m) {
-  selectedMember = m
-  const bar = document.getElementById('directions-bar')
-  if (m.latitude && m.longitude) {
-    document.getElementById('selected-name').textContent = m.name
-    bar.style.display = 'flex'
-    if (markers[m.id]) {
-      map.setView([m.latitude, m.longitude], 15)
-      markers[m.id].openPopup()
+function render(members) {
+  const container = document.getElementById('people')
+  container.innerHTML = ''
+
+  members.forEach((m, idx) => {
+    const isHome = m.state === 'home'
+    const hasGps = m.latitude && m.longitude
+    const safeId = m.id.replace(/[^a-z0-9]/gi, '_')
+
+    const card = document.createElement('div')
+    card.className = 'person-card'
+    card.innerHTML = `
+      <div class="person-head">
+        <div class="avatar" style="background:${colorFor(m.name)}">${m.name.substring(0,1).toUpperCase()}</div>
+        <div class="person-info">
+          <div class="person-name">${m.name}</div>
+          <div class="person-status">
+            <span class="status-dot ${isHome ? 'home' : 'away'}"></span>
+            ${isHome ? 'A casa' : 'Fuori'}
+            ${m.battery != null ? `<span class="battery">· 🔋 ${m.battery}%</span>` : ''}
+          </div>
+        </div>
+      </div>
+      <div class="tabs">
+        <div class="tab active" onclick="switchTab('${safeId}','live',this)">Posizione</div>
+        <div class="tab" onclick="switchTab('${safeId}','history',this)">Storico</div>
+      </div>
+      <div class="tab-content">
+        <div id="live-${safeId}">
+          ${hasGps ? `<div class="mini-map" id="map-${safeId}"></div>
+          <div class="map-actions">
+            <button class="nav-btn" onclick="openMaps(${m.latitude},${m.longitude})">🗺 Indicazioni</button>
+          </div>` : `<div class="history-soon">Posizione GPS non disponibile</div>`}
+        </div>
+        <div id="history-${safeId}" style="display:none">
+          <div class="history-soon">📍 Lo storico dei movimenti sarà disponibile a breve.<br>Stiamo iniziando a registrare i tracciati da oggi.</div>
+        </div>
+      </div>
+    `
+    container.appendChild(card)
+
+    if (hasGps) {
+      setTimeout(() => {
+        const map = L.map(`map-${safeId}`, { zoomControl: false, attributionControl: false })
+          .setView([m.latitude, m.longitude], 17)
+        initTiles(map)
+        L.marker([m.latitude, m.longitude], { icon: personMarkerIcon(m.name) }).addTo(map)
+        maps[safeId] = map
+        setTimeout(() => map.invalidateSize(), 100)
+      }, 50)
     }
-  } else {
-    bar.style.display = 'none'
+  })
+}
+
+function switchTab(safeId, tab, el) {
+  el.parentElement.querySelectorAll('.tab').forEach(t => t.classList.remove('active'))
+  el.classList.add('active')
+  document.getElementById(`live-${safeId}`).style.display = tab === 'live' ? 'block' : 'none'
+  document.getElementById(`history-${safeId}`).style.display = tab === 'history' ? 'block' : 'none'
+  if (tab === 'live' && maps[safeId]) {
+    setTimeout(() => maps[safeId].invalidateSize(), 100)
   }
 }
 
-function openAppleMaps() {
-  if (!selectedMember?.latitude) return
-  const url = `https://maps.apple.com/?daddr=${selectedMember.latitude},${selectedMember.longitude}&dirflg=d`
-  window.open(url, '_blank')
+function openMaps(lat, lon) {
+  window.open(`https://maps.apple.com/?daddr=${lat},${lon}&dirflg=d`, '_blank')
 }
 
 loadFamily()
-setInterval(loadFamily, 60000) // aggiorna ogni minuto
+setInterval(loadFamily, 60000)
 </script>
 </body>
 </html>
