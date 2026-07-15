@@ -33,6 +33,59 @@ export default {
       }
     }
 
+    // GET /history_family?hours=24 - storico posizioni device_tracker famiglia
+    if (path === '/history_family') {
+      try {
+        const hours = parseInt(url.searchParams.get('hours') || '24')
+        const now = new Date()
+        const start = new Date(now.getTime() - hours * 3600 * 1000)
+        const startIso = start.toISOString()
+
+        // Device tracker della famiglia
+        const trackers = [
+          'device_tracker.life360_filippo_2',
+          'device_tracker.life360_mena_2',
+          'device_tracker.life360_vivvi',
+          'device_tracker.flypad',
+          'device_tracker.life360_alessia_castiglioni'
+        ]
+        const nameMap = {
+          'device_tracker.life360_filippo_2': 'Filippo',
+          'device_tracker.life360_mena_2': 'Mena',
+          'device_tracker.life360_vivvi': 'Viola',
+          'device_tracker.flypad': 'Filippo (iPad)',
+          'device_tracker.life360_alessia_castiglioni': 'Alessia'
+        }
+
+        const filterIds = trackers.join(',')
+        const histUrl = `${HA_URL}/api/history/period/${startIso}?filter_entity_id=${filterIds}&minimal_response`
+        const resp = await fetch(histUrl, {
+          headers: { 'Authorization': `Bearer ${TOKEN}` }
+        })
+        const history = await resp.json()
+
+        // history è un array di array (uno per entità)
+        const result = {}
+        history.forEach(entityHistory => {
+          if (!entityHistory.length) return
+          const entityId = entityHistory[0].entity_id
+          const name = nameMap[entityId] || entityId
+          result[name] = entityHistory
+            .filter(h => h.attributes && h.attributes.latitude && h.attributes.longitude)
+            .map(h => ({
+              lat: h.attributes.latitude,
+              lon: h.attributes.longitude,
+              state: h.state,
+              time: h.last_changed || h.last_updated
+            }))
+        })
+
+        return new Response(JSON.stringify(result), { headers: corsHeaders })
+      } catch(e) {
+        return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders })
+      }
+    }
+
     // GET /family - posizioni famiglia da device_tracker e person
     if (path === '/family') {
       try {
