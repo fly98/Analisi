@@ -33,68 +33,31 @@ export default {
       }
     }
 
-    // GET /history_raw?entity=X&hours=48 - storico grezzo di una entità (debug)
-    if (path === '/history_raw') {
-      try {
-        const entity = url.searchParams.get('entity') || 'device_tracker.life360_vivvi'
-        const hours = parseInt(url.searchParams.get('hours') || '48')
-        const start = new Date(Date.now() - hours * 3600 * 1000).toISOString()
-        const histUrl = `${HA_URL}/api/history/period/${start}?filter_entity_id=${entity}`
-        const resp = await fetch(histUrl, { headers: { 'Authorization': `Bearer ${TOKEN}` } })
-        const history = await resp.json()
-        const arr = history[0] || []
-        // Riassunto: quanti punti, quanti con GPS, esempi
-        const withGps = arr.filter(h => h.attributes && h.attributes.latitude)
-        const summary = {
-          entity,
-          total_points: arr.length,
-          points_with_gps: withGps.length,
-          first_3_with_gps: withGps.slice(0, 3).map(h => ({
-            lat: h.attributes.latitude,
-            lon: h.attributes.longitude,
-            time: h.last_updated || h.last_changed
-          })),
-          sample_raw_keys: arr.length ? Object.keys(arr[0]) : [],
-          sample_attr_keys: arr.length && arr[0].attributes ? Object.keys(arr[0].attributes) : []
-        }
-        return new Response(JSON.stringify(summary, null, 2), { headers: corsHeaders })
-      } catch(e) {
-        return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders })
-      }
-    }
-
-    // GET /history_family?hours=24 - storico posizioni device_tracker famiglia
+    // GET /history_family?date=YYYY-MM-DD - storico posizioni di un giorno
     if (path === '/history_family') {
       try {
-        const hours = parseInt(url.searchParams.get('hours') || '24')
-        const now = new Date()
-        const start = new Date(now.getTime() - hours * 3600 * 1000)
-        const startIso = start.toISOString()
+        const dateStr = url.searchParams.get('date') // YYYY-MM-DD
+        let start, end
+        if (dateStr) {
+          start = new Date(dateStr + 'T00:00:00')
+          end = new Date(dateStr + 'T23:59:59')
+        } else {
+          end = new Date()
+          start = new Date(end.getTime() - 24 * 3600 * 1000)
+        }
 
-        // Device tracker della famiglia
-        const trackers = [
-          'device_tracker.life360_filippo_2',
-          'device_tracker.life360_mena_2',
-          'device_tracker.life360_vivvi',
-          'device_tracker.flypad',
-          'device_tracker.life360_alessia_castiglioni'
-        ]
         const nameMap = {
           'device_tracker.life360_filippo_2': 'Filippo',
           'device_tracker.life360_mena_2': 'Mena',
           'device_tracker.life360_vivvi': 'Viola',
-          'device_tracker.flypad': 'Filippo (iPad)',
           'device_tracker.life360_alessia_castiglioni': 'Alessia'
         }
-
+        const trackers = Object.keys(nameMap)
         const filterIds = trackers.join(',')
-        const histUrl = `${HA_URL}/api/history/period/${startIso}?filter_entity_id=${filterIds}`
-        const resp = await fetch(histUrl, {
-          headers: { 'Authorization': `Bearer ${TOKEN}` }
-        })
+        const histUrl = `${HA_URL}/api/history/period/${start.toISOString()}?filter_entity_id=${filterIds}&end_time=${end.toISOString()}`
+        const resp = await fetch(histUrl, { headers: { 'Authorization': `Bearer ${TOKEN}` } })
         const history = await resp.json()
 
-        // history è un array di array (uno per entità)
         const result = {}
         history.forEach(entityHistory => {
           if (!entityHistory.length) return
@@ -106,7 +69,9 @@ export default {
               lat: h.attributes.latitude,
               lon: h.attributes.longitude,
               state: h.state,
-              time: h.last_changed || h.last_updated
+              speed: h.attributes.speed || 0,
+              driving: h.attributes.driving || false,
+              time: h.last_updated || h.last_changed
             }))
         })
 
@@ -124,7 +89,7 @@ export default {
         })
         const states = await resp.json()
 
-        const persons = states.filter(e => e.entity_id.startsWith('person.'))
+        const persons = states.filter(e => e.entity_id.startsWith('person.') && e.entity_id !== 'person.filippo_2')
         const trackers = states.filter(e => e.entity_id.startsWith('device_tracker.'))
 
         const family = persons.map(p => {
