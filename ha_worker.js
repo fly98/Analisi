@@ -33,6 +33,36 @@ export default {
       }
     }
 
+    // GET /history_raw?entity=X&hours=48 - storico grezzo di una entità (debug)
+    if (path === '/history_raw') {
+      try {
+        const entity = url.searchParams.get('entity') || 'device_tracker.life360_vivvi'
+        const hours = parseInt(url.searchParams.get('hours') || '48')
+        const start = new Date(Date.now() - hours * 3600 * 1000).toISOString()
+        const histUrl = `${HA_URL}/api/history/period/${start}?filter_entity_id=${entity}`
+        const resp = await fetch(histUrl, { headers: { 'Authorization': `Bearer ${TOKEN}` } })
+        const history = await resp.json()
+        const arr = history[0] || []
+        // Riassunto: quanti punti, quanti con GPS, esempi
+        const withGps = arr.filter(h => h.attributes && h.attributes.latitude)
+        const summary = {
+          entity,
+          total_points: arr.length,
+          points_with_gps: withGps.length,
+          first_3_with_gps: withGps.slice(0, 3).map(h => ({
+            lat: h.attributes.latitude,
+            lon: h.attributes.longitude,
+            time: h.last_updated || h.last_changed
+          })),
+          sample_raw_keys: arr.length ? Object.keys(arr[0]) : [],
+          sample_attr_keys: arr.length && arr[0].attributes ? Object.keys(arr[0].attributes) : []
+        }
+        return new Response(JSON.stringify(summary, null, 2), { headers: corsHeaders })
+      } catch(e) {
+        return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders })
+      }
+    }
+
     // GET /history_family?hours=24 - storico posizioni device_tracker famiglia
     if (path === '/history_family') {
       try {
@@ -58,7 +88,7 @@ export default {
         }
 
         const filterIds = trackers.join(',')
-        const histUrl = `${HA_URL}/api/history/period/${startIso}?filter_entity_id=${filterIds}&minimal_response`
+        const histUrl = `${HA_URL}/api/history/period/${startIso}?filter_entity_id=${filterIds}`
         const resp = await fetch(histUrl, {
           headers: { 'Authorization': `Bearer ${TOKEN}` }
         })
