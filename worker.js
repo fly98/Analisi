@@ -787,6 +787,15 @@ function lingua(language, phone) {
 }
 
 const SUBJ_TABLE = { it:"Il suo arrivo", en:"Your arrival", es:"Su llegada", fr:"Votre arrivée", de:"Ihre Anreise", pt:"A sua chegada", zh:"您的入住信息" };
+const SUBJ_CONFERMA = {
+  it:(d,p)=>`Conferma prenotazione del ${d} — ${p} Roma`,
+  en:(d,p)=>`Booking confirmation for ${d} — ${p} Rome`,
+  es:(d,p)=>`Confirmación de reserva del ${d} — ${p} Roma`,
+  fr:(d,p)=>`Confirmation de réservation du ${d} — ${p} Rome`,
+  de:(d,p)=>`Buchungsbestätigung für den ${d} — ${p} Rom`,
+  pt:(d,p)=>`Confirmação de reserva de ${d} — ${p} Roma`,
+  zh:(d,p)=>`预订确认 ${d} — ${p} 罗马`
+};
 
 // ====== EMAIL DI RINGRAZIAMENTO POST CHECK-OUT (recensione + buono sconto) ======
 const PROP_NAME = { camp: "InternoUno", lor: "InternoUno Deluxe" };
@@ -1155,7 +1164,7 @@ async function runAutoSend(env, testMode) {
     const cognome = (booker.last_name || "").trim();
     const html = buildExpHtml(propKey, lng, nome, cognome, b.checkin, b.checkout);
     const propName = propKey === "lor" ? "InternoUno Deluxe" : "InternoUno";
-    const subject = `${propName} — ${SUBJ_TABLE[lng] || SUBJ_TABLE.en}`;
+    const subject = (SUBJ_CONFERMA[lng] || SUBJ_CONFERMA.en)(fmtDataIt(b.checkin), propName);
 
     if (testMode) {
       dettagli.push({ bookingId, email, propKey, lng, nome: `${nome} ${cognome}`.trim(), roomName, checkin: b.checkin, checkout: b.checkout, wouldSend: true });
