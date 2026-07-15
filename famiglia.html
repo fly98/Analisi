@@ -102,6 +102,11 @@ async function loadFamily() {
     const membersDiv = document.getElementById('members')
     membersDiv.innerHTML = ''
 
+    // Gestisci errore dal worker
+    if (!Array.isArray(members)) {
+      document.getElementById('ts').textContent = 'Errore worker: ' + JSON.stringify(members)
+      return
+    }
     const withCoords = members.filter(m => m.latitude && m.longitude)
     const bounds = []
 
