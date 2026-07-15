@@ -43,12 +43,24 @@
   .fonte-diretta { color:#1a7a3c; font-weight:600; }
   .vuoto { text-align:center; color:var(--grigio); padding:40px 10px; font-size:14px; }
   .riepilogo { font-size:13px; color:var(--grigio); margin-bottom:14px; }
+  .segmented { display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap; }
+  .seg {
+    background:#fff; color:var(--grigio); border:1px solid var(--bordo);
+    border-radius:999px; padding:8px 14px; font-size:13px; font-weight:600; cursor:pointer;
+  }
+  .seg.attivo { background:var(--arancio); color:#fff; border-color:var(--arancio); }
+  .soggiorno { color:#222; }
 </style>
 </head>
 <body>
 
-<h1>📬 Verifica Email di Ringraziamento</h1>
-<p class="sub">Controlla, giorno per giorno, quali email post-check-out sono state inviate e in quale lingua.</p>
+<h1>📬 Verifica Email Inviate</h1>
+<p class="sub" id="sottotitolo">Controlla, giorno per giorno, quali email sono state inviate e in quale lingua.</p>
+
+<div class="segmented">
+  <button id="tabGrazie" class="seg attivo" data-tipo="grazie">🙏 Ringraziamenti check-out</button>
+  <button id="tabConferme" class="seg" data-tipo="conferme">✅ Conferme dirette</button>
+</div>
 
 <div class="controls">
   <input type="date" id="dataInput">
@@ -68,6 +80,18 @@ const btnOggi = document.getElementById("btnOggi");
 const statoEl = document.getElementById("stato");
 const risultatiEl = document.getElementById("risultati");
 const riepilogoEl = document.getElementById("riepilogo");
+
+let tipo = "grazie";
+const ENDPOINT = { grazie: "getThankYouLog", conferme: "getAutoSendLog" };
+const SOTTOTITOLO = {
+  grazie: "Email di ringraziamento inviate la mattina del check-out (tutti i canali).",
+  conferme: "Email di conferma inviate alle nuove prenotazioni dirette non-Booking (Expedia, sito, manuali)."
+};
+const tabGrazie = document.getElementById("tabGrazie");
+const tabConferme = document.getElementById("tabConferme");
+const sottotitoloEl = document.getElementById("sottotitolo");
+
+function fmtIt(iso){ if(!iso) return ""; const p=iso.slice(0,10).split("-"); return p.length===3?`${p[2]}/${p[1]}/${p[0]}`:iso; }
 
 function oggiISO() {
   return new Date().toISOString().slice(0, 10);
@@ -89,6 +113,7 @@ function renderVoce(v) {
     </div>
     <div class="dettagli">
       ${v.propName || v.propKey || ""} · camera ${v.roomName || "-"}<br>
+      ${(v.checkin && v.checkout) ? `<span class="soggiorno">🗓️ ${fmtIt(v.checkin)} → ${fmtIt(v.checkout)}</span><br>` : ""}
       ${v.email || ""}<br>
       <span class="${fonteClass}">${fonteLabel}</span> · inviata alle ${ora}
     </div>
@@ -103,7 +128,7 @@ async function carica() {
   risultatiEl.innerHTML = "";
   riepilogoEl.textContent = "";
   try {
-    const resp = await fetch(`${WORKER_URL}/?action=getThankYouLog&date=${data}`);
+    const resp = await fetch(`${WORKER_URL}/?action=${ENDPOINT[tipo]}&date=${data}`);
     const json = await resp.json();
     if (json.error) {
       risultatiEl.innerHTML = `<div class="vuoto">Errore: ${json.error}</div>`;
@@ -125,10 +150,21 @@ async function carica() {
   btnCarica.disabled = false;
 }
 
+function setTipo(t){
+  tipo = t;
+  tabGrazie.classList.toggle("attivo", t === "grazie");
+  tabConferme.classList.toggle("attivo", t === "conferme");
+  sottotitoloEl.textContent = SOTTOTITOLO[t];
+  carica();
+}
+tabGrazie.addEventListener("click", () => setTipo("grazie"));
+tabConferme.addEventListener("click", () => setTipo("conferme"));
+
 btnCarica.addEventListener("click", carica);
 btnOggi.addEventListener("click", () => { dataInput.value = oggiISO(); carica(); });
 dataInput.addEventListener("change", carica);
 
+sottotitoloEl.textContent = SOTTOTITOLO[tipo];
 carica();
 </script>
 
