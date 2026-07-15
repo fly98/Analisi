@@ -1332,6 +1332,41 @@ export default {
         });
       }
 
+      // Invio manuale della conferma per UNA prenotazione (stesso render/dedup/log dell'automazione).
+      // GET ?action=sendConfirmOne&bookingId=<id>&checkin=YYYY-MM-DD
+      if (action === "sendConfirmOne") {
+        const bid = url.searchParams.get("bookingId");
+        const ci = url.searchParams.get("checkin");
+        if (!bid || !ci) return jsonRes({ error: "Parametri mancanti (bookingId, checkin)" }, 400);
+        const r = await amenitizGet(`/bookings/checkin?from=${ci}&to=${ci}&hotel_id=${HOTEL_UUID}`, env);
+        if (!r.ok) return jsonRes({ error: "API Amenitiz", status: r.status }, 502);
+        const list = await r.json();
+        const b = (Array.isArray(list) ? list : []).find(x => String(x.booking_id) === String(bid));
+        if (!b) return jsonRes({ error: "Prenotazione non trovata", bookingId: bid, checkin: ci }, 404);
+        const booker = b.booker || {};
+        const email = booker.email || "";
+        if (!email || email.indexOf("@") < 0) return jsonRes({ error: "Email assente sul booker" }, 422);
+        const roomName = (b.rooms && b.rooms[0] && b.rooms[0].individual_room_name) || "";
+        const propKey = proprietaDiCamera(roomName);
+        if (!propKey) return jsonRes({ error: "Camera sconosciuta", roomName }, 422);
+        const phone = booker.phone || "";
+        const lng = lingua(booker.language, phone);
+        const nome = (booker.first_name || "").trim();
+        const cognome = (booker.last_name || "").trim();
+        const propName = propKey === "lor" ? "InternoUno Deluxe" : "InternoUno";
+        const html = buildExpHtml(propKey, lng, nome, cognome, b.checkin, b.checkout);
+        const subject = (SUBJ_CONFERMA[lng] || SUBJ_CONFERMA.en)(fmtDataIt(b.checkin), propName);
+        const result = await sendGmailHtml(env, email, subject, html);
+        if (!result.ok) return jsonRes(result, result.status || 502);
+        const sentAt = new Date().toISOString();
+        await env.ARRIVI_KV.put(`expauto_${b.booking_id}`, sentAt);
+        await env.ARRIVI_KV.put(`expauto_log_${sentAt.slice(0, 10)}_${b.booking_id}`, JSON.stringify({
+          bookingId: b.booking_id, nome, cognome, email, propKey, propName,
+          lng, source: b.source || "", roomName, checkin: b.checkin, checkout: b.checkout, sentAt
+        }));
+        return jsonRes({ ok: true, to: email, subject, lng, propKey, roomName, bookingId: b.booking_id });
+      }
+
       if (action === "sendExperience") {
         let body;
         try { body = await request.json(); } catch (e) {
