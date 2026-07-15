@@ -178,6 +178,10 @@ main { max-width:900px; margin:0 auto; padding:16px; display:flex;
         <div class="kpi"><div class="kpi-label">Var. periodo</div>
           <div class="kpi-value" id="kpi-day">—</div>
           <div class="kpi-sub" id="kpi-day-pct"></div></div>
+        <div class="kpi" id="kpi-semaforo-box" style="cursor:pointer" onclick="toggleSemaforoDettaglio()">
+          <div class="kpi-label">Semaforo mercato</div>
+          <div class="kpi-value neu" id="kpi-semaforo"><span id="semaforo-dot" style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#8e8e93;margin-right:6px;vertical-align:baseline"></span>—</div>
+          <div class="kpi-sub" id="kpi-semaforo-sub">Caricamento…</div></div>
       </div>
     </div>
 
@@ -406,6 +410,7 @@ async function loadLastUpdate() {
 
 async function loadAll() {
   await Promise.all([loadSnapshots(), loadStrumenti(), loadTxFineco()]);
+  loadSemaforo(); // non bloccante
   renderKpi();
   renderAndamento();
   renderTorta();
@@ -426,6 +431,53 @@ async function loadAll() {
     renderStrumenti();
     renderVariazioni();
   }, 50);
+}
+
+// ─── SEMAFORO MERCATO ────────────────────────────────────
+var semaforoData = null;
+async function loadSemaforo() {
+  try {
+    semaforoData = await api('GET', '/api/semaforo');
+    var colori = { verde: '#34c759', giallo: '#ff9500', rosso: '#ff3b30' };
+    var dot = document.getElementById('semaforo-dot');
+    var val = document.getElementById('kpi-semaforo');
+    var sub = document.getElementById('kpi-semaforo-sub');
+    dot.style.background = colori[semaforoData.colore] || '#8e8e93';
+    val.innerHTML = '';
+    val.appendChild(dot);
+    val.appendChild(document.createTextNode(semaforoData.score + '/100'));
+    var top3 = semaforoData.dettagli.slice(0, 3).map(function(d) {
+      return d.nome.split(' ')[0] + ' ' + d.valore;
+    }).join(' · ');
+    sub.textContent = top3 + ' — tocca per dettagli';
+  } catch (e) {
+    var sub2 = document.getElementById('kpi-semaforo-sub');
+    if (sub2) sub2.textContent = 'Non disponibile';
+  }
+}
+
+function toggleSemaforoDettaglio() {
+  if (!semaforoData) return;
+  var existing = document.getElementById('semaforo-dettaglio');
+  if (existing) { existing.remove(); return; }
+  var box = document.getElementById('kpi-semaforo-box');
+  var div = document.createElement('div');
+  div.id = 'semaforo-dettaglio';
+  div.style.cssText = 'position:absolute;z-index:200;background:var(--surface);border:1px solid var(--gray2,#e5e5ea);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.15);padding:14px 16px;margin-top:6px;font-size:12px;min-width:260px';
+  var html = '<div style="font-weight:700;margin-bottom:8px">Indice timing investimenti</div>';
+  semaforoData.dettagli.forEach(function(d) {
+    var c = d.score >= 65 ? '#34c759' : d.score >= 35 ? '#ff9500' : '#ff3b30';
+    html += '<div style="display:flex;justify-content:space-between;gap:12px;padding:3px 0">'
+      + '<span>' + d.nome + '</span>'
+      + '<span style="white-space:nowrap"><b>' + d.valore + '</b> '
+      + '<span style="color:' + c + ';font-weight:700">' + d.score + '</span></span></div>';
+  });
+  html += '<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--gray2,#e5e5ea);color:var(--muted,#8e8e93)">'
+    + '🟢 ≥65 favorevole · 🟡 35-64 neutro · 🔴 <35 caro/euforico<br>'
+    + 'Agg. ' + new Date(semaforoData.ts).toLocaleString('it-IT', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) + ' (cache 6h)</div>';
+  div.innerHTML = html;
+  box.style.position = 'relative';
+  box.appendChild(div);
 }
 
 async function loadSnapshots() {
