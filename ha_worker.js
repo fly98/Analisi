@@ -110,6 +110,7 @@ export default {
             latitude: finalLat || null,
             longitude: finalLon || null,
             battery: tracker?.attributes?.battery_level || p.attributes.battery_level || null,
+            photo: tracker?.attributes?.entity_picture || p.attributes.entity_picture || null,
             source: source || null,
             gps_accuracy: tracker?.attributes?.gps_accuracy || p.attributes.gps_accuracy || null
           }
