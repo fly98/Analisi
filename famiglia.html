@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Famiglia</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, sans-serif; background: #1a1a2e; color: #eee; height: 100vh; display: flex; flex-direction: column; }
+  #header { padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; background: #16213e; }
+  h1 { font-size: 1.1rem; color: #e94560; }
+  #ts { font-size: 0.7rem; color: #666; }
+  #refresh-btn { background: #e94560; color: white; border: none; padding: 6px 14px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; }
+  #map { flex: 1; }
+  #members { background: #16213e; padding: 10px 16px; display: flex; gap: 8px; overflow-x: auto; }
+  .member-chip { background: #1a1a2e; border-radius: 20px; padding: 6px 12px; font-size: 0.8rem; cursor: pointer; white-space: nowrap; border: 1px solid #333; display: flex; align-items: center; gap: 6px; }
+  .member-chip.home { border-color: #4caf50; }
+  .member-chip.away { border-color: #e94560; }
+  .member-chip .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .member-chip.home .dot { background: #4caf50; }
+  .member-chip.away .dot { background: #e94560; }
+  #directions-bar { background: #0f3460; padding: 10px 16px; display: none; align-items: center; justify-content: space-between; }
+  #directions-bar .name { font-size: 0.9rem; font-weight: 600; }
+  #directions-btn { background: #007AFF; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 6px; }
+  #msg { text-align: center; padding: 20px; color: #aaa; font-size: 0.85rem; }
+</style>
+</head>
+<body>
+<div id="header">
+  <div>
+    <h1>👨‍👩‍👧‍👧 Famiglia</h1>
+    <div id="ts">Caricamento...</div>
+  </div>
+  <button id="refresh-btn" onclick="loadFamily()">⟳</button>
+</div>
+<div id="members"></div>
+<div id="directions-bar">
+  <div class="name" id="selected-name"></div>
+  <button id="directions-btn" onclick="openAppleMaps()">🗺 Indicazioni</button>
+</div>
+<div id="map"></div>
+
+<script>
+const WORKER = 'https://ha-worker.f-castiglioni.workers.dev'
+let map = null
+let markers = {}
+let selectedMember = null
+
+const COLORS = {
+  'Filippo': '#007AFF',
+  'Mena': '#e94560',
+  'viola': '#9c27b0',
+  'Alessia': '#ff9800',
+  'FILIPPO': '#007AFF'
+}
+
+function getColor(name) {
+  return COLORS[name] || '#4caf50'
+}
+
+function makeIcon(name, state) {
+  const color = getColor(name)
+  const initials = name.substring(0, 2).toUpperCase()
+  const opacity = state === 'home' ? '1' : '0.7'
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="50" viewBox="0 0 40 50">
+    <ellipse cx="20" cy="20" rx="18" ry="18" fill="${color}" fill-opacity="${opacity}" stroke="white" stroke-width="2"/>
+    <text x="20" y="26" text-anchor="middle" font-size="12" font-weight="bold" fill="white" font-family="-apple-system">${initials}</text>
+    <polygon points="20,46 12,30 28,30" fill="${color}" fill-opacity="${opacity}"/>
+  </svg>`
+  return L.divIcon({
+    html: svg,
+    iconSize: [40, 50],
+    iconAnchor: [20, 50],
+    popupAnchor: [0, -50],
+    className: ''
+  })
+}
+
+async function loadFamily() {
+  document.getElementById('ts').textContent = 'Aggiornamento...'
+  try {
+    const resp = await fetch(WORKER + '/family')
+    const members = await resp.json()
+
+    document.getElementById('ts').textContent = 'Aggiornato: ' + new Date().toLocaleTimeString('it-IT')
+
+    // Init mappa al primo caricamento
+    if (!map) {
+      // Centro sull'Italia
+      map = L.map('map').setView([41.9, 12.5], 6)
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap'
+      }).addTo(map)
+    }
+
+    // Pulisco marker vecchi
+    Object.values(markers).forEach(m => map.removeLayer(m))
+    markers = {}
+
+    const membersDiv = document.getElementById('members')
+    membersDiv.innerHTML = ''
+
+    const withCoords = members.filter(m => m.latitude && m.longitude)
+    const bounds = []
+
+    members.forEach(m => {
+      // Chip membro
+      const chip = document.createElement('div')
+      chip.className = `member-chip ${m.state === 'home' ? 'home' : 'away'}`
+      chip.innerHTML = `<div class="dot"></div>${m.name}${m.battery ? ' 🔋' + m.battery + '%' : ''}`
+      chip.onclick = () => selectMember(m)
+      membersDiv.appendChild(chip)
+
+      // Marker mappa
+      if (m.latitude && m.longitude) {
+        const marker = L.marker([m.latitude, m.longitude], { icon: makeIcon(m.name, m.state) })
+          .addTo(map)
+          .bindPopup(`<b>${m.name}</b><br>${m.state}${m.battery ? '<br>🔋 ' + m.battery + '%' : ''}`)
+        marker.on('click', () => selectMember(m))
+        markers[m.id] = marker
+        bounds.push([m.latitude, m.longitude])
+      }
+    })
+
+    if (bounds.length > 0) {
+      map.fitBounds(bounds, { padding: [40, 40] })
+    }
+
+  } catch(e) {
+    document.getElementById('ts').textContent = 'Errore: ' + e.message
+  }
+}
+
+function selectMember(m) {
+  selectedMember = m
+  const bar = document.getElementById('directions-bar')
+  if (m.latitude && m.longitude) {
+    document.getElementById('selected-name').textContent = m.name
+    bar.style.display = 'flex'
+    if (markers[m.id]) {
+      map.setView([m.latitude, m.longitude], 15)
+      markers[m.id].openPopup()
+    }
+  } else {
+    bar.style.display = 'none'
+  }
+}
+
+function openAppleMaps() {
+  if (!selectedMember?.latitude) return
+  const url = `https://maps.apple.com/?daddr=${selectedMember.latitude},${selectedMember.longitude}&dirflg=d`
+  window.open(url, '_blank')
+}
+
+loadFamily()
+setInterval(loadFamily, 60000) // aggiorna ogni minuto
+</script>
+</body>
+</html>
