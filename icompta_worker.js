@@ -1064,6 +1064,96 @@ var icompta_worker_default = {
       }
     }
 
+    // ── SEMAFORO MERCATO (indice timing investimenti) ──────────
+    if (path === '/api/semaforo' && method === 'GET') {
+      // Cache 6 ore
+      const cached = await env.ICOMPTA_KV.get('icompta:semaforo');
+      if (cached && !url.searchParams.get('force')) {
+        const c = JSON.parse(cached);
+        if (Date.now() - c.ts < 6 * 3600 * 1000) return json(c);
+      }
+
+      const UA = { 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36' };
+      const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+      const dettagli = [];
+
+      // 1. Trend S&P500 vs MA200 (peso 30) — score alto = trend sano
+      try {
+        const r = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/%5EGSPC?range=1y&interval=1d', { headers: UA });
+        const j = await r.json();
+        const closes = (j.chart.result[0].indicators.quote[0].close || []).filter(x => x != null);
+        const last = closes[closes.length - 1];
+        const ma200 = closes.slice(-200).reduce((a, b) => a + b, 0) / Math.min(200, closes.length);
+        const gap = (last / ma200 - 1) * 100;
+        dettagli.push({ nome: 'Trend S&P500 vs MA200', valore: (gap >= 0 ? '+' : '') + gap.toFixed(1) + '%', score: Math.round(clamp(50 + gap * 4, 0, 100)), peso: 30 });
+      } catch (e) {}
+
+      // 2. VIX (peso 15) — contrarian: paura alta = opportunità
+      try {
+        const r = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/%5EVIX', { headers: UA });
+        const j = await r.json();
+        const vix = j.chart.result[0].meta.regularMarketPrice;
+        dettagli.push({ nome: 'VIX (paura)', valore: vix.toFixed(1), score: Math.round(clamp((vix - 12) / 23 * 100, 0, 100)), peso: 15 });
+      } catch (e) {}
+
+      // 3. Fear & Greed CNN (peso 15) — contrarian
+      try {
+        const r = await fetch('https://production.dataviz.cnn.io/index/fearandgreed/graphdata', { headers: UA });
+        const j = await r.json();
+        const fg = j.fear_and_greed.score;
+        dettagli.push({ nome: 'Fear & Greed', valore: Math.round(fg) + '/100', score: Math.round(clamp(100 - fg, 0, 100)), peso: 15 });
+      } catch (e) {}
+
+      // 4. CAPE Shiller (peso 15) — valutazione: basso = conveniente
+      try {
+        const r = await fetch('https://www.multpl.com/shiller-pe', { headers: UA });
+        const html = await r.text();
+        const m = html.match(/Current Shiller PE Ratio[\s\S]{0,200}?(\d+\.\d+)/i);
+        if (m) {
+          const cape = parseFloat(m[1]);
+          dettagli.push({ nome: 'CAPE Shiller', valore: cape.toFixed(1), score: Math.round(clamp((45 - cape) / 20 * 100, 0, 100)), peso: 15 });
+        }
+      } catch (e) {}
+
+      // 5. Curva rendimenti 10y-2y FRED (peso 12) — positiva = sana
+      try {
+        const r = await fetch('https://fred.stlouisfed.org/graph/fredgraph.csv?id=T10Y2Y', { headers: UA });
+        const rows = (await r.text()).trim().split('\n');
+        let spread = null;
+        for (let i = rows.length - 1; i > 0; i--) {
+          const v = rows[i].split(',')[1];
+          if (v && v !== '.') { spread = parseFloat(v); break; }
+        }
+        if (spread != null) {
+          dettagli.push({ nome: 'Curva 10a-2a', valore: (spread >= 0 ? '+' : '') + spread.toFixed(2) + '%', score: Math.round(clamp(50 + spread * 50, 0, 100)), peso: 12 });
+        }
+      } catch (e) {}
+
+      // 6. Credit spread High Yield FRED (peso 13) — basso = sistema sano
+      try {
+        const r = await fetch('https://fred.stlouisfed.org/graph/fredgraph.csv?id=BAMLH0A0HYM2', { headers: UA });
+        const rows = (await r.text()).trim().split('\n');
+        let hy = null;
+        for (let i = rows.length - 1; i > 0; i--) {
+          const v = rows[i].split(',')[1];
+          if (v && v !== '.') { hy = parseFloat(v); break; }
+        }
+        if (hy != null) {
+          dettagli.push({ nome: 'Spread High Yield', valore: hy.toFixed(2) + '%', score: Math.round(clamp((6.5 - hy) / 4 * 100, 0, 100)), peso: 13 });
+        }
+      } catch (e) {}
+
+      if (!dettagli.length) return err('Nessun indicatore disponibile', 502);
+
+      // Punteggio pesato (rinormalizza sui pesi disponibili)
+      const pesoTot = dettagli.reduce((a, d) => a + d.peso, 0);
+      const score = Math.round(dettagli.reduce((a, d) => a + d.score * d.peso, 0) / pesoTot);
+      const colore = score >= 65 ? 'verde' : score >= 35 ? 'giallo' : 'rosso';
+      const risultato = { score, colore, dettagli, ts: Date.now(), aggiornato: new Date().toISOString() };
+      await env.ICOMPTA_KV.put('icompta:semaforo', JSON.stringify(risultato));
+      return json(risultato);
+    }
+
     return err("Endpoint non trovato", 404);
   }
 };
