@@ -467,7 +467,7 @@ const EXP_PROP = {
       taxi_corpo:`Offriamo un servizio transfer privato dagli aeroporti di Roma al costo di 65 € (fino a 4 persone). Se desidera prenotarlo, la prego di rispondere a questa email indicando aeroporto di arrivo, numero del volo e orario esatto.`,
       chiusura:`La ringrazio nuovamente per la fiducia e resto a completa disposizione per qualsiasi informazione o richiesta.`,
       firma:`A presto,<br><b>Filippo</b><br>InternoUno<br>📍 Via Campaldino 6, 00162 Roma<br>📞 Tel. e WhatsApp: +39 392 299 9914<br>✉️ info@interno1.it`,
-      url:`https://fly98.github.io/Analisi/campaldino.html`,
+      url:`https://interno1.it/campaldino/`,
     },
     en: {
       grazie:`thank you for choosing InternoUno, and I confirm your booking.`,
@@ -481,7 +481,7 @@ const EXP_PROP = {
       taxi_corpo:`We offer a private transfer service from Rome's airports at a cost of €65 (up to 4 people). If you'd like to book it, please reply to this email with your arrival airport, flight number, and exact arrival time.`,
       chiusura:`Thank you again for your trust — I remain fully available for any information or request.`,
       firma:`See you soon,<br><b>Filippo</b><br>InternoUno<br>📍 Via Campaldino 6, 00162 Rome, Italy<br>📞 Phone and WhatsApp: +39 392 299 9914<br>✉️ info@interno1.it`,
-      url:`https://fly98.github.io/Analisi/campaldino.html`,
+      url:`https://interno1.it/campaldino/`,
     },
     es: {
       grazie:`le agradezco que haya elegido InternoUno y le confirmo su reserva.`,
@@ -495,7 +495,7 @@ const EXP_PROP = {
       taxi_corpo:`Ofrecemos un servicio de traslado privado desde los aeropuertos de Roma con un coste de 65 € (hasta 4 personas). Si desea reservarlo, le rogamos que responda a este correo indicando el aeropuerto de llegada, el número de vuelo y la hora exacta de llegada.`,
       chiusura:`Le agradezco nuevamente su confianza y quedo a su entera disposición para cualquier información o solicitud.`,
       firma:`Hasta pronto,<br><b>Filippo</b><br>InternoUno<br>📍 Via Campaldino 6, 00162 Roma, Italia<br>📞 Tel. y WhatsApp: +39 392 299 9914<br>✉️ info@interno1.it`,
-      url:`https://fly98.github.io/Analisi/campaldino.html`,
+      url:`https://interno1.it/campaldino/`,
     },
     fr: {
       grazie:`je vous remercie d'avoir choisi InternoUno et je vous confirme votre réservation.`,
@@ -509,7 +509,7 @@ const EXP_PROP = {
       taxi_corpo:`Nous proposons un service de transfert privé depuis les aéroports de Rome au coût de 65 € (jusqu'à 4 personnes). Si vous souhaitez le réserver, merci de répondre à cet email en indiquant l'aéroport d'arrivée, le numéro de vol et l'heure exacte d'arrivée.`,
       chiusura:`Je vous remercie encore pour votre confiance et reste à votre entière disposition pour toute information ou demande.`,
       firma:`À bientôt,<br><b>Filippo</b><br>InternoUno<br>📍 Via Campaldino 6, 00162 Rome, Italie<br>📞 Tél. et WhatsApp : +39 392 299 9914<br>✉️ info@interno1.it`,
-      url:`https://fly98.github.io/Analisi/campaldino.html`,
+      url:`https://interno1.it/campaldino/`,
     },
     de: {
       grazie:`vielen Dank, dass Sie sich für InternoUno entschieden haben. Hiermit bestätige ich Ihre Reservierung.`,
@@ -523,7 +523,7 @@ const EXP_PROP = {
       taxi_corpo:`Wir bieten einen privaten Transferservice von den Flughäfen Roms zum Preis von 65 € (bis zu 4 Personen) an. Falls Sie ihn buchen möchten, antworten Sie bitte auf diese E-Mail mit Ankunftsflughafen, Flugnummer und genauer Ankunftszeit.`,
       chiusura:`Ich danke Ihnen nochmals für Ihr Vertrauen und stehe Ihnen für jegliche Informationen oder Anfragen gerne zur Verfügung.`,
       firma:`Bis bald,<br><b>Filippo</b><br>InternoUno<br>📍 Via Campaldino 6, 00162 Rom, Italien<br>📞 Tel. und WhatsApp: +39 392 299 9914<br>✉️ info@interno1.it`,
-      url:`https://fly98.github.io/Analisi/campaldino.html`,
+      url:`https://interno1.it/campaldino/`,
     },
     pt: {
       grazie:`agradeço por ter escolhido a InternoUno e confirmo a sua reserva.`,
@@ -537,7 +537,7 @@ const EXP_PROP = {
       taxi_corpo:`Oferecemos um serviço de transfer privado a partir dos aeroportos de Roma, a um custo de 65 € (até 4 pessoas). Se desejar reservá-lo, agradeço que responda a este email indicando o aeroporto de chegada, o número do voo e a hora exata de chegada.`,
       chiusura:`Agradeço novamente a sua confiança e permaneço à sua inteira disposição para qualquer informação ou pedido.`,
       firma:`Até breve,<br><b>Filippo</b><br>InternoUno<br>📍 Via Campaldino 6, 00162 Roma, Itália<br>📞 Tel. e WhatsApp: +39 392 299 9914<br>✉️ info@interno1.it`,
-      url:`https://fly98.github.io/Analisi/campaldino.html`,
+      url:`https://interno1.it/campaldino/`,
     },
     zh: {
       grazie:`感谢您选择 InternoUno，现确认您的预订。`,
@@ -551,7 +551,7 @@ const EXP_PROP = {
       taxi_corpo:`我们提供从罗马各机场出发的私人接送服务，4人以内收费65欧元。如需预订，请回复此邮件并告知抵达机场、航班号及准确到达时间。`,
       chiusura:`再次感谢您的信任，如有任何问题或需求，我随时为您服务。`,
       firma:`期待再见，<br><b>Filippo</b><br>InternoUno<br>📍 地址：Via Campaldino 6, 00162 罗马<br>📞 电话 / WhatsApp：+39 392 299 9914<br>✉️ 邮箱：info@interno1.it`,
-      url:`https://fly98.github.io/Analisi/campaldino.html`,
+      url:`https://interno1.it/campaldino/`,
     },
   },
   lor: {
@@ -567,7 +567,7 @@ const EXP_PROP = {
       taxi_corpo:`È disponibile un servizio di transfer privato da e per l'aeroporto, al costo di 65 € fino a 4 persone. Se desidera prenotarlo, la prego di rispondere a questa email indicando l'aeroporto di arrivo, il numero del volo e l'orario esatto di arrivo.`,
       chiusura:`La ringrazio nuovamente per la fiducia e le porgo i miei più cordiali saluti. Non vedo l'ora di accoglierla a Roma!`,
       firma:`Filippo<br><b>InternoUno Deluxe</b><br>📍 Via Lorenzo il Magnifico 158, 00162 Roma<br>📞 Tel / WhatsApp: +39 392 299 9914<br>✉️ info@interno1.it`,
-      url:`https://fly98.github.io/Analisi/lorenzo.html`,
+      url:`https://interno1.it/lorenzo/`,
     },
     en: {
       grazie:`thank you for choosing InternoUno Deluxe, and I confirm your booking.`,
@@ -581,7 +581,7 @@ const EXP_PROP = {
       taxi_corpo:`A private airport transfer service is available, at a cost of €65 for up to 4 people. If you'd like to book it, please reply to this email with your arrival airport, flight number, and exact arrival time.`,
       chiusura:`Thank you again for your trust, and best regards. I look forward to welcoming you to Rome!`,
       firma:`Filippo<br><b>InternoUno Deluxe</b><br>📍 Via Lorenzo il Magnifico 158, 00162 Rome, Italy<br>📞 Phone / WhatsApp: +39 392 299 9914<br>✉️ info@interno1.it`,
-      url:`https://fly98.github.io/Analisi/lorenzo.html`,
+      url:`https://interno1.it/lorenzo/`,
     },
     es: {
       grazie:`le agradezco que haya elegido InternoUno Deluxe y le confirmo su reserva.`,
@@ -595,7 +595,7 @@ const EXP_PROP = {
       taxi_corpo:`Disponemos de un servicio de traslado privado desde/hacia el aeropuerto, con un coste de 65 € para hasta 4 personas. Si desea reservarlo, le rogamos que responda a este correo indicando el aeropuerto de llegada, el número de vuelo y la hora exacta de llegada.`,
       chiusura:`Le agradezco nuevamente su confianza y le envío un cordial saludo. ¡Estoy deseando darle la bienvenida a Roma!`,
       firma:`Filippo<br><b>InternoUno Deluxe</b><br>📍 Via Lorenzo il Magnifico 158, 00162 Roma, Italia<br>📞 Tel / WhatsApp: +39 392 299 9914<br>✉️ info@interno1.it`,
-      url:`https://fly98.github.io/Analisi/lorenzo.html`,
+      url:`https://interno1.it/lorenzo/`,
     },
     fr: {
       grazie:`je vous remercie d'avoir choisi InternoUno Deluxe et je vous confirme votre réservation.`,
@@ -609,7 +609,7 @@ const EXP_PROP = {
       taxi_corpo:`Un service de transfert privé depuis/vers l'aéroport est disponible, au coût de 65 € jusqu'à 4 personnes. Si vous souhaitez le réserver, merci de répondre à cet email en indiquant l'aéroport d'arrivée, le numéro de vol et l'heure exacte d'arrivée.`,
       chiusura:`Je vous remercie encore pour votre confiance et vous prie d'agréer mes salutations les plus cordiales. J'ai hâte de vous accueillir à Rome !`,
       firma:`Filippo<br><b>InternoUno Deluxe</b><br>📍 Via Lorenzo il Magnifico 158, 00162 Rome, Italie<br>📞 Tél / WhatsApp : +39 392 299 9914<br>✉️ info@interno1.it`,
-      url:`https://fly98.github.io/Analisi/lorenzo.html`,
+      url:`https://interno1.it/lorenzo/`,
     },
     de: {
       grazie:`vielen Dank, dass Sie sich für InternoUno Deluxe entschieden haben. Hiermit bestätige ich Ihre Reservierung.`,
@@ -623,7 +623,7 @@ const EXP_PROP = {
       taxi_corpo:`Ein privater Flughafentransferservice ist verfügbar, zum Preis von 65 € für bis zu 4 Personen. Falls Sie ihn buchen möchten, antworten Sie bitte auf diese E-Mail mit Ankunftsflughafen, Flugnummer und genauer Ankunftszeit.`,
       chiusura:`Ich danke Ihnen nochmals für Ihr Vertrauen und verbleibe mit freundlichen Grüßen. Ich freue mich darauf, Sie in Rom willkommen zu heißen!`,
       firma:`Filippo<br><b>InternoUno Deluxe</b><br>📍 Via Lorenzo il Magnifico 158, 00162 Rom, Italien<br>📞 Tel / WhatsApp: +39 392 299 9914<br>✉️ info@interno1.it`,
-      url:`https://fly98.github.io/Analisi/lorenzo.html`,
+      url:`https://interno1.it/lorenzo/`,
     },
     pt: {
       grazie:`agradeço por ter escolhido a InternoUno Deluxe e confirmo a sua reserva.`,
@@ -637,7 +637,7 @@ const EXP_PROP = {
       taxi_corpo:`Está disponível um serviço de transfer privado de/para o aeroporto, a um custo de 65 € até 4 pessoas. Se desejar reservá-lo, agradeço que responda a este email indicando o aeroporto de chegada, o número do voo e a hora exata de chegada.`,
       chiusura:`Agradeço novamente a sua confiança e envio os meus melhores cumprimentos. Estou ansioso por recebê-lo em Roma!`,
       firma:`Filippo<br><b>InternoUno Deluxe</b><br>📍 Via Lorenzo il Magnifico 158, 00162 Roma, Itália<br>📞 Tel / WhatsApp: +39 392 299 9914<br>✉️ info@interno1.it`,
-      url:`https://fly98.github.io/Analisi/lorenzo.html`,
+      url:`https://interno1.it/lorenzo/`,
     },
     zh: {
       grazie:`感谢您选择 InternoUno Deluxe，现确认您的预订。`,
@@ -651,7 +651,7 @@ const EXP_PROP = {
       taxi_corpo:`我们提供私人机场接送服务，4人以内收费65欧元。如需预订，请回复此邮件并告知抵达机场、航班号及准确到达时间。`,
       chiusura:`再次感谢您的信任，致以最诚挚的问候。期待在罗马迎接您的到来！`,
       firma:`Filippo<br><b>InternoUno Deluxe</b><br>📍 地址：Via Lorenzo il Magnifico 158, 00162 罗马<br>📞 电话 / WhatsApp：+39 392 299 9914<br>✉️ 邮箱：info@interno1.it`,
-      url:`https://fly98.github.io/Analisi/lorenzo.html`,
+      url:`https://interno1.it/lorenzo/`,
     },
   },
 };
@@ -1164,7 +1164,12 @@ async function runAutoSend(env, testMode) {
 
     const result = await sendGmailHtml(env, email, subject, html);
     if (result.ok) {
-      await env.ARRIVI_KV.put(kvKey, new Date().toISOString());
+      const sentAt = new Date().toISOString();
+      await env.ARRIVI_KV.put(kvKey, sentAt);
+      await env.ARRIVI_KV.put(`expauto_log_${sentAt.slice(0,10)}_${bookingId}`, JSON.stringify({
+        bookingId, nome, cognome, email, propKey, propName,
+        lng, source: b.source || "", roomName, checkin: b.checkin, checkout: b.checkout, sentAt
+      }));
       inviate++;
       dettagli.push({ bookingId, email, propKey, lng, sent: true });
     } else {
@@ -1294,6 +1299,26 @@ export default {
         }
         voci.sort((a, b) => (a.sentAt || "").localeCompare(b.sentAt || ""));
         return new Response(JSON.stringify({ date: date2, count: voci.length, voci }), {
+          headers: { ...CORS, "Content-Type": "application/json" }
+        });
+      }
+
+      if (action === "getAutoSendLog") {
+        const dateA = url.searchParams.get("date");
+        if (!dateA) {
+          return new Response(JSON.stringify({ error: "Parametro date mancante" }), {
+            status: 400, headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        }
+        const prefixA = `expauto_log_${dateA}_`;
+        const listA = await env.ARRIVI_KV.list({ prefix: prefixA });
+        const vociA = [];
+        for (const key of listA.keys) {
+          const val = await env.ARRIVI_KV.get(key.name);
+          if (val) { try { vociA.push(JSON.parse(val)); } catch (e) {} }
+        }
+        vociA.sort((a, b) => (a.sentAt || "").localeCompare(b.sentAt || ""));
+        return new Response(JSON.stringify({ date: dateA, count: vociA.length, voci: vociA }), {
           headers: { ...CORS, "Content-Type": "application/json" }
         });
       }
