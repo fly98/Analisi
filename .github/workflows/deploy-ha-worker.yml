@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - 'ha_worker.js'
+      - 'wrangler_ha.toml'
   workflow_dispatch:
 
 jobs:
@@ -17,4 +18,4 @@ jobs:
         with:
           apiToken: ${{ secrets.CF_API_TOKEN }}
           accountId: ${{ secrets.CF_ACCOUNT_ID }}
-          command: deploy ha_worker.js --name ha-worker --compatibility-date 2024-01-01
+          command: deploy --config wrangler_ha.toml
