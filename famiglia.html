@@ -6,45 +6,47 @@
 <title>Famiglia</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #14110e;
-    --stone: #2a2622;
-    --stone-2: #3a352f;
-    --line: #4a443c;
-    --limestone: #e8e0d4;
-    --ochre: #c9a15e;
-    --patina: #7c9a82;
-    --muted: #9a9184;
+    --bg: #14110e; --stone: #2a2622; --stone-2: #3a352f; --line: #4a443c;
+    --limestone: #e8e0d4; --ochre: #c9a15e; --patina: #7c9a82; --muted: #9a9184;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--limestone); padding: 16px; max-width: 720px; margin: 0 auto; }
-  h1 { font-family: 'Fraunces', serif; font-size: 1.6rem; color: var(--ochre); margin-bottom: 2px; }
+  h1 { font-family: 'Fraunces', serif; font-size: 1.7rem; color: var(--ochre); }
   .sub { font-size: 0.75rem; color: var(--muted); margin-bottom: 16px; }
   .person-card { background: var(--stone); border: 1px solid var(--line); border-radius: 16px; margin-bottom: 16px; overflow: hidden; }
   .person-head { display: flex; align-items: center; gap: 12px; padding: 14px 16px; }
-  .avatar { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Fraunces', serif; font-weight: 700; font-size: 1.1rem; color: #241a12; flex-shrink: 0; }
+  .avatar { width: 46px; height: 46px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Fraunces', serif; font-weight: 700; font-size: 1.2rem; color: #241a12; flex-shrink: 0; }
   .person-info { flex: 1; min-width: 0; }
-  .person-name { font-family: 'Fraunces', serif; font-weight: 600; font-size: 1.05rem; }
+  .person-name { font-family: 'Fraunces', serif; font-weight: 600; font-size: 1.1rem; }
   .person-status { font-size: 0.78rem; color: var(--muted); display: flex; align-items: center; gap: 6px; margin-top: 2px; }
   .status-dot { width: 8px; height: 8px; border-radius: 50%; }
   .status-dot.home { background: var(--patina); }
   .status-dot.away { background: var(--ochre); }
-  .battery { font-size: 0.72rem; color: var(--muted); }
   .tabs { display: flex; gap: 4px; padding: 0 16px; border-bottom: 1px solid var(--line); }
-  .tab { padding: 8px 14px; font-size: 0.82rem; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+  .tab { padding: 9px 14px; font-size: 0.82rem; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; font-weight: 500; }
   .tab.active { color: var(--ochre); border-bottom-color: var(--ochre); }
-  .tab-content { padding: 0; }
-  .mini-map { width: 100%; height: 200px; background: var(--stone-2); }
+  .mini-map { width: 100%; height: 220px; background: var(--stone-2); }
   .map-actions { display: flex; gap: 8px; padding: 12px 16px; }
-  .nav-btn { flex: 1; background: rgba(124,154,130,0.14); color: var(--patina); border: none; padding: 10px; border-radius: 10px; font-size: 0.85rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; font-family: 'Inter', sans-serif; }
-  .history-panel { padding: 16px; }
-  .history-soon { text-align: center; color: var(--muted); padding: 30px 16px; font-size: 0.88rem; line-height: 1.5; }
+  .nav-btn { flex: 1; background: rgba(124,154,130,0.14); color: var(--patina); border: none; padding: 11px; border-radius: 10px; font-size: 0.85rem; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; }
+  .history-panel { padding: 14px 16px; }
+  .day-picker { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 4px; }
+  .day-chip { background: var(--stone-2); border: 1px solid var(--line); color: var(--limestone); padding: 8px 12px; border-radius: 10px; font-size: 0.78rem; cursor: pointer; white-space: nowrap; flex-shrink: 0; text-align: center; line-height: 1.3; }
+  .day-chip.active { background: var(--ochre); color: #241a12; border-color: var(--ochre); font-weight: 600; }
+  .day-chip .dow { display: block; font-size: 0.68rem; opacity: 0.8; }
+  .timeline { margin-top: 12px; }
+  .tl-item { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px solid rgba(74,68,60,0.4); }
+  .tl-time { font-size: 0.75rem; color: var(--ochre); font-weight: 600; min-width: 90px; flex-shrink: 0; }
+  .tl-desc { font-size: 0.82rem; color: var(--limestone); }
+  .tl-sub { font-size: 0.72rem; color: var(--muted); margin-top: 1px; }
+  .tl-icon { font-size: 0.9rem; }
+  .loading { text-align: center; color: var(--muted); padding: 24px; font-size: 0.85rem; }
   .refresh { background: var(--ochre); color: #241a12; border: none; padding: 8px 16px; border-radius: 10px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; font-size: 0.85rem; margin-bottom: 16px; }
-  .marker-pin { width: 26px; height: 26px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); border: 2px solid var(--stone); box-shadow: 0 2px 6px rgba(0,0,0,0.4); }
-  .me-dot { width: 18px; height: 18px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 0 5px rgba(74,158,255,0.3); }
-  #err { color: #e07a5f; font-size: 0.82rem; margin-bottom: 12px; min-height: 16px; }
+  .marker-pin { width: 24px; height: 24px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); border: 2px solid var(--stone); box-shadow: 0 2px 6px rgba(0,0,0,0.4); }
+  #err { color: #e07a5f; font-size: 0.82rem; margin-bottom: 12px; min-height: 14px; }
+  .leaflet-container { background: var(--stone-2); }
 </style>
 </head>
 <body>
@@ -56,29 +58,20 @@
 
 <script>
 const WORKER = 'https://ha-worker.f-castiglioni.workers.dev'
-const HOME = { lat: 41.954724, lon: 12.513661 }
+const COLORS = { 'Filippo': '#4a9eff', 'Mena': '#e07a5f', 'viola': '#b088d9', 'Viola': '#b088d9', 'Alessia': '#e0a458' }
+const liveMaps = {}, histMaps = {}
+const memberData = {}
 
-const COLORS = {
-  'Filippo': '#4a9eff', 'Mena': '#e07a5f', 'viola': '#b088d9',
-  'Alessia': '#e0a458', 'FILIPPO': '#7c9a82'
+function colorFor(n) { return COLORS[n] || '#7c9a82' }
+function pinIcon(name) {
+  return L.divIcon({ className: '', html: `<div class="marker-pin" style="background:${colorFor(name)}"></div>`, iconSize: [24,24], iconAnchor: [12,24] })
 }
-const maps = {}
-
-function colorFor(name) { return COLORS[name] || '#7c9a82' }
-
-function personMarkerIcon(name) {
-  const c = colorFor(name)
-  return L.divIcon({
-    className: '',
-    html: `<div class="marker-pin" style="background:${c}"></div>`,
-    iconSize: [26, 26], iconAnchor: [13, 26]
-  })
+function dotIcon(name, big) {
+  const s = big ? 16 : 10
+  return L.divIcon({ className: '', html: `<div style="width:${s}px;height:${s}px;border-radius:50%;background:${colorFor(name)};border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.5)"></div>`, iconSize: [s,s], iconAnchor: [s/2,s/2] })
 }
-
-function initTiles(map) {
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-    attribution: '© OpenStreetMap © CARTO', maxZoom: 20
-  }).addTo(map)
+function tiles(map) {
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { attribution: '© OSM © CARTO', maxZoom: 20 }).addTo(map)
 }
 
 async function loadFamily() {
@@ -86,25 +79,20 @@ async function loadFamily() {
   try {
     const resp = await fetch(WORKER + '/family')
     const members = await resp.json()
-    if (!Array.isArray(members)) {
-      document.getElementById('err').textContent = 'Errore: ' + JSON.stringify(members)
-      return
-    }
+    if (!Array.isArray(members)) { document.getElementById('err').textContent = 'Errore: ' + JSON.stringify(members); return }
     document.getElementById('ts').textContent = 'Aggiornato ' + new Date().toLocaleTimeString('it-IT')
     render(members)
-  } catch(e) {
-    document.getElementById('err').textContent = 'Errore: ' + e.message
-  }
+  } catch(e) { document.getElementById('err').textContent = 'Errore: ' + e.message }
 }
 
 function render(members) {
   const container = document.getElementById('people')
   container.innerHTML = ''
-
-  members.forEach((m, idx) => {
+  members.forEach(m => {
     const isHome = m.state === 'home'
     const hasGps = m.latitude && m.longitude
-    const safeId = m.id.replace(/[^a-z0-9]/gi, '_')
+    const sid = m.id.replace(/[^a-z0-9]/gi, '_')
+    memberData[sid] = m
 
     const card = document.createElement('div')
     card.className = 'person-card'
@@ -113,57 +101,164 @@ function render(members) {
         <div class="avatar" style="background:${colorFor(m.name)}">${m.name.substring(0,1).toUpperCase()}</div>
         <div class="person-info">
           <div class="person-name">${m.name}</div>
-          <div class="person-status">
-            <span class="status-dot ${isHome ? 'home' : 'away'}"></span>
-            ${isHome ? 'A casa' : 'Fuori'}
-            ${m.battery != null ? `<span class="battery">· 🔋 ${m.battery}%</span>` : ''}
-          </div>
+          <div class="person-status"><span class="status-dot ${isHome?'home':'away'}"></span>${isHome?'A casa':'Fuori'}${m.battery!=null?` · 🔋 ${m.battery}%`:''}</div>
         </div>
       </div>
       <div class="tabs">
-        <div class="tab active" onclick="switchTab('${safeId}','live',this)">Posizione</div>
-        <div class="tab" onclick="switchTab('${safeId}','history',this)">Storico</div>
+        <div class="tab active" onclick="switchTab('${sid}','live',this)">Posizione</div>
+        <div class="tab" onclick="switchTab('${sid}','history',this)">Storico</div>
       </div>
-      <div class="tab-content">
-        <div id="live-${safeId}">
-          ${hasGps ? `<div class="mini-map" id="map-${safeId}"></div>
-          <div class="map-actions">
-            <button class="nav-btn" onclick="openMaps(${m.latitude},${m.longitude})">🗺 Indicazioni</button>
-          </div>` : `<div class="history-soon">Posizione GPS non disponibile</div>`}
-        </div>
-        <div id="history-${safeId}" style="display:none">
-          <div class="history-soon">📍 Lo storico dei movimenti sarà disponibile a breve.<br>Stiamo iniziando a registrare i tracciati da oggi.</div>
-        </div>
+      <div id="live-${sid}">
+        ${hasGps ? `<div class="mini-map" id="map-${sid}"></div>
+        <div class="map-actions"><button class="nav-btn" onclick="openMaps(${m.latitude},${m.longitude})">🗺 Indicazioni</button></div>`
+        : `<div class="loading">Posizione GPS non disponibile</div>`}
       </div>
-    `
+      <div id="history-${sid}" style="display:none">
+        <div class="history-panel">
+          <div class="day-picker" id="days-${sid}"></div>
+          <div class="mini-map" id="histmap-${sid}" style="border-radius:12px;margin-top:4px"></div>
+          <div class="timeline" id="timeline-${sid}"></div>
+        </div>
+      </div>`
     container.appendChild(card)
 
-    if (hasGps) {
-      setTimeout(() => {
-        const map = L.map(`map-${safeId}`, { zoomControl: false, attributionControl: false })
-          .setView([m.latitude, m.longitude], 17)
-        initTiles(map)
-        L.marker([m.latitude, m.longitude], { icon: personMarkerIcon(m.name) }).addTo(map)
-        maps[safeId] = map
-        setTimeout(() => map.invalidateSize(), 100)
-      }, 50)
-    }
+    if (hasGps) setTimeout(() => {
+      const map = L.map(`map-${sid}`, { zoomControl: false, attributionControl: false }).setView([m.latitude, m.longitude], 17)
+      tiles(map)
+      L.marker([m.latitude, m.longitude], { icon: pinIcon(m.name) }).addTo(map)
+      liveMaps[sid] = map
+      setTimeout(() => map.invalidateSize(), 120)
+    }, 50)
   })
 }
 
-function switchTab(safeId, tab, el) {
+function switchTab(sid, tab, el) {
   el.parentElement.querySelectorAll('.tab').forEach(t => t.classList.remove('active'))
   el.classList.add('active')
-  document.getElementById(`live-${safeId}`).style.display = tab === 'live' ? 'block' : 'none'
-  document.getElementById(`history-${safeId}`).style.display = tab === 'history' ? 'block' : 'none'
-  if (tab === 'live' && maps[safeId]) {
-    setTimeout(() => maps[safeId].invalidateSize(), 100)
+  document.getElementById(`live-${sid}`).style.display = tab === 'live' ? 'block' : 'none'
+  document.getElementById(`history-${sid}`).style.display = tab === 'history' ? 'block' : 'none'
+  if (tab === 'live' && liveMaps[sid]) setTimeout(() => liveMaps[sid].invalidateSize(), 120)
+  if (tab === 'history') buildDayPicker(sid)
+}
+
+function buildDayPicker(sid) {
+  const box = document.getElementById(`days-${sid}`)
+  if (box.dataset.built) return
+  box.dataset.built = '1'
+  const dows = ['Dom','Lun','Mar','Mer','Gio','Ven','Sab']
+  const today = new Date()
+  let html = ''
+  for (let i = 0; i < 10; i++) {
+    const d = new Date(today.getTime() - i * 86400000)
+    const iso = d.toISOString().slice(0,10)
+    const label = i === 0 ? 'Oggi' : i === 1 ? 'Ieri' : d.getDate() + '/' + (d.getMonth()+1)
+    html += `<div class="day-chip ${i===0?'active':''}" data-date="${iso}" onclick="selectDay('${sid}','${iso}',this)">
+      <span class="dow">${dows[d.getDay()]}</span>${label}</div>`
+  }
+  box.innerHTML = html
+  const iso = today.toISOString().slice(0,10)
+  selectDay(sid, iso, box.querySelector('.day-chip'))
+}
+
+async function selectDay(sid, date, el) {
+  el.parentElement.querySelectorAll('.day-chip').forEach(c => c.classList.remove('active'))
+  el.classList.add('active')
+  const name = memberData[sid].name
+  const tl = document.getElementById(`timeline-${sid}`)
+  tl.innerHTML = '<div class="loading">Caricamento tracciato…</div>'
+
+  try {
+    const resp = await fetch(`${WORKER}/history_family?date=${date}`)
+    const data = await resp.json()
+    const points = data[name] || data[name.charAt(0).toUpperCase()+name.slice(1)] || []
+    drawHistory(sid, name, points)
+  } catch(e) {
+    tl.innerHTML = '<div class="loading">Errore: ' + e.message + '</div>'
   }
 }
 
-function openMaps(lat, lon) {
-  window.open(`https://maps.apple.com/?daddr=${lat},${lon}&dirflg=d`, '_blank')
+function drawHistory(sid, name, points) {
+  const mapId = `histmap-${sid}`
+  const tl = document.getElementById(`timeline-${sid}`)
+
+  if (histMaps[sid]) { histMaps[sid].remove(); histMaps[sid] = null }
+  document.getElementById(mapId).innerHTML = ''
+
+  if (!points.length) {
+    tl.innerHTML = '<div class="loading">Nessun dato per questo giorno</div>'
+    const map = L.map(mapId, { zoomControl: false, attributionControl: false }).setView([41.9, 12.5], 11)
+    tiles(map); histMaps[sid] = map
+    setTimeout(() => map.invalidateSize(), 120)
+    return
+  }
+
+  const map = L.map(mapId, { zoomControl: false, attributionControl: false })
+  tiles(map)
+  const latlngs = points.map(p => [p.lat, p.lon])
+  L.polyline(latlngs, { color: colorFor(name), weight: 4, opacity: 0.85, lineJoin: 'round' }).addTo(map)
+  L.marker(latlngs[0], { icon: dotIcon(name, false) }).addTo(map).bindTooltip('Inizio')
+  L.marker(latlngs[latlngs.length-1], { icon: dotIcon(name, true) }).addTo(map).bindTooltip('Fine')
+  map.fitBounds(latlngs, { padding: [30, 30] })
+  histMaps[sid] = map
+  setTimeout(() => map.invalidateSize(), 120)
+
+  // Costruisco timeline: soste e tragitti
+  const segments = buildSegments(points)
+  let html = ''
+  segments.forEach(s => {
+    const icon = s.type === 'stop' ? '📍' : '🚗'
+    html += `<div class="tl-item">
+      <div class="tl-time">${s.startTime}${s.endTime && s.endTime !== s.startTime ? '–'+s.endTime : ''}</div>
+      <div><div class="tl-desc"><span class="tl-icon">${icon}</span> ${s.desc}</div>${s.sub?`<div class="tl-sub">${s.sub}</div>`:''}</div>
+    </div>`
+  })
+  tl.innerHTML = html || '<div class="loading">Nessuno spostamento rilevato</div>'
 }
+
+function fmtTime(iso) {
+  return new Date(iso).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })
+}
+function dist(a, b) {
+  const R = 6371000, toR = x => x*Math.PI/180
+  const dLat = toR(b.lat-a.lat), dLon = toR(b.lon-a.lon)
+  const x = Math.sin(dLat/2)**2 + Math.cos(toR(a.lat))*Math.cos(toR(b.lat))*Math.sin(dLon/2)**2
+  return R * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1-x))
+}
+
+function buildSegments(points) {
+  // Raggruppa punti vicini (<150m) in soste, il resto sono tragitti
+  const STOP_RADIUS = 150
+  const segs = []
+  let i = 0
+  while (i < points.length) {
+    let j = i
+    // Estendi la sosta finché i punti restano nel raggio
+    while (j + 1 < points.length && dist(points[i], points[j+1]) < STOP_RADIUS) j++
+    if (j > i) {
+      // sosta da i a j
+      const durMin = Math.round((new Date(points[j].time) - new Date(points[i].time)) / 60000)
+      if (durMin >= 5) {
+        segs.push({ type: 'stop', startTime: fmtTime(points[i].time), endTime: fmtTime(points[j].time),
+          desc: points[i].state === 'home' || points[i].state === 'Casa' ? 'A casa' : `Sosta`, sub: `${durMin} min` })
+      }
+      i = j + 1
+    } else {
+      // tragitto: trova la fine del movimento
+      let k = i
+      while (k + 1 < points.length && dist(points[k], points[k+1]) >= STOP_RADIUS) k++
+      if (k > i) {
+        let tot = 0
+        for (let x = i; x < k; x++) tot += dist(points[x], points[x+1])
+        segs.push({ type: 'move', startTime: fmtTime(points[i].time), endTime: fmtTime(points[k].time),
+          desc: 'Spostamento', sub: `${(tot/1000).toFixed(1)} km` })
+      }
+      i = k + 1
+    }
+  }
+  return segs
+}
+
+function openMaps(lat, lon) { window.open(`https://maps.apple.com/?daddr=${lat},${lon}&dirflg=d`, '_blank') }
 
 loadFamily()
 setInterval(loadFamily, 60000)
