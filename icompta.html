@@ -920,7 +920,7 @@ select.form-input { height: 42px; }
 
     </div>
     <div style="padding:10px 16px 14px;text-align:center;border-top:1px solid var(--border);margin-top:4px">
-      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v1.9.6</span>
+      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v1.9.7</span>
     </div>
   </div>
 </div>
@@ -4750,6 +4750,19 @@ var IMPORT2_CONFIGS = {
     autoLabel: 'Scarica automaticamente da Sella',
     parse: async function(file) { return await import2ParseSellaCsv(file, 'Banca Sella'); },
   },
+  'Fineco CC': {
+    accountName: 'Fineco CC',
+    icon: '💳',
+    title: 'Fineco CC',
+    source: 'eb',
+    ebTipo: 'fineco',
+    hasEco: true,
+    ecoAccountName: 'InternoUno',
+    autoLabel: 'Scarica via Enable Banking',
+    accept: '.xls,.xlsx',
+    fileHint: 'estratto Fineco (.xlsx)',
+    fileParse: async function(file){ return await import2ParseFinecoXlsx(file); }
+  },
   'Genius Unicredit': {
     accountName: 'Genius Unicredit',
     icon: '💳',
@@ -4764,6 +4777,83 @@ var IMPORT2_CONFIGS = {
     fileParse: null              // TODO: parser file manuale (in attesa del formato)
   }
 };
+
+// ── PARSER FILE XLSX FINECO CC (movimenti) per modal unificato ──────────────
+async function import2ParseFinecoXlsx(file) {
+  if (typeof XLSX === 'undefined') {
+    await new Promise(function(res,rej){ var s=document.createElement('script');
+      s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+      s.onload=res; s.onerror=rej; document.head.appendChild(s); });
+  }
+  var accId = sellaGetAccId('Fineco CC') || 'ACC-FINECO-CC';
+  var buf = await file.arrayBuffer();
+  var wb = XLSX.read(buf, { type:'array', cellDates:true });
+  var ws = wb.Sheets[wb.SheetNames[0]];
+  var rows = XLSX.utils.sheet_to_json(ws, { header:1, defval:null, raw:false });
+
+  var headerIdx = -1;
+  for (var i=0;i<rows.length;i++) {
+    if (rows[i] && rows[i].some(function(c){ return c && String(c).includes('Data_Operazione'); })) { headerIdx=i; break; }
+  }
+  if (headerIdx === -1) throw new Error('Formato non riconosciuto — riga Data_Operazione non trovata');
+
+  var header = rows[headerIdx].map(function(c){ return c?String(c).trim():''; });
+  var dateCol=header.indexOf('Data_Operazione'), dateVCol=header.indexOf('Data_Valuta'),
+      entrCol=header.indexOf('Entrate'), uscCol=header.indexOf('Uscite'),
+      descCol=header.indexOf('Descrizione'), descFCol=header.indexOf('Descrizione_Completa'),
+      statCol=header.indexOf('Stato');
+
+  // dedup su TX esistenti del conto
+  var existing = new Set();
+  var yr = String(new Date().getFullYear());
+  try {
+    var ex = await api('GET','/api/tx/'+yr); txCache[yr]=ex;
+    ex.forEach(function(t){
+      if (t.accountId===accId) existing.add(t.date+'|'+(Math.round(getTxAmount(t)*100)/100)+'|'+(t.name||'').substring(0,30));
+    });
+  } catch(e){}
+
+  function _fDate(v){
+    if (!v) return '';
+    if (typeof v==='object' && v.toISOString) return v.toISOString().slice(0,10);
+    var s=String(v).trim();
+    var m1=s.match(/(\d{4})-(\d{2})-(\d{2})/); if(m1) return m1[1]+'-'+m1[2]+'-'+m1[3];
+    var m2=s.match(/(\d{2})\/(\d{2})\/(\d{4})/); if(m2) return m2[3]+'-'+m2[2]+'-'+m2[1];
+    var m3=s.match(/(\d{2})-(\d{2})-(\d{4})/); if(m3) return m3[3]+'-'+m3[2]+'-'+m3[1];
+    return '';
+  }
+
+  var out = [];
+  for (var i=headerIdx+1;i<rows.length;i++) {
+    var r = rows[i]; if (!r) continue;
+    var stato = statCol>=0 && r[statCol] ? String(r[statCol]).trim().toLowerCase() : '';
+    if (stato!=='contabilizzato' && stato!=='autorizzato') continue;
+    var dop = r[dateCol]; var dopStr = dop?String(dop).trim():'';
+    var dateISO = (dopStr!=='' && dopStr!=='-') ? _fDate(dop) : '';
+    if (!dateISO && dateVCol>=0) dateISO = _fDate(r[dateVCol]);
+    if (!dateISO) continue;
+    var entrata = entrCol>=0 && r[entrCol]!=null && r[entrCol]!=='' && r[entrCol]!=='nan' ? parseFloat(r[entrCol]) : NaN;
+    var uscita  = uscCol>=0  && r[uscCol]!=null  && r[uscCol]!==''  && r[uscCol]!=='nan'  ? parseFloat(r[uscCol])  : NaN;
+    var amount = !isNaN(entrata) ? entrata : (!isNaN(uscita) ? uscita : 0);
+    amount = Math.round(amount*100)/100;
+    if (amount===0) continue;
+    var desc = '';
+    if (descFCol>=0 && r[descFCol]) desc = String(r[descFCol]).trim();
+    else if (descCol>=0 && r[descCol]) desc = String(r[descCol]).trim();
+    var storKey = dateISO+'|'+amount+'|'+desc.substring(0,30);
+    out.push({
+      key: desc, dateISO: dateISO,
+      dataOp: dateISO.split('-').reverse().join('/'),
+      desc: desc, importo: amount,
+      isDup: existing.has(storKey),
+      includi: false, eco: false, ebRef: null,
+      catObj: sellaGuessCategory(desc, '', amount)
+    });
+  }
+  out.forEach(function(m){ m.includi=!m.isDup; });
+  if (!out.length) throw new Error('Nessun movimento contabilizzato trovato nel file');
+  return out;
+}
 
 // ── ADAPTER ENABLE BANKING: riusa _ebImportMovimenti (dedup completo) ────────
 // Non riscrive la logica: attiva la modalità import2 sul motore, che ritorna
@@ -5739,7 +5829,7 @@ async function aggiornaFinecoOra(btn) {
 
 var IMPORT_MAP = {
   'ACC-FINECO-INV':  { label: 'Aggiorna', fn: function() { aggiornaFinecoOra(document.getElementById('btn-import-contestuale')); } },
-  'ACC-FINECO-CC':   { label: 'Aggiorna', fn: function() { document.getElementById('fineco-cc-overlay').style.display='flex'; } },
+  'ACC-FINECO-CC':   { label: 'Aggiorna', fn: function() { openImport2('Fineco CC'); } },
   '164E70BD-E589-4380-877D-1308AAEDFFF1': { label: 'Aggiorna', fn: function() { openImport2('Genius Unicredit'); } },
 };
 // Conti Sella e InternoUno Banca identificati per nome
