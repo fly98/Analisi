@@ -894,7 +894,7 @@ select.form-input { height: 42px; }
 
     </div>
     <div style="padding:10px 16px 14px;text-align:center;border-top:1px solid var(--border);margin-top:4px">
-      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v2.0.3</span>
+      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v2.0.4</span>
     </div>
   </div>
 </div>
@@ -2471,26 +2471,6 @@ async function sellaGetExistingKeys() {
   return keys;
 }
 
-async function openSellaImport() {
-  sellaMovimenti = [];
-  ['sella-table','sella-stats'].forEach(function(id){document.getElementById(id).style.display='none';});
-  document.getElementById('sella-total-box').style.display='none';
-  document.getElementById('sella-drop').style.display='block';
-  document.getElementById('sella-tbody').innerHTML='';
-  document.getElementById('sella-progress').textContent='Caricamento regole\u2026';
-  document.getElementById('sella-import-btn').disabled=true;
-  document.getElementById('sella-preview-btn').disabled=true;
-  document.getElementById('sella-overlay').style.display='flex';
-  // Blocca il drop finché le regole non sono caricate
-  var dropEl = document.getElementById('sella-drop');
-  dropEl.style.opacity='0.5'; dropEl.style.pointerEvents='none';
-  document.getElementById('sella-file-input').disabled=true;
-  await sellaLoadRegole();
-  dropEl.style.opacity=''; dropEl.style.pointerEvents='';
-  document.getElementById('sella-file-input').disabled=false;
-  document.getElementById('sella-progress').textContent='';
-  sellaLoadLog();
-}
 
 function closeSellaImport() { document.getElementById('sella-overlay').style.display='none'; }
 
@@ -4233,16 +4213,6 @@ var sellapMovimenti = [];
 var SELLAP_ACC_NAME = 'Banca Sella';
 var SELLAP_LOG_KEY = 'icompta:sellap_log';
 
-async function openSellaPersonaleImport() {
-  sellapMovimenti = [];
-  document.getElementById('sellap-overlay').style.display = 'flex';
-  document.getElementById('sellap-table').style.display = 'none';
-  document.getElementById('sellap-stats').style.display = 'none';
-  document.getElementById('sellap-tbody').innerHTML = '';
-  document.getElementById('sellap-progress').textContent = '';
-  document.getElementById('sellap-import-btn').disabled = true;
-  document.getElementById('sellap-drop').style.display = 'block';
-}
 function closeSellaPImport() { document.getElementById('sellap-overlay').style.display = 'none'; }
 function sellapOnDrop(e) {
   e.preventDefault();
@@ -4391,19 +4361,6 @@ async function sellapDoImport() {
 var amexMovimenti = [];
 var AMEX_ACC_NAME = 'Amex';
 
-function openAmexImport() {
-  amexMovimenti = [];
-  document.getElementById('amex-overlay').style.display = 'flex';
-  document.getElementById('amex-table').style.display = 'none';
-  document.getElementById('amex-stats').style.display = 'none';
-  document.getElementById('amex-eco-bar').style.display = 'none';
-  document.getElementById('amex-tbody').innerHTML = '';
-  document.getElementById('amex-progress').textContent = '';
-  document.getElementById('amex-import-btn').disabled = true;
-  document.getElementById('amex-drop').style.display = 'block';
-  var ab = document.getElementById('amex-auto-btn');
-  if (ab) { ab.style.display = 'flex'; ab.disabled = false; }
-}
 function closeAmexImport() { document.getElementById('amex-overlay').style.display = 'none'; }
 function amexOnDrop(e) {
   e.preventDefault();
@@ -5747,12 +5704,6 @@ async function import2SessionDelete(s) {
 // Mappa conti con import automatico
 function openFinecoInvModal() { var m=document.getElementById('modal-fineco-inv'); if(m) m.style.display='flex'; }
 function closeFinecoInvModal() { var m=document.getElementById('modal-fineco-inv'); if(m) m.style.display='none'; }
-function openFinecoCCModal() {
-  window._ebOverlayMode = 'fineco';
-  var t = document.getElementById('fcc-title'); if (t) t.textContent = 'Import Fineco Conto Corrente';
-  var xb = document.getElementById('fcc-xlsx-btn'); if (xb) xb.style.display = '';
-  var ov=document.getElementById('fineco-cc-overlay'); if(ov){ ov.style.display='flex'; }
-}
 function openUnicreditModal() {
   window._ebOverlayMode = 'unicredit';
   var t = document.getElementById('fcc-title'); if (t) t.textContent = 'Import UniCredit Genius';
