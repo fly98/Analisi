@@ -1392,6 +1392,96 @@ export default {
       }
 
       // Invio generico multi-account: account="business" (default, InternoUno) o "personal" (Gmail personale Filippo)
+      if (action === "searchMail") {
+        const account = url.searchParams.get("account") === "personal" ? "personal" : "business";
+        const q = url.searchParams.get("q") || "";
+        const maxResults = Math.min(parseInt(url.searchParams.get("max") || "10", 10) || 10, 25);
+        if (!q) {
+          return new Response(JSON.stringify({ error: "Parametro q mancante" }), {
+            status: 400, headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        }
+        const tok = await getGmailAccessTokenFor(env, account);
+        if (!tok || !tok.access_token) {
+          return new Response(JSON.stringify({ error: "Auth fallita", detail: tok }), {
+            status: 502, headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        }
+        const listResp = await fetch(
+          "https://gmail.googleapis.com/gmail/v1/users/me/messages?" +
+          new URLSearchParams({ q, maxResults: String(maxResults) }),
+          { headers: { Authorization: "Bearer " + tok.access_token } }
+        );
+        const listJson = await listResp.json();
+        if (!listResp.ok) {
+          return new Response(JSON.stringify({ error: "Ricerca fallita", detail: listJson }), {
+            status: listResp.status, headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        }
+        const ids = (listJson.messages || []).map(m => m.id);
+        const results = [];
+        for (const id of ids) {
+          const mResp = await fetch(
+            `https://gmail.googleapis.com/gmail/v1/users/me/messages/${id}?format=metadata&metadataHeaders=From&metadataHeaders=Subject&metadataHeaders=Date`,
+            { headers: { Authorization: "Bearer " + tok.access_token } }
+          );
+          const mJson = await mResp.json();
+          const headers = (mJson.payload && mJson.payload.headers) || [];
+          const get = (name) => (headers.find(h => h.name === name) || {}).value || "";
+          results.push({
+            id,
+            threadId: mJson.threadId,
+            from: get("From"),
+            subject: get("Subject"),
+            date: get("Date"),
+            snippet: mJson.snippet || ""
+          });
+        }
+        return new Response(JSON.stringify({ account, query: q, count: results.length, results }), {
+          headers: { ...CORS, "Content-Type": "application/json" }
+        });
+      }
+
+      if (action === "getMail") {
+        const account = url.searchParams.get("account") === "personal" ? "personal" : "business";
+        const id = url.searchParams.get("id");
+        if (!id) {
+          return new Response(JSON.stringify({ error: "Parametro id mancante" }), {
+            status: 400, headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        }
+        const tok = await getGmailAccessTokenFor(env, account);
+        if (!tok || !tok.access_token) {
+          return new Response(JSON.stringify({ error: "Auth fallita", detail: tok }), {
+            status: 502, headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        }
+        const mResp = await fetch(
+          `https://gmail.googleapis.com/gmail/v1/users/me/messages/${id}?format=full`,
+          { headers: { Authorization: "Bearer " + tok.access_token } }
+        );
+        const mJson = await mResp.json();
+        if (!mResp.ok) {
+          return new Response(JSON.stringify({ error: "Recupero fallito", detail: mJson }), {
+            status: mResp.status, headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        }
+        const headers = (mJson.payload && mJson.payload.headers) || [];
+        const get = (name) => (headers.find(h => h.name === name) || {}).value || "";
+        const bodyText = gmailPlainText(mJson.payload) || "";
+        return new Response(JSON.stringify({
+          account,
+          id,
+          from: get("From"),
+          to: get("To"),
+          subject: get("Subject"),
+          date: get("Date"),
+          snippet: mJson.snippet || "",
+          body: bodyText,
+          hasAttachments: JSON.stringify(mJson.payload || {}).includes('"filename"')
+        }), { headers: { ...CORS, "Content-Type": "application/json" } });
+      }
+
       if (action === "send") {
         let body;
         try { body = await request.json(); } catch (e) {
