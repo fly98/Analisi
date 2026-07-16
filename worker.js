@@ -1482,6 +1482,81 @@ export default {
         }), { headers: { ...CORS, "Content-Type": "application/json" } });
       }
 
+      if (action === "listAttachments") {
+        const account = url.searchParams.get("account") === "personal" ? "personal" : "business";
+        const id = url.searchParams.get("id");
+        if (!id) {
+          return new Response(JSON.stringify({ error: "Parametro id mancante" }), {
+            status: 400, headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        }
+        const tok = await getGmailAccessTokenFor(env, account);
+        if (!tok || !tok.access_token) {
+          return new Response(JSON.stringify({ error: "Auth fallita", detail: tok }), {
+            status: 502, headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        }
+        const mResp = await fetch(
+          `https://gmail.googleapis.com/gmail/v1/users/me/messages/${id}?format=full`,
+          { headers: { Authorization: "Bearer " + tok.access_token } }
+        );
+        const mJson = await mResp.json();
+        if (!mResp.ok) {
+          return new Response(JSON.stringify({ error: "Recupero fallito", detail: mJson }), {
+            status: mResp.status, headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        }
+        const atts = [];
+        function walk(part) {
+          if (!part) return;
+          if (part.filename && part.body && part.body.attachmentId) {
+            atts.push({
+              partId: part.partId,
+              filename: part.filename,
+              mimeType: part.mimeType,
+              attachmentId: part.body.attachmentId,
+              sizeBytes: part.body.size || 0
+            });
+          }
+          if (part.parts) for (const p of part.parts) walk(p);
+        }
+        walk(mJson.payload);
+        return new Response(JSON.stringify({ account, id, count: atts.length, attachments: atts }), {
+          headers: { ...CORS, "Content-Type": "application/json" }
+        });
+      }
+
+      if (action === "getAttachment") {
+        const account = url.searchParams.get("account") === "personal" ? "personal" : "business";
+        const id = url.searchParams.get("id");
+        const attachmentId = url.searchParams.get("attachmentId");
+        if (!id || !attachmentId) {
+          return new Response(JSON.stringify({ error: "Parametri id/attachmentId mancanti" }), {
+            status: 400, headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        }
+        const tok = await getGmailAccessTokenFor(env, account);
+        if (!tok || !tok.access_token) {
+          return new Response(JSON.stringify({ error: "Auth fallita", detail: tok }), {
+            status: 502, headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        }
+        const aResp = await fetch(
+          `https://gmail.googleapis.com/gmail/v1/users/me/messages/${id}/attachments/${attachmentId}`,
+          { headers: { Authorization: "Bearer " + tok.access_token } }
+        );
+        const aJson = await aResp.json();
+        if (!aResp.ok) {
+          return new Response(JSON.stringify({ error: "Download fallito", detail: aJson }), {
+            status: aResp.status, headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        }
+        // Restituisce il base64url così com'è: il chiamante lo converte in base64 standard e decodifica
+        return new Response(JSON.stringify({ account, id, attachmentId, size: aJson.size, data: aJson.data }), {
+          headers: { ...CORS, "Content-Type": "application/json" }
+        });
+      }
+
       if (action === "send") {
         let body;
         try { body = await request.json(); } catch (e) {
