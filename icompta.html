@@ -740,7 +740,6 @@ select.form-input { height: 42px; }
       <input type="date" id="date-to" onchange="setDateCustom()">
       <input id="search-tx" type="search" placeholder="Cerca..." oninput="applySearch(this.value)" style="margin-left:auto">
       <button id="btn-import-contestuale" style="display:none;padding:4px 10px;border-radius:8px;border:1px solid var(--border);background:none;cursor:pointer;color:var(--muted);font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:4px" onclick="importContestuale()"><span id="btn-import-label">Aggiorna</span> <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="2,3 5,7 8,3"/></svg></button>
-      <button id="btn-import-opzioni" style="display:none;padding:4px 10px;border-radius:8px;border:1px solid var(--border);background:none;cursor:pointer;color:var(--muted);font-size:12px;font-weight:600;align-items:center;gap:4px" onclick="openFinecoInvModal()" title="Opzioni: scarica automaticamente o da file">📂 Opzioni</button>
       <button class="btn-add" onclick="openNewTx()">+ Nuova</button>
     </div>
 
@@ -750,7 +749,8 @@ select.form-input { height: 42px; }
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
           <span id="fineco-inv-info" style="font-size:11px;color:var(--muted)"></span>
           <div style="display:flex;gap:6px;align-items:center">
-            <button onclick="aggiornaFinecoOra(this)" style="padding:4px 10px;border-radius:8px;border:1px solid var(--border);background:none;cursor:pointer;color:var(--muted);font-size:12px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:4px">Aggiorna <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="2,3 5,7 8,3"/></svg></button>
+            <button onclick="aggiornaFinecoOra(this)" style="padding:4px 10px;border-radius:8px;border:1px solid var(--border);background:none;cursor:pointer;color:var(--muted);font-size:12px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:4px">Aggiorna ora <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="2,3 5,7 8,3"/></svg></button>
+            <button onclick="openFinecoInvModal()" style="padding:4px 10px;border-radius:8px;border:1px solid var(--border);background:none;cursor:pointer;color:var(--muted);font-size:12px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:4px" title="Scarica automaticamente o importa da file">📂 Opzioni</button>
             <button onclick="goAnalisi()" style="padding:4px 10px;border-radius:8px;border:1px solid var(--border);background:none;cursor:pointer;color:var(--muted);font-size:12px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:4px">Analisi <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="3,2 7,5 3,8"/></svg></button>
           </div>
         </div>
@@ -5890,18 +5890,13 @@ function aggiornaBottoneImport(overrideId) {
   if (id === '__strumenti__') id = 'ACC-FINECO-INV';
   var acc = meta && meta.accounts && meta.accounts.find(function(a){ return a.id===id; });
   var imp = IMPORT_MAP[id] || (acc && IMPORT_MAP_AUTO[acc.name]);
-  var optBtn = document.getElementById('btn-import-opzioni');
-  var isFinecoInv = (id === 'ACC-FINECO-INV');
   if (imp) {
     var label = IMPORT_MAP[id] ? IMPORT_MAP[id].label : IMPORT_MAP_AUTO[acc.name].label;
     var lbl = document.getElementById('btn-import-label');
-    // Per Fineco Investimenti il primo bottone e' "Aggiorna ora" (silenzioso)
-    if (lbl) lbl.textContent = isFinecoInv ? 'Aggiorna ora' : label;
+    if (lbl) lbl.textContent = label;
     btn.style.display = 'inline-flex';
-    if (optBtn) optBtn.style.display = isFinecoInv ? 'inline-flex' : 'none';
   } else {
     btn.style.display = 'none';
-    if (optBtn) optBtn.style.display = 'none';
   }
 }
 
