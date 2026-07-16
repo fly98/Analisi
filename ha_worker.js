@@ -271,6 +271,24 @@ export default {
     }
 
     // GET /raw
+    // GET /history_entity?entity=X&hours=48 - storico cambi di stato di qualsiasi entità
+    if (path === '/history_entity') {
+      try {
+        const entity = url.searchParams.get('entity')
+        if (!entity) return new Response(JSON.stringify({ error: 'manca parametro entity' }), { status: 400, headers: corsHeaders })
+        const hours = parseInt(url.searchParams.get('hours') || '48')
+        const start = new Date(Date.now() - hours * 3600 * 1000).toISOString()
+        const histUrl = `${HA_URL}/api/history/period/${start}?filter_entity_id=${entity}&minimal_response`
+        const resp = await fetch(histUrl, { headers: { 'Authorization': `Bearer ${TOKEN}` } })
+        const history = await resp.json()
+        const arr = history[0] || []
+        const changes = arr.map(h => ({ state: h.state, time: h.last_changed || h.last_updated }))
+        return new Response(JSON.stringify({ entity, total: changes.length, changes }, null, 2), { headers: corsHeaders })
+      } catch(e) {
+        return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders })
+      }
+    }
+
     if (path === '/raw') {
       try {
         const resp = await fetch(`${HA_URL}/api/states`, { headers: haHeaders })
