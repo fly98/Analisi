@@ -816,7 +816,7 @@ select.form-input { height: 42px; }
             <div class="s-text"><div class="s-label">Azienda</div><div class="s-desc">Movimenti Banca Sella InternoUno</div></div>
             <span class="s-arrow">›</span>
           </div>
-          <div class="settings-item" onclick="closeSettings();openSellaPersonaleImport()">
+          <div class="settings-item" onclick="closeSettings();openImport2('Banca Sella')">
             <span class="s-icon" style="background:#e8f5ee"><svg viewBox="0 0 24 24" fill="none" stroke="#1a7a4a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-6 9 6v11a1 1 0 01-1 1H4a1 1 0 01-1-1z"/><path d="M9 22V12h6v10"/></svg></span>
             <div class="s-text"><div class="s-label">Personale</div><div class="s-desc">Movimenti conto personale</div></div>
             <span class="s-arrow">›</span>
@@ -919,7 +919,7 @@ select.form-input { height: 42px; }
 
     </div>
     <div style="padding:10px 16px 14px;text-align:center;border-top:1px solid var(--border);margin-top:4px">
-      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v1.9.1</span>
+      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v1.9.2</span>
     </div>
   </div>
 </div>
@@ -4734,8 +4734,64 @@ var IMPORT2_CONFIGS = {
     autoEndpoint: '/api/amex-auto',
     autoLabel: 'Scarica automaticamente da Amex',
     parse: async function(file) { return await import2ParseAmex(file); },
+  },
+  'Banca Sella': {
+    accountName: 'Banca Sella',
+    icon: '💳',
+    title: 'Sella Personale',
+    fileHint: 'ListaMovimentiConto-*.csv',
+    accept: '.csv',
+    hasEco: true,
+    ecoAccountName: 'InternoUno',
+    autoEndpoint: '/api/sella-personale-auto',
+    autoLabel: 'Scarica automaticamente da Sella',
+    parse: async function(file) { return await import2ParseSellaCsv(file, 'Banca Sella'); },
   }
 };
+
+// ── PARSER CSV SELLA (personale): dedup per codice, name = codice ────────────
+async function import2ParseSellaCsv(file, accountName) {
+  var accId = sellaGetAccId(accountName);
+  // dedup: nel DB la chiave e' sellaStorKey(date, importo, name(=codice))
+  var existing = new Set();
+  var yr = String(new Date().getFullYear());
+  try {
+    var txs = await api('GET','/api/tx/'+yr);
+    txs.forEach(function(t){
+      if (t.accountId===accId) existing.add(sellaStorKey(t.date, getTxAmount(t), (t.name||'').substring(0,32)));
+    });
+  } catch(e){}
+
+  var lines = (await file.text()).split('\n').filter(function(l){ return l.trim(); });
+  var out = [];
+  for (var i=1;i<lines.length;i++) {
+    var l = lines[i].trim();
+    if (!l || l.startsWith('"","","","","')) continue;
+    var c = sellaParseCSVLine(l);
+    if (c.length < 7) continue;
+    var codice = c[0].replace(/"/g,'').trim();
+    var dataOp = c[1].replace(/"/g,'').trim();
+    var desc   = c[3].replace(/"/g,'').trim();
+    var deb    = c[5].replace(/"/g,'').trim();
+    var cred   = c[6].replace(/"/g,'').trim();
+    if (!dataOp) continue;
+    var importo = sellaParseAmt(deb, cred);
+    var dateISO = sellaDateToISO(dataOp);
+    var storKey = sellaStorKey(dateISO, importo, codice.substring(0,32));
+    out.push({
+      key: codice,                 // name TX = codice
+      dateISO: dateISO,
+      dataOp: dataOp,
+      desc: desc, importo: importo,
+      isDup: existing.has(storKey),
+      includi: false, eco: false,
+      catObj: sellaGuessCategory(desc, '', importo)
+    });
+  }
+  out.forEach(function(m){ m.includi = !m.isDup; });
+  if (!out.length) throw new Error('Nessuna transazione trovata nel file');
+  return out;
+}
 
 // ── PARSER AMEX (identico alla logica v1.8.6: MM/DD, segno invertito, dedup rif) ──
 async function import2ParseAmex(file) {
@@ -5606,7 +5662,7 @@ var IMPORT_MAP = {
 // Conti Sella e InternoUno Banca identificati per nome
 var IMPORT_MAP_AUTO = {
   'InternoUno Banca': { label: 'Aggiorna', fn: function() { openSellaImport(); } },
-  'Banca Sella':      { label: 'Aggiorna', fn: function() { openSellaPersonaleImport(); } },
+  'Banca Sella':      { label: 'Aggiorna', fn: function() { openImport2('Banca Sella'); } },
   'Amex':             { label: 'Aggiorna', fn: function() { openImport2('Amex'); } },
 };
 
