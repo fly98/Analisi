@@ -812,7 +812,7 @@ select.form-input { height: 42px; }
 
           <!-- Import Sella -->
           <div class="s-text" style="padding:6px 12px 2px"><div class="s-label" style="font-size:11px;color:var(--gray4);text-transform:uppercase;letter-spacing:.5px">Sella</div></div>
-          <div class="settings-item" onclick="closeSettings();openSellaImport()">
+          <div class="settings-item" onclick="closeSettings();openImport2('InternoUno Banca')">
             <span class="s-icon" style="background:#e8f5ee"><svg viewBox="0 0 24 24" fill="none" stroke="#1a7a4a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-6 9 6v11a1 1 0 01-1 1H4a1 1 0 01-1-1z"/><path d="M9 22V12h6v10"/></svg></span>
             <div class="s-text"><div class="s-label">Azienda</div><div class="s-desc">Movimenti Banca Sella InternoUno</div></div>
             <span class="s-arrow">›</span>
@@ -920,7 +920,7 @@ select.form-input { height: 42px; }
 
     </div>
     <div style="padding:10px 16px 14px;text-align:center;border-top:1px solid var(--border);margin-top:4px">
-      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v1.9.8</span>
+      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v1.9.9</span>
     </div>
   </div>
 </div>
@@ -4751,6 +4751,20 @@ var IMPORT2_CONFIGS = {
     fileHint: 'ListaMovimentiConto-*.csv',
     fileParse: async function(file) { return await import2ParseSellaCsv(file, 'Banca Sella'); },
   },
+  'InternoUno Banca': {
+    accountName: 'InternoUno Banca',
+    icon: '🏦',
+    title: 'InternoUno Banca',
+    source: 'eb',
+    ebTipo: 'azienda',
+    hasEco: true,
+    ecoDefault: true,             // ogni movimento genera la contropartita economica
+    ecoAccountName: 'InternoUno',
+    autoLabel: 'Scarica via Enable Banking',
+    accept: '.csv',
+    fileHint: 'ListaMovimentiConto-*.csv',
+    fileParse: async function(file) { return await import2ParseSellaCsv(file, 'InternoUno Banca'); }
+  },
   'Fineco CC': {
     accountName: 'Fineco CC',
     icon: '💳',
@@ -4854,6 +4868,15 @@ async function import2ParseFinecoXlsx(file) {
   out.forEach(function(m){ m.includi=!m.isDup; });
   if (!out.length) throw new Error('Nessun movimento contabilizzato trovato nel file');
   return out;
+}
+
+// Applica il default della colonna Eco secondo la config del conto attivo
+function import2ApplyEcoDefault(rows) {
+  var cfg = IMPORT2_CONFIGS[IMPORT2_STATE.accName];
+  if (cfg && cfg.ecoDefault) {
+    rows.forEach(function(m){ if (!m.isDup) m.eco = true; });
+  }
+  return rows;
 }
 
 // ── ADAPTER ENABLE BANKING: riusa _ebImportMovimenti (dedup completo) ────────
@@ -5113,6 +5136,7 @@ async function import2HandleFile(file) {
   document.getElementById('imp2-progress').textContent = 'Analisi\u2026';
   try {
     var rows = await (cfg.fileParse ? cfg.fileParse(file) : cfg.parse(file));
+    import2ApplyEcoDefault(rows);
     IMPORT2_STATE.rows = rows;
     document.getElementById('imp2-drop').style.display = 'none';
     document.getElementById('imp2-table-wrap').style.display = 'block';
@@ -5141,6 +5165,7 @@ async function import2AutoDownload() {
     import2Log('Connessione Enable Banking\u2026');
     try {
       var rows = await import2FetchEB(cfg.ebTipo);
+      import2ApplyEcoDefault(rows);
       IMPORT2_STATE.rows = rows;
       document.getElementById('imp2-table-wrap').style.display = 'block';
       import2RenderTable(); import2UpdateStats();
@@ -5835,7 +5860,7 @@ var IMPORT_MAP = {
 };
 // Conti Sella e InternoUno Banca identificati per nome
 var IMPORT_MAP_AUTO = {
-  'InternoUno Banca': { label: 'Aggiorna', fn: function() { openSellaImport(); } },
+  'InternoUno Banca': { label: 'Aggiorna', fn: function() { openImport2('InternoUno Banca'); } },
   'Banca Sella':      { label: 'Aggiorna', fn: function() { openImport2('Banca Sella'); } },
   'Amex':             { label: 'Aggiorna', fn: function() { openImport2('Amex'); } },
 };
