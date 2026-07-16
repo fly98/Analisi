@@ -919,7 +919,7 @@ select.form-input { height: 42px; }
 
     </div>
     <div style="padding:10px 16px 14px;text-align:center;border-top:1px solid var(--border);margin-top:4px">
-      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v1.9.0</span>
+      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v1.9.1</span>
     </div>
   </div>
 </div>
@@ -4809,6 +4809,30 @@ async function import2ExistingKeys(accId, mode) {
   return keys;
 }
 
+// ── Console di stato del modal import (A) + ultimo import (B) ────────────────
+function import2Log(msg, kind) {
+  var el = document.getElementById('imp2-console');
+  if (!el) return;
+  el.style.display = 'block';
+  var col = kind==='err' ? 'var(--red)' : kind==='ok' ? 'var(--green)' : 'var(--muted)';
+  var ora = new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  el.style.color = col;
+  el.textContent = ora + '  ' + msg;
+}
+// Mostra a riposo l'ultima importazione registrata per il conto (dallo storico)
+async function import2ShowLastImport(accId) {
+  try {
+    var sessions = await api('GET','/api/sella-log') || [];
+    var mine = sessions.filter(function(s){ return s.accountId === accId; });
+    if (!mine.length) { import2Log('Nessuna importazione precedente per questo conto'); return; }
+    // le sessioni sono già ordinate dal più recente (unshift lato worker)
+    var s = mine[0];
+    var d = s.date ? new Date(s.date).toLocaleString('it-IT',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : '';
+    var tot = (s.countBanca||0) + (s.countEco||0);
+    import2Log('Ultimo import: ' + d + '  ·  ' + tot + ' transazioni');
+  } catch(e) {}
+}
+
 // ── APERTURA MODAL ──────────────────────────────────────────────────────────
 function openImport2(accountName) {
   var cfg = IMPORT2_CONFIGS[accountName];
@@ -4848,6 +4872,12 @@ function openImport2(accountName) {
   document.getElementById('imp2-import-btn').disabled = true;
   document.getElementById('imp2-progress').textContent = '';
 
+  // Barra di stato: a riposo mostra l'ultima importazione del conto (B)
+  var cons = document.getElementById('imp2-console');
+  if (cons) { cons.style.display = 'none'; cons.textContent = ''; }
+  var accId0 = sellaGetAccId(cfg.accountName);
+  import2ShowLastImport(accId0);
+
   document.getElementById('imp2-overlay').style.display = 'flex';
 }
 function closeImport2() { document.getElementById('imp2-overlay').style.display = 'none'; }
@@ -4871,6 +4901,7 @@ function import2OnDrop(e) {
 async function import2HandleFile(file) {
   if (!file) return;
   var cfg = IMPORT2_CONFIGS[IMPORT2_STATE.accName];
+  import2Log('Analisi del file in corso\u2026');
   document.getElementById('imp2-progress').textContent = 'Analisi\u2026';
   try {
     var rows = await cfg.parse(file);
@@ -4880,8 +4911,12 @@ async function import2HandleFile(file) {
     import2RenderTable();
     import2UpdateStats();
     document.getElementById('imp2-progress').textContent = '';
+    var nDup = rows.filter(function(m){return m.isDup;}).length;
+    var nNew = rows.length - nDup;
+    import2Log(rows.length + ' righe lette \u00b7 ' + nNew + ' nuove, ' + nDup + ' gi\u00e0 presenti', 'ok');
   } catch(e) {
     document.getElementById('imp2-progress').textContent = '';
+    import2Log('Errore lettura file: ' + e.message, 'err');
     alert('Errore lettura file: ' + e.message);
   }
 }
@@ -4892,6 +4927,7 @@ async function import2AutoDownload() {
   var lbl = btn.querySelector('span:last-child');
   var orig = lbl.textContent;
   btn.disabled = true; lbl.textContent = 'Download in corso (~60 sec)...';
+  import2Log('Connessione al Mac e avvio download\u2026');
   try {
     var TOKEN = localStorage.getItem('icompta_token');
     var resp = await fetch(WORKER_URL + cfg.autoEndpoint, {
@@ -4902,10 +4938,12 @@ async function import2AutoDownload() {
     var blob = await resp.blob();
     if (!blob || blob.size < 100) throw new Error('File vuoto o non valido');
     lbl.textContent = 'File ricevuto, analisi...';
+    import2Log('File ricevuto dal Mac (' + Math.round(blob.size/1024) + ' KB)', 'ok');
     var fname = resp.headers.get('X-Filename') || 'import.xlsx';
     var file = new File([blob], fname, { type: blob.type || 'application/octet-stream' });
     await import2HandleFile(file);
   } catch(e) {
+    import2Log('Errore download: ' + e.message, 'err');
     alert('Errore: ' + e.message);
   } finally {
     btn.disabled = false; lbl.textContent = orig;
@@ -4998,6 +5036,7 @@ async function import2DoImport() {
 
   _import2Running = true;
   var btn = document.getElementById('imp2-import-btn'); btn.disabled = true;
+  import2Log('Importazione di ' + inc.length + ' transazioni\u2026');
   var txMainIds = [], txEcoIds = [], errs = 0;
 
   // 1) TX sul conto principale
@@ -5053,6 +5092,7 @@ async function import2DoImport() {
   _import2Running = false;
   txCache = {}; await loadBalances();
   if (selectedAccountId) { var a=meta.accounts.find(function(x){return x.id===selectedAccountId;}); if(a) await selectAccount(a.id,a.name); }
+  import2Log(txMainIds.length + ' TX importate' + (txEcoIds.length?' + '+txEcoIds.length+' su economico':'') + (errs?' \u00b7 '+errs+' errori':''), errs?'err':'ok');
   alert('\u2705 '+txMainIds.length+' TX importate'+(txEcoIds.length?' + '+txEcoIds.length+' su economico':'')+(errs?' (\u26a0\ufe0f '+errs+' errori)':''));
   closeImport2();
 }
@@ -5398,6 +5438,7 @@ async function import2SessionDelete(s) {
       <div id="imp2-storico-list"></div>
     </div>
 
+    <div id="imp2-console" style="display:none;padding:8px 16px;border-top:1px solid var(--border);background:var(--gray1);font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--muted);flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
     <div style="padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px;flex-shrink:0">
       <button id="imp2-import-btn" disabled onclick="import2DoImport()" style="flex:1;padding:13px;border-radius:12px;border:none;background:var(--blue);color:#fff;font-size:15px;font-weight:700;cursor:pointer">⬆️ Importa selezionati</button>
     </div>
