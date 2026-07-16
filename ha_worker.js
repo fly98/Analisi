@@ -345,6 +345,29 @@ export default {
       }
     }
 
+    // GET /cancello?key=XXXX - apre il cancello (pensato per tag NFC, funziona su iOS e Android)
+    if (path === '/cancello') {
+      try {
+        const key = url.searchParams.get('key')
+        if (!env.CANCELLO_KEY || key !== env.CANCELLO_KEY) {
+          return new Response('<html><body style="font-family:sans-serif;text-align:center;padding-top:80px;"><h1>🔒 Non autorizzato</h1></body></html>', { status: 401, headers: { 'Content-Type': 'text/html; charset=utf-8' } })
+        }
+        const resp = await fetch(`${HA_URL}/api/services/button/press`, {
+          method: 'POST',
+          headers: haHeaders,
+          body: JSON.stringify({ entity_id: 'button.cancello_open_door' })
+        })
+        const ok = resp.ok
+        const html = `<html><body style="font-family:sans-serif;text-align:center;padding-top:80px;">
+          <h1>${ok ? '🚪 Cancello aperto' : '⚠️ Errore apertura'}</h1>
+          <p style="color:#888">${new Date().toLocaleTimeString('it-IT')}</p>
+        </body></html>`
+        return new Response(html, { status: ok ? 200 : 502, headers: { 'Content-Type': 'text/html; charset=utf-8' } })
+      } catch(e) {
+        return new Response('<html><body><h1>Errore: ' + e.message + '</h1></body></html>', { status: 500, headers: { 'Content-Type': 'text/html; charset=utf-8' } })
+      }
+    }
+
     // POST /call
     // GET /automation?id=XXXX - legge la config di un'automazione
     if (path === '/automation' && request.method === 'GET') {
