@@ -920,7 +920,7 @@ select.form-input { height: 42px; }
 
     </div>
     <div style="padding:10px 16px 14px;text-align:center;border-top:1px solid var(--border);margin-top:4px">
-      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v1.9.4</span>
+      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v1.9.5</span>
     </div>
   </div>
 </div>
@@ -4754,11 +4754,14 @@ var IMPORT2_CONFIGS = {
     accountName: 'Genius Unicredit',
     icon: '💳',
     title: 'UniCredit Genius',
-    source: 'eb',                 // Enable Banking (no file, no Mac)
+    source: 'eb',                 // Enable Banking (con fallback file manuale)
     ebTipo: 'unicredit',
     hasEco: true,
     ecoAccountName: 'InternoUno',
     autoLabel: 'Scarica via Enable Banking',
+    accept: '.xls,.xlsx',
+    fileHint: 'estratto UniCredit (.xlsx)',
+    fileParse: null              // TODO: parser file manuale (in attesa del formato)
   }
 };
 
@@ -4956,17 +4959,13 @@ function openImport2(accountName) {
     autoBtn.querySelector('span:first-child').textContent = isEB ? '🏦' : '📥';
   } else { autoBtn.style.display = 'none'; }
 
-  // area file (solo per fonti a file); i conti EB non hanno file da caricare
+  // area file: mostrata SEMPRE (anche per conti EB) come fallback manuale
   var dropWrap = document.getElementById('imp2-drop');
   var orEl = document.getElementById('imp2-or-sep');
-  if (isEB) {
-    if (dropWrap) dropWrap.style.display = 'none';
-    if (orEl) orEl.style.display = 'none';
-  } else {
-    if (orEl) orEl.style.display = 'flex';
-    document.getElementById('imp2-file-hint').textContent = 'Formato: ' + cfg.fileHint;
-    document.getElementById('imp2-file-input').setAttribute('accept', cfg.accept);
-  }
+  if (orEl) orEl.style.display = 'flex';
+  if (dropWrap) dropWrap.style.display = 'block';
+  document.getElementById('imp2-file-hint').textContent = 'Formato: ' + (cfg.fileHint || cfg.accept || 'file');
+  if (cfg.accept) document.getElementById('imp2-file-input').setAttribute('accept', cfg.accept);
 
   // eco bar visibile solo se il conto la supporta
   document.getElementById('imp2-eco-bar').style.display = cfg.hasEco ? 'flex' : 'none';
@@ -5008,10 +5007,14 @@ function import2OnDrop(e) {
 async function import2HandleFile(file) {
   if (!file) return;
   var cfg = IMPORT2_CONFIGS[IMPORT2_STATE.accName];
+  if (!cfg.parse && !cfg.fileParse) {
+    alert('Per questo conto usa "Scarica via Enable Banking".\nL\'import da file manuale sar\u00e0 disponibile a breve.');
+    return;
+  }
   import2Log('Analisi del file in corso\u2026');
   document.getElementById('imp2-progress').textContent = 'Analisi\u2026';
   try {
-    var rows = await cfg.parse(file);
+    var rows = await (cfg.fileParse ? cfg.fileParse(file) : cfg.parse(file));
     IMPORT2_STATE.rows = rows;
     document.getElementById('imp2-drop').style.display = 'none';
     document.getElementById('imp2-table-wrap').style.display = 'block';
