@@ -894,7 +894,7 @@ select.form-input { height: 42px; }
 
     </div>
     <div style="padding:10px 16px 14px;text-align:center;border-top:1px solid var(--border);margin-top:4px">
-      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v2.0.1</span>
+      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v2.0.2</span>
     </div>
   </div>
 </div>
@@ -4700,35 +4700,11 @@ var IMPORT2_STATE = { accName:null, rows:[], tab:'import' };
 // Ogni conto dichiara: come si chiama il conto economico per il riporto Eco,
 // la funzione di parse (ritorna righe normalizzate) e quella di auto-download.
 var IMPORT2_CONFIGS = {
-  'Amex': {
-    accountName: 'Amex',
-    icon: '💳',
-    title: 'American Express',
-    fileHint: 'movimenti.xlsx (Dettagli transazione)',
-    accept: '.xlsx,.xls',
-    hasEco: true,
-    ecoAccountName: 'InternoUno',
-    autoEndpoint: '/api/amex-auto',
-    autoLabel: 'Scarica automaticamente da Amex',
-    parse: async function(file) { return await import2ParseAmex(file); },
-  },
-  'Banca Sella': {
-    accountName: 'Banca Sella',
-    icon: '💳',
-    title: 'Sella Personale',
-    source: 'eb',
-    ebTipo: 'personale',
-    hasEco: true,
-    ecoAccountName: 'InternoUno',
-    autoLabel: 'Scarica via Enable Banking',
-    accept: '.csv',
-    fileHint: 'ListaMovimentiConto-*.csv',
-    fileParse: async function(file) { return await import2ParseSellaCsv(file, 'Banca Sella'); },
-  },
   'InternoUno Banca': {
     accountName: 'InternoUno Banca',
     icon: '🏦',
     title: 'InternoUno Banca',
+    chip: 'InternoUno',
     source: 'eb',
     ebTipo: 'azienda',
     hasEco: true,
@@ -4739,10 +4715,52 @@ var IMPORT2_CONFIGS = {
     fileHint: 'ListaMovimentiConto-*.csv',
     fileParse: async function(file) { return await import2ParseSellaCsv(file, 'InternoUno Banca'); }
   },
+  'Banca Sella': {
+    accountName: 'Banca Sella',
+    icon: '💳',
+    title: 'Sella Personale',
+    chip: 'Personale',
+    source: 'eb',
+    ebTipo: 'personale',
+    hasEco: true,
+    ecoAccountName: 'InternoUno',
+    autoLabel: 'Scarica via Enable Banking',
+    accept: '.csv',
+    fileHint: 'ListaMovimentiConto-*.csv',
+    fileParse: async function(file) { return await import2ParseSellaCsv(file, 'Banca Sella'); },
+  },
+  'Amex': {
+    accountName: 'Amex',
+    icon: '💳',
+    title: 'American Express',
+    chip: 'Amex',
+    fileHint: 'movimenti.xlsx (Dettagli transazione)',
+    accept: '.xlsx,.xls',
+    hasEco: true,
+    ecoAccountName: 'InternoUno',
+    autoEndpoint: '/api/amex-auto',
+    autoLabel: 'Scarica automaticamente da Amex',
+    parse: async function(file) { return await import2ParseAmex(file); },
+  },
+  'Genius Unicredit': {
+    accountName: 'Genius Unicredit',
+    icon: '💳',
+    title: 'UniCredit Genius',
+    chip: 'UniCredit',
+    source: 'eb',
+    ebTipo: 'unicredit',
+    hasEco: true,
+    ecoAccountName: 'InternoUno',
+    autoLabel: 'Scarica via Enable Banking',
+    accept: '.xls,.xlsx',
+    fileHint: 'estratto UniCredit (.xlsx)',
+    fileParse: null
+  },
   'Fineco CC': {
     accountName: 'Fineco CC',
     icon: '💳',
     title: 'Fineco CC',
+    chip: 'Fineco CC',
     source: 'eb',
     ebTipo: 'fineco',
     hasEco: true,
@@ -4751,19 +4769,6 @@ var IMPORT2_CONFIGS = {
     accept: '.xls,.xlsx',
     fileHint: 'estratto Fineco (.xlsx)',
     fileParse: async function(file){ return await import2ParseFinecoXlsx(file); }
-  },
-  'Genius Unicredit': {
-    accountName: 'Genius Unicredit',
-    icon: '💳',
-    title: 'UniCredit Genius',
-    source: 'eb',                 // Enable Banking (con fallback file manuale)
-    ebTipo: 'unicredit',
-    hasEco: true,
-    ecoAccountName: 'InternoUno',
-    autoLabel: 'Scarica via Enable Banking',
-    accept: '.xls,.xlsx',
-    fileHint: 'estratto UniCredit (.xlsx)',
-    fileParse: null              // TODO: parser file manuale (in attesa del formato)
   }
 };
 
@@ -5037,10 +5042,10 @@ function openImport2(accountName) {
     var c = IMPORT2_CONFIGS[name];
     var active = (name === accountName);
     var chip = document.createElement('button');
-    chip.style.cssText = active
-      ? 'padding:6px 14px;border-radius:20px;border:1.5px solid var(--anthracite);background:var(--anthracite);color:#fff;font-size:13px;font-weight:700;cursor:pointer'
-      : 'padding:6px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface);color:var(--muted);font-size:13px;font-weight:600;cursor:pointer';
-    chip.textContent = c.icon + ' ' + c.title;
+    chip.style.cssText = 'flex:1 1 0;min-width:64px;text-align:center;padding:7px 8px;border-radius:12px;font-size:12.5px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;' + (active
+      ? 'border:1.5px solid var(--anthracite);background:var(--anthracite);color:#fff;font-weight:700;'
+      : 'border:1.5px solid var(--border);background:var(--surface);color:var(--muted);font-weight:600;');
+    chip.textContent = c.chip || c.title;
     if (!active) chip.addEventListener('click', function(){ openImport2(name); });
     sel.appendChild(chip);
   });
@@ -5603,7 +5608,7 @@ async function import2SessionDelete(s) {
     </div>
 
     <!-- selettore conto -->
-    <div id="imp2-acct-chips" style="display:flex;gap:8px;flex-wrap:wrap;padding:12px 20px 0;flex-shrink:0"></div>
+    <div id="imp2-acct-chips" style="display:flex;gap:6px;flex-wrap:wrap;padding:12px 16px 0;flex-shrink:0;justify-content:center"></div>
 
     <!-- tabs -->
     <div style="display:flex;gap:0;padding:12px 20px 0;flex-shrink:0;border-bottom:1px solid var(--border)">
