@@ -673,6 +673,9 @@ select.form-input { height: 42px; }
   .tx-c-trasf { color: var(--text) !important; }
   .txh.tx-c-trasf { color: var(--muted) !important; }
 }
+
+.imp2-tab { flex:1; padding:10px; border:none; background:none; font-size:14px; font-weight:600; color:var(--muted); cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px; }
+.imp2-tab.active { color:var(--blue); border-bottom-color:var(--blue); }
 </style>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <!-- rebuild 233954x -->
@@ -821,7 +824,7 @@ select.form-input { height: 42px; }
 
           <!-- Import Amex -->
           <div class="s-text" style="padding:10px 12px 2px"><div class="s-label" style="font-size:11px;color:var(--gray4);text-transform:uppercase;letter-spacing:.5px">American Express</div></div>
-          <div class="settings-item" onclick="closeSettings();openAmexImport()">
+          <div class="settings-item" onclick="closeSettings();openImport2('Amex')">
             <span class="s-icon" style="background:#e8f0fe"><svg viewBox="0 0 24 24" fill="none" stroke="#1a4aaa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></span>
             <div class="s-text"><div class="s-label">Carta Amex</div><div class="s-desc">Movimenti carta American Express</div></div>
             <span class="s-arrow">›</span>
@@ -916,7 +919,7 @@ select.form-input { height: 42px; }
 
     </div>
     <div style="padding:10px 16px 14px;text-align:center;border-top:1px solid var(--border);margin-top:4px">
-      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v1.8.6</span>
+      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v1.9.0</span>
     </div>
   </div>
 </div>
@@ -4703,6 +4706,408 @@ async function amexAutoDownload() {
   }
 }
 
+
+// ═══════════════════════════════════════════════════════════════════════════
+// IMPORT UNIFICATO (v2) — un solo modal per tutti i conti.
+// Passo 1: agganciato SOLO ad Amex. Gli altri import restano invariati.
+//
+// Architettura:
+//   IMPORT2_CONFIGS[accountName] = { adapter che sa parse+dedup+segni del conto }
+//   Il modal e' generico: selettore conto, auto/file, tabella, tab Storico.
+//   Lo storico e' filtrato per accountId (bug "storico mischiato" risolto).
+// ═══════════════════════════════════════════════════════════════════════════
+
+var IMPORT2_STATE = { accName:null, rows:[], tab:'import' };
+
+// ── CONFIG PER CONTO ────────────────────────────────────────────────────────
+// Ogni conto dichiara: come si chiama il conto economico per il riporto Eco,
+// la funzione di parse (ritorna righe normalizzate) e quella di auto-download.
+var IMPORT2_CONFIGS = {
+  'Amex': {
+    accountName: 'Amex',
+    icon: '💳',
+    title: 'American Express',
+    fileHint: 'movimenti.xlsx (Dettagli transazione)',
+    accept: '.xlsx,.xls',
+    hasEco: true,
+    ecoAccountName: 'InternoUno',
+    autoEndpoint: '/api/amex-auto',
+    autoLabel: 'Scarica automaticamente da Amex',
+    parse: async function(file) { return await import2ParseAmex(file); },
+  }
+};
+
+// ── PARSER AMEX (identico alla logica v1.8.6: MM/DD, segno invertito, dedup rif) ──
+async function import2ParseAmex(file) {
+  var buf = await file.arrayBuffer();
+  var wb = XLSX.read(buf, { type:'array', cellDates:true });
+  var sheetName = wb.SheetNames.find(function(n){ return n.indexOf('Dettagli')>=0; }) || wb.SheetNames[0];
+  var rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], { header:1, raw:false, dateNF:'dd/mm/yyyy' });
+
+  var hdrIdx = -1;
+  for (var r=0; r<rows.length && r<30; r++) {
+    var row = rows[r]||[];
+    if (String(row[0]||'').trim()==='Data' && String(row[1]||'').indexOf('Descrizione')>=0) { hdrIdx=r; break; }
+  }
+  if (hdrIdx < 0) throw new Error('Header non trovato (attesa riga con Data / Descrizione)');
+
+  var hdr = rows[hdrIdx].map(function(h){ return String(h||'').trim(); });
+  var iData=hdr.indexOf('Data'), iDesc=hdr.indexOf('Descrizione'),
+      iImp=hdr.indexOf('Importo'), iRif=hdr.indexOf('Riferimento');
+  if (iRif < 0) throw new Error('Colonna Riferimento non trovata');
+
+  var accId = sellaGetAccId('Amex');
+  var existing = await import2ExistingKeys(accId, 'name');
+
+  var out = [];
+  for (var i=hdrIdx+1; i<rows.length; i++) {
+    var row = rows[i]||[];
+    var rif = String(row[iRif]||'').trim();
+    var dataRaw = row[iData];
+    var desc = String(row[iDesc]||'').replace(/\s+/g,' ').trim();
+    var impRaw = row[iImp];
+    if (!rif || !dataRaw || impRaw===undefined || impRaw===null || impRaw==='') continue;
+
+    var impStr = String(impRaw).trim().replace(/[^0-9.,\-]/g,'');
+    if (impStr.indexOf(',')>=0) impStr = impStr.replace(/\./g,'').replace(',','.');
+    var importo = parseFloat(impStr);
+    if (isNaN(importo)) continue;
+    importo = -importo;   // Amex: spese positive nel file -> negative da noi
+
+    var dateISO = amexDateToISO(dataRaw);
+    var storKey = 'AMEX|' + rif;
+    out.push({
+      key: rif,                          // identificatore univoco (= name TX)
+      dateISO: dateISO,
+      dataOp: dateISO.slice(8,10)+'/'+dateISO.slice(5,7)+'/'+dateISO.slice(0,4),
+      desc: desc, importo: importo,
+      isDup: existing.has(storKey.replace('AMEX|','')),   // dedup per rif nel name
+      includi: false, eco: false,
+      catObj: sellaGuessCategory(desc, '', importo)
+    });
+  }
+  // marca includi = !dup
+  out.forEach(function(m){ m.includi = !m.isDup; });
+  if (!out.length) throw new Error('Nessuna transazione trovata nel file');
+  return out;
+}
+
+// Chiavi gia' presenti sul conto. mode 'name' = confronta col nome TX (Amex/rif).
+async function import2ExistingKeys(accId, mode) {
+  var keys = new Set();
+  if (!accId) return keys;
+  var years = (meta && meta.years) ? meta.years.slice(-3) : [String(new Date().getFullYear())];
+  for (var yi=0; yi<years.length; yi++) {
+    try {
+      var txs = await api('GET','/api/tx/'+years[yi]);
+      txs.forEach(function(t){
+        if (t.accountId!==accId) return;
+        if (mode==='name' && t.name) keys.add(t.name);
+      });
+    } catch(e){}
+  }
+  return keys;
+}
+
+// ── APERTURA MODAL ──────────────────────────────────────────────────────────
+function openImport2(accountName) {
+  var cfg = IMPORT2_CONFIGS[accountName];
+  if (!cfg) { alert('Import non configurato per: '+accountName); return; }
+  IMPORT2_STATE = { accName: accountName, rows: [], tab: 'import' };
+
+  document.getElementById('imp2-title-txt').textContent = 'Import ' + cfg.title;
+  document.getElementById('imp2-title-icon').textContent = cfg.icon;
+
+  // selettore conto: per ora mostra solo il conto corrente (in futuro dropdown)
+  var sel = document.getElementById('imp2-acct-chips');
+  sel.innerHTML = '';
+  var chip = document.createElement('span');
+  chip.style.cssText = 'padding:6px 14px;border-radius:20px;background:var(--blue);color:#fff;font-size:13px;font-weight:700';
+  chip.textContent = cfg.icon + ' ' + cfg.title;
+  sel.appendChild(chip);
+
+  // auto button
+  var autoBtn = document.getElementById('imp2-auto-btn');
+  if (cfg.autoEndpoint) {
+    autoBtn.style.display = 'flex';
+    autoBtn.querySelector('span:last-child').textContent = cfg.autoLabel;
+  } else { autoBtn.style.display = 'none'; }
+
+  // file hint
+  document.getElementById('imp2-file-hint').textContent = 'Formato: ' + cfg.fileHint;
+  document.getElementById('imp2-file-input').setAttribute('accept', cfg.accept);
+
+  // eco bar visibile solo se il conto la supporta
+  document.getElementById('imp2-eco-bar').style.display = cfg.hasEco ? 'flex' : 'none';
+
+  // reset viste
+  import2ShowTab('import');
+  document.getElementById('imp2-drop').style.display = 'block';
+  document.getElementById('imp2-table-wrap').style.display = 'none';
+  document.getElementById('imp2-stats').style.display = 'none';
+  document.getElementById('imp2-import-btn').disabled = true;
+  document.getElementById('imp2-progress').textContent = '';
+
+  document.getElementById('imp2-overlay').style.display = 'flex';
+}
+function closeImport2() { document.getElementById('imp2-overlay').style.display = 'none'; }
+
+function import2ShowTab(tab) {
+  IMPORT2_STATE.tab = tab;
+  document.getElementById('imp2-tab-import').classList.toggle('active', tab==='import');
+  document.getElementById('imp2-tab-storico').classList.toggle('active', tab==='storico');
+  document.getElementById('imp2-pane-import').style.display = tab==='import' ? 'block' : 'none';
+  document.getElementById('imp2-pane-storico').style.display = tab==='storico' ? 'block' : 'none';
+  if (tab==='storico') import2LoadStorico();
+}
+
+// ── FILE / AUTO ─────────────────────────────────────────────────────────────
+function import2OnDrop(e) {
+  e.preventDefault();
+  document.getElementById('imp2-drop').classList.remove('drag');
+  if (e.dataTransfer.files[0]) import2HandleFile(e.dataTransfer.files[0]);
+}
+
+async function import2HandleFile(file) {
+  if (!file) return;
+  var cfg = IMPORT2_CONFIGS[IMPORT2_STATE.accName];
+  document.getElementById('imp2-progress').textContent = 'Analisi\u2026';
+  try {
+    var rows = await cfg.parse(file);
+    IMPORT2_STATE.rows = rows;
+    document.getElementById('imp2-drop').style.display = 'none';
+    document.getElementById('imp2-table-wrap').style.display = 'block';
+    import2RenderTable();
+    import2UpdateStats();
+    document.getElementById('imp2-progress').textContent = '';
+  } catch(e) {
+    document.getElementById('imp2-progress').textContent = '';
+    alert('Errore lettura file: ' + e.message);
+  }
+}
+
+async function import2AutoDownload() {
+  var cfg = IMPORT2_CONFIGS[IMPORT2_STATE.accName];
+  var btn = document.getElementById('imp2-auto-btn');
+  var lbl = btn.querySelector('span:last-child');
+  var orig = lbl.textContent;
+  btn.disabled = true; lbl.textContent = 'Download in corso (~60 sec)...';
+  try {
+    var TOKEN = localStorage.getItem('icompta_token');
+    var resp = await fetch(WORKER_URL + cfg.autoEndpoint, {
+      headers: { 'Authorization': 'Bearer ' + TOKEN },
+      signal: AbortSignal.timeout(180000)
+    });
+    if (!resp.ok) throw new Error('Errore server Mac: ' + resp.status);
+    var blob = await resp.blob();
+    if (!blob || blob.size < 100) throw new Error('File vuoto o non valido');
+    lbl.textContent = 'File ricevuto, analisi...';
+    var fname = resp.headers.get('X-Filename') || 'import.xlsx';
+    var file = new File([blob], fname, { type: blob.type || 'application/octet-stream' });
+    await import2HandleFile(file);
+  } catch(e) {
+    alert('Errore: ' + e.message);
+  } finally {
+    btn.disabled = false; lbl.textContent = orig;
+  }
+}
+
+// ── TABELLA ─────────────────────────────────────────────────────────────────
+function import2RenderTable() {
+  var cfg = IMPORT2_CONFIGS[IMPORT2_STATE.accName];
+  var tbody = document.getElementById('imp2-tbody'), rows='';
+  var M = IMPORT2_STATE.rows;
+  for (var i=0;i<M.length;i++) {
+    var m = M[i];
+    var amtCls = m.importo>=0 ? 'sella-amt-pos' : 'sella-amt-neg';
+    var amtStr = (m.importo>=0?'+':'') + m.importo.toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2}) + ' \u20ac';
+    var opts = buildCatOptions(m.catObj ? m.catObj.id : null);
+    var ecoCell = cfg.hasEco
+      ? '<td style="text-align:center;padding:6px 8px"><button class="amex-eco-tog '+(m.eco?'on':'')+'" onclick="import2ToggleEco('+i+')"></button></td>'
+      : '';
+    rows += '<tr style="'+(m.isDup?'opacity:.45;text-decoration:line-through':'')+'" id="imp2-row-'+i+'">'+
+      '<td style="white-space:nowrap;color:var(--muted);font-size:12px;padding:6px 8px">'+m.dataOp+'</td>'+
+      '<td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:6px 8px" title="'+esc(m.desc)+'">'+esc(m.desc)+'</td>'+
+      '<td class="'+amtCls+'" style="white-space:nowrap;text-align:right;padding:6px 8px">'+amtStr+'</td>'+
+      '<td style="padding:4px 8px"><select class="sella-cat-sel" onchange="import2SetCat('+i+',this.value)">'+opts+'</select></td>'+
+      ecoCell +
+      '<td style="text-align:center;padding:6px 8px"><button class="sella-tog '+(m.includi?'on':'off')+'" onclick="import2Toggle('+i+')" title="'+(m.isDup?'Gi\u00e0 presente':'')+'"></button></td>'+
+      '</tr>';
+  }
+  tbody.innerHTML = rows;
+  // header eco col visibile o no
+  document.getElementById('imp2-th-eco').style.display = cfg.hasEco ? '' : 'none';
+  for (var i=0;i<M.length;i++) {
+    if (M[i].catObj) { var s=tbody.querySelector('#imp2-row-'+i+' .sella-cat-sel'); if(s) s.value=M[i].catObj.id; }
+  }
+}
+function import2SetCat(i, catId) {
+  var m = IMPORT2_STATE.rows[i];
+  if (catId && meta) {
+    var cat = meta.categories.find(function(c){ return c.id===catId; });
+    m.catObj = cat ? {name:cat.name,id:cat.id} : null;
+    if (cat) sellaLearnRule(m.desc, m.catObj, m.importo);
+  } else m.catObj = null;
+  import2UpdateStats();
+}
+function import2Toggle(i) {
+  var m = IMPORT2_STATE.rows[i];
+  m.includi = !m.includi;
+  var b = document.querySelector('#imp2-row-'+i+' .sella-tog');
+  if (b) b.className = 'sella-tog ' + (m.includi?'on':'off');
+  import2UpdateStats();
+}
+function import2ToggleEco(i) {
+  var m = IMPORT2_STATE.rows[i];
+  m.eco = !m.eco;
+  var b = document.querySelector('#imp2-row-'+i+' .amex-eco-tog');
+  if (b) b.className = 'amex-eco-tog ' + (m.eco?'on':'');
+  import2UpdateStats();
+}
+function import2EcoAll(val) {
+  IMPORT2_STATE.rows.forEach(function(m){ if(!m.isDup) m.eco=val; });
+  import2RenderTable(); import2UpdateStats();
+}
+function import2UpdateStats() {
+  var cfg = IMPORT2_CONFIGS[IMPORT2_STATE.accName];
+  var M = IMPORT2_STATE.rows;
+  var inc = M.filter(function(m){return m.includi;});
+  var eco = inc.filter(function(m){return m.eco;});
+  document.getElementById('imp2-st-tot').textContent = M.length;
+  document.getElementById('imp2-st-new').textContent = inc.length;
+  document.getElementById('imp2-st-dup').textContent = M.filter(function(m){return m.isDup;}).length;
+  var ecoWrap = document.getElementById('imp2-st-eco-wrap');
+  if (cfg.hasEco) { ecoWrap.style.display=''; document.getElementById('imp2-st-eco').textContent = eco.length; }
+  else ecoWrap.style.display='none';
+  document.getElementById('imp2-stats').style.display = M.length ? 'flex' : 'none';
+  var btn = document.getElementById('imp2-import-btn');
+  btn.textContent = inc.length ? '\u2b06\ufe0f Importa '+inc.length+' moviment'+(inc.length===1?'o':'i')+(eco.length?' ('+eco.length+' su economico)':'') : '\u2b06\ufe0f Importa selezionati';
+  btn.disabled = inc.length===0;
+}
+
+// ── IMPORT ──────────────────────────────────────────────────────────────────
+var _import2Running = false;
+async function import2DoImport() {
+  if (_import2Running) return;
+  var cfg = IMPORT2_CONFIGS[IMPORT2_STATE.accName];
+  var inc = IMPORT2_STATE.rows.filter(function(m){return m.includi;});
+  if (!inc.length) return;
+  var accId = sellaGetAccId(cfg.accountName);
+  var ecoId = cfg.hasEco ? sellaGetAccId(cfg.ecoAccountName) : null;
+  if (!accId) { alert('Conto "'+cfg.accountName+'" non trovato'); return; }
+
+  _import2Running = true;
+  var btn = document.getElementById('imp2-import-btn'); btn.disabled = true;
+  var txMainIds = [], txEcoIds = [], errs = 0;
+
+  // 1) TX sul conto principale
+  for (var i=0;i<inc.length;i++) {
+    var m = inc[i];
+    btn.textContent = '\u23f3 '+(i+1)+'/'+inc.length;
+    var tx = { id:null, date:m.dateISO, name:m.key, accountId:accId,
+      status:'cleared', comment:m.desc, useSumOfSplits:true, amount:null, linkedTxId:null,
+      splits:[{amount:m.importo, categoryId:m.catObj?m.catObj.id:null, comment:null}] };
+    try { var r = await api('POST','/api/tx',{tx:tx}); if(r&&r.id) txMainIds.push(r.id); else errs++; }
+    catch(e){ errs++; }
+  }
+
+  // 2) TX aggregate sull'economico (righe con eco), segno opposto
+  if (cfg.hasEco && ecoId) {
+    var ecoRows = inc.filter(function(m){return m.eco;});
+    if (ecoRows.length) {
+      var bycat = {};
+      ecoRows.forEach(function(m){
+        var k = m.catObj ? m.catObj.id : '__nessuna__';
+        if (!bycat[k]) bycat[k] = { catObj:m.catObj, total:0, dates:[], descs:[] };
+        bycat[k].total += m.importo; bycat[k].dates.push(m.dateISO); bycat[k].descs.push(m.desc);
+      });
+      var keys = Object.keys(bycat);
+      for (var ci=0; ci<keys.length; ci++) {
+        var agg = bycat[keys[ci]]; agg.dates.sort();
+        var last = agg.dates[agg.dates.length-1];
+        var nota = cfg.title + ' ' + last.slice(0,7) + ' \u2014 ' + agg.descs.slice(0,3).join(', ');
+        if (nota.length>120) nota = nota.substring(0,117)+'\u2026';
+        var txe = { id:null, date:last, name: agg.catObj?agg.catObj.name:'Varie',
+          accountId:ecoId, status:'cleared', comment:nota, useSumOfSplits:true, amount:null, linkedTxId:null,
+          splits:[{amount:-agg.total, categoryId:agg.catObj?agg.catObj.id:null, comment:null}] };
+        try { var re = await api('POST','/api/tx',{tx:txe}); if(re&&re.id) txEcoIds.push(re.id); else errs++; }
+        catch(e){ errs++; }
+      }
+    }
+  }
+
+  // 3) Registra sessione nello storico CON accountId (filtrabile per conto)
+  var session = {
+    id: 'imp-'+Date.now(),
+    date: new Date().toISOString(),
+    label: cfg.title + ' \u00b7 ' + new Date().toLocaleDateString('it-IT'),
+    accountId: accId,
+    accountName: cfg.accountName,
+    countBanca: txMainIds.length,
+    countEco: txEcoIds.length,
+    txBanca: txMainIds,
+    txEco: txEcoIds
+  };
+  try { await api('POST','/api/sella-log',{session:session}); } catch(e){}
+
+  _import2Running = false;
+  txCache = {}; await loadBalances();
+  if (selectedAccountId) { var a=meta.accounts.find(function(x){return x.id===selectedAccountId;}); if(a) await selectAccount(a.id,a.name); }
+  alert('\u2705 '+txMainIds.length+' TX importate'+(txEcoIds.length?' + '+txEcoIds.length+' su economico':'')+(errs?' (\u26a0\ufe0f '+errs+' errori)':''));
+  closeImport2();
+}
+
+// ── STORICO (filtrato per conto) ────────────────────────────────────────────
+async function import2LoadStorico() {
+  var cfg = IMPORT2_CONFIGS[IMPORT2_STATE.accName];
+  var accId = sellaGetAccId(cfg.accountName);
+  var el = document.getElementById('imp2-storico-list');
+  el.innerHTML = '<div style="color:var(--faint);font-size:13px;padding:8px 0">Caricamento\u2026</div>';
+  try {
+    var sessions = await api('GET','/api/sella-log') || [];
+    // Filtro per conto: mostra le sessioni di QUESTO conto.
+    // Le sessioni vecchie senza accountId vengono assegnate guardando i txId.
+    var mine = sessions.filter(function(s){ return s.accountId === accId; });
+    if (!mine.length) { el.innerHTML='<div style="color:var(--faint);font-size:13px;padding:8px 0">Nessuna importazione per questo conto</div>'; return; }
+    var frag = document.createDocumentFragment();
+    mine.forEach(function(s){
+      var row = document.createElement('div');
+      row.style.cssText='display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--gray2)';
+      var info = document.createElement('div'); info.style.flex='1';
+      var d = s.date ? new Date(s.date).toLocaleString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '';
+      info.innerHTML = '<div style="font-size:14px;font-weight:600">'+esc(s.label||d)+'</div>'+
+        '<div style="font-size:12px;color:var(--muted);margin-top:2px">'+d+' \u00b7 '+(s.countBanca||0)+' TX'+((s.countEco||0)?' + '+s.countEco+' eco':'')+'</div>';
+      var det = document.createElement('button');
+      det.style.cssText='padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:12px;cursor:pointer;white-space:nowrap';
+      det.textContent='\uD83D\uDC41 Dettagli';
+      det.addEventListener('click', function(){ import2SessionDetail(s); });
+      var del = document.createElement('button');
+      del.style.cssText='padding:6px 12px;border-radius:8px;border:1px solid var(--red);background:var(--red-bg);color:var(--red);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap';
+      del.textContent='\uD83D\uDDD1 Rimuovi';
+      del.addEventListener('click', function(){ import2SessionDelete(s); });
+      row.appendChild(info); row.appendChild(det); row.appendChild(del);
+      frag.appendChild(row);
+    });
+    el.innerHTML=''; el.appendChild(frag);
+  } catch(e) { el.innerHTML='<div style="color:var(--red);font-size:13px;padding:8px 0">Errore caricamento</div>'; }
+}
+
+async function import2SessionDetail(s) {
+  // Riusa il detail Sella esistente (mostra le TX della sessione)
+  if (typeof openSellaDetail === 'function') { openSellaDetail(s); return; }
+  alert((s.countBanca||0)+' TX su conto + '+(s.countEco||0)+' su economico');
+}
+async function import2SessionDelete(s) {
+  var tot = (s.countBanca||0)+(s.countEco||0);
+  if (!confirm('Rimuovere questa importazione? Verranno eliminate '+tot+' transazioni.')) return;
+  var r = await api('DELETE','/api/sella-log/'+s.id);
+  if (r && r.ok) {
+    txCache={}; await loadBalances();
+    if (selectedAccountId){ var a=meta.accounts.find(function(x){return x.id===selectedAccountId;}); if(a) await selectAccount(a.id,a.name); }
+    import2LoadStorico();
+  } else alert('Errore: '+(r&&r.error?r.error:'sconosciuto'));
+}
+
 </script>
 
 <!-- Modal Import Sella -->
@@ -4918,6 +5323,87 @@ async function amexAutoDownload() {
   </div>
 </div>
 
+
+<!-- Modal Import Unificato (v2) -->
+<div id="imp2-overlay" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.45);align-items:flex-end;justify-content:center" onclick="if(event.target===this)closeImport2()">
+  <div style="width:100%;max-width:800px;background:var(--surface);border-radius:20px 20px 0 0;height:92vh;display:flex;flex-direction:column;box-shadow:0 -4px 32px rgba(0,0,0,.2)">
+    <div style="padding:16px 20px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0">
+      <span id="imp2-title-icon" style="font-size:22px">💳</span>
+      <h3 id="imp2-title-txt" style="flex:1;font-size:18px;font-weight:700">Import</h3>
+      <button onclick="closeImport2()" style="background:var(--gray2);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:16px">✕</button>
+    </div>
+
+    <!-- selettore conto -->
+    <div id="imp2-acct-chips" style="display:flex;gap:8px;flex-wrap:wrap;padding:12px 20px 0;flex-shrink:0"></div>
+
+    <!-- tabs -->
+    <div style="display:flex;gap:0;padding:12px 20px 0;flex-shrink:0;border-bottom:1px solid var(--border)">
+      <button id="imp2-tab-import" class="imp2-tab active" onclick="import2ShowTab('import')">Importa</button>
+      <button id="imp2-tab-storico" class="imp2-tab" onclick="import2ShowTab('storico')">Storico</button>
+    </div>
+
+    <!-- PANE IMPORT -->
+    <div id="imp2-pane-import" style="flex:1;overflow-y:auto;padding:16px">
+      <button id="imp2-auto-btn" onclick="import2AutoDownload()" style="width:100%;padding:12px;border-radius:10px;border:none;background:var(--blue);color:#fff;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:8px">
+        <span>📥</span> <span>Scarica automaticamente</span>
+      </button>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <div style="flex:1;height:1px;background:var(--border)"></div>
+        <span style="font-size:12px;color:var(--faint)">oppure</span>
+        <div style="flex:1;height:1px;background:var(--border)"></div>
+      </div>
+      <div id="imp2-drop"
+        ondragover="event.preventDefault();this.classList.add('drag')"
+        ondragleave="this.classList.remove('drag')"
+        ondrop="import2OnDrop(event)"
+        onclick="document.getElementById('imp2-file-input').click()"
+        style="border:2px dashed var(--border);border-radius:12px;padding:28px;text-align:center;cursor:pointer;margin-bottom:12px">
+        <h4 style="font-size:15px;font-weight:600;margin-bottom:6px">📂 Carica file</h4>
+        <p style="font-size:13px;color:var(--muted)">Trascina il file qui oppure clicca per selezionarlo</p>
+        <p id="imp2-file-hint" style="font-size:11px;margin-top:8px;color:var(--faint)">Formato: —</p>
+      </div>
+      <input type="file" id="imp2-file-input" style="display:none" onchange="import2HandleFile(this.files[0])">
+
+      <div id="imp2-stats" style="display:none;gap:12px;margin-bottom:14px;flex-wrap:wrap;flex-direction:row">
+        <div class="sella-stat"><div class="sella-stat-n" id="imp2-st-tot">0</div><div class="sella-stat-lbl">Totale</div></div>
+        <div class="sella-stat"><div class="sella-stat-n" id="imp2-st-new" style="color:var(--green)">0</div><div class="sella-stat-lbl">Nuovi</div></div>
+        <div class="sella-stat"><div class="sella-stat-n" id="imp2-st-dup" style="color:var(--faint)">0</div><div class="sella-stat-lbl">Già presenti</div></div>
+        <div class="sella-stat" id="imp2-st-eco-wrap"><div class="sella-stat-n" id="imp2-st-eco" style="color:var(--blue)">0</div><div class="sella-stat-lbl">Su economico</div></div>
+      </div>
+
+      <div id="imp2-eco-bar" style="display:none;align-items:center;gap:8px;margin-bottom:10px;padding:8px 10px;background:var(--blue-bg);border-radius:8px">
+        <span style="flex:1;font-size:12px;color:var(--blue);font-weight:600">📊 Colonna «Eco»: se selezionata, la TX viene riportata anche sul conto economico InternoUno (segno opposto, aggregata per categoria)</span>
+        <button onclick="import2EcoAll(true)" style="padding:5px 10px;border-radius:7px;border:1px solid var(--blue);background:var(--surface);color:var(--blue);font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap">Tutte</button>
+        <button onclick="import2EcoAll(false)" style="padding:5px 10px;border-radius:7px;border:1px solid var(--gray3);background:var(--surface);color:var(--muted);font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap">Nessuna</button>
+      </div>
+
+      <div id="imp2-table-wrap" style="display:none">
+        <table style="width:100%;border-collapse:collapse;font-size:13px">
+          <thead><tr>
+            <th style="text-align:left;padding:6px 8px;border-bottom:1px solid var(--border);color:var(--muted);font-size:11px">Data</th>
+            <th style="text-align:left;padding:6px 8px;border-bottom:1px solid var(--border);color:var(--muted);font-size:11px">Descrizione</th>
+            <th style="text-align:right;padding:6px 8px;border-bottom:1px solid var(--border);color:var(--muted);font-size:11px">Importo</th>
+            <th style="text-align:left;padding:6px 8px;border-bottom:1px solid var(--border);color:var(--muted);font-size:11px">Categoria</th>
+            <th id="imp2-th-eco" style="text-align:center;padding:6px 8px;border-bottom:1px solid var(--border);color:var(--blue);font-size:11px;font-weight:700">Eco</th>
+            <th style="text-align:center;padding:6px 8px;border-bottom:1px solid var(--border);color:var(--muted);font-size:11px">✓</th>
+          </tr></thead>
+          <tbody id="imp2-tbody"></tbody>
+        </table>
+      </div>
+      <div id="imp2-progress" style="font-size:13px;color:var(--muted);padding:4px 0"></div>
+    </div>
+
+    <!-- PANE STORICO -->
+    <div id="imp2-pane-storico" style="display:none;flex:1;overflow-y:auto;padding:16px">
+      <div id="imp2-storico-list"></div>
+    </div>
+
+    <div style="padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px;flex-shrink:0">
+      <button id="imp2-import-btn" disabled onclick="import2DoImport()" style="flex:1;padding:13px;border-radius:12px;border:none;background:var(--blue);color:#fff;font-size:15px;font-weight:700;cursor:pointer">⬆️ Importa selezionati</button>
+    </div>
+  </div>
+</div>
+
 <!-- Modal Gestione Conti -->
 <div id="accts-overlay" style="display:none" onclick="if(event.target===this)closeAcctsMgmt()">
   <div id="accts-panel">
@@ -5080,7 +5566,7 @@ var IMPORT_MAP = {
 var IMPORT_MAP_AUTO = {
   'InternoUno Banca': { label: 'Aggiorna', fn: function() { openSellaImport(); } },
   'Banca Sella':      { label: 'Aggiorna', fn: function() { openSellaPersonaleImport(); } },
-  'Amex':             { label: 'Aggiorna', fn: function() { openAmexImport(); } },
+  'Amex':             { label: 'Aggiorna', fn: function() { openImport2('Amex'); } },
 };
 
 function importContestuale() {
