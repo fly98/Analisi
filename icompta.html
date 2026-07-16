@@ -846,7 +846,7 @@ select.form-input { height: 42px; }
 
           <!-- Import UniCredit -->
           <div class="s-text" style="padding:10px 12px 2px"><div class="s-label" style="font-size:11px;color:var(--gray4);text-transform:uppercase;letter-spacing:.5px">UniCredit</div></div>
-          <div class="settings-item" onclick="closeSettings();openUnicreditModal()">
+          <div class="settings-item" onclick="closeSettings();openImport2('Genius Unicredit')">
             <span class="s-icon" style="background:#fde8e8"><svg viewBox="0 0 24 24" fill="none" stroke="#b83232" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></span>
             <div class="s-text"><div class="s-label">Genius</div><div class="s-desc">Movimenti carta Genius UniCredit</div></div>
             <span class="s-arrow">›</span>
@@ -920,7 +920,7 @@ select.form-input { height: 42px; }
 
     </div>
     <div style="padding:10px 16px 14px;text-align:center;border-top:1px solid var(--border);margin-top:4px">
-      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v1.9.3</span>
+      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v1.9.4</span>
     </div>
   </div>
 </div>
@@ -3906,6 +3906,8 @@ function _autoLog(logId, msg, type) {
     }
     // Ordina per data decrescente
     sellaMovimenti.sort(function(a,b){ return b.dateISO.localeCompare(a.dateISO); });
+    // MODAL UNIFICATO: se attivo, non toccare le UI vecchie — ritorna le righe grezze.
+    if (window._ebImport2Mode) { return sellaMovimenti.slice(); }
     // Mostra la tabella nel pannello corretto
     if (tipo === 'personale') {
       sellapMovimenti = sellaMovimenti.slice();
@@ -4747,8 +4749,46 @@ var IMPORT2_CONFIGS = {
     autoEndpoint: '/api/sella-personale-auto',
     autoLabel: 'Scarica automaticamente da Sella',
     parse: async function(file) { return await import2ParseSellaCsv(file, 'Banca Sella'); },
+  },
+  'Genius Unicredit': {
+    accountName: 'Genius Unicredit',
+    icon: '💳',
+    title: 'UniCredit Genius',
+    source: 'eb',                 // Enable Banking (no file, no Mac)
+    ebTipo: 'unicredit',
+    hasEco: true,
+    ecoAccountName: 'InternoUno',
+    autoLabel: 'Scarica via Enable Banking',
   }
 };
+
+// ── ADAPTER ENABLE BANKING: riusa _ebImportMovimenti (dedup completo) ────────
+// Non riscrive la logica: attiva la modalità import2 sul motore, che ritorna
+// le righe gia' normalizzate (con ebRef, dedup ±3gg, alias Amazon/PayPal).
+async function import2FetchEB(ebTipo) {
+  window._ebImport2Mode = true;
+  try {
+    var rows = await _ebImportMovimenti(ebTipo);   // ritorna sellaMovimenti.slice()
+    // Normalizzo al formato del modal unificato
+    return (rows || []).map(function(m){
+      return {
+        key: m.desc,               // name TX = descrizione (come import EB attuale)
+        dateISO: m.dateISO,
+        dataOp: m.dataOp || (m.dateISO ? m.dateISO.split('-').reverse().join('/') : ''),
+        desc: m.desc,
+        importo: m.importo,
+        isDup: m.isDup,
+        includi: !m.isDup,
+        eco: false,
+        ebRef: m.ebRef || null,    // preserva la chiave di dedup esatta
+        etich: m.etich || '',
+        catObj: m.catObj || sellaGuessCategory(m.desc, '', m.importo)
+      };
+    });
+  } finally {
+    window._ebImport2Mode = false;
+  }
+}
 
 // ── PARSER CSV SELLA (personale): dedup per codice, name = codice ────────────
 async function import2ParseSellaCsv(file, accountName) {
@@ -4909,14 +4949,24 @@ function openImport2(accountName) {
 
   // auto button
   var autoBtn = document.getElementById('imp2-auto-btn');
-  if (cfg.autoEndpoint) {
+  var isEB = (cfg.source === 'eb');
+  if (cfg.autoEndpoint || isEB) {
     autoBtn.style.display = 'flex';
     autoBtn.querySelector('span:last-child').textContent = cfg.autoLabel;
+    autoBtn.querySelector('span:first-child').textContent = isEB ? '🏦' : '📥';
   } else { autoBtn.style.display = 'none'; }
 
-  // file hint
-  document.getElementById('imp2-file-hint').textContent = 'Formato: ' + cfg.fileHint;
-  document.getElementById('imp2-file-input').setAttribute('accept', cfg.accept);
+  // area file (solo per fonti a file); i conti EB non hanno file da caricare
+  var dropWrap = document.getElementById('imp2-drop');
+  var orEl = document.getElementById('imp2-or-sep');
+  if (isEB) {
+    if (dropWrap) dropWrap.style.display = 'none';
+    if (orEl) orEl.style.display = 'none';
+  } else {
+    if (orEl) orEl.style.display = 'flex';
+    document.getElementById('imp2-file-hint').textContent = 'Formato: ' + cfg.fileHint;
+    document.getElementById('imp2-file-input').setAttribute('accept', cfg.accept);
+  }
 
   // eco bar visibile solo se il conto la supporta
   document.getElementById('imp2-eco-bar').style.display = cfg.hasEco ? 'flex' : 'none';
@@ -4983,6 +5033,27 @@ async function import2AutoDownload() {
   var btn = document.getElementById('imp2-auto-btn');
   var lbl = btn.querySelector('span:last-child');
   var orig = lbl.textContent;
+
+  // ── Fonte Enable Banking ──
+  if (cfg.source === 'eb') {
+    btn.disabled = true; lbl.textContent = 'Connessione Enable Banking...';
+    import2Log('Connessione Enable Banking\u2026');
+    try {
+      var rows = await import2FetchEB(cfg.ebTipo);
+      IMPORT2_STATE.rows = rows;
+      document.getElementById('imp2-table-wrap').style.display = 'block';
+      import2RenderTable(); import2UpdateStats();
+      var nDup = rows.filter(function(m){return m.isDup;}).length;
+      import2Log(rows.length + ' transazioni \u00b7 ' + (rows.length-nDup) + ' nuove, ' + nDup + ' gi\u00e0 presenti', 'ok');
+    } catch(e) {
+      import2Log('Errore Enable Banking: ' + e.message, 'err');
+      alert('Errore: ' + e.message);
+    } finally {
+      btn.disabled = false; lbl.textContent = orig;
+    }
+    return;
+  }
+
   btn.disabled = true; lbl.textContent = 'Download in corso (~60 sec)...';
   import2Log('Connessione al Mac e avvio download\u2026');
   try {
@@ -5101,7 +5172,8 @@ async function import2DoImport() {
     var m = inc[i];
     btn.textContent = '\u23f3 '+(i+1)+'/'+inc.length;
     var tx = { id:null, date:m.dateISO, name:m.key, accountId:accId,
-      status:'cleared', comment:m.desc, useSumOfSplits:true, amount:null, linkedTxId:null,
+      status:'cleared', comment:(m.etich||m.desc), useSumOfSplits:true, amount:null, linkedTxId:null,
+      ebRef: m.ebRef || null,
       splits:[{amount:m.importo, categoryId:m.catObj?m.catObj.id:null, comment:null}] };
     try { var r = await api('POST','/api/tx',{tx:tx}); if(r&&r.id) txMainIds.push(r.id); else errs++; }
     catch(e){ errs++; }
@@ -5228,7 +5300,7 @@ async function import2SessionDelete(s) {
         </select>
       </div>
       <div id="eb-log-azienda" style="display:none;background:#1a1a1a;border-radius:8px;padding:8px 10px;max-height:100px;overflow-y:auto;font-family:monospace;font-size:11px;margin-bottom:8px"></div>
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+      <div id="imp2-or-sep" style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
         <div style="flex:1;height:1px;background:var(--border)"></div>
         <span style="font-size:12px;color:var(--faint)">oppure</span>
         <div style="flex:1;height:1px;background:var(--border)"></div>
@@ -5317,7 +5389,7 @@ async function import2SessionDelete(s) {
         </select>
       </div>
       <div id="eb-log-personale" style="display:none;background:#1a1a1a;border-radius:8px;padding:8px 10px;max-height:100px;overflow-y:auto;font-family:monospace;font-size:11px;margin-bottom:8px"></div>
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+      <div id="imp2-or-sep" style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
         <div style="flex:1;height:1px;background:var(--border)"></div>
         <span style="font-size:12px;color:var(--faint)">oppure</span>
         <div style="flex:1;height:1px;background:var(--border)"></div>
@@ -5371,7 +5443,7 @@ async function import2SessionDelete(s) {
       <button id="amex-auto-btn" onclick="amexAutoDownload()" style="width:100%;padding:12px;border-radius:10px;border:none;background:var(--blue);color:#fff;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:8px">
         <span>📥</span> <span>Scarica automaticamente da Amex</span>
       </button>
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+      <div id="imp2-or-sep" style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
         <div style="flex:1;height:1px;background:var(--border)"></div>
         <span style="font-size:12px;color:var(--faint)">oppure</span>
         <div style="flex:1;height:1px;background:var(--border)"></div>
@@ -5444,7 +5516,7 @@ async function import2SessionDelete(s) {
       <button id="imp2-auto-btn" onclick="import2AutoDownload()" style="width:100%;padding:12px;border-radius:10px;border:none;background:var(--anthracite);color:#fff;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:8px">
         <span>📥</span> <span>Scarica automaticamente</span>
       </button>
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+      <div id="imp2-or-sep" style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
         <div style="flex:1;height:1px;background:var(--border)"></div>
         <span style="font-size:12px;color:var(--faint)">oppure</span>
         <div style="flex:1;height:1px;background:var(--border)"></div>
@@ -5658,7 +5730,7 @@ async function aggiornaFinecoOra(btn) {
 var IMPORT_MAP = {
   'ACC-FINECO-INV':  { label: 'Aggiorna', fn: function() { aggiornaFinecoOra(document.getElementById('btn-import-contestuale')); } },
   'ACC-FINECO-CC':   { label: 'Aggiorna', fn: function() { document.getElementById('fineco-cc-overlay').style.display='flex'; } },
-  '164E70BD-E589-4380-877D-1308AAEDFFF1': { label: 'Aggiorna', fn: function() { openUnicreditModal(); } },
+  '164E70BD-E589-4380-877D-1308AAEDFFF1': { label: 'Aggiorna', fn: function() { openImport2('Genius Unicredit'); } },
 };
 // Conti Sella e InternoUno Banca identificati per nome
 var IMPORT_MAP_AUTO = {
