@@ -1,6 +1,6 @@
 {
-  "generato": "2026-07-12T05:45:57.446Z",
-  "chiavi": 53,
+  "generato": "2026-07-19T05:40:09.639Z",
+  "chiavi": 61,
   "skippati_backup": 9,
   "errori": 0,
   "manifest": [
@@ -57,6 +57,10 @@
       "file": "keys/icompta_sella_regole.json"
     },
     {
+      "key": "icompta:semaforo",
+      "file": "keys/icompta_semaforo.json"
+    },
+    {
       "key": "icompta:snapshot:2026-06-28",
       "file": "keys/icompta_snapshot_2026-06-28.json"
     },
@@ -111,6 +115,34 @@
     {
       "key": "icompta:snapshot:2026-07-11",
       "file": "keys/icompta_snapshot_2026-07-11.json"
+    },
+    {
+      "key": "icompta:snapshot:2026-07-12",
+      "file": "keys/icompta_snapshot_2026-07-12.json"
+    },
+    {
+      "key": "icompta:snapshot:2026-07-13",
+      "file": "keys/icompta_snapshot_2026-07-13.json"
+    },
+    {
+      "key": "icompta:snapshot:2026-07-14",
+      "file": "keys/icompta_snapshot_2026-07-14.json"
+    },
+    {
+      "key": "icompta:snapshot:2026-07-15",
+      "file": "keys/icompta_snapshot_2026-07-15.json"
+    },
+    {
+      "key": "icompta:snapshot:2026-07-16",
+      "file": "keys/icompta_snapshot_2026-07-16.json"
+    },
+    {
+      "key": "icompta:snapshot:2026-07-17",
+      "file": "keys/icompta_snapshot_2026-07-17.json"
+    },
+    {
+      "key": "icompta:snapshot:2026-07-18",
+      "file": "keys/icompta_snapshot_2026-07-18.json"
     },
     {
       "key": "icompta:tx:2001",
