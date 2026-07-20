@@ -5,6 +5,7 @@
 export class Room {
   constructor(state, env) {
     this.state = state;
+    this.env = env;
     this.sockets = {}; // role -> WebSocket
   }
 
@@ -38,8 +39,18 @@ export class Room {
     return new Response('not found', { status: 404 });
   }
 
+  async rimuoviDaLobby() {
+    try {
+      const meta = await this.state.storage.get('meta');
+      if (!meta || !meta.code) return;
+      const lobby = this.env.LOBBY.get(this.env.LOBBY.idFromName('lobby'));
+      await lobby.fetch('https://do/remove', { method: 'POST', body: JSON.stringify({ code: meta.code }) });
+    } catch (e) {}
+  }
+
   handle(ws, role) {
     ws.accept();
+    if (role === 'guest') this.rimuoviDaLobby();
     // un solo socket per ruolo: il nuovo sostituisce il vecchio (riconnessione)
     const old = this.sockets[role];
     if (old) { try { old.close(1000, 'replaced'); } catch (e) {} }
@@ -97,6 +108,47 @@ export class Room {
   }
 }
 
+export class Lobby {
+  constructor(state) { this.state = state; }
+
+  async fetch(req) {
+    const url = new URL(req.url);
+    const TTL = 30 * 60 * 1000; // le stanze aperte scadono dopo 30 minuti
+
+    if (url.pathname === '/add' && req.method === 'POST') {
+      const { code, game, name } = await req.json();
+      const rooms = (await this.state.storage.get('rooms')) || {};
+      rooms[code] = { game, name: (name || 'Giocatore').slice(0, 20), created: Date.now() };
+      await this.state.storage.put('rooms', rooms);
+      return Response.json({ ok: true });
+    }
+
+    if (url.pathname === '/remove' && req.method === 'POST') {
+      const { code } = await req.json();
+      const rooms = (await this.state.storage.get('rooms')) || {};
+      delete rooms[code];
+      await this.state.storage.put('rooms', rooms);
+      return Response.json({ ok: true });
+    }
+
+    if (url.pathname === '/list') {
+      const rooms = (await this.state.storage.get('rooms')) || {};
+      const now = Date.now();
+      const out = [];
+      let dirty = false;
+      for (const [code, r] of Object.entries(rooms)) {
+        if (now - r.created > TTL) { delete rooms[code]; dirty = true; continue; }
+        out.push({ code, game: r.game, name: r.name, created: r.created });
+      }
+      if (dirty) await this.state.storage.put('rooms', rooms);
+      out.sort((a, b) => b.created - a.created);
+      return Response.json({ rooms: out });
+    }
+
+    return new Response('not found', { status: 404 });
+  }
+}
+
 function nuovoCodice() {
   // niente 0/O/1/I per dettatura facile a voce
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -119,14 +171,26 @@ export default {
     // POST/GET /create?game=briscola -> {code}
     if (url.pathname === '/create') {
       const game = url.searchParams.get('game') || 'briscola';
+      const name = (url.searchParams.get('name') || 'Giocatore').slice(0, 20);
       const code = nuovoCodice();
       const id = env.ROOM.idFromName(code);
       const stub = env.ROOM.get(id);
       await stub.fetch('https://do/setmeta', {
         method: 'POST',
-        body: JSON.stringify({ game, created: Date.now() })
+        body: JSON.stringify({ game, name, code, created: Date.now() })
       });
+      const lobby = env.LOBBY.get(env.LOBBY.idFromName('lobby'));
+      await lobby.fetch('https://do/add', { method: 'POST', body: JSON.stringify({ code, game, name }) });
       return Response.json({ code, game }, { headers: CORS });
+    }
+
+    // GET /rooms -> elenco delle partite aperte (in attesa di avversario)
+    if (url.pathname === '/rooms') {
+      const lobby = env.LOBBY.get(env.LOBBY.idFromName('lobby'));
+      const res = await lobby.fetch('https://do/list');
+      const nr = new Response(res.body, res);
+      for (const [k, v] of Object.entries(CORS)) nr.headers.set(k, v);
+      return nr;
     }
 
     // /room/CODE/ws | /room/CODE/info
