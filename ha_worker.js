@@ -387,6 +387,25 @@ export default {
     // POST /automation?id=XXXX - scrive/aggiorna la config di un'automazione
     // body = oggetto automazione completo (triggers, conditions, actions, ...)
     // POST /script?id=XXXX - scrive/aggiorna uno script via API config
+    // POST /helper?domain=input_boolean&id=XXXX - crea/aggiorna un helper via config API
+    if (path === '/helper' && request.method === 'POST') {
+      try {
+        const domain = url.searchParams.get('domain')
+        const id = url.searchParams.get('id')
+        if (!domain || !id) return new Response(JSON.stringify({ error: 'mancano parametri domain/id' }), { status: 400, headers: corsHeaders })
+        const body = await request.text()
+        const resp = await fetch(`${HA_URL}/api/config/${domain}/config/${id}`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${TOKEN}`, 'Content-Type': 'application/json' },
+          body: body
+        })
+        const text = await resp.text()
+        return new Response(JSON.stringify({ ok: resp.ok, status: resp.status, response: text }), { headers: corsHeaders })
+      } catch(e) {
+        return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders })
+      }
+    }
+
     if (path === '/script' && request.method === 'POST') {
       try {
         const id = url.searchParams.get('id')
