@@ -185,6 +185,16 @@ export default {
     }
 
     // GET /rooms -> elenco delle partite aperte (in attesa di avversario)
+    // GET /close?code=XXXX -> toglie la stanza dall'elenco delle partite aperte
+    if (url.pathname === '/close') {
+      const code = (url.searchParams.get('code') || '').toUpperCase();
+      if (code) {
+        const lobby = env.LOBBY.get(env.LOBBY.idFromName('lobby'));
+        await lobby.fetch('https://do/remove', { method: 'POST', body: JSON.stringify({ code }) });
+      }
+      return Response.json({ ok: true, code }, { headers: CORS });
+    }
+
     if (url.pathname === '/rooms') {
       const lobby = env.LOBBY.get(env.LOBBY.idFromName('lobby'));
       const res = await lobby.fetch('https://do/list');
@@ -210,3 +220,4 @@ export default {
     return new Response('FlyGames MP worker · ok', { headers: CORS });
   }
 };
+
