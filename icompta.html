@@ -894,7 +894,7 @@ select.form-input { height: 42px; }
 
     </div>
     <div style="padding:10px 16px 14px;text-align:center;border-top:1px solid var(--border);margin-top:4px">
-      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v2.0.4</span>
+      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v2.0.5</span>
     </div>
   </div>
 </div>
@@ -4659,6 +4659,7 @@ var IMPORT2_STATE = { accName:null, rows:[], tab:'import' };
 var IMPORT2_CONFIGS = {
   'InternoUno Banca': {
     accountName: 'InternoUno Banca',
+    scope: 'azienda',
     icon: '🏦',
     title: 'InternoUno Banca',
     chip: 'InternoUno',
@@ -4674,6 +4675,7 @@ var IMPORT2_CONFIGS = {
   },
   'Banca Sella': {
     accountName: 'Banca Sella',
+    scope: 'personale',
     icon: '💳',
     title: 'Sella Personale',
     chip: 'Personale',
@@ -4688,6 +4690,7 @@ var IMPORT2_CONFIGS = {
   },
   'Amex': {
     accountName: 'Amex',
+    scope: 'amex',
     icon: '💳',
     title: 'American Express',
     chip: 'Amex',
@@ -4701,6 +4704,7 @@ var IMPORT2_CONFIGS = {
   },
   'Genius Unicredit': {
     accountName: 'Genius Unicredit',
+    scope: 'unicredit',
     icon: '💳',
     title: 'UniCredit Genius',
     chip: 'UniCredit',
@@ -4715,6 +4719,7 @@ var IMPORT2_CONFIGS = {
   },
   'Fineco CC': {
     accountName: 'Fineco CC',
+    scope: 'fineco',
     icon: '💳',
     title: 'Fineco CC',
     chip: 'Fineco CC',
@@ -4984,10 +4989,14 @@ async function import2ShowLastImport(accId) {
 }
 
 // ── APERTURA MODAL ──────────────────────────────────────────────────────────
-function openImport2(accountName) {
+async function openImport2(accountName) {
   var cfg = IMPORT2_CONFIGS[accountName];
   if (!cfg) { alert('Import non configurato per: '+accountName); return; }
   IMPORT2_STATE = { accName: accountName, rows: [], tab: 'import' };
+  // Regole categoria: scope del conto + caricamento dal KV (senza questi,
+  // sellaGuessCategory non trova nulla e sellaLearnRule salva sotto 'global')
+  _importScope = cfg.scope || 'global';
+  try { await sellaLoadRegole(); } catch(e) {}
 
   document.getElementById('imp2-title-txt').textContent = 'Import ' + cfg.title;
   document.getElementById('imp2-title-icon').textContent = cfg.icon;
