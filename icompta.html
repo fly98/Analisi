@@ -894,7 +894,7 @@ select.form-input { height: 42px; }
 
     </div>
     <div style="padding:10px 16px 14px;text-align:center;border-top:1px solid var(--border);margin-top:4px">
-      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v2.0.5</span>
+      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v2.0.6</span>
     </div>
   </div>
 </div>
@@ -2235,6 +2235,7 @@ var SELLA_REG_DEF = {
   'anthropic':         { name:'Ufficio',    id:'9A16DCFB-93BB-42BC-881C-5FA0ED112DD3' },
   'pricelabs':         { name:'Ufficio',    id:'9A16DCFB-93BB-42BC-881C-5FA0ED112DD3' },
   'aruba':             { name:'Ufficio',    id:'9A16DCFB-93BB-42BC-881C-5FA0ED112DD3' },
+  'wwwarubait':        { name:'Ufficio',    id:'9A16DCFB-93BB-42BC-881C-5FA0ED112DD3' },
   'apple.com':         { name:'Ufficio',    id:'9A16DCFB-93BB-42BC-881C-5FA0ED112DD3' },
   'amazon':            { name:'Spese varie',id:'7F6CE6A3-B783-4128-B459-18C4B82CD6DB' },
   'amzn':              { name:'Spese varie',id:'7F6CE6A3-B783-4128-B459-18C4B82CD6DB' },
@@ -2244,6 +2245,7 @@ var SELLA_REG_DEF = {
   'fastweb':           { name:'Mclink',     id:'020F36BB-BA4B-4B7F-8041-34C560316333' },
   'ae s.p.a':          { name:'Luce',       id:'3C51A9B3-31D2-407C-BBAE-510A13C3A74A' },
   'acea':              { name:'Luce',       id:'3C51A9B3-31D2-407C-BBAE-510A13C3A74A' },
+  'sorgenia':          { name:'Luce',       id:'3C51A9B3-31D2-407C-BBAE-510A13C3A74A' },
   'pagopa':            { name:'Tasse',      id:'973D0BE1-1ADD-4F91-B7AF-D782522DF829' },
   'f24':               { name:'Tasse',      id:'973D0BE1-1ADD-4F91-B7AF-D782522DF829' },
   'eni':               { name:'Automobile', id:'D9BDD4D6-6AFB-4CFB-AD86-3389A63C892A' },
@@ -2295,6 +2297,16 @@ function sellaSignOf(importo) { return (typeof importo === 'number' && importo <
 // Le regole a firma possono essere specifiche del conto e VINCONO sulle globali/default.
 var _importScope = null;
 
+// Match di una parola-chiave dentro una descrizione, con confine a SINISTRA:
+// la chiave non dev'essere preceduta da una lettera. Evita falsi positivi come
+// 'eni' dentro 'sorgenia', restando tollerante sui codici attaccati (ENI36953).
+function _sellaKeyMatch(desc, key) {
+  if (!desc || !key) return false;
+  var esc = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  try { return new RegExp('(^|[^a-z])' + esc, 'i').test(desc); }
+  catch(e) { return desc.indexOf(key) >= 0; }
+}
+
 function sellaGuessCategory(desc, etich, importo) {
   var d = (desc + ' ' + (etich || '')).toLowerCase();
   var sign = sellaSignOf(importo);
@@ -2306,8 +2318,11 @@ function sellaGuessCategory(desc, etich, importo) {
     if (sellaRegole[ak]) { var oa = sellaCatFromName(sellaRegole[ak]); if (oa) return oa; }
   }
   // 2) regole di default cablate (globali, per parola-chiave)
+  //    Match con confine a SINISTRA: la chiave non dev'essere preceduta da una
+  //    lettera, cosi' 'eni' prende "ENI36953" ma non "SORGENIA". A destra resta
+  //    tollerante (numeri/lettere) per reggere i codici attaccati.
   for (var k in SELLA_REG_DEF) {
-    if (d.indexOf(k) >= 0) return SELLA_REG_DEF[k];
+    if (_sellaKeyMatch(d, k)) return SELLA_REG_DEF[k];
   }
   // 3) regola a firma GLOBALE (apprese senza conto, valgono ovunque come fallback)
   if (sig) {
@@ -2319,7 +2334,7 @@ function sellaGuessCategory(desc, etich, importo) {
     if (k2.indexOf('sig:') === 0 || k2.indexOf('acc:') === 0) continue;
     var kw = (k2.indexOf('kw:') === 0) ? k2.slice(3) : k2;
     if (!kw) continue;
-    if (d.indexOf(kw.toLowerCase()) >= 0) {
+    if (_sellaKeyMatch(d, kw.toLowerCase())) {
       var o2 = sellaCatFromName(sellaRegole[k2]);
       if (o2) return o2;
     }
