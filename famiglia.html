@@ -372,7 +372,7 @@ function closeSat() {
 }
 
 function openMaps(lat, lon) { window.open(`https://maps.apple.com/?daddr=${lat},${lon}&dirflg=d`, '_blank') }
-function openGoogleSat(lat, lon) { window.open(`https://www.google.com/maps/search/?api=1&query=${lat},${lon}&basemap=satellite`, '_blank') }
+function openGoogleSat(lat, lon) { window.open(`https://earth.google.com/web/@${lat},${lon},150a,500d,35y,0h,60t,0r`, '_blank') }
 
 loadFamily()
 setInterval(loadFamily, 60000)
