@@ -358,10 +358,28 @@ function testoExtraCamere(camereExtra, lng){
 function msgCampaldino(nome,iso,c,lng,adultiPrima=0,camereExtra=[],orario=''){
   const d=dataBreve(iso);
   const etich=parolaCamera(c.tipo,c.let,lng);
-  const descr=(POS[c.pos]&&POS[c.pos][lng])||POS[c.pos].en;
+  const descrSingola=(POS[c.pos]&&POS[c.pos][lng])||POS[c.pos].en;
   const extraTesto=testoExtraCamere(camereExtra,lng);
   const etichConOspiti=adultiPrima>0?`${etich} (${fmtOspiti(adultiPrima,lng)})`:etich;
-  const etichMaiusc=etichConOspiti.toUpperCase();
+  let etichMaiusc, descr, isMultiCamp=false;
+  if(camereExtra&&camereExtra.length){
+    isMultiCamp=true;
+    // multi-camera Campaldino: frase unica con tutte le camere e posizioni
+    function _fraseCam(info,ad){
+      const e=parolaCamera(info.tipo,info.let,lng).toUpperCase();
+      const o=fmtOspiti(ad,lng);
+      const p=(POS[info.pos]&&POS[info.pos][lng])||POS[info.pos].en;
+      return `*${e}* (${o}) ${p}`;
+    }
+    const parti=[_fraseCam(c,adultiPrima)];
+    camereExtra.forEach(ex=>{const inf=CAMPALDINO[ex.rn]; if(inf) parti.push(_fraseCam(inf,ex.adulti));});
+    const cong={it:" e ",en:" and ",es:" y ",fr:" et ",de:" und ",pt:" e ",zh:"、"}[lng]||" and ";
+    etichMaiusc = parti.length>2 ? parti.slice(0,-1).join(", ")+cong+parti.slice(-1) : parti.join(cong);
+    descr="";
+  } else {
+    etichMaiusc=etichConOspiti.toUpperCase();
+    descr=descrSingola;
+  }
 // frase orario: se già impostato -> conferma; altrimenti -> domanda
   const FRASI_ORARIO={
     it:{no:"Il check-in è possibile dalle *13:00*, potrebbe indicarmi l'orario di arrivo previsto per organizzarci al meglio?", presto:"Cercheremo di rendere l'alloggio disponibile il prima possibile."},
@@ -384,56 +402,56 @@ function msgCampaldino(nome,iso,c,lng,adultiPrima=0,camereExtra=[],orario=''){
 it:`Buongiorno${nome?" "+nome:""}! 😊
 Sono Filippo di *InternoUno*. La contatto per la sua prenotazione del *${d}*.
 Per rendere il suo arrivo il più comodo possibile abbiamo predisposto un check-in autonomo: potrà entrare in totale libertà, a qualsiasi ora, senza attese. Segua queste semplici istruzioni:
-All'arrivo in Via Campaldino inserisca nella cassetta sulla sinistra della porta d'ingresso il codice *3044 + tasto B* (in basso a destra): all'interno troverà le chiavi. La sua *${etichMaiusc}* ${descr}.
-Per qualsiasi necessità sono sempre disponibile su WhatsApp o telefonicamente.${extraTesto?"\n"+extraTesto:""}${fraseOrario?'\n'+fraseOrario:''}
+All'arrivo in Via Campaldino inserisca nella cassetta sulla sinistra della porta d'ingresso il codice *3044 + tasto B* (in basso a destra): all'interno troverà le chiavi. ${isMultiCamp?`Le assegniamo: ${etichMaiusc}.`:`La sua *${etichMaiusc}* ${descr}.`}
+Per qualsiasi necessità sono sempre disponibile su WhatsApp o telefonicamente.${fraseOrario?'\n'+fraseOrario:''}
 📱 Durante il vostro soggiorno, la nostra app InternoUno Experience sarà la vostra compagna ideale: troverete tutte le info sulla casa, la mappa della zona, i ristoranti che vi consigliamo, i nostri tour audio per esplorare Roma a piedi, eventi e concerti in città e un assistente virtuale sempre disponibile.
 👉 https://interno1.it/campaldino/
 A presto! 🏠`,
 en:`Good morning${nome?", "+nome:""}! 😊
 I am Filippo from *InternoUno*. I am contacting you about your booking for *${d}*.
 To make your arrival as comfortable as possible we have arranged a self check-in: you can come in freely, at any time, with no waiting. Just follow these simple instructions:
-Upon arrival at Via Campaldino enter code *3044 + button B* (bottom right) in the key box on the left of the entrance door: the keys are inside. Your *${etichMaiusc}* ${descr}.
-For any need I am always available on WhatsApp or by phone.${extraTesto?"\n"+extraTesto:""}${fraseOrario?'\n'+fraseOrario:''}
+Upon arrival at Via Campaldino enter code *3044 + button B* (bottom right) in the key box on the left of the entrance door: the keys are inside. ${isMultiCamp?`We have assigned you: ${etichMaiusc}.`:`Your *${etichMaiusc}* ${descr}.`}
+For any need I am always available on WhatsApp or by phone.${fraseOrario?'\n'+fraseOrario:''}
 📱 During your stay, our InternoUno Experience app will be your ideal companion: you'll find all the info about the house, the area map, our recommended restaurants, our audio tours to explore Rome on foot, events and concerts in the city, and a virtual assistant always available.
 👉 https://interno1.it/campaldino/
 See you soon! 🏠`,
 es:`¡Buenos días${nome?", "+nome:""}! 😊
 Soy Filippo de *InternoUno*. Le escribo en relación con su reserva del *${d}*.
 Para que su llegada sea lo más cómoda posible hemos preparado un check-in autónomo: podrá entrar con total libertad, a cualquier hora y sin esperas. Siga estas sencillas instrucciones:
-Al llegar a Via Campaldino introduzca en la caja de llaves a la izquierda de la puerta de entrada el código *3044 + botón B* (abajo a la derecha): dentro encontrará las llaves. Su *${etichMaiusc}* ${descr}.
-Para cualquier necesidad estoy siempre disponible por WhatsApp o teléfono.${extraTesto?"\\n"+extraTesto:""}${fraseOrario?'\n'+fraseOrario:''}
+Al llegar a Via Campaldino introduzca en la caja de llaves a la izquierda de la puerta de entrada el código *3044 + botón B* (abajo a la derecha): dentro encontrará las llaves. ${isMultiCamp?`Le asignamos: ${etichMaiusc}.`:`Su *${etichMaiusc}* ${descr}.`}
+Para cualquier necesidad estoy siempre disponible por WhatsApp o teléfono.${fraseOrario?'\n'+fraseOrario:''}
 📱 Durante su estancia, nuestra app InternoUno Experience será su compañera ideal: encontrará toda la información sobre la casa, el mapa de la zona, los restaurantes que le recomendamos, nuestros tours de audio para explorar Roma a pie, eventos y conciertos en la ciudad y un asistente virtual siempre disponible.
 👉 https://interno1.it/campaldino/
 ¡Hasta pronto! 🏠`,
 fr:`Bonjour${nome?" "+nome:""} ! 😊
 Je suis Filippo de *InternoUno*. Je vous contacte au sujet de votre réservation du *${d}*.
 Pour rendre votre arrivée la plus agréable possible nous avons mis en place un check-in autonome : vous pourrez entrer en toute liberté, à n'importe quelle heure et sans attente. Suivez ces instructions simples :
-À votre arrivée à Via Campaldino saisissez dans la boîte à clés à gauche de la porte d'entrée le code *3044 + bouton B* (en bas à droite) : les clés se trouvent à l'intérieur. Votre *${etichMaiusc}* ${descr}.
-Pour tout besoin je suis toujours disponible sur WhatsApp ou par téléphone.${extraTesto?"\\n"+extraTesto:""}${fraseOrario?'\n'+fraseOrario:''}
+À votre arrivée à Via Campaldino saisissez dans la boîte à clés à gauche de la porte d'entrée le code *3044 + bouton B* (en bas à droite) : les clés se trouvent à l'intérieur. ${isMultiCamp?`Nous vous attribuons : ${etichMaiusc}.`:`Votre *${etichMaiusc}* ${descr}.`}
+Pour tout besoin je suis toujours disponible sur WhatsApp ou par téléphone.${fraseOrario?'\n'+fraseOrario:''}
 📱 Pendant votre séjour, notre application InternoUno Experience sera votre compagne idéale : vous y trouverez toutes les infos sur la maison, la carte du quartier, les restaurants que nous vous conseillons, nos visites audio pour explorer Rome à pied, les événements et concerts en ville et un assistant virtuel toujours disponible.
 👉 https://interno1.it/campaldino/
 À bientôt ! 🏠`,
 de:`Guten Tag${nome?" "+nome:""}! 😊
 Ich bin Filippo von *InternoUno*. Ich kontaktiere Sie bezüglich Ihrer Buchung vom *${d}*.
 Damit Ihre Ankunft so bequem wie möglich wird haben wir einen Self-Check-in eingerichtet: Sie können jederzeit und ohne Wartezeit ganz frei eintreten. Folgen Sie einfach dieser Anleitung:
-Bei der Ankunft in der Via Campaldino geben Sie im Schlüsselkasten links neben der Eingangstür den Code *3044 + Taste B* (unten rechts) ein: darin finden Sie die Schlüssel. Ihr *${etichMaiusc}* ${descr}.
-Für alle Anliegen bin ich jederzeit über WhatsApp oder telefonisch erreichbar.${extraTesto?"\\n"+extraTesto:""}${fraseOrario?'\n'+fraseOrario:''}
+Bei der Ankunft in der Via Campaldino geben Sie im Schlüsselkasten links neben der Eingangstür den Code *3044 + Taste B* (unten rechts) ein: darin finden Sie die Schlüssel. ${isMultiCamp?`Wir haben Ihnen zugewiesen: ${etichMaiusc}.`:`Ihr *${etichMaiusc}* ${descr}.`}
+Für alle Anliegen bin ich jederzeit über WhatsApp oder telefonisch erreichbar.${fraseOrario?'\n'+fraseOrario:''}
 📱 Während Ihres Aufenthalts wird unsere App InternoUno Experience Ihr idealer Begleiter sein: Sie finden dort alle Infos zur Unterkunft, die Karte der Umgebung, unsere Restaurant-Empfehlungen, unsere Audio-Touren zur Erkundung Roms zu Fuß, Veranstaltungen und Konzerte in der Stadt sowie einen jederzeit verfügbaren virtuellen Assistenten.
 👉 https://interno1.it/campaldino/
 Bis bald! 🏠`,
 pt:`Bom dia${nome?", "+nome:""}! 😊
 Sou o Filippo do *InternoUno*. Contacto-o(a) acerca da sua reserva de *${d}*.
 Para tornar a sua chegada o mais confortável possível preparámos um check-in autónomo: poderá entrar em total liberdade, a qualquer hora e sem esperas. Siga estas instruções simples:
-À chegada em Via Campaldino introduza na caixa de chaves à esquerda da porta de entrada o código *3044 + botão B* (em baixo à direita): as chaves estão lá dentro. O seu *${etichMaiusc}* ${descr}.
-Para qualquer necessidade estou sempre disponível no WhatsApp ou por telefone.${extraTesto?"\\n"+extraTesto:""}${fraseOrario?'\n'+fraseOrario:''}
+À chegada em Via Campaldino introduza na caixa de chaves à esquerda da porta de entrada o código *3044 + botão B* (em baixo à direita): as chaves estão lá dentro. ${isMultiCamp?`Atribuímos-lhe: ${etichMaiusc}.`:`O seu *${etichMaiusc}* ${descr}.`}
+Para qualquer necessidade estou sempre disponível no WhatsApp ou por telefone.${fraseOrario?'\n'+fraseOrario:''}
 📱 Durante a sua estadia, a nossa app InternoUno Experience será a sua companheira ideal: encontrará todas as informações sobre a casa, o mapa da zona, os restaurantes que recomendamos, os nossos tours áudio para explorar Roma a pé, eventos e concertos na cidade e um assistente virtual sempre disponível.
 👉 https://interno1.it/campaldino/
 Até breve! 🏠`,
 zh:`您好${nome?"，"+nome:""}！😊
 我是 InternoUno 的 Filippo。关于您 *${d}* 的预订与您联系。
 为了让您的入住尽可能舒适便捷，我们特别安排了自助入住：您可以随时自由入住，无需等待。请按以下简单步骤操作：
-抵达 Via Campaldino 后，在入口门左侧的钥匙箱中输入密码 *3044 + B 键*（右下方）：钥匙就在里面。您的 *${etichMaiusc}*，${descr}。
-如有任何需要，随时可通过 WhatsApp 或电话联系我。${extraTesto?"\\n"+extraTesto:""}${fraseOrario?'\n'+fraseOrario:''}
+抵达 Via Campaldino 后，在入口门左侧的钥匙箱中输入密码 *3044 + B 键*（右下方）：钥匙就在里面。${isMultiCamp?`为您安排：${etichMaiusc}。`:`您的 *${etichMaiusc}*，${descr}。`}
+如有任何需要，随时可通过 WhatsApp 或电话联系我。${fraseOrario?'\n'+fraseOrario:''}
 📱 在您入住期间，我们的 InternoUno Experience 应用将成为您理想的伙伴：您可以找到关于住所的所有信息、周边地图、我们推荐的餐厅、步行探索罗马的语音导览、城市中的活动和音乐会，以及随时可用的虚拟助手。
 👉 https://interno1.it/campaldino/
 期待您的到来！🏠`,
@@ -445,7 +463,23 @@ function msgLorenzo(nome,iso,num,lng,adultiPrima=0,camereExtra=[],orario=''){
   const d=dataBreve(iso); const link="https://interno1.it/check-in/";
   const extraTesto=testoExtraCamere(camereExtra,lng);
   const numConOspiti=adultiPrima>0?`${num} (${fmtOspiti(adultiPrima,lng)})`:num;
-  const numMaiusc=String(numConOspiti).toUpperCase();
+  // se multi-camera, componi elenco completo: "CAMERA 1 (1 persona) e CAMERA 5 (2 persone)"
+  const _paroleCam={it:"CAMERA",en:"ROOM",es:"HABITACIÓN",fr:"CHAMBRE",de:"ZIMMER",pt:"QUARTO",zh:""};
+  const _e=(lng==="zh");
+  function _lblLor(nn,ad){
+    const o=fmtOspiti(ad,lng);
+    const w=_paroleCam[lng]||"ROOM";
+    return _e?`${String(nn).toUpperCase()} 号房间（${o}）`:`${w} ${String(nn).toUpperCase()} (${o})`;
+  }
+  let numMaiusc;
+  if(camereExtra&&camereExtra.length){
+    const parti=[_lblLor(num,adultiPrima)];
+    camereExtra.forEach(e=>parti.push(_lblLor(LORENZO[e.rn]||e.rn, e.adulti)));
+    const cong={it:" e ",en:" and ",es:" y ",fr:" et ",de:" und ",pt:" e ",zh:"、"}[lng]||" and ";
+    numMaiusc = parti.length>2 ? parti.slice(0,-1).join(", ")+cong+parti.slice(-1) : parti.join(cong);
+  } else {
+    numMaiusc=_lblLor(num,adultiPrima);
+  }
 // frase orario: se già impostato -> conferma; altrimenti -> domanda
   const FRASI_ORARIO={
     it:{no:"Il check-in è possibile dalle *13:00*, potrebbe indicarmi l'orario di arrivo previsto per organizzarci al meglio?", presto:"Cercheremo di rendere l'alloggio disponibile il prima possibile."},
@@ -467,56 +501,56 @@ function msgLorenzo(nome,iso,num,lng,adultiPrima=0,camereExtra=[],orario=''){
   const T={
 it:`Buongiorno${nome?" "+nome:""}! 😊
 Sono Filippo di *InternoUno Deluxe*. La contatto per la sua prenotazione del *${d}*.
-Per rendere il suo arrivo il più comodo possibile abbiamo predisposto un check-in autonomo per la *CAMERA ${numMaiusc}*: potrà entrare in totale libertà, a qualsiasi ora, senza attese. Segua queste semplici istruzioni:
-👉 ${link}${extraTesto?"\n"+extraTesto:""}
+Per rendere il suo arrivo il più comodo possibile abbiamo predisposto un check-in autonomo per la *${numMaiusc}*: potrà entrare in totale libertà, a qualsiasi ora, senza attese. Segua queste semplici istruzioni:
+👉 ${link}
 Per qualsiasi necessità sono sempre disponibile su WhatsApp o telefonicamente.${fraseOrario?'\n'+fraseOrario:''}
 📱 Durante il vostro soggiorno, la nostra app InternoUno Experience sarà la vostra compagna ideale: troverete tutte le info sulla casa, la mappa della zona, i ristoranti che vi consigliamo, i nostri tour audio per esplorare Roma a piedi, eventi e concerti in città e un assistente virtuale sempre disponibile.
 👉 https://interno1.it/lorenzo/
 A presto! 🏠`,
 en:`Good morning${nome?", "+nome:""}! 😊
 I am Filippo from *InternoUno Deluxe*. I am contacting you about your booking for *${d}*.
-To make your arrival as comfortable as possible we have arranged a self check-in for *ROOM ${numMaiusc}*: you can come in freely, at any time, with no waiting. Just follow these simple instructions:
-👉 ${link}${extraTesto?"\n"+extraTesto:""}
+To make your arrival as comfortable as possible we have arranged a self check-in for *${numMaiusc}*: you can come in freely, at any time, with no waiting. Just follow these simple instructions:
+👉 ${link}
 For any need I am always available on WhatsApp or by phone.${fraseOrario?'\n'+fraseOrario:''}
 📱 During your stay, our InternoUno Experience app will be your ideal companion: you'll find all the info about the house, the area map, our recommended restaurants, our audio tours to explore Rome on foot, events and concerts in the city, and a virtual assistant always available.
 👉 https://interno1.it/lorenzo/
 See you soon! 🏠`,
 es:`¡Buenos días${nome?", "+nome:""}! 😊
 Soy Filippo de *InternoUno Deluxe*. Le escribo en relación con su reserva del *${d}*.
-Para que su llegada sea lo más cómoda posible hemos preparado un check-in autónomo para la *HABITACIÓN ${numMaiusc}*: podrá entrar con total libertad, a cualquier hora y sin esperas. Siga estas sencillas instrucciones:
-👉 ${link}${extraTesto?"\n"+extraTesto:""}
+Para que su llegada sea lo más cómoda posible hemos preparado un check-in autónomo para la *${numMaiusc}*: podrá entrar con total libertad, a cualquier hora y sin esperas. Siga estas sencillas instrucciones:
+👉 ${link}
 Para cualquier necesidad estoy siempre disponible por WhatsApp o teléfono.${fraseOrario?'\n'+fraseOrario:''}
 📱 Durante su estancia, nuestra app InternoUno Experience será su compañera ideal: encontrará toda la información sobre la casa, el mapa de la zona, los restaurantes que le recomendamos, nuestros tours de audio para explorar Roma a pie, eventos y conciertos en la ciudad y un asistente virtual siempre disponible.
 👉 https://interno1.it/lorenzo/
 ¡Hasta pronto! 🏠`,
 fr:`Bonjour${nome?" "+nome:""} ! 😊
 Je suis Filippo de *InternoUno Deluxe*. Je vous contacte au sujet de votre réservation du *${d}*.
-Pour rendre votre arrivée la plus agréable possible nous avons mis en place un check-in autonome pour la *CHAMBRE ${numMaiusc}* : vous pourrez entrer en toute liberté, à n'importe quelle heure et sans attente. Suivez ces instructions simples :
-👉 ${link}${extraTesto?"\n"+extraTesto:""}
+Pour rendre votre arrivée la plus agréable possible nous avons mis en place un check-in autonome pour la *${numMaiusc}* : vous pourrez entrer en toute liberté, à n'importe quelle heure et sans attente. Suivez ces instructions simples :
+👉 ${link}
 Pour tout besoin je suis toujours disponible sur WhatsApp ou par téléphone.${fraseOrario?'\n'+fraseOrario:''}
 📱 Pendant votre séjour, notre application InternoUno Experience sera votre compagne idéale : vous y trouverez toutes les infos sur la maison, la carte du quartier, les restaurants que nous vous conseillons, nos visites audio pour explorer Rome à pied, les événements et concerts en ville et un assistant virtuel toujours disponible.
 👉 https://interno1.it/lorenzo/
 À bientôt ! 🏠`,
 de:`Guten Tag${nome?" "+nome:""}! 😊
 Ich bin Filippo von *InternoUno Deluxe*. Ich kontaktiere Sie bezüglich Ihrer Buchung vom *${d}*.
-Damit Ihre Ankunft so bequem wie möglich wird haben wir für *ZIMMER ${numMaiusc}* einen Self-Check-in eingerichtet: Sie können jederzeit und ohne Wartezeit ganz frei eintreten. Folgen Sie einfach dieser Anleitung:
-👉 ${link}${extraTesto?"\n"+extraTesto:""}
+Damit Ihre Ankunft so bequem wie möglich wird haben wir für *${numMaiusc}* einen Self-Check-in eingerichtet: Sie können jederzeit und ohne Wartezeit ganz frei eintreten. Folgen Sie einfach dieser Anleitung:
+👉 ${link}
 Für alle Anliegen bin ich jederzeit über WhatsApp oder telefonisch erreichbar.${fraseOrario?'\n'+fraseOrario:''}
 📱 Während Ihres Aufenthalts wird unsere App InternoUno Experience Ihr idealer Begleiter sein: Sie finden dort alle Infos zur Unterkunft, die Karte der Umgebung, unsere Restaurant-Empfehlungen, unsere Audio-Touren zur Erkundung Roms zu Fuß, Veranstaltungen und Konzerte in der Stadt sowie einen jederzeit verfügbaren virtuellen Assistenten.
 👉 https://interno1.it/lorenzo/
 Bis bald! 🏠`,
 pt:`Bom dia${nome?", "+nome:""}! 😊
 Sou o Filippo do *InternoUno Deluxe*. Contacto-o(a) acerca da sua reserva de *${d}*.
-Para tornar a sua chegada o mais confortável possível preparámos um check-in autónomo para o *QUARTO ${numMaiusc}*: poderá entrar em total liberdade, a qualquer hora e sem esperas. Siga estas instruções simples:
-👉 ${link}${extraTesto?"\n"+extraTesto:""}
+Para tornar a sua chegada o mais confortável possível preparámos um check-in autónomo para o *${numMaiusc}*: poderá entrar em total liberdade, a qualquer hora e sem esperas. Siga estas instruções simples:
+👉 ${link}
 Para qualquer necessidade estou sempre disponível no WhatsApp ou por telefone.${fraseOrario?'\n'+fraseOrario:''}
 📱 Durante a sua estadia, a nossa app InternoUno Experience será a sua companheira ideal: encontrará todas as informações sobre a casa, o mapa da zona, os restaurantes que recomendamos, os nossos tours áudio para explorar Roma a pé, eventos e concertos na cidade e um assistente virtual sempre disponível.
 👉 https://interno1.it/lorenzo/
 Até breve! 🏠`,
 zh:`您好${nome?"，"+nome:""}！😊
 我是 InternoUno Deluxe 的 Filippo。关于您 *${d}* 的预订与您联系。
-为了让您的入住尽可能舒适便捷，我们为 *${numMaiusc} 号房间* 特别安排了自助入住：您可以随时自由入住，无需等待。请按以下简单步骤操作：
-👉 ${link}${extraTesto?"\n"+extraTesto:""}
+为了让您的入住尽可能舒适便捷，我们为 *${numMaiusc}* 特别安排了自助入住：您可以随时自由入住，无需等待。请按以下简单步骤操作：
+👉 ${link}
 如有任何需要，随时可通过 WhatsApp 或电话联系我。${fraseOrario?'\n'+fraseOrario:''}
 📱 在您入住期间，我们的 InternoUno Experience 应用将成为您理想的伙伴：您可以找到关于住所的所有信息、周边地图、我们推荐的餐厅、步行探索罗马的语音导览、城市中的活动和音乐会，以及随时可用的虚拟助手。
 👉 https://interno1.it/lorenzo/
