@@ -372,7 +372,15 @@ function closeSat() {
 }
 
 function openMaps(lat, lon) { window.open(`https://maps.apple.com/?daddr=${lat},${lon}&dirflg=d`, '_blank') }
-function openGoogleSat(lat, lon) { window.open(`https://www.google.com/maps/search/?api=1&query=${lat},${lon}&basemap=satellite`, '_blank') }
+function openGoogleSat(lat, lon) {
+  const appUrl = `comgooglemaps://?center=${lat},${lon}&zoom=19&views=satellite`
+  const webUrl = `https://www.google.com/maps/@${lat},${lon},19z/data=!3m1!1e3`
+  // Provo ad aprire l'app Google Maps con vista satellite; se non installata, fallback al web satellite
+  const now = Date.now()
+  const timer = setTimeout(() => { window.open(webUrl, '_blank') }, 800)
+  window.location.href = appUrl
+  window.addEventListener('pagehide', () => clearTimeout(timer), { once: true })
+}
 
 loadFamily()
 setInterval(loadFamily, 60000)
