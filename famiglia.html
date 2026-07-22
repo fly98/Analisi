@@ -63,7 +63,6 @@
 </style>
 </head>
 <body>
-<button onclick="openSat('TEST Colosseo',[[41.8902,12.4922]])" style="position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:99999;background:#c0392b;color:#fff;border:none;padding:10px 16px;border-radius:20px;font:600 14px sans-serif;box-shadow:0 2px 10px rgba(0,0,0,.3)">🏛 TEST 3D Colosseo</button>
 <h1>Famiglia</h1>
 <div class="sub" id="ts">Caricamento…</div>
 <div id="err"></div>
@@ -124,7 +123,7 @@ function render(members) {
       </div>
       <div id="live-${sid}">
         ${hasGps ? `<div class="mini-map" id="map-${sid}"></div>
-        <div class="map-actions"><button class="nav-btn" onclick="openMaps(${m.latitude},${m.longitude})">🗺 Indicazioni</button><button class="sat-btn" onclick="openSat('${m.name}',[[${m.latitude},${m.longitude}]])">🛰 Vista 3D</button></div>`
+        <div class="map-actions"><button class="nav-btn" onclick="openMaps(${m.latitude},${m.longitude})">🗺 Indicazioni</button><button class="sat-btn" onclick="openGoogleSat(${m.latitude},${m.longitude})">🛰 Vista Satellite</button></div>`
         : `<div class="loading">Posizione GPS non disponibile</div>`}
       </div>
       <div id="history-${sid}" style="display:none">
@@ -373,6 +372,7 @@ function closeSat() {
 }
 
 function openMaps(lat, lon) { window.open(`https://maps.apple.com/?daddr=${lat},${lon}&dirflg=d`, '_blank') }
+function openGoogleSat(lat, lon) { window.open(`https://www.google.com/maps/search/?api=1&query=${lat},${lon}&basemap=satellite`, '_blank') }
 
 loadFamily()
 setInterval(loadFamily, 60000)
