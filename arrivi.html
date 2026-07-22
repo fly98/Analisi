@@ -717,25 +717,29 @@ function render(iso,bookings){
     const adultiRoom0 = rooms[0] ? (rooms[0].adults||0) : 0;
 
     // funzione che genera il testo per una lingua qualsiasi (stessi parametri multi-camera)
-    const orarioArrivo = orariMap[String(b.booking_id)] || "";
+    const bookingIdStr=String(b.booking_id);
     const generaTesto=(L)=>{
+      const orarioArrivo = orariMap[bookingIdStr] || "";  // legge sempre l'orario aggiornato
       if(CAMPALDINO[roomName]) return msgCampaldino(nomeMsg,iso,CAMPALDINO[roomName],L,isMulti?adultiRoom0:0,camereExtra,orarioArrivo);
       return msgLorenzo(nomeMsg,iso,(LORENZO[roomName]||roomName),L,isMulti?adultiRoom0:0,camereExtra,orarioArrivo);
+    };
+    // funzione per rigenerare tutti i testi (usata quando cambia l'orario)
+    const rebuildTesti=()=>{
+      const t={};
+      ["it","en","es","fr","de","pt","zh"].forEach(L=>{ t[L]=generaTesto(L)+"\n"+(FRASE_WA[L]||FRASE_WA.en); });
+      return t;
     };
     if(CAMPALDINO[roomName]){
       const c=CAMPALDINO[roomName];
       accent=c.col; roomLabel=c.let; struttura="Via Campaldino";
-      testo=msgCampaldino(nomeMsg,iso,c,lng,isMulti?adultiRoom0:0,camereExtra,orarioArrivo);
+      testo=msgCampaldino(nomeMsg,iso,c,lng,isMulti?adultiRoom0:0,camereExtra,(orariMap[bookingIdStr]||""));
     }else{
       const num=LORENZO[roomName]||roomName;
       accent="#5c6b52"; roomLabel=num; struttura="Lorenzo il Magnifico"; isLorenzo=true;
-      testo=msgLorenzo(nomeMsg,iso,num,lng,isMulti?adultiRoom0:0,camereExtra,orarioArrivo);
+      testo=msgLorenzo(nomeMsg,iso,num,lng,isMulti?adultiRoom0:0,camereExtra,(orariMap[bookingIdStr]||""));
     }
     // pre-genero i testi in tutte le lingue (con frase WhatsApp) per il selettore nel modal
-    const testiPerLingua={};
-    ["it","en","es","fr","de","pt","zh"].forEach(L=>{
-      testiPerLingua[L]=generaTesto(L)+"\n"+(FRASE_WA[L]||FRASE_WA.en);
-    });
+    const testiPerLingua=rebuildTesti();
 
     // badge per tutte le camere
     const roomBadgesHtml=rooms.map(r=>{
@@ -840,7 +844,7 @@ function render(iso,bookings){
     }
     // salva dati per le modali
     taxStore[i]={nome,lng,notti,phone:numeroValido(phone)?phone:""};
-    msgFull[i]={testo:testoCopia, email:(booker.email||""), nome, lng, waLink, testiPerLingua, phone:(numeroValido(phone)?phone:"")};
+    msgFull[i]={testo:testoCopia, email:(booker.email||""), nome, lng, waLink, testiPerLingua, phone:(numeroValido(phone)?phone:""), rebuild:rebuildTesti};
     infoStore[i]={
       nome:`${nome} ${cognome}`.trim(), struttura, room:roomName, roomLabel,
       checkin:iso, checkout:b.checkout||"", notti, adults:b.adults||"", children:b.children||0,
@@ -1044,10 +1048,20 @@ async function confermaOrario(){
     const d = await r.json();
     if(d.ok){
       orariMap[String(bookingId)] = orario;
+      // rigenera i messaggi con il nuovo orario (senza ricaricare tutto dal server)
+      rigeneraMessaggi();
       const cards = document.querySelectorAll(".orario-chip");
       if(cards[i]){cards[i].textContent="🕐 "+orario;cards[i].classList.add("set");}
     }
   }catch(e){console.error("Errore salvataggio orario:",e);}
+}
+
+// rigenera i testi dei messaggi in tutte le lingue usando orariMap aggiornato
+function rigeneraMessaggi(){
+  Object.keys(msgFull).forEach(idx=>{
+    const m=msgFull[idx];
+    if(m && typeof m.rebuild==="function"){ m.testiPerLingua=m.rebuild(); }
+  });
 }
 
 async function cancellaOrario(){
@@ -1056,6 +1070,7 @@ async function cancellaOrario(){
   try{
     await fetch(`${WORKER}/?action=deleteOrario&booking_id=${bookingId}&date=${date}`);
     delete orariMap[String(bookingId)];
+    rigeneraMessaggi();
     const cards = document.querySelectorAll(".orario-chip");
     if(cards[i]){cards[i].textContent="🕐 orario";cards[i].classList.remove("set");}
   }catch(e){console.error("Errore rimozione orario:",e);}
