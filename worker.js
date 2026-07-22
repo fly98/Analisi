@@ -1681,6 +1681,14 @@ export default {
       if (action === "debugBooking") {
         const from = url.searchParams.get("from");
         const to = url.searchParams.get("to");
+        const path = url.searchParams.get("path");
+        if (path) {
+          const resp3 = await amenitizGet(path, env);
+          const txt = await resp3.text();
+          return new Response(JSON.stringify({ status: resp3.status, path, body: txt.slice(0, 5000) }), {
+            headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        }
         if (!from || !to)
           return new Response(JSON.stringify({ error: "Parametri from e to obbligatori" }), {
             status: 400,
