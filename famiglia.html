@@ -9,7 +9,7 @@
 <script>
   (g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})({
     key: "AIzaSyBWxuW5tFOnRn8FHAoDt9q9Iz_1xdxbjCg",
-    v: "beta"
+    v: "alpha"
   });
 </script>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -122,8 +122,8 @@ function render(members) {
         <div class="tab" onclick="switchTab('${sid}','history',this)">Storico</div>
       </div>
       <div id="live-${sid}">
-        ${hasGps ? `<div class="mini-map" id="map-${sid}"></div>
-        <div class="map-actions"><button class="nav-btn" onclick="openMaps(${m.latitude},${m.longitude})">🗺 Indicazioni</button><button class="sat-btn" onclick="openGoogleSat(${m.latitude},${m.longitude})">🌍 Vista 3D</button></div>`
+        ${hasGps ? `<div class="mini-map" id="map-${sid}" onclick="openGoogleMaps(${m.latitude},${m.longitude})" style="cursor:pointer"></div>
+        <div class="map-actions"><button class="nav-btn" onclick="openMaps(${m.latitude},${m.longitude})">🗺 Indicazioni</button><button class="sat-btn" onclick="openSat('${m.name}',[[${m.latitude},${m.longitude}]])">🛰 Vista 3D</button></div>`
         : `<div class="loading">Posizione GPS non disponibile</div>`}
       </div>
       <div id="history-${sid}" style="display:none">
@@ -285,21 +285,7 @@ function ensureSatOverlay() {
   document.body.appendChild(ov)
 }
 
-function showSatDebug(msg) {
-  let box = document.getElementById('sat-debug')
-  if (!box) {
-    box = document.createElement('div')
-    box.id = 'sat-debug'
-    box.style.cssText = 'position:fixed;left:8px;right:8px;bottom:8px;z-index:99999;background:rgba(180,0,0,0.95);color:#fff;font:600 13px/1.4 monospace;padding:12px 14px;border-radius:10px;max-height:45vh;overflow:auto;white-space:pre-wrap;box-shadow:0 4px 20px rgba(0,0,0,.4)'
-    document.body.appendChild(box)
-  }
-  box.textContent = 'DEBUG 3D:\n' + msg
-}
-window.addEventListener('error', e => showSatDebug('window.onerror: ' + (e.message || e.error?.message || e) + '\n' + (e.error?.stack || '')))
-window.addEventListener('unhandledrejection', e => showSatDebug('promise rejection: ' + (e.reason?.message || e.reason)))
-
 async function openSat(name, coords) {
- try {
   ensureSatOverlay()
   document.getElementById('sat-overlay').classList.add('open')
   document.getElementById('sat-title').textContent = name
@@ -309,10 +295,8 @@ async function openSat(name, coords) {
   const mapEl = document.getElementById('sat-map')
   mapEl.innerHTML = ''
 
-  showSatDebug('Carico libreria maps3d...')
-  const { Map3DElement, Marker3DElement, Polyline3DElement, MapMode } = await google.maps.importLibrary("maps3d")
+  const { Map3DElement, Marker3DElement, Polyline3DElement } = await google.maps.importLibrary("maps3d")
   const { PinElement } = await google.maps.importLibrary("marker")
-  showSatDebug('Libreria caricata. Creo Map3DElement...')
 
   const isTrack = coords.length > 1
   const map3d = new Map3DElement({
@@ -320,9 +304,8 @@ async function openSat(name, coords) {
     range: isTrack ? 2000 : 400,
     tilt: 65,
     heading: 20,
-    mode: MapMode.SATELLITE
+    mode: 'SATELLITE'
   })
-  map3d.mode = MapMode.SATELLITE
   mapEl.appendChild(map3d)
   sat3dMap = map3d
 
@@ -352,10 +335,6 @@ async function openSat(name, coords) {
   })
   marker.append(pin)
   map3d.append(marker)
-  showSatDebug('Map3DElement creato (v beta, MapMode.SATELLITE). Se ora si vede, era la sintassi mode.')
- } catch(e) {
-  showSatDebug('ERRORE in openSat: ' + (e.message || e) + '\n\nname: ' + (e.name||'') + '\ncode: ' + (e.code||'') + '\n' + (e.stack||''))
- }
 }
 
 function openSatHistory(sid) {
@@ -372,7 +351,7 @@ function closeSat() {
 }
 
 function openMaps(lat, lon) { window.open(`https://maps.apple.com/?daddr=${lat},${lon}&dirflg=d`, '_blank') }
-function openGoogleSat(lat, lon) { window.open(`https://earth.google.com/web/@${lat},${lon},150a,500d,35y,0h,60t,0r`, '_blank') }
+function openGoogleMaps(lat, lon) { window.open(`https://www.google.com/maps/search/?api=1&query=${lat},${lon}`, '_blank') }
 
 loadFamily()
 setInterval(loadFamily, 60000)
