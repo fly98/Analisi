@@ -1678,6 +1678,22 @@ export default {
           headers: { ...CORS, "Content-Type": "application/json" }
         });
       }
+      if (action === "debugBooking") {
+        const from = url.searchParams.get("from");
+        const to = url.searchParams.get("to");
+        if (!from || !to)
+          return new Response(JSON.stringify({ error: "Parametri from e to obbligatori" }), {
+            status: 400,
+            headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        const resp2 = await amenitizGet(`/bookings/checkin?from=${from}&to=${to}&hotel_id=${HOTEL_UUID}`, env);
+        if (!resp2.ok)
+          return new Response(JSON.stringify({ error: "API Amenitiz", status: resp2.status }), {
+            status: resp2.status,
+            headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        return new Response(await resp2.text(), { headers: { ...CORS, "Content-Type": "application/json" } });
+      }
       if (action === "rooms") {
         const resp2 = await amenitizGet(`/content?hotel_id=${HOTEL_UUID}`, env);
         if (!resp2.ok)
@@ -2114,3 +2130,4 @@ export default {
     }
   }
 };
+
