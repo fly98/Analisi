@@ -351,13 +351,13 @@ function msgCampaldino(nome,iso,c,lng,adultiPrima=0,camereExtra=[],orario=''){
   const etichMaiusc=etichConOspiti.toUpperCase();
 // frase orario: se già impostato -> conferma; altrimenti -> domanda
   const FRASI_ORARIO={
-    it:{no:"Il check-in è possibile dalle *13:00*: potrebbe indicarmi a che ora pensa di arrivare, così ci organizziamo al meglio?", presto:"Cercheremo di rendere l'alloggio disponibile il prima possibile."},
-    en:{no:"Check-in is available from *1:00 PM*: could you let me know what time you plan to arrive, so we can organize accordingly?", presto:"We will do our best to make the accommodation available as soon as possible."},
-    es:{no:"El check-in está disponible a partir de las *13:00*: ¿podría indicarme a qué hora piensa llegar, para organizarnos mejor?", presto:"Intentaremos que el alojamiento esté disponible lo antes posible."},
-    fr:{no:"Le check-in est possible à partir de *13h00* : pourriez-vous m'indiquer à quelle heure vous pensez arriver, afin de mieux nous organiser ?", presto:"Nous ferons de notre mieux pour rendre le logement disponible le plus tôt possible."},
-    de:{no:"Der Check-in ist ab *13:00 Uhr* möglich: könnten Sie mir mitteilen, um wie viel Uhr Sie ankommen möchten, damit wir uns besser organisieren können?", presto:"Wir werden unser Bestes tun, um die Unterkunft so früh wie möglich bereitzustellen."},
-    pt:{no:"O check-in está disponível a partir das *13:00*: poderia indicar-me a que horas pensa chegar, para nos organizarmos melhor?", presto:"Faremos o possível para disponibilizar o alojamento o mais cedo possível."},
-    zh:{no:"入住时间为 *13:00* 起：能否告知您大约几点到达，以便我们更好地安排？", presto:"我们将尽力让住所尽早准备就绪。"},
+    it:{no:"Il check-in è possibile dalle *13:00*, potrebbe indicarmi l'orario di arrivo previsto per organizzarci al meglio?", presto:"Cercheremo di rendere l'alloggio disponibile il prima possibile."},
+    en:{no:"Check-in is available from *1:00 PM*, could you let me know your estimated arrival time so we can organize accordingly?", presto:"We will do our best to make the accommodation available as soon as possible."},
+    es:{no:"El check-in está disponible a partir de las *13:00*, ¿podría indicarme su hora prevista de llegada para organizarnos mejor?", presto:"Intentaremos que el alojamiento esté disponible lo antes posible."},
+    fr:{no:"Le check-in est possible à partir de *13h00*, pourriez-vous m'indiquer votre heure d'arrivée prévue afin de mieux nous organiser ?", presto:"Nous ferons de notre mieux pour rendre le logement disponible le plus tôt possible."},
+    de:{no:"Der Check-in ist ab *13:00 Uhr* möglich, könnten Sie mir Ihre voraussichtliche Ankunftszeit mitteilen, damit wir uns besser organisieren können?", presto:"Wir werden unser Bestes tun, um die Unterkunft so früh wie möglich bereitzustellen."},
+    pt:{no:"O check-in está disponível a partir das *13:00*, poderia indicar-me a sua hora prevista de chegada para nos organizarmos melhor?", presto:"Faremos o possível para disponibilizar o alojamento o mais cedo possível."},
+    zh:{no:"入住时间为 *13:00* 起，能否告知您预计的到达时间，以便我们更好地安排？", presto:"我们将尽力让住所尽早准备就绪。"},
   };
   const fo=FRASI_ORARIO[lng]||FRASI_ORARIO.en;
   let fraseOrario;
@@ -435,13 +435,13 @@ function msgLorenzo(nome,iso,num,lng,adultiPrima=0,camereExtra=[],orario=''){
   const numMaiusc=String(numConOspiti).toUpperCase();
 // frase orario: se già impostato -> conferma; altrimenti -> domanda
   const FRASI_ORARIO={
-    it:{no:"Il check-in è possibile dalle *13:00*: potrebbe indicarmi a che ora pensa di arrivare, così ci organizziamo al meglio?", presto:"Cercheremo di rendere l'alloggio disponibile il prima possibile."},
-    en:{no:"Check-in is available from *1:00 PM*: could you let me know what time you plan to arrive, so we can organize accordingly?", presto:"We will do our best to make the accommodation available as soon as possible."},
-    es:{no:"El check-in está disponible a partir de las *13:00*: ¿podría indicarme a qué hora piensa llegar, para organizarnos mejor?", presto:"Intentaremos que el alojamiento esté disponible lo antes posible."},
-    fr:{no:"Le check-in est possible à partir de *13h00* : pourriez-vous m'indiquer à quelle heure vous pensez arriver, afin de mieux nous organiser ?", presto:"Nous ferons de notre mieux pour rendre le logement disponible le plus tôt possible."},
-    de:{no:"Der Check-in ist ab *13:00 Uhr* möglich: könnten Sie mir mitteilen, um wie viel Uhr Sie ankommen möchten, damit wir uns besser organisieren können?", presto:"Wir werden unser Bestes tun, um die Unterkunft so früh wie möglich bereitzustellen."},
-    pt:{no:"O check-in está disponível a partir das *13:00*: poderia indicar-me a que horas pensa chegar, para nos organizarmos melhor?", presto:"Faremos o possível para disponibilizar o alojamento o mais cedo possível."},
-    zh:{no:"入住时间为 *13:00* 起：能否告知您大约几点到达，以便我们更好地安排？", presto:"我们将尽力让住所尽早准备就绪。"},
+    it:{no:"Il check-in è possibile dalle *13:00*, potrebbe indicarmi l'orario di arrivo previsto per organizzarci al meglio?", presto:"Cercheremo di rendere l'alloggio disponibile il prima possibile."},
+    en:{no:"Check-in is available from *1:00 PM*, could you let me know your estimated arrival time so we can organize accordingly?", presto:"We will do our best to make the accommodation available as soon as possible."},
+    es:{no:"El check-in está disponible a partir de las *13:00*, ¿podría indicarme su hora prevista de llegada para organizarnos mejor?", presto:"Intentaremos que el alojamiento esté disponible lo antes posible."},
+    fr:{no:"Le check-in est possible à partir de *13h00*, pourriez-vous m'indiquer votre heure d'arrivée prévue afin de mieux nous organiser ?", presto:"Nous ferons de notre mieux pour rendre le logement disponible le plus tôt possible."},
+    de:{no:"Der Check-in ist ab *13:00 Uhr* möglich, könnten Sie mir Ihre voraussichtliche Ankunftszeit mitteilen, damit wir uns besser organisieren können?", presto:"Wir werden unser Bestes tun, um die Unterkunft so früh wie möglich bereitzustellen."},
+    pt:{no:"O check-in está disponível a partir das *13:00*, poderia indicar-me a sua hora prevista de chegada para nos organizarmos melhor?", presto:"Faremos o possível para disponibilizar o alojamento o mais cedo possível."},
+    zh:{no:"入住时间为 *13:00* 起，能否告知您预计的到达时间，以便我们更好地安排？", presto:"我们将尽力让住所尽早准备就绪。"},
   };
   const fo=FRASI_ORARIO[lng]||FRASI_ORARIO.en;
   let fraseOrario;
