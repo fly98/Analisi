@@ -285,7 +285,21 @@ function ensureSatOverlay() {
   document.body.appendChild(ov)
 }
 
+function showSatDebug(msg) {
+  let box = document.getElementById('sat-debug')
+  if (!box) {
+    box = document.createElement('div')
+    box.id = 'sat-debug'
+    box.style.cssText = 'position:fixed;left:8px;right:8px;bottom:8px;z-index:99999;background:rgba(180,0,0,0.95);color:#fff;font:600 13px/1.4 monospace;padding:12px 14px;border-radius:10px;max-height:45vh;overflow:auto;white-space:pre-wrap;box-shadow:0 4px 20px rgba(0,0,0,.4)'
+    document.body.appendChild(box)
+  }
+  box.textContent = 'DEBUG 3D:\n' + msg
+}
+window.addEventListener('error', e => showSatDebug('window.onerror: ' + (e.message || e.error?.message || e) + '\n' + (e.error?.stack || '')))
+window.addEventListener('unhandledrejection', e => showSatDebug('promise rejection: ' + (e.reason?.message || e.reason)))
+
 async function openSat(name, coords) {
+ try {
   ensureSatOverlay()
   document.getElementById('sat-overlay').classList.add('open')
   document.getElementById('sat-title').textContent = name
@@ -295,8 +309,10 @@ async function openSat(name, coords) {
   const mapEl = document.getElementById('sat-map')
   mapEl.innerHTML = ''
 
+  showSatDebug('Carico libreria maps3d...')
   const { Map3DElement, Marker3DElement, Polyline3DElement } = await google.maps.importLibrary("maps3d")
   const { PinElement } = await google.maps.importLibrary("marker")
+  showSatDebug('Libreria caricata. Creo Map3DElement...')
 
   const isTrack = coords.length > 1
   const map3d = new Map3DElement({
@@ -335,6 +351,10 @@ async function openSat(name, coords) {
   })
   marker.append(pin)
   map3d.append(marker)
+  showSatDebug('Map3DElement creato con successo. Se resta blu, i tile 3D non si scaricano (Map Tiles API / fatturazione).')
+ } catch(e) {
+  showSatDebug('ERRORE in openSat: ' + (e.message || e) + '\n\nname: ' + (e.name||'') + '\ncode: ' + (e.code||'') + '\n' + (e.stack||''))
+ }
 }
 
 function openSatHistory(sid) {
