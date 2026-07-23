@@ -216,7 +216,7 @@ async function fetchPrenotazioni(env, dal, al) {
     }
   }
 
-  prenotazioni.sort((a, b) => (a.checkout < b.checkout ? 1 : -1));
+  prenotazioni.sort((a, b) => (a.checkin < b.checkin ? 1 : -1));
   return prenotazioni;
 }
 
@@ -238,7 +238,7 @@ function riconcilia(prenotazioni, ricevute) {
   // distanza in giorni tra emissione ricevuta e checkout
   const distanza = (ric, pren) =>
     Math.abs(
-      (new Date(ric.giorno + 'T12:00:00Z') - new Date(pren.checkout + 'T12:00:00Z')) /
+      (new Date(ric.giorno + 'T12:00:00Z') - new Date(pren.checkin + 'T12:00:00Z')) /
         86400000
     );
 
@@ -403,7 +403,7 @@ async function emettiDocumento(env, pren, pagamento = 'PE', aliquota = '10') {
     omaggio: false,
     codiceLotteria: '',
     pagamento,
-    pagamenti: [],
+    pagamenti: [{ tipo: pagamento, importo: pren.atteso }],
     ticketRestaurant: [],
     documentoCommercialeCollegato: '',
     multisede: {},
@@ -472,13 +472,13 @@ async function elenco(env, dal, al, margine) {
       };
     }
     const oggiIso = giorno(new Date());
-    if (p.checkout > oggiIso) {
+    if (p.checkin > oggiIso) {
       return { ...p, stato: 'futura', origine: null, ricevuta: null, nota: '' };
     }
     return { ...p, stato: 'da_emettere', origine: null, ricevuta: null, nota: '' };
   });
 
-  righe.sort((a, b) => (a.checkout < b.checkout ? 1 : -1));
+  righe.sort((a, b) => (a.checkin < b.checkin ? 1 : -1));
 
   const conta = (s) => righe.filter((r) => r.stato === s).length;
   return {
