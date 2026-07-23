@@ -9,7 +9,8 @@
  *   FISCO_PWD   - password Fisconline
  *   FISCO_PIVA  - partita IVA (09336091005)
  *   FISCO_PIN_INIZIALE - PIN iniziale rilasciato dall'AdE, serve per la
- *                        procedura di reset quando la password scade (90 gg)
+ *                        procedura di reset quando la password scade (90 gg).
+ *                        NB: contiene la PASSWORD iniziale, non un pin.
  *   API_TOKEN   - token per proteggere questo worker
  *
  * Endpoint:
@@ -57,6 +58,10 @@ class CookieJar {
     return [...this.jar.entries()].map(([k, v]) => `${k}=${v}`).join('; ');
   }
 
+  set(name, value) {
+    this.jar.set(name, value);
+  }
+
   has(name) {
     return this.jar.has(name);
   }
@@ -75,7 +80,7 @@ async function jarFetch(jar, url, options = {}, log = null) {
   let current = url;
   let response;
 
-  for (let hop = 0; hop < 8; hop++) {
+  for (let hop = 0; hop < 14; hop++) {
     const headers = {
       'User-Agent': UA,
       Accept: options.accept || 'text/html,application/xhtml+xml,*/*',
@@ -112,64 +117,103 @@ async function jarFetch(jar, url, options = {}, log = null) {
 }
 
 /* ------------------------------------------------------------------ */
-/* Login: 4 passaggi                                                   */
+/* Login: SSO ForgeRock (iampe) + selezione utenza di lavoro           */
 /* ------------------------------------------------------------------ */
+const IAM = 'https://iampe.agenziaentrate.gov.it';
+const AUTH_URL =
+  IAM + '/sam/json/realms/root/realms/agenziaentrate/authenticate';
+
 async function login(env, log) {
   const jar = new CookieJar();
 
-  // 1. homepage -> cookie di sessione iniziali
-  await jarFetch(jar, `${BASE}/portale/web/guest`, {}, log);
+  const apiHeaders = {
+    'User-Agent': UA,
+    'Content-Type': 'application/json',
+    Accept: 'application/json',
+    'Accept-API-Version': 'resource=2.0, protocol=1.0',
+    'Accept-Language': 'it-IT,it;q=0.9',
+  };
 
-  // 2. POST credenziali (portlet Liferay id 58)
-  const loginUrl =
-    `${BASE}/portale/home?p_p_id=58&p_p_lifecycle=1&p_p_state=normal` +
-    `&p_p_mode=view&p_p_col_id=column-1&p_p_col_pos=3&p_p_col_count=4` +
-    `&_58_struts_action=%2Flogin%2Flogin`;
+  // --- 1. avvio flusso: il server risponde con i callback da compilare
+  const initRes = await fetch(AUTH_URL, {
+    method: 'POST',
+    headers: apiHeaders,
+    body: '{}',
+  });
+  jar.absorb(initRes);
+  const challenge = await initRes.json();
+  if (log) log.push(`IAM init -> ${initRes.status}, stage ${challenge.stage || '?'}`);
 
-  const loginBody = new URLSearchParams({
-    _58_saveLastPath: 'false',
-    _58_redirect: '',
-    _58_doActionAfterLogin: 'false',
-    _58_login: env.FISCO_CF,
-    _58_pin: env.FISCO_PIN,
-    _58_password: env.FISCO_PWD,
-  }).toString();
-
-  const loginRes = await jarFetch(
-    jar,
-    loginUrl,
-    { method: 'POST', body: loginBody },
-    log
-  );
-  const html = await loginRes.text();
-
-  // il token anti-CSRF di Liferay serve al passo successivo
-  const match = html.match(/Liferay\.authToken\s*=\s*'([^']+)'/);
-  if (!match) {
-    const hint = /[Aa]utenticazione|[Cc]redenziali|password/.test(html)
-      ? 'credenziali rifiutate o password scaduta (90 giorni)'
-      : 'authToken non trovato nella risposta';
-    throw new Error(`Login fallito: ${hint}`);
+  if (!Array.isArray(challenge.callbacks)) {
+    throw new Error(
+      'IAM: nessun callback ricevuto (' + JSON.stringify(challenge).slice(0, 200) + ')'
+    );
   }
-  const pAuth = match[1];
-  if (log) log.push(`authToken ok (${pAuth.slice(0, 6)}...)`);
 
-  // 3. scelta utenza di lavoro: opero per la mia P.IVA
-  const scegliUrl =
-    `${BASE}/portale/scelta-utenza-lavoro?p_auth=${pAuth}` +
-    `&p_p_id=SceltaUtenzaLavoro_WAR_SceltaUtenzaLavoroportlet` +
-    `&p_p_lifecycle=1&p_p_state=normal&p_p_mode=view` +
-    `&p_p_col_id=column-1&p_p_col_count=1` +
-    `&_SceltaUtenzaLavoro_WAR_SceltaUtenzaLavoroportlet_javax.portlet.action=incarichiAction`;
+  // --- 2. compilo i callback: nome utente, password, pin
+  for (const cb of challenge.callbacks) {
+    const promptEntry = (cb.output || []).find((o) => o.name === 'prompt');
+    const prompt = (promptEntry ? promptEntry.value : '').toLowerCase();
+    if (!cb.input || !cb.input.length) continue;
 
-  const scegliBody = new URLSearchParams({
-    sceltaincarico: `${env.FISCO_PIVA}-FOL`,
-    tipoincaricante: 'incDiretto',
-  }).toString();
+    if (cb.type === 'NameCallback' || prompt.includes('user')) {
+      cb.input[0].value = env.FISCO_CF;
+    } else if (prompt.includes('pin')) {
+      cb.input[0].value = env.FISCO_PIN;
+    } else {
+      cb.input[0].value = env.FISCO_PWD;
+    }
+  }
 
-  await jarFetch(jar, scegliUrl, { method: 'POST', body: scegliBody }, log);
+  const authRes = await fetch(AUTH_URL, {
+    method: 'POST',
+    headers: { ...apiHeaders, Cookie: jar.header() },
+    body: JSON.stringify(challenge),
+  });
+  jar.absorb(authRes);
+  const authData = await authRes.json();
 
-  // 4. warm-up dell'area servizi (imposta i cookie applicativi)
+  if (!authData.tokenId) {
+    const msg = authData.message || JSON.stringify(authData).slice(0, 250);
+    const scaduta = /scadut|expired|change/i.test(msg);
+    throw new Error(
+      `IAM login fallito (HTTP ${authRes.status}): ${msg}` +
+        (scaduta ? ' [password probabilmente scaduta: serve reset]' : '')
+    );
+  }
+  if (log) log.push('IAM login OK, tokenId ottenuto');
+
+  // il cookie SSO si chiama SIAMPE; se non arriva via Set-Cookie lo forzo
+  if (!jar.has('SIAMPE')) jar.set('SIAMPE', authData.tokenId);
+
+  // --- 3. entro nel portale Fatture e Corrispettivi con la sessione SSO
+  const portRes = await jarFetch(jar, `${BASE}/portale/`, {}, log);
+  const portHtml = await portRes.text();
+
+  // --- 4. selezione utenza di lavoro (opero per la mia P.IVA)
+  const authTokenMatch = portHtml.match(/Liferay\.authToken\s*=\s*'([^']+)'/);
+  if (authTokenMatch) {
+    const pAuth = authTokenMatch[1];
+    if (log) log.push('authToken Liferay trovato');
+
+    const scegliUrl =
+      `${BASE}/portale/scelta-utenza-lavoro?p_auth=${pAuth}` +
+      `&p_p_id=SceltaUtenzaLavoro_WAR_SceltaUtenzaLavoroportlet` +
+      `&p_p_lifecycle=1&p_p_state=normal&p_p_mode=view` +
+      `&p_p_col_id=column-1&p_p_col_count=1` +
+      `&_SceltaUtenzaLavoro_WAR_SceltaUtenzaLavoroportlet_javax.portlet.action=incarichiAction`;
+
+    const scegliBody = new URLSearchParams({
+      sceltaincarico: `${env.FISCO_PIVA}-FOL`,
+      tipoincaricante: 'incDiretto',
+    }).toString();
+
+    await jarFetch(jar, scegliUrl, { method: 'POST', body: scegliBody }, log);
+  } else if (log) {
+    log.push('authToken Liferay NON trovato (utenza forse gia attiva)');
+  }
+
+  // --- 5. warm-up area servizi
   await jarFetch(
     jar,
     `${BASE}/ser/api/messaggistica/v1/ul/me/totale?v=${ts()}`,
