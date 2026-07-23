@@ -1628,10 +1628,37 @@ async function emissioneAutomatica(env, giornoRif, soloProva = false) {
 /* ---------------------------------------------------------------- */
 /* Handler                                                           */
 /* ---------------------------------------------------------------- */
+// Controllo di metà giornata: se restano partenze senza documento
+// manda un promemoria, senza emettere nulla.
+async function promemoriaSospese(env) {
+  const oggi = giorno(new Date());
+  const dal = addGiorni(oggi, -3);
+  const dati = await elenco(env, addGiorni(dal, -45), oggi, MARGINE_RICEVUTE);
+  const restano = dati.righe.filter(
+    (p) => p.checkout >= dal && p.checkout <= oggi && p.stato === 'da_emettere'
+  );
+  if (!restano.length) return { sospese: 0, avvisato: false };
+
+  const tot = restano.reduce((s, p) => s + p.atteso, 0);
+  const m = [];
+  m.push(`🧾 *Cassa · ${dataIt(oggi)}*`);
+  m.push('');
+  m.push(`⚠️ *${restano.length} ricevute da emettere a mano* — ${tot.toFixed(2)} €`);
+  m.push('');
+  for (const p of restano.slice(0, 15)) {
+    const cam = (p.camere || []).join('+');
+    m.push(`· ${dataIt(p.checkout)} ${cam} — ${p.nome || 'senza nome'} — ${p.atteso.toFixed(2)} € (${p.canale})`);
+  }
+  if (restano.length > 15) m.push(`…e altre ${restano.length - 15}`);
+  const avvisato = await avvisaTelegram(env, m.join('\n'));
+  return { sospese: restano.length, totale: Math.round(tot * 100) / 100, avvisato };
+}
+
 export default {
-  // ogni mattina: emette le ricevute dei soggiorni conclusi
+  // 08:00 UTC (10:00) emissione · 11:00 UTC (13:00) promemoria
   async scheduled(event, env, ctx) {
-    ctx.waitUntil(emissioneAutomatica(env));
+    const ora = new Date(event.scheduledTime).getUTCHours();
+    ctx.waitUntil(ora >= 10 ? promemoriaSospese(env) : emissioneAutomatica(env));
   },
 
   async fetch(request, env) {
@@ -1843,6 +1870,10 @@ export default {
         return json({ ok: true, periodo: { dal, al }, ...(await proposte(env, dal, al, opz)) });
       }
 
+      if (url.pathname === '/promemoria') {
+        return json({ ok: true, ...(await promemoriaSospese(env)) });
+      }
+
       if (url.pathname === '/automatico') {
         const prova = url.searchParams.get('prova') === '1';
         const g = url.searchParams.get('giorno') || null;
@@ -1898,7 +1929,7 @@ export default {
     return json(
       {
         error: 'endpoint sconosciuto',
-        disponibili: ['/health', '/infouser', '/dco', '/prenotazioni', '/riconcilia', '/elenco', '/stato', '/emetti', '/annulla', '/condividi', '/invia', '/rinnova', '/proposte', '/orfane', '/duplicati', '/automatico', '/emettiLibera', '/r/{token}'],
+        disponibili: ['/health', '/infouser', '/dco', '/prenotazioni', '/riconcilia', '/elenco', '/stato', '/emetti', '/annulla', '/condividi', '/invia', '/rinnova', '/proposte', '/orfane', '/duplicati', '/automatico', '/promemoria', '/emettiLibera', '/r/{token}'],
       },
       404
     );
