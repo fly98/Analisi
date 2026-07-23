@@ -901,13 +901,20 @@ async function proposte(env, dal, al, opzioni = {}) {
 
   // ricevute gia' impegnate da una decisione registrata
   const impegnate = new Set();
-  for (const s of Object.values(stati)) if (s && s.idtrx) impegnate.add(String(s.idtrx));
+  for (const s of Object.values(stati)) {
+    if (!s) continue;
+    if (s.idtrx) impegnate.add(String(s.idtrx));
+    for (const e of s.extra || []) impegnate.add(String(e.idtrx || e.id));
+  }
 
   // il match esatto viene applicato prima: resta da proporre solo il resto
   const libere = prenotazioni.filter((p) => !stati[p.id]);
   const esito = riconcilia(libere, ricevute.documenti);
   const abbinateOk = new Set(esito.abbinamenti.map((a) => a.prenotazione.id));
-  for (const a of esito.abbinamenti) impegnate.add(String(a.ricevuta.id));
+  for (const a of esito.abbinamenti) {
+    impegnate.add(String(a.ricevuta.id));
+    for (const e of a.extra || []) impegnate.add(String(e.id));
+  }
 
   const scoperte = libere.filter((p) => !abbinateOk.has(p.id));
   const orfane = ricevute.documenti.filter(
@@ -1029,12 +1036,19 @@ async function orfaneConCandidati(env, dal, al, opzioni = {}) {
 
   const stati = await leggiStati(env, prenotazioni.map((p) => p.id));
   const impegnate = new Set();
-  for (const s of Object.values(stati)) if (s && s.idtrx) impegnate.add(String(s.idtrx));
+  for (const s of Object.values(stati)) {
+    if (!s) continue;
+    if (s.idtrx) impegnate.add(String(s.idtrx));
+    for (const e of s.extra || []) impegnate.add(String(e.idtrx || e.id));
+  }
 
   const libere = prenotazioni.filter((p) => !stati[p.id]);
   const esito = riconcilia(libere, ricevute.documenti);
   const abbinate = new Set(esito.abbinamenti.map((a) => a.prenotazione.id));
-  for (const a of esito.abbinamenti) impegnate.add(String(a.ricevuta.id));
+  for (const a of esito.abbinamenti) {
+    impegnate.add(String(a.ricevuta.id));
+    for (const e of a.extra || []) impegnate.add(String(e.id));
+  }
 
   const scoperte = libere.filter((p) => !abbinate.has(p.id));
   const orfane = ricevute.documenti.filter(
@@ -1164,11 +1178,16 @@ async function duplicati(env, dal, al, opzioni = {}) {
   const stati = await leggiStati(env, prenotazioni.map((p) => p.id));
   const usate = new Map();
   for (const [id, s] of Object.entries(stati)) {
-    if (s && s.idtrx) usate.set(String(s.idtrx), id);
+    if (!s) continue;
+    if (s.idtrx) usate.set(String(s.idtrx), id);
+    for (const e of s.extra || []) usate.set(String(e.idtrx || e.id), id);
   }
   const libere = prenotazioni.filter((p) => !stati[p.id]);
   const esito = riconcilia(libere, ricevute.documenti);
-  for (const a of esito.abbinamenti) usate.set(String(a.ricevuta.id), a.prenotazione.id);
+  for (const a of esito.abbinamenti) {
+    usate.set(String(a.ricevuta.id), a.prenotazione.id);
+    for (const e of a.extra || []) usate.set(String(e.id), a.prenotazione.id);
+  }
 
   const nomi = new Map(prenotazioni.map((p) => [p.id, p]));
 
