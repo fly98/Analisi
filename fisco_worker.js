@@ -8,6 +8,8 @@
  *   FISCO_PIN   - PIN (10 cifre)
  *   FISCO_PWD   - password Fisconline
  *   FISCO_PIVA  - partita IVA (09336091005)
+ *   FISCO_PIN_INIZIALE - PIN iniziale rilasciato dall'AdE, serve per la
+ *                        procedura di reset quando la password scade (90 gg)
  *   API_TOKEN   - token per proteggere questo worker
  *
  * Endpoint:
@@ -300,6 +302,7 @@ export default {
           FISCO_PIN: !!env.FISCO_PIN,
           FISCO_PWD: !!env.FISCO_PWD,
           FISCO_PIVA: !!env.FISCO_PIVA,
+          FISCO_PIN_INIZIALE: !!env.FISCO_PIN_INIZIALE,
           API_TOKEN: !!env.API_TOKEN,
         },
       });
