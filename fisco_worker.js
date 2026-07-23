@@ -320,6 +320,152 @@ function riconcilia(prenotazioni, ricevute) {
 }
 
 /* ---------------------------------------------------------------- */
+/* Stato prenotazioni (KV)                                           */
+/* ---------------------------------------------------------------- */
+// stato: 'emessa' | 'fattura' | 'esclusa'
+const chiaveStato = (id) => `fisco:st:${id}`;
+
+async function leggiStati(env, ids) {
+  if (!env.FISCO_KV) return {};
+  const coppie = await Promise.all(
+    ids.map(async (id) => {
+      try {
+        const v = await env.FISCO_KV.get(chiaveStato(id), 'json');
+        return [id, v];
+      } catch {
+        return [id, null];
+      }
+    })
+  );
+  return Object.fromEntries(coppie.filter(([, v]) => v));
+}
+
+async function scriviStato(env, id, dati) {
+  if (!env.FISCO_KV) throw new Error('KV non configurato');
+  if (dati === null) {
+    await env.FISCO_KV.delete(chiaveStato(id));
+    return null;
+  }
+  const record = { ...dati, aggiornato: new Date().toISOString() };
+  await env.FISCO_KV.put(chiaveStato(id), JSON.stringify(record));
+  return record;
+}
+
+/* ---------------------------------------------------------------- */
+/* Emissione e annullo documento                                     */
+/* ---------------------------------------------------------------- */
+// pagamento: PC contanti, PE elettronico, NR_EF segue fattura
+async function emettiDocumento(env, pren, pagamento = 'PE', aliquota = '10') {
+  const descrizione =
+    `Pernottamento ${pren.checkin} / ${pren.checkout}` +
+    (pren.nome ? ` - ${pren.nome}` : '');
+
+  const documento = {
+    elementiContabili: [
+      {
+        aliquotaIVA: String(aliquota),
+        percentualeIVA: parseInt(aliquota, 10),
+        descrizioneProdotto: descrizione.slice(0, 100),
+        prezzoLordo: pren.atteso,
+        quantita: 1,
+        scontoLordo: 0,
+        omaggioElemento: false,
+      },
+    ],
+    totaleScontiAPagare: 0,
+    omaggio: false,
+    codiceLotteria: '',
+    pagamento,
+    pagamenti: [],
+    ticketRestaurant: [],
+    documentoCommercialeCollegato: '',
+    multisede: {},
+  };
+
+  const res = await datacash(env, '/sendDocument/', { document: documento });
+  if (res.esito === false) {
+    const err = (res.errori || [])
+      .map((e) => `${e.codice || ''} ${e.descrizione || ''}`.trim())
+      .join('; ');
+    throw new Error(err || 'emissione rifiutata');
+  }
+  return res;
+}
+
+async function annullaDocumento(env, idtrx) {
+  return datacash(env, `/voidDocument/${idtrx}/`, {});
+}
+
+/* ---------------------------------------------------------------- */
+/* Elenco operativo: prenotazioni + stato + ricevuta                 */
+/* ---------------------------------------------------------------- */
+async function elenco(env, dal, al, margine) {
+  const ricDal = addGiorni(dal, -7);
+  const ricAl = addGiorni(al, margine);
+
+  const [prenotazioni, ricevute] = await Promise.all([
+    fetchPrenotazioni(env, dal, al),
+    fetchRicevute(env, ricDal, ricAl),
+  ]);
+
+  const stati = await leggiStati(env, prenotazioni.map((p) => p.id));
+
+  // match euristico solo per le prenotazioni senza stato registrato
+  const senzaStato = prenotazioni.filter((p) => !stati[p.id]);
+  const esito = riconcilia(senzaStato, ricevute.documenti);
+  const perId = new Map(esito.abbinamenti.map((a) => [a.prenotazione.id, a]));
+
+  const righe = prenotazioni.map((p) => {
+    const st = stati[p.id];
+    if (st) {
+      return {
+        ...p,
+        stato: st.stato,
+        origine: 'registrato',
+        ricevuta:
+          st.idtrx
+            ? { id: st.idtrx, numero: st.numero, data: st.data, importo: st.importo }
+            : null,
+        nota: st.nota || '',
+      };
+    }
+    const m = perId.get(p.id);
+    if (m) {
+      return {
+        ...p,
+        stato: 'emessa',
+        origine: `match:${m.metodo}`,
+        ricevuta: {
+          id: m.ricevuta.id,
+          numero: m.ricevuta.numero,
+          data: m.ricevuta.data,
+          importo: m.ricevuta.importo,
+        },
+        nota: '',
+      };
+    }
+    return { ...p, stato: 'da_emettere', origine: null, ricevuta: null, nota: '' };
+  });
+
+  righe.sort((a, b) => (a.checkout < b.checkout ? 1 : -1));
+
+  const conta = (s) => righe.filter((r) => r.stato === s).length;
+  return {
+    periodo: { prenotazioni: { dal, al }, ricevute: { dal: ricDal, al: ricAl } },
+    riepilogo: {
+      totali: righe.length,
+      daEmettere: conta('da_emettere'),
+      emesse: conta('emessa'),
+      fattura: conta('fattura'),
+      escluse: conta('esclusa'),
+      ricevuteOrfane: esito.riepilogo.ricevuteSenzaPrenotazione,
+    },
+    righe,
+    orfane: esito.ricevuteOrfane,
+  };
+}
+
+/* ---------------------------------------------------------------- */
 /* Handler                                                           */
 /* ---------------------------------------------------------------- */
 export default {
@@ -338,6 +484,7 @@ export default {
           ADE_CRED_ENC: !!env.ADE_CRED_ENC,
           API_TOKEN: !!env.API_TOKEN,
           LS_binding: !!env.LS,
+          KV: !!env.FISCO_KV,
         },
       });
     }
@@ -364,6 +511,68 @@ export default {
             : 'assente',
           pubblico: { status: viaPubblico.status, body: (await viaPubblico.text()).slice(0, 300) },
         });
+      }
+
+      if (url.pathname === '/elenco') {
+        const margine = parseInt(url.searchParams.get('margine') || '45', 10);
+        return json({ ok: true, ...(await elenco(env, dal, al, margine)) });
+      }
+
+      if (url.pathname === '/stato' && request.method === 'POST') {
+        const body = await request.json();
+        if (!body.id) return json({ ok: false, error: 'id mancante' }, 400);
+        const rec = await scriviStato(
+          env,
+          body.id,
+          body.stato
+            ? {
+                stato: body.stato,
+                nota: body.nota || '',
+                idtrx: body.idtrx || null,
+                numero: body.numero || null,
+                data: body.data || null,
+                importo: body.importo ?? null,
+              }
+            : null
+        );
+        return json({ ok: true, id: body.id, stato: rec });
+      }
+
+      if (url.pathname === '/emetti' && request.method === 'POST') {
+        const body = await request.json();
+        if (!body.id) return json({ ok: false, error: 'id prenotazione mancante' }, 400);
+
+        // recupero la prenotazione per avere importo e dati ospite
+        const pren = (await fetchPrenotazioni(env, body.dal || dal, body.al || al)).find(
+          (p) => p.id === String(body.id)
+        );
+        if (!pren) return json({ ok: false, error: 'prenotazione non trovata' }, 404);
+
+        const importo = body.importo != null ? Number(body.importo) : pren.atteso;
+        const res = await emettiDocumento(
+          env,
+          { ...pren, atteso: importo },
+          body.pagamento || 'PE',
+          body.aliquota || '10'
+        );
+
+        const rec = await scriviStato(env, pren.id, {
+          stato: 'emessa',
+          idtrx: res.idtrx,
+          numero: res.progressivo,
+          data: new Date().toISOString(),
+          importo,
+          nota: body.nota || '',
+        });
+        return json({ ok: true, prenotazione: pren.id, documento: res, stato: rec });
+      }
+
+      if (url.pathname === '/annulla' && request.method === 'POST') {
+        const body = await request.json();
+        if (!body.idtrx) return json({ ok: false, error: 'idtrx mancante' }, 400);
+        const res = await annullaDocumento(env, body.idtrx);
+        if (body.id) await scriviStato(env, body.id, null);
+        return json({ ok: true, annullato: body.idtrx, risposta: res });
       }
 
       if (url.pathname === '/infouser') {
@@ -405,7 +614,7 @@ export default {
     return json(
       {
         error: 'endpoint sconosciuto',
-        disponibili: ['/health', '/infouser', '/dco', '/prenotazioni', '/riconcilia'],
+        disponibili: ['/health', '/infouser', '/dco', '/prenotazioni', '/riconcilia', '/elenco', '/stato', '/emetti', '/annulla'],
       },
       404
     );
