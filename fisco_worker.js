@@ -337,6 +337,7 @@ export default {
           DATACASH_KEY: !!env.DATACASH_KEY,
           ADE_CRED_ENC: !!env.ADE_CRED_ENC,
           API_TOKEN: !!env.API_TOKEN,
+          LS_binding: !!env.LS,
         },
       });
     }
