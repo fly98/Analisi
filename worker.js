@@ -1678,6 +1678,51 @@ export default {
           headers: { ...CORS, "Content-Type": "application/json" }
         });
       }
+      // Ricerca nelle mail: usata da fisco-worker per verificare i pagamenti
+      // registrati da Amenitiz. Restituisce il testo dei messaggi trovati.
+      if (action === "gmailCerca") {
+        const q = url.searchParams.get("q");
+        if (!q) return jsonRes({ error: "parametro q mancante" }, 400);
+        const max = Math.min(parseInt(url.searchParams.get("max") || "20", 10), 50);
+        try {
+          const tokenData = await getGmailAccessToken(env);
+          if (!tokenData.access_token) return jsonRes({ error: "token Gmail non ottenuto" }, 500);
+          const at = tokenData.access_token;
+          const sr = await fetch(
+            `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${encodeURIComponent(q)}&maxResults=${max}`,
+            { headers: { Authorization: `Bearer ${at}` } }
+          );
+          const sd = await sr.json();
+          const ids = (sd.messages || []).map((m) => m.id);
+          const messaggi = [];
+          for (const id of ids) {
+            const mr = await fetch(
+              `https://gmail.googleapis.com/gmail/v1/users/me/messages/${id}?format=full`,
+              { headers: { Authorization: `Bearer ${at}` } }
+            );
+            const md = await mr.json();
+            const intest = {};
+            for (const h of (md.payload && md.payload.headers) || []) {
+              const n = h.name.toLowerCase();
+              if (n === "subject" || n === "date" || n === "from") intest[n] = h.value;
+            }
+            let testo = gmailPlainText(md.payload) || "";
+            if (!testo && md.payload && md.payload.body && md.payload.body.data) {
+              testo = atob(md.payload.body.data.replace(/-/g, "+").replace(/_/g, "/"));
+            }
+            messaggi.push({
+              id,
+              oggetto: intest.subject || "",
+              data: intest.date || "",
+              testo: testo.slice(0, 4000),
+            });
+          }
+          return jsonRes({ ok: true, query: q, trovati: messaggi.length, messaggi });
+        } catch (e) {
+          return jsonRes({ error: String(e && e.message ? e.message : e) }, 500);
+        }
+      }
+
       if (action === "debugBooking") {
         const from = url.searchParams.get("from");
         const to = url.searchParams.get("to");
