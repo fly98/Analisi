@@ -438,7 +438,7 @@ $('#cal-ok').onclick  = ()=>{
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = gg(dal)+' – '+gg(al)+' · v17';
+  $('#periodo').textContent = gg(dal)+' – '+gg(al)+' · v18';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -485,8 +485,7 @@ function render(){
     <div class="kpi warn"><b>${r.daEmettere}</b><span>Da emettere</span></div>
     <div class="kpi ok"><b>${r.emesse}</b><span>Emesse</span></div>
     <div class="kpi"><b>${r.fattura}</b><span>Fattura</span></div>
-    <div class="kpi"><b>${r.escluse}</b><span>Escluse</span></div>
-    <div class="kpi"><b>${r.future||0}</b><span>Non arrivati</span></div>`;
+    <div class="kpi"><b>${r.escluse}</b><span>Escluse</span></div>`;
 
   $('#kpis-st').innerHTML = `
     <div class="kpi"><b>${r.totali}</b><span>Prenotazioni</span></div>
