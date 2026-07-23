@@ -616,6 +616,7 @@ async function elenco(env, dal, al, margine) {
       emesse: conta('emessa'),
       fattura: conta('fattura'),
       escluse: conta('esclusa'),
+      registratore: conta('rt'),
       future: conta('futura'),
       ricevuteOrfane: esito.riepilogo.ricevuteSenzaPrenotazione,
     },
