@@ -467,6 +467,10 @@ async function elenco(env, dal, al, margine) {
         nota: '',
       };
     }
+    const oggiIso = giorno(new Date());
+    if (p.checkout > oggiIso) {
+      return { ...p, stato: 'futura', origine: null, ricevuta: null, nota: '' };
+    }
     return { ...p, stato: 'da_emettere', origine: null, ricevuta: null, nota: '' };
   });
 
@@ -481,6 +485,7 @@ async function elenco(env, dal, al, margine) {
       emesse: conta('emessa'),
       fattura: conta('fattura'),
       escluse: conta('esclusa'),
+      future: conta('futura'),
       ricevuteOrfane: esito.riepilogo.ricevuteSenzaPrenotazione,
     },
     righe,
@@ -521,7 +526,7 @@ export default {
     // esercizio in corso: si parte sempre dal 1 gennaio dell'anno corrente
     const inizioAnno = `${adesso.getUTCFullYear()}-01-01`;
     const dal = url.searchParams.get('dal') || inizioAnno;
-    const al = url.searchParams.get('al') || addGiorni(oggi, 30);
+    const al = url.searchParams.get('al') || oggi;
 
     try {
       if (url.pathname === '/debugls') {
