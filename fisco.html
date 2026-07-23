@@ -445,9 +445,9 @@ function renderCtx(){
     c.innerHTML = `<button class="nav" id="m-prev">‹</button>
       <button class="lbl" id="m-lbl">${MESI[meseSel]} ${annoSel}</button>
       <button class="nav" id="m-next">›</button>`;
-    $('#m-prev').onclick = ()=>{ if(--meseSel<0){meseSel=11;annoSel--;} applicaMese(); renderCtx(); carica(); };
-    $('#m-next').onclick = ()=>{ if(++meseSel>11){meseSel=0;annoSel++;} applicaMese(); renderCtx(); carica(); };
-    $('#m-lbl').onclick = ()=>{ const o=new Date(); meseSel=o.getMonth(); annoSel=o.getFullYear(); applicaMese(); renderCtx(); carica(); };
+    $('#m-prev').onclick = ()=>{ if(--meseSel<0){meseSel=11;annoSel--;} applicaMese(); renderCtx(); ricaricaVista(); };
+    $('#m-next').onclick = ()=>{ if(++meseSel>11){meseSel=0;annoSel++;} applicaMese(); renderCtx(); ricaricaVista(); };
+    $('#m-lbl').onclick = ()=>{ const o=new Date(); meseSel=o.getMonth(); annoSel=o.getFullYear(); applicaMese(); renderCtx(); ricaricaVista(); };
   } else if(MODE === 'range'){
     c.innerHTML = `<button id="r-apri">${gg($('#dal').value)} → ${gg($('#al').value)}</button>`;
     $('#r-apri').onclick = apriCalendario;
@@ -460,9 +460,9 @@ document.querySelectorAll('#seg button').forEach(b => b.onclick = ()=>{
   document.querySelectorAll('#seg button').forEach(x=>x.classList.remove('on'));
   b.classList.add('on');
   MODE = b.dataset.mode;
-  if(MODE === 'recenti'){ applicaRecenti(); renderCtx(); carica(); }
-  else if(MODE === 'mese'){ applicaMese(); renderCtx(); carica(); }
-  else if(MODE === 'tutto'){ applicaTutto(); renderCtx(); carica(); }
+  if(MODE === 'recenti'){ applicaRecenti(); renderCtx(); ricaricaVista(); }
+  else if(MODE === 'mese'){ applicaMese(); renderCtx(); ricaricaVista(); }
+  else if(MODE === 'tutto'){ applicaTutto(); renderCtx(); ricaricaVista(); }
   else { renderCtx(); apriCalendario(); }
 });
 
@@ -519,13 +519,21 @@ $('#cal-ok').onclick  = ()=>{
   $('#al').value  = calA || calDa;
   $('#cal').close();
   renderCtx();
-  carica();
+  ricaricaVista();
 };
+
+// ricarica la scheda attualmente aperta: cambiando periodo
+// non ha senso dover premere Aggiorna
+function ricaricaVista(){
+  DATI = null; RIC = null;
+  if(VIEW === 'ricevute') caricaRicevute();
+  else carica();
+}
 
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v42';
+  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v43';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
