@@ -1210,9 +1210,14 @@ async function duplicati(env, dal, al, opzioni = {}) {
       const t1 = oraDi(blocco[blocco.length - 1].dataRaw);
       const secondi = (t1 - t0) / 1000;
       const livello = secondi <= 300 ? 'certo' : secondi <= 90000 ? 'probabile' : 'dubbio';
+      const abbinateN = blocco.filter((r) => usate.has(String(r.id))).length;
       gruppi.push({
         importo: cents / 100,
         conteggio: blocco.length,
+        abbinate: abbinateN,
+        // se ogni documento ha la sua prenotazione non e' un duplicato:
+        // tipicamente sono emissioni separate per camera
+        legittimo: abbinateN === blocco.length,
         eccedenza: Math.round(((blocco.length - 1) * cents) / 100 * 100) / 100,
         distanzaSecondi: Math.round(secondi),
         livello,
@@ -1246,19 +1251,21 @@ async function duplicati(env, dal, al, opzioni = {}) {
 
   gruppi.sort((a, b) => b.eccedenza - a.eccedenza);
 
-  const perLivello = (l) => gruppi.filter((g) => g.livello === l);
+  const sospetti = gruppi.filter((g) => !g.legittimo);
+  const perLivello = (l) => sospetti.filter((g) => g.livello === l);
   return {
     riepilogo: {
-      gruppi: gruppi.length,
+      gruppi: sospetti.length,
       certi: perLivello('certo').length,
       probabili: perLivello('probabile').length,
       dubbi: perLivello('dubbio').length,
+      legittimi: gruppi.length - sospetti.length,
       eccedenzaTotale:
-        Math.round(gruppi.reduce((s, g) => s + g.eccedenza, 0) * 100) / 100,
+        Math.round(sospetti.reduce((s, g) => s + g.eccedenza, 0) * 100) / 100,
       eccedenzaCerti:
         Math.round(perLivello('certo').reduce((s, g) => s + g.eccedenza, 0) * 100) / 100,
     },
-    gruppi,
+    gruppi: sospetti,
   };
 }
 
