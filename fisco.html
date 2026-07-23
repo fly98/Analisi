@@ -70,6 +70,8 @@ button.act:disabled{opacity:.5}
 .card.emessa{border-left:4px solid var(--ok)}
 .card.fattura{border-left:4px solid var(--info)}
 .card.esclusa{border-left:4px solid var(--off);opacity:.72}
+.card.futura{border-left:4px solid var(--line)}
+.p-futura{background:var(--off-bg);color:var(--muted)}
 
 .row1{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
 .nome{font-weight:650;font-size:15px}
@@ -215,11 +217,10 @@ async function api(path, opt={}){
 
 /* ---------- periodo di default: ultimi 60 giorni fino a +30 ---------- */
 function initDate(){
+  // esercizio in corso: dal 1 gennaio a oggi
   const oggi = new Date();
-  const a = new Date(oggi); a.setDate(a.getDate()+30);
-  const d = new Date(oggi); d.setDate(d.getDate()-60);
-  $('#dal').value = d.toISOString().slice(0,10);
-  $('#al').value  = a.toISOString().slice(0,10);
+  $('#dal').value = oggi.getFullYear() + '-01-01';
+  $('#al').value  = oggi.toISOString().slice(0,10);
 }
 
 /* ---------- caricamento ---------- */
@@ -243,7 +244,8 @@ function render(){
     <div class="kpi warn"><b>${r.daEmettere}</b><span>Da emettere</span></div>
     <div class="kpi ok"><b>${r.emesse}</b><span>Emesse</span></div>
     <div class="kpi"><b>${r.fattura}</b><span>Fattura</span></div>
-    <div class="kpi"><b>${r.escluse}</b><span>Escluse</span></div>`;
+    <div class="kpi"><b>${r.escluse}</b><span>Escluse</span></div>
+    <div class="kpi"><b>${r.future||0}</b><span>In corso</span></div>`;
 
   $('#kpis-st').innerHTML = `
     <div class="kpi"><b>${r.totali}</b><span>Prenotazioni</span></div>
@@ -261,7 +263,7 @@ function render(){
     </table>` : '<div class="empty">Nessuna ricevuta orfana.</div>';
 }
 
-const ETICHETTA = {emessa:'Emessa', da_emettere:'Da emettere', fattura:'Fattura', esclusa:'Esclusa'};
+const ETICHETTA = {emessa:'Emessa', da_emettere:'Da emettere', fattura:'Fattura', esclusa:'Esclusa', futura:'In corso'};
 
 function riga(p){
   const doc = p.ricevuta;
@@ -278,6 +280,12 @@ function riga(p){
         ${p.origine && p.origine.startsWith('match') ? '· abbinata automaticamente' : ''}</span>
       ${doc && doc.id ? `<button class="danger" style="font:inherit;font-size:12.5px;font-weight:600;padding:5px 10px;border-radius:7px;border:1px solid #f0c9c5;background:#fff;cursor:pointer"
         onclick="annulla('${p.id}','${doc.id}')">Annulla ricevuta</button>` : ''}
+    </div>`;
+  } else if(p.stato === 'futura'){
+    azioni = `<div class="docinfo">
+      <span>Soggiorno non ancora concluso</span>
+      <button class="ghost" style="font:inherit;font-size:12.5px;padding:5px 10px;border-radius:7px;border:1px solid var(--line);background:#fff;cursor:pointer"
+        onclick="apriEmissione('${p.id}')">Emetti comunque</button>
     </div>`;
   } else {
     azioni = `<div class="docinfo">
