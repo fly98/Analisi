@@ -789,6 +789,14 @@ async function elenco(env, dal, al, margine) {
 
   righe.sort((a, b) => (a.checkin < b.checkin ? 1 : -1));
 
+  const impegnateKV = new Set();
+  for (const s of Object.values(stati)) {
+    if (s && s.idtrx) impegnateKV.add(String(s.idtrx));
+  }
+  const orfaneReali = esito.ricevuteOrfane.filter(
+    (r) => !impegnateKV.has(String(r.id))
+  );
+
   const conta = (s) => righe.filter((r) => r.stato === s).length;
   return {
     periodo: { prenotazioni: { dal, al }, ricevute: { dal: ricDal, al: ricAl } },
@@ -799,10 +807,10 @@ async function elenco(env, dal, al, margine) {
       fattura: conta('fattura'),
       escluse: conta('esclusa'),
       future: conta('futura'),
-      ricevuteOrfane: esito.riepilogo.ricevuteSenzaPrenotazione,
+      ricevuteOrfane: orfaneReali.length,
     },
     righe,
-    orfane: esito.ricevuteOrfane,
+    orfane: orfaneReali,
   };
 }
 
