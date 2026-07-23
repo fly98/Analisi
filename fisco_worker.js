@@ -1450,6 +1450,29 @@ function haGiaDocumento(riga) {
   return riga.stato !== 'da_emettere' && riga.stato !== 'futura';
 }
 
+const TG_BASE = 'https://tg-worker.f-castiglioni.workers.dev';
+
+// avviso su Telegram per le ricevute che restano da fare a mano
+async function avvisaTelegram(env, testo) {
+  if (!env.TELEGRAM_BOT_TOKEN) return false;
+  try {
+    const req = new Request(`${TG_BASE}/send`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Auth': env.TELEGRAM_BOT_TOKEN },
+      body: JSON.stringify({
+        text: testo,
+        parse_mode: 'Markdown',
+        buttons: [{ label: 'Apri Cassa', url: 'https://fly98.github.io/Analisi/fisco.html' }],
+      }),
+    });
+    const res = env.TG ? await env.TG.fetch(req) : await fetch(req);
+    const d = await res.json();
+    return !!d.sent;
+  } catch {
+    return false;
+  }
+}
+
 async function emissioneAutomatica(env, giornoRif, soloProva = false) {
   const oggi = giornoRif || giorno(new Date());
   // guardo i checkout degli ultimi giorni, per recuperare eventuali salti
@@ -1575,6 +1598,28 @@ async function emissioneAutomatica(env, giornoRif, soloProva = false) {
     } catch {
       /* il riepilogo è secondario rispetto all'emissione */
     }
+
+    // su Telegram avviso solo se resta qualcosa da fare a mano
+    if (esito.sospese.length || esito.errori.length) {
+      const m = [];
+      m.push(`🧾 *Cassa · ${dataIt(oggi)}*`);
+      m.push('');
+      if (esito.emesse.length) m.push(`✅ ${esito.emesse.length} ricevute emesse automaticamente`);
+      if (esito.sospese.length) {
+        m.push('');
+        m.push(`⚠️ *${esito.sospese.length} da emettere a mano:*`);
+        for (const s of esito.sospese.slice(0, 12)) {
+          m.push(`· ${s.nome || 'senza nome'} — ${s.motivo}`);
+        }
+        if (esito.sospese.length > 12) m.push(`…e altre ${esito.sospese.length - 12}`);
+      }
+      if (esito.errori.length) {
+        m.push('');
+        m.push(`❌ *${esito.errori.length} con errore:*`);
+        for (const e of esito.errori.slice(0, 5)) m.push(`· ${e.nome || e.id} — ${e.errore}`);
+      }
+      await avvisaTelegram(env, m.join('\n'));
+    }
   }
 
   return esito;
@@ -1605,6 +1650,7 @@ export default {
           API_TOKEN: !!env.API_TOKEN,
           LS_binding: !!env.LS,
           KV: !!env.FISCO_KV,
+          TELEGRAM: !!env.TELEGRAM_BOT_TOKEN,
         },
       });
     }
