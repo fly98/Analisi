@@ -499,7 +499,7 @@ $('#cal-ok').onclick  = ()=>{
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = gg(dal)+' – '+gg(al)+' · v30';
+  $('#periodo').textContent = gg(dal)+' – '+gg(al)+' · v31';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -1153,18 +1153,21 @@ function renderDuplicati(){
 
   const conta = l => DUP.gruppi.filter(g=>g.livello===l).length;
   $('#filtro-dup').innerHTML = [
-    ['certo','Quasi certi'], ['probabile','Probabili'], ['dubbio','Dubbi'], ['tutti','Tutti']
+    ['certo','Quasi certi'], ['probabile','Probabili'], ['dubbio','Dubbi'],
+    ['tutti','Sospetti'], ['legittimi','Già abbinati']
   ].map(([k,l])=>{
-    const n = k==='tutti' ? DUP.gruppi.length : conta(k);
+    const n = k==='tutti' ? DUP.gruppi.length
+            : k==='legittimi' ? (DUP.legittimi||[]).length : conta(k);
     return n ? `<button class="${LIV===k?'on':''}" data-l="${k}">${l}<b>${n}</b></button>` : '';
   }).join('');
   document.querySelectorAll('#filtro-dup button').forEach(b=>b.onclick=()=>{
     LIV=b.dataset.l; renderDuplicati();
   });
 
-  const g = DUP.gruppi.filter(x=> LIV==='tutti' || x.livello===LIV);
+  const g = LIV==='legittimi' ? (DUP.legittimi||[])
+          : DUP.gruppi.filter(x=> LIV==='tutti' || x.livello===LIV);
   $('#lista-dup').innerHTML = g.length ? g.map(cardDup).join('')
-    : '<div class="empty">Nessun duplicato in questa categoria.</div>';
+    : '<div class="empty">Nessun gruppo in questa categoria.</div>';
 }
 
 function durata(s){
