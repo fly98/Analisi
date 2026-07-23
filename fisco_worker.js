@@ -374,9 +374,14 @@ function riconcilia(prenotazioni, ricevute) {
       for (const p of prens)
         for (const r of cand) {
           const d = distanza(r, p);
-          if (d <= soglia) coppie.push({ p, r, d });
+          if (d > soglia) continue;
+          // criterio secondario: quanto dista l'emissione dal giorno di arrivo
+          const dArrivo = Math.abs(
+            (new Date(r.giorno) - new Date(p.checkin)) / 86400000
+          );
+          coppie.push({ p, r, d, dArrivo });
         }
-      coppie.sort((a, b) => a.d - b.d);
+      coppie.sort((a, b) => a.d - b.d || a.dArrivo - b.dArrivo);
 
       for (const { p, r, d } of coppie) {
         if (p.ricevuta || usate.has(r.id)) continue;
@@ -399,7 +404,12 @@ function riconcilia(prenotazioni, ricevute) {
         }
       }
       if (!trovati.length) continue;
-      trovati.sort((a, b) => a.d - b.d);
+      trovati.sort(
+        (a, b) =>
+          a.d - b.d ||
+          Math.abs(new Date(a.r.giorno) - new Date(p.checkin)) -
+            Math.abs(new Date(b.r.giorno) - new Date(p.checkin))
+      );
       const t = trovati[0];
       assegna(p, t.r, `tassa-${t.persone}-persone${t.d ? `(${t.d}gg)` : ''}`);
     }
@@ -851,8 +861,12 @@ async function proposte(env, dal, al, opzioni = {}) {
       if (scarto > maxScarto) continue;
 
       // punteggio: 100 = perfetto. Pesa piu' l'importo della data.
+      const dArrivo = Math.abs(
+        (new Date(r.giorno) - new Date(p.checkin)) / 86400000
+      );
       const punti = Math.round(
-        100 - scarto * 200 - Math.min(Math.abs(dGiorni), maxGiorni) * 0.8
+        100 - scarto * 200 - Math.min(Math.abs(dGiorni), maxGiorni) * 0.8 -
+          Math.min(dArrivo, 20) * 0.1
       );
 
       cand.push({
@@ -970,7 +984,13 @@ async function orfaneConCandidati(env, dal, al, opzioni = {}) {
       const scarto = Math.abs(r.centesimi - base) / Math.max(base, 1);
       if (scarto > maxScarto) continue;
 
-      const punti = Math.round(100 - scarto * 200 - Math.min(Math.abs(d), maxGiorni) * 0.9);
+      const dArrivo = Math.abs(
+        (new Date(r.giorno) - new Date(p.checkin)) / 86400000
+      );
+      const punti = Math.round(
+        100 - scarto * 200 - Math.min(Math.abs(d), maxGiorni) * 0.9 -
+          Math.min(dArrivo, 20) * 0.1
+      );
 
       cand.push({
         id: p.id,
