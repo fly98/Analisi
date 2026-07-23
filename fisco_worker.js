@@ -1026,6 +1026,18 @@ async function orfaneConCandidati(env, dal, al, opzioni = {}) {
         Math.round(orfane.reduce((s, r) => s + r.centesimi, 0)) / 100,
     },
     orfane: lista,
+    // elenco completo, per la ricerca manuale quando gli importi non tornano
+    scoperte: scoperte.map((p) => ({
+      id: p.id,
+      nome: p.nome,
+      canale: p.canale,
+      checkin: p.checkin,
+      checkout: p.checkout,
+      notti: p.notti,
+      camere: p.camere,
+      totale: p.totale,
+      atteso: p.atteso,
+    })),
   };
 }
 
