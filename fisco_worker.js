@@ -429,9 +429,18 @@ function riconcilia(prenotazioni, ricevute) {
       );
       if (vicine.length < 2) continue;
 
-      // importi attesi accettabili (con le varianti di tassa)
-      const bersagli = new Set([p.attesoCents, p.attesoBimbiCents, p.attesoAltCents]);
-      for (const v of p.variantiCents || []) bersagli.add(v.cents);
+      // Solo i bersagli "naturali": con piu' ricevute le combinazioni casuali
+      // sono frequentissime, quindi non uso tutte le varianti di tassa.
+      const camereN = Math.max(1, (p.camere || []).length);
+      const nottiTax = Math.min(p.notti, CITY_TAX_MAX_NOTTI);
+      const tassaPerCamera =
+        (p.adulti + (p.bambini || 0)) * camereN * nottiTax * CITY_TAX_NOTTE * 100;
+      const bersagli = new Set([
+        p.attesoCents, // tassa sugli adulti
+        p.attesoBimbiCents, // tassa su adulti e bambini
+        p.attesoAltCents, // nessuno scorporo
+        Math.round(p.totale * 100) - tassaPerCamera, // tassa per ogni camera
+      ]);
 
       // tolleranza di pochi centesimi: con piu' ricevute le combinazioni
       // casuali sono frequenti, quindi accetto solo somme quasi esatte
