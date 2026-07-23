@@ -499,7 +499,7 @@ $('#cal-ok').onclick  = ()=>{
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = gg(dal)+' – '+gg(al)+' · v29';
+  $('#periodo').textContent = gg(dal)+' – '+gg(al)+' · v30';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -1148,6 +1148,8 @@ function renderDuplicati(){
     <div class="kpi"><b>${r.probabili}</b><span>Probabili</span></div>
     <div class="kpi"><b>${r.dubbi}</b><span>Dubbi</span></div>
     <div class="kpi warn"><b>${eur(r.eccedenzaTotale)}</b><span>Eccedenza</span></div>`;
+  if(r.legittimi) $('#kpis-dup').insertAdjacentHTML('afterend',
+    `<div class="conta">${r.legittimi} grupp${r.legittimi===1?'o':'i'} con stesso importo esclus${r.legittimi===1?'o':'i'}: ogni ricevuta ha la sua prenotazione</div>`);
 
   const conta = l => DUP.gruppi.filter(g=>g.livello===l).length;
   $('#filtro-dup').innerHTML = [
