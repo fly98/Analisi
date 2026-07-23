@@ -1384,9 +1384,207 @@ async function duplicati(env, dal, al, opzioni = {}) {
 }
 
 /* ---------------------------------------------------------------- */
+/* Emissione automatica giornaliera                                   */
+/* ---------------------------------------------------------------- */
+
+// Clienti ricorrenti con trattamento fisso, riconosciuti dall'indirizzo
+// email o dal nome quando l'email manca.
+const REGOLE_CLIENTI = [
+  { email: 'associativo@fic.it', stato: 'fattura', nota: 'Federazione Italiana Cuochi: segue fattura' },
+  { email: 'mzuccarelli@cafitalia.net', stato: 'fattura', nota: 'CAF Italia: segue fattura' },
+  { email: 'cladio@gimail.com', stato: 'esclusa', nota: 'Ballatore: nessuna ricevuta' },
+  { nome: 'felici', stato: 'esclusa', nota: 'Felici: nessuna ricevuta' },
+];
+
+function regolaCliente(p) {
+  const em = String(p.email || '').toLowerCase().trim();
+  const nm = String(p.nome || '').toLowerCase();
+  for (const r of REGOLE_CLIENTI) {
+    if (r.email && em === r.email) return r;
+    if (r.nome && nm.includes(r.nome)) return r;
+  }
+  return null;
+}
+
+// Canali dove il pagamento è garantito dal portale
+const CANALI_GARANTITI = ['booking.com', 'airbnb', 'expedia', 'expedia affiliate network', 'hotels.com'];
+
+// Somma i pagamenti registrati per una prenotazione leggendo le notifiche
+// di Amenitiz nella casella di posta (acconti e saldi possono essere piu' d'uno)
+async function pagamentiRegistrati(env, bookingId) {
+  if (!env.LS) return null;
+  const q = `subject:"Nuovo pagamento AmenitizPay" "${bookingId}"`;
+  const target = `${LS_BASE}/?action=gmailCerca&q=${encodeURIComponent(q)}&max=20`;
+  try {
+    const res = await env.LS.fetch(new Request(target, { headers: { 'User-Agent': 'fisco-worker' } }));
+    if (!res.ok) return null;
+    const d = await res.json();
+    if (!d.ok) return null;
+
+    let totale = 0;
+    const voci = [];
+    for (const m of d.messaggi || []) {
+      // la notifica riguarda questa prenotazione?
+      const rif = m.testo.match(/ID pagamento:\s*(\d+)/);
+      if (!rif || rif[1] !== String(bookingId)) continue;
+      const imp = m.testo.match(/Importo pagamento:\s*([\d.,]+)/);
+      if (!imp) continue;
+      const val = parseFloat(imp[1].replace(/\./g, '').replace(',', '.'));
+      if (!isFinite(val)) continue;
+      totale += val;
+      voci.push({ importo: val, data: m.data });
+    }
+    return { totale: Math.round(totale * 100) / 100, voci };
+  } catch {
+    return null;
+  }
+}
+
+// Verifica che non esista gia' un documento per quella prenotazione:
+// controlla sia le decisioni registrate sia le ricevute del cassetto fiscale
+function haGiaDocumento(riga) {
+  return riga.stato !== 'da_emettere' && riga.stato !== 'futura';
+}
+
+async function emissioneAutomatica(env, giornoRif, soloProva = false) {
+  const oggi = giornoRif || giorno(new Date());
+  // guardo i checkout degli ultimi giorni, per recuperare eventuali salti
+  const dal = addGiorni(oggi, -3);
+  const dati = await elenco(env, addGiorni(dal, -20), oggi, MARGINE_RICEVUTE);
+
+  const daTrattare = dati.righe.filter(
+    (p) => p.checkout >= dal && p.checkout <= oggi && !haGiaDocumento(p)
+  );
+
+  const esito = { data: oggi, esaminate: daTrattare.length, emesse: [], segnate: [], sospese: [], errori: [] };
+
+  for (const p of daTrattare) {
+    try {
+      // 1. clienti con trattamento fisso
+      const reg = regolaCliente(p);
+      if (reg) {
+        if (!soloProva) await scriviStato(env, p.id, { stato: reg.stato, nota: reg.nota + ' (automatico)' });
+        esito.segnate.push({ id: p.id, nome: p.nome, stato: reg.stato, motivo: reg.nota });
+        continue;
+      }
+
+      const canale = String(p.canale || '').toLowerCase();
+      let procedi = false;
+      let motivo = '';
+
+      // 2. portali: pagamento garantito
+      if (CANALI_GARANTITI.includes(canale)) {
+        procedi = true;
+        motivo = 'canale con pagamento garantito';
+      } else {
+        // 3. dirette: emetto solo se risulta saldata
+        const pag = await pagamentiRegistrati(env, p.id);
+        if (pag && pag.totale > 0) {
+          const scarto = Math.abs(pag.totale - p.totale);
+          if (scarto <= 0.5) {
+            procedi = true;
+            motivo = `saldata (${pag.voci.length} pagament${pag.voci.length === 1 ? 'o' : 'i'} per ${pag.totale.toFixed(2)} €)`;
+          } else {
+            esito.sospese.push({
+              id: p.id, nome: p.nome, canale: p.canale,
+              motivo: `pagamento parziale: ${pag.totale.toFixed(2)} su ${p.totale.toFixed(2)} €`,
+            });
+            continue;
+          }
+        } else {
+          esito.sospese.push({
+            id: p.id, nome: p.nome, canale: p.canale,
+            motivo: 'nessun pagamento registrato nelle notifiche',
+          });
+          continue;
+        }
+      }
+
+      if (!procedi) continue;
+
+      if (soloProva) {
+        esito.emesse.push({ id: p.id, nome: p.nome, importo: p.atteso, motivo, prova: true });
+        continue;
+      }
+
+      const res = await emettiDocumento(env, p, { pagamento: 'PE' });
+      await scriviStato(env, p.id, {
+        stato: 'emessa',
+        idtrx: res.idtrx,
+        numero: res.progressivo,
+        data: oggi,
+        importo: res.totale,
+        nota: `emessa automaticamente: ${motivo}`,
+      });
+
+      // invio al cliente se ho un recapito
+      let inviata = false;
+      if (p.email) {
+        try {
+          const token = await creaLink(env, res.idtrx, p.nome);
+          const link = `https://fisco-worker.f-castiglioni.workers.dev/r/${token}`;
+          const msg = testoInvio(p, link, p.lingua);
+          await inviaEmail(env, p.email, msg.oggetto, msg.testo);
+          inviata = true;
+        } catch {
+          /* la ricevuta resta emessa anche se l'invio fallisce */
+        }
+      }
+
+      esito.emesse.push({
+        id: p.id, nome: p.nome, numero: res.progressivo,
+        importo: res.totale, motivo, emailInviata: inviata,
+      });
+    } catch (err) {
+      esito.errori.push({ id: p.id, nome: p.nome, errore: err.message });
+    }
+  }
+
+  // riepilogo giornaliero a me stesso
+  if (!soloProva && (esito.emesse.length || esito.sospese.length || esito.errori.length)) {
+    const righe = [];
+    righe.push(`Emissione automatica del ${dataIt(oggi)}`);
+    righe.push('');
+    if (esito.emesse.length) {
+      righe.push(`RICEVUTE EMESSE: ${esito.emesse.length}`);
+      for (const e of esito.emesse) {
+        righe.push(`· ${e.numero} — ${e.nome || 'senza nome'} — ${e.importo.toFixed(2)} €${e.emailInviata ? ' (inviata al cliente)' : ''}`);
+      }
+      righe.push('');
+    }
+    if (esito.segnate.length) {
+      righe.push(`CHIUSE SENZA RICEVUTA: ${esito.segnate.length}`);
+      for (const s of esito.segnate) righe.push(`· ${s.nome || 'senza nome'} — ${s.motivo}`);
+      righe.push('');
+    }
+    if (esito.sospese.length) {
+      righe.push(`IN ATTESA, DA VALUTARE: ${esito.sospese.length}`);
+      for (const s of esito.sospese) righe.push(`· ${s.nome || 'senza nome'} (${s.canale}) — ${s.motivo}`);
+      righe.push('');
+    }
+    if (esito.errori.length) {
+      righe.push(`ERRORI: ${esito.errori.length}`);
+      for (const e of esito.errori) righe.push(`· ${e.nome || e.id} — ${e.errore}`);
+    }
+    try {
+      await inviaEmail(env, 'info@interno1.it', `Cassa · ${esito.emesse.length} ricevute emesse`, righe.join('\n'));
+    } catch {
+      /* il riepilogo è secondario rispetto all'emissione */
+    }
+  }
+
+  return esito;
+}
+
+/* ---------------------------------------------------------------- */
 /* Handler                                                           */
 /* ---------------------------------------------------------------- */
 export default {
+  // ogni mattina: emette le ricevute dei soggiorni conclusi
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil(emissioneAutomatica(env));
+  },
+
   async fetch(request, env) {
     const url = new URL(request.url);
     if (request.method === 'OPTIONS') return json({ ok: true });
@@ -1569,6 +1767,12 @@ export default {
         return json({ ok: true, periodo: { dal, al }, ...(await proposte(env, dal, al, opz)) });
       }
 
+      if (url.pathname === '/automatico') {
+        const prova = url.searchParams.get('prova') === '1';
+        const g = url.searchParams.get('giorno') || null;
+        return json({ ok: true, ...(await emissioneAutomatica(env, g, prova)) });
+      }
+
       if (url.pathname === '/ricostruisci' && request.method === 'POST') {
         return json({ ok: true, ...(await ricostruisciIndice(env)) });
       }
@@ -1618,7 +1822,7 @@ export default {
     return json(
       {
         error: 'endpoint sconosciuto',
-        disponibili: ['/health', '/infouser', '/dco', '/prenotazioni', '/riconcilia', '/elenco', '/stato', '/emetti', '/annulla', '/condividi', '/invia', '/rinnova', '/proposte', '/orfane', '/duplicati', '/r/{token}'],
+        disponibili: ['/health', '/infouser', '/dco', '/prenotazioni', '/riconcilia', '/elenco', '/stato', '/emetti', '/annulla', '/condividi', '/invia', '/rinnova', '/proposte', '/orfane', '/duplicati', '/automatico', '/r/{token}'],
       },
       404
     );
