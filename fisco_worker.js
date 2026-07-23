@@ -258,10 +258,21 @@ async function fetchPrenotazioni(env, dal, al) {
         cityTax: cityTax / 100,
         attesoCents: totale - cityTax,
         atteso: (totale - cityTax) / 100,
-        // varianti usate solo dal motore di abbinamento
+        // varianti usate solo dal motore di abbinamento:
+        // la tassa puo' essere stata calcolata su un numero di persone
+        // diverso da quello registrato in Amenitiz
         attesoBimbiCents: totale - cityTaxTutti,
         attesoAltCents: totale,
         cityTaxTutti: cityTaxTutti / 100,
+        variantiCents: (() => {
+          const out = [];
+          const maxPersone = adulti + (b.children || 0) + 2;
+          for (let k = 0; k <= maxPersone; k++) {
+            const v = totale - k * nottiTax * CITY_TAX_NOTTE * 100;
+            if (v > 0) out.push({ persone: k, cents: v });
+          }
+          return out;
+        })(),
       });
     }
   }
@@ -336,6 +347,29 @@ function riconcilia(prenotazioni, ricevute) {
   passata('attesoCents', 'senza-tassa');
   passata('attesoBimbiCents', 'tassa-con-bambini');
   passata('attesoAltCents', 'con-tassa');
+
+  // ultima passata: la tassa e' stata calcolata su un numero di persone
+  // diverso da quello registrato. Accetto solo se la ricevuta e' vicina
+  // all'arrivo e l'importo e' univoco, per non creare abbinamenti casuali.
+  for (const p of daAbbinare) {
+    if (p.ricevuta || !p.variantiCents) continue;
+    const trovati = [];
+    for (const v of p.variantiCents) {
+      for (const r of perImporto.get(v.cents) || []) {
+        if (usate.has(r.id)) continue;
+        const d = distanza(r, p);
+        if (d <= 3) trovati.push({ r, d, persone: v.persone });
+      }
+    }
+    if (trovati.length === 1) {
+      const t = trovati[0];
+      assegna(p, t.r, `tassa-${t.persone}-persone`);
+    } else if (trovati.length > 1) {
+      trovati.sort((a, b) => a.d - b.d);
+      const t = trovati[0];
+      assegna(p, t.r, `tassa-${t.persone}-persone(${t.d}gg)`);
+    }
+  }
 
   const senzaRicevuta = daAbbinare.filter((p) => !p.ricevuta);
   const ricevuteOrfane = disponibili.filter((r) => !usate.has(r.id));
@@ -756,11 +790,14 @@ async function proposte(env, dal, al, opzioni = {}) {
       const dGiorni = giorniTra(r.giorno, p.checkin);
       if (dGiorni < -7 || dGiorni > maxGiorni) continue; // ricevuta troppo lontana
 
-      // confronto con la variante piu' vicina (tassa su adulti o su tutti)
-      const basi = [p.attesoCents, p.attesoBimbiCents];
-      let base = basi[0];
-      for (const b of basi) {
-        if (Math.abs(r.centesimi - b) < Math.abs(r.centesimi - base)) base = b;
+      // confronto con la variante di tassa piu' vicina
+      let base = p.attesoCents;
+      let personeTassa = null;
+      for (const v of p.variantiCents || []) {
+        if (Math.abs(r.centesimi - v.cents) < Math.abs(r.centesimi - base)) {
+          base = v.cents;
+          personeTassa = v.persone;
+        }
       }
       const dImporto = (r.centesimi - base) / 100;
       const scarto = Math.abs(r.centesimi - base) / Math.max(base, 1);
@@ -783,9 +820,10 @@ async function proposte(env, dal, al, opzioni = {}) {
         punti,
         // se lo scarto coincide con la tassa di soggiorno e' un indizio forte
         base: base / 100,
+        personeTassa,
         indizio:
-          Math.abs(dImporto) < 0.02 && base === p.attesoBimbiCents
-            ? 'tassa anche sui bambini'
+          Math.abs(dImporto) < 0.02 && personeTassa != null && personeTassa !== p.adulti
+            ? `tassa per ${personeTassa} person${personeTassa === 1 ? 'a' : 'e'}`
             : Math.abs(dImporto) < 0.02
             ? 'importo esatto'
             : Math.abs(r.centesimi - p.attesoAltCents) < 2
