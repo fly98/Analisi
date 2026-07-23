@@ -514,7 +514,7 @@ $('#cal-ok').onclick  = ()=>{
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v40';
+  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v41';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -600,10 +600,7 @@ function render(){
     ? righe.map(riga).join('')
     : `<div class="empty">${attivo ? 'Nessun risultato con questi filtri.' : 'Nessuna prenotazione nel periodo.'}</div>`;
 
-  $('#orfane').innerHTML = DATI.orfane.length ? `<table>
-    <tr><th>Numero</th><th>Data</th><th style="text-align:right">Importo</th></tr>
-    ${DATI.orfane.map(o=>`<tr><td><code>${o.numero}</code></td><td>${o.data}</td><td class="num">${eur(o.importo)}</td></tr>`).join('')}
-    </table>` : '<div class="empty">Nessuna ricevuta orfana.</div>';
+
 }
 
 const CAMERE = {
