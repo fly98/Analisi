@@ -377,7 +377,8 @@ function msgCampaldino(nome,iso,c,lng,adultiPrima=0,camereExtra=[],orario=''){
     etichMaiusc = parti.length>2 ? parti.slice(0,-1).join(", ")+cong+parti.slice(-1) : parti.join(cong);
     descr="";
   } else {
-    etichMaiusc=etichConOspiti.toUpperCase();
+    // camera singola: nessun numero persone
+    etichMaiusc=etich.toUpperCase();
     descr=descrSingola;
   }
 // frase orario: se già impostato -> conferma; altrimenti -> domanda
@@ -478,7 +479,9 @@ function msgLorenzo(nome,iso,num,lng,adultiPrima=0,camereExtra=[],orario=''){
     const cong={it:" e ",en:" and ",es:" y ",fr:" et ",de:" und ",pt:" e ",zh:"、"}[lng]||" and ";
     numMaiusc = parti.length>2 ? parti.slice(0,-1).join(", ")+cong+parti.slice(-1) : parti.join(cong);
   } else {
-    numMaiusc=_lblLor(num,adultiPrima);
+    // camera singola: nessun numero persone
+    const w=(_paroleCam[lng]||"ROOM");
+    numMaiusc = _e ? `${String(num).toUpperCase()} 号房间` : `${w} ${String(num).toUpperCase()}`;
   }
 // frase orario: se già impostato -> conferma; altrimenti -> domanda
   const FRASI_ORARIO={
