@@ -1266,6 +1266,7 @@ async function duplicati(env, dal, al, opzioni = {}) {
         Math.round(perLivello('certo').reduce((s, g) => s + g.eccedenza, 0) * 100) / 100,
     },
     gruppi: sospetti,
+    legittimi: gruppi.filter((g) => g.legittimo),
   };
 }
 
