@@ -284,6 +284,10 @@ async function fetchPrenotazioni(env, dal, al) {
 /* ---------------------------------------------------------------- */
 /* Motore di match                                                   */
 /* ---------------------------------------------------------------- */
+// una ricevuta emessa a mesi di distanza dall'arrivo non appartiene
+// a quella prenotazione: oltre questa soglia l'abbinamento e' rifiutato
+const MAX_GIORNI_ABBINAMENTO = 45;
+
 function riconcilia(prenotazioni, ricevute) {
   const disponibili = ricevute.filter((r) => r.tipo === 'V').map((r) => ({ ...r }));
   const perImporto = new Map();
@@ -327,14 +331,20 @@ function riconcilia(prenotazioni, ricevute) {
 
       // caso semplice: una prenotazione, una sola ricevuta con quell'importo
       if (prens.length === 1 && cand.length === 1) {
-        assegna(prens[0], cand[0], `${etichetta}-univoco`);
+        const d = distanza(cand[0], prens[0]);
+        if (d <= MAX_GIORNI_ABBINAMENTO) {
+          assegna(prens[0], cand[0], `${etichetta}-univoco`);
+        }
         continue;
       }
 
-      // caso ambiguo: assegno per prossimita' temporale al checkout
+      // caso ambiguo: assegno per prossimita' temporale all'arrivo
       const coppie = [];
       for (const p of prens)
-        for (const r of cand) coppie.push({ p, r, d: distanza(r, p) });
+        for (const r of cand) {
+          const d = distanza(r, p);
+          if (d <= MAX_GIORNI_ABBINAMENTO) coppie.push({ p, r, d });
+        }
       coppie.sort((a, b) => a.d - b.d);
 
       for (const { p, r, d } of coppie) {
