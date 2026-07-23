@@ -491,7 +491,7 @@ $('#cal-ok').onclick  = ()=>{
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = gg(dal)+' – '+gg(al)+' · v27';
+  $('#periodo').textContent = gg(dal)+' – '+gg(al)+' · v28';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -665,6 +665,27 @@ function dialogo(titolo, testo, corpo, okLabel){
   $('#dlg-ok').textContent = okLabel || 'Conferma';
   const d = $('#dlg');
   d.showModal();
+  const q = document.getElementById('cp-q');
+  if(q){
+    const disegna = ()=>{
+      const t = q.value.trim().toLowerCase();
+      const lista = (ORF.scoperte||[]).filter(p=>{
+        if(!t) return false;
+        const campi = [p.nome, p.canale, (p.camere||[]).join(' '), p.checkin, p.checkout,
+                       gg(p.checkin), gg(p.checkout), String(p.atteso.toFixed(2)).replace('.',',')
+                      ].join(' ').toLowerCase();
+        return t.split(/\s+/).every(x=>campi.includes(x));
+      }).slice(0,30);
+      document.getElementById('cp-lista').innerHTML = lista.length ? lista.map(p=>`
+        <div onclick="scegliPren('${p.id}')" id="cp-${p.id}"
+             style="padding:8px;border:1px solid var(--line);border-radius:8px;margin-bottom:5px;cursor:pointer;font-size:13px">
+          <b>${p.nome || 'senza nome'}</b> · ${eur(p.atteso)}<br>
+          <span style="color:var(--muted)">${gg(p.checkin)} → ${gg(p.checkout)} · ${(p.camere||[]).join('+')} · ${p.canale}</span>
+        </div>`).join('')
+        : `<div style="color:var(--muted);font-size:13px;padding:6px">${t?'Nessun risultato':'Scrivi per cercare'}</div>`;
+    };
+    q.oninput = disegna; disegna(); setTimeout(()=>q.focus(), 100);
+  }
   if(document.getElementById('f-tot')){
     const i = document.getElementById('f-imp');
     if(i) i.oninput = window.aggiornaTot;
@@ -672,6 +693,13 @@ function dialogo(titolo, testo, corpo, okLabel){
   }
   return new Promise(res => d.addEventListener('close', ()=>res(d.returnValue==='si'), {once:true}));
 }
+
+window.scegliPren = function(id){
+  document.querySelectorAll('[id^=cp-]').forEach(e=>{ if(e.id!=='cp-q'&&e.id!=='cp-lista'&&e.id!=='cp-sel') e.style.borderColor='var(--line)'; });
+  const el = document.getElementById('cp-'+id);
+  if(el) el.style.borderColor = 'var(--ok)';
+  document.getElementById('cp-sel').value = id;
+};
 
 window.aggiornaTot = function(){
   const imp = parseFloat($('#f-imp').value)||0;
@@ -898,7 +926,11 @@ function cardOrfana(o){
         </div>
         <div class="eur">${eur(r.importo)}</div>
       </div>
-      <div class="meta" style="margin-top:8px">Nessuna prenotazione compatibile nel periodo.</div>
+      <div class="meta" style="margin-top:8px">Nessuna prenotazione con importo compatibile.</div>
+      <div class="azioni">
+        <button onclick="cercaPrenotazione('${r.idtrx}')">Cerca prenotazione</button>
+        <button onclick="saltaOrfana('${r.idtrx}')">Ignora</button>
+      </div>
     </div>`;
   }
   const opts = o.candidati.map((c,i)=>{
@@ -920,6 +952,7 @@ function cardOrfana(o){
     <select id="so-${r.idtrx}">${opts}</select>
     <div class="azioni">
       <button class="ok" onclick="abbinaDaRicevuta('${r.idtrx}')">Abbina</button>
+      <button onclick="cercaPrenotazione('${r.idtrx}')">Cerca altra</button>
       <button onclick="saltaOrfana('${r.idtrx}')">Nessuna</button>
     </div>
   </div>`;
@@ -939,6 +972,35 @@ window.abbinaDaRicevuta = async (idtrx) => {
     // la prenotazione scelta non è più disponibile per le altre ricevute
     for(const x of ORF.orfane) x.candidati = x.candidati.filter(k=>k.id!==c.id);
     toast(`${o.ricevuta.numero} → ${c.nome || 'senza nome'}`);
+    DATI = null; PROP = null;
+  }catch(e){ toast('Non riesco a salvare: '+e.message, true); }
+};
+
+// ricerca libera fra tutte le prenotazioni scoperte
+window.cercaPrenotazione = async (idtrx) => {
+  const o = ORF.orfane.find(x=>x.ricevuta.idtrx===idtrx);
+  const r = o.ricevuta;
+  const ok = await dialogo(`Abbina ${r.numero}`,
+    `${eur(r.importo)} · emessa il ${r.data.slice(0,10)}`,
+    `<label>Cerca per nome, data o importo</label>
+     <input type="search" id="cp-q" placeholder="es. vanreekum oppure 02/06" autocomplete="off">
+     <div id="cp-lista" style="max-height:230px;overflow:auto;margin-top:10px"></div>
+     <input type="hidden" id="cp-sel">`, 'Abbina');
+  if(!ok) return;
+  const id = $('#cp-sel').value;
+  if(!id){ toast('Nessuna prenotazione selezionata', true); return; }
+  const p = ORF.scoperte.find(x=>x.id===id);
+  const delta = r.importo - p.atteso;
+  try{
+    await api('/stato', {method:'POST', body: JSON.stringify({
+      id, stato:'emessa', idtrx, numero:r.numero, data:r.giorno, importo:r.importo,
+      nota:`abbinata manualmente (${delta>=0?'+':''}${delta.toFixed(2)} € rispetto all'atteso)` })});
+    const el = document.getElementById('or-'+idtrx);
+    if(el) el.remove();
+    ORF.orfane = ORF.orfane.filter(x=>x.ricevuta.idtrx!==idtrx);
+    ORF.scoperte = ORF.scoperte.filter(x=>x.id!==id);
+    for(const x of ORF.orfane) x.candidati = x.candidati.filter(k=>k.id!==id);
+    toast(`${r.numero} → ${p.nome || 'senza nome'}`);
     DATI = null; PROP = null;
   }catch(e){ toast('Non riesco a salvare: '+e.message, true); }
 };
