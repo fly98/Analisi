@@ -403,7 +403,7 @@ $('#cal-ok').onclick  = ()=>{
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = gg(dal)+' – '+gg(al)+' · v8';
+  $('#periodo').textContent = gg(dal)+' – '+gg(al)+' · v9';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -450,7 +450,7 @@ const CAMERE = {
   'Verde':{l:'V',c:'#5c6b52'},  'Azzurra':{l:'A',c:'#5b8fb0'},
   'Uno':{l:'1'}, 'Due':{l:'2'}, 'Tre':{l:'3'}, 'Quattro':{l:'4'}, 'Cinque':{l:'5'}
 };
-const dataIt = iso => iso ? iso.slice(8,10)+'/'+iso.slice(5,7)+'/'+iso.slice(0,4) : '';
+const dataIt = iso => iso ? iso.slice(8,10)+'/'+iso.slice(5,7)+'/'+iso.slice(2,4) : '';
 function descrizioneStandard(p){
   const n = (p.nome||'').trim();
   return `Soggiorno dal ${dataIt(p.checkin)} al ${dataIt(p.checkout)}` + (n ? ` del Sig./Sig.ra ${n}` : '');
