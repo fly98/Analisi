@@ -278,6 +278,7 @@ dialog::backdrop{background:rgba(10,25,45,.45)}
         <button type="button" id="q-x" title="Pulisci">×</button>
       </div>
       <div class="stati" id="stati"></div>
+      <div class="stati" id="canali"></div>
     </div>
     <div class="conta" id="conta"></div>
     <div id="lista"><div class="loading">Caricamento…</div></div>
@@ -472,7 +473,7 @@ $('#cal-ok').onclick  = ()=>{
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = gg(dal)+' – '+gg(al)+' · v22';
+  $('#periodo').textContent = gg(dal)+' – '+gg(al)+' · v23';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -488,7 +489,7 @@ async function carica(){
 }
 
 /* ---------- render ---------- */
-let FILTRO = 'tutte', QUERY = '';
+let FILTRO = 'tutte', QUERY = '', CANALE = 'tutti';
 
 const STATI = [
   ['tutte','Tutte'], ['da_emettere','Da emettere'], ['emessa','Emesse'],
@@ -500,6 +501,7 @@ function righeFiltrate(){
   const q = QUERY.trim().toLowerCase();
   return DATI.righe.filter(p => {
     if(FILTRO !== 'tutte' && p.stato !== FILTRO) return false;
+    if(CANALE !== 'tutti' && (p.canale || '—') !== CANALE) return false;
     if(!q) return true;
     const campi = [
       p.nome, p.canale, (p.camere||[]).join(' '),
@@ -534,8 +536,21 @@ function render(){
     FILTRO = b.dataset.s; render();
   });
 
+  // conteggi per canale, calcolati sullo stato attualmente selezionato
+  const baseCan = FILTRO==='tutte' ? DATI.righe : DATI.righe.filter(p=>p.stato===FILTRO);
+  const canali = {};
+  for(const p of baseCan) { const c = p.canale || '—'; canali[c] = (canali[c]||0)+1; }
+  const ordinati = Object.entries(canali).sort((a,b)=>b[1]-a[1]);
+  $('#canali').innerHTML = ordinati.length > 1
+    ? `<button class="${CANALE==='tutti'?'on':''}" data-c="tutti">Tutti i canali</button>` +
+      ordinati.map(([c,n])=>`<button class="${CANALE===c?'on':''}" data-c="${c}">${c}<b>${n}</b></button>`).join('')
+    : '';
+  document.querySelectorAll('#canali button').forEach(b => b.onclick = ()=>{
+    CANALE = b.dataset.c; render();
+  });
+
   const righe = righeFiltrate();
-  const attivo = FILTRO!=='tutte' || QUERY.trim();
+  const attivo = FILTRO!=='tutte' || QUERY.trim() || CANALE!=='tutti';
   $('#conta').textContent = attivo
     ? `${righe.length} di ${DATI.righe.length} prenotazioni`
     : '';
