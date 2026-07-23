@@ -415,12 +415,74 @@ function riconcilia(prenotazioni, ricevute) {
     }
   }
 
+  // una prenotazione puo' essere coperta da piu' ricevute:
+  // tipico delle prenotazioni multi-camera, dove viene emesso
+  // un documento per ogni camera
+  function passataSomme(soglia) {
+    for (const p of daAbbinare) {
+      if (p.ricevuta) continue;
+
+      const vicine = disponibili.filter(
+        (r) => !usate.has(r.id) && distanza(r, p) <= soglia
+      );
+      if (vicine.length < 2) continue;
+
+      // importi attesi accettabili (con le varianti di tassa)
+      const bersagli = new Set([p.attesoCents, p.attesoBimbiCents, p.attesoAltCents]);
+      for (const v of p.variantiCents || []) bersagli.add(v.cents);
+
+      const combacia = (somma) => {
+        for (const b of bersagli) if (Math.abs(somma - b) <= 50) return b;
+        return null;
+      };
+
+      let scelta = null;
+
+      // coppie, dando la precedenza a importi uguali fra loro
+      const ordinate = [...vicine].sort(
+        (a, b) => distanza(a, p) - distanza(b, p)
+      );
+      for (let i = 0; i < ordinate.length && !scelta; i++) {
+        for (let j = i + 1; j < ordinate.length && !scelta; j++) {
+          const b = combacia(ordinate[i].centesimi + ordinate[j].centesimi);
+          if (b !== null) scelta = [ordinate[i], ordinate[j]];
+        }
+      }
+      // terne, solo se le coppie non bastano
+      if (!scelta && ordinate.length >= 3) {
+        for (let i = 0; i < ordinate.length && !scelta; i++)
+          for (let j = i + 1; j < ordinate.length && !scelta; j++)
+            for (let k = j + 1; k < ordinate.length && !scelta; k++) {
+              const b = combacia(
+                ordinate[i].centesimi + ordinate[j].centesimi + ordinate[k].centesimi
+              );
+              if (b !== null) scelta = [ordinate[i], ordinate[j], ordinate[k]];
+            }
+      }
+
+      if (scelta) {
+        const [prima, ...altre] = scelta;
+        for (const r of scelta) usate.add(r.id);
+        p.ricevuta = prima;
+        p.ricevuteExtra = altre;
+        p.metodo = `somma-${scelta.length}-ricevute`;
+        abbinamenti.push({
+          prenotazione: p,
+          ricevuta: prima,
+          extra: altre,
+          metodo: p.metodo,
+        });
+      }
+    }
+  }
+
   // ondate progressive: prima le corrispondenze piu' vicine nel tempo
   for (const soglia of ONDATE) {
     passata('attesoCents', 'senza-tassa', soglia);
     passata('attesoBimbiCents', 'tassa-con-bambini', soglia);
     passata('attesoAltCents', 'con-tassa', soglia);
     passataVarianti(soglia);
+    passataSomme(soglia);
   }
 
   const senzaRicevuta = daAbbinare.filter((p) => !p.ricevuta);
@@ -461,6 +523,12 @@ function riconcilia(prenotazioni, ricevute) {
         data: a.ricevuta.dataRaw,
         importo: a.ricevuta.importo,
       },
+      extra: (a.extra || []).map((r) => ({
+        numero: r.numero,
+        id: r.id,
+        data: r.dataRaw,
+        importo: r.importo,
+      })),
     })),
     senzaRicevuta: senzaRicevuta.map((p) => ({
       id: p.id,
@@ -646,6 +714,7 @@ async function elenco(env, dal, al, margine) {
           data: m.ricevuta.data,
           importo: m.ricevuta.importo,
         },
+        ricevuteExtra: m.extra || [],
         nota: '',
       };
     }
