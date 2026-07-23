@@ -403,7 +403,7 @@ $('#cal-ok').onclick  = ()=>{
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = gg(dal)+' – '+gg(al)+' · v13';
+  $('#periodo').textContent = gg(dal)+' – '+gg(al)+' · v14';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -545,11 +545,16 @@ window.aggiornaTot = function(){
 };
 
 window.apriEmissione = apriEmissione;
-async function apriEmissione(id){
+async function apriEmissione(id, sostituisce){
   const p = DATI.righe.find(x=>x.id===id);
   const desc = p.descrizioneDefault || descrizioneStandard(p);
   window._cityTax = p.cityTax || 0;
-  const ok = await dialogo('Emetti ricevuta', `${p.nome} · ${gg(p.checkin)} → ${gg(p.checkout)}`,
+  const num = p.ricevuta && p.ricevuta.numero ? p.ricevuta.numero : '';
+  const ok = await dialogo(
+    sostituisce ? 'Riemetti ricevuta' : 'Emetti ricevuta',
+    sostituisce
+      ? `${p.nome} · la ricevuta ${num} verrà annullata e sostituita`
+      : `${p.nome} · ${gg(p.checkin)} → ${gg(p.checkout)}`,
     `<label>Descrizione sulla ricevuta</label>
      <textarea id="f-desc" rows="2">${desc.replace(/"/g,'&quot;')}</textarea>
      <label>Importo soggiorno (IVA 10%)</label>
@@ -563,12 +568,21 @@ async function apriEmissione(id){
      <select id="f-pag">
        <option value="PE">Elettronico</option>
        <option value="PC">Contanti</option>
-     </select>`, 'Emetti');
+     </select>`, sostituisce ? 'Annulla e riemetti' : 'Emetti');
   if(!ok) return;
   const importo = parseFloat($('#f-imp').value);
   const pagamento = $('#f-pag').value;
   const descrizione = $('#f-desc').value.trim();
   const includiTassa = $('#f-tassa').checked;
+  if(sostituisce){
+    toast('Annullo la ricevuta precedente…');
+    try{
+      await api('/annulla', {method:'POST', body: JSON.stringify({id, idtrx: sostituisce})});
+    }catch(e){
+      toast('Annullo non riuscito, nessuna modifica: '+e.message, true);
+      return;
+    }
+  }
   toast('Emissione in corso…');
   try{
     const r = await api('/emetti', {method:'POST', body: JSON.stringify({
@@ -576,7 +590,12 @@ async function apriEmissione(id){
       dal:$('#dal').value, al:$('#al').value })});
     toast('Ricevuta ' + (r.documento?.progressivo || 'emessa'));
     carica();
-  }catch(e){ toast('Emissione non riuscita: '+e.message, true); }
+  }catch(e){
+    toast(sostituisce
+      ? 'Vecchia ricevuta annullata ma nuova non emessa: '+e.message
+      : 'Emissione non riuscita: '+e.message, true);
+    if(sostituisce) carica();
+  }
 }
 
 window.segna = async (id, stato) => {
@@ -658,26 +677,7 @@ window.inviaWa = async (id, idtrx) => {
   }catch(e){ toast('Non riesco a creare il link: '+e.message, true); }
 };
 
-window.riemetti = async (id, idtrx) => {
-  const p = DATI.righe.find(x=>x.id===id);
-  const num = p.ricevuta && p.ricevuta.numero ? p.ricevuta.numero : 'attuale';
-  if(!await dialogo('Riemetti ricevuta',
-      `La ricevuta ${num} verrà annullata e potrai emetterne una nuova con importo e descrizione aggiornati.`,
-      '', 'Annulla e riemetti')) return;
-  toast('Annullo in corso…');
-  try{
-    await api('/annulla', {method:'POST', body: JSON.stringify({id, idtrx})});
-  }catch(e){
-    toast('Annullo non riuscito: '+e.message, true);
-    return;
-  }
-  // la riga resta in memoria: riapro subito la finestra di emissione
-  p.stato = 'da_emettere';
-  p.ricevuta = null;
-  toast('Ricevuta annullata, compila la nuova');
-  await apriEmissione(id);
-  carica();
-};
+window.riemetti = (id, idtrx) => apriEmissione(id, idtrx);
 
 window.annulla = async (id, idtrx) => {
   if(!await dialogo('Annulla ricevuta',
