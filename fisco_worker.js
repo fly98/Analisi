@@ -64,6 +64,90 @@ function credenziali(env) {
   return raw.includes('\\n') ? raw.replace(/\\n/g, '\n') : raw;
 }
 
+// estrae i codici di errore da qualunque forma di risposta
+function codiciErrore(data) {
+  const cod = [];
+  if (!data || typeof data !== 'object') return cod;
+  if (Array.isArray(data.errori)) {
+    for (const e of data.errori) if (e && e.codice) cod.push(String(e.codice));
+  }
+  if (data.errore && data.errore.codice) cod.push(String(data.errore.codice));
+  if (data.codice) cod.push(String(data.codice));
+  return cod;
+}
+
+// 01 = credenziali rifiutate, 03 = password scaduta
+const ERRORI_CREDENZIALI = ['01', '03', '1', '3'];
+
+async function chiamaDatacash(env, path, payload) {
+  const res = await fetch(DC_BASE + path, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Datacash-Key': env.DATACASH_KEY,
+      Accept: 'application/json',
+    },
+    body: JSON.stringify({ ade_credentials_encrypted: credenziali(env), ...payload }),
+  });
+  const text = await res.text();
+  let data = null;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    /* risposta non JSON */
+  }
+  return { res, text, data };
+}
+
+async function datacash(env, path, payload, riprova = true) {
+  let { res, text, data } = await chiamaDatacash(env, path, payload);
+
+  const credenzialiKo =
+    codiciErrore(data).some((c) => ERRORI_CREDENZIALI.includes(c)) ||
+    /password scadut|autenticazione fallita/i.test(text);
+
+  // password scaduta o credenziali rifiutate: la rinnovo e ritento una volta
+  if (credenzialiKo && riprova && path !== '/resetPassword/') {
+    try {
+      await chiamaDatacash(env, '/resetPassword/', {});
+    } catch {
+      /* se il rinnovo fallisce si prosegue e l'errore originale viene riportato */
+    }
+    ({ res, text, data } = await chiamaDatacash(env, path, payload));
+  }
+
+  if (!data) {
+    throw new Error(`DataCash ${path} HTTP ${res.status}: ${text.slice(0, 200)}`);
+  }
+  if (!res.ok) {
+    const msg =
+      data?.errore?.descrizione ||
+      (data.errori || []).map((e) => `${e.codice || ''} ${e.descrizione || ''}`.trim()).join('; ') ||
+      data.message ||
+      JSON.stringify(data);
+    throw new Error(`DataCash ${path} HTTP ${res.status}: ${String(msg).slice(0, 200)}`);
+  }
+  return data;
+}
+
+// "23/07/2026 12:37:41" -> Date
+function parseItDate(str) {
+  const m = String(str).match(
+    /(\d{2})\/(\d{2})\/(\d{4})(?:[ T](\d{2}):(\d{2}):(\d{2}))?/
+  );
+  if (!m) return null;
+  const [, d, mo, y, hh = '00', mi = '00', ss = '00'] = m;
+  return new Date(`${y}-${mo}-${d}T${hh}:${mi}:${ss}Z`);
+}
+
+/* ---------------------------------------------------------------- */
+/* DataCash                                                          */
+/* ---------------------------------------------------------------- */
+function credenziali(env) {
+  const raw = (env.ADE_CRED_ENC || '').trim();
+  return raw.includes('\\n') ? raw.replace(/\\n/g, '\n') : raw;
+}
+
 async function datacash(env, path, payload) {
   const res = await fetch(DC_BASE + path, {
     method: 'POST',
