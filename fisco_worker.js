@@ -189,9 +189,14 @@ async function fetchRicevute(env, dal, al) {
 /* Amenitiz                                                          */
 /* ---------------------------------------------------------------- */
 async function fetchPrenotazioni(env, dal, al) {
+  // l'API filtra per data di arrivo: anticipo l'inizio per intercettare
+  // i soggiorni a cavallo (es. 30/12 - 02/01), poi scarto quelli conclusi
+  // prima dell'inizio del periodo
+  const dalEsteso = addGiorni(dal, -20);
+
   // Amenitiz rifiuta intervalli superiori a ~1 mese: spezzo e parallelizzo
   const blocchi = [];
-  let cursore = dal;
+  let cursore = dalEsteso;
   while (cursore <= al) {
     let fine = addGiorni(cursore, 27);
     if (fine > al) fine = al;
@@ -226,6 +231,8 @@ async function fetchPrenotazioni(env, dal, al) {
       const stato = String(b.status || '').toLowerCase();
       if (stato === 'cancelled' || stato === 'canceled') continue;
       if (!b.checkin || !b.checkout) continue;
+      // tengo solo i soggiorni che si concludono dentro il periodo
+      if (b.checkout < dal) continue;
       if (visti.has(b.booking_id)) continue;
       visti.add(b.booking_id);
 
