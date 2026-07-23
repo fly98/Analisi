@@ -818,6 +818,12 @@ export default {
         return json({ ok: true, annullato: body.idtrx, risposta: res });
       }
 
+      if (url.pathname === '/rinnova' && request.method === 'POST') {
+        // rinnova la scadenza della password Fisconline mantenendola invariata
+        const res = await datacash(env, '/resetPassword/', {});
+        return json({ ok: true, ...res });
+      }
+
       if (url.pathname === '/infouser') {
         return json({ ok: true, ...(await datacash(env, '/infoUser/', {})) });
       }
@@ -857,7 +863,7 @@ export default {
     return json(
       {
         error: 'endpoint sconosciuto',
-        disponibili: ['/health', '/infouser', '/dco', '/prenotazioni', '/riconcilia', '/elenco', '/stato', '/emetti', '/annulla', '/condividi', '/invia', '/r/{token}'],
+        disponibili: ['/health', '/infouser', '/dco', '/prenotazioni', '/riconcilia', '/elenco', '/stato', '/emetti', '/annulla', '/condividi', '/invia', '/rinnova', '/r/{token}'],
       },
       404
     );
