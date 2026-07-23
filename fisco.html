@@ -98,12 +98,21 @@ button.act{
 }
 button.act:disabled{opacity:.5}
 
-.filtri{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
-.cerca{position:relative}
+.filtri{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
+.cerca{position:relative;flex:1 1 200px;min-width:170px}
 .cerca input{
   width:100%;font:inherit;font-size:14.5px;padding:9px 32px 9px 12px;
   border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--ink)
 }
+.filtri select{
+  font:inherit;font-size:13.5px;font-weight:600;padding:9px 30px 9px 12px;
+  border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--ink);
+  cursor:pointer;flex:0 1 auto;max-width:48%;
+  -webkit-appearance:none;appearance:none;
+  background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath fill='%23657896' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 11px center
+}
+.filtri select.attivo{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
 .cerca button{
   position:absolute;right:6px;top:50%;transform:translateY(-50%);
   border:0;background:transparent;color:var(--muted);font-size:17px;cursor:pointer;
@@ -280,11 +289,11 @@ dialog::backdrop{background:rgba(10,25,45,.45)}
     <div class="kpis" id="kpis"></div>
     <div class="filtri">
       <div class="cerca">
-        <input type="search" id="q" placeholder="Cerca nome, camera, data o importo" autocomplete="off">
+        <input type="search" id="q" placeholder="Cerca nome, camera, data…" autocomplete="off">
         <button type="button" id="q-x" title="Pulisci">×</button>
       </div>
-      <div class="stati" id="stati"></div>
-      <div class="stati" id="canali"></div>
+      <select id="sel-stato"></select>
+      <select id="sel-canale"></select>
     </div>
     <div class="conta" id="conta"></div>
     <div id="lista"><div class="loading">Caricamento…</div></div>
@@ -494,7 +503,7 @@ $('#cal-ok').onclick  = ()=>{
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = gg(dal)+' – '+gg(al)+' · v36';
+  $('#periodo').textContent = gg(dal)+' – '+gg(al)+' · v37';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -544,31 +553,31 @@ function render(){
     <div class="kpi"><b>${r.fattura}</b><span>Fattura</span></div>
     <div class="kpi"><b>${r.escluse}</b><span>Escluse</span></div>`;
 
-  // conteggi per stato
+  // tendina degli stati
   const per = {};
   for(const p of DATI.righe) per[p.stato] = (per[p.stato]||0)+1;
-  $('#stati').innerHTML = STATI
+  const selS = $('#sel-stato');
+  selS.innerHTML = STATI
     .filter(([k]) => k==='tutte' || per[k])
     .map(([k,l]) => {
       const n = k==='tutte' ? DATI.righe.length : per[k];
-      return `<button class="${FILTRO===k?'on':''}" data-s="${k}">${l}<b>${n}</b></button>`;
+      const et = k==='tutte' ? 'Tutti gli stati' : l;
+      return `<option value="${k}" ${FILTRO===k?'selected':''}>${et} (${n})</option>`;
     }).join('');
-  document.querySelectorAll('#stati button').forEach(b => b.onclick = ()=>{
-    FILTRO = b.dataset.s; render();
-  });
+  selS.classList.toggle('attivo', FILTRO!=='tutte');
+  selS.onchange = ()=>{ FILTRO = selS.value; CANALE='tutti'; render(); };
 
-  // conteggi per canale, calcolati sullo stato attualmente selezionato
+  // tendina dei canali, calcolata sullo stato selezionato
   const baseCan = FILTRO==='tutte' ? DATI.righe : DATI.righe.filter(p=>p.stato===FILTRO);
   const canali = {};
   for(const p of baseCan) { const c = p.canale || '—'; canali[c] = (canali[c]||0)+1; }
   const ordinati = Object.entries(canali).sort((a,b)=>b[1]-a[1]);
-  $('#canali').innerHTML = ordinati.length > 1
-    ? `<button class="${CANALE==='tutti'?'on':''}" data-c="tutti">Tutti i canali</button>` +
-      ordinati.map(([c,n])=>`<button class="${CANALE===c?'on':''}" data-c="${c}">${c}<b>${n}</b></button>`).join('')
-    : '';
-  document.querySelectorAll('#canali button').forEach(b => b.onclick = ()=>{
-    CANALE = b.dataset.c; render();
-  });
+  if(!canali[CANALE]) CANALE = 'tutti';
+  const selC = $('#sel-canale');
+  selC.innerHTML = `<option value="tutti">Tutti i canali (${baseCan.length})</option>` +
+    ordinati.map(([c,n])=>`<option value="${c}" ${CANALE===c?'selected':''}>${c} (${n})</option>`).join('');
+  selC.classList.toggle('attivo', CANALE!=='tutti');
+  selC.onchange = ()=>{ CANALE = selC.value; render(); };
 
   const righe = righeFiltrate();
   const attivo = FILTRO!=='tutte' || QUERY.trim() || CANALE!=='tutti';
