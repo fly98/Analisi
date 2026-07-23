@@ -200,6 +200,8 @@ async function fetchPrenotazioni(env, dal, al) {
         id: String(b.booking_id),
         nome: `${booker.first_name || ''} ${booker.last_name || ''}`.trim(),
         email: booker.email || '',
+        telefono: booker.phone || '',
+        lingua: (booker.language || '').toUpperCase(),
         canale: b.source || '',
         checkin: b.checkin,
         checkout: b.checkout,
@@ -512,6 +514,81 @@ async function elenco(env, dal, al, margine) {
 }
 
 /* ---------------------------------------------------------------- */
+/* Condivisione ricevuta (PDF ufficiale AdE)                         */
+/* ---------------------------------------------------------------- */
+async function scaricaPdf(env, idtrx, regalo = false) {
+  const res = await fetch(`${DC_BASE}/downloadDocument/${idtrx}/`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Datacash-Key': env.DATACASH_KEY,
+    },
+    body: JSON.stringify({ ade_credentials_encrypted: credenziali(env), regalo }),
+  });
+  if (!res.ok) {
+    const t = await res.text();
+    throw new Error(`download PDF HTTP ${res.status}: ${t.slice(0, 150)}`);
+  }
+  return res.arrayBuffer();
+}
+
+function tokenCasuale() {
+  const b = new Uint8Array(12);
+  crypto.getRandomValues(b);
+  return [...b].map((x) => x.toString(36).padStart(2, '0')).join('').slice(0, 18);
+}
+
+// link pubblico valido 180 giorni
+async function creaLink(env, idtrx, nome) {
+  if (!env.FISCO_KV) throw new Error('KV non configurato');
+  const token = tokenCasuale();
+  await env.FISCO_KV.put(
+    `fisco:pub:${token}`,
+    JSON.stringify({ idtrx, nome: nome || '', creato: new Date().toISOString() }),
+    { expirationTtl: 60 * 60 * 24 * 180 }
+  );
+  return token;
+}
+
+function testoInvio(pren, link, lingua) {
+  const it = lingua === 'IT' || (pren.telefono || '').startsWith('+39');
+  if (it) {
+    return {
+      oggetto: 'La sua ricevuta - InternoUno',
+      testo:
+        `Gentile ${pren.nome},\n\ndi seguito la ricevuta del suo soggiorno ` +
+        `dal ${dataIt(pren.checkin)} al ${dataIt(pren.checkout)}:\n${link}\n\n` +
+        `Grazie per aver scelto InternoUno.`,
+    };
+  }
+  return {
+    oggetto: 'Your receipt - InternoUno',
+    testo:
+      `Dear ${pren.nome},\n\nhere is the receipt for your stay ` +
+      `from ${dataIt(pren.checkin)} to ${dataIt(pren.checkout)}:\n${link}\n\n` +
+      `Thank you for choosing InternoUno.`,
+  };
+}
+
+async function inviaEmail(env, destinatario, oggetto, testo) {
+  const html = testo
+    .split('\n')
+    .map((r) => (r ? `<p style="margin:0 0 10px">${r}</p>` : ''))
+    .join('');
+  const target =
+    `${LS_BASE}/?action=send`;
+  const req = new Request(target, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'User-Agent': 'fisco-worker' },
+    body: JSON.stringify({ to: destinatario, subject: oggetto, html, account: 'business' }),
+  });
+  const res = env.LS ? await env.LS.fetch(req) : await fetch(req);
+  const t = await res.text();
+  if (!res.ok) throw new Error(`invio email HTTP ${res.status}: ${t.slice(0, 150)}`);
+  return t.slice(0, 200);
+}
+
+/* ---------------------------------------------------------------- */
 /* Handler                                                           */
 /* ---------------------------------------------------------------- */
 export default {
@@ -533,6 +610,26 @@ export default {
           KV: !!env.FISCO_KV,
         },
       });
+    }
+
+    // link pubblico alla ricevuta: nessun token, l'indirizzo stesso e' il segreto
+    if (url.pathname.startsWith('/r/')) {
+      const token = url.pathname.slice(3).replace(/[^a-z0-9]/gi, '');
+      if (!token || !env.FISCO_KV) return new Response('Link non valido', { status: 404 });
+      const rec = await env.FISCO_KV.get(`fisco:pub:${token}`, 'json');
+      if (!rec) return new Response('Ricevuta non disponibile o link scaduto', { status: 404 });
+      try {
+        const pdf = await scaricaPdf(env, rec.idtrx);
+        return new Response(pdf, {
+          headers: {
+            'Content-Type': 'application/pdf',
+            'Content-Disposition': `inline; filename="ricevuta-${rec.idtrx}.pdf"`,
+            'Cache-Control': 'private, max-age=3600',
+          },
+        });
+      } catch (e) {
+        return new Response('Ricevuta non recuperabile: ' + e.message, { status: 502 });
+      }
     }
 
     if (env.API_TOKEN && request.headers.get('X-Token') !== env.API_TOKEN) {
@@ -560,6 +657,25 @@ export default {
             : 'assente',
           pubblico: { status: viaPubblico.status, body: (await viaPubblico.text()).slice(0, 300) },
         });
+      }
+
+      if (url.pathname === '/condividi' && request.method === 'POST') {
+        const body = await request.json();
+        if (!body.idtrx) return json({ ok: false, error: 'idtrx mancante' }, 400);
+        const token = await creaLink(env, body.idtrx, body.nome);
+        const link = `${url.origin}/r/${token}`;
+        return json({ ok: true, link });
+      }
+
+      if (url.pathname === '/invia' && request.method === 'POST') {
+        const body = await request.json();
+        if (!body.idtrx || !body.email)
+          return json({ ok: false, error: 'idtrx o email mancanti' }, 400);
+        const token = await creaLink(env, body.idtrx, body.nome);
+        const link = `${url.origin}/r/${token}`;
+        const msg = testoInvio(body, link, body.lingua);
+        const esito = await inviaEmail(env, body.email, msg.oggetto, msg.testo);
+        return json({ ok: true, link, esito });
       }
 
       if (url.pathname === '/elenco') {
@@ -664,7 +780,7 @@ export default {
     return json(
       {
         error: 'endpoint sconosciuto',
-        disponibili: ['/health', '/infouser', '/dco', '/prenotazioni', '/riconcilia', '/elenco', '/stato', '/emetti', '/annulla'],
+        disponibili: ['/health', '/infouser', '/dco', '/prenotazioni', '/riconcilia', '/elenco', '/stato', '/emetti', '/annulla', '/condividi', '/invia', '/r/{token}'],
       },
       404
     );
