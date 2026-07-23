@@ -300,7 +300,9 @@ async function fetchPrenotazioni(env, dal, al) {
         cityTaxTutti: cityTaxTutti / 100,
         variantiCents: (() => {
           const out = [];
-          const maxPersone = adulti + (b.children || 0) + 2;
+          const camereN = Math.max(1, (b.rooms || []).length);
+          // nelle prenotazioni multi-camera la tassa e' contata per camera
+          const maxPersone = (adulti + (b.children || 0)) * camereN + 2;
           for (let k = 0; k <= maxPersone; k++) {
             const v = totale - k * nottiTax * CITY_TAX_NOTTE * 100;
             if (v > 0) out.push({ persone: k, cents: v });
@@ -431,8 +433,10 @@ function riconcilia(prenotazioni, ricevute) {
       const bersagli = new Set([p.attesoCents, p.attesoBimbiCents, p.attesoAltCents]);
       for (const v of p.variantiCents || []) bersagli.add(v.cents);
 
+      // tolleranza di pochi centesimi: con piu' ricevute le combinazioni
+      // casuali sono frequenti, quindi accetto solo somme quasi esatte
       const combacia = (somma) => {
-        for (const b of bersagli) if (Math.abs(somma - b) <= 50) return b;
+        for (const b of bersagli) if (Math.abs(somma - b) <= 25) return b;
         return null;
       };
 
