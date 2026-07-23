@@ -338,6 +338,14 @@ async function fetchPrenotazioni(env, dal, al) {
 // lontana non "ruba" la ricevuta a quella giusta.
 const ONDATE = [3, 10, 15, 30];
 
+// Sulle prenotazioni diretse il pagamento puo' arrivare prima dell'arrivo,
+// quindi la ricevuta puo' precedere il soggiorno. Sui portali no.
+const CANALI_DIRETTI = ['manual', 'amenitiz', ''];
+function anticipoConsentito(canale) {
+  const c = String(canale || '').toLowerCase();
+  return CANALI_DIRETTI.includes(c) ? 10 : 1;
+}
+
 function riconcilia(prenotazioni, ricevute) {
   const disponibili = ricevute
     .filter((r) => r.tipo === 'V' && !r.annullata)
@@ -357,8 +365,8 @@ function riconcilia(prenotazioni, ricevute) {
   const distanza = (ric, pren) => {
     const g = ric.giorno;
     if (!g) return 999;
-    // le ricevute non vengono mai emesse prima dell'arrivo
-    if (g < addGiorni(pren.checkin, -1)) return 999;
+    // anticipo ammesso solo per le prenotazioni diretse
+    if (g < addGiorni(pren.checkin, -anticipoConsentito(pren.canale))) return 999;
     if (g <= pren.checkout) return 0;
     return Math.round((new Date(g) - new Date(pren.checkout)) / 86400000);
   };
@@ -958,7 +966,7 @@ async function proposte(env, dal, al, opzioni = {}) {
   // la ricevuta non precede mai l'arrivo: zero durante il soggiorno,
   // altrimenti giorni trascorsi dalla partenza
   const distanzaSoggiorno = (giornoRic, p) => {
-    if (giornoRic < addGiorni(p.checkin, -1)) return 999;
+    if (giornoRic < addGiorni(p.checkin, -anticipoConsentito(p.canale))) return 999;
     if (giornoRic <= p.checkout) return 0;
     return Math.round((new Date(giornoRic) - new Date(p.checkout)) / 86400000);
   };
@@ -1090,7 +1098,7 @@ async function orfaneConCandidati(env, dal, al, opzioni = {}) {
   );
 
   const distanza = (giornoRic, p) => {
-    if (giornoRic < addGiorni(p.checkin, -1)) return 999;
+    if (giornoRic < addGiorni(p.checkin, -anticipoConsentito(p.canale))) return 999;
     if (giornoRic <= p.checkout) return 0;
     return Math.round((new Date(giornoRic) - new Date(p.checkout)) / 86400000);
   };
