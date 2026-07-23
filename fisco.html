@@ -101,11 +101,22 @@ button.act:disabled{opacity:.5}
 .filtri{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
 .cerca{position:relative;flex:1 1 200px;min-width:170px}
 
-/* su schermo stretto: ricerca a tutta larghezza, le due tendine a metà */
+/* su schermo stretto: tutto centrato e a piena larghezza */
 @media(max-width:640px){
   .filtri{gap:8px}
   .cerca{flex:1 1 100%;min-width:0}
   .filtri select{flex:1 1 0;max-width:none;min-width:0}
+
+  .bar{flex-direction:column;align-items:center;gap:10px}
+  .seg{width:100%;justify-content:center}
+  .seg button{flex:1;padding:8px 6px;font-size:12.5px}
+  .ctx{justify-content:center;width:100%}
+  .ctx .info{text-align:center}
+  .kpis{grid-template-columns:repeat(4,1fr);gap:6px}
+  .kpi{padding:8px 6px;text-align:center}
+  .kpi b{font-size:19px}
+  .kpi span{font-size:9.5px;line-height:1.2;display:block}
+  .conta{text-align:center}
 }
 .cerca input{
   width:100%;font:inherit;font-size:14.5px;padding:9px 32px 9px 12px;
@@ -514,7 +525,7 @@ $('#cal-ok').onclick  = ()=>{
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v41';
+  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v42';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
