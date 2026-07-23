@@ -2,6 +2,10 @@ name = "fisco-worker"
 main = "fisco_worker.js"
 compatibility_date = "2025-01-01"
 
+# ogni mattina alle 10:00 italiane (8:00 UTC in ora legale)
+[triggers]
+crons = ["0 8 * * *"]
+
 [[services]]
 binding = "LS"
 service = "little-shadow-145e"
