@@ -126,117 +126,123 @@ const AUTH_URL =
 async function login(env, log) {
   const jar = new CookieJar();
 
-  const apiHeaders = {
-    'User-Agent': UA,
-    'Content-Type': 'application/json',
-    Accept: 'application/json',
-    'Accept-API-Version': 'resource=2.0, protocol=1.0',
-    'Accept-Language': 'it-IT,it;q=0.9',
-  };
+  // --- METODO A: POST form classico su /sam/UI/Login (OpenAM server-rendered)
+  const gotoUrl = 'https://portale.agenziaentrate.gov.it:443/PortaleWeb/home?to=FATBTB';
+  const loginPage = `${IAM}/sam/UI/Login?realm=/agenziaentrate&goto=${encodeURIComponent(gotoUrl)}`;
 
-  // --- 1. avvio flusso: il server risponde con i callback da compilare
-  const initRes = await fetch(AUTH_URL, {
-    method: 'POST',
-    headers: apiHeaders,
-    body: '{}',
-  });
-  jar.absorb(initRes);
-  const challenge = await initRes.json();
-  if (log) log.push(`IAM init -> ${initRes.status}, stage ${challenge.stage || '?'}`);
+  // apro la pagina per raccogliere i cookie iniziali (incluso il load balancer)
+  await jarFetch(jar, loginPage, {}, log);
 
-  if (!Array.isArray(challenge.callbacks)) {
-    throw new Error(
-      'IAM: nessun callback ricevuto (' + JSON.stringify(challenge).slice(0, 200) + ')'
-    );
-  }
+  const formBody = new URLSearchParams({
+    IDToken1: env.FISCO_CF,
+    IDToken2: env.FISCO_PWD,
+    IDToken3: env.FISCO_PIN,
+    IDButton: 'Invia',
+    goto: gotoUrl,
+    realm: '/agenziaentrate',
+    gx_charset: 'UTF-8',
+  }).toString();
 
-  // --- 2. compilo i callback: nome utente, password, pin
-  for (const cb of challenge.callbacks) {
-    const promptEntry = (cb.output || []).find((o) => o.name === 'prompt');
-    const prompt = (promptEntry ? promptEntry.value : '').toLowerCase();
-    if (!cb.input || !cb.input.length) continue;
-
-    if (cb.type === 'NameCallback' || prompt.includes('user')) {
-      cb.input[0].value = env.FISCO_CF;
-    } else if (prompt.includes('pin')) {
-      cb.input[0].value = env.FISCO_PIN;
-    } else {
-      cb.input[0].value = env.FISCO_PWD;
-    }
-  }
-
-  const authRes = await fetch(AUTH_URL, {
-    method: 'POST',
-    headers: {
-      ...apiHeaders,
-      Cookie: jar.header(),
-      Origin: IAM,
-      Referer: IAM + '/sam/UI/Login',
+  const formRes = await jarFetch(
+    jar,
+    loginPage,
+    {
+      method: 'POST',
+      body: formBody,
+      headers: { Origin: IAM, Referer: loginPage },
     },
-    body: JSON.stringify(challenge),
-  });
-  jar.absorb(authRes);
+    log
+  );
 
-  const authText = await authRes.text();
-  let authData;
-  try {
-    authData = JSON.parse(authText);
-  } catch {
-    // risposta HTML: tipicamente 401 = credenziali rifiutate
-    if (authRes.status === 401) {
-      throw new Error(
-        'Credenziali rifiutate dall\'AdE (HTTP 401). Verifica codice fiscale, ' +
-          'password e PIN. Causa piu frequente: password Fisconline scaduta ' +
-          '(scade ogni 90 giorni) e da rigenerare.'
-      );
+  if (log) log.push(`metodo A -> HTTP ${formRes.status}, cookie: ${jar.names().join(',')}`);
+
+  // --- METODO B (fallback): API JSON callbacks
+  if (!jar.has('SIAMPE')) {
+    if (log) log.push('metodo A non ha prodotto SIAMPE, provo metodo B (API JSON)');
+
+    const apiHeaders = {
+      'User-Agent': UA,
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+      'Accept-API-Version': 'resource=2.0, protocol=1.0',
+      'Accept-Language': 'it-IT,it;q=0.9',
+      Origin: IAM,
+      Referer: loginPage,
+    };
+
+    const initRes = await fetch(AUTH_URL, {
+      method: 'POST',
+      headers: { ...apiHeaders, Cookie: jar.header() },
+      body: '{}',
+    });
+    jar.absorb(initRes);
+    const challenge = await initRes.json();
+
+    if (Array.isArray(challenge.callbacks)) {
+      for (const cb of challenge.callbacks) {
+        const pe = (cb.output || []).find((o) => o.name === 'prompt');
+        const prompt = (pe ? pe.value : '').toLowerCase();
+        if (!cb.input || !cb.input.length) continue;
+        if (cb.type === 'NameCallback' || prompt.includes('user')) {
+          cb.input[0].value = env.FISCO_CF;
+        } else if (prompt.includes('pin')) {
+          cb.input[0].value = env.FISCO_PIN;
+        } else {
+          cb.input[0].value = env.FISCO_PWD;
+        }
+      }
+
+      const authRes = await fetch(AUTH_URL, {
+        method: 'POST',
+        headers: { ...apiHeaders, Cookie: jar.header() },
+        body: JSON.stringify(challenge),
+      });
+      jar.absorb(authRes);
+      const txt = await authRes.text();
+      if (log) log.push(`metodo B -> HTTP ${authRes.status}`);
+
+      try {
+        const d = JSON.parse(txt);
+        if (d.tokenId) jar.set('SIAMPE', d.tokenId);
+      } catch {
+        /* HTML: fallito anche il metodo B */
+      }
     }
-    throw new Error(
-      `Risposta non JSON dall'IAM (HTTP ${authRes.status}): ` +
-        authText.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 200)
-    );
   }
 
-  if (!authData.tokenId) {
-    const msg = authData.message || JSON.stringify(authData).slice(0, 250);
-    const scaduta = /scadut|expired|change/i.test(msg);
+  if (!jar.has('SIAMPE')) {
     throw new Error(
-      `IAM login fallito (HTTP ${authRes.status}): ${msg}` +
-        (scaduta ? ' [password probabilmente scaduta: serve reset]' : '')
+      'Autenticazione fallita con entrambi i metodi. Cookie ottenuti: ' +
+        (jar.names().join(', ') || 'nessuno')
     );
   }
-  if (log) log.push('IAM login OK, tokenId ottenuto');
+  if (log) log.push('SSO ottenuto (SIAMPE presente)');
 
-  // il cookie SSO si chiama SIAMPE; se non arriva via Set-Cookie lo forzo
-  if (!jar.has('SIAMPE')) jar.set('SIAMPE', authData.tokenId);
-
-  // --- 3. entro nel portale Fatture e Corrispettivi con la sessione SSO
+  // --- entro nel portale Fatture e Corrispettivi
   const portRes = await jarFetch(jar, `${BASE}/portale/`, {}, log);
   const portHtml = await portRes.text();
 
-  // --- 4. selezione utenza di lavoro (opero per la mia P.IVA)
-  const authTokenMatch = portHtml.match(/Liferay\.authToken\s*=\s*'([^']+)'/);
-  if (authTokenMatch) {
-    const pAuth = authTokenMatch[1];
+  // --- selezione utenza di lavoro
+  const m = portHtml.match(/Liferay\.authToken\s*=\s*'([^']+)'/);
+  if (m) {
+    const pAuth = m[1];
     if (log) log.push('authToken Liferay trovato');
-
     const scegliUrl =
       `${BASE}/portale/scelta-utenza-lavoro?p_auth=${pAuth}` +
       `&p_p_id=SceltaUtenzaLavoro_WAR_SceltaUtenzaLavoroportlet` +
       `&p_p_lifecycle=1&p_p_state=normal&p_p_mode=view` +
       `&p_p_col_id=column-1&p_p_col_count=1` +
       `&_SceltaUtenzaLavoro_WAR_SceltaUtenzaLavoroportlet_javax.portlet.action=incarichiAction`;
-
-    const scegliBody = new URLSearchParams({
+    const body = new URLSearchParams({
       sceltaincarico: `${env.FISCO_PIVA}-FOL`,
       tipoincaricante: 'incDiretto',
     }).toString();
-
-    await jarFetch(jar, scegliUrl, { method: 'POST', body: scegliBody }, log);
+    await jarFetch(jar, scegliUrl, { method: 'POST', body }, log);
   } else if (log) {
-    log.push('authToken Liferay NON trovato (utenza forse gia attiva)');
+    log.push('authToken Liferay non trovato');
   }
 
-  // --- 5. warm-up area servizi
+  // --- warm-up
   await jarFetch(
     jar,
     `${BASE}/ser/api/messaggistica/v1/ul/me/totale?v=${ts()}`,
@@ -247,7 +253,7 @@ async function login(env, log) {
     log
   );
 
-  if (log) log.push(`cookie in sessione: ${jar.names().join(', ')}`);
+  if (log) log.push(`cookie finali: ${jar.names().join(', ')}`);
   return jar;
 }
 
