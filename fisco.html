@@ -403,7 +403,7 @@ $('#cal-ok').onclick  = ()=>{
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = gg(dal)+' – '+gg(al)+' · v9';
+  $('#periodo').textContent = gg(dal)+' – '+gg(al)+' · v10';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -479,12 +479,17 @@ function riga(p){
       <button class="ghost" onclick="segna('${p.id}','esclusa')">Non emettere</button>
     </div>`;
   } else if(p.stato === 'emessa'){
+    const idt = doc && doc.id ? doc.id : '';
     azioni = `<div class="docinfo">
       <span>${doc ? 'Ricevuta <code>'+(doc.numero||'—')+'</code>' : ''}
         ${p.origine && p.origine.startsWith('match') ? '· abbinata automaticamente' : ''}</span>
-      ${doc && doc.id ? `<button class="danger" style="font:inherit;font-size:12.5px;font-weight:600;padding:5px 10px;border-radius:7px;border:1px solid #f0c9c5;background:#fff;cursor:pointer"
-        onclick="annulla('${p.id}','${doc.id}')">Annulla ricevuta</button>` : ''}
-    </div>`;
+    </div>
+    ${idt ? `<div class="actions">
+      <button onclick="vediPdf('${idt}')">Apri PDF</button>
+      ${p.email ? `<button onclick="inviaMail('${p.id}','${idt}')">Invia email</button>` : ''}
+      ${p.telefono ? `<button onclick="inviaWa('${p.id}','${idt}')">WhatsApp</button>` : ''}
+      <button class="danger" onclick="annulla('${p.id}','${idt}')">Annulla ricevuta</button>
+    </div>` : ''}`;
   } else if(p.stato === 'futura'){
     azioni = `<div class="docinfo">
       <span>Arrivo previsto il ${gg(p.checkin)}</span>
@@ -562,6 +567,47 @@ window.segna = async (id, stato) => {
     toast(stato ? 'Prenotazione chiusa' : 'Prenotazione riaperta');
     carica();
   }catch(e){ toast('Non riesco a salvare: '+e.message, true); }
+};
+
+async function linkRicevuta(id, idtrx){
+  const p = DATI.righe.find(x=>x.id===id) || {};
+  const r = await api('/condividi', {method:'POST', body: JSON.stringify({idtrx, nome:p.nome})});
+  return r.link;
+}
+
+window.vediPdf = async (idtrx) => {
+  toast('Preparo il PDF…');
+  try{
+    const r = await api('/condividi', {method:'POST', body: JSON.stringify({idtrx})});
+    window.open(r.link, '_blank');
+  }catch(e){ toast('Non riesco ad aprire il PDF: '+e.message, true); }
+};
+
+window.inviaMail = async (id, idtrx) => {
+  const p = DATI.righe.find(x=>x.id===id);
+  if(!await dialogo('Invia ricevuta per email',
+      `Verrà inviata a ${p.email}`, '', 'Invia')) return;
+  toast('Invio in corso…');
+  try{
+    await api('/invia', {method:'POST', body: JSON.stringify({
+      idtrx, email:p.email, nome:p.nome, checkin:p.checkin, checkout:p.checkout,
+      telefono:p.telefono, lingua:p.lingua })});
+    toast('Ricevuta inviata a ' + p.email);
+  }catch(e){ toast('Invio non riuscito: '+e.message, true); }
+};
+
+window.inviaWa = async (id, idtrx) => {
+  const p = DATI.righe.find(x=>x.id===id);
+  toast('Preparo il link…');
+  try{
+    const link = await linkRicevuta(id, idtrx);
+    const it = p.lingua === 'IT' || (p.telefono||'').startsWith('+39');
+    const testo = it
+      ? `Gentile ${p.nome}, di seguito la ricevuta del suo soggiorno dal ${dataIt(p.checkin)} al ${dataIt(p.checkout)}: ${link}`
+      : `Dear ${p.nome}, here is the receipt for your stay from ${dataIt(p.checkin)} to ${dataIt(p.checkout)}: ${link}`;
+    const num = (p.telefono||'').replace(/[^0-9]/g,'');
+    window.open(`https://wa.me/${num}?text=${encodeURIComponent(testo)}`, '_blank');
+  }catch(e){ toast('Non riesco a creare il link: '+e.message, true); }
 };
 
 window.annulla = async (id, idtrx) => {
