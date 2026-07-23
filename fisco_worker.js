@@ -90,16 +90,26 @@ async function datacash(env, path, payload) {
 
 // l'API accetta al massimo 31 giorni per chiamata: spezzo in blocchi
 async function fetchRicevute(env, dal, al) {
-  const documenti = [];
+  // l'API DataCash accetta al massimo 31 giorni: spezzo in blocchi paralleli
+  const blocchi = [];
   let cursore = dal;
-
   while (cursore <= al) {
     let fine = addGiorni(cursore, 30);
     if (fine > al) fine = al;
+    blocchi.push({ start: cursore, end: fine });
+    if (fine === al) break;
+    cursore = addGiorni(fine, 1);
+  }
 
-    const data = await datacash(env, '/findDocuments/', { start: cursore, end: fine });
+  const risposte = await Promise.all(
+    blocchi.map((b) =>
+      datacash(env, '/findDocuments/', b).catch(() => ({ results: [] }))
+    )
+  );
+
+  const documenti = [];
+  for (const data of risposte) {
     const results = Array.isArray(data) ? data : data.results || [];
-
     for (const r of results) {
       const dt = parseItDate(r.data);
       documenti.push({
@@ -110,14 +120,11 @@ async function fetchRicevute(env, dal, al) {
         giorno: dt ? giorno(dt) : null,
         importo: r.ammontareComplessivo,
         centesimi: Math.round(r.ammontareComplessivo * 100),
-        tipo: r.tipoOperazione, // V = vendita, altri = annullo/reso
+        tipo: r.tipoOperazione,
       });
     }
-    if (fine === al) break;
-    cursore = addGiorni(fine, 1);
   }
 
-  // dedup (i blocchi possono sovrapporsi sui bordi)
   const visti = new Set();
   const unici = documenti.filter((d) => {
     if (visti.has(d.id)) return false;
@@ -127,12 +134,10 @@ async function fetchRicevute(env, dal, al) {
   unici.sort((a, b) => (a.data < b.data ? 1 : -1));
 
   const vendite = unici.filter((d) => d.tipo === 'V');
-  const altri = unici.filter((d) => d.tipo !== 'V');
-
   return {
     count: unici.length,
     countVendite: vendite.length,
-    countAltri: altri.length,
+    countAltri: unici.length - vendite.length,
     totale: Math.round(vendite.reduce((s, x) => s + x.centesimi, 0)) / 100,
     documenti: unici,
   };
@@ -142,53 +147,71 @@ async function fetchRicevute(env, dal, al) {
 /* Amenitiz                                                          */
 /* ---------------------------------------------------------------- */
 async function fetchPrenotazioni(env, dal, al) {
-  const target = `${LS_BASE}/?action=debugBooking&from=${dal}&to=${al}`;
-  // service binding se disponibile (worker-to-worker sullo stesso account),
-  // altrimenti fetch pubblico
-  const res = env.LS
-    ? await env.LS.fetch(new Request(target, { headers: { 'User-Agent': 'fisco-worker' } }))
-    : await fetch(target, { headers: { 'User-Agent': 'fisco-worker' } });
-  if (!res.ok) throw new Error(`Amenitiz HTTP ${res.status}`);
+  // Amenitiz rifiuta intervalli superiori a ~1 mese: spezzo e parallelizzo
+  const blocchi = [];
+  let cursore = dal;
+  while (cursore <= al) {
+    let fine = addGiorni(cursore, 27);
+    if (fine > al) fine = al;
+    blocchi.push({ from: cursore, to: fine });
+    if (fine === al) break;
+    cursore = addGiorni(fine, 1);
+  }
 
-  let raw = await res.json();
-  if (raw && !Array.isArray(raw)) raw = raw.bookings || raw.results || [];
-  if (typeof raw === 'string') raw = JSON.parse(raw);
+  const risposte = await Promise.all(
+    blocchi.map(async (b) => {
+      const target = `${LS_BASE}/?action=debugBooking&from=${b.from}&to=${b.to}`;
+      try {
+        const res = env.LS
+          ? await env.LS.fetch(new Request(target, { headers: { 'User-Agent': 'fisco-worker' } }))
+          : await fetch(target, { headers: { 'User-Agent': 'fisco-worker' } });
+        if (!res.ok) return [];
+        let raw = await res.json();
+        if (raw && !Array.isArray(raw)) raw = raw.bookings || raw.results || [];
+        if (typeof raw === 'string') raw = JSON.parse(raw);
+        return Array.isArray(raw) ? raw : [];
+      } catch {
+        return [];
+      }
+    })
+  );
 
   const prenotazioni = [];
   const visti = new Set();
 
-  for (const b of raw || []) {
-    const stato = String(b.status || '').toLowerCase();
-    if (stato === 'cancelled' || stato === 'canceled') continue;
-    if (!b.checkin || !b.checkout) continue;
-    if (visti.has(b.booking_id)) continue;
-    visti.add(b.booking_id);
+  for (const batch of risposte) {
+    for (const b of batch) {
+      const stato = String(b.status || '').toLowerCase();
+      if (stato === 'cancelled' || stato === 'canceled') continue;
+      if (!b.checkin || !b.checkout) continue;
+      if (visti.has(b.booking_id)) continue;
+      visti.add(b.booking_id);
 
-    const n = notti(b.checkin, b.checkout);
-    const adulti = b.adults || 1;
-    const totale = Math.round((parseFloat(b.total_amount_after_tax) || 0) * 100);
-    const cityTax = adulti * Math.min(n, CITY_TAX_MAX_NOTTI) * CITY_TAX_NOTTE * 100;
-    const booker = b.booker || {};
+      const n = notti(b.checkin, b.checkout);
+      const adulti = b.adults || 1;
+      const totale = Math.round((parseFloat(b.total_amount_after_tax) || 0) * 100);
+      const cityTax = adulti * Math.min(n, CITY_TAX_MAX_NOTTI) * CITY_TAX_NOTTE * 100;
+      const booker = b.booker || {};
 
-    prenotazioni.push({
-      id: String(b.booking_id),
-      nome: `${booker.first_name || ''} ${booker.last_name || ''}`.trim(),
-      email: booker.email || '',
-      canale: b.source || '',
-      checkin: b.checkin,
-      checkout: b.checkout,
-      notti: n,
-      adulti,
-      bambini: b.children || 0,
-      totale: totale / 100,
-      cityTax: cityTax / 100,
-      // importo atteso in ricevuta: totale meno tassa di soggiorno
-      attesoCents: totale - cityTax,
-      atteso: (totale - cityTax) / 100,
-      // fallback: totale pieno
-      attesoAltCents: totale,
-    });
+      prenotazioni.push({
+        id: String(b.booking_id),
+        nome: `${booker.first_name || ''} ${booker.last_name || ''}`.trim(),
+        email: booker.email || '',
+        canale: b.source || '',
+        checkin: b.checkin,
+        checkout: b.checkout,
+        notti: n,
+        adulti,
+        bambini: b.children || 0,
+        totale: totale / 100,
+        cityTax: cityTax / 100,
+        attesoCents: totale - cityTax,
+        atteso: (totale - cityTax) / 100,
+        attesoAltCents: totale,
+      });
+    }
   }
+
   prenotazioni.sort((a, b) => (a.checkout < b.checkout ? 1 : -1));
   return prenotazioni;
 }
@@ -493,9 +516,12 @@ export default {
       return json({ error: 'non autorizzato' }, 401);
     }
 
-    const oggi = giorno(new Date());
-    const dal = url.searchParams.get('dal') || oggi;
-    const al = url.searchParams.get('al') || oggi;
+    const adesso = new Date();
+    const oggi = giorno(adesso);
+    // esercizio in corso: si parte sempre dal 1 gennaio dell'anno corrente
+    const inizioAnno = `${adesso.getUTCFullYear()}-01-01`;
+    const dal = url.searchParams.get('dal') || inizioAnno;
+    const al = url.searchParams.get('al') || addGiorni(oggi, 30);
 
     try {
       if (url.pathname === '/debugls') {
