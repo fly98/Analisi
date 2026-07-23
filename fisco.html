@@ -134,6 +134,8 @@ button.act:disabled{opacity:.5}
 .card.fattura{border-left:4px solid var(--info)}
 .card.esclusa{border-left:4px solid var(--off);opacity:.72}
 .card.futura{border-left:4px solid var(--line)}
+.card.rt{border-left:4px solid #6d4c9f;opacity:.85}
+.p-rt{background:#efe9f8;color:#5b3f8a}
 .p-futura{background:var(--off-bg);color:var(--muted)}
 
 .row1{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
@@ -443,7 +445,7 @@ $('#cal-ok').onclick  = ()=>{
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = gg(dal)+' – '+gg(al)+' · v19';
+  $('#periodo').textContent = gg(dal)+' – '+gg(al)+' · v20';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -463,7 +465,7 @@ let FILTRO = 'tutte', QUERY = '';
 
 const STATI = [
   ['tutte','Tutte'], ['da_emettere','Da emettere'], ['emessa','Emesse'],
-  ['fattura','Fattura'], ['esclusa','Escluse'], ['futura','Non arrivati']
+  ['fattura','Fattura'], ['rt','Registratore'], ['esclusa','Escluse'], ['futura','Non arrivati']
 ];
 
 function righeFiltrate(){
@@ -490,6 +492,7 @@ function render(){
     <div class="kpi warn"><b>${r.daEmettere}</b><span>Da emettere</span></div>
     <div class="kpi ok"><b>${r.emesse}</b><span>Emesse</span></div>
     <div class="kpi"><b>${r.fattura}</b><span>Fattura</span></div>
+    <div class="kpi"><b>${r.registratore||0}</b><span>Registratore</span></div>
     <div class="kpi"><b>${r.escluse}</b><span>Escluse</span></div>`;
 
   $('#kpis-st').innerHTML = `
@@ -549,7 +552,7 @@ function badgeCamere(lista){
   }).join('') + '</span>';
 }
 
-const ETICHETTA = {emessa:'Emessa', da_emettere:'Da emettere', fattura:'Fattura', esclusa:'Esclusa', futura:'Non arrivato'};
+const ETICHETTA = {emessa:'Emessa', da_emettere:'Da emettere', fattura:'Fattura', esclusa:'Esclusa', futura:'Non arrivato', rt:'Registratore'};
 
 function riga(p){
   const doc = p.ricevuta;
@@ -581,7 +584,9 @@ function riga(p){
     </div>`;
   } else {
     azioni = `<div class="docinfo">
-      <span>${p.stato==='fattura'?'Segnata come fattura elettronica':'Nessuna ricevuta da emettere'}</span>
+      <span>${p.stato==='fattura'?'Segnata come fattura elettronica'
+        : p.stato==='rt' ? 'Certificata con registratore telematico'
+        : 'Nessuna ricevuta da emettere'}</span>
       <button class="ghost" style="font:inherit;font-size:12.5px;padding:5px 10px;border-radius:7px;border:1px solid var(--line);background:#fff;cursor:pointer"
         onclick="segna('${p.id}',null)">Riapri</button>
     </div>`;
