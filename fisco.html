@@ -210,9 +210,22 @@ async function api(path, opt={}){
     ...opt,
     headers:{'X-Token':TOKEN,'Content-Type':'application/json',...(opt.headers||{})}
   });
+  if(r.status === 401){
+    localStorage.removeItem('fisco_token');
+    TOKEN = '';
+    const e = new Error('Token non valido');
+    e.auth = true;
+    throw e;
+  }
   const d = await r.json();
   if(!r.ok || d.ok === false) throw new Error(d.error || ('HTTP '+r.status));
   return d;
+}
+
+window.chiediToken = function(){
+  const t = prompt('Token di accesso');
+  if(t){ TOKEN = t.trim(); localStorage.setItem('fisco_token', TOKEN); return true; }
+  return false;
 }
 
 /* ---------- periodo di default: ultimi 60 giorni fino a +30 ---------- */
@@ -226,12 +239,17 @@ function initDate(){
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = gg(dal)+' – '+gg(al);
+  $('#periodo').textContent = gg(dal)+' – '+gg(al)+' · v4';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
     render();
   }catch(e){
+    if(e.auth){
+      $('#lista').innerHTML = `<div class="empty">Serve il token di accesso.<br>
+        <button class="act" style="margin-top:12px" onclick="if(chiediToken())carica()">Inserisci token</button></div>`;
+      return;
+    }
     $('#lista').innerHTML = `<div class="empty">Non riesco a caricare i dati.<br><small>${e.message}</small></div>`;
   }
 }
@@ -380,10 +398,7 @@ $('#ricarica').onclick = carica;
 
 /* ---------- avvio ---------- */
 (async function(){
-  if(!TOKEN){
-    TOKEN = prompt('Token di accesso') || '';
-    if(TOKEN) localStorage.setItem('fisco_token', TOKEN);
-  }
+  if(!TOKEN) chiediToken();
   initDate();
   carica();
 })();
