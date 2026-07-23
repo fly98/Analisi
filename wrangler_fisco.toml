@@ -2,9 +2,10 @@ name = "fisco-worker"
 main = "fisco_worker.js"
 compatibility_date = "2025-01-01"
 
-# ogni mattina alle 10:00 italiane (8:00 UTC in ora legale)
+# 10:00 emissione automatica · 13:00 promemoria di cio che resta
+# (orari italiani in ora legale: UTC+2)
 [triggers]
-crons = ["0 8 * * *"]
+crons = ["0 8 * * *", "0 11 * * *"]
 
 [[services]]
 binding = "LS"
