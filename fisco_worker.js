@@ -1737,6 +1737,32 @@ export default {
         return json({ ok: true, prenotazione: pren.id, documento: res, stato: rec });
       }
 
+      if (url.pathname === '/emettiLibera' && request.method === 'POST') {
+        const body = await request.json();
+        const importo = Number(body.importo);
+        if (!importo || importo <= 0) return json({ ok: false, error: 'importo mancante' }, 400);
+
+        const finto = {
+          nome: body.nome || '',
+          checkin: body.checkin || '',
+          checkout: body.checkout || '',
+          atteso: importo,
+          cityTax: Number(body.cityTax || 0),
+        };
+        const descr =
+          (body.descrizione || '').trim() ||
+          (body.checkin && body.checkout ? descrizioneStandard(finto) : 'Soggiorno');
+
+        const res = await emettiDocumento(env, finto, {
+          pagamento: body.pagamento || 'PE',
+          aliquota: body.aliquota || '10',
+          descrizione: descr,
+          includiTassa: !!body.includiTassa,
+          cityTax: Number(body.cityTax || 0),
+        });
+        return json({ ok: true, documento: res, descrizione: descr });
+      }
+
       if (url.pathname === '/annulla' && request.method === 'POST') {
         const body = await request.json();
         if (!body.idtrx) return json({ ok: false, error: 'idtrx mancante' }, 400);
@@ -1822,7 +1848,7 @@ export default {
     return json(
       {
         error: 'endpoint sconosciuto',
-        disponibili: ['/health', '/infouser', '/dco', '/prenotazioni', '/riconcilia', '/elenco', '/stato', '/emetti', '/annulla', '/condividi', '/invia', '/rinnova', '/proposte', '/orfane', '/duplicati', '/automatico', '/r/{token}'],
+        disponibili: ['/health', '/infouser', '/dco', '/prenotazioni', '/riconcilia', '/elenco', '/stato', '/emetti', '/annulla', '/condividi', '/invia', '/rinnova', '/proposte', '/orfane', '/duplicati', '/automatico', '/emettiLibera', '/r/{token}'],
       },
       404
     );
