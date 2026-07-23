@@ -124,6 +124,13 @@ button.act:disabled{opacity:.5}
 .p-fattura{background:var(--info-bg);color:var(--info)}
 .p-esclusa{background:var(--off-bg);color:var(--off)}
 .canale{font-size:11px;color:var(--muted)}
+.camere{display:inline-flex;gap:3px;vertical-align:middle;margin-right:6px}
+.cam{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:21px;height:21px;border-radius:6px;font-size:11.5px;font-weight:700;color:#fff;
+  letter-spacing:-.2px
+}
+.cam.num{background:#fff;color:#41503a;border:1.5px solid #5c6b52}
 
 .actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
 .actions button{
@@ -395,7 +402,7 @@ $('#cal-ok').onclick  = ()=>{
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = gg(dal)+' – '+gg(al)+' · v5';
+  $('#periodo').textContent = gg(dal)+' – '+gg(al)+' · v6';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -437,6 +444,22 @@ function render(){
     </table>` : '<div class="empty">Nessuna ricevuta orfana.</div>';
 }
 
+const CAMERE = {
+  'Gialla':{l:'G',c:'#e0a92e'}, 'Marrone':{l:'M',c:'#7a5230'}, 'Rossa':{l:'R',c:'#b03a2e'},
+  'Verde':{l:'V',c:'#5c6b52'},  'Azzurra':{l:'A',c:'#5b8fb0'},
+  'Uno':{l:'1'}, 'Due':{l:'2'}, 'Tre':{l:'3'}, 'Quattro':{l:'4'}, 'Cinque':{l:'5'}
+};
+function badgeCamere(lista){
+  if(!lista || !lista.length) return '';
+  return '<span class="camere">' + lista.map(n=>{
+    const c = CAMERE[n];
+    if(!c) return `<span class="cam num" title="${n}">?</span>`;
+    return c.c
+      ? `<span class="cam" style="background:${c.c}" title="${n}">${c.l}</span>`
+      : `<span class="cam num" title="${n}">${c.l}</span>`;
+  }).join('') + '</span>';
+}
+
 const ETICHETTA = {emessa:'Emessa', da_emettere:'Da emettere', fattura:'Fattura', esclusa:'Esclusa', futura:'In corso'};
 
 function riga(p){
@@ -472,7 +495,7 @@ function riga(p){
   return `<div class="card ${p.stato}">
     <div class="row1">
       <div>
-        <div class="nome">${p.nome || 'Ospite senza nome'} <span class="pill p-${p.stato}">${ETICHETTA[p.stato]}</span></div>
+        <div class="nome">${badgeCamere(p.camere)}${p.nome || 'Ospite senza nome'} <span class="pill p-${p.stato}">${ETICHETTA[p.stato]}</span></div>
         <div class="meta">${gg(p.checkin)} → ${gg(p.checkout)} · ${p.notti} ${p.notti==1?'notte':'notti'} · ${p.adulti} ad.${p.bambini?' + '+p.bambini+' b.':''}
           <span class="canale">· ${p.canale||'—'}</span></div>
       </div>
