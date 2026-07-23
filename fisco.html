@@ -96,6 +96,27 @@ button.act{
 }
 button.act:disabled{opacity:.5}
 
+.filtri{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.cerca{position:relative}
+.cerca input{
+  width:100%;font:inherit;font-size:14.5px;padding:9px 32px 9px 12px;
+  border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--ink)
+}
+.cerca button{
+  position:absolute;right:6px;top:50%;transform:translateY(-50%);
+  border:0;background:transparent;color:var(--muted);font-size:17px;cursor:pointer;
+  padding:2px 6px;line-height:1
+}
+.stati{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;-webkit-overflow-scrolling:touch}
+.stati button{
+  flex:0 0 auto;font:inherit;font-size:12.5px;font-weight:600;padding:6px 12px;
+  border:1px solid var(--line);border-radius:999px;background:#fff;color:var(--muted);cursor:pointer;
+  white-space:nowrap
+}
+.stati button.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.stati button b{font-weight:700;margin-left:4px;opacity:.75}
+.conta{font-size:12.5px;color:var(--muted);margin:-4px 0 10px}
+
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr));gap:8px;margin-bottom:14px}
 .kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:10px}
 .kpi b{display:block;font-size:21px;font-variant-numeric:tabular-nums;letter-spacing:-.5px}
@@ -217,6 +238,14 @@ dialog::backdrop{background:rgba(10,25,45,.45)}
   <!-- VISTA OPERATIVA -->
   <section id="v-operativo">
     <div class="kpis" id="kpis"></div>
+    <div class="filtri">
+      <div class="cerca">
+        <input type="search" id="q" placeholder="Cerca nome, camera, data o importo" autocomplete="off">
+        <button type="button" id="q-x" title="Pulisci">×</button>
+      </div>
+      <div class="stati" id="stati"></div>
+    </div>
+    <div class="conta" id="conta"></div>
     <div id="lista"><div class="loading">Caricamento…</div></div>
   </section>
 
@@ -407,7 +436,7 @@ $('#cal-ok').onclick  = ()=>{
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = gg(dal)+' – '+gg(al)+' · v15';
+  $('#periodo').textContent = gg(dal)+' – '+gg(al)+' · v16';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -423,6 +452,30 @@ async function carica(){
 }
 
 /* ---------- render ---------- */
+let FILTRO = 'tutte', QUERY = '';
+
+const STATI = [
+  ['tutte','Tutte'], ['da_emettere','Da emettere'], ['emessa','Emesse'],
+  ['fattura','Fattura'], ['esclusa','Escluse'], ['futura','Non arrivati']
+];
+
+function righeFiltrate(){
+  if(!DATI) return [];
+  const q = QUERY.trim().toLowerCase();
+  return DATI.righe.filter(p => {
+    if(FILTRO !== 'tutte' && p.stato !== FILTRO) return false;
+    if(!q) return true;
+    const campi = [
+      p.nome, p.canale, (p.camere||[]).join(' '),
+      p.checkin, p.checkout, gg(p.checkin), gg(p.checkout),
+      dataIt(p.checkin), dataIt(p.checkout),
+      String(p.atteso.toFixed(2)).replace('.', ','),
+      p.ricevuta ? p.ricevuta.numero : ''
+    ].join(' ').toLowerCase();
+    return q.split(/\s+/).every(t => campi.includes(t));
+  });
+}
+
 function render(){
   if(!DATI) return;
   const r = DATI.riepilogo;
@@ -439,9 +492,28 @@ function render(){
     <div class="kpi warn"><b>${r.daEmettere}</b><span>Scoperte</span></div>
     <div class="kpi"><b>${r.ricevuteOrfane}</b><span>Orfane</span></div>`;
 
-  $('#lista').innerHTML = DATI.righe.length
-    ? DATI.righe.map(riga).join('')
-    : '<div class="empty">Nessuna prenotazione nel periodo.</div>';
+  // conteggi per stato
+  const per = {};
+  for(const p of DATI.righe) per[p.stato] = (per[p.stato]||0)+1;
+  $('#stati').innerHTML = STATI
+    .filter(([k]) => k==='tutte' || per[k])
+    .map(([k,l]) => {
+      const n = k==='tutte' ? DATI.righe.length : per[k];
+      return `<button class="${FILTRO===k?'on':''}" data-s="${k}">${l}<b>${n}</b></button>`;
+    }).join('');
+  document.querySelectorAll('#stati button').forEach(b => b.onclick = ()=>{
+    FILTRO = b.dataset.s; render();
+  });
+
+  const righe = righeFiltrate();
+  const attivo = FILTRO!=='tutte' || QUERY.trim();
+  $('#conta').textContent = attivo
+    ? `${righe.length} di ${DATI.righe.length} prenotazioni`
+    : '';
+
+  $('#lista').innerHTML = righe.length
+    ? righe.map(riga).join('')
+    : `<div class="empty">${attivo ? 'Nessun risultato con questi filtri.' : 'Nessuna prenotazione nel periodo.'}</div>`;
 
   $('#orfane').innerHTML = DATI.orfane.length ? `<table>
     <tr><th>Numero</th><th>Data</th><th style="text-align:right">Importo</th></tr>
@@ -695,6 +767,13 @@ window.annulla = async (id, idtrx) => {
 };
 
 /* ---------- tabs ---------- */
+let tmr;
+$('#q').addEventListener('input', e => {
+  clearTimeout(tmr);
+  tmr = setTimeout(()=>{ QUERY = e.target.value; render(); }, 180);
+});
+$('#q-x').onclick = ()=>{ $('#q').value=''; QUERY=''; render(); };
+
 document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
   document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
   t.classList.add('on');
