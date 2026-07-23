@@ -167,11 +167,34 @@ async function login(env, log) {
 
   const authRes = await fetch(AUTH_URL, {
     method: 'POST',
-    headers: { ...apiHeaders, Cookie: jar.header() },
+    headers: {
+      ...apiHeaders,
+      Cookie: jar.header(),
+      Origin: IAM,
+      Referer: IAM + '/sam/UI/Login',
+    },
     body: JSON.stringify(challenge),
   });
   jar.absorb(authRes);
-  const authData = await authRes.json();
+
+  const authText = await authRes.text();
+  let authData;
+  try {
+    authData = JSON.parse(authText);
+  } catch {
+    // risposta HTML: tipicamente 401 = credenziali rifiutate
+    if (authRes.status === 401) {
+      throw new Error(
+        'Credenziali rifiutate dall\'AdE (HTTP 401). Verifica codice fiscale, ' +
+          'password e PIN. Causa piu frequente: password Fisconline scaduta ' +
+          '(scade ogni 90 giorni) e da rigenerare.'
+      );
+    }
+    throw new Error(
+      `Risposta non JSON dall'IAM (HTTP ${authRes.status}): ` +
+        authText.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 200)
+    );
+  }
 
   if (!authData.tokenId) {
     const msg = authData.message || JSON.stringify(authData).slice(0, 250);
