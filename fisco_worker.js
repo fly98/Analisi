@@ -130,48 +130,6 @@ async function datacash(env, path, payload, riprova = true) {
   return data;
 }
 
-// "23/07/2026 12:37:41" -> Date
-function parseItDate(str) {
-  const m = String(str).match(
-    /(\d{2})\/(\d{2})\/(\d{4})(?:[ T](\d{2}):(\d{2}):(\d{2}))?/
-  );
-  if (!m) return null;
-  const [, d, mo, y, hh = '00', mi = '00', ss = '00'] = m;
-  return new Date(`${y}-${mo}-${d}T${hh}:${mi}:${ss}Z`);
-}
-
-/* ---------------------------------------------------------------- */
-/* DataCash                                                          */
-/* ---------------------------------------------------------------- */
-function credenziali(env) {
-  const raw = (env.ADE_CRED_ENC || '').trim();
-  return raw.includes('\\n') ? raw.replace(/\\n/g, '\n') : raw;
-}
-
-async function datacash(env, path, payload) {
-  const res = await fetch(DC_BASE + path, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Datacash-Key': env.DATACASH_KEY,
-      Accept: 'application/json',
-    },
-    body: JSON.stringify({ ade_credentials_encrypted: credenziali(env), ...payload }),
-  });
-  const text = await res.text();
-  let data;
-  try {
-    data = JSON.parse(text);
-  } catch {
-    throw new Error(`DataCash ${path} HTTP ${res.status}: ${text.slice(0, 200)}`);
-  }
-  if (!res.ok) {
-    const msg = data?.errore?.descrizione || data.message || JSON.stringify(data);
-    throw new Error(`DataCash ${path} HTTP ${res.status}: ${String(msg).slice(0, 200)}`);
-  }
-  return data;
-}
-
 // l'API accetta al massimo 31 giorni per chiamata: spezzo in blocchi
 async function fetchRicevute(env, dal, al) {
   // l'API DataCash accetta al massimo 31 giorni: spezzo in blocchi paralleli
