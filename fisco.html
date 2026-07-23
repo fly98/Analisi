@@ -46,7 +46,43 @@ h1{margin:0;font-size:17px;font-weight:650;letter-spacing:-.2px}
 .tab.on{background:#fff;color:var(--ink)}
 main{padding:12px;max-width:1100px;margin:0 auto}
 
-.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.seg{display:inline-flex;background:#e2e7ef;border-radius:9px;padding:2px}
+.seg button{
+  font:inherit;font-size:13px;font-weight:600;padding:6px 14px;border:0;border-radius:7px;
+  background:transparent;color:var(--muted);cursor:pointer
+}
+.seg button.on{background:#fff;color:var(--ink);box-shadow:0 1px 2px rgba(18,40,63,.12)}
+.ctx{display:flex;align-items:center;gap:6px}
+.ctx button{
+  font:inherit;font-size:13.5px;font-weight:600;padding:7px 12px;border:1px solid var(--line);
+  border-radius:8px;background:#fff;color:var(--ink);cursor:pointer
+}
+.ctx .nav{padding:7px 10px;font-size:15px;line-height:1}
+.ctx .lbl{min-width:130px;text-align:center}
+.ctx .info{font-size:13px;color:var(--muted)}
+
+/* calendario a selezione intervallo */
+.cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.cal-head button{
+  font:inherit;font-size:16px;padding:4px 12px;border:1px solid var(--line);border-radius:8px;
+  background:#fff;cursor:pointer;line-height:1.2
+}
+.cal-head span{font-weight:650;font-size:14.5px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cal-grid .dow{
+  font-size:10.5px;color:var(--muted);text-align:center;padding:4px 0;font-weight:650;
+  text-transform:uppercase;letter-spacing:.3px
+}
+.cal-grid button{
+  font:inherit;font-size:13px;aspect-ratio:1;border:0;border-radius:7px;background:#fff;
+  color:var(--ink);cursor:pointer;padding:0
+}
+.cal-grid button.vuoto{background:transparent;cursor:default}
+.cal-grid button.dentro{background:var(--info-bg);border-radius:0}
+.cal-grid button.bordo{background:var(--ink);color:#fff;font-weight:650}
+.cal-grid button.oggi{box-shadow:inset 0 0 0 1.5px var(--info)}
+.cal-sel{font-size:12.5px;color:var(--muted);margin-top:10px;text-align:center}
 .bar input[type=date]{
   font:inherit;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink)
 }
@@ -157,9 +193,14 @@ dialog::backdrop{background:rgba(10,25,45,.45)}
 
 <main>
   <div class="bar">
-    <input type="date" id="dal"><input type="date" id="al">
-    <button class="act" id="ricarica">Aggiorna</button>
+    <div class="seg" id="seg">
+      <button data-mode="mese" class="on">Mese</button>
+      <button data-mode="range">Periodo</button>
+      <button data-mode="tutto">Tutto</button>
+    </div>
+    <div class="ctx" id="ctx"></div>
   </div>
+  <input type="hidden" id="dal"><input type="hidden" id="al">
 
   <!-- VISTA OPERATIVA -->
   <section id="v-operativo">
@@ -174,6 +215,24 @@ dialog::backdrop{background:rgba(10,25,45,.45)}
     <div id="orfane"></div>
   </section>
 </main>
+
+<dialog id="cal">
+  <div class="dlg">
+    <h3>Scegli il periodo</h3>
+    <p>Tocca il primo giorno, poi l’ultimo.</p>
+    <div class="cal-head">
+      <button type="button" id="cal-prev">‹</button>
+      <span id="cal-mese"></span>
+      <button type="button" id="cal-next">›</button>
+    </div>
+    <div class="cal-grid" id="cal-grid"></div>
+    <div class="cal-sel" id="cal-sel"></div>
+    <div class="btns">
+      <button type="button" id="cal-no">Annulla</button>
+      <button type="button" class="primary" id="cal-ok">Applica</button>
+    </div>
+  </div>
+</dialog>
 
 <dialog id="dlg">
   <form method="dialog" class="dlg">
@@ -228,18 +287,115 @@ window.chiediToken = function(){
   return false;
 }
 
-/* ---------- periodo di default: ultimi 60 giorni fino a +30 ---------- */
-function initDate(){
-  // esercizio in corso: dal 1 gennaio a oggi
-  const oggi = new Date();
-  $('#dal').value = oggi.getFullYear() + '-01-01';
-  $('#al').value  = oggi.toISOString().slice(0,10);
+/* ---------- selettore periodo ---------- */
+const MESI = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno',
+              'Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+let MODE = 'mese';
+let meseSel = new Date().getMonth();
+let annoSel = new Date().getFullYear();
+
+const iso = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+const oggiIso = () => iso(new Date());
+
+function applicaMese(){
+  const primo = new Date(annoSel, meseSel, 1);
+  const ultimo = new Date(annoSel, meseSel+1, 0);
+  $('#dal').value = iso(primo);
+  // non ha senso chiedere oltre oggi
+  $('#al').value = iso(ultimo) > oggiIso() ? oggiIso() : iso(ultimo);
 }
+
+function applicaTutto(){
+  $('#dal').value = new Date().getFullYear() + '-01-01';
+  $('#al').value = oggiIso();
+}
+
+function renderCtx(){
+  const c = $('#ctx');
+  if(MODE === 'mese'){
+    c.innerHTML = `<button class="nav" id="m-prev">‹</button>
+      <button class="lbl" id="m-lbl">${MESI[meseSel]} ${annoSel}</button>
+      <button class="nav" id="m-next">›</button>`;
+    $('#m-prev').onclick = ()=>{ if(--meseSel<0){meseSel=11;annoSel--;} applicaMese(); renderCtx(); carica(); };
+    $('#m-next').onclick = ()=>{ if(++meseSel>11){meseSel=0;annoSel++;} applicaMese(); renderCtx(); carica(); };
+    $('#m-lbl').onclick = ()=>{ const o=new Date(); meseSel=o.getMonth(); annoSel=o.getFullYear(); applicaMese(); renderCtx(); carica(); };
+  } else if(MODE === 'range'){
+    c.innerHTML = `<button id="r-apri">${gg($('#dal').value)} → ${gg($('#al').value)}</button>`;
+    $('#r-apri').onclick = apriCalendario;
+  } else {
+    c.innerHTML = `<span class="info">Dal 1 gennaio a oggi</span>`;
+  }
+}
+
+document.querySelectorAll('#seg button').forEach(b => b.onclick = ()=>{
+  document.querySelectorAll('#seg button').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on');
+  MODE = b.dataset.mode;
+  if(MODE === 'mese'){ applicaMese(); renderCtx(); carica(); }
+  else if(MODE === 'tutto'){ applicaTutto(); renderCtx(); carica(); }
+  else { renderCtx(); apriCalendario(); }
+});
+
+/* ---------- calendario a intervallo ---------- */
+let calMese, calAnno, calDa = null, calA = null;
+
+function apriCalendario(){
+  const base = $('#dal').value ? new Date($('#dal').value+'T12:00:00') : new Date();
+  calMese = base.getMonth(); calAnno = base.getFullYear();
+  calDa = $('#dal').value || null;
+  calA  = $('#al').value || null;
+  disegnaCal();
+  $('#cal').showModal();
+}
+
+function disegnaCal(){
+  $('#cal-mese').textContent = `${MESI[calMese]} ${calAnno}`;
+  const primo = new Date(calAnno, calMese, 1);
+  const giorni = new Date(calAnno, calMese+1, 0).getDate();
+  const offset = (primo.getDay() + 6) % 7; // lunedi = 0
+
+  let html = ['L','M','M','G','V','S','D'].map(d=>`<div class="dow">${d}</div>`).join('');
+  for(let i=0;i<offset;i++) html += '<button class="vuoto" disabled></button>';
+
+  for(let g=1; g<=giorni; g++){
+    const d = iso(new Date(calAnno, calMese, g));
+    let cls = '';
+    if(calDa && calA && d > calDa && d < calA) cls = 'dentro';
+    if(d === calDa || d === calA) cls = 'bordo';
+    if(d === oggiIso()) cls += ' oggi';
+    html += `<button class="${cls}" data-d="${d}">${g}</button>`;
+  }
+  $('#cal-grid').innerHTML = html;
+
+  $('#cal-grid').querySelectorAll('button[data-d]').forEach(b => b.onclick = ()=>{
+    const d = b.dataset.d;
+    if(!calDa || (calDa && calA)){ calDa = d; calA = null; }
+    else if(d < calDa){ calA = calDa; calDa = d; }
+    else { calA = d; }
+    disegnaCal();
+  });
+
+  $('#cal-sel').textContent = calDa
+    ? (calA ? `Dal ${gg(calDa)} al ${gg(calA)}` : `Inizio ${gg(calDa)} — scegli l\u2019ultimo giorno`)
+    : 'Nessun giorno selezionato';
+}
+
+$('#cal-prev').onclick = ()=>{ if(--calMese<0){calMese=11;calAnno--;} disegnaCal(); };
+$('#cal-next').onclick = ()=>{ if(++calMese>11){calMese=0;calAnno++;} disegnaCal(); };
+$('#cal-no').onclick  = ()=> $('#cal').close();
+$('#cal-ok').onclick  = ()=>{
+  if(!calDa) return;
+  $('#dal').value = calDa;
+  $('#al').value  = calA || calDa;
+  $('#cal').close();
+  renderCtx();
+  carica();
+};
 
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = gg(dal)+' – '+gg(al)+' · v4';
+  $('#periodo').textContent = gg(dal)+' – '+gg(al)+' · v5';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -394,12 +550,12 @@ document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
   $('#v-storico').classList.toggle('hidden', VIEW!=='storico');
 });
 
-$('#ricarica').onclick = carica;
 
 /* ---------- avvio ---------- */
 (async function(){
   if(!TOKEN) chiediToken();
-  initDate();
+  applicaMese();
+  renderCtx();
   carica();
 })();
 </script>
