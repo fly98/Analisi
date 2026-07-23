@@ -550,23 +550,71 @@ async function creaLink(env, idtrx, nome) {
   return token;
 }
 
-function testoInvio(pren, link, lingua) {
-  const it = lingua === 'IT' || (pren.telefono || '').startsWith('+39');
-  if (it) {
-    return {
-      oggetto: 'La sua ricevuta - InternoUno',
-      testo:
-        `Gentile ${pren.nome},\n\ndi seguito la ricevuta del suo soggiorno ` +
-        `dal ${dataIt(pren.checkin)} al ${dataIt(pren.checkout)}:\n${link}\n\n` +
-        `Grazie per aver scelto InternoUno.`,
-    };
+// Lingua dedotta dal prefisso telefonico: il campo language di Amenitiz
+// non e' affidabile (stessa logica usata in arrivi.html)
+function linguaDa(telefono, dichiarata) {
+  const t = String(telefono || '').replace(/[^0-9+]/g, '');
+  const p = [
+    ['IT', ['+39']],
+    ['ES', ['+34', '+52', '+54', '+56', '+57', '+58', '+51', '+591', '+593', '+595', '+598']],
+    ['FR', ['+33', '+32', '+352']],
+    ['PT', ['+351', '+55']],
+    ['DE', ['+49', '+43', '+41']],
+    ['ZH', ['+86', '+852', '+853', '+886']],
+  ];
+  for (const [lang, prefissi] of p) {
+    if (prefissi.some((x) => t.startsWith(x))) return lang;
   }
-  return {
+  const d = String(dichiarata || '').toUpperCase();
+  if (['IT', 'EN', 'ES', 'FR', 'DE', 'PT', 'ZH'].includes(d)) return d;
+  return 'EN';
+}
+
+const MESSAGGI = {
+  IT: {
+    oggetto: 'La sua ricevuta - InternoUno',
+    corpo: (n, d1, d2, l) =>
+      `Gentile ${n},\n\ndi seguito la ricevuta del suo soggiorno dal ${d1} al ${d2}:\n${l}\n\nGrazie per aver scelto InternoUno.`,
+  },
+  EN: {
     oggetto: 'Your receipt - InternoUno',
-    testo:
-      `Dear ${pren.nome},\n\nhere is the receipt for your stay ` +
-      `from ${dataIt(pren.checkin)} to ${dataIt(pren.checkout)}:\n${link}\n\n` +
-      `Thank you for choosing InternoUno.`,
+    corpo: (n, d1, d2, l) =>
+      `Dear ${n},\n\nhere is the receipt for your stay from ${d1} to ${d2}:\n${l}\n\nThank you for choosing InternoUno.`,
+  },
+  ES: {
+    oggetto: 'Su recibo - InternoUno',
+    corpo: (n, d1, d2, l) =>
+      `Estimado/a ${n},\n\na continuación el recibo de su estancia del ${d1} al ${d2}:\n${l}\n\nGracias por elegir InternoUno.`,
+  },
+  FR: {
+    oggetto: 'Votre reçu - InternoUno',
+    corpo: (n, d1, d2, l) =>
+      `Cher/Chère ${n},\n\nvoici le reçu de votre séjour du ${d1} au ${d2} :\n${l}\n\nMerci d'avoir choisi InternoUno.`,
+  },
+  DE: {
+    oggetto: 'Ihre Quittung - InternoUno',
+    corpo: (n, d1, d2, l) =>
+      `Sehr geehrte/r ${n},\n\nhier ist die Quittung für Ihren Aufenthalt vom ${d1} bis ${d2}:\n${l}\n\nVielen Dank, dass Sie sich für InternoUno entschieden haben.`,
+  },
+  PT: {
+    oggetto: 'O seu recibo - InternoUno',
+    corpo: (n, d1, d2, l) =>
+      `Caro/a ${n},\n\nsegue o recibo da sua estadia de ${d1} a ${d2}:\n${l}\n\nObrigado por escolher InternoUno.`,
+  },
+  ZH: {
+    oggetto: '您的收据 - InternoUno',
+    corpo: (n, d1, d2, l) =>
+      `尊敬的 ${n}：\n\n以下是您 ${d1} 至 ${d2} 住宿的收据：\n${l}\n\n感谢您选择 InternoUno。`,
+  },
+};
+
+function testoInvio(pren, link, lingua) {
+  const lang = linguaDa(pren.telefono, lingua || pren.lingua);
+  const m = MESSAGGI[lang] || MESSAGGI.EN;
+  return {
+    lingua: lang,
+    oggetto: m.oggetto,
+    testo: m.corpo(pren.nome || '', dataIt(pren.checkin), dataIt(pren.checkout), link),
   };
 }
 
@@ -675,7 +723,7 @@ export default {
         const link = `${url.origin}/r/${token}`;
         const msg = testoInvio(body, link, body.lingua);
         const esito = await inviaEmail(env, body.email, msg.oggetto, msg.testo);
-        return json({ ok: true, link, esito });
+        return json({ ok: true, link, lingua: msg.lingua, esito });
       }
 
       if (url.pathname === '/elenco') {
