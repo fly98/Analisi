@@ -180,11 +180,23 @@ async function fetchRicevute(env, dal, al) {
   const vendite = unici.filter((d) => d.tipo === 'V');
   const rettifiche = unici.filter((d) => d.tipo !== 'V');
 
+  // annulli eseguiti dall'app: so con certezza quale documento hanno colpito
+  const registrate = await leggiAnnullate(env);
+  let daCompensare = rettifiche.length;
+  for (const v of vendite) {
+    if (registrate.includes(String(v.id))) {
+      v.annullata = true;
+      v.annullataDa = 'annullo registrato';
+      daCompensare--;
+    }
+  }
+
   // dalla piu' vecchia alla piu' recente, per abbinare in ordine
   const venditeCron = [...vendite].sort((a, b) => (a.data > b.data ? 1 : -1));
   const rettCron = [...rettifiche].sort((a, b) => (a.data > b.data ? 1 : -1));
 
   for (const r of rettCron) {
+    if (daCompensare <= 0) break; // gia' coperti dagli annulli registrati
     // la vendita annullata e' quella di pari importo piu' vicina nel tempo
     let scelta = null;
     for (const v of venditeCron) {
@@ -197,6 +209,7 @@ async function fetchRicevute(env, dal, al) {
       scelta.annullata = true;
       scelta.annullataDa = r.numero;
       r.annulla = scelta.numero;
+      daCompensare--;
     }
   }
 
@@ -677,8 +690,29 @@ async function emettiDocumento(env, pren, opzioni = {}) {
   return { ...res, totale };
 }
 
+const CHIAVE_ANNULLATE = 'fisco:annullate';
+
+async function leggiAnnullate(env) {
+  if (!env.FISCO_KV) return [];
+  try {
+    return (await env.FISCO_KV.get(CHIAVE_ANNULLATE, 'json')) || [];
+  } catch {
+    return [];
+  }
+}
+
 async function annullaDocumento(env, idtrx) {
-  return datacash(env, `/voidDocument/${idtrx}/`, {});
+  const res = await datacash(env, `/voidDocument/${idtrx}/`, {});
+  // tengo traccia: con piu' ricevute di pari importo non sarebbe
+  // possibile capire quale e' stata annullata
+  if (env.FISCO_KV) {
+    const lista = await leggiAnnullate(env);
+    if (!lista.includes(String(idtrx))) {
+      lista.push(String(idtrx));
+      await env.FISCO_KV.put(CHIAVE_ANNULLATE, JSON.stringify(lista));
+    }
+  }
+  return res;
 }
 
 /* ---------------------------------------------------------------- */
