@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#12283f">
+<title>Ricevute · InternoUno</title>
+<style>
+:root{
+  --bg:#eef1f5;
+  --surface:#fff;
+  --ink:#12283f;
+  --muted:#657896;
+  --line:#dde3ec;
+  --ok:#0d6e5e;
+  --ok-bg:#e3f3ef;
+  --warn:#9a5b00;
+  --warn-bg:#fdf0dc;
+  --info:#2b4f8e;
+  --info-bg:#e8eefb;
+  --off:#6b7280;
+  --off-bg:#eceef1;
+  --danger:#b42318;
+  --radius:12px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{
+  margin:0;background:var(--bg);color:var(--ink);
+  font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+header{
+  background:var(--ink);color:#fff;padding:14px 16px calc(14px);
+  padding-top:calc(14px + env(safe-area-inset-top));
+  position:sticky;top:0;z-index:20;
+}
+.htop{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+h1{margin:0;font-size:17px;font-weight:650;letter-spacing:-.2px}
+.sub{font-size:12px;color:#9db2cd}
+.tabs{display:flex;gap:4px;margin-top:12px}
+.tab{
+  flex:1;padding:8px;border:0;border-radius:8px;font:inherit;font-size:13px;font-weight:600;
+  background:rgba(255,255,255,.1);color:#c3d2e6;cursor:pointer;
+}
+.tab.on{background:#fff;color:var(--ink)}
+main{padding:12px;max-width:1100px;margin:0 auto}
+
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.bar input[type=date]{
+  font:inherit;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink)
+}
+button.act{
+  font:inherit;font-weight:600;padding:8px 14px;border:0;border-radius:8px;
+  background:var(--ink);color:#fff;cursor:pointer
+}
+button.act:disabled{opacity:.5}
+
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr));gap:8px;margin-bottom:14px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:10px}
+.kpi b{display:block;font-size:21px;font-variant-numeric:tabular-nums;letter-spacing:-.5px}
+.kpi span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+.kpi.warn b{color:var(--warn)} .kpi.ok b{color:var(--ok)}
+
+.card{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+  padding:12px;margin-bottom:8px;
+}
+.card.da_emettere{border-left:4px solid var(--warn)}
+.card.emessa{border-left:4px solid var(--ok)}
+.card.fattura{border-left:4px solid var(--info)}
+.card.esclusa{border-left:4px solid var(--off);opacity:.72}
+
+.row1{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.nome{font-weight:650;font-size:15px}
+.meta{font-size:12.5px;color:var(--muted);margin-top:2px}
+.eur{font-variant-numeric:tabular-nums;font-weight:650;font-size:16px;white-space:nowrap}
+.eur small{display:block;font-weight:400;font-size:11px;color:var(--muted);text-align:right}
+
+.pill{
+  display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:650;
+  letter-spacing:.2px;vertical-align:middle
+}
+.p-emessa{background:var(--ok-bg);color:var(--ok)}
+.p-da_emettere{background:var(--warn-bg);color:var(--warn)}
+.p-fattura{background:var(--info-bg);color:var(--info)}
+.p-esclusa{background:var(--off-bg);color:var(--off)}
+.canale{font-size:11px;color:var(--muted)}
+
+.actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.actions button{
+  font:inherit;font-size:13px;font-weight:600;padding:7px 11px;border-radius:8px;cursor:pointer;
+  border:1px solid var(--line);background:#fff;color:var(--ink)
+}
+.actions button.primary{background:var(--ok);border-color:var(--ok);color:#fff}
+.actions button.ghost{color:var(--muted)}
+.actions button.danger{color:var(--danger);border-color:#f0c9c5}
+.docinfo{
+  margin-top:8px;font-size:12.5px;color:var(--muted);
+  display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap
+}
+.docinfo code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--ink)}
+
+.empty{text-align:center;padding:38px 16px;color:var(--muted)}
+.loading{text-align:center;padding:30px;color:var(--muted)}
+.hidden{display:none}
+
+table{width:100%;border-collapse:collapse;background:#fff;border-radius:var(--radius);overflow:hidden}
+th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line);font-size:13.5px}
+th{background:#f7f9fc;font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+
+dialog{
+  border:0;border-radius:14px;padding:0;max-width:400px;width:92%;
+  box-shadow:0 18px 50px rgba(10,25,45,.28)
+}
+dialog::backdrop{background:rgba(10,25,45,.45)}
+.dlg{padding:18px}
+.dlg h3{margin:0 0 4px;font-size:16px}
+.dlg p{margin:0 0 14px;font-size:13.5px;color:var(--muted)}
+.dlg label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin:10px 0 4px}
+.dlg input,.dlg select{
+  width:100%;font:inherit;padding:9px;border:1px solid var(--line);border-radius:8px;background:#fff
+}
+.dlg .btns{display:flex;gap:8px;margin-top:16px}
+.dlg .btns button{flex:1;font:inherit;font-weight:600;padding:10px;border-radius:8px;cursor:pointer;border:1px solid var(--line);background:#fff}
+.dlg .btns button.primary{background:var(--ok);color:#fff;border-color:var(--ok)}
+
+#toast{
+  position:fixed;left:50%;transform:translateX(-50%);bottom:24px;z-index:99;
+  background:var(--ink);color:#fff;padding:11px 16px;border-radius:10px;font-size:13.5px;
+  box-shadow:0 8px 24px rgba(0,0,0,.25);opacity:0;pointer-events:none;transition:opacity .2s
+}
+#toast.show{opacity:1}
+#toast.err{background:var(--danger)}
+
+@media(min-width:760px){
+  .row1{align-items:center}
+  .card{padding:14px 16px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="htop">
+    <h1>Ricevute · InternoUno</h1>
+    <span class="sub" id="periodo"></span>
+  </div>
+  <div class="tabs">
+    <button class="tab on" data-view="operativo">Prenotazioni</button>
+    <button class="tab" data-view="storico">Match storico</button>
+  </div>
+</header>
+
+<main>
+  <div class="bar">
+    <input type="date" id="dal"><input type="date" id="al">
+    <button class="act" id="ricarica">Aggiorna</button>
+  </div>
+
+  <!-- VISTA OPERATIVA -->
+  <section id="v-operativo">
+    <div class="kpis" id="kpis"></div>
+    <div id="lista"><div class="loading">Caricamento…</div></div>
+  </section>
+
+  <!-- VISTA STORICO -->
+  <section id="v-storico" class="hidden">
+    <div class="kpis" id="kpis-st"></div>
+    <h3 style="font-size:14px;margin:16px 0 8px">Ricevute senza prenotazione</h3>
+    <div id="orfane"></div>
+  </section>
+</main>
+
+<dialog id="dlg">
+  <form method="dialog" class="dlg">
+    <h3 id="dlg-t"></h3>
+    <p id="dlg-p"></p>
+    <div id="dlg-body"></div>
+    <div class="btns">
+      <button value="no">Annulla</button>
+      <button value="si" class="primary" id="dlg-ok">Conferma</button>
+    </div>
+  </form>
+</dialog>
+
+<div id="toast"></div>
+
+<script>
+const API = 'https://fisco-worker.f-castiglioni.workers.dev';
+let TOKEN = localStorage.getItem('fisco_token') || '';
+let DATI = null, VIEW = 'operativo';
+
+const $ = s => document.querySelector(s);
+const eur = n => (n ?? 0).toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2}) + ' €';
+const gg = iso => iso ? iso.slice(8,10)+'/'+iso.slice(5,7) : '';
+
+function toast(msg, err){
+  const t = $('#toast');
+  t.textContent = msg;
+  t.className = 'show' + (err ? ' err' : '');
+  setTimeout(()=>t.className='', 3200);
+}
+
+async function api(path, opt={}){
+  const r = await fetch(API + path, {
+    ...opt,
+    headers:{'X-Token':TOKEN,'Content-Type':'application/json',...(opt.headers||{})}
+  });
+  const d = await r.json();
+  if(!r.ok || d.ok === false) throw new Error(d.error || ('HTTP '+r.status));
+  return d;
+}
+
+/* ---------- periodo di default: ultimi 60 giorni fino a +30 ---------- */
+function initDate(){
+  const oggi = new Date();
+  const a = new Date(oggi); a.setDate(a.getDate()+30);
+  const d = new Date(oggi); d.setDate(d.getDate()-60);
+  $('#dal').value = d.toISOString().slice(0,10);
+  $('#al').value  = a.toISOString().slice(0,10);
+}
+
+/* ---------- caricamento ---------- */
+async function carica(){
+  const dal = $('#dal').value, al = $('#al').value;
+  $('#periodo').textContent = gg(dal)+' – '+gg(al);
+  $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
+  try{
+    DATI = await api(`/elenco?dal=${dal}&al=${al}`);
+    render();
+  }catch(e){
+    $('#lista').innerHTML = `<div class="empty">Non riesco a caricare i dati.<br><small>${e.message}</small></div>`;
+  }
+}
+
+/* ---------- render ---------- */
+function render(){
+  if(!DATI) return;
+  const r = DATI.riepilogo;
+  $('#kpis').innerHTML = `
+    <div class="kpi warn"><b>${r.daEmettere}</b><span>Da emettere</span></div>
+    <div class="kpi ok"><b>${r.emesse}</b><span>Emesse</span></div>
+    <div class="kpi"><b>${r.fattura}</b><span>Fattura</span></div>
+    <div class="kpi"><b>${r.escluse}</b><span>Escluse</span></div>`;
+
+  $('#kpis-st').innerHTML = `
+    <div class="kpi"><b>${r.totali}</b><span>Prenotazioni</span></div>
+    <div class="kpi ok"><b>${r.emesse}</b><span>Abbinate</span></div>
+    <div class="kpi warn"><b>${r.daEmettere}</b><span>Scoperte</span></div>
+    <div class="kpi"><b>${r.ricevuteOrfane}</b><span>Orfane</span></div>`;
+
+  $('#lista').innerHTML = DATI.righe.length
+    ? DATI.righe.map(riga).join('')
+    : '<div class="empty">Nessuna prenotazione nel periodo.</div>';
+
+  $('#orfane').innerHTML = DATI.orfane.length ? `<table>
+    <tr><th>Numero</th><th>Data</th><th style="text-align:right">Importo</th></tr>
+    ${DATI.orfane.map(o=>`<tr><td><code>${o.numero}</code></td><td>${o.data}</td><td class="num">${eur(o.importo)}</td></tr>`).join('')}
+    </table>` : '<div class="empty">Nessuna ricevuta orfana.</div>';
+}
+
+const ETICHETTA = {emessa:'Emessa', da_emettere:'Da emettere', fattura:'Fattura', esclusa:'Esclusa'};
+
+function riga(p){
+  const doc = p.ricevuta;
+  let azioni = '';
+  if(p.stato === 'da_emettere'){
+    azioni = `<div class="actions">
+      <button class="primary" onclick="apriEmissione('${p.id}')">Emetti ricevuta</button>
+      <button onclick="segna('${p.id}','fattura')">Segue fattura</button>
+      <button class="ghost" onclick="segna('${p.id}','esclusa')">Non emettere</button>
+    </div>`;
+  } else if(p.stato === 'emessa'){
+    azioni = `<div class="docinfo">
+      <span>${doc ? 'Ricevuta <code>'+(doc.numero||'—')+'</code>' : ''}
+        ${p.origine && p.origine.startsWith('match') ? '· abbinata automaticamente' : ''}</span>
+      ${doc && doc.id ? `<button class="danger" style="font:inherit;font-size:12.5px;font-weight:600;padding:5px 10px;border-radius:7px;border:1px solid #f0c9c5;background:#fff;cursor:pointer"
+        onclick="annulla('${p.id}','${doc.id}')">Annulla ricevuta</button>` : ''}
+    </div>`;
+  } else {
+    azioni = `<div class="docinfo">
+      <span>${p.stato==='fattura'?'Segnata come fattura elettronica':'Nessuna ricevuta da emettere'}</span>
+      <button class="ghost" style="font:inherit;font-size:12.5px;padding:5px 10px;border-radius:7px;border:1px solid var(--line);background:#fff;cursor:pointer"
+        onclick="segna('${p.id}',null)">Riapri</button>
+    </div>`;
+  }
+
+  return `<div class="card ${p.stato}">
+    <div class="row1">
+      <div>
+        <div class="nome">${p.nome || 'Ospite senza nome'} <span class="pill p-${p.stato}">${ETICHETTA[p.stato]}</span></div>
+        <div class="meta">${gg(p.checkin)} → ${gg(p.checkout)} · ${p.notti} ${p.notti==1?'notte':'notti'} · ${p.adulti} ad.${p.bambini?' + '+p.bambini+' b.':''}
+          <span class="canale">· ${p.canale||'—'}</span></div>
+      </div>
+      <div class="eur">${eur(p.atteso)}<small>tot ${eur(p.totale)} − tassa ${eur(p.cityTax)}</small></div>
+    </div>
+    ${azioni}
+  </div>`;
+}
+
+/* ---------- azioni ---------- */
+function dialogo(titolo, testo, corpo, okLabel){
+  $('#dlg-t').textContent = titolo;
+  $('#dlg-p').textContent = testo;
+  $('#dlg-body').innerHTML = corpo || '';
+  $('#dlg-ok').textContent = okLabel || 'Conferma';
+  const d = $('#dlg');
+  d.showModal();
+  return new Promise(res => d.addEventListener('close', ()=>res(d.returnValue==='si'), {once:true}));
+}
+
+window.apriEmissione = async (id) => {
+  const p = DATI.righe.find(x=>x.id===id);
+  const ok = await dialogo('Emetti ricevuta', `${p.nome} · ${gg(p.checkin)} → ${gg(p.checkout)}`,
+    `<label>Importo (camera, senza tassa di soggiorno)</label>
+     <input type="number" step="0.01" id="f-imp" value="${p.atteso.toFixed(2)}">
+     <label>Pagamento</label>
+     <select id="f-pag">
+       <option value="PE">Elettronico</option>
+       <option value="PC">Contanti</option>
+     </select>`, 'Emetti');
+  if(!ok) return;
+  const importo = parseFloat($('#f-imp').value);
+  const pagamento = $('#f-pag').value;
+  toast('Emissione in corso…');
+  try{
+    const r = await api('/emetti', {method:'POST', body: JSON.stringify({
+      id, importo, pagamento, dal:$('#dal').value, al:$('#al').value })});
+    toast('Ricevuta ' + (r.documento?.progressivo || 'emessa'));
+    carica();
+  }catch(e){ toast('Emissione non riuscita: '+e.message, true); }
+};
+
+window.segna = async (id, stato) => {
+  if(stato){
+    const t = stato==='fattura' ? 'Segue fattura elettronica' : 'Non emettere ricevuta';
+    const msg = stato==='fattura'
+      ? 'La prenotazione verrà chiusa: per questo soggiorno emetterai una fattura.'
+      : 'La prenotazione verrà chiusa senza emissione di ricevuta.';
+    if(!await dialogo(t, msg, '', 'Conferma')) return;
+  }
+  try{
+    await api('/stato', {method:'POST', body: JSON.stringify({id, stato})});
+    toast(stato ? 'Prenotazione chiusa' : 'Prenotazione riaperta');
+    carica();
+  }catch(e){ toast('Non riesco a salvare: '+e.message, true); }
+};
+
+window.annulla = async (id, idtrx) => {
+  if(!await dialogo('Annulla ricevuta',
+    'Il documento verrà annullato presso l\u2019Agenzia delle Entrate. L\u2019operazione non è reversibile.',
+    '', 'Annulla ricevuta')) return;
+  try{
+    await api('/annulla', {method:'POST', body: JSON.stringify({id, idtrx})});
+    toast('Ricevuta annullata');
+    carica();
+  }catch(e){ toast('Annullo non riuscito: '+e.message, true); }
+};
+
+/* ---------- tabs ---------- */
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+  t.classList.add('on');
+  VIEW = t.dataset.view;
+  $('#v-operativo').classList.toggle('hidden', VIEW!=='operativo');
+  $('#v-storico').classList.toggle('hidden', VIEW!=='storico');
+});
+
+$('#ricarica').onclick = carica;
+
+/* ---------- avvio ---------- */
+(async function(){
+  if(!TOKEN){
+    TOKEN = prompt('Token di accesso') || '';
+    if(TOKEN) localStorage.setItem('fisco_token', TOKEN);
+  }
+  initDate();
+  carica();
+})();
+</script>
+</body>
+</html>
