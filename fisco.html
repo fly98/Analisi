@@ -403,7 +403,7 @@ $('#cal-ok').onclick  = ()=>{
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = gg(dal)+' – '+gg(al)+' · v11';
+  $('#periodo').textContent = gg(dal)+' – '+gg(al)+' · v12';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -525,17 +525,38 @@ function dialogo(titolo, testo, corpo, okLabel){
   $('#dlg-ok').textContent = okLabel || 'Conferma';
   const d = $('#dlg');
   d.showModal();
+  if(document.getElementById('f-tot')){
+    const i = document.getElementById('f-imp');
+    if(i) i.oninput = window.aggiornaTot;
+    window.aggiornaTot();
+  }
   return new Promise(res => d.addEventListener('close', ()=>res(d.returnValue==='si'), {once:true}));
 }
+
+window.aggiornaTot = function(){
+  const imp = parseFloat($('#f-imp').value)||0;
+  const el = $('#f-tot');
+  if(!el) return;
+  const tassa = $('#f-tassa').checked ? (window._cityTax||0) : 0;
+  el.textContent = tassa
+    ? `Totale ricevuta ${eur(imp+tassa)} — soggiorno ${eur(imp)} + imposta ${eur(tassa)}`
+    : `Totale ricevuta ${eur(imp)}`;
+};
 
 window.apriEmissione = async (id) => {
   const p = DATI.righe.find(x=>x.id===id);
   const desc = p.descrizioneDefault || descrizioneStandard(p);
+  window._cityTax = p.cityTax || 0;
   const ok = await dialogo('Emetti ricevuta', `${p.nome} · ${gg(p.checkin)} → ${gg(p.checkout)}`,
     `<label>Descrizione sulla ricevuta</label>
      <textarea id="f-desc" rows="2">${desc.replace(/"/g,'&quot;')}</textarea>
-     <label>Importo (camera, senza tassa di soggiorno)</label>
+     <label>Importo soggiorno (IVA 10%)</label>
      <input type="number" step="0.01" id="f-imp" value="${p.atteso.toFixed(2)}">
+     <label style="display:flex;align-items:center;gap:8px;margin-top:12px;text-transform:none;font-size:13.5px;color:var(--ink)">
+       <input type="checkbox" id="f-tassa" style="width:auto;margin:0" onchange="aggiornaTot()">
+       Includi imposta di soggiorno (${eur(p.cityTax)}, fuori campo IVA)
+     </label>
+     <div id="f-tot" style="font-size:12.5px;color:var(--muted);margin-top:6px"></div>
      <label>Pagamento</label>
      <select id="f-pag">
        <option value="PE">Elettronico</option>
@@ -545,10 +566,12 @@ window.apriEmissione = async (id) => {
   const importo = parseFloat($('#f-imp').value);
   const pagamento = $('#f-pag').value;
   const descrizione = $('#f-desc').value.trim();
+  const includiTassa = $('#f-tassa').checked;
   toast('Emissione in corso…');
   try{
     const r = await api('/emetti', {method:'POST', body: JSON.stringify({
-      id, importo, pagamento, descrizione, dal:$('#dal').value, al:$('#al').value })});
+      id, importo, pagamento, descrizione, includiTassa, cityTax:p.cityTax,
+      dal:$('#dal').value, al:$('#al').value })});
     toast('Ricevuta ' + (r.documento?.progressivo || 'emessa'));
     carica();
   }catch(e){ toast('Emissione non riuscita: '+e.message, true); }
