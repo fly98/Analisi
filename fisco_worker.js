@@ -1473,6 +1473,34 @@ async function avvisaTelegram(env, testo) {
   }
 }
 
+// Riepilogo di meta' giornata: elenca i soggiorni conclusi di recente
+// che non hanno ancora un documento, cosi' li chiudo a mano.
+async function promemoriaTelegram(env, giornoRif) {
+  const oggi = giornoRif || giorno(new Date());
+  const dal = addGiorni(oggi, -3);
+  const dati = await elenco(env, addGiorni(dal, -45), oggi, MARGINE_RICEVUTE);
+
+  const aperte = dati.righe.filter(
+    (p) => p.checkout >= dal && p.checkout <= oggi && p.stato === 'da_emettere'
+  );
+  if (!aperte.length) return { inviato: false, aperte: 0 };
+
+  const tot = aperte.reduce((s, p) => s + p.atteso, 0);
+  const m = [];
+  m.push(`🧾 *Cassa · ${dataIt(oggi)}*`);
+  m.push('');
+  m.push(`⚠️ *${aperte.length} ricevut${aperte.length === 1 ? 'a' : 'e'} da emettere a mano* — ${tot.toFixed(2)} €`);
+  m.push('');
+  for (const p of aperte.slice(0, 15)) {
+    const cam = (p.camere || []).join('+');
+    m.push(`· ${p.nome || 'senza nome'} — ${cam} — ${p.atteso.toFixed(2)} € (${p.canale})`);
+  }
+  if (aperte.length > 15) m.push(`…e altre ${aperte.length - 15}`);
+
+  const ok = await avvisaTelegram(env, m.join('\n'));
+  return { inviato: ok, aperte: aperte.length, totale: Math.round(tot * 100) / 100 };
+}
+
 async function emissioneAutomatica(env, giornoRif, soloProva = false) {
   const oggi = giornoRif || giorno(new Date());
   // guardo i checkout degli ultimi giorni, per recuperare eventuali salti
@@ -1599,25 +1627,11 @@ async function emissioneAutomatica(env, giornoRif, soloProva = false) {
       /* il riepilogo è secondario rispetto all'emissione */
     }
 
-    // su Telegram avviso solo se resta qualcosa da fare a mano
-    if (esito.sospese.length || esito.errori.length) {
-      const m = [];
-      m.push(`🧾 *Cassa · ${dataIt(oggi)}*`);
-      m.push('');
-      if (esito.emesse.length) m.push(`✅ ${esito.emesse.length} ricevute emesse automaticamente`);
-      if (esito.sospese.length) {
-        m.push('');
-        m.push(`⚠️ *${esito.sospese.length} da emettere a mano:*`);
-        for (const s of esito.sospese.slice(0, 12)) {
-          m.push(`· ${s.nome || 'senza nome'} — ${s.motivo}`);
-        }
-        if (esito.sospese.length > 12) m.push(`…e altre ${esito.sospese.length - 12}`);
-      }
-      if (esito.errori.length) {
-        m.push('');
-        m.push(`❌ *${esito.errori.length} con errore:*`);
-        for (const e of esito.errori.slice(0, 5)) m.push(`· ${e.nome || e.id} — ${e.errore}`);
-      }
+    // gli errori li segnalo subito, il resto confluisce nel promemoria delle 13
+    if (esito.errori.length) {
+      const m = [`🧾 *Cassa · ${dataIt(oggi)}*`, ''];
+      m.push(`❌ *${esito.errori.length} emissioni non riuscite:*`);
+      for (const e of esito.errori.slice(0, 5)) m.push(`· ${e.nome || e.id} — ${e.errore}`);
       await avvisaTelegram(env, m.join('\n'));
     }
   }
@@ -1878,6 +1892,10 @@ export default {
         const prova = url.searchParams.get('prova') === '1';
         const g = url.searchParams.get('giorno') || null;
         return json({ ok: true, ...(await emissioneAutomatica(env, g, prova)) });
+      }
+
+      if (url.pathname === '/promemoria') {
+        return json({ ok: true, ...(await promemoriaTelegram(env, url.searchParams.get('giorno'))) });
       }
 
       if (url.pathname === '/ricostruisci' && request.method === 'POST') {
