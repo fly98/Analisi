@@ -494,7 +494,7 @@ $('#cal-ok').onclick  = ()=>{
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = gg(dal)+' – '+gg(al)+' · v35';
+  $('#periodo').textContent = gg(dal)+' – '+gg(al)+' · v36';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -932,6 +932,7 @@ function cardOrfana(o){
       <div class="meta" style="margin-top:8px">Nessuna prenotazione con importo compatibile.</div>
       <div class="azioni">
         <button onclick="cercaPrenotazione('${r.idtrx}')">Cerca prenotazione</button>
+        <button class="danger" onclick="annullaOrfana('${r.idtrx}','${r.numero}')">Annulla</button>
         <button onclick="saltaOrfana('${r.idtrx}')">Ignora</button>
       </div>
     </div>`;
@@ -957,6 +958,7 @@ function cardOrfana(o){
       <button class="ok" onclick="abbinaDaRicevuta('${r.idtrx}')">Abbina</button>
       <button onclick="cercaPrenotazione('${r.idtrx}')">Cerca altra</button>
       <button onclick="saltaOrfana('${r.idtrx}')">Nessuna</button>
+      <button class="danger" onclick="annullaOrfana('${r.idtrx}','${r.numero}')">Annulla</button>
     </div>
   </div>`;
 }
@@ -1006,6 +1008,21 @@ window.cercaPrenotazione = async (idtrx) => {
     toast(`${r.numero} → ${p.nome || 'senza nome'}`);
     DATI = null; PROP = null;
   }catch(e){ toast('Non riesco a salvare: '+e.message, true); }
+};
+
+window.annullaOrfana = async (idtrx, numero) => {
+  if(!await dialogo('Annulla ricevuta',
+    `${numero} verrà annullata presso l\u2019Agenzia delle Entrate. Controlla prima il documento: l\u2019operazione non è reversibile.`,
+    '', 'Annulla ricevuta')) return;
+  toast('Annullo in corso…');
+  try{
+    const r = await api('/annulla', {method:'POST', body: JSON.stringify({idtrx})});
+    toast(r.risposta && r.risposta.gia_annullato ? numero+' era già annullata' : numero+' annullata');
+    const el = document.getElementById('or-'+idtrx);
+    if(el) el.remove();
+    ORF.orfane = ORF.orfane.filter(x=>x.ricevuta.idtrx!==idtrx);
+    DATI = null; PROP = null;
+  }catch(e){ toast('Annullo non riuscito: '+e.message, true); }
 };
 
 window.saltaOrfana = (idtrx) => {
