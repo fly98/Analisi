@@ -1423,10 +1423,19 @@ export default {
         const body = await request.json();
         if (!body.id) return json({ ok: false, error: 'id prenotazione mancante' }, 400);
 
-        // recupero la prenotazione per avere importo e dati ospite
-        const pren = (await fetchPrenotazioni(env, body.dal || dal, body.al || al)).find(
-          (p) => p.id === String(body.id)
-        );
+        // recupero la prenotazione: se conosco l'arrivo cerco in una
+        // finestra stretta, altrimenti ricado sull'intero periodo
+        let pren = null;
+        if (body.checkin) {
+          const da = addGiorni(body.checkin, -2);
+          const a = addGiorni(body.checkin, 2);
+          pren = (await fetchPrenotazioni(env, da, a)).find((p) => p.id === String(body.id));
+        }
+        if (!pren) {
+          pren = (await fetchPrenotazioni(env, body.dal || dal, body.al || al)).find(
+            (p) => p.id === String(body.id)
+          );
+        }
         if (!pren) return json({ ok: false, error: 'prenotazione non trovata' }, 404);
 
         const importo = body.importo != null ? Number(body.importo) : pren.atteso;
