@@ -172,6 +172,12 @@ button.act:disabled{opacity:.5}
   display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap
 }
 .docinfo code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--ink)}
+.numdoc{
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13.5px;font-weight:600;
+  color:var(--info);background:none;border:0;padding:0;cursor:pointer;text-decoration:underline;
+  text-underline-offset:2px
+}
+.numdoc:active{opacity:.6}
 
 .prop{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:12px;margin-bottom:8px}
 .prop.alta{border-left:4px solid var(--ok)}
@@ -485,7 +491,7 @@ $('#cal-ok').onclick  = ()=>{
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = gg(dal)+' – '+gg(al)+' · v26';
+  $('#periodo').textContent = gg(dal)+' – '+gg(al)+' · v27';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -887,7 +893,7 @@ function cardOrfana(o){
     return `<div class="prop bassa" id="or-${r.idtrx}">
       <div class="prop-top">
         <div>
-          <div class="nome"><code>${r.numero}</code></div>
+          <button class="numdoc" onclick="vediPdf('${r.idtrx}')">${r.numero}</button>
           <div class="meta">emessa il ${r.data}</div>
         </div>
         <div class="eur">${eur(r.importo)}</div>
@@ -903,8 +909,8 @@ function cardOrfana(o){
   return `<div class="prop ${f}" id="or-${r.idtrx}">
     <div class="prop-top">
       <div>
-        <div class="nome"><code>${r.numero}</code></div>
-        <div class="meta">emessa il ${r.data}</div>
+        <button class="numdoc" onclick="vediPdf('${r.idtrx}')">${r.numero}</button>
+        <div class="meta">emessa il ${r.data} · tocca il numero per aprire il documento</div>
       </div>
       <div style="text-align:right">
         <div class="eur">${eur(r.importo)}</div>
@@ -998,6 +1004,7 @@ function cardProposta(p){
     <select id="sel-${pr.id}">${opts}</select>
     <div class="azioni">
       <button class="ok" onclick="conferma('${pr.id}')">Abbina</button>
+      <button onclick="vediPdfScelto('${pr.id}')">Vedi ricevuta</button>
       <button onclick="saltaProposta('${pr.id}')">Nessuna</button>
     </div>
   </div>`;
@@ -1020,6 +1027,12 @@ window.conferma = async (id) => {
     toast('Abbinata a ' + c.numero);
     DATI = null;
   }catch(e){ toast('Non riesco a salvare: '+e.message, true); }
+};
+
+window.vediPdfScelto = (id) => {
+  const p = PROP.proposte.find(x=>x.prenotazione.id===id);
+  const c = p.candidati[parseInt($('#sel-'+id).value,10)];
+  vediPdf(c.idtrx);
 };
 
 window.saltaProposta = (id) => {
