@@ -403,7 +403,7 @@ $('#cal-ok').onclick  = ()=>{
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = gg(dal)+' – '+gg(al)+' · v10';
+  $('#periodo').textContent = gg(dal)+' – '+gg(al)+' · v11';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -486,7 +486,7 @@ function riga(p){
     </div>
     ${idt ? `<div class="actions">
       <button onclick="vediPdf('${idt}')">Apri PDF</button>
-      ${p.email ? `<button onclick="inviaMail('${p.id}','${idt}')">Invia email</button>` : ''}
+      ${p.email ? `<button onclick="inviaMail('${p.id}','${idt}')">Invia email · ${linguaDa(p.telefono,p.lingua)}</button>` : ''}
       ${p.telefono ? `<button onclick="inviaWa('${p.id}','${idt}')">WhatsApp</button>` : ''}
       <button class="danger" onclick="annulla('${p.id}','${idt}')">Annulla ricevuta</button>
     </div>` : ''}`;
@@ -596,15 +596,38 @@ window.inviaMail = async (id, idtrx) => {
   }catch(e){ toast('Invio non riuscito: '+e.message, true); }
 };
 
+function linguaDa(tel, dichiarata){
+  const t = String(tel||'').replace(/[^0-9+]/g,'');
+  const mappa = [
+    ['IT',['+39']],
+    ['ES',['+34','+52','+54','+56','+57','+58','+51','+591','+593','+595','+598']],
+    ['FR',['+33','+32','+352']],
+    ['PT',['+351','+55']],
+    ['DE',['+49','+43','+41']],
+    ['ZH',['+86','+852','+853','+886']]
+  ];
+  for(const [l,pref] of mappa) if(pref.some(x=>t.startsWith(x))) return l;
+  const d = String(dichiarata||'').toUpperCase();
+  return ['IT','EN','ES','FR','DE','PT','ZH'].includes(d) ? d : 'EN';
+}
+
+const WA = {
+  IT: (n,a,b,l)=>`Gentile ${n}, di seguito la ricevuta del suo soggiorno dal ${a} al ${b}: ${l}`,
+  EN: (n,a,b,l)=>`Dear ${n}, here is the receipt for your stay from ${a} to ${b}: ${l}`,
+  ES: (n,a,b,l)=>`Estimado/a ${n}, a continuación el recibo de su estancia del ${a} al ${b}: ${l}`,
+  FR: (n,a,b,l)=>`Cher/Chère ${n}, voici le reçu de votre séjour du ${a} au ${b} : ${l}`,
+  DE: (n,a,b,l)=>`Sehr geehrte/r ${n}, hier ist die Quittung für Ihren Aufenthalt vom ${a} bis ${b}: ${l}`,
+  PT: (n,a,b,l)=>`Caro/a ${n}, segue o recibo da sua estadia de ${a} a ${b}: ${l}`,
+  ZH: (n,a,b,l)=>`尊敬的 ${n}：以下是您 ${a} 至 ${b} 住宿的收据：${l}`
+};
+
 window.inviaWa = async (id, idtrx) => {
   const p = DATI.righe.find(x=>x.id===id);
   toast('Preparo il link…');
   try{
     const link = await linkRicevuta(id, idtrx);
-    const it = p.lingua === 'IT' || (p.telefono||'').startsWith('+39');
-    const testo = it
-      ? `Gentile ${p.nome}, di seguito la ricevuta del suo soggiorno dal ${dataIt(p.checkin)} al ${dataIt(p.checkout)}: ${link}`
-      : `Dear ${p.nome}, here is the receipt for your stay from ${dataIt(p.checkin)} to ${dataIt(p.checkout)}: ${link}`;
+    const lang = linguaDa(p.telefono, p.lingua);
+    const testo = (WA[lang]||WA.EN)(p.nome, dataIt(p.checkin), dataIt(p.checkout), link);
     const num = (p.telefono||'').replace(/[^0-9]/g,'');
     window.open(`https://wa.me/${num}?text=${encodeURIComponent(testo)}`, '_blank');
   }catch(e){ toast('Non riesco a creare il link: '+e.message, true); }
