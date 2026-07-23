@@ -284,9 +284,10 @@ async function fetchPrenotazioni(env, dal, al) {
 /* ---------------------------------------------------------------- */
 /* Motore di match                                                   */
 /* ---------------------------------------------------------------- */
-// una ricevuta emessa a mesi di distanza dall'arrivo non appartiene
-// a quella prenotazione: oltre questa soglia l'abbinamento e' rifiutato
-const MAX_GIORNI_ABBINAMENTO = 45;
+// Il motore lavora a ondate: prima abbina le ricevute emesse a ridosso
+// del soggiorno, poi allarga progressivamente. Cosi' una prenotazione
+// lontana non "ruba" la ricevuta a quella giusta.
+const ONDATE = [3, 10, 15, 30];
 
 function riconcilia(prenotazioni, ricevute) {
   const disponibili = ricevute.filter((r) => r.tipo === 'V').map((r) => ({ ...r }));
@@ -300,12 +301,16 @@ function riconcilia(prenotazioni, ricevute) {
   const usate = new Set();
   const daAbbinare = prenotazioni.map((p) => ({ ...p, ricevuta: null, metodo: null }));
 
-  // distanza in giorni tra emissione ricevuta e checkout
-  const distanza = (ric, pren) =>
-    Math.abs(
-      (new Date(ric.giorno + 'T12:00:00Z') - new Date(pren.checkin + 'T12:00:00Z')) /
-        86400000
-    );
+  // distanza in giorni fra emissione e soggiorno: zero se la ricevuta
+  // cade fra arrivo e partenza, altrimenti scarto dall'estremo piu' vicino
+  const distanza = (ric, pren) => {
+    const g = ric.giorno;
+    if (!g) return 999;
+    if (g >= pren.checkin && g <= pren.checkout) return 0;
+    const d1 = Math.abs((new Date(g) - new Date(pren.checkin)) / 86400000);
+    const d2 = Math.abs((new Date(g) - new Date(pren.checkout)) / 86400000);
+    return Math.round(Math.min(d1, d2));
+  };
 
   function assegna(pren, ric, metodo) {
     usate.add(ric.id);
@@ -314,13 +319,13 @@ function riconcilia(prenotazioni, ricevute) {
     abbinamenti.push({ prenotazione: pren, ricevuta: ric, metodo });
   }
 
-  // Passata generica: per un dato campo importo, prima gli univoci poi i multipli
-  function passata(campoCents, etichetta) {
-    // raggruppo le prenotazioni ancora libere per importo atteso
+  // abbina su un dato criterio di importo, entro una soglia di giorni
+  function passata(campoCents, etichetta, soglia) {
     const gruppi = new Map();
     for (const p of daAbbinare) {
       if (p.ricevuta) continue;
       const c = p[campoCents];
+      if (c == null) continue;
       if (!gruppi.has(c)) gruppi.set(c, []);
       gruppi.get(c).push(p);
     }
@@ -329,56 +334,47 @@ function riconcilia(prenotazioni, ricevute) {
       const cand = (perImporto.get(cents) || []).filter((r) => !usate.has(r.id));
       if (!cand.length) continue;
 
-      // caso semplice: una prenotazione, una sola ricevuta con quell'importo
-      if (prens.length === 1 && cand.length === 1) {
-        const d = distanza(cand[0], prens[0]);
-        if (d <= MAX_GIORNI_ABBINAMENTO) {
-          assegna(prens[0], cand[0], `${etichetta}-univoco`);
-        }
-        continue;
-      }
-
-      // caso ambiguo: assegno per prossimita' temporale all'arrivo
       const coppie = [];
       for (const p of prens)
         for (const r of cand) {
           const d = distanza(r, p);
-          if (d <= MAX_GIORNI_ABBINAMENTO) coppie.push({ p, r, d });
+          if (d <= soglia) coppie.push({ p, r, d });
         }
       coppie.sort((a, b) => a.d - b.d);
 
       for (const { p, r, d } of coppie) {
         if (p.ricevuta || usate.has(r.id)) continue;
-        assegna(p, r, `${etichetta}-data(${d}gg)`);
+        const unico = prens.length === 1 && cand.length === 1;
+        assegna(p, r, unico ? `${etichetta}-univoco` : `${etichetta}-data(${d}gg)`);
       }
     }
   }
 
-  passata('attesoCents', 'senza-tassa');
-  passata('attesoBimbiCents', 'tassa-con-bambini');
-  passata('attesoAltCents', 'con-tassa');
-
-  // ultima passata: la tassa e' stata calcolata su un numero di persone
-  // diverso da quello registrato. Accetto solo se la ricevuta e' vicina
-  // all'arrivo e l'importo e' univoco, per non creare abbinamenti casuali.
-  for (const p of daAbbinare) {
-    if (p.ricevuta || !p.variantiCents) continue;
-    const trovati = [];
-    for (const v of p.variantiCents) {
-      for (const r of perImporto.get(v.cents) || []) {
-        if (usate.has(r.id)) continue;
-        const d = distanza(r, p);
-        if (d <= 3) trovati.push({ r, d, persone: v.persone });
+  // tassa calcolata su un numero di persone diverso da quello registrato
+  function passataVarianti(soglia) {
+    for (const p of daAbbinare) {
+      if (p.ricevuta || !p.variantiCents) continue;
+      const trovati = [];
+      for (const v of p.variantiCents) {
+        for (const r of perImporto.get(v.cents) || []) {
+          if (usate.has(r.id)) continue;
+          const d = distanza(r, p);
+          if (d <= soglia) trovati.push({ r, d, persone: v.persone });
+        }
       }
-    }
-    if (trovati.length === 1) {
-      const t = trovati[0];
-      assegna(p, t.r, `tassa-${t.persone}-persone`);
-    } else if (trovati.length > 1) {
+      if (!trovati.length) continue;
       trovati.sort((a, b) => a.d - b.d);
       const t = trovati[0];
-      assegna(p, t.r, `tassa-${t.persone}-persone(${t.d}gg)`);
+      assegna(p, t.r, `tassa-${t.persone}-persone${t.d ? `(${t.d}gg)` : ''}`);
     }
+  }
+
+  // ondate progressive: prima le corrispondenze piu' vicine nel tempo
+  for (const soglia of ONDATE) {
+    passata('attesoCents', 'senza-tassa', soglia);
+    passata('attesoBimbiCents', 'tassa-con-bambini', soglia);
+    passata('attesoAltCents', 'con-tassa', soglia);
+    passataVarianti(soglia);
   }
 
   const senzaRicevuta = daAbbinare.filter((p) => !p.ricevuta);
@@ -790,15 +786,20 @@ async function proposte(env, dal, al, opzioni = {}) {
     (r) => r.tipo === 'V' && !impegnate.has(String(r.id))
   );
 
-  const giorniTra = (isoA, isoB) =>
-    Math.round((new Date(isoA + 'T12:00:00Z') - new Date(isoB + 'T12:00:00Z')) / 86400000);
+  // zero se la ricevuta cade durante il soggiorno
+  const distanzaSoggiorno = (giornoRic, p) => {
+    if (giornoRic >= p.checkin && giornoRic <= p.checkout) return 0;
+    const d1 = (new Date(giornoRic) - new Date(p.checkin)) / 86400000;
+    const d2 = (new Date(giornoRic) - new Date(p.checkout)) / 86400000;
+    return Math.round(Math.abs(d1) < Math.abs(d2) ? d1 : d2);
+  };
 
   const lista = [];
   for (const p of scoperte) {
     const cand = [];
     for (const r of orfane) {
-      const dGiorni = giorniTra(r.giorno, p.checkin);
-      if (dGiorni < -7 || dGiorni > maxGiorni) continue; // ricevuta troppo lontana
+      const dGiorni = distanzaSoggiorno(r.giorno, p);
+      if (Math.abs(dGiorni) > maxGiorni) continue; // ricevuta troppo lontana
 
       // confronto con la variante di tassa piu' vicina
       let base = p.attesoCents;
