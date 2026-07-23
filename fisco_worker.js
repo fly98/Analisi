@@ -843,7 +843,11 @@ async function elenco(env, dal, al, margine) {
     return { ...p, stato: 'da_emettere', origine: null, ricevuta: null, nota: '' };
   });
 
-  righe.sort((a, b) => (a.checkin < b.checkin ? 1 : -1));
+  righe.sort((a, b) =>
+    a.checkout !== b.checkout
+      ? (a.checkout < b.checkout ? 1 : -1)
+      : (a.checkin < b.checkin ? 1 : -1)
+  );
 
   const impegnateKV = new Set();
   for (const s of Object.values(stati)) {
