@@ -386,7 +386,7 @@ async function scriviStato(env, id, dati) {
 function dataIt(iso) {
   if (!iso) return '';
   const [y, m, d] = iso.split('-');
-  return `${d}/${m}/${y}`;
+  return `${d}/${m}/${y.slice(2)}`;
 }
 
 function descrizioneStandard(pren) {
