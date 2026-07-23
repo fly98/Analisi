@@ -5,3 +5,7 @@ compatibility_date = "2025-01-01"
 [[services]]
 binding = "LS"
 service = "little-shadow-145e"
+
+[[kv_namespaces]]
+binding = "FISCO_KV"
+id = "1d8d7db930004f9eaa73e17af65b0957"
