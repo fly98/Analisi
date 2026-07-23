@@ -192,6 +192,9 @@ async function fetchPrenotazioni(env, dal, al) {
       const totale = Math.round((parseFloat(b.total_amount_after_tax) || 0) * 100);
       const cityTax = adulti * Math.min(n, CITY_TAX_MAX_NOTTI) * CITY_TAX_NOTTE * 100;
       const booker = b.booker || {};
+      const camere = (b.rooms || [])
+        .map((r) => r.individual_room_name)
+        .filter(Boolean);
 
       prenotazioni.push({
         id: String(b.booking_id),
@@ -203,6 +206,7 @@ async function fetchPrenotazioni(env, dal, al) {
         notti: n,
         adulti,
         bambini: b.children || 0,
+        camere,
         totale: totale / 100,
         cityTax: cityTax / 100,
         attesoCents: totale - cityTax,
