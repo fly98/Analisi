@@ -351,6 +351,21 @@ export default {
     const al = url.searchParams.get('al') || oggi;
 
     try {
+      if (url.pathname === '/debugls') {
+        const target = `${LS_BASE}/?action=debugBooking&from=${dal}&to=${al}`;
+        const viaBinding = env.LS
+          ? await env.LS.fetch(new Request(target, { headers: { 'User-Agent': 'fisco-worker' } }))
+          : null;
+        const viaPubblico = await fetch(target, { headers: { 'User-Agent': 'fisco-worker' } });
+        return json({
+          target,
+          binding: viaBinding
+            ? { status: viaBinding.status, body: (await viaBinding.text()).slice(0, 300) }
+            : 'assente',
+          pubblico: { status: viaPubblico.status, body: (await viaPubblico.text()).slice(0, 300) },
+        });
+      }
+
       if (url.pathname === '/infouser') {
         return json({ ok: true, ...(await datacash(env, '/infoUser/', {})) });
       }
