@@ -141,11 +141,13 @@ async function fetchRicevute(env, dal, al) {
 /* ---------------------------------------------------------------- */
 /* Amenitiz                                                          */
 /* ---------------------------------------------------------------- */
-async function fetchPrenotazioni(dal, al) {
-  const res = await fetch(
-    `${LS_BASE}/?action=debugBooking&from=${dal}&to=${al}`,
-    { headers: { 'User-Agent': 'fisco-worker' } }
-  );
+async function fetchPrenotazioni(env, dal, al) {
+  const target = `${LS_BASE}/?action=debugBooking&from=${dal}&to=${al}`;
+  // service binding se disponibile (worker-to-worker sullo stesso account),
+  // altrimenti fetch pubblico
+  const res = env.LS
+    ? await env.LS.fetch(new Request(target, { headers: { 'User-Agent': 'fisco-worker' } }))
+    : await fetch(target, { headers: { 'User-Agent': 'fisco-worker' } });
   if (!res.ok) throw new Error(`Amenitiz HTTP ${res.status}`);
 
   let raw = await res.json();
@@ -357,7 +359,7 @@ export default {
       }
 
       if (url.pathname === '/prenotazioni') {
-        const p = await fetchPrenotazioni(dal, al);
+        const p = await fetchPrenotazioni(env, dal, al);
         return json({ ok: true, periodo: { dal, al }, count: p.length, prenotazioni: p });
       }
 
@@ -369,7 +371,7 @@ export default {
         const ricAl = addGiorni(al, margine);
 
         const [prenotazioni, ricevute] = await Promise.all([
-          fetchPrenotazioni(dal, al),
+          fetchPrenotazioni(env, dal, al),
           fetchRicevute(env, ricDal, ricAl),
         ]);
 
