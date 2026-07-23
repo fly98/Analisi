@@ -306,10 +306,10 @@ function riconcilia(prenotazioni, ricevute) {
   const distanza = (ric, pren) => {
     const g = ric.giorno;
     if (!g) return 999;
-    if (g >= pren.checkin && g <= pren.checkout) return 0;
-    const d1 = Math.abs((new Date(g) - new Date(pren.checkin)) / 86400000);
-    const d2 = Math.abs((new Date(g) - new Date(pren.checkout)) / 86400000);
-    return Math.round(Math.min(d1, d2));
+    // le ricevute non vengono mai emesse prima dell'arrivo
+    if (g < addGiorni(pren.checkin, -1)) return 999;
+    if (g <= pren.checkout) return 0;
+    return Math.round((new Date(g) - new Date(pren.checkout)) / 86400000);
   };
 
   function assegna(pren, ric, metodo) {
@@ -558,7 +558,7 @@ async function annullaDocumento(env, idtrx) {
 /* Elenco operativo: prenotazioni + stato + ricevuta                 */
 /* ---------------------------------------------------------------- */
 async function elenco(env, dal, al, margine) {
-  const ricDal = addGiorni(dal, -7);
+  const ricDal = dal;
   const ricAl = addGiorni(al, margine);
 
   const [prenotazioni, ricevute] = await Promise.all([
@@ -761,7 +761,7 @@ async function proposte(env, dal, al, opzioni = {}) {
   const maxScarto = opzioni.scarto ?? 0.25;   // scarto max sull'importo (25%)
   const maxCand = opzioni.candidati ?? 5;
 
-  const ricDal = addGiorni(dal, -30);
+  const ricDal = dal;
   const ricAl = addGiorni(al, margine);
 
   const [prenotazioni, ricevute] = await Promise.all([
@@ -786,12 +786,12 @@ async function proposte(env, dal, al, opzioni = {}) {
     (r) => r.tipo === 'V' && !impegnate.has(String(r.id))
   );
 
-  // zero se la ricevuta cade durante il soggiorno
+  // la ricevuta non precede mai l'arrivo: zero durante il soggiorno,
+  // altrimenti giorni trascorsi dalla partenza
   const distanzaSoggiorno = (giornoRic, p) => {
-    if (giornoRic >= p.checkin && giornoRic <= p.checkout) return 0;
-    const d1 = (new Date(giornoRic) - new Date(p.checkin)) / 86400000;
-    const d2 = (new Date(giornoRic) - new Date(p.checkout)) / 86400000;
-    return Math.round(Math.abs(d1) < Math.abs(d2) ? d1 : d2);
+    if (giornoRic < addGiorni(p.checkin, -1)) return 999;
+    if (giornoRic <= p.checkout) return 0;
+    return Math.round((new Date(giornoRic) - new Date(p.checkout)) / 86400000);
   };
 
   const lista = [];
@@ -887,7 +887,7 @@ async function orfaneConCandidati(env, dal, al, opzioni = {}) {
   const maxScarto = opzioni.scarto ?? 0.3;
   const maxCand = opzioni.candidati ?? 8;
 
-  const ricDal = addGiorni(dal, -30);
+  const ricDal = dal;
   const ricAl = addGiorni(al, margine);
 
   const [prenotazioni, ricevute] = await Promise.all([
@@ -910,10 +910,9 @@ async function orfaneConCandidati(env, dal, al, opzioni = {}) {
   );
 
   const distanza = (giornoRic, p) => {
-    if (giornoRic >= p.checkin && giornoRic <= p.checkout) return 0;
-    const d1 = (new Date(giornoRic) - new Date(p.checkin)) / 86400000;
-    const d2 = (new Date(giornoRic) - new Date(p.checkout)) / 86400000;
-    return Math.round(Math.abs(d1) < Math.abs(d2) ? d1 : d2);
+    if (giornoRic < addGiorni(p.checkin, -1)) return 999;
+    if (giornoRic <= p.checkout) return 0;
+    return Math.round((new Date(giornoRic) - new Date(p.checkout)) / 86400000);
   };
 
   const lista = orfane.map((r) => {
@@ -1190,7 +1189,7 @@ export default {
         // margine: giorni di ricerca ricevute oltre il periodo delle prenotazioni,
         // perche' le ricevute vengono emesse anche molto dopo il checkout
         const margine = parseInt(url.searchParams.get('margine') || '30', 10);
-        const ricDal = addGiorni(dal, -7);
+        const ricDal = dal;
         const ricAl = addGiorni(al, margine);
 
         const [prenotazioni, ricevute] = await Promise.all([
