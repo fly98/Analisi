@@ -343,7 +343,9 @@ const ONDATE = [3, 10, 15, 30];
 const CANALI_DIRETTI = ['manual', 'amenitiz', ''];
 function anticipoConsentito(canale) {
   const c = String(canale || '').toLowerCase();
-  return CANALI_DIRETTI.includes(c) ? 10 : 1;
+  // sui canali diretti il pagamento anticipato e' frequente;
+  // sui portali capita solo a ridosso dell'arrivo
+  return CANALI_DIRETTI.includes(c) ? 10 : 3;
 }
 
 function riconcilia(prenotazioni, ricevute) {
@@ -516,7 +518,7 @@ function riconcilia(prenotazioni, ricevute) {
     passata('attesoBimbiCents', 'tassa-con-bambini', soglia);
     passata('attesoAltCents', 'con-tassa', soglia);
     passataVarianti(soglia);
-    passataSomme(soglia);
+    if (soglia <= 10) passataSomme(soglia);
   }
 
   const senzaRicevuta = daAbbinare.filter((p) => !p.ricevuta);
