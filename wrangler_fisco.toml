@@ -10,6 +10,10 @@ crons = ["0 8 * * *"]
 binding = "LS"
 service = "little-shadow-145e"
 
+[[services]]
+binding = "TG"
+service = "tg-worker"
+
 [[kv_namespaces]]
 binding = "FISCO_KV"
 id = "1d8d7db930004f9eaa73e17af65b0957"
