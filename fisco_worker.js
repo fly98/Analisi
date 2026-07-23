@@ -756,7 +756,24 @@ async function leggiAnnullate(env) {
 }
 
 async function annullaDocumento(env, idtrx) {
-  const res = await datacash(env, `/voidDocument/${idtrx}/`, {});
+  let res;
+  try {
+    res = await datacash(env, `/voidDocument/${idtrx}/`, {});
+  } catch (err) {
+    // "annullo impossibile" significa che il documento e' gia' annullato:
+    // lo registro comunque, altrimenti continuerebbe a comparire fra le orfane
+    if (/impossibile|gia.? annullat/i.test(err.message)) {
+      if (env.FISCO_KV) {
+        const lista = await leggiAnnullate(env);
+        if (!lista.includes(String(idtrx))) {
+          lista.push(String(idtrx));
+          await env.FISCO_KV.put(CHIAVE_ANNULLATE, JSON.stringify(lista));
+        }
+      }
+      return { esito: true, gia_annullato: true };
+    }
+    throw err;
+  }
   // tengo traccia: con piu' ricevute di pari importo non sarebbe
   // possibile capire quale e' stata annullata
   if (env.FISCO_KV) {
