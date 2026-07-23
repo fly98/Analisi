@@ -499,7 +499,7 @@ $('#cal-ok').onclick  = ()=>{
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = gg(dal)+' – '+gg(al)+' · v32';
+  $('#periodo').textContent = gg(dal)+' – '+gg(al)+' · v33';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -1143,6 +1143,12 @@ async function caricaDuplicati(){
 function renderDuplicati(){
   if(!DUP) return;
   const r = DUP.riepilogo;
+  // se la categoria selezionata è vuota, passo alla prima con contenuto
+  const disponibili = ['certo','probabile','dubbio']
+    .filter(k => DUP.gruppi.some(g=>g.livello===k));
+  if(!disponibili.includes(LIV)){
+    LIV = disponibili[0] || (DUP.gruppi.length ? 'tutti' : 'legittimi');
+  }
   $('#kpis-dup').innerHTML = `
     <div class="kpi warn"><b>${r.certi}</b><span>Quasi certi</span></div>
     <div class="kpi"><b>${r.probabili}</b><span>Probabili</span></div>
