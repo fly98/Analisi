@@ -291,10 +291,13 @@ dialog::backdrop{background:rgba(10,25,45,.45)}
       <button data-v="ricevute" class="on">Dalle ricevute</button>
       <button data-v="prenotazioni">Dalle prenotazioni</button>
     </div>
-    <div class="seg" id="ordina" style="margin-bottom:12px">
-      <button data-o="importo" class="on">Importo</button>
-      <button data-o="punti">Affidabilità</button>
-      <button data-o="data">Data</button>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
+      <div class="seg" id="ordina">
+        <button data-o="importo" class="on">Importo</button>
+        <button data-o="punti">Affidabilità</button>
+        <button data-o="data">Data</button>
+      </div>
+      <button class="act" id="ricalcola" style="padding:7px 12px;font-size:13px">Ricalcola</button>
     </div>
     <div id="massa"></div>
     <div id="proposte"><div class="loading">Caricamento proposte…</div></div>
@@ -482,7 +485,7 @@ $('#cal-ok').onclick  = ()=>{
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = gg(dal)+' – '+gg(al)+' · v25';
+  $('#periodo').textContent = gg(dal)+' – '+gg(al)+' · v26';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -846,6 +849,11 @@ document.querySelectorAll('#verso button').forEach(b => b.onclick = ()=>{
   if(VERSO==='ricevute'){ ORF ? renderOrfane() : caricaOrfane(); }
   else { PROP ? renderProposte() : caricaProposte(); }
 });
+
+$('#ricalcola').onclick = ()=>{
+  ORF = null; PROP = null; DATI = null;
+  if(VERSO==='ricevute') caricaOrfane(); else caricaProposte();
+};
 
 async function caricaOrfane(){
   $('#proposte').innerHTML = '<div class="loading">Cerco le prenotazioni possibili…</div>';
