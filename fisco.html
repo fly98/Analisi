@@ -46,7 +46,7 @@ h1{margin:0;font-size:17px;font-weight:650;letter-spacing:-.2px}
 .sub{font-size:12px;color:#9db2cd}
 .tabs{display:flex;gap:4px;margin-top:12px}
 .tab{
-  flex:1;padding:8px;border:0;border-radius:8px;font:inherit;font-size:13px;font-weight:600;
+  flex:1;padding:8px 4px;border:0;border-radius:8px;font:inherit;font-size:12.5px;font-weight:600;
   background:rgba(255,255,255,.1);color:#c3d2e6;cursor:pointer;
 }
 .tab.on{background:#fff;color:var(--ink)}
@@ -270,6 +270,7 @@ dialog::backdrop{background:rgba(10,25,45,.45)}
   <div class="tabs">
     <button class="tab on" data-view="operativo">Prenotazioni</button>
     <button class="tab" data-view="storico">Match storico</button>
+    <button class="tab" data-view="ricevute">Ricevute</button>
   </div>
 </header>
 
@@ -297,6 +298,17 @@ dialog::backdrop{background:rgba(10,25,45,.45)}
     </div>
     <div class="conta" id="conta"></div>
     <div id="lista"><div class="loading">Caricamento…</div></div>
+  </section>
+
+  <!-- VISTA RICEVUTE -->
+  <section id="v-ricevute" class="hidden">
+    <div class="kpis" id="kpis-ric"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+      <button class="act" id="ric-nuova">Nuova ricevuta</button>
+      <button class="act" id="ric-csv" style="background:#fff;color:var(--ink);border:1px solid var(--line)">Esporta</button>
+      <button class="act" id="ric-ricarica" style="background:#fff;color:var(--ink);border:1px solid var(--line)">Aggiorna</button>
+    </div>
+    <div id="lista-ric"><div class="loading">Caricamento…</div></div>
   </section>
 
   <!-- VISTA STORICO -->
@@ -503,7 +515,7 @@ $('#cal-ok').onclick  = ()=>{
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = gg(dal)+' – '+gg(al)+' · v37';
+  $('#periodo').textContent = gg(dal)+' – '+gg(al)+' · v38';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -642,10 +654,11 @@ function riga(p){
       <button class="danger" onclick="annulla('${p.id}','${idt}')">Annulla ricevuta</button>
     </div>` : ''}`;
   } else if(p.stato === 'futura'){
-    azioni = `<div class="docinfo">
-      <span>Arrivo previsto il ${gg(p.checkin)}</span>
-      <button class="ghost" style="font:inherit;font-size:12.5px;padding:5px 10px;border-radius:7px;border:1px solid var(--line);background:#fff;cursor:pointer"
-        onclick="apriEmissione('${p.id}')">Emetti in anticipo</button>
+    azioni = `<div class="docinfo"><span>Arrivo previsto il ${gg(p.checkin)}</span></div>
+    <div class="actions">
+      <button onclick="apriEmissione('${p.id}')">Emetti in anticipo</button>
+      <button onclick="segna('${p.id}','fattura')">Segue fattura</button>
+      <button class="ghost" onclick="segna('${p.id}','esclusa')">Non emettere</button>
     </div>`;
   } else {
     azioni = `<div class="docinfo">
@@ -1148,6 +1161,106 @@ window.confermaMassa = async () => {
   caricaProposte();
 };
 
+/* ---------- registro ricevute ---------- */
+let RIC = null;
+
+async function caricaRicevute(){
+  $('#lista-ric').innerHTML = '<div class="loading">Carico le ricevute…</div>';
+  try{
+    RIC = await api(`/dco?dal=${$('#dal').value}&al=${$('#al').value}`);
+    renderRicevute();
+  }catch(e){
+    $('#lista-ric').innerHTML = `<div class="empty">Non riesco a caricare.<br><small>${e.message}</small></div>`;
+  }
+}
+
+function renderRicevute(){
+  if(!RIC) return;
+  const valide = RIC.documenti.filter(x=>x.tipo==='V' && !x.annullata);
+  const annull = RIC.documenti.filter(x=>x.annullata);
+  const rett   = RIC.documenti.filter(x=>x.tipo!=='V');
+  const tot = valide.reduce((s,x)=>s+x.importo,0);
+
+  $('#kpis-ric').innerHTML = `
+    <div class="kpi ok"><b>${valide.length}</b><span>Valide</span></div>
+    <div class="kpi"><b>${annull.length}</b><span>Annullate</span></div>
+    <div class="kpi"><b>${rett.length}</b><span>Note di annullo</span></div>
+    <div class="kpi ok"><b>${eur(tot)}</b><span>Totale</span></div>`;
+
+  const righe = [...RIC.documenti].sort((a,b)=> a.data < b.data ? 1 : -1);
+  $('#lista-ric').innerHTML = righe.length ? `<table>
+    <tr><th>Data</th><th>Numero</th><th>Tipo</th><th style="text-align:right">Importo</th><th></th></tr>
+    ${righe.map(x=>{
+      const st = x.annullata ? '<span class="pill p-esclusa">annullata</span>'
+               : x.tipo!=='V' ? '<span class="pill p-fattura">annullo</span>'
+               : '<span class="pill p-emessa">valida</span>';
+      return `<tr>
+        <td>${x.dataRaw ? x.dataRaw.slice(0,10) : ''}</td>
+        <td><button class="numdoc" onclick="vediPdf('${x.id}')">${x.numero}</button></td>
+        <td>${st}</td>
+        <td class="num">${eur(x.importo)}</td>
+        <td>${x.tipo==='V' && !x.annullata ? `<button class="danger" style="font:inherit;font-size:12px;font-weight:600;padding:4px 9px;border-radius:6px;border:1px solid #f0c9c5;background:#fff;cursor:pointer" onclick="annullaRic('${x.id}','${x.numero}')">Annulla</button>` : ''}</td>
+      </tr>`;
+    }).join('')}
+    </table>` : '<div class="empty">Nessuna ricevuta nel periodo.</div>';
+}
+
+window.annullaRic = async (idtrx, numero) => {
+  if(!await dialogo('Annulla ricevuta',
+    `${numero} verrà annullata presso l\u2019Agenzia delle Entrate.`, '', 'Annulla ricevuta')) return;
+  try{
+    const r = await api('/annulla', {method:'POST', body: JSON.stringify({idtrx})});
+    toast(r.risposta && r.risposta.gia_annullato ? 'era già annullata' : numero+' annullata');
+    RIC = null; DATI = null; ORF = null; caricaRicevute();
+  }catch(e){ toast('Annullo non riuscito: '+e.message, true); }
+};
+
+$('#ric-ricarica').onclick = ()=>{ RIC=null; caricaRicevute(); };
+
+$('#ric-csv').onclick = ()=>{
+  if(!RIC) return;
+  const righe = [['Data','Numero','Tipo','Importo']];
+  for(const x of [...RIC.documenti].sort((a,b)=> a.data < b.data ? 1 : -1)){
+    righe.push([
+      x.dataRaw || '', x.numero,
+      x.annullata ? 'annullata' : (x.tipo!=='V' ? 'annullo' : 'valida'),
+      String(x.importo).replace('.', ',')
+    ]);
+  }
+  const csv = righe.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(';')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8'}));
+  a.download = `ricevute_${$('#dal').value}_${$('#al').value}.csv`;
+  a.click();
+  toast('Elenco scaricato');
+};
+
+$('#ric-nuova').onclick = async ()=>{
+  const oggi = new Date().toISOString().slice(0,10);
+  const ok = await dialogo('Nuova ricevuta', 'Emissione manuale, senza prenotazione collegata',
+    `<label>Descrizione</label>
+     <textarea id="l-desc" rows="2" placeholder="Soggiorno dal … al … del Sig./Sig.ra …"></textarea>
+     <label>Importo soggiorno (IVA 10%)</label>
+     <input type="number" step="0.01" id="l-imp" placeholder="0,00">
+     <label>Imposta di soggiorno da aggiungere (facoltativa)</label>
+     <input type="number" step="0.01" id="l-tax" placeholder="0,00">
+     <label>Pagamento</label>
+     <select id="l-pag"><option value="PE">Elettronico</option><option value="PC">Contanti</option></select>`,
+    'Emetti');
+  if(!ok) return;
+  const importo = parseFloat($('#l-imp').value);
+  if(!importo || importo<=0){ toast('Importo non valido', true); return; }
+  const tax = parseFloat($('#l-tax').value) || 0;
+  toast('Emissione in corso…');
+  try{
+    const r = await api('/emettiLibera', {method:'POST', body: JSON.stringify({
+      importo, cityTax: tax, includiTassa: tax>0,
+      descrizione: $('#l-desc').value.trim(), pagamento: $('#l-pag').value })});
+    toast('Emessa ' + r.documento.progressivo);
+    RIC = null; caricaRicevute();
+  }catch(e){ toast('Emissione non riuscita: '+e.message, true); }
+};
+
 /* ---------- tabs ---------- */
 let tmr;
 $('#q').addEventListener('input', e => {
@@ -1173,7 +1286,9 @@ document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
   VIEW = t.dataset.view;
   $('#v-operativo').classList.toggle('hidden', VIEW!=='operativo');
   $('#v-storico').classList.toggle('hidden', VIEW!=='storico');
+  $('#v-ricevute').classList.toggle('hidden', VIEW!=='ricevute');
   if(VIEW==='storico' && !ORF && !PROP) caricaOrfane();
+  if(VIEW==='ricevute' && !RIC) caricaRicevute();
   if(VIEW==='operativo' && !DATI) carica();
 });
 
