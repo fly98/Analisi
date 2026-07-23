@@ -164,8 +164,9 @@ dialog::backdrop{background:rgba(10,25,45,.45)}
 .dlg h3{margin:0 0 4px;font-size:16px}
 .dlg p{margin:0 0 14px;font-size:13.5px;color:var(--muted)}
 .dlg label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin:10px 0 4px}
-.dlg input,.dlg select{
-  width:100%;font:inherit;padding:9px;border:1px solid var(--line);border-radius:8px;background:#fff
+.dlg input,.dlg select,.dlg textarea{
+  width:100%;font:inherit;padding:9px;border:1px solid var(--line);border-radius:8px;background:#fff;
+  resize:vertical
 }
 .dlg .btns{display:flex;gap:8px;margin-top:16px}
 .dlg .btns button{flex:1;font:inherit;font-weight:600;padding:10px;border-radius:8px;cursor:pointer;border:1px solid var(--line);background:#fff}
@@ -402,7 +403,7 @@ $('#cal-ok').onclick  = ()=>{
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = gg(dal)+' – '+gg(al)+' · v7';
+  $('#periodo').textContent = gg(dal)+' – '+gg(al)+' · v8';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -449,6 +450,12 @@ const CAMERE = {
   'Verde':{l:'V',c:'#5c6b52'},  'Azzurra':{l:'A',c:'#5b8fb0'},
   'Uno':{l:'1'}, 'Due':{l:'2'}, 'Tre':{l:'3'}, 'Quattro':{l:'4'}, 'Cinque':{l:'5'}
 };
+const dataIt = iso => iso ? iso.slice(8,10)+'/'+iso.slice(5,7)+'/'+iso.slice(0,4) : '';
+function descrizioneStandard(p){
+  const n = (p.nome||'').trim();
+  return `Soggiorno dal ${dataIt(p.checkin)} al ${dataIt(p.checkout)}` + (n ? ` del Sig./Sig.ra ${n}` : '');
+}
+
 function badgeCamere(lista){
   if(!lista || !lista.length) return '';
   return '<span class="camere">' + lista.map(n=>{
@@ -518,8 +525,11 @@ function dialogo(titolo, testo, corpo, okLabel){
 
 window.apriEmissione = async (id) => {
   const p = DATI.righe.find(x=>x.id===id);
+  const desc = p.descrizioneDefault || descrizioneStandard(p);
   const ok = await dialogo('Emetti ricevuta', `${p.nome} · ${gg(p.checkin)} → ${gg(p.checkout)}`,
-    `<label>Importo (camera, senza tassa di soggiorno)</label>
+    `<label>Descrizione sulla ricevuta</label>
+     <textarea id="f-desc" rows="2">${desc.replace(/"/g,'&quot;')}</textarea>
+     <label>Importo (camera, senza tassa di soggiorno)</label>
      <input type="number" step="0.01" id="f-imp" value="${p.atteso.toFixed(2)}">
      <label>Pagamento</label>
      <select id="f-pag">
@@ -529,10 +539,11 @@ window.apriEmissione = async (id) => {
   if(!ok) return;
   const importo = parseFloat($('#f-imp').value);
   const pagamento = $('#f-pag').value;
+  const descrizione = $('#f-desc').value.trim();
   toast('Emissione in corso…');
   try{
     const r = await api('/emetti', {method:'POST', body: JSON.stringify({
-      id, importo, pagamento, dal:$('#dal').value, al:$('#al').value })});
+      id, importo, pagamento, descrizione, dal:$('#dal').value, al:$('#al').value })});
     toast('Ricevuta ' + (r.documento?.progressivo || 'emessa'));
     carica();
   }catch(e){ toast('Emissione non riuscita: '+e.message, true); }
