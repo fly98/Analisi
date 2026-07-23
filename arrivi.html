@@ -720,8 +720,8 @@ function render(iso,bookings){
     const bookingIdStr=String(b.booking_id);
     const generaTesto=(L)=>{
       const orarioArrivo = orariMap[bookingIdStr] || "";  // legge sempre l'orario aggiornato
-      if(CAMPALDINO[roomName]) return msgCampaldino(nomeMsg,iso,CAMPALDINO[roomName],L,isMulti?adultiRoom0:0,camereExtra,orarioArrivo);
-      return msgLorenzo(nomeMsg,iso,(LORENZO[roomName]||roomName),L,isMulti?adultiRoom0:0,camereExtra,orarioArrivo);
+      if(CAMPALDINO[roomName]) return msgCampaldino(nomeMsg,iso,CAMPALDINO[roomName],L,adultiRoom0,camereExtra,orarioArrivo);
+      return msgLorenzo(nomeMsg,iso,(LORENZO[roomName]||roomName),L,adultiRoom0,camereExtra,orarioArrivo);
     };
     // funzione per rigenerare tutti i testi (usata quando cambia l'orario)
     const rebuildTesti=()=>{
@@ -732,11 +732,11 @@ function render(iso,bookings){
     if(CAMPALDINO[roomName]){
       const c=CAMPALDINO[roomName];
       accent=c.col; roomLabel=c.let; struttura="Via Campaldino";
-      testo=msgCampaldino(nomeMsg,iso,c,lng,isMulti?adultiRoom0:0,camereExtra,(orariMap[bookingIdStr]||""));
+      testo=msgCampaldino(nomeMsg,iso,c,lng,adultiRoom0,camereExtra,(orariMap[bookingIdStr]||""));
     }else{
       const num=LORENZO[roomName]||roomName;
       accent="#5c6b52"; roomLabel=num; struttura="Lorenzo il Magnifico"; isLorenzo=true;
-      testo=msgLorenzo(nomeMsg,iso,num,lng,isMulti?adultiRoom0:0,camereExtra,(orariMap[bookingIdStr]||""));
+      testo=msgLorenzo(nomeMsg,iso,num,lng,adultiRoom0,camereExtra,(orariMap[bookingIdStr]||""));
     }
     // pre-genero i testi in tutte le lingue (con frase WhatsApp) per il selettore nel modal
     const testiPerLingua=rebuildTesti();
