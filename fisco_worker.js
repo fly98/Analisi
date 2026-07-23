@@ -154,7 +154,14 @@ async function login(env, log) {
     log
   );
 
-  if (log) log.push(`metodo A -> HTTP ${formRes.status}, cookie: ${jar.names().join(',')}`);
+  if (log) {
+    const bodyA = (await formRes.clone().text())
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, 220);
+    log.push(`metodo A -> HTTP ${formRes.status} | ${bodyA}`);
+  }
 
   // --- METODO B (fallback): API JSON callbacks
   if (!jar.has('SIAMPE')) {
@@ -199,7 +206,12 @@ async function login(env, log) {
       });
       jar.absorb(authRes);
       const txt = await authRes.text();
-      if (log) log.push(`metodo B -> HTTP ${authRes.status}`);
+      if (log) {
+        log.push(
+          `metodo B -> HTTP ${authRes.status} | ` +
+            txt.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 220)
+        );
+      }
 
       try {
         const d = JSON.parse(txt);
