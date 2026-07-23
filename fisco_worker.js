@@ -399,26 +399,53 @@ function descrizioneStandard(pren) {
   );
 }
 
-async function emettiDocumento(env, pren, pagamento = 'PE', aliquota = '10', descrizionePers) {
+async function emettiDocumento(env, pren, opzioni = {}) {
+  const {
+    pagamento = 'PE',
+    aliquota = '10',
+    descrizione: descrizionePers,
+    includiTassa = false,
+    cityTax = 0,
+    naturaTassa = 'N1', // imposta di soggiorno: fuori campo IVA (art. 15)
+  } = opzioni;
+
   const descrizione = (descrizionePers || '').trim() || descrizioneStandard(pren);
 
+  const elementi = [
+    {
+      aliquotaIVA: String(aliquota),
+      percentualeIVA: parseInt(aliquota, 10),
+      descrizioneProdotto: descrizione.slice(0, 100),
+      prezzoLordo: pren.atteso,
+      quantita: 1,
+      scontoLordo: 0,
+      omaggioElemento: false,
+    },
+  ];
+
+  // la tassa di soggiorno e' riscossa per conto del Comune: niente IVA
+  const tassa = includiTassa ? Math.round(Number(cityTax) * 100) / 100 : 0;
+  if (tassa > 0) {
+    elementi.push({
+      aliquotaIVA: naturaTassa,
+      percentualeIVA: 0,
+      descrizioneProdotto: 'Imposta di soggiorno',
+      prezzoLordo: tassa,
+      quantita: 1,
+      scontoLordo: 0,
+      omaggioElemento: false,
+    });
+  }
+
+  const totale = Math.round((pren.atteso + tassa) * 100) / 100;
+
   const documento = {
-    elementiContabili: [
-      {
-        aliquotaIVA: String(aliquota),
-        percentualeIVA: parseInt(aliquota, 10),
-        descrizioneProdotto: descrizione.slice(0, 100),
-        prezzoLordo: pren.atteso,
-        quantita: 1,
-        scontoLordo: 0,
-        omaggioElemento: false,
-      },
-    ],
+    elementiContabili: elementi,
     totaleScontiAPagare: 0,
     omaggio: false,
     codiceLotteria: '',
     pagamento,
-    pagamenti: [{ tipo: pagamento, importo: pren.atteso }],
+    pagamenti: [{ tipo: pagamento, importo: totale }],
     ticketRestaurant: [],
     documentoCommercialeCollegato: '',
     multisede: {},
@@ -431,7 +458,7 @@ async function emettiDocumento(env, pren, pagamento = 'PE', aliquota = '10', des
       .join('; ');
     throw new Error(err || 'emissione rifiutata');
   }
-  return res;
+  return { ...res, totale };
 }
 
 async function annullaDocumento(env, idtrx) {
@@ -762,20 +789,22 @@ export default {
         if (!pren) return json({ ok: false, error: 'prenotazione non trovata' }, 404);
 
         const importo = body.importo != null ? Number(body.importo) : pren.atteso;
-        const res = await emettiDocumento(
-          env,
-          { ...pren, atteso: importo },
-          body.pagamento || 'PE',
-          body.aliquota || '10',
-          body.descrizione
-        );
+        const res = await emettiDocumento(env, { ...pren, atteso: importo }, {
+          pagamento: body.pagamento || 'PE',
+          aliquota: body.aliquota || '10',
+          descrizione: body.descrizione,
+          includiTassa: !!body.includiTassa,
+          cityTax: body.cityTax != null ? Number(body.cityTax) : pren.cityTax,
+          naturaTassa: body.naturaTassa || 'N1',
+        });
 
         const rec = await scriviStato(env, pren.id, {
           stato: 'emessa',
           idtrx: res.idtrx,
           numero: res.progressivo,
           data: new Date().toISOString(),
-          importo,
+          importo: res.totale,
+          tassaInclusa: !!body.includiTassa,
           nota: body.nota || '',
         });
         return json({ ok: true, prenotazione: pren.id, documento: res, stato: rec });
