@@ -879,6 +879,122 @@ async function proposte(env, dal, al, opzioni = {}) {
 }
 
 /* ---------------------------------------------------------------- */
+/* Vista inversa: dalla ricevuta orfana alle prenotazioni candidate  */
+/* ---------------------------------------------------------------- */
+async function orfaneConCandidati(env, dal, al, opzioni = {}) {
+  const margine = opzioni.margine ?? 60;
+  const maxGiorni = opzioni.giorni ?? 30;
+  const maxScarto = opzioni.scarto ?? 0.3;
+  const maxCand = opzioni.candidati ?? 8;
+
+  const ricDal = addGiorni(dal, -30);
+  const ricAl = addGiorni(al, margine);
+
+  const [prenotazioni, ricevute] = await Promise.all([
+    fetchPrenotazioni(env, dal, al),
+    fetchRicevute(env, ricDal, ricAl),
+  ]);
+
+  const stati = await leggiStati(env, prenotazioni.map((p) => p.id));
+  const impegnate = new Set();
+  for (const s of Object.values(stati)) if (s && s.idtrx) impegnate.add(String(s.idtrx));
+
+  const libere = prenotazioni.filter((p) => !stati[p.id]);
+  const esito = riconcilia(libere, ricevute.documenti);
+  const abbinate = new Set(esito.abbinamenti.map((a) => a.prenotazione.id));
+  for (const a of esito.abbinamenti) impegnate.add(String(a.ricevuta.id));
+
+  const scoperte = libere.filter((p) => !abbinate.has(p.id));
+  const orfane = ricevute.documenti.filter(
+    (r) => r.tipo === 'V' && !impegnate.has(String(r.id))
+  );
+
+  const distanza = (giornoRic, p) => {
+    if (giornoRic >= p.checkin && giornoRic <= p.checkout) return 0;
+    const d1 = (new Date(giornoRic) - new Date(p.checkin)) / 86400000;
+    const d2 = (new Date(giornoRic) - new Date(p.checkout)) / 86400000;
+    return Math.round(Math.abs(d1) < Math.abs(d2) ? d1 : d2);
+  };
+
+  const lista = orfane.map((r) => {
+    const cand = [];
+    for (const p of scoperte) {
+      const d = distanza(r.giorno, p);
+      if (Math.abs(d) > maxGiorni) continue;
+
+      // cerco la variante di tassa che meglio spiega l'importo
+      let base = p.attesoCents;
+      let personeTassa = null;
+      for (const v of p.variantiCents || []) {
+        if (Math.abs(r.centesimi - v.cents) < Math.abs(r.centesimi - base)) {
+          base = v.cents;
+          personeTassa = v.persone;
+        }
+      }
+      const dImporto = (r.centesimi - base) / 100;
+      const scarto = Math.abs(r.centesimi - base) / Math.max(base, 1);
+      if (scarto > maxScarto) continue;
+
+      const punti = Math.round(100 - scarto * 200 - Math.min(Math.abs(d), maxGiorni) * 0.9);
+
+      cand.push({
+        id: p.id,
+        nome: p.nome,
+        canale: p.canale,
+        checkin: p.checkin,
+        checkout: p.checkout,
+        notti: p.notti,
+        adulti: p.adulti,
+        bambini: p.bambini,
+        camere: p.camere,
+        totale: p.totale,
+        atteso: p.atteso,
+        base: base / 100,
+        personeTassa,
+        deltaImporto: Math.round(dImporto * 100) / 100,
+        deltaGiorni: d,
+        scartoPerc: Math.round(scarto * 1000) / 10,
+        punti,
+        indizio:
+          Math.abs(dImporto) < 0.02 && personeTassa != null && personeTassa !== p.adulti
+            ? `tassa per ${personeTassa} person${personeTassa === 1 ? 'a' : 'e'}`
+            : Math.abs(dImporto) < 0.02
+            ? 'importo esatto'
+            : Math.abs(dImporto) <= 0.5
+            ? 'scarto di centesimi'
+            : '',
+      });
+    }
+    cand.sort((a, b) => b.punti - a.punti);
+    return {
+      ricevuta: {
+        idtrx: r.id,
+        numero: r.numero,
+        data: r.dataRaw,
+        giorno: r.giorno,
+        importo: r.importo,
+      },
+      candidati: cand.slice(0, maxCand),
+      migliore: cand.length ? cand[0].punti : 0,
+    };
+  });
+
+  lista.sort((a, b) => b.migliore - a.migliore);
+
+  return {
+    riepilogo: {
+      orfane: orfane.length,
+      conCandidati: lista.filter((x) => x.candidati.length).length,
+      senzaCandidati: lista.filter((x) => !x.candidati.length).length,
+      scoperteDisponibili: scoperte.length,
+      totaleOrfane:
+        Math.round(orfane.reduce((s, r) => s + r.centesimi, 0)) / 100,
+    },
+    orfane: lista,
+  };
+}
+
+/* ---------------------------------------------------------------- */
 /* Handler                                                           */
 /* ---------------------------------------------------------------- */
 export default {
@@ -1033,6 +1149,15 @@ export default {
         return json({ ok: true, annullato: body.idtrx, risposta: res });
       }
 
+      if (url.pathname === '/orfane') {
+        const opz = {
+          margine: parseInt(url.searchParams.get('margine') || '60', 10),
+          giorni: parseInt(url.searchParams.get('giorni') || '30', 10),
+          scarto: parseFloat(url.searchParams.get('scarto') || '0.3'),
+        };
+        return json({ ok: true, periodo: { dal, al }, ...(await orfaneConCandidati(env, dal, al, opz)) });
+      }
+
       if (url.pathname === '/proposte') {
         const opz = {
           margine: parseInt(url.searchParams.get('margine') || '60', 10),
@@ -1087,7 +1212,7 @@ export default {
     return json(
       {
         error: 'endpoint sconosciuto',
-        disponibili: ['/health', '/infouser', '/dco', '/prenotazioni', '/riconcilia', '/elenco', '/stato', '/emetti', '/annulla', '/condividi', '/invia', '/rinnova', '/proposte', '/r/{token}'],
+        disponibili: ['/health', '/infouser', '/dco', '/prenotazioni', '/riconcilia', '/elenco', '/stato', '/emetti', '/annulla', '/condividi', '/invia', '/rinnova', '/proposte', '/orfane', '/r/{token}'],
       },
       404
     );
