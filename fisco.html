@@ -499,7 +499,7 @@ $('#cal-ok').onclick  = ()=>{
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = gg(dal)+' – '+gg(al)+' · v31';
+  $('#periodo').textContent = gg(dal)+' – '+gg(al)+' · v32';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -762,7 +762,7 @@ async function apriEmissione(id, sostituisce){
   try{
     const r = await api('/emetti', {method:'POST', body: JSON.stringify({
       id, importo, pagamento, descrizione, includiTassa, cityTax:p.cityTax,
-      dal:$('#dal').value, al:$('#al').value })});
+      checkin:p.checkin, dal:$('#dal').value, al:$('#al').value })});
     toast('Ricevuta ' + (r.documento?.progressivo || 'emessa'));
     carica();
   }catch(e){
