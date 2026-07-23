@@ -382,10 +382,23 @@ async function scriviStato(env, id, dati) {
 /* Emissione e annullo documento                                     */
 /* ---------------------------------------------------------------- */
 // pagamento: PC contanti, PE elettronico, NR_EF segue fattura
-async function emettiDocumento(env, pren, pagamento = 'PE', aliquota = '10') {
-  const descrizione =
-    `Pernottamento ${pren.checkin} / ${pren.checkout}` +
-    (pren.nome ? ` - ${pren.nome}` : '');
+// "2026-07-22" -> "22/07/2026"
+function dataIt(iso) {
+  if (!iso) return '';
+  const [y, m, d] = iso.split('-');
+  return `${d}/${m}/${y}`;
+}
+
+function descrizioneStandard(pren) {
+  const nome = (pren.nome || '').trim();
+  return (
+    `Soggiorno dal ${dataIt(pren.checkin)} al ${dataIt(pren.checkout)}` +
+    (nome ? ` del Sig./Sig.ra ${nome}` : '')
+  );
+}
+
+async function emettiDocumento(env, pren, pagamento = 'PE', aliquota = '10', descrizionePers) {
+  const descrizione = (descrizionePers || '').trim() || descrizioneStandard(pren);
 
   const documento = {
     elementiContabili: [
@@ -443,6 +456,7 @@ async function elenco(env, dal, al, margine) {
   const perId = new Map(esito.abbinamenti.map((a) => [a.prenotazione.id, a]));
 
   const righe = prenotazioni.map((p) => {
+    p = { ...p, descrizioneDefault: descrizioneStandard(p) };
     const st = stati[p.id];
     if (st) {
       return {
@@ -588,7 +602,8 @@ export default {
           env,
           { ...pren, atteso: importo },
           body.pagamento || 'PE',
-          body.aliquota || '10'
+          body.aliquota || '10',
+          body.descrizione
         );
 
         const rec = await scriviStato(env, pren.id, {
