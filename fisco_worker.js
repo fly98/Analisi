@@ -338,6 +338,11 @@ async function fetchPrenotazioni(env, dal, al) {
 // lontana non "ruba" la ricevuta a quella giusta.
 const ONDATE = [3, 10, 15, 30];
 
+// giorni oltre il periodo entro cui cercare le ricevute: identico
+// in tutte le viste, altrimenti il motore vede insiemi diversi
+// e produce abbinamenti incoerenti fra una schermata e l'altra
+const MARGINE_RICEVUTE = 45;
+
 // Sulle prenotazioni diretse il pagamento puo' arrivare prima dell'arrivo,
 // quindi la ricevuta puo' precedere il soggiorno. Sui portali no.
 const CANALI_DIRETTI = ['manual', 'amenitiz', ''];
@@ -928,7 +933,7 @@ async function inviaEmail(env, destinatario, oggetto, testo) {
 /* Proposte di abbinamento (match approssimato da validare)          */
 /* ---------------------------------------------------------------- */
 async function proposte(env, dal, al, opzioni = {}) {
-  const margine = opzioni.margine ?? 60;
+  const margine = opzioni.margine ?? MARGINE_RICEVUTE;
   const maxGiorni = opzioni.giorni ?? 45;     // distanza max dall'arrivo
   const maxScarto = opzioni.scarto ?? 0.25;   // scarto max sull'importo (25%)
   const maxCand = opzioni.candidati ?? 5;
@@ -1065,7 +1070,7 @@ async function proposte(env, dal, al, opzioni = {}) {
 /* Vista inversa: dalla ricevuta orfana alle prenotazioni candidate  */
 /* ---------------------------------------------------------------- */
 async function orfaneConCandidati(env, dal, al, opzioni = {}) {
-  const margine = opzioni.margine ?? 60;
+  const margine = opzioni.margine ?? MARGINE_RICEVUTE;
   const maxGiorni = opzioni.giorni ?? 30;
   const maxScarto = opzioni.scarto ?? 0.3;
   const maxCand = opzioni.candidati ?? 8;
@@ -1213,7 +1218,7 @@ function oraDi(dataRaw) {
 }
 
 async function duplicati(env, dal, al, opzioni = {}) {
-  const margine = opzioni.margine ?? 60;
+  const margine = opzioni.margine ?? MARGINE_RICEVUTE;
   const ricevute = await fetchRicevute(env, dal, addGiorni(al, margine));
   const valide = ricevute.documenti.filter((r) => r.tipo === 'V' && !r.annullata);
 
@@ -1484,7 +1489,7 @@ export default {
 
       if (url.pathname === '/orfane') {
         const opz = {
-          margine: parseInt(url.searchParams.get('margine') || '60', 10),
+          margine: parseInt(url.searchParams.get('margine') || '45', 10),
           giorni: parseInt(url.searchParams.get('giorni') || '30', 10),
           scarto: parseFloat(url.searchParams.get('scarto') || '0.3'),
         };
@@ -1493,7 +1498,7 @@ export default {
 
       if (url.pathname === '/proposte') {
         const opz = {
-          margine: parseInt(url.searchParams.get('margine') || '60', 10),
+          margine: parseInt(url.searchParams.get('margine') || '45', 10),
           giorni: parseInt(url.searchParams.get('giorni') || '45', 10),
           scarto: parseFloat(url.searchParams.get('scarto') || '0.25'),
         };
@@ -1522,7 +1527,7 @@ export default {
       if (url.pathname === '/riconcilia') {
         // margine: giorni di ricerca ricevute oltre il periodo delle prenotazioni,
         // perche' le ricevute vengono emesse anche molto dopo il checkout
-        const margine = parseInt(url.searchParams.get('margine') || '30', 10);
+        const margine = MARGINE_RICEVUTE;
         const ricDal = dal;
         const ricAl = addGiorni(al, margine);
 
