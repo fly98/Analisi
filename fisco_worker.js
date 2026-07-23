@@ -1062,6 +1062,106 @@ async function orfaneConCandidati(env, dal, al, opzioni = {}) {
 }
 
 /* ---------------------------------------------------------------- */
+/* Ricevute duplicate (stesso importo a breve distanza)              */
+/* ---------------------------------------------------------------- */
+function oraDi(dataRaw) {
+  const m = String(dataRaw).match(
+    /(\d{2})\/(\d{2})\/(\d{4})[ T](\d{2}):(\d{2}):(\d{2})/
+  );
+  if (!m) return null;
+  return new Date(`${m[3]}-${m[2]}-${m[1]}T${m[4]}:${m[5]}:${m[6]}Z`).getTime();
+}
+
+async function duplicati(env, dal, al, opzioni = {}) {
+  const margine = opzioni.margine ?? 60;
+  const ricevute = await fetchRicevute(env, dal, addGiorni(al, margine));
+  const valide = ricevute.documenti.filter((r) => r.tipo === 'V' && !r.annullata);
+
+  // per sapere quali sono gia' abbinate
+  const prenotazioni = await fetchPrenotazioni(env, dal, al);
+  const stati = await leggiStati(env, prenotazioni.map((p) => p.id));
+  const usate = new Map();
+  for (const [id, s] of Object.entries(stati)) {
+    if (s && s.idtrx) usate.set(String(s.idtrx), id);
+  }
+  const libere = prenotazioni.filter((p) => !stati[p.id]);
+  const esito = riconcilia(libere, ricevute.documenti);
+  for (const a of esito.abbinamenti) usate.set(String(a.ricevuta.id), a.prenotazione.id);
+
+  const nomi = new Map(prenotazioni.map((p) => [p.id, p]));
+
+  const perImporto = new Map();
+  for (const r of valide) {
+    if (!perImporto.has(r.centesimi)) perImporto.set(r.centesimi, []);
+    perImporto.get(r.centesimi).push(r);
+  }
+
+  const gruppi = [];
+  for (const [cents, lista] of perImporto) {
+    if (lista.length < 2) continue;
+    const ord = [...lista].sort((a, b) => (oraDi(a.dataRaw) || 0) - (oraDi(b.dataRaw) || 0));
+
+    // spezzo in blocchi di documenti ravvicinati (max 36 ore fra uno e l'altro)
+    let blocco = [ord[0]];
+    const chiudi = () => {
+      if (blocco.length < 2) return;
+      const t0 = oraDi(blocco[0].dataRaw);
+      const t1 = oraDi(blocco[blocco.length - 1].dataRaw);
+      const secondi = (t1 - t0) / 1000;
+      const livello = secondi <= 300 ? 'certo' : secondi <= 90000 ? 'probabile' : 'dubbio';
+      gruppi.push({
+        importo: cents / 100,
+        conteggio: blocco.length,
+        eccedenza: Math.round(((blocco.length - 1) * cents) / 100 * 100) / 100,
+        distanzaSecondi: Math.round(secondi),
+        livello,
+        ricevute: blocco.map((r) => {
+          const idPren = usate.get(String(r.id));
+          const p = idPren ? nomi.get(idPren) : null;
+          return {
+            idtrx: r.id,
+            numero: r.numero,
+            data: r.dataRaw,
+            importo: r.importo,
+            abbinata: !!idPren,
+            prenotazione: p
+              ? { id: p.id, nome: p.nome, checkin: p.checkin, checkout: p.checkout }
+              : null,
+          };
+        }),
+      });
+      blocco = [];
+    };
+    for (let i = 1; i < ord.length; i++) {
+      const gap = (oraDi(ord[i].dataRaw) - oraDi(ord[i - 1].dataRaw)) / 1000;
+      if (gap <= 129600) blocco.push(ord[i]);
+      else {
+        chiudi();
+        blocco = [ord[i]];
+      }
+    }
+    chiudi();
+  }
+
+  gruppi.sort((a, b) => b.eccedenza - a.eccedenza);
+
+  const perLivello = (l) => gruppi.filter((g) => g.livello === l);
+  return {
+    riepilogo: {
+      gruppi: gruppi.length,
+      certi: perLivello('certo').length,
+      probabili: perLivello('probabile').length,
+      dubbi: perLivello('dubbio').length,
+      eccedenzaTotale:
+        Math.round(gruppi.reduce((s, g) => s + g.eccedenza, 0) * 100) / 100,
+      eccedenzaCerti:
+        Math.round(perLivello('certo').reduce((s, g) => s + g.eccedenza, 0) * 100) / 100,
+    },
+    gruppi,
+  };
+}
+
+/* ---------------------------------------------------------------- */
 /* Handler                                                           */
 /* ---------------------------------------------------------------- */
 export default {
@@ -1216,6 +1316,10 @@ export default {
         return json({ ok: true, annullato: body.idtrx, risposta: res });
       }
 
+      if (url.pathname === '/duplicati') {
+        return json({ ok: true, periodo: { dal, al }, ...(await duplicati(env, dal, al)) });
+      }
+
       if (url.pathname === '/orfane') {
         const opz = {
           margine: parseInt(url.searchParams.get('margine') || '60', 10),
@@ -1279,7 +1383,7 @@ export default {
     return json(
       {
         error: 'endpoint sconosciuto',
-        disponibili: ['/health', '/infouser', '/dco', '/prenotazioni', '/riconcilia', '/elenco', '/stato', '/emetti', '/annulla', '/condividi', '/invia', '/rinnova', '/proposte', '/orfane', '/r/{token}'],
+        disponibili: ['/health', '/infouser', '/dco', '/prenotazioni', '/riconcilia', '/elenco', '/stato', '/emetti', '/annulla', '/condividi', '/invia', '/rinnova', '/proposte', '/orfane', '/duplicati', '/r/{token}'],
       },
       404
     );
