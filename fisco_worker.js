@@ -175,12 +175,39 @@ async function fetchRicevute(env, dal, al) {
   });
   unici.sort((a, b) => (a.data < b.data ? 1 : -1));
 
+  // A = annullo, R = reso: compensano una vendita di pari importo emessa
+  // in precedenza. Quella vendita non e' piu' un documento valido.
   const vendite = unici.filter((d) => d.tipo === 'V');
+  const rettifiche = unici.filter((d) => d.tipo !== 'V');
+
+  // dalla piu' vecchia alla piu' recente, per abbinare in ordine
+  const venditeCron = [...vendite].sort((a, b) => (a.data > b.data ? 1 : -1));
+  const rettCron = [...rettifiche].sort((a, b) => (a.data > b.data ? 1 : -1));
+
+  for (const r of rettCron) {
+    // la vendita annullata e' quella di pari importo piu' vicina nel tempo
+    let scelta = null;
+    for (const v of venditeCron) {
+      if (v.annullata) continue;
+      if (v.centesimi !== r.centesimi) continue;
+      if (v.data > r.data) continue;
+      scelta = v; // scorrendo in ordine resta l'ultima precedente
+    }
+    if (scelta) {
+      scelta.annullata = true;
+      scelta.annullataDa = r.numero;
+      r.annulla = scelta.numero;
+    }
+  }
+
+  const valide = vendite.filter((v) => !v.annullata);
+
   return {
     count: unici.length,
-    countVendite: vendite.length,
-    countAltri: unici.length - vendite.length,
-    totale: Math.round(vendite.reduce((s, x) => s + x.centesimi, 0)) / 100,
+    countVendite: valide.length,
+    countAnnullate: vendite.length - valide.length,
+    countRettifiche: rettifiche.length,
+    totale: Math.round(valide.reduce((s, x) => s + x.centesimi, 0)) / 100,
     documenti: unici,
   };
 }
@@ -297,7 +324,9 @@ async function fetchPrenotazioni(env, dal, al) {
 const ONDATE = [3, 10, 15, 30];
 
 function riconcilia(prenotazioni, ricevute) {
-  const disponibili = ricevute.filter((r) => r.tipo === 'V').map((r) => ({ ...r }));
+  const disponibili = ricevute
+    .filter((r) => r.tipo === 'V' && !r.annullata)
+    .map((r) => ({ ...r }));
   const perImporto = new Map();
   for (const r of disponibili) {
     if (!perImporto.has(r.centesimi)) perImporto.set(r.centesimi, []);
@@ -790,7 +819,7 @@ async function proposte(env, dal, al, opzioni = {}) {
 
   const scoperte = libere.filter((p) => !abbinateOk.has(p.id));
   const orfane = ricevute.documenti.filter(
-    (r) => r.tipo === 'V' && !impegnate.has(String(r.id))
+    (r) => r.tipo === 'V' && !r.annullata && !impegnate.has(String(r.id))
   );
 
   // la ricevuta non precede mai l'arrivo: zero durante il soggiorno,
@@ -913,7 +942,7 @@ async function orfaneConCandidati(env, dal, al, opzioni = {}) {
 
   const scoperte = libere.filter((p) => !abbinate.has(p.id));
   const orfane = ricevute.documenti.filter(
-    (r) => r.tipo === 'V' && !impegnate.has(String(r.id))
+    (r) => r.tipo === 'V' && !r.annullata && !impegnate.has(String(r.id))
   );
 
   const distanza = (giornoRic, p) => {
