@@ -361,7 +361,10 @@ function toast(msg, err){
 }
 
 async function api(path, opt={}){
+  const sep = path.includes('?') ? '&' : '?';
+  path = path + sep + '_=' + Date.now();
   const r = await fetch(API + path, {
+    cache: 'no-store',
     ...opt,
     headers:{'X-Token':TOKEN,'Content-Type':'application/json',...(opt.headers||{})}
   });
@@ -491,7 +494,7 @@ $('#cal-ok').onclick  = ()=>{
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = gg(dal)+' – '+gg(al)+' · v34';
+  $('#periodo').textContent = gg(dal)+' – '+gg(al)+' · v35';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
