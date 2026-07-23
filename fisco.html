@@ -46,7 +46,7 @@ h1{margin:0;font-size:17px;font-weight:650;letter-spacing:-.2px}
 .sub{font-size:12px;color:#9db2cd}
 .tabs{display:flex;gap:4px;margin-top:12px}
 .tab{
-  flex:1;padding:8px;border:0;border-radius:8px;font:inherit;font-size:13px;font-weight:600;
+  flex:1;padding:8px 4px;border:0;border-radius:8px;font:inherit;font-size:12.5px;font-weight:600;
   background:rgba(255,255,255,.1);color:#c3d2e6;cursor:pointer;
 }
 .tab.on{background:#fff;color:var(--ink)}
@@ -261,6 +261,7 @@ dialog::backdrop{background:rgba(10,25,45,.45)}
   <div class="tabs">
     <button class="tab on" data-view="operativo">Prenotazioni</button>
     <button class="tab" data-view="storico">Match storico</button>
+    <button class="tab" data-view="duplicati">Duplicati</button>
   </div>
 </header>
 
@@ -288,6 +289,13 @@ dialog::backdrop{background:rgba(10,25,45,.45)}
     </div>
     <div class="conta" id="conta"></div>
     <div id="lista"><div class="loading">Caricamento…</div></div>
+  </section>
+
+  <!-- VISTA DUPLICATI -->
+  <section id="v-duplicati" class="hidden">
+    <div class="kpis" id="kpis-dup"></div>
+    <div class="stati" id="filtro-dup" style="margin-bottom:12px"></div>
+    <div id="lista-dup"><div class="loading">Cerco i duplicati…</div></div>
   </section>
 
   <!-- VISTA STORICO -->
@@ -491,7 +499,7 @@ $('#cal-ok').onclick  = ()=>{
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = gg(dal)+' – '+gg(al)+' · v28';
+  $('#periodo').textContent = gg(dal)+' – '+gg(al)+' · v29';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -1119,6 +1127,91 @@ window.confermaMassa = async () => {
   caricaProposte();
 };
 
+/* ---------- duplicati ---------- */
+let DUP = null, LIV = 'certo';
+
+async function caricaDuplicati(){
+  $('#lista-dup').innerHTML = '<div class="loading">Cerco i duplicati…</div>';
+  try{
+    DUP = await api(`/duplicati?dal=${$('#dal').value}&al=${$('#al').value}`);
+    renderDuplicati();
+  }catch(e){
+    $('#lista-dup').innerHTML = `<div class="empty">Non riesco a caricare.<br><small>${e.message}</small></div>`;
+  }
+}
+
+function renderDuplicati(){
+  if(!DUP) return;
+  const r = DUP.riepilogo;
+  $('#kpis-dup').innerHTML = `
+    <div class="kpi warn"><b>${r.certi}</b><span>Quasi certi</span></div>
+    <div class="kpi"><b>${r.probabili}</b><span>Probabili</span></div>
+    <div class="kpi"><b>${r.dubbi}</b><span>Dubbi</span></div>
+    <div class="kpi warn"><b>${eur(r.eccedenzaTotale)}</b><span>Eccedenza</span></div>`;
+
+  const conta = l => DUP.gruppi.filter(g=>g.livello===l).length;
+  $('#filtro-dup').innerHTML = [
+    ['certo','Quasi certi'], ['probabile','Probabili'], ['dubbio','Dubbi'], ['tutti','Tutti']
+  ].map(([k,l])=>{
+    const n = k==='tutti' ? DUP.gruppi.length : conta(k);
+    return n ? `<button class="${LIV===k?'on':''}" data-l="${k}">${l}<b>${n}</b></button>` : '';
+  }).join('');
+  document.querySelectorAll('#filtro-dup button').forEach(b=>b.onclick=()=>{
+    LIV=b.dataset.l; renderDuplicati();
+  });
+
+  const g = DUP.gruppi.filter(x=> LIV==='tutti' || x.livello===LIV);
+  $('#lista-dup').innerHTML = g.length ? g.map(cardDup).join('')
+    : '<div class="empty">Nessun duplicato in questa categoria.</div>';
+}
+
+function durata(s){
+  if(s<60) return `${s} second${s===1?'o':'i'}`;
+  if(s<3600) return `${Math.round(s/60)} minut${Math.round(s/60)===1?'o':'i'}`;
+  return `${(s/3600).toFixed(1)} ore`;
+}
+
+function cardDup(g){
+  const cls = g.livello==='certo' ? 'da_emettere' : g.livello==='probabile' ? 'futura' : 'esclusa';
+  const righe = g.ricevute.map(r=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;
+                padding:8px 0;border-top:1px solid var(--line)">
+      <div>
+        <button class="numdoc" onclick="vediPdf('${r.idtrx}')">${r.numero}</button>
+        <div class="meta">${r.data}${r.abbinata && r.prenotazione ? ' · '+(r.prenotazione.nome||'senza nome') : ' · non abbinata'}</div>
+      </div>
+      ${r.abbinata
+        ? '<span class="pill p-emessa">abbinata</span>'
+        : `<button class="danger" style="font:inherit;font-size:12.5px;font-weight:600;padding:6px 11px;
+             border-radius:7px;border:1px solid #f0c9c5;background:#fff;cursor:pointer"
+             onclick="annullaDup('${r.idtrx}','${r.numero}')">Annulla</button>`}
+    </div>`).join('');
+
+  return `<div class="card ${cls}" id="dup-${g.ricevute[0].idtrx}">
+    <div class="row1">
+      <div>
+        <div class="nome">${eur(g.importo)} × ${g.conteggio}</div>
+        <div class="meta">emesse a ${durata(g.distanzaSecondi)} di distanza</div>
+      </div>
+      <div class="eur" style="color:var(--warn)">+${eur(g.eccedenza)}</div>
+    </div>
+    ${righe}
+  </div>`;
+}
+
+window.annullaDup = async (idtrx, numero) => {
+  if(!await dialogo('Annulla ricevuta duplicata',
+    `${numero} verrà annullata presso l\u2019Agenzia delle Entrate. Controlla prima il PDF: l\u2019operazione non è reversibile.`,
+    '', 'Annulla ricevuta')) return;
+  toast('Annullo in corso…');
+  try{
+    await api('/annulla', {method:'POST', body: JSON.stringify({idtrx})});
+    toast(numero + ' annullata');
+    DUP = null; DATI = null; ORF = null; PROP = null;
+    caricaDuplicati();
+  }catch(e){ toast('Annullo non riuscito: '+e.message, true); }
+};
+
 /* ---------- tabs ---------- */
 let tmr;
 $('#q').addEventListener('input', e => {
@@ -1144,7 +1237,9 @@ document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
   VIEW = t.dataset.view;
   $('#v-operativo').classList.toggle('hidden', VIEW!=='operativo');
   $('#v-storico').classList.toggle('hidden', VIEW!=='storico');
+  $('#v-duplicati').classList.toggle('hidden', VIEW!=='duplicati');
   if(VIEW==='storico' && !ORF && !PROP) caricaOrfane();
+  if(VIEW==='duplicati' && !DUP) caricaDuplicati();
   if(VIEW==='operativo' && !DATI) carica();
 });
 
