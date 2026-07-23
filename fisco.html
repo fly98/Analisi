@@ -218,7 +218,12 @@ dialog::backdrop{background:rgba(10,25,45,.45)}
 <header>
   <div class="htop">
     <h1>InternoUno Cassa</h1>
-    <span class="sub" id="periodo"></span>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span class="sub" id="periodo"></span>
+      <button id="pwd" title="Rinnova password Fisconline"
+        style="border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.08);color:#c3d2e6;
+               font:inherit;font-size:15px;line-height:1;padding:5px 9px;border-radius:8px;cursor:pointer">&#128273;</button>
+    </div>
   </div>
   <div class="tabs">
     <button class="tab on" data-view="operativo">Prenotazioni</button>
@@ -438,7 +443,7 @@ $('#cal-ok').onclick  = ()=>{
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = gg(dal)+' – '+gg(al)+' · v18';
+  $('#periodo').textContent = gg(dal)+' – '+gg(al)+' · v19';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -773,6 +778,17 @@ $('#q').addEventListener('input', e => {
   clearTimeout(tmr);
   tmr = setTimeout(()=>{ QUERY = e.target.value; render(); }, 180);
 });
+$('#pwd').onclick = async () => {
+  if(!await dialogo('Rinnova password Fisconline',
+    'La password dell\u2019Agenzia delle Entrate scade ogni 90 giorni. Il rinnovo la mantiene identica: non dovrai aggiornare nulla.',
+    '', 'Rinnova')) return;
+  toast('Rinnovo in corso…');
+  try{
+    const r = await api('/rinnova', {method:'POST', body:'{}'});
+    toast(r.esito === false ? 'Rinnovo non riuscito' : 'Password rinnovata per altri 90 giorni', r.esito === false);
+  }catch(e){ toast('Rinnovo non riuscito: '+e.message, true); }
+};
+
 $('#q-x').onclick = ()=>{ $('#q').value=''; QUERY=''; render(); };
 
 document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
