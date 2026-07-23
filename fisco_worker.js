@@ -232,7 +232,10 @@ async function fetchPrenotazioni(env, dal, al) {
       const n = notti(b.checkin, b.checkout);
       const adulti = b.adults || 1;
       const totale = Math.round((parseFloat(b.total_amount_after_tax) || 0) * 100);
-      const cityTax = adulti * Math.min(n, CITY_TAX_MAX_NOTTI) * CITY_TAX_NOTTE * 100;
+      const nottiTax = Math.min(n, CITY_TAX_MAX_NOTTI);
+      const cityTax = adulti * nottiTax * CITY_TAX_NOTTE * 100;
+      // Amenitiz a volte conteggia la tassa anche sui bambini
+      const cityTaxTutti = (adulti + (b.children || 0)) * nottiTax * CITY_TAX_NOTTE * 100;
       const booker = b.booker || {};
       const camere = (b.rooms || [])
         .map((r) => r.individual_room_name)
@@ -255,7 +258,10 @@ async function fetchPrenotazioni(env, dal, al) {
         cityTax: cityTax / 100,
         attesoCents: totale - cityTax,
         atteso: (totale - cityTax) / 100,
+        // varianti usate solo dal motore di abbinamento
+        attesoBimbiCents: totale - cityTaxTutti,
         attesoAltCents: totale,
+        cityTaxTutti: cityTaxTutti / 100,
       });
     }
   }
@@ -328,6 +334,7 @@ function riconcilia(prenotazioni, ricevute) {
   }
 
   passata('attesoCents', 'senza-tassa');
+  passata('attesoBimbiCents', 'tassa-con-bambini');
   passata('attesoAltCents', 'con-tassa');
 
   const senzaRicevuta = daAbbinare.filter((p) => !p.ricevuta);
@@ -749,8 +756,14 @@ async function proposte(env, dal, al, opzioni = {}) {
       const dGiorni = giorniTra(r.giorno, p.checkin);
       if (dGiorni < -7 || dGiorni > maxGiorni) continue; // ricevuta troppo lontana
 
-      const dImporto = (r.centesimi - p.attesoCents) / 100;
-      const scarto = Math.abs(r.centesimi - p.attesoCents) / Math.max(p.attesoCents, 1);
+      // confronto con la variante piu' vicina (tassa su adulti o su tutti)
+      const basi = [p.attesoCents, p.attesoBimbiCents];
+      let base = basi[0];
+      for (const b of basi) {
+        if (Math.abs(r.centesimi - b) < Math.abs(r.centesimi - base)) base = b;
+      }
+      const dImporto = (r.centesimi - base) / 100;
+      const scarto = Math.abs(r.centesimi - base) / Math.max(base, 1);
       if (scarto > maxScarto) continue;
 
       // punteggio: 100 = perfetto. Pesa piu' l'importo della data.
@@ -769,11 +782,16 @@ async function proposte(env, dal, al, opzioni = {}) {
         scartoPerc: Math.round(scarto * 1000) / 10,
         punti,
         // se lo scarto coincide con la tassa di soggiorno e' un indizio forte
+        base: base / 100,
         indizio:
-          Math.abs(r.centesimi - (p.attesoCents + p.cityTax * 100)) < 2
-            ? 'tassa inclusa'
+          Math.abs(dImporto) < 0.02 && base === p.attesoBimbiCents
+            ? 'tassa anche sui bambini'
             : Math.abs(dImporto) < 0.02
             ? 'importo esatto'
+            : Math.abs(r.centesimi - p.attesoAltCents) < 2
+            ? 'tassa inclusa'
+            : Math.abs(dImporto) <= 50
+            ? 'scarto di pochi centesimi'
             : '',
       });
     }
