@@ -748,6 +748,112 @@ async function inviaEmail(env, destinatario, oggetto, testo) {
 }
 
 /* ---------------------------------------------------------------- */
+/* Proposte di abbinamento (match approssimato da validare)          */
+/* ---------------------------------------------------------------- */
+async function proposte(env, dal, al, opzioni = {}) {
+  const margine = opzioni.margine ?? 60;
+  const maxGiorni = opzioni.giorni ?? 45;     // distanza max dall'arrivo
+  const maxScarto = opzioni.scarto ?? 0.25;   // scarto max sull'importo (25%)
+  const maxCand = opzioni.candidati ?? 5;
+
+  const ricDal = addGiorni(dal, -30);
+  const ricAl = addGiorni(al, margine);
+
+  const [prenotazioni, ricevute] = await Promise.all([
+    fetchPrenotazioni(env, dal, al),
+    fetchRicevute(env, ricDal, ricAl),
+  ]);
+
+  const stati = await leggiStati(env, prenotazioni.map((p) => p.id));
+
+  // ricevute gia' impegnate da una decisione registrata
+  const impegnate = new Set();
+  for (const s of Object.values(stati)) if (s && s.idtrx) impegnate.add(String(s.idtrx));
+
+  // il match esatto viene applicato prima: resta da proporre solo il resto
+  const libere = prenotazioni.filter((p) => !stati[p.id]);
+  const esito = riconcilia(libere, ricevute.documenti);
+  const abbinateOk = new Set(esito.abbinamenti.map((a) => a.prenotazione.id));
+  for (const a of esito.abbinamenti) impegnate.add(String(a.ricevuta.id));
+
+  const scoperte = libere.filter((p) => !abbinateOk.has(p.id));
+  const orfane = ricevute.documenti.filter(
+    (r) => r.tipo === 'V' && !impegnate.has(String(r.id))
+  );
+
+  const giorniTra = (isoA, isoB) =>
+    Math.round((new Date(isoA + 'T12:00:00Z') - new Date(isoB + 'T12:00:00Z')) / 86400000);
+
+  const lista = [];
+  for (const p of scoperte) {
+    const cand = [];
+    for (const r of orfane) {
+      const dGiorni = giorniTra(r.giorno, p.checkin);
+      if (dGiorni < -7 || dGiorni > maxGiorni) continue; // ricevuta troppo lontana
+
+      const dImporto = (r.centesimi - p.attesoCents) / 100;
+      const scarto = Math.abs(r.centesimi - p.attesoCents) / Math.max(p.attesoCents, 1);
+      if (scarto > maxScarto) continue;
+
+      // punteggio: 100 = perfetto. Pesa piu' l'importo della data.
+      const punti = Math.round(
+        100 - scarto * 200 - Math.min(Math.abs(dGiorni), maxGiorni) * 0.8
+      );
+
+      cand.push({
+        idtrx: r.id,
+        numero: r.numero,
+        data: r.dataRaw,
+        giorno: r.giorno,
+        importo: r.importo,
+        deltaImporto: Math.round(dImporto * 100) / 100,
+        deltaGiorni: dGiorni,
+        scartoPerc: Math.round(scarto * 1000) / 10,
+        punti,
+        // se lo scarto coincide con la tassa di soggiorno e' un indizio forte
+        indizio:
+          Math.abs(r.centesimi - (p.attesoCents + p.cityTax * 100)) < 2
+            ? 'tassa inclusa'
+            : Math.abs(dImporto) < 0.02
+            ? 'importo esatto'
+            : '',
+      });
+    }
+    if (!cand.length) continue;
+    cand.sort((a, b) => b.punti - a.punti);
+    lista.push({
+      prenotazione: {
+        id: p.id,
+        nome: p.nome,
+        canale: p.canale,
+        checkin: p.checkin,
+        checkout: p.checkout,
+        notti: p.notti,
+        camere: p.camere,
+        totale: p.totale,
+        cityTax: p.cityTax,
+        atteso: p.atteso,
+      },
+      candidati: cand.slice(0, maxCand),
+      migliore: cand[0].punti,
+    });
+  }
+
+  lista.sort((a, b) => b.migliore - a.migliore);
+
+  return {
+    parametri: { giorni: maxGiorni, scarto: maxScarto },
+    riepilogo: {
+      scoperte: scoperte.length,
+      conProposta: lista.length,
+      senzaProposta: scoperte.length - lista.length,
+      orfaneDisponibili: orfane.length,
+    },
+    proposte: lista,
+  };
+}
+
+/* ---------------------------------------------------------------- */
 /* Handler                                                           */
 /* ---------------------------------------------------------------- */
 export default {
@@ -902,6 +1008,15 @@ export default {
         return json({ ok: true, annullato: body.idtrx, risposta: res });
       }
 
+      if (url.pathname === '/proposte') {
+        const opz = {
+          margine: parseInt(url.searchParams.get('margine') || '60', 10),
+          giorni: parseInt(url.searchParams.get('giorni') || '45', 10),
+          scarto: parseFloat(url.searchParams.get('scarto') || '0.25'),
+        };
+        return json({ ok: true, periodo: { dal, al }, ...(await proposte(env, dal, al, opz)) });
+      }
+
       if (url.pathname === '/rinnova' && request.method === 'POST') {
         // rinnova la scadenza della password Fisconline mantenendola invariata
         const res = await datacash(env, '/resetPassword/', {});
@@ -947,7 +1062,7 @@ export default {
     return json(
       {
         error: 'endpoint sconosciuto',
-        disponibili: ['/health', '/infouser', '/dco', '/prenotazioni', '/riconcilia', '/elenco', '/stato', '/emetti', '/annulla', '/condividi', '/invia', '/rinnova', '/r/{token}'],
+        disponibili: ['/health', '/infouser', '/dco', '/prenotazioni', '/riconcilia', '/elenco', '/stato', '/emetti', '/annulla', '/condividi', '/invia', '/rinnova', '/proposte', '/r/{token}'],
       },
       404
     );
