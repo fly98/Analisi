@@ -597,31 +597,68 @@ function riconcilia(prenotazioni, ricevute) {
 /* ---------------------------------------------------------------- */
 // stato: 'emessa' | 'fattura' | 'esclusa'
 const chiaveStato = (id) => `fisco:st:${id}`;
+const CHIAVE_INDICE = 'fisco:indice';
+
+// Gli stati stanno in un unico documento: leggere centinaia di chiavi
+// separate supera il limite di operazioni per invocazione e fallisce
+// in silenzio. Le chiavi singole restano come copia di sicurezza.
+async function leggiIndice(env) {
+  if (!env.FISCO_KV) return {};
+  try {
+    return (await env.FISCO_KV.get(CHIAVE_INDICE, 'json')) || {};
+  } catch {
+    return {};
+  }
+}
 
 async function leggiStati(env, ids) {
-  if (!env.FISCO_KV) return {};
-  const coppie = await Promise.all(
-    ids.map(async (id) => {
-      try {
-        const v = await env.FISCO_KV.get(chiaveStato(id), 'json');
-        return [id, v];
-      } catch {
-        return [id, null];
-      }
-    })
-  );
-  return Object.fromEntries(coppie.filter(([, v]) => v));
+  const indice = await leggiIndice(env);
+  if (!ids) return indice;
+  const out = {};
+  for (const id of ids) if (indice[id]) out[id] = indice[id];
+  return out;
 }
 
 async function scriviStato(env, id, dati) {
   if (!env.FISCO_KV) throw new Error('KV non configurato');
+  const indice = await leggiIndice(env);
+
   if (dati === null) {
+    delete indice[id];
+    await env.FISCO_KV.put(CHIAVE_INDICE, JSON.stringify(indice));
     await env.FISCO_KV.delete(chiaveStato(id));
     return null;
   }
+
   const record = { ...dati, aggiornato: new Date().toISOString() };
+  indice[id] = record;
+  await env.FISCO_KV.put(CHIAVE_INDICE, JSON.stringify(indice));
   await env.FISCO_KV.put(chiaveStato(id), JSON.stringify(record));
   return record;
+}
+
+// ricostruisce l'indice dalle chiavi singole (una tantum)
+async function ricostruisciIndice(env) {
+  if (!env.FISCO_KV) throw new Error('KV non configurato');
+  const indice = await leggiIndice(env);
+  let cursore, letti = 0, aggiunti = 0;
+  do {
+    const res = await env.FISCO_KV.list({ prefix: 'fisco:st:', cursor: cursore, limit: 1000 });
+    for (const k of res.keys) {
+      const id = k.name.replace('fisco:st:', '');
+      letti++;
+      if (indice[id]) continue;
+      try {
+        const v = await env.FISCO_KV.get(k.name, 'json');
+        if (v) { indice[id] = v; aggiunti++; }
+      } catch {
+        /* chiave illeggibile: la salto */
+      }
+    }
+    cursore = res.list_complete ? null : res.cursor;
+  } while (cursore);
+  await env.FISCO_KV.put(CHIAVE_INDICE, JSON.stringify(indice));
+  return { chiaviTrovate: letti, aggiunte: aggiunti, totaleIndice: Object.keys(indice).length };
 }
 
 /* ---------------------------------------------------------------- */
@@ -1511,6 +1548,10 @@ export default {
           scarto: parseFloat(url.searchParams.get('scarto') || '0.25'),
         };
         return json({ ok: true, periodo: { dal, al }, ...(await proposte(env, dal, al, opz)) });
+      }
+
+      if (url.pathname === '/ricostruisci' && request.method === 'POST') {
+        return json({ ok: true, ...(await ricostruisciIndice(env)) });
       }
 
       if (url.pathname === '/rinnova' && request.method === 'POST') {
