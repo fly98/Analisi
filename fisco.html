@@ -7,7 +7,9 @@
 <meta name="theme-color" content="#12283f">
 <title>InternoUno Cassa</title>
 <link rel="manifest" href="fisco-manifest.json">
-<link rel="apple-touch-icon" href="fisco-icon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="fisco-icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="fisco-icon-512.png">
+<link rel="apple-touch-icon" sizes="180x180" href="fisco-icon-180.png">
 <meta name="apple-mobile-web-app-title" content="Cassa">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <style>
@@ -436,7 +438,7 @@ $('#cal-ok').onclick  = ()=>{
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = gg(dal)+' – '+gg(al)+' · v16';
+  $('#periodo').textContent = gg(dal)+' – '+gg(al)+' · v17';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
