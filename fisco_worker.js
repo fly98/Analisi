@@ -31,6 +31,8 @@ const json = (obj, status = 200) =>
       'Content-Type': 'application/json; charset=utf-8',
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Headers': 'X-Token, Content-Type',
+      // i dati cambiano a ogni abbinamento: il browser non deve riusarli
+      'Cache-Control': 'no-store, no-cache, must-revalidate',
     },
   });
 
