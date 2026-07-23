@@ -402,7 +402,7 @@ $('#cal-ok').onclick  = ()=>{
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = gg(dal)+' – '+gg(al)+' · v6';
+  $('#periodo').textContent = gg(dal)+' – '+gg(al)+' · v7';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -426,7 +426,7 @@ function render(){
     <div class="kpi ok"><b>${r.emesse}</b><span>Emesse</span></div>
     <div class="kpi"><b>${r.fattura}</b><span>Fattura</span></div>
     <div class="kpi"><b>${r.escluse}</b><span>Escluse</span></div>
-    <div class="kpi"><b>${r.future||0}</b><span>In corso</span></div>`;
+    <div class="kpi"><b>${r.future||0}</b><span>Non arrivati</span></div>`;
 
   $('#kpis-st').innerHTML = `
     <div class="kpi"><b>${r.totali}</b><span>Prenotazioni</span></div>
@@ -460,7 +460,7 @@ function badgeCamere(lista){
   }).join('') + '</span>';
 }
 
-const ETICHETTA = {emessa:'Emessa', da_emettere:'Da emettere', fattura:'Fattura', esclusa:'Esclusa', futura:'In corso'};
+const ETICHETTA = {emessa:'Emessa', da_emettere:'Da emettere', fattura:'Fattura', esclusa:'Esclusa', futura:'Non arrivato'};
 
 function riga(p){
   const doc = p.ricevuta;
@@ -480,9 +480,9 @@ function riga(p){
     </div>`;
   } else if(p.stato === 'futura'){
     azioni = `<div class="docinfo">
-      <span>Soggiorno non ancora concluso</span>
+      <span>Arrivo previsto il ${gg(p.checkin)}</span>
       <button class="ghost" style="font:inherit;font-size:12.5px;padding:5px 10px;border-radius:7px;border:1px solid var(--line);background:#fff;cursor:pointer"
-        onclick="apriEmissione('${p.id}')">Emetti comunque</button>
+        onclick="apriEmissione('${p.id}')">Emetti in anticipo</button>
     </div>`;
   } else {
     azioni = `<div class="docinfo">
