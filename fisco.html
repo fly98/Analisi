@@ -321,6 +321,24 @@ dialog::backdrop{background:rgba(10,25,45,.45)}
 .dlg .btns button{flex:1;font:inherit;font-weight:600;padding:10px;border-radius:8px;cursor:pointer;border:1px solid var(--line);background:#fff}
 .dlg .btns button.primary{background:var(--ok);color:#fff;border-color:var(--ok)}
 
+#dlg-ant{
+  width:100vw;max-width:100vw;height:100vh;max-height:100vh;
+  margin:0;padding:0;border:0;border-radius:0;background:#eef1f5;
+  flex-direction:column;overflow:hidden
+}
+#dlg-ant[open]{display:flex}
+#dlg-ant::backdrop{background:rgba(18,40,63,.6)}
+#dlg-ant iframe{flex:1;border:0;width:100%;background:#fff}
+.ant-barra{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  background:#12283f;color:#fff;padding:12px 14px;
+  padding-top:calc(12px + env(safe-area-inset-top,0px));flex:0 0 auto
+}
+.ant-barra span{color:#c3d2e6;font-size:12px;text-align:center;flex:1}
+.ant-barra button{
+  font:inherit;font-size:13.5px;font-weight:600;padding:8px 15px;border-radius:8px;
+  border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.12);color:#fff;cursor:pointer
+}
 #toast{
   position:fixed;left:50%;transform:translateX(-50%);bottom:24px;z-index:99;
   background:var(--ink);color:#fff;padding:11px 16px;border-radius:10px;font-size:13.5px;
@@ -439,6 +457,15 @@ dialog::backdrop{background:rgba(10,25,45,.45)}
       <button value="si" class="primary" id="dlg2-ok">Conferma</button>
     </div>
   </form>
+</dialog>
+
+<dialog id="dlg-ant">
+  <div class="ant-barra">
+    <button onclick="chiudiAnteprima()">Chiudi</button>
+    <span>Anteprima · il documento non è stato emesso</span>
+    <button onclick="document.getElementById('ant-frame').contentWindow.print()">Stampa</button>
+  </div>
+  <iframe id="ant-frame"></iframe>
 </dialog>
 
 <div id="toast"></div>
@@ -613,7 +640,7 @@ function ricaricaVista(){
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v77';
+  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v78';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
