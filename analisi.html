@@ -172,8 +172,12 @@ async function carica(){
   const oggi = new Date().toISOString().slice(0,10);
   const dal = new Date().getFullYear() + '-01-01';
   try{
-    const d = await api(`/elenco?dal=${dal}&al=${oggi}`);
+    const [d, pag] = await Promise.all([
+      api(`/elenco?dal=${dal}&al=${oggi}`),
+      api('/pagamenti').catch(()=>({pagamenti:{}}))
+    ]);
     RIGHE = d.righe.filter(p => p.stato === 'da_emettere');
+    if(pag && pag.pagamenti && Object.keys(pag.pagamenti).length) PAGAMENTI = pag.pagamenti;
     $('#periodo').textContent = `dal ${ggl(dal)} al ${ggl(oggi)} · ${RIGHE.length} prenotazioni senza documento`;
     render();
   }catch(e){
@@ -213,15 +217,15 @@ $('#file').onchange = async (ev)=>{
     if(!PAGAMENTI[id].metodi.includes(tipo)) PAGAMENTI[id].metodi.push(tipo);
     PAGAMENTI[id].totale += imp;
   }
-  localStorage.setItem('analisi_pagamenti', JSON.stringify(PAGAMENTI));
   render();
+  try{
+    await fetch(API + '/pagamenti', {
+      method:'POST',
+      headers:{'X-Token':TOKEN,'Content-Type':'application/json'},
+      body: JSON.stringify(PAGAMENTI)
+    });
+  }catch(e){ /* resta comunque valido per questa sessione */ }
 };
-
-// riuso l'ultimo rapporto caricato
-try{
-  const salv = JSON.parse(localStorage.getItem('analisi_pagamenti') || '{}');
-  if(Object.keys(salv).length) PAGAMENTI = salv;
-}catch(e){}
 
 /* ---------- raggruppamento ---------- */
 function metodoDi(p){
@@ -266,8 +270,8 @@ function render(){
      (Rapporti → Pagamenti registrati) per raggrupparle invece per metodo di incasso.</div>`;
 
   $('#riepilogo').innerHTML = `<div class="riepilogo">
-    ${gruppi.map(g=>`<div class="riga-tot">
-        <span>${g.nome} <span style="color:var(--muted)">· ${g.attivi} prenotazioni</span></span>
+    ${gruppi.map(g=>`<div class="riga-tot" style="${g.attivi?'':'opacity:.45'}">
+        <span>${g.nome} <span style="color:var(--muted)">· ${g.attivi} di ${g.righe.length}</span></span>
         <span class="num">${eur(g.totale)}</span>
       </div>`).join('')}
     <div class="riga-tot finale"><span>Totale da segnalare</span><span class="num">${eur(totInc)}</span></div>
@@ -275,11 +279,15 @@ function render(){
 
   $('#gruppi').innerHTML = gruppi.length ? gruppi.map(g=>`
     <div class="gruppo" id="g-${btoa(unescape(encodeURIComponent(g.nome))).replace(/=/g,'')}">
-      <div class="gtitolo" onclick="this.parentNode.classList.toggle('chiuso')">
-        <div>
-          <span class="freccia">▼</span>
-          <span class="nome">${g.nome}</span>
-          <span class="conta">· ${g.attivi} di ${g.righe.length}</span>
+      <div class="gtitolo">
+        <div style="display:flex;align-items:center;gap:10px">
+          <input type="checkbox" ${g.attivi>0?'checked':''} onclick="event.stopPropagation();commutaGruppo('${g.nome.replace(/'/g,"\\'")}')"
+                 title="Includi o escludi tutto il gruppo">
+          <span onclick="this.closest('.gruppo').classList.toggle('chiuso')" style="cursor:pointer">
+            <span class="freccia">▼</span>
+            <span class="nome">${g.nome}</span>
+            <span class="conta">· ${g.attivi} di ${g.righe.length}</span>
+          </span>
         </div>
         <div class="tot">${eur(g.totale)}</div>
       </div>
@@ -300,6 +308,17 @@ function render(){
       </table>
     </div>`).join('') : '<div class="vuoto">Nessuna prenotazione senza documento.</div>';
 }
+
+window.commutaGruppo = (nome)=>{
+  const g = raggruppa().find(x=>x.nome===nome);
+  if(!g) return;
+  const daEscludere = g.attivi > 0;   // se ce n'è almeno una attiva, escludo tutto
+  for(const p of g.righe){
+    daEscludere ? ESCLUSI.add(p.id) : ESCLUSI.delete(p.id);
+  }
+  localStorage.setItem('analisi_esclusi', JSON.stringify([...ESCLUSI]));
+  render();
+};
 
 window.commuta = (id)=>{
   ESCLUSI.has(id) ? ESCLUSI.delete(id) : ESCLUSI.add(id);
