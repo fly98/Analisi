@@ -1724,11 +1724,13 @@ async function emettiFattura(env, dati) {
     test: !!dati.prova,
     customer: {
       denominazione: cliente.denominazione || '',
-      nome: cliente.nome || '',
-      cognome: cliente.cognome || '',
+      ...(cliente.nome ? { nome: cliente.nome } : {}),
+      ...(cliente.cognome ? { cognome: cliente.cognome } : {}),
       codiceFiscale: cliente.cf || cliente.piva || '',
-      codiceDestinatario: cliente.codiceDestinatario || '',
-      pec: cliente.pec || '',
+      // i due recapiti si escludono: un campo vuoto fa scartare il file
+      ...(cliente.codiceDestinatario
+        ? { codiceDestinatario: cliente.codiceDestinatario }
+        : { pec: cliente.pec }),
       indirizzoCompleto: {
         indirizzo: cliente.indirizzo || '',
         cap: cliente.cap || '',
