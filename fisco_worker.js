@@ -1709,16 +1709,26 @@ async function emettiFattura(env, dati) {
   const { chiave, numero } = await prossimoNumeroFE(env, anno);
   const numeroDoc = dati.numero || `${FE_SERIE} ${numero}/${anno}`;
 
-  const elementiContabili = righe.map((r) => ({
-    aliquotaIVA: String(r.aliquota || '10'),
-    percentualeIva: /^N/.test(String(r.aliquota || '')) ? 0 : parseInt(r.aliquota || '10', 10),
-    descrizione: String(r.descrizione || 'Soggiorno').slice(0, 200),
-    prezzoUnitario: Number(r.prezzo),
-    quantita: Number(r.quantita || 1),
-  }));
+  // Nel tracciato della fattura il prezzo unitario e' l'IMPONIBILE:
+  // gli importi inseriti sono comprensivi di IVA, quindi la scorporo.
+  const elementiContabili = righe.map((r) => {
+    const al = String(r.aliquota || '10');
+    const esente = /^N/.test(al);
+    const perc = esente ? 0 : parseInt(al, 10);
+    const lordo = Number(r.prezzo);
+    const imponibile = esente ? lordo : Math.round((lordo / (1 + perc / 100)) * 100) / 100;
+    return {
+      aliquotaIVA: al,
+      percentualeIva: perc,
+      descrizione: String(r.descrizione || 'Soggiorno').slice(0, 200),
+      prezzoUnitario: imponibile,
+      quantita: Number(r.quantita || 1),
+    };
+  });
 
+  // il totale che il cliente paga resta quello inserito
   const totale =
-    Math.round(elementiContabili.reduce((s, e) => s + e.prezzoUnitario * e.quantita, 0) * 100) / 100;
+    Math.round(righe.reduce((s, r) => s + Number(r.prezzo) * Number(r.quantita || 1), 0) * 100) / 100;
 
   const corpo = {
     test: !!dati.prova,
