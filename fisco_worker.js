@@ -2012,7 +2012,7 @@ function paginaFattura(f) {
     box-shadow:0 1px 3px rgba(28,43,57,.06),0 12px 32px rgba(28,43,57,.07);padding:40px 44px 34px}
   .testata{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;
     padding-bottom:22px;border-bottom:1px solid var(--filo)}
-  .marchio img{height:52px;width:auto;display:block}
+  .marchio img{width:190px;height:auto;display:block}
   .documento{text-align:right;flex:0 0 auto}
   .documento .tipo{font-size:10px;letter-spacing:1.4px;text-transform:uppercase;color:var(--salvia);font-weight:700}
   .documento .numero{font-family:Georgia,"Times New Roman",serif;font-size:25px;line-height:1.1;margin-top:4px}
@@ -2046,6 +2046,7 @@ function paginaFattura(f) {
   @media(max-width:640px){
     body{padding:0}
     .foglio{padding:26px 20px;box-shadow:none}
+    .marchio img{width:150px}
     .testata{flex-direction:column;gap:16px}
     .documento{text-align:left}
     .chiusura{justify-content:stretch}.totali{min-width:0;width:100%}
