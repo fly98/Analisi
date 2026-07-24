@@ -286,13 +286,42 @@ async function fetchPrenotazioni(env, dal, al) {
       // Amenitiz a volte conteggia la tassa anche sui bambini
       const cityTaxTutti = (adulti + (b.children || 0)) * nottiTax * CITY_TAX_NOTTE * 100;
       const booker = b.booker || {};
+      // Amenitiz a volte non valorizza il prenotante: ricado sull'ospite
+      // della prima camera e, per le aziende, sul dominio dell'email
+      const primoOspite =
+        (b.rooms && b.rooms[0] && b.rooms[0].guests && b.rooms[0].guests[0]) || {};
+      const nomeProprio = (booker.first_name || '').trim() || (primoOspite.first_name || '').trim();
+      const cognomeProprio = (booker.last_name || '').trim() || (primoOspite.last_name || '').trim();
+
+      const RAGIONI = /^(s\.?r\.?l\.?s?|s\.?p\.?a\.?|s\.?a\.?s\.?|s\.?n\.?c\.?|s\.?s\.?|ltd|llc|inc|gmbh|bv|sa|srl|spa)$/i;
+      const eRagione = (x) => RAGIONI.test(String(x || '').replace(/\./g, '').trim());
+      const emailBooker = (booker.email || '').trim();
+
+      const nomeDaDominio = (() => {
+        if (!emailBooker.includes('@')) return '';
+        const dom = emailBooker.split('@')[1] || '';
+        if (!dom || /guest\.booking\.com|expedia|airbnb|amenitiz/i.test(dom)) return '';
+        const base = dom.split('.')[0] || '';
+        return base ? base.charAt(0).toUpperCase() + base.slice(1) : '';
+      })();
+
+      const senzaNome = !nomeProprio && !cognomeProprio;
+      let nomeFinale;
+      if ((eRagione(nomeProprio) || eRagione(cognomeProprio))) {
+        // ricompone "BSF Srl" invece di "Srl BSF"
+        nomeFinale = [cognomeProprio, nomeProprio].filter(Boolean).join(' ').trim();
+      } else if (senzaNome && nomeDaDominio) {
+        nomeFinale = nomeDaDominio;
+      } else {
+        nomeFinale = `${nomeProprio} ${cognomeProprio}`.trim();
+      }
       const camere = (b.rooms || [])
         .map((r) => r.individual_room_name)
         .filter(Boolean);
 
       prenotazioni.push({
         id: String(b.booking_id),
-        nome: `${booker.first_name || ''} ${booker.last_name || ''}`.trim(),
+        nome: nomeFinale,
         email: booker.email || '',
         telefono: booker.phone || '',
         lingua: (booker.language || '').toUpperCase(),
