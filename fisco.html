@@ -556,7 +556,7 @@ function ricaricaVista(){
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v48';
+  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v49';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -920,7 +920,8 @@ function renderRicevute(){
     <div class="kpi ok"><b>${valide.length}</b><span>Valide</span></div>
     <div class="kpi"><b>${annull.length}</b><span>Annullate</span></div>
     <div class="kpi"><b>${rett.length}</b><span>Note di annullo</span></div>
-    <div class="kpi ok"><b style="font-size:16px;letter-spacing:-.4px">${eur(tot)}</b><span>&nbsp;</span></div>`;
+    <div class="kpi ok" style="display:flex;align-items:center;justify-content:center">
+      <b style="font-size:19px">${Math.round(tot).toLocaleString('it-IT')} €</b></div>`;
 
   const righe = [...RIC.documenti].sort((a,b)=> a.data < b.data ? 1 : -1);
   $('#lista-ric').innerHTML = righe.length ? `<table class="tab-ric">
