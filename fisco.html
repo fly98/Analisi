@@ -602,7 +602,7 @@ function ricaricaVista(){
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v67';
+  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v68';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -819,6 +819,27 @@ function dialogo(titolo, testo, corpo, okLabel){
   if(att && /INPUT|TEXTAREA|SELECT/.test(att.tagName)) att.blur();
 
   // modulo fattura: precompilo cliente e righe
+  const apq = document.getElementById('ap-q');
+  if(apq){
+    const disegna = ()=>{
+      const t = apq.value.trim().toLowerCase();
+      const lista = (window.__cand || []).filter(p=>{
+        if(!t) return true;
+        const campi = [p.nome, p.canale, (p.camere||[]).join(' '), gg(p.checkin), gg(p.checkout)].join(' ').toLowerCase();
+        return t.split(/\s+/).every(x=>campi.includes(x));
+      }).slice(0,40);
+      document.getElementById('ap-lista').innerHTML = lista.length ? lista.map(p=>`
+        <label style="display:flex;align-items:center;gap:10px;padding:9px;border:1px solid var(--line);
+                      border-radius:8px;margin-bottom:5px;font-size:13px;cursor:pointer">
+          <input type="checkbox" value="${p.id}" style="width:19px;height:19px;margin:0;flex:0 0 auto">
+          <span><b>${p.nome || 'senza nome'}</b> · ${eur(p.atteso)}<br>
+            <span style="color:var(--muted)">${gg(p.checkin)} → ${gg(p.checkout)} · ${(p.camere||[]).join('+')} · ${p.canale}</span></span>
+        </label>`).join('')
+        : '<div style="color:var(--muted);font-size:13px;padding:8px">Nessuna prenotazione trovata</div>';
+    };
+    apq.oninput = disegna; disegna();
+  }
+
   const campoCerca = document.getElementById('fc-cerca');
   if(campoCerca){
     campoCerca.oninput = ()=>{
@@ -908,6 +929,7 @@ window.apriFattura = async (id) => {
 async function moduloFattura(id){
   const p = DATI.righe.find(x=>x.id===id);
   window.__pren = p;
+  FT_COLLEGATE = [];
   const clienti = await caricaClienti();
   let numero = '';
   try{ numero = (await api('/numeroFattura')).numero; }catch(e){}
@@ -963,7 +985,11 @@ async function moduloFattura(id){
 
      <div class="sezione">Righe</div>
      <div id="fc-righe"></div>
-     <button type="button" class="act" style="width:100%;background:#fff;color:var(--ink);border:1px dashed var(--line);margin-top:4px" onclick="aggiungiRiga()">+ Aggiungi riga</button>
+     <div style="display:flex;gap:6px;margin-top:4px">
+       <button type="button" class="act" style="flex:1;background:#fff;color:var(--ink);border:1px dashed var(--line)" onclick="aggiungiRiga()">+ Riga libera</button>
+       <button type="button" class="act" style="flex:1;background:#fff;color:var(--info);border:1px dashed var(--info)" onclick="aggiungiPrenotazioni()">+ Prenotazioni</button>
+     </div>
+     <div id="fc-collegate"></div>
      <div class="tot-f"><span>Totale documento</span><span id="fc-tot">—</span></div>
 
      <button type="button" class="act" style="width:100%;margin-top:10px;background:#fff;color:var(--ink);border:1px solid var(--line)" onclick="anteprimaFattura()">Vedi anteprima</button>
@@ -1000,7 +1026,8 @@ async function moduloFattura(id){
   toast(prova ? 'Verifica in corso…' : 'Emissione in corso…');
   try{
     const r = await api('/fattura', {method:'POST', body: JSON.stringify({
-      prenotazione: id, cliente: cli, righe, numero: $('#fc-num').value.trim(),
+      prenotazione: id, prenotazioni: FT_COLLEGATE.map(x=>x.id),
+      cliente: cli, righe, numero: $('#fc-num').value.trim(),
       modalitaPagamento: $('#fc-pag').value, prova
     })});
     if(prova){
@@ -1114,6 +1141,82 @@ window.scegliCliente = (piva)=>{
   const es = document.getElementById('fc-esito');
   if(es){ es.className = 'esito ok'; es.textContent = 'Dati caricati dall\u2019anagrafica'; }
 };
+
+// prenotazioni comprese nella fattura, oltre a quella di partenza
+let FT_COLLEGATE = [];
+
+window.aggiungiPrenotazioni = async ()=>{
+  const base = window.__pren || {};
+  const gia = new Set([base.id, ...FT_COLLEGATE.map(x=>x.id)]);
+
+  // cerco su tutto l'anno, non solo nel periodo visualizzato
+  let tutte = [];
+  try{
+    const oggi = new Date().toISOString().slice(0,10);
+    const d = await api(`/elenco?dal=${new Date().getFullYear()}-01-01&al=${oggi}`);
+    tutte = d.righe.filter(p => p.stato === 'da_emettere' && !gia.has(p.id));
+  }catch(e){ toast('Non riesco a caricare: '+e.message, true); return; }
+
+  window.__cand = tutte;
+  const nomeBase = (base.nome || '').trim();
+
+  const ok = await dialogo('Aggiungi prenotazioni',
+    'Spunta quelle da includere nella fattura',
+    `<label>Cerca</label>
+     <input id="ap-q" value="${nomeBase.replace(/"/g,'&quot;')}" placeholder="nome, camera o data" autocomplete="off">
+     <div style="font-size:12px;color:var(--muted);margin-top:4px">
+       Filtrate per <b>${nomeBase || 'tutte'}</b> · cancella per cercarne altre
+     </div>
+     <div id="ap-lista" style="max-height:300px;overflow:auto;margin-top:10px"></div>`,
+    'Aggiungi');
+  if(!ok) return;
+
+  const scelti = [...document.querySelectorAll('#ap-lista input:checked')].map(x=>x.value);
+  if(!scelti.length) return;
+
+  for(const id of scelti){
+    const p = tutte.find(x=>x.id===id);
+    if(!p || FT_COLLEGATE.some(x=>x.id===id)) continue;
+    FT_COLLEGATE.push(p);
+    window.aggiungiRiga(descrizioneSoggiorno(p), p.atteso, '10', 1);
+  }
+  ricalcolaTassa();
+  mostraCollegate();
+  toast(scelti.length + (scelti.length===1?' prenotazione aggiunta':' prenotazioni aggiunte'));
+};
+
+function descrizioneSoggiorno(p){
+  return `Soggiorno dal ${dataIt(p.checkin)} al ${dataIt(p.checkout)}` + (p.nome ? ` del Sig./Sig.ra ${p.nome}` : '');
+}
+
+// la tassa di soggiorno resta una riga sola, con il totale di tutte
+function ricalcolaTassa(){
+  const base = window.__pren || {};
+  const tot = (base.cityTax || 0) + FT_COLLEGATE.reduce((s,p)=> s + (p.cityTax||0), 0);
+  const righe = [...document.querySelectorAll('#fc-righe .rigaf')];
+  const esistente = righe.find(el => el.querySelector('.r-iva').value === 'N1');
+  if(tot <= 0){ if(esistente) esistente.remove(); totaleFattura(); return; }
+  if(esistente){
+    esistente.querySelector('.r-prezzo').value = tot.toFixed(2);
+    esistente.querySelector('.r-desc').value = 'Imposta di soggiorno';
+  }else{
+    window.aggiungiRiga('Imposta di soggiorno', tot, 'N1', 1);
+  }
+  totaleFattura();
+}
+
+function mostraCollegate(){
+  const c = document.getElementById('fc-collegate');
+  if(!c) return;
+  const base = window.__pren || {};
+  const tutte = [base, ...FT_COLLEGATE].filter(p=>p && p.id);
+  c.innerHTML = tutte.length > 1
+    ? `<div style="background:var(--info-bg);border-radius:9px;padding:10px;margin-top:8px;font-size:12.5px">
+         <b>${tutte.length} prenotazioni in questa fattura</b>
+         ${tutte.map(p=>`<div style="margin-top:4px;color:var(--ink)">· ${p.nome || 'senza nome'} · ${gg(p.checkin)}→${gg(p.checkout)} · ${eur(p.atteso)}</div>`).join('')}
+       </div>`
+    : '';
+}
 
 window.anteprimaFattura = async ()=>{
   const cli = {
