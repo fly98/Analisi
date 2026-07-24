@@ -2520,7 +2520,7 @@ export default {
           riepilogo,
           totale: Math.round(righe.reduce((s, r) => s + Number(r.prezzo) * Number(r.quantita || 1), 0) * 100) / 100,
           pagamento: MOD[b.modalitaPagamento || 'MP08'],
-          iban: b.iban || '',
+          iban: (b.modalitaPagamento || '') === 'MP05' ? b.iban || CONTO.iban : '',
         });
         return new Response(html, {
           headers: { 'Content-Type': 'text/html; charset=utf-8', 'Access-Control-Allow-Origin': '*' },
