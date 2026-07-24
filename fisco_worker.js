@@ -1189,6 +1189,25 @@ async function orfaneConCandidati(env, dal, al, opzioni = {}) {
   }
 
   const scoperte = libere.filter((p) => !abbinate.has(p.id));
+
+  // le ricevute emesse in anticipo appartengono a soggiorni che finiscono
+  // dopo il periodo: le confronto anche con quelli
+  try {
+    const dopo = await fetchPrenotazioni(env, addGiorni(al, 1), addGiorni(al, margine));
+    const statiDopo = await leggiStati(env, dopo.map((p) => p.id));
+    for (const s of Object.values(statiDopo)) if (s && s.idtrx) impegnate.add(String(s.idtrx));
+    const esitoDopo = riconcilia(
+      dopo.filter((p) => !statiDopo[p.id]),
+      ricevute.documenti
+    );
+    for (const a of esitoDopo.abbinamenti) {
+      impegnate.add(String(a.ricevuta.id));
+      for (const e of a.extra || []) impegnate.add(String(e.id));
+    }
+  } catch {
+    /* controllo aggiuntivo non riuscito: proseguo con i dati del periodo */
+  }
+
   const orfane = ricevute.documenti.filter(
     (r) => r.tipo === 'V' && !r.annullata && !impegnate.has(String(r.id))
   );
