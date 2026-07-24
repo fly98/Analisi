@@ -2416,15 +2416,24 @@ export default {
       if (url.pathname === '/fattura' && request.method === 'POST') {
         const body = await request.json();
         const res = await emettiFattura(env, body);
-        // se collegata a una prenotazione, la segno come fatturata
-        if (body.prenotazione && !body.prova) {
-          await scriviStato(env, body.prenotazione, {
-            stato: 'fattura',
-            numero: res.numero,
-            data: giorno(new Date()),
-            importo: res.totale,
-            nota: `fattura ${res.numero}`,
-          });
+        // segno come fatturate tutte le prenotazioni comprese nel documento
+        if (!body.prova) {
+          const ids = [
+            ...(body.prenotazione ? [body.prenotazione] : []),
+            ...(body.prenotazioni || []),
+          ].filter((v, i, a) => v && a.indexOf(v) === i);
+          for (const id of ids) {
+            await scriviStato(env, id, {
+              stato: 'fattura',
+              numero: res.numero,
+              data: giorno(new Date()),
+              importo: res.totale,
+              nota:
+                ids.length > 1
+                  ? `fattura ${res.numero} (${ids.length} prenotazioni)`
+                  : `fattura ${res.numero}`,
+            });
+          }
         }
         return json({ ok: true, ...res });
       }
