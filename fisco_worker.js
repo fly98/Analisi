@@ -1812,6 +1812,32 @@ async function emettiFattura(env, dati) {
   // il numero si consuma solo se la fattura è stata davvero trasmessa
   if (!dati.prova && !dati.numero) await confermaNumeroFE(env, chiave, numero);
 
+  // conservo i dati per la copia di cortesia da inviare al cliente:
+  // rileggerli dall'XML firmato non e' affidabile
+  if (!dati.prova && env.FISCO_KV) {
+    const copia = {
+      numero: numeroDoc,
+      data: giorno(new Date()),
+      tipoDocumento: dati.tipoDocumento || 'TD01',
+      cliente,
+      righe: righe.map((r) => ({
+        descrizione: r.descrizione,
+        quantita: Number(r.quantita || 1),
+        prezzo: Number(r.prezzo),
+        aliquota: String(r.aliquota || '10'),
+      })),
+      riepilogo: elementiContabili.map((e) => ({
+        aliquota: e.aliquotaIVA,
+        imponibile: Math.round(e.prezzoUnitario * e.quantita * 100) / 100,
+        imposta: Math.round(e.prezzoUnitario * e.quantita * (e.percentualeIva / 100) * 100) / 100,
+      })),
+      totale,
+      modalitaPagamento: dati.modalitaPagamento || 'MP08',
+      iban: dati.iban || '',
+    };
+    await env.FISCO_KV.put(`fisco:fatt:${numeroDoc}`, JSON.stringify(copia));
+  }
+
   // memorizzo il cliente per le volte successive
   if (cliente.piva && env.FISCO_KV) {
     const ana = (await env.FISCO_KV.get('fisco:clienti', 'json')) || {};
@@ -1878,97 +1904,77 @@ const NATURE = {
   N5: 'Regime del margine',
 };
 
-function fatturaHtml(xml) {
-  // i tag possono portare attributi (es. xmlns=""), quindi li cerco per posizione
-  const dove = (tag, da = 0) => {
-    const m = xml.slice(da).match(new RegExp(`<${tag}(\\s[^>]*)?>`));
-    return m ? da + m.index : -1;
-  };
-  const sezione = (tag) => {
-    const a = dove(tag);
-    if (a < 0) return '';
-    const b = xml.indexOf(`</${tag}>`, a);
-    return b > a ? xml.slice(a, b) : '';
-  };
-
-  const iBody = dove('FatturaElettronicaBody');
-  const testa = iBody > 0 ? xml.slice(0, iBody) : xml;
-  const corpo = iBody > 0 ? xml.slice(iBody) : xml;
-
-  const cedente = sezione('CedentePrestatore');
-  const cess = sezione('CessionarioCommittente');
-
-  const datiAnag = (sez) => ({
-    denominazione: tagUno(sez, 'Denominazione') || `${tagUno(sez, 'Nome')} ${tagUno(sez, 'Cognome')}`.trim(),
-    piva: tagUno(sez, 'IdCodice'),
-    cf: tagUno(sez, 'CodiceFiscale'),
-    indirizzo: tagUno(sez, 'Indirizzo'),
-    civico: tagUno(sez, 'NumeroCivico'),
-    cap: tagUno(sez, 'CAP'),
-    comune: tagUno(sez, 'Comune'),
-    provincia: tagUno(sez, 'Provincia'),
-  });
-
-  const em = datiAnag(cedente);
-  const cl = datiAnag(cess);
-  const cd = tagUno(testa, 'CodiceDestinatario');
-  const pec = tagUno(testa, 'PECDestinatario');
-
-  const numero = tagUno(corpo, 'Numero');
-  const data = tagUno(corpo, 'Data');
-  const tipoDoc = tagUno(corpo, 'TipoDocumento');
-  const totale = tagUno(corpo, 'ImportoTotaleDocumento');
-  const causali = tagTutti(corpo, 'Causale');
-
-  const linee = blocchi(corpo, 'DettaglioLinee').map((l) => ({
-    n: tagUno(l, 'NumeroLinea'),
-    descrizione: tagUno(l, 'Descrizione'),
-    quantita: tagUno(l, 'Quantita'),
-    prezzo: tagUno(l, 'PrezzoUnitario'),
-    totale: tagUno(l, 'PrezzoTotale'),
-    aliquota: tagUno(l, 'AliquotaIVA'),
-    natura: tagUno(l, 'Natura'),
-  }));
-
-  const riepilogo = blocchi(corpo, 'DatiRiepilogo').map((r) => ({
-    aliquota: tagUno(r, 'AliquotaIVA'),
-    natura: tagUno(r, 'Natura'),
-    imponibile: tagUno(r, 'ImponibileImporto'),
-    imposta: tagUno(r, 'Imposta'),
-  }));
-
-  const pagam = blocchi(corpo, 'DettaglioPagamento').map((p) => ({
-    modalita: tagUno(p, 'ModalitaPagamento'),
-    importo: tagUno(p, 'ImportoPagamento'),
-    iban: tagUno(p, 'IBAN'),
-  }));
-
+function fatturaDaDati(f) {
   const MOD = { MP01: 'Contanti', MP05: 'Bonifico', MP08: 'Carta di pagamento' };
-  const totImponibile = riepilogo.reduce((s, r) => s + Number(r.imponibile || 0), 0);
-  const totImposta = riepilogo.reduce((s, r) => s + Number(r.imposta || 0), 0);
+  const cl = f.cliente || {};
+  const totImponibile = (f.riepilogo || []).reduce((s, r) => s + r.imponibile, 0);
+  const totImposta = (f.riepilogo || []).reduce((s, r) => s + r.imposta, 0);
+
+  const perAliquota = {};
+  for (const r of f.riepilogo || []) {
+    const k = r.aliquota;
+    if (!perAliquota[k]) perAliquota[k] = { aliquota: k, imponibile: 0, imposta: 0 };
+    perAliquota[k].imponibile += r.imponibile;
+    perAliquota[k].imposta += r.imposta;
+  }
+
+  return paginaFattura({
+    numero: f.numero,
+    data: dataIso(f.data),
+    tipoDocumento: f.tipoDocumento,
+    cliente: cl,
+    righe: (f.righe || []).map((r) => ({
+      descrizione: r.descrizione,
+      quantita: r.quantita,
+      prezzo: r.prezzo,
+      totale: Math.round(r.prezzo * r.quantita * 100) / 100,
+      aliquota: r.aliquota,
+    })),
+    riepilogo: Object.values(perAliquota),
+    totale: f.totale,
+    pagamento: MOD[f.modalitaPagamento] || f.modalitaPagamento,
+    iban: f.iban,
+  });
+}
+
+function paginaFattura(f) {
+  const cl = f.cliente || {};
+  const em = {
+    denominazione: "Azienda Castiglioni di C.F. S.a.s.",
+    piva: '09336091005',
+    indirizzo: 'Via Campaldino 6',
+    cap: '00162',
+    comune: 'Roma',
+    provincia: 'RM',
+  };
+  const recapito = cl.codiceDestinatario
+    ? 'Codice destinatario ' + cl.codiceDestinatario
+    : cl.pec
+    ? 'PEC ' + cl.pec
+    : '';
+  const etichetta = (al) => (/^N/.test(String(al)) ? NATURE[al] || al : parseInt(al, 10) + '%');
 
   return `<!DOCTYPE html><html lang="it"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Fattura ${numero}</title>
+<title>Fattura ${f.numero}</title>
 <style>
   body{font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
     color:#12283f;margin:0;padding:24px;background:#f4f6f9}
-  .foglio{max-width:780px;margin:0 auto;background:#fff;padding:34px;border-radius:10px;
+  .foglio{max-width:760px;margin:0 auto;background:#fff;padding:34px;border-radius:10px;
     box-shadow:0 2px 14px rgba(18,40,63,.08)}
-  h1{font-size:19px;margin:0 0 2px;text-align:center;letter-spacing:.5px}
+  h1{font-size:19px;margin:0 0 2px;text-align:center;letter-spacing:.6px}
   .sotto{text-align:center;color:#657896;font-size:13px;margin-bottom:26px}
-  .parti{display:flex;gap:24px;margin-bottom:24px;flex-wrap:wrap}
-  .parte{flex:1;min-width:220px}
-  .et{font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;color:#657896;
-    font-weight:700;margin-bottom:5px}
+  .parti{display:flex;gap:24px;margin-bottom:22px;flex-wrap:wrap}
+  .parte{flex:1;min-width:210px}
+  .et{font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;color:#657896;font-weight:700;margin-bottom:5px}
   .parte b{display:block;font-size:14.5px;margin-bottom:3px}
   .parte div{font-size:13px;color:#3d4f66}
-  table{width:100%;border-collapse:collapse;margin:18px 0}
+  table{width:100%;border-collapse:collapse;margin:16px 0}
   th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;color:#657896;
     padding:8px 6px;border-bottom:2px solid #dde3ec}
   td{padding:9px 6px;border-bottom:1px solid #eef1f5;font-size:13.5px;vertical-align:top}
   .num{text-align:right;white-space:nowrap}
-  .tot{margin-left:auto;width:100%;max-width:320px}
+  .tot{margin-left:auto;width:100%;max-width:330px}
   .tot tr td{border:0;padding:5px 6px}
   .tot .finale td{border-top:2px solid #12283f;font-weight:700;font-size:17px;padding-top:11px}
   .piede{margin-top:26px;padding-top:14px;border-top:1px solid #dde3ec;
@@ -1976,61 +1982,55 @@ function fatturaHtml(xml) {
   @media print{body{background:#fff;padding:0}.foglio{box-shadow:none;border-radius:0;max-width:none}}
 </style></head><body><div class="foglio">
 
-<h1>FATTURA</h1>
-<div class="sotto">n. ${numero} del ${dataIso(data)}${tipoDoc === 'TD04' ? ' · nota di credito' : ''}</div>
+<h1>${f.tipoDocumento === 'TD04' ? 'NOTA DI CREDITO' : 'FATTURA'}</h1>
+<div class="sotto">n. ${f.numero} del ${f.data}</div>
 
 <div class="parti">
   <div class="parte">
     <div class="et">Fornitore</div>
     <b>${em.denominazione}</b>
     <div>P.IVA ${em.piva}</div>
-    <div>${em.indirizzo} ${em.civico}</div>
+    <div>${em.indirizzo}</div>
     <div>${em.cap} ${em.comune} ${em.provincia}</div>
   </div>
   <div class="parte">
     <div class="et">Cliente</div>
-    <b>${cl.denominazione}</b>
-    <div>P.IVA ${cl.piva || cl.cf}</div>
-    <div>${cl.indirizzo} ${cl.civico}</div>
-    <div>${cl.cap} ${cl.comune} ${cl.provincia}</div>
-    <div style="margin-top:4px;font-size:12px">${cd ? 'Codice destinatario ' + cd : pec ? 'PEC ' + pec : ''}</div>
+    <b>${cl.denominazione || `${cl.cognome || ''} ${cl.nome || ''}`.trim()}</b>
+    <div>P.IVA ${cl.piva || cl.cf || ''}</div>
+    <div>${cl.indirizzo || ''}</div>
+    <div>${[cl.cap, cl.comune, cl.provincia].filter(Boolean).join(' ')}</div>
+    ${recapito ? `<div style="margin-top:4px;font-size:12px">${recapito}</div>` : ''}
   </div>
 </div>
 
-${causali.length ? `<div style="font-size:13px;color:#3d4f66;margin-bottom:14px">${causali.join('<br>')}</div>` : ''}
-
 <table>
-  <tr><th>Descrizione</th><th class="num">Q.tà</th><th class="num">Prezzo</th><th class="num">Aliquota</th><th class="num">Importo</th></tr>
-  ${linee
+  <tr><th>Descrizione</th><th class="num">Q.tà</th><th class="num">Importo</th><th class="num">Aliquota</th></tr>
+  ${(f.righe || [])
     .map(
-      (l) => `<tr>
-      <td>${l.descrizione}</td>
-      <td class="num">${Number(l.quantita || 1).toLocaleString('it-IT')}</td>
-      <td class="num">${eur(l.prezzo)}</td>
-      <td class="num">${l.natura ? NATURE[l.natura] || l.natura : Number(l.aliquota).toFixed(0) + '%'}</td>
-      <td class="num">${eur(l.totale)}</td>
+      (r) => `<tr>
+      <td>${r.descrizione}</td>
+      <td class="num">${Number(r.quantita).toLocaleString('it-IT')}</td>
+      <td class="num">${eur(r.totale)}</td>
+      <td class="num">${etichetta(r.aliquota)}</td>
     </tr>`
     )
     .join('')}
 </table>
 
 <table class="tot">
-  ${riepilogo
+  ${(f.riepilogo || [])
     .map(
-      (r) => `<tr>
-      <td>Imponibile ${r.natura ? NATURE[r.natura] || r.natura : Number(r.aliquota).toFixed(0) + '%'}</td>
-      <td class="num">${eur(r.imponibile)}</td>
-    </tr>
-    ${Number(r.imposta) > 0 ? `<tr><td>IVA ${Number(r.aliquota).toFixed(0)}%</td><td class="num">${eur(r.imposta)}</td></tr>` : ''}`
+      (r) => `<tr><td>Imponibile ${etichetta(r.aliquota)}</td><td class="num">${eur(r.imponibile)}</td></tr>
+      ${r.imposta > 0 ? `<tr><td>IVA ${parseInt(r.aliquota, 10)}%</td><td class="num">${eur(r.imposta)}</td></tr>` : ''}`
     )
     .join('')}
-  <tr class="finale"><td>Totale documento</td><td class="num">${eur(totale)}</td></tr>
+  <tr class="finale"><td>Totale documento</td><td class="num">${eur(f.totale)}</td></tr>
 </table>
 
-${pagam.length
+${f.pagamento
     ? `<div style="font-size:13px;color:#3d4f66;margin-top:18px">
-        <span class="et" style="display:inline">Pagamento</span>
-        ${pagam.map((p) => `${MOD[p.modalita] || p.modalita} · ${eur(p.importo)}${p.iban ? '<br>IBAN ' + p.iban : ''}`).join('<br>')}
+        <span class="et" style="display:inline">Pagamento</span> ${f.pagamento}
+        ${f.iban ? '<br>IBAN ' + f.iban : ''}
        </div>`
     : ''}
 
@@ -2117,18 +2117,14 @@ export default {
       if (!token || !env.FISCO_KV) return new Response('Link non valido', { status: 404 });
       const rec = await env.FISCO_KV.get(`fisco:pubf:${token}`, 'json');
       if (!rec) return new Response('Fattura non disponibile o link scaduto', { status: 404 });
-      try {
-        const buf = await scaricaFatturaXml(env, rec.idFattura);
-        const html = fatturaHtml(testoXml(buf));
-        return new Response(html, {
-          headers: {
-            'Content-Type': 'text/html; charset=utf-8',
-            'Cache-Control': 'private, max-age=3600',
-          },
-        });
-      } catch (e) {
-        return new Response('Fattura non recuperabile: ' + e.message, { status: 502 });
-      }
+      const salvata = await env.FISCO_KV.get(`fisco:fatt:${rec.numero}`, 'json');
+      if (!salvata) return new Response('Copia non disponibile per questa fattura', { status: 404 });
+      return new Response(fatturaDaDati(salvata), {
+        headers: {
+          'Content-Type': 'text/html; charset=utf-8',
+          'Cache-Control': 'private, max-age=3600',
+        },
+      });
     }
 
     // link pubblico alla ricevuta: nessun token, l'indirizzo stesso e' il segreto
@@ -2351,11 +2347,11 @@ export default {
       // prossimo numero disponibile della serie
       if (url.pathname === '/condividiFattura' && request.method === 'POST') {
         const body = await request.json();
-        if (!body.idFattura) return json({ ok: false, error: 'idFattura mancante' }, 400);
+        if (!body.numero) return json({ ok: false, error: 'numero fattura mancante' }, 400);
         const token = tokenCasuale();
         await env.FISCO_KV.put(
           `fisco:pubf:${token}`,
-          JSON.stringify({ idFattura: body.idFattura, numero: body.numero || '' }),
+          JSON.stringify({ numero: body.numero }),
           { expirationTtl: 60 * 60 * 24 * 365 }
         );
         return json({ ok: true, link: `${url.origin}/f/${token}` });
