@@ -586,7 +586,7 @@ function ricaricaVista(){
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v55';
+  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v56';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -948,8 +948,38 @@ async function moduloFattura(id){
     }else{
       toast('Emessa ' + r.numero);
       CLIENTI = null; DATI = null; carica();
+      inviaFattura(r.numero, p, cli);
     }
   }catch(e){ toast('Non riuscita: '+e.message, true); }
+}
+
+// dopo l'emissione propongo di mandarne copia al cliente
+async function inviaFattura(numero, p, cli){
+  const email = (p && p.email) || cli.pec || '';
+  const ok = await dialogo('Fattura emessa', `${numero} trasmessa al Sistema di Interscambio`,
+    `<p style="font-size:13.5px;color:var(--muted);margin:0 0 10px">
+       Vuoi mandare al cliente una copia di cortesia leggibile?
+     </p>
+     <label>Indirizzo email</label>
+     <input id="fi-mail" value="${email}" placeholder="nome@dominio.it">`, 'Invia');
+  if(!ok) return;
+  const dest = $('#fi-mail').value.trim();
+  if(!dest){ toast('Nessun indirizzo indicato', true); return; }
+  toast('Invio in corso…');
+  try{
+    const l = await api('/condividiFattura', {method:'POST', body: JSON.stringify({numero})});
+    const oggetto = `Fattura ${numero} · InternoUno`;
+    const testo =
+      `Gentile cliente,\n\n` +
+      `in allegato il collegamento alla fattura ${numero} appena emessa.\n\n` +
+      `${l.link}\n\n` +
+      `La fattura elettronica originale le sarà recapitata dal Sistema di Interscambio ` +
+      `all'indirizzo telematico che ci ha comunicato.\n\n` +
+      `Cordiali saluti\nInternoUno\nVia Campaldino 6, Roma`;
+    await api('/invia', {method:'POST', body: JSON.stringify({
+      a: dest, oggetto, testo, link: l.link })});
+    toast('Copia inviata a ' + dest);
+  }catch(e){ toast('Invio non riuscito: '+e.message, true); }
 }
 
 function leggiRighe(){
