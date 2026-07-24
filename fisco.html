@@ -612,7 +612,7 @@ function ricaricaVista(){
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v59';
+  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v60';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -756,10 +756,24 @@ function riga(p){
       <button onclick="apriFattura('${p.id}')">Fattura</button>
       <button class="ghost" onclick="segna('${p.id}','esclusa')">Non emettere</button>
     </div>`;
+  } else if(p.stato === 'fattura'){
+    // se la fattura è stata emessa da qui, la nota contiene il numero della serie FE
+    const num = ((p.nota || '').match(/FE\s*[\d]+\/[\d]+/) || [''])[0];
+    azioni = num
+      ? `<div class="docinfo"><span>Fattura <b>${num}</b></span></div>
+         <div class="actions">
+           <button onclick="vediFattura('${num}')" title="Apri la copia">Copia</button>
+           <button onclick="inviaCopia('${num}')" title="Invia al cliente">@</button>
+           <button class="ghost" onclick="segna('${p.id}',null)">Riapri</button>
+         </div>`
+      : `<div class="docinfo">
+           <span>Segnata come fatturata</span>
+           <button class="ghost" style="font:inherit;font-size:12.5px;padding:5px 10px;border-radius:7px;border:1px solid var(--line);background:#fff;cursor:pointer"
+             onclick="segna('${p.id}',null)">Riapri</button>
+         </div>`;
   } else {
     azioni = `<div class="docinfo">
-      <span>${p.stato==='fattura'?'Segnata come fattura elettronica'
-        : 'Nessuna ricevuta da emettere'}</span>
+      <span>Nessuna ricevuta da emettere</span>
       <button class="ghost" style="font:inherit;font-size:12.5px;padding:5px 10px;border-radius:7px;border:1px solid var(--line);background:#fff;cursor:pointer"
         onclick="segna('${p.id}',null)">Riapri</button>
     </div>`;
@@ -893,7 +907,7 @@ window.apriFattura = async (id) => {
   const scelta = await dialogo('Fattura', `${p.nome || 'senza nome'} · ${gg(p.checkin)} → ${gg(p.checkout)}`,
     `<div style="display:flex;flex-direction:column;gap:8px;margin-top:6px">
        <button type="button" class="act primary" style="width:100%" onclick="window.__f='emetti';$('#dlg-ok').click()">Emetti fattura elettronica</button>
-       <button type="button" class="act" style="width:100%;background:#fff;color:var(--ink);border:1px solid var(--line)" onclick="window.__f='segna';$('#dlg-ok').click()">Segna come fatturata altrove</button>
+       <button type="button" class="act" style="width:100%;background:#fff;color:var(--ink);border:1px solid var(--line)" onclick="window.__f='segna';$('#dlg-ok').click()">Segna come fatturata su Aruba</button>
      </div>`, 'Annulla');
   const f = window.__f; window.__f = null;
   if(f === 'segna'){ segna(id,'fattura'); return; }
@@ -1196,7 +1210,7 @@ async function apriEmissione(id, sostituisce){
 
 window.segna = async (id, stato) => {
   if(stato){
-    const t = stato==='fattura' ? 'Segue fattura elettronica' : 'Non emettere ricevuta';
+    const t = stato==='fattura' ? 'Fatturata su Aruba' : 'Non emettere ricevuta';
     const msg = stato==='fattura'
       ? 'La prenotazione verrà chiusa: per questo soggiorno emetterai una fattura.'
       : 'La prenotazione verrà chiusa senza emissione di ricevuta.';
