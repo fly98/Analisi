@@ -2085,8 +2085,12 @@ export default {
       if (url.pathname === '/clienti') {
         if (request.method === 'POST') {
           const body = await request.json();
-          const ana = (await env.FISCO_KV.get('fisco:clienti', 'json')) || {};
-          if (Array.isArray(body)) {
+          let ana = (await env.FISCO_KV.get('fisco:clienti', 'json')) || {};
+          if (body && body.__sostituisci) {
+            // l'elenco inviato diventa l'archivio: serve per le eliminazioni
+            const { __sostituisci, ...resto } = body;
+            ana = resto;
+          } else if (Array.isArray(body)) {
             for (const c of body) if (c && c.piva) ana[c.piva] = c;
           } else if (body && body.piva) {
             ana[body.piva] = body;
