@@ -1835,11 +1835,14 @@ function testoXml(buf) {
   // la busta firmata contiene byte binari dopo il documento:
   // taglio esattamente alla chiusura della fattura
   const chiusure = ['</FatturaElettronica>', '</ns2:FatturaElettronica>', '</p:FatturaElettronica>'];
+  let x = t.slice(i);
   for (const c of chiusure) {
     const j = t.indexOf(c, i);
-    if (j > 0) return t.slice(i, j + c.length);
+    if (j > 0) { x = t.slice(i, j + c.length); break; }
   }
-  return t.slice(i);
+  // la busta spezza il contenuto in segmenti e vi intercala byte di controllo,
+  // che finiscono anche dentro i tag: li tolgo prima di leggere
+  return x.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFD]/g, '');
 }
 
 const tagUno = (x, tag) => {
