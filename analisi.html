@@ -213,9 +213,7 @@ $('#file').onchange = async (ev)=>{
     const id = String(r[col.pren]||'').trim().replace(/\.0$/,'');
     if(!tipo || !id || /totale|pagamenti/i.test(tipo)) continue;
     const imp = parseFloat(String(r[col.tot]||'0').replace(/[^\d,.-]/g,'').replace(',','.')) || 0;
-    if(!PAGAMENTI[id]) PAGAMENTI[id] = {metodi:[], totale:0};
-    if(!PAGAMENTI[id].metodi.includes(tipo)) PAGAMENTI[id].metodi.push(tipo);
-    PAGAMENTI[id].totale += imp;
+    (PAGAMENTI[id] = PAGAMENTI[id] || []).push({t:tipo, i:imp});
   }
   render();
   try{
@@ -228,12 +226,33 @@ $('#file').onchange = async (ev)=>{
 };
 
 /* ---------- raggruppamento ---------- */
+// Il metodo che conta è quello con cui è stata pagata la camera:
+// i versamenti che coincidono con l'imposta di soggiorno vengono ignorati.
 function metodoDi(p){
-  const pag = PAGAMENTI[p.id];
-  if(!pag || !pag.metodi.length) return 'Nessun pagamento registrato';
-  // se ci sono piu' metodi, tolgo i contanti che di norma sono la sola tassa
-  const m = pag.metodi.filter(x => pag.metodi.length===1 || !/contant/i.test(x));
-  return (m.length ? m : pag.metodi).sort().join(' + ');
+  const voci = PAGAMENTI[p.id];
+  if(!voci || !voci.length) return 'Nessun pagamento registrato';
+
+  const tassa = p.cityTax || 0;
+  const camera = p.atteso || 0;
+
+  // scarto i pagamenti riconducibili alla sola imposta di soggiorno:
+  // importo pari alla tassa, oppure multiplo di 5 ben al di sotto della camera
+  const utili = voci.filter(v => {
+    const i = v.i || 0;
+    if(i <= 0) return false;
+    if(tassa > 0 && Math.abs(i - tassa) < 0.01) return false;
+    if(i % 5 === 0 && camera > 0 && i <= Math.max(tassa, camera * 0.25)) return false;
+    return true;
+  });
+
+  const scelti = utili.length ? utili : voci.filter(v => (v.i||0) > 0);
+  if(!scelti.length) return 'Nessun pagamento registrato';
+
+  // se un solo versamento copre quasi tutta la camera, è quello il metodo
+  const grosso = scelti.filter(v => v.i >= camera * 0.6);
+  const base = grosso.length ? grosso : scelti;
+
+  return [...new Set(base.map(v => v.t))].sort().join(' + ');
 }
 
 function raggruppa(){
@@ -303,7 +322,7 @@ function render(){
             <td>${badge(p.camere)} ${p.nome || '<i style="color:var(--muted)">senza nome</i>'}</td>
             <td>${(p.camere||[]).join('+')}</td>
             <td><span class="badge">${p.canale}</span></td>
-            <td class="num">${eur(p.atteso)}</td>
+            <td class="num" title="${(PAGAMENTI[p.id]||[]).map(v=>v.t+' '+eur(v.i)).join(' · ')}">${eur(p.atteso)}</td>
           </tr>`).join('')}
       </table>
     </div>`).join('') : '<div class="vuoto">Nessuna prenotazione senza documento.</div>';
