@@ -633,6 +633,8 @@ $('#cal-ok').onclick  = ()=>{
 // ricarica la scheda attualmente aperta: cambiando periodo
 // non ha senso dover premere Aggiorna
 function ricaricaVista(){
+  // cambiando periodo riparto senza filtri, altrimenti la lista sembra vuota
+  FILTRO = 'tutte'; CANALE = 'tutti';
   DATI = null; RIC = null; FATT = null;
   if(VIEW === 'ricevute') { TIPODOC==='fatture' ? caricaFatture() : caricaRicevute(); }
   else carica();
@@ -641,7 +643,7 @@ function ricaricaVista(){
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v79';
+  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v80';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
