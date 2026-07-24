@@ -1800,6 +1800,49 @@ export default {
           });
         return new Response(await resp2.text(), { headers: { ...CORS, "Content-Type": "application/json" } });
       }
+      // === RICERCA su periodo ampio (chiamate mensili in parallelo) ===
+      if (action === "search") {
+        const mesiIndietro = parseInt(url.searchParams.get("back") || "2", 10);
+        const mesiAvanti = parseInt(url.searchParams.get("fwd") || "1", 10);
+        const oggiD = new Date();
+        const daD = new Date(oggiD); daD.setMonth(daD.getMonth() - mesiIndietro);
+        const aD = new Date(oggiD); aD.setMonth(aD.getMonth() + mesiAvanti);
+        // spezza in blocchi da 30 giorni (limite API Amenitiz)
+        const parti = [];
+        let cur = new Date(daD);
+        while (cur < aD) {
+          const start = new Date(cur);
+          cur.setDate(cur.getDate() + 30);
+          const end = cur < aD ? new Date(cur) : new Date(aD);
+          parti.push([start.toISOString().slice(0, 10), end.toISOString().slice(0, 10)]);
+          cur.setDate(cur.getDate() + 1);
+        }
+        const risp = await Promise.all(parti.map(([f, t]) =>
+          amenitizGet(`/bookings/checkin?from=${f}&to=${t}&hotel_id=${HOTEL_UUID}`, env)
+            .then(r => r.ok ? r.json() : [])
+            .catch(() => [])
+        ));
+        const visti = new Set();
+        const tutte = [];
+        for (const gruppo of risp) {
+          for (const b of gruppo) {
+            const s = (b.status || "").toLowerCase();
+            if (s === "cancelled" || s === "canceled") continue;
+            const id = String(b.booking_id);
+            if (visti.has(id)) continue;
+            visti.add(id);
+            tutte.push(b);
+          }
+        }
+        tutte.sort((x, y) => (y.checkin || "").localeCompare(x.checkin || ""));
+        return new Response(JSON.stringify({
+          count: tutte.length,
+          from: parti.length ? parti[0][0] : "",
+          to: parti.length ? parti[parti.length - 1][1] : "",
+          bookings: tutte
+        }), { headers: { ...CORS, "Content-Type": "application/json" } });
+      }
+
       if (action === "incasa") {
         const oggi = (new Date()).toISOString().slice(0, 10);
         const da = new Date();
