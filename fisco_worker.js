@@ -1907,6 +1907,56 @@ export default {
       }
 
       // mappa dei pagamenti registrati, caricata dal rapporto Amenitiz
+      // anagrafica clienti per la fatturazione
+      if (url.pathname === '/clienti') {
+        if (request.method === 'POST') {
+          const body = await request.json();
+          const ana = (await env.FISCO_KV.get('fisco:clienti', 'json')) || {};
+          if (Array.isArray(body)) {
+            for (const c of body) if (c && c.piva) ana[c.piva] = c;
+          } else if (body && body.piva) {
+            ana[body.piva] = body;
+          } else if (body && typeof body === 'object') {
+            Object.assign(ana, body);
+          }
+          await env.FISCO_KV.put('fisco:clienti', JSON.stringify(ana));
+          return json({ ok: true, clienti: Object.keys(ana).length });
+        }
+        const ana = (await env.FISCO_KV.get('fisco:clienti', 'json')) || {};
+        return json({ ok: true, count: Object.keys(ana).length, clienti: ana });
+      }
+
+      // dati anagrafici da partita IVA (servizio VIES della Commissione Europea)
+      if (url.pathname === '/cercaPiva') {
+        const piva = (url.searchParams.get('piva') || '').replace(/[^0-9]/g, '');
+        if (piva.length !== 11) return json({ ok: false, error: 'partita IVA non valida' }, 400);
+        try {
+          const r = await fetch(
+            `https://ec.europa.eu/taxation_customs/vies/rest-api/ms/IT/vat/${piva}`,
+            { headers: { Accept: 'application/json' } }
+          );
+          const d = await r.json();
+          if (!d.isValid) return json({ ok: false, error: 'partita IVA non trovata' }, 404);
+          // l'indirizzo arriva su piu' righe: "VIA X 1 \n00100 ROMA RM"
+          const righe = String(d.address || '').split('\n').map((s) => s.trim()).filter(Boolean);
+          const via = righe[0] || '';
+          const loc = righe[1] || '';
+          const m = loc.match(/^(\d{5})\s+(.*?)\s*([A-Z]{2})?$/);
+          return json({
+            ok: true,
+            piva,
+            denominazione: (d.name || '').trim(),
+            indirizzo: via,
+            cap: m ? m[1] : '',
+            comune: m ? m[2].trim() : loc,
+            provincia: m && m[3] ? m[3] : '',
+            nazione: 'IT',
+          });
+        } catch (e) {
+          return json({ ok: false, error: 'servizio non raggiungibile' }, 502);
+        }
+      }
+
       if (url.pathname === '/pagamenti') {
         if (request.method === 'POST') {
           const body = await request.json();
@@ -1967,7 +2017,7 @@ export default {
     return json(
       {
         error: 'endpoint sconosciuto',
-        disponibili: ['/health', '/infouser', '/dco', '/prenotazioni', '/riconcilia', '/elenco', '/stato', '/emetti', '/annulla', '/condividi', '/invia', '/rinnova', '/proposte', '/orfane', '/duplicati', '/automatico', '/promemoria', '/pagamenti', '/emettiLibera', '/r/{token}'],
+        disponibili: ['/health', '/infouser', '/dco', '/prenotazioni', '/riconcilia', '/elenco', '/stato', '/emetti', '/annulla', '/condividi', '/invia', '/rinnova', '/proposte', '/orfane', '/duplicati', '/automatico', '/promemoria', '/pagamenti', '/clienti', '/cercaPiva', '/emettiLibera', '/r/{token}'],
       },
       404
     );
