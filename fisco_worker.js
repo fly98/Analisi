@@ -2182,6 +2182,14 @@ export default {
         return json({ ok: true, link });
       }
 
+      // invio libero, usato per la copia di cortesia della fattura
+      if (url.pathname === '/inviaMail' && request.method === 'POST') {
+        const body = await request.json();
+        if (!body.a || !body.oggetto) return json({ ok: false, error: 'destinatario o oggetto mancanti' }, 400);
+        const esito = await inviaEmail(env, body.a, body.oggetto, body.testo || '');
+        return json({ ok: true, esito });
+      }
+
       if (url.pathname === '/invia' && request.method === 'POST') {
         const body = await request.json();
         if (!body.idtrx || !body.email)
@@ -2487,7 +2495,7 @@ export default {
     return json(
       {
         error: 'endpoint sconosciuto',
-        disponibili: ['/health', '/infouser', '/dco', '/prenotazioni', '/riconcilia', '/elenco', '/stato', '/emetti', '/annulla', '/condividi', '/invia', '/rinnova', '/proposte', '/orfane', '/duplicati', '/automatico', '/promemoria', '/pagamenti', '/clienti', '/cercaPiva', '/esclusioni', '/fattura', '/numeroFattura', '/condividiFattura', '/f/{token}', '/emettiLibera', '/r/{token}'],
+        disponibili: ['/health', '/infouser', '/dco', '/prenotazioni', '/riconcilia', '/elenco', '/stato', '/emetti', '/annulla', '/condividi', '/invia', '/rinnova', '/proposte', '/orfane', '/duplicati', '/automatico', '/promemoria', '/pagamenti', '/clienti', '/cercaPiva', '/esclusioni', '/fattura', '/numeroFattura', '/condividiFattura', '/f/{token}', '/inviaMail', '/emettiLibera', '/r/{token}'],
       },
       404
     );
