@@ -180,6 +180,7 @@ button.act:disabled{opacity:.5}
   letter-spacing:.2px;vertical-align:middle
 }
 .p-emessa{background:var(--ok-bg);color:var(--ok)}
+.pill.auto{background:#e8effb;color:#2b5fb3}
 .p-da_emettere{background:var(--warn-bg);color:var(--warn)}
 .p-fattura{background:var(--info-bg);color:var(--info)}
 .p-esclusa{background:var(--off-bg);color:var(--off)}
@@ -640,7 +641,7 @@ function ricaricaVista(){
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v78';
+  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v79';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -810,7 +811,9 @@ function riga(p){
   return `<div class="card ${p.stato}">
     <div class="row1">
       <div>
-        <div class="nome">${badgeCamere(p.camere)}${p.nome || 'Ospite senza nome'} <span class="pill p-${p.stato}">${ETICHETTA[p.stato]}</span></div>
+        <div class="nome">${badgeCamere(p.camere)}${p.nome || 'Ospite senza nome'} <span class="pill p-${p.stato}${/emessa automaticamente/.test(p.nota || '') ? ' auto' : ''}">${
+          /emessa automaticamente/.test(p.nota || '') ? 'Emessa in automatico' : ETICHETTA[p.stato]
+        }</span></div>
         <div class="meta">${gg(p.checkin)} → ${gg(p.checkout)} · ${p.notti} ${p.notti==1?'notte':'notti'} · ${p.adulti} ad.${p.bambini?' + '+p.bambini+' b.':''}
           <span class="canale">· ${p.canale||'—'}</span></div>
       </div>
