@@ -454,13 +454,17 @@ function riconcilia(prenotazioni, ricevute) {
         for (const r of cand) {
           const d = distanza(r, p);
           if (d > soglia) continue;
-          // criterio secondario: quanto dista l'emissione dal giorno di arrivo
+          // una ricevuta si emette quasi sempre a soggiorno concluso:
+          // chi è già partito viene prima di chi deve ancora arrivare
+          const anticipata = r.giorno < p.checkout ? 1 : 0;
           const dArrivo = Math.abs(
             (new Date(r.giorno) - new Date(p.checkin)) / 86400000
           );
-          coppie.push({ p, r, d, dArrivo });
+          coppie.push({ p, r, d, anticipata, dArrivo });
         }
-      coppie.sort((a, b) => a.d - b.d || a.dArrivo - b.dArrivo);
+      coppie.sort(
+        (a, b) => a.anticipata - b.anticipata || a.d - b.d || a.dArrivo - b.dArrivo
+      );
 
       for (const { p, r, d } of coppie) {
         if (p.ricevuta || usate.has(r.id)) continue;
