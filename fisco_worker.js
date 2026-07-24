@@ -1740,6 +1740,13 @@ async function emissioneAutomatica(env, giornoRif, soloProva = false) {
 const FE_BASE = 'https://dwadmin.telnetdata.it/api/invoiceApi';
 const FE_SERIE = 'FE';          // serie separata da quella di Aruba (FPR)
 const FE_REGIME = 'RF11';       // agenzie viaggi e turismo, art. 74-ter
+const FE_REGIME_TESTO = 'RF11 · Agenzie viaggi e turismo (art. 74-ter, DPR 633/72)';
+const CONTO = {
+  iban: 'IT19S0326803207052335873720',
+  bic: 'SELBIT2BXXX',
+  banca: 'Banca Sella',
+};
+const RECAPITI = { telefono: '3331543234', email: 'info@interno1.it' };
 
 async function datacashFE(env, path, payload) {
   const res = await fetch(FE_BASE + path, {
@@ -1855,7 +1862,9 @@ async function emettiFattura(env, dati) {
               {
                 importoPagamento: totale,
                 modalitaPagamento: dati.modalitaPagamento || 'MP08',
-                ...(dati.iban ? { iban: dati.iban } : {}),
+                ...((dati.modalitaPagamento || '') === 'MP05'
+                  ? { iban: dati.iban || CONTO.iban }
+                  : {}),
               },
             ],
           },
@@ -1890,7 +1899,7 @@ async function emettiFattura(env, dati) {
       })),
       totale,
       modalitaPagamento: dati.modalitaPagamento || 'MP08',
-      iban: dati.iban || '',
+      iban: (dati.modalitaPagamento || '') === 'MP05' ? dati.iban || CONTO.iban : '',
     };
     await env.FISCO_KV.put(`fisco:fatt:${numeroDoc}`, JSON.stringify(copia));
   }
@@ -2085,6 +2094,7 @@ function paginaFattura(f) {
       <div class="riga">${em.indirizzo}</div>
       <div class="riga">${em.cap} ${em.comune} (${em.provincia})</div>
       <div class="rec">P.IVA ${em.piva}</div>
+      <div class="riga" style="margin-top:5px;font-size:12.5px">${RECAPITI.telefono} · ${RECAPITI.email}</div>
     </div>
     <div class="parte">
       <div class="et">Intestata a</div>
@@ -2113,6 +2123,10 @@ function paginaFattura(f) {
   </div></div>
 
   ${f.pagamento ? `<div class="pagamento"><div class="et">Pagamento</div>${f.pagamento}${f.iban ? `<br><span style="font-family:ui-monospace,Menlo,monospace;font-size:12.5px">IBAN ${f.iban}</span>` : ''}</div>` : ''}
+
+  <div style="margin-top:22px;font-size:11.5px;color:var(--pietra)">
+    Regime fiscale: ${FE_REGIME_TESTO}
+  </div>
 
   <div class="piede">
     <b>Questa è una copia di cortesia.</b> La fattura elettronica originale è stata trasmessa al
