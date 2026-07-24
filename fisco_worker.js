@@ -1510,9 +1510,9 @@ async function duplicati(env, dal, al, opzioni = {}) {
 
 // Clienti ricorrenti con trattamento fisso, riconosciuti dall'indirizzo
 // email o dal nome quando l'email manca.
+// FIC e CAF non sono piu' chiusi in automatico: le fatture si emettono da qui,
+// quindi devono restare in elenco finche' non vengono fatturate davvero
 const REGOLE_CLIENTI = [
-  { email: 'associativo@fic.it', stato: 'fattura', nota: 'Federazione Italiana Cuochi: segue fattura' },
-  { email: 'mzuccarelli@cafitalia.net', stato: 'fattura', nota: 'CAF Italia: segue fattura' },
   { email: 'cladio@gimail.com', stato: 'esclusa', nota: 'Ballatore: nessuna ricevuta' },
   { nome: 'felici', stato: 'esclusa', nota: 'Felici: nessuna ricevuta' },
 ];
