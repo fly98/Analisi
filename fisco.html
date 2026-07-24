@@ -613,7 +613,7 @@ function ricaricaVista(){
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v76';
+  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v77';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -1344,8 +1344,8 @@ function mostraCollegate(){
 }
 
 function chiudiAnteprima(){
-  const o = document.getElementById('overlay-ant');
-  if(o) o.remove();
+  const d = document.getElementById('dlg-ant');
+  if(d && d.open) d.close();
 }
 window.chiudiAnteprima = chiudiAnteprima;
 
@@ -1373,19 +1373,8 @@ window.anteprimaFattura = async ()=>{
     });
     const html = await r.text();
 
-    chiudiAnteprima();
-    const o = document.createElement('div');
-    o.id = 'overlay-ant';
-    o.innerHTML = `
-      <div class="ant-barra">
-        <button onclick="chiudiAnteprima()">Chiudi</button>
-        <span>Anteprima · il documento non è stato emesso</span>
-        <button onclick="document.getElementById('ant-frame').contentWindow.print()">Stampa</button>
-      </div>
-      <iframe id="ant-frame"></iframe>`;
-    // la finestra modale copre il resto della pagina: l'anteprima va dentro di lei
-    const dlgAperto = document.querySelector('dialog[open]');
-    (dlgAperto || document.body).appendChild(o);
+    const d = document.getElementById('dlg-ant');
+    d.showModal();
     const f = document.getElementById('ant-frame');
     f.contentWindow.document.open();
     f.contentWindow.document.write(html);
