@@ -1079,7 +1079,18 @@ async function proposte(env, dal, al, opzioni = {}) {
 
   // il match esatto viene applicato prima: resta da proporre solo il resto
   const libere = prenotazioni.filter((p) => !stati[p.id]);
-  const esito = riconcilia(libere, ricevute.documenti);
+
+  // le ricevute gia' collegate a una decisione registrata sono impegnate:
+  // se restassero disponibili il motore potrebbe assegnarle una seconda volta
+  const giaUsate = new Set();
+  for (const s of Object.values(stati)) {
+    if (!s) continue;
+    if (s.idtrx) giaUsate.add(String(s.idtrx));
+    for (const e of s.extra || []) giaUsate.add(String(e.idtrx || e.id));
+  }
+  const disponibiliPerMotore = ricevute.documenti.filter((r) => !giaUsate.has(String(r.id)));
+
+  const esito = riconcilia(libere, disponibiliPerMotore);
   const abbinateOk = new Set(esito.abbinamenti.map((a) => a.prenotazione.id));
   for (const a of esito.abbinamenti) {
     impegnate.add(String(a.ricevuta.id));
@@ -1213,7 +1224,18 @@ async function orfaneConCandidati(env, dal, al, opzioni = {}) {
   }
 
   const libere = prenotazioni.filter((p) => !stati[p.id]);
-  const esito = riconcilia(libere, ricevute.documenti);
+
+  // le ricevute gia' collegate a una decisione registrata sono impegnate:
+  // se restassero disponibili il motore potrebbe assegnarle una seconda volta
+  const giaUsate = new Set();
+  for (const s of Object.values(stati)) {
+    if (!s) continue;
+    if (s.idtrx) giaUsate.add(String(s.idtrx));
+    for (const e of s.extra || []) giaUsate.add(String(e.idtrx || e.id));
+  }
+  const disponibiliPerMotore = ricevute.documenti.filter((r) => !giaUsate.has(String(r.id)));
+
+  const esito = riconcilia(libere, disponibiliPerMotore);
   const abbinate = new Set(esito.abbinamenti.map((a) => a.prenotazione.id));
   for (const a of esito.abbinamenti) {
     impegnate.add(String(a.ricevuta.id));
@@ -1372,7 +1394,18 @@ async function duplicati(env, dal, al, opzioni = {}) {
     for (const e of s.extra || []) usate.set(String(e.idtrx || e.id), id);
   }
   const libere = prenotazioni.filter((p) => !stati[p.id]);
-  const esito = riconcilia(libere, ricevute.documenti);
+
+  // le ricevute gia' collegate a una decisione registrata sono impegnate:
+  // se restassero disponibili il motore potrebbe assegnarle una seconda volta
+  const giaUsate = new Set();
+  for (const s of Object.values(stati)) {
+    if (!s) continue;
+    if (s.idtrx) giaUsate.add(String(s.idtrx));
+    for (const e of s.extra || []) giaUsate.add(String(e.idtrx || e.id));
+  }
+  const disponibiliPerMotore = ricevute.documenti.filter((r) => !giaUsate.has(String(r.id)));
+
+  const esito = riconcilia(libere, disponibiliPerMotore);
   for (const a of esito.abbinamenti) {
     usate.set(String(a.ricevuta.id), a.prenotazione.id);
     for (const e of a.extra || []) usate.set(String(e.id), a.prenotazione.id);
