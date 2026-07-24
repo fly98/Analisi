@@ -429,6 +429,17 @@ dialog::backdrop{background:rgba(10,25,45,.45)}
     </div>
   </form>
 </dialog>
+<dialog id="dlg2">
+  <form method="dialog" class="dlg">
+    <h3 id="dlg2-t"></h3>
+    <p id="dlg2-p"></p>
+    <div id="dlg2-body"></div>
+    <div class="btns">
+      <button value="no">Annulla</button>
+      <button value="si" class="primary" id="dlg2-ok">Conferma</button>
+    </div>
+  </form>
+</dialog>
 
 <div id="toast"></div>
 
@@ -602,7 +613,7 @@ function ricaricaVista(){
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v69';
+  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v70';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -783,6 +794,40 @@ function riga(p){
 }
 
 /* ---------- azioni ---------- */
+// finestra secondaria, per quando se ne apre una sopra a un'altra
+function dialogo2(titolo, testo, corpo, okLabel){
+  $('#dlg2-t').textContent = titolo;
+  $('#dlg2-p').textContent = testo;
+  $('#dlg2-body').innerHTML = corpo || '';
+  $('#dlg2-ok').textContent = okLabel || 'Conferma';
+  const d = $('#dlg2');
+  d.showModal();
+  const att = document.activeElement;
+  if(att && /INPUT|TEXTAREA|SELECT/.test(att.tagName)) att.blur();
+
+  const q = document.getElementById('ap-q');
+  if(q){
+    const disegna = ()=>{
+      const t = q.value.trim().toLowerCase();
+      const lista = (window.__cand || []).filter(p=>{
+        if(!t) return true;
+        const campi = [p.nome, p.canale, (p.camere||[]).join(' '), gg(p.checkin), gg(p.checkout)].join(' ').toLowerCase();
+        return t.split(/\s+/).every(x=>campi.includes(x));
+      }).slice(0,40);
+      document.getElementById('ap-lista').innerHTML = lista.length ? lista.map(p=>`
+        <label style="display:flex;align-items:center;gap:10px;padding:9px;border:1px solid var(--line);
+                      border-radius:8px;margin-bottom:5px;font-size:13px;cursor:pointer">
+          <input type="checkbox" value="${p.id}" style="width:19px;height:19px;margin:0;flex:0 0 auto">
+          <span><b>${p.nome || 'senza nome'}</b> · ${eur(p.atteso)}<br>
+            <span style="color:var(--muted)">${gg(p.checkin)} → ${gg(p.checkout)} · ${(p.camere||[]).join('+')} · ${p.canale}</span></span>
+        </label>`).join('')
+        : '<div style="color:var(--muted);font-size:13px;padding:8px">Nessuna prenotazione trovata</div>';
+    };
+    q.oninput = disegna; disegna();
+  }
+  return new Promise(res => d.addEventListener('close', ()=>res(d.returnValue==='si'), {once:true}));
+}
+
 function dialogo(titolo, testo, corpo, okLabel){
   $('#dlg-t').textContent = titolo;
   $('#dlg-p').textContent = testo;
@@ -819,27 +864,6 @@ function dialogo(titolo, testo, corpo, okLabel){
   if(att && /INPUT|TEXTAREA|SELECT/.test(att.tagName)) att.blur();
 
   // modulo fattura: precompilo cliente e righe
-  const apq = document.getElementById('ap-q');
-  if(apq){
-    const disegna = ()=>{
-      const t = apq.value.trim().toLowerCase();
-      const lista = (window.__cand || []).filter(p=>{
-        if(!t) return true;
-        const campi = [p.nome, p.canale, (p.camere||[]).join(' '), gg(p.checkin), gg(p.checkout)].join(' ').toLowerCase();
-        return t.split(/\s+/).every(x=>campi.includes(x));
-      }).slice(0,40);
-      document.getElementById('ap-lista').innerHTML = lista.length ? lista.map(p=>`
-        <label style="display:flex;align-items:center;gap:10px;padding:9px;border:1px solid var(--line);
-                      border-radius:8px;margin-bottom:5px;font-size:13px;cursor:pointer">
-          <input type="checkbox" value="${p.id}" style="width:19px;height:19px;margin:0;flex:0 0 auto">
-          <span><b>${p.nome || 'senza nome'}</b> · ${eur(p.atteso)}<br>
-            <span style="color:var(--muted)">${gg(p.checkin)} → ${gg(p.checkout)} · ${(p.camere||[]).join('+')} · ${p.canale}</span></span>
-        </label>`).join('')
-        : '<div style="color:var(--muted);font-size:13px;padding:8px">Nessuna prenotazione trovata</div>';
-    };
-    apq.oninput = disegna; disegna();
-  }
-
   const campoCerca = document.getElementById('fc-cerca');
   if(campoCerca){
     campoCerca.oninput = ()=>{
@@ -1162,7 +1186,7 @@ window.aggiungiPrenotazioni = async ()=>{
   window.__cand = tutte;
   const nomeBase = (base.nome || '').trim();
 
-  const ok = await dialogo('Aggiungi prenotazioni',
+  const ok = await dialogo2('Aggiungi prenotazioni',
     'Spunta quelle da includere nella fattura',
     `<label>Cerca</label>
      <input id="ap-q" value="${nomeBase.replace(/"/g,'&quot;')}" placeholder="nome, camera o data" autocomplete="off">
