@@ -1652,6 +1652,133 @@ async function emissioneAutomatica(env, giornoRif, soloProva = false) {
 }
 
 /* ---------------------------------------------------------------- */
+/* Fatture elettroniche                                              */
+/* ---------------------------------------------------------------- */
+const FE_BASE = 'https://dwadmin.telnetdata.it/api/invoiceApi';
+const FE_SERIE = 'FE';          // serie separata da quella di Aruba (FPR)
+const FE_REGIME = 'RF11';       // agenzie viaggi e turismo, art. 74-ter
+
+async function datacashFE(env, path, payload) {
+  const res = await fetch(FE_BASE + path, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Datacash-Key': env.DATACASH_KEY,
+      Accept: 'application/json',
+    },
+    body: JSON.stringify({ ade_credentials_encrypted: credenziali(env), ...payload }),
+  });
+  const testo = await res.text();
+  let dati = null;
+  try {
+    dati = JSON.parse(testo);
+  } catch {
+    /* alcune risposte non sono JSON */
+  }
+  if (!dati) throw new Error(`Fatture ${path} HTTP ${res.status}: ${testo.slice(0, 200)}`);
+  if (dati.errore) {
+    throw new Error(`${dati.errore.codice || ''} ${dati.errore.descrizione || ''}`.trim());
+  }
+  return dati;
+}
+
+// numerazione della serie FE, indipendente da quella usata su Aruba
+async function prossimoNumeroFE(env, anno) {
+  const chiave = `fisco:numeroFE:${anno}`;
+  const attuale = parseInt((await env.FISCO_KV.get(chiave)) || '0', 10);
+  return { chiave, numero: attuale + 1 };
+}
+
+async function confermaNumeroFE(env, chiave, numero) {
+  await env.FISCO_KV.put(chiave, String(numero));
+}
+
+async function emettiFattura(env, dati) {
+  const cliente = dati.cliente || {};
+  if (!cliente.denominazione && !(cliente.nome && cliente.cognome)) {
+    throw new Error('dati del cliente incompleti');
+  }
+  if (!cliente.codiceDestinatario && !cliente.pec) {
+    throw new Error('serve il codice destinatario oppure la PEC');
+  }
+
+  const righe = (dati.righe || []).filter((r) => Number(r.prezzo) > 0);
+  if (!righe.length) throw new Error('nessuna riga da fatturare');
+
+  const anno = String(new Date().getFullYear()).slice(2);
+  const { chiave, numero } = await prossimoNumeroFE(env, anno);
+  const numeroDoc = dati.numero || `${FE_SERIE} ${numero}/${anno}`;
+
+  const elementiContabili = righe.map((r) => ({
+    aliquotaIVA: String(r.aliquota || '10'),
+    percentualeIva: /^N/.test(String(r.aliquota || '')) ? 0 : parseInt(r.aliquota || '10', 10),
+    descrizione: String(r.descrizione || 'Soggiorno').slice(0, 200),
+    prezzoUnitario: Number(r.prezzo),
+    quantita: Number(r.quantita || 1),
+  }));
+
+  const totale =
+    Math.round(elementiContabili.reduce((s, e) => s + e.prezzoUnitario * e.quantita, 0) * 100) / 100;
+
+  const corpo = {
+    test: !!dati.prova,
+    customer: {
+      denominazione: cliente.denominazione || '',
+      nome: cliente.nome || '',
+      cognome: cliente.cognome || '',
+      codiceFiscale: cliente.cf || cliente.piva || '',
+      codiceDestinatario: cliente.codiceDestinatario || '',
+      pec: cliente.pec || '',
+      indirizzoCompleto: {
+        indirizzo: cliente.indirizzo || '',
+        cap: cliente.cap || '',
+        comune: cliente.comune || '',
+        provincia: cliente.provincia || '',
+        nazione: cliente.nazione || 'IT',
+      },
+    },
+    fiscalRegime: FE_REGIME,
+    elementsInvoice: [
+      {
+        datiGenerali: {
+          valuta: 'EUR',
+          numero: numeroDoc,
+          tipoDocumento: dati.tipoDocumento || 'TD01',
+          causale: dati.causale ? [String(dati.causale).slice(0, 200)] : [],
+        },
+        elementiContabili,
+        datiPagamento: [
+          {
+            condizioniPagamento: 'TP02',
+            dettaglioPagamento: [
+              {
+                importoPagamento: totale,
+                modalitaPagamento: dati.modalitaPagamento || 'MP08',
+                ...(dati.iban ? { iban: dati.iban } : {}),
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  };
+
+  const res = await datacashFE(env, '/sendInvoice/', corpo);
+
+  // il numero si consuma solo se la fattura è stata davvero trasmessa
+  if (!dati.prova && !dati.numero) await confermaNumeroFE(env, chiave, numero);
+
+  // memorizzo il cliente per le volte successive
+  if (cliente.piva && env.FISCO_KV) {
+    const ana = (await env.FISCO_KV.get('fisco:clienti', 'json')) || {};
+    ana[cliente.piva] = { ...(ana[cliente.piva] || {}), ...cliente };
+    await env.FISCO_KV.put('fisco:clienti', JSON.stringify(ana));
+  }
+
+  return { ...res, numero: numeroDoc, totale, prova: !!dati.prova };
+}
+
+/* ---------------------------------------------------------------- */
 /* Handler                                                           */
 /* ---------------------------------------------------------------- */
 // Controllo di metà giornata: se restano partenze senza documento
@@ -1909,6 +2036,29 @@ export default {
       // mappa dei pagamenti registrati, caricata dal rapporto Amenitiz
       // anagrafica clienti per la fatturazione
       // prenotazioni escluse manualmente dall'analisi per il commercialista
+      if (url.pathname === '/fattura' && request.method === 'POST') {
+        const body = await request.json();
+        const res = await emettiFattura(env, body);
+        // se collegata a una prenotazione, la segno come fatturata
+        if (body.prenotazione && !body.prova) {
+          await scriviStato(env, body.prenotazione, {
+            stato: 'fattura',
+            numero: res.numero,
+            data: giorno(new Date()),
+            importo: res.totale,
+            nota: `fattura ${res.numero}`,
+          });
+        }
+        return json({ ok: true, ...res });
+      }
+
+      // prossimo numero disponibile della serie
+      if (url.pathname === '/numeroFattura') {
+        const anno = String(new Date().getFullYear()).slice(2);
+        const { numero } = await prossimoNumeroFE(env, anno);
+        return json({ ok: true, numero: `${FE_SERIE} ${numero}/${anno}`, serie: FE_SERIE });
+      }
+
       if (url.pathname === '/esclusioni') {
         if (request.method === 'POST') {
           const body = await request.json();
@@ -2029,7 +2179,7 @@ export default {
     return json(
       {
         error: 'endpoint sconosciuto',
-        disponibili: ['/health', '/infouser', '/dco', '/prenotazioni', '/riconcilia', '/elenco', '/stato', '/emetti', '/annulla', '/condividi', '/invia', '/rinnova', '/proposte', '/orfane', '/duplicati', '/automatico', '/promemoria', '/pagamenti', '/clienti', '/cercaPiva', '/esclusioni', '/emettiLibera', '/r/{token}'],
+        disponibili: ['/health', '/infouser', '/dco', '/prenotazioni', '/riconcilia', '/elenco', '/stato', '/emetti', '/annulla', '/condividi', '/invia', '/rinnova', '/proposte', '/orfane', '/duplicati', '/automatico', '/promemoria', '/pagamenti', '/clienti', '/cercaPiva', '/esclusioni', '/fattura', '/numeroFattura', '/emettiLibera', '/r/{token}'],
       },
       404
     );
