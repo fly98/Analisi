@@ -462,6 +462,8 @@ function riconcilia(prenotazioni, ricevute) {
   }
 
   // tassa calcolata su un numero di persone diverso da quello registrato
+  const oggiIso = giorno(new Date());
+
   function passataVarianti(soglia) {
     for (const p of daAbbinare) {
       if (p.ricevuta || !p.variantiCents) continue;
