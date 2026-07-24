@@ -1843,19 +1843,19 @@ function testoXml(buf) {
 }
 
 const tagUno = (x, tag) => {
-  const m = x.match(new RegExp(`<${tag}>([^<]*)</${tag}>`));
+  const m = x.match(new RegExp(`<${tag}(?:\\s[^>]*)?>([^<]*)</${tag}>`));
   return m ? m[1] : '';
 };
 const tagTutti = (x, tag) => {
   const out = [];
-  const re = new RegExp(`<${tag}>([^<]*)</${tag}>`, 'g');
+  const re = new RegExp(`<${tag}(?:\\s[^>]*)?>([^<]*)</${tag}>`, 'g');
   let m;
   while ((m = re.exec(x))) out.push(m[1]);
   return out;
 };
 const blocchi = (x, tag) => {
   const out = [];
-  const re = new RegExp(`<${tag}>([\\s\\S]*?)</${tag}>`, 'g');
+  const re = new RegExp(`<${tag}(?:\\s[^>]*)?>([\\s\\S]*?)</${tag}>`, 'g');
   let m;
   while ((m = re.exec(x))) out.push(m[1]);
   return out;
@@ -1876,11 +1876,24 @@ const NATURE = {
 };
 
 function fatturaHtml(xml) {
-  const testa = xml.slice(0, xml.indexOf('<FatturaElettronicaBody>') + 1);
-  const corpo = xml.slice(xml.indexOf('<FatturaElettronicaBody>'));
+  // i tag possono portare attributi (es. xmlns=""), quindi li cerco per posizione
+  const dove = (tag, da = 0) => {
+    const m = xml.slice(da).match(new RegExp(`<${tag}(\\s[^>]*)?>`));
+    return m ? da + m.index : -1;
+  };
+  const sezione = (tag) => {
+    const a = dove(tag);
+    if (a < 0) return '';
+    const b = xml.indexOf(`</${tag}>`, a);
+    return b > a ? xml.slice(a, b) : '';
+  };
 
-  const cedente = testa.slice(testa.indexOf('<CedentePrestatore>'), testa.indexOf('</CedentePrestatore>'));
-  const cess = testa.slice(testa.indexOf('<CessionarioCommittente>'), testa.indexOf('</CessionarioCommittente>'));
+  const iBody = dove('FatturaElettronicaBody');
+  const testa = iBody > 0 ? xml.slice(0, iBody) : xml;
+  const corpo = iBody > 0 ? xml.slice(iBody) : xml;
+
+  const cedente = sezione('CedentePrestatore');
+  const cess = sezione('CessionarioCommittente');
 
   const datiAnag = (sez) => ({
     denominazione: tagUno(sez, 'Denominazione') || `${tagUno(sez, 'Nome')} ${tagUno(sez, 'Cognome')}`.trim(),
