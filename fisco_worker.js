@@ -1823,6 +1823,215 @@ async function emettiFattura(env, dati) {
 }
 
 /* ---------------------------------------------------------------- */
+/* Copia leggibile della fattura                                     */
+/* ---------------------------------------------------------------- */
+
+// nell'XML firmato il contenuto è racchiuso nella busta PKCS#7:
+// estraggo la parte testuale e la leggo con espressioni regolari
+function testoXml(buf) {
+  const t = new TextDecoder('utf-8', { fatal: false }).decode(buf);
+  const i = t.indexOf('<?xml');
+  const j = t.lastIndexOf('</');
+  return i >= 0 ? t.slice(i, j > i ? t.indexOf('>', j) + 1 : undefined) : t;
+}
+
+const tagUno = (x, tag) => {
+  const m = x.match(new RegExp(`<${tag}>([^<]*)</${tag}>`));
+  return m ? m[1] : '';
+};
+const tagTutti = (x, tag) => {
+  const out = [];
+  const re = new RegExp(`<${tag}>([^<]*)</${tag}>`, 'g');
+  let m;
+  while ((m = re.exec(x))) out.push(m[1]);
+  return out;
+};
+const blocchi = (x, tag) => {
+  const out = [];
+  const re = new RegExp(`<${tag}>([\\s\\S]*?)</${tag}>`, 'g');
+  let m;
+  while ((m = re.exec(x))) out.push(m[1]);
+  return out;
+};
+
+const eur = (n) =>
+  Number(n || 0).toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+const dataIso = (s) => (s && s.length >= 10 ? `${s.slice(8, 10)}/${s.slice(5, 7)}/${s.slice(0, 4)}` : s || '');
+
+const NATURE = {
+  N1: 'Escluse ex art. 15',
+  'N2.1': 'Non soggette artt. 7-7septies',
+  'N2.2': 'Non soggette - altri casi',
+  'N3.1': 'Non imponibili - esportazioni',
+  'N3.2': 'Non imponibili - cessioni intracomunitarie',
+  N4: 'Esenti',
+  N5: 'Regime del margine',
+};
+
+function fatturaHtml(xml) {
+  const testa = xml.slice(0, xml.indexOf('<FatturaElettronicaBody>') + 1);
+  const corpo = xml.slice(xml.indexOf('<FatturaElettronicaBody>'));
+
+  const cedente = testa.slice(testa.indexOf('<CedentePrestatore>'), testa.indexOf('</CedentePrestatore>'));
+  const cess = testa.slice(testa.indexOf('<CessionarioCommittente>'), testa.indexOf('</CessionarioCommittente>'));
+
+  const datiAnag = (sez) => ({
+    denominazione: tagUno(sez, 'Denominazione') || `${tagUno(sez, 'Nome')} ${tagUno(sez, 'Cognome')}`.trim(),
+    piva: tagUno(sez, 'IdCodice'),
+    cf: tagUno(sez, 'CodiceFiscale'),
+    indirizzo: tagUno(sez, 'Indirizzo'),
+    civico: tagUno(sez, 'NumeroCivico'),
+    cap: tagUno(sez, 'CAP'),
+    comune: tagUno(sez, 'Comune'),
+    provincia: tagUno(sez, 'Provincia'),
+  });
+
+  const em = datiAnag(cedente);
+  const cl = datiAnag(cess);
+  const cd = tagUno(testa, 'CodiceDestinatario');
+  const pec = tagUno(testa, 'PECDestinatario');
+
+  const numero = tagUno(corpo, 'Numero');
+  const data = tagUno(corpo, 'Data');
+  const tipoDoc = tagUno(corpo, 'TipoDocumento');
+  const totale = tagUno(corpo, 'ImportoTotaleDocumento');
+  const causali = tagTutti(corpo, 'Causale');
+
+  const linee = blocchi(corpo, 'DettaglioLinee').map((l) => ({
+    n: tagUno(l, 'NumeroLinea'),
+    descrizione: tagUno(l, 'Descrizione'),
+    quantita: tagUno(l, 'Quantita'),
+    prezzo: tagUno(l, 'PrezzoUnitario'),
+    totale: tagUno(l, 'PrezzoTotale'),
+    aliquota: tagUno(l, 'AliquotaIVA'),
+    natura: tagUno(l, 'Natura'),
+  }));
+
+  const riepilogo = blocchi(corpo, 'DatiRiepilogo').map((r) => ({
+    aliquota: tagUno(r, 'AliquotaIVA'),
+    natura: tagUno(r, 'Natura'),
+    imponibile: tagUno(r, 'ImponibileImporto'),
+    imposta: tagUno(r, 'Imposta'),
+  }));
+
+  const pagam = blocchi(corpo, 'DettaglioPagamento').map((p) => ({
+    modalita: tagUno(p, 'ModalitaPagamento'),
+    importo: tagUno(p, 'ImportoPagamento'),
+    iban: tagUno(p, 'IBAN'),
+  }));
+
+  const MOD = { MP01: 'Contanti', MP05: 'Bonifico', MP08: 'Carta di pagamento' };
+  const totImponibile = riepilogo.reduce((s, r) => s + Number(r.imponibile || 0), 0);
+  const totImposta = riepilogo.reduce((s, r) => s + Number(r.imposta || 0), 0);
+
+  return `<!DOCTYPE html><html lang="it"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fattura ${numero}</title>
+<style>
+  body{font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    color:#12283f;margin:0;padding:24px;background:#f4f6f9}
+  .foglio{max-width:780px;margin:0 auto;background:#fff;padding:34px;border-radius:10px;
+    box-shadow:0 2px 14px rgba(18,40,63,.08)}
+  h1{font-size:19px;margin:0 0 2px;text-align:center;letter-spacing:.5px}
+  .sotto{text-align:center;color:#657896;font-size:13px;margin-bottom:26px}
+  .parti{display:flex;gap:24px;margin-bottom:24px;flex-wrap:wrap}
+  .parte{flex:1;min-width:220px}
+  .et{font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;color:#657896;
+    font-weight:700;margin-bottom:5px}
+  .parte b{display:block;font-size:14.5px;margin-bottom:3px}
+  .parte div{font-size:13px;color:#3d4f66}
+  table{width:100%;border-collapse:collapse;margin:18px 0}
+  th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;color:#657896;
+    padding:8px 6px;border-bottom:2px solid #dde3ec}
+  td{padding:9px 6px;border-bottom:1px solid #eef1f5;font-size:13.5px;vertical-align:top}
+  .num{text-align:right;white-space:nowrap}
+  .tot{margin-left:auto;width:100%;max-width:320px}
+  .tot tr td{border:0;padding:5px 6px}
+  .tot .finale td{border-top:2px solid #12283f;font-weight:700;font-size:17px;padding-top:11px}
+  .piede{margin-top:26px;padding-top:14px;border-top:1px solid #dde3ec;
+    font-size:11.5px;color:#657896;text-align:center;line-height:1.6}
+  @media print{body{background:#fff;padding:0}.foglio{box-shadow:none;border-radius:0;max-width:none}}
+</style></head><body><div class="foglio">
+
+<h1>FATTURA</h1>
+<div class="sotto">n. ${numero} del ${dataIso(data)}${tipoDoc === 'TD04' ? ' · nota di credito' : ''}</div>
+
+<div class="parti">
+  <div class="parte">
+    <div class="et">Fornitore</div>
+    <b>${em.denominazione}</b>
+    <div>P.IVA ${em.piva}</div>
+    <div>${em.indirizzo} ${em.civico}</div>
+    <div>${em.cap} ${em.comune} ${em.provincia}</div>
+  </div>
+  <div class="parte">
+    <div class="et">Cliente</div>
+    <b>${cl.denominazione}</b>
+    <div>P.IVA ${cl.piva || cl.cf}</div>
+    <div>${cl.indirizzo} ${cl.civico}</div>
+    <div>${cl.cap} ${cl.comune} ${cl.provincia}</div>
+    <div style="margin-top:4px;font-size:12px">${cd ? 'Codice destinatario ' + cd : pec ? 'PEC ' + pec : ''}</div>
+  </div>
+</div>
+
+${causali.length ? `<div style="font-size:13px;color:#3d4f66;margin-bottom:14px">${causali.join('<br>')}</div>` : ''}
+
+<table>
+  <tr><th>Descrizione</th><th class="num">Q.tà</th><th class="num">Prezzo</th><th class="num">Aliquota</th><th class="num">Importo</th></tr>
+  ${linee
+    .map(
+      (l) => `<tr>
+      <td>${l.descrizione}</td>
+      <td class="num">${Number(l.quantita || 1).toLocaleString('it-IT')}</td>
+      <td class="num">${eur(l.prezzo)}</td>
+      <td class="num">${l.natura ? NATURE[l.natura] || l.natura : Number(l.aliquota).toFixed(0) + '%'}</td>
+      <td class="num">${eur(l.totale)}</td>
+    </tr>`
+    )
+    .join('')}
+</table>
+
+<table class="tot">
+  ${riepilogo
+    .map(
+      (r) => `<tr>
+      <td>Imponibile ${r.natura ? NATURE[r.natura] || r.natura : Number(r.aliquota).toFixed(0) + '%'}</td>
+      <td class="num">${eur(r.imponibile)}</td>
+    </tr>
+    ${Number(r.imposta) > 0 ? `<tr><td>IVA ${Number(r.aliquota).toFixed(0)}%</td><td class="num">${eur(r.imposta)}</td></tr>` : ''}`
+    )
+    .join('')}
+  <tr class="finale"><td>Totale documento</td><td class="num">${eur(totale)}</td></tr>
+</table>
+
+${pagam.length
+    ? `<div style="font-size:13px;color:#3d4f66;margin-top:18px">
+        <span class="et" style="display:inline">Pagamento</span>
+        ${pagam.map((p) => `${MOD[p.modalita] || p.modalita} · ${eur(p.importo)}${p.iban ? '<br>IBAN ' + p.iban : ''}`).join('<br>')}
+       </div>`
+    : ''}
+
+<div class="piede">
+  Copia di cortesia della fattura elettronica trasmessa al Sistema di Interscambio.<br>
+  Il documento originale in formato XML è disponibile nel portale Fatture e Corrispettivi dell'Agenzia delle Entrate.
+</div>
+</div></body></html>`;
+}
+
+async function scaricaFatturaXml(env, idFattura) {
+  const res = await fetch(`${FE_BASE}/downloadInvoices/${idFattura}/`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Datacash-Key': env.DATACASH_KEY,
+    },
+    body: JSON.stringify({ ade_credentials_encrypted: credenziali(env) }),
+  });
+  if (!res.ok) throw new Error(`download fattura HTTP ${res.status}`);
+  return res.arrayBuffer();
+}
+
+/* ---------------------------------------------------------------- */
 /* Handler                                                           */
 /* ---------------------------------------------------------------- */
 // Controllo di metà giornata: se restano partenze senza documento
@@ -1877,6 +2086,26 @@ export default {
           TELEGRAM: !!env.TELEGRAM_BOT_TOKEN,
         },
       });
+    }
+
+    // copia di cortesia della fattura, indirizzo riservato
+    if (url.pathname.startsWith('/f/')) {
+      const token = url.pathname.slice(3).replace(/[^a-z0-9]/gi, '');
+      if (!token || !env.FISCO_KV) return new Response('Link non valido', { status: 404 });
+      const rec = await env.FISCO_KV.get(`fisco:pubf:${token}`, 'json');
+      if (!rec) return new Response('Fattura non disponibile o link scaduto', { status: 404 });
+      try {
+        const buf = await scaricaFatturaXml(env, rec.idFattura);
+        const html = fatturaHtml(testoXml(buf));
+        return new Response(html, {
+          headers: {
+            'Content-Type': 'text/html; charset=utf-8',
+            'Cache-Control': 'private, max-age=3600',
+          },
+        });
+      } catch (e) {
+        return new Response('Fattura non recuperabile: ' + e.message, { status: 502 });
+      }
     }
 
     // link pubblico alla ricevuta: nessun token, l'indirizzo stesso e' il segreto
@@ -2097,6 +2326,18 @@ export default {
       }
 
       // prossimo numero disponibile della serie
+      if (url.pathname === '/condividiFattura' && request.method === 'POST') {
+        const body = await request.json();
+        if (!body.idFattura) return json({ ok: false, error: 'idFattura mancante' }, 400);
+        const token = tokenCasuale();
+        await env.FISCO_KV.put(
+          `fisco:pubf:${token}`,
+          JSON.stringify({ idFattura: body.idFattura, numero: body.numero || '' }),
+          { expirationTtl: 60 * 60 * 24 * 365 }
+        );
+        return json({ ok: true, link: `${url.origin}/f/${token}` });
+      }
+
       if (url.pathname === '/numeroFattura') {
         const anno = String(new Date().getFullYear()).slice(2);
         const { numero } = await prossimoNumeroFE(env, anno);
@@ -2227,7 +2468,7 @@ export default {
     return json(
       {
         error: 'endpoint sconosciuto',
-        disponibili: ['/health', '/infouser', '/dco', '/prenotazioni', '/riconcilia', '/elenco', '/stato', '/emetti', '/annulla', '/condividi', '/invia', '/rinnova', '/proposte', '/orfane', '/duplicati', '/automatico', '/promemoria', '/pagamenti', '/clienti', '/cercaPiva', '/esclusioni', '/fattura', '/numeroFattura', '/emettiLibera', '/r/{token}'],
+        disponibili: ['/health', '/infouser', '/dco', '/prenotazioni', '/riconcilia', '/elenco', '/stato', '/emetti', '/annulla', '/condividi', '/invia', '/rinnova', '/proposte', '/orfane', '/duplicati', '/automatico', '/promemoria', '/pagamenti', '/clienti', '/cercaPiva', '/esclusioni', '/fattura', '/numeroFattura', '/condividiFattura', '/f/{token}', '/emettiLibera', '/r/{token}'],
       },
       404
     );
