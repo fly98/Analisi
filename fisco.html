@@ -613,7 +613,7 @@ function ricaricaVista(){
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v70';
+  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v71';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -903,7 +903,12 @@ function dialogo(titolo, testo, corpo, okLabel){
     if(window.__pren){
       const p = window.__pren;
       window.aggiungiRiga(`Soggiorno dal ${dataIt(p.checkin)} al ${dataIt(p.checkout)}` + (p.nome ? ` del Sig./Sig.ra ${p.nome}` : ''), p.atteso, '10', 1);
-      if(p.cityTax > 0) window.aggiungiRiga('Imposta di soggiorno', p.cityTax, 'N1', 1);
+      if(p.cityTax > 0){
+        const u = p.cityTax / TASSA_UNITARIA;
+        const q = Math.abs(u - Math.round(u)) < 0.01;
+        window.aggiungiRiga('Imposta di soggiorno',
+          q ? TASSA_UNITARIA : p.cityTax, 'N1', q ? Math.round(u) : 1);
+      }
     }
   }
 
@@ -1168,6 +1173,7 @@ window.scegliCliente = (piva)=>{
 
 // prenotazioni comprese nella fattura, oltre a quella di partenza
 let FT_COLLEGATE = [];
+const TASSA_UNITARIA = 5;   // euro per persona a notte
 
 window.aggiungiPrenotazioni = async ()=>{
   const base = window.__pren || {};
@@ -1222,11 +1228,19 @@ function ricalcolaTassa(){
   const righe = [...document.querySelectorAll('#fc-righe .rigaf')];
   const esistente = righe.find(el => el.querySelector('.r-iva').value === 'N1');
   if(tot <= 0){ if(esistente) esistente.remove(); totaleFattura(); return; }
+
+  // espongo i pernottamenti: quantità × 5 € invece di un totale unico
+  const unita = Math.round(tot / TASSA_UNITARIA * 100) / 100;
+  const quadra = Math.abs(unita - Math.round(unita)) < 0.01;
+  const qta = quadra ? Math.round(unita) : 1;
+  const prezzo = quadra ? TASSA_UNITARIA : tot;
+
   if(esistente){
-    esistente.querySelector('.r-prezzo').value = tot.toFixed(2);
+    esistente.querySelector('.r-prezzo').value = prezzo.toFixed(2);
+    esistente.querySelector('.r-qta').value = qta;
     esistente.querySelector('.r-desc').value = 'Imposta di soggiorno';
   }else{
-    window.aggiungiRiga('Imposta di soggiorno', tot, 'N1', 1);
+    window.aggiungiRiga('Imposta di soggiorno', prezzo, 'N1', qta);
   }
   totaleFattura();
 }
