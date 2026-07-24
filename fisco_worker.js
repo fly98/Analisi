@@ -1831,8 +1831,15 @@ async function emettiFattura(env, dati) {
 function testoXml(buf) {
   const t = new TextDecoder('utf-8', { fatal: false }).decode(buf);
   const i = t.indexOf('<?xml');
-  const j = t.lastIndexOf('</');
-  return i >= 0 ? t.slice(i, j > i ? t.indexOf('>', j) + 1 : undefined) : t;
+  if (i < 0) return t;
+  // la busta firmata contiene byte binari dopo il documento:
+  // taglio esattamente alla chiusura della fattura
+  const chiusure = ['</FatturaElettronica>', '</ns2:FatturaElettronica>', '</p:FatturaElettronica>'];
+  for (const c of chiusure) {
+    const j = t.indexOf(c, i);
+    if (j > 0) return t.slice(i, j + c.length);
+  }
+  return t.slice(i);
 }
 
 const tagUno = (x, tag) => {
