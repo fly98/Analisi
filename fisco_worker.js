@@ -379,6 +379,12 @@ const MARGINE_RICEVUTE = 45;
 
 // Sulle prenotazioni diretse il pagamento puo' arrivare prima dell'arrivo,
 // quindi la ricevuta puo' precedere il soggiorno. Sui portali no.
+// clienti per cui emetti sempre fattura: le loro prenotazioni non vanno
+// mai abbinate a una ricevuta, altrimenti spariscono da quelle da fatturare
+const SEMPRE_FATTURA = ['associativo@fic.it', 'mzuccarelli@cafitalia.net'];
+const daFatturare = (p) =>
+  SEMPRE_FATTURA.includes(String(p.email || '').toLowerCase().trim());
+
 const CANALI_DIRETTI = ['manual', 'amenitiz', ''];
 function anticipoConsentito(canale) {
   const c = String(canale || '').toLowerCase();
@@ -833,7 +839,7 @@ async function elenco(env, dal, al, margine) {
   const stati = await leggiStati(env, prenotazioni.map((p) => p.id));
 
   // match euristico solo per le prenotazioni senza stato registrato
-  const senzaStato = prenotazioni.filter((p) => !stati[p.id]);
+  const senzaStato = prenotazioni.filter((p) => !stati[p.id] && !daFatturare(p));
 
   // le ricevute gia' collegate a una decisione registrata sono impegnate:
   // se restassero disponibili verrebbero assegnate una seconda volta
@@ -1090,7 +1096,7 @@ async function proposte(env, dal, al, opzioni = {}) {
   }
 
   // il match esatto viene applicato prima: resta da proporre solo il resto
-  const libere = prenotazioni.filter((p) => !stati[p.id]);
+  const libere = prenotazioni.filter((p) => !stati[p.id] && !daFatturare(p));
 
   // le ricevute gia' collegate a una decisione registrata sono impegnate:
   // se restassero disponibili il motore potrebbe assegnarle una seconda volta
@@ -1235,7 +1241,7 @@ async function orfaneConCandidati(env, dal, al, opzioni = {}) {
     for (const e of s.extra || []) impegnate.add(String(e.idtrx || e.id));
   }
 
-  const libere = prenotazioni.filter((p) => !stati[p.id]);
+  const libere = prenotazioni.filter((p) => !stati[p.id] && !daFatturare(p));
 
   // le ricevute gia' collegate a una decisione registrata sono impegnate:
   // se restassero disponibili il motore potrebbe assegnarle una seconda volta
@@ -1405,7 +1411,7 @@ async function duplicati(env, dal, al, opzioni = {}) {
     if (s.idtrx) usate.set(String(s.idtrx), id);
     for (const e of s.extra || []) usate.set(String(e.idtrx || e.id), id);
   }
-  const libere = prenotazioni.filter((p) => !stati[p.id]);
+  const libere = prenotazioni.filter((p) => !stati[p.id] && !daFatturare(p));
 
   // le ricevute gia' collegate a una decisione registrata sono impegnate:
   // se restassero disponibili il motore potrebbe assegnarle una seconda volta
