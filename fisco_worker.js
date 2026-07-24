@@ -834,7 +834,19 @@ async function elenco(env, dal, al, margine) {
 
   // match euristico solo per le prenotazioni senza stato registrato
   const senzaStato = prenotazioni.filter((p) => !stati[p.id]);
-  const esito = riconcilia(senzaStato, ricevute.documenti);
+
+  // le ricevute gia' collegate a una decisione registrata sono impegnate:
+  // se restassero disponibili verrebbero assegnate una seconda volta
+  const impegnateDaStati = new Set();
+  for (const s of Object.values(stati)) {
+    if (!s) continue;
+    if (s.idtrx) impegnateDaStati.add(String(s.idtrx));
+    for (const e of s.extra || []) impegnateDaStati.add(String(e.idtrx || e.id));
+  }
+  const esito = riconcilia(
+    senzaStato,
+    ricevute.documenti.filter((r) => !impegnateDaStati.has(String(r.id)))
+  );
   const perId = new Map(esito.abbinamenti.map((a) => [a.prenotazione.id, a]));
 
   const righe = prenotazioni.map((p) => {
