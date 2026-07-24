@@ -2562,6 +2562,71 @@ export default {
         });
       }
 
+      // fatture ricevute (passive) dal cassetto, via DataCash
+      if (url.pathname === '/passive') {
+        const cred = credenziali(env);
+        const blocchi = [];
+        let cur = dal;
+        while (cur <= al) {
+          let ultimo = cur.slice(0, 8) + '01';
+          const dtmp = new Date(ultimo);
+          dtmp.setMonth(dtmp.getMonth() + 1);
+          ultimo = addGiorni(giorno(dtmp), -1);
+          const a = ultimo > al ? al : ultimo;
+          blocchi.push([cur, a]);
+          cur = addGiorni(a, 1);
+        }
+        const risposte = await Promise.all(
+          blocchi.map(async ([d1, d2]) => {
+            try {
+              const r = await fetch(`${FE_BASE}/findInvoices/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Datacash-Key': env.DATACASH_KEY },
+                body: JSON.stringify({
+                  ade_credentials_encrypted: cred,
+                  tipo: 'ricevute',
+                  start: d1,
+                  end: d2,
+                }),
+              });
+              const d = await r.json();
+              return d.fatture || [];
+            } catch {
+              return [];
+            }
+          })
+        );
+        const viste = new Set();
+        const fatture = [];
+        for (const g of risposte)
+          for (const f of g) {
+            if (viste.has(f.idFattura)) continue;
+            viste.add(f.idFattura);
+            const imp = parseFloat(String(f.imponibile || '0').replace(/[+]/g, '').replace(',', '.'));
+            const iva = parseFloat(String(f.imposta || '0').replace(/[+]/g, '').replace(',', '.'));
+            fatture.push({
+              id: f.idFattura,
+              numero: f.numeroFattura,
+              data: f.dataFattura,
+              fornitore: f.denominazioneCedente || f.denominazioneFornitore || '',
+              piva: f.pivaCedente || f.pivaFornitore || '',
+              imponibile: Math.round(imp * 100) / 100,
+              imposta: Math.round(iva * 100) / 100,
+              totale: Math.round((imp + iva) * 100) / 100,
+            });
+          }
+        fatture.sort((a, b) => (a.data < b.data ? 1 : -1));
+        return json({
+          ok: true,
+          periodo: { dal, al },
+          count: fatture.length,
+          imponibile: Math.round(fatture.reduce((s, f) => s + f.imponibile, 0) * 100) / 100,
+          ivaDetraibile: Math.round(fatture.reduce((s, f) => s + f.imposta, 0) * 100) / 100,
+          totale: Math.round(fatture.reduce((s, f) => s + f.totale, 0) * 100) / 100,
+          fatture,
+        });
+      }
+
       if (url.pathname === '/fatture') {
         const cred = credenziali(env);
         const blocchi = [];
@@ -2787,7 +2852,7 @@ export default {
     return json(
       {
         error: 'endpoint sconosciuto',
-        disponibili: ['/health', '/infouser', '/dco', '/prenotazioni', '/riconcilia', '/elenco', '/stato', '/emetti', '/annulla', '/condividi', '/invia', '/rinnova', '/proposte', '/orfane', '/duplicati', '/automatico', '/promemoria', '/pagamenti', '/clienti', '/cercaPiva', '/esclusioni', '/fattura', '/numeroFattura', '/fatture', '/anteprimaFattura', '/notaCredito', '/condividiFattura', '/f/{token}', '/inviaMail', '/emettiLibera', '/r/{token}'],
+        disponibili: ['/health', '/infouser', '/dco', '/prenotazioni', '/riconcilia', '/elenco', '/stato', '/emetti', '/annulla', '/condividi', '/invia', '/rinnova', '/proposte', '/orfane', '/duplicati', '/automatico', '/promemoria', '/pagamenti', '/clienti', '/cercaPiva', '/esclusioni', '/fattura', '/numeroFattura', '/fatture', '/passive', '/anteprimaFattura', '/notaCredito', '/condividiFattura', '/f/{token}', '/inviaMail', '/emettiLibera', '/r/{token}'],
       },
       404
     );
