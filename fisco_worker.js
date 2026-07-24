@@ -2012,10 +2012,7 @@ function paginaFattura(f) {
     box-shadow:0 1px 3px rgba(28,43,57,.06),0 12px 32px rgba(28,43,57,.07);padding:40px 44px 34px}
   .testata{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;
     padding-bottom:22px;border-bottom:1px solid var(--filo)}
-  .marchio{display:flex;align-items:center;gap:12px}
-  .marchio img{width:42px;height:42px;border-radius:9px;display:block}
-  .marchio .nome{font-family:Georgia,"Times New Roman",serif;font-size:20px;line-height:1.15}
-  .marchio .luogo{font-size:11px;color:var(--pietra);letter-spacing:1.4px;text-transform:uppercase;margin-top:3px}
+  .marchio img{height:52px;width:auto;display:block}
   .documento{text-align:right;flex:0 0 auto}
   .documento .tipo{font-size:10px;letter-spacing:1.4px;text-transform:uppercase;color:var(--salvia);font-weight:700}
   .documento .numero{font-family:Georgia,"Times New Roman",serif;font-size:25px;line-height:1.1;margin-top:4px}
@@ -2059,8 +2056,7 @@ function paginaFattura(f) {
 
   <div class="testata">
     <div class="marchio">
-      <img src="https://fly98.github.io/Analisi/icon-192.png" alt="">
-      <div><div class="nome">InternoUno</div><div class="luogo">Roma</div></div>
+      <img src="https://fly98.github.io/Analisi/logo-internouno.png" alt="InternoUno">
     </div>
     <div class="documento">
       <div class="tipo">${nota}</div>
