@@ -586,7 +586,7 @@ function ricaricaVista(){
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v54';
+  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v55';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -760,6 +760,10 @@ function dialogo(titolo, testo, corpo, okLabel){
   $('#dlg-ok').textContent = okLabel || 'Conferma';
   const d = $('#dlg');
   d.showModal();
+  // il dialogo dà il fuoco al primo campo: su iPad aprirebbe la tastiera
+  const att = document.activeElement;
+  if(att && /INPUT|TEXTAREA|SELECT/.test(att.tagName)) att.blur();
+
   // modulo fattura: precompilo cliente e righe
   const campoCerca = document.getElementById('fc-cerca');
   if(campoCerca){
