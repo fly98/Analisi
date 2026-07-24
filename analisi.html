@@ -70,6 +70,8 @@ tr.escluso td:first-child{opacity:1;text-decoration:none}
 .num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
 input[type=checkbox]{width:19px;height:19px;accent-color:var(--ok);cursor:pointer;margin:0}
 .badge{display:inline-block;font-size:10.5px;padding:2px 7px;border-radius:999px;background:var(--info-bg);color:var(--info)}
+.vers{font-size:11px;color:var(--ok);margin-top:2px;line-height:1.35}
+.vers .tassa{color:var(--muted)}
 .camera{
   display:inline-flex;align-items:center;justify-content:center;width:19px;height:19px;
   border-radius:5px;font-size:10.5px;font-weight:700;color:#fff;margin-right:3px
@@ -319,13 +321,28 @@ function render(){
           <tr class="${ESCLUSI.has(p.id)?'escluso':''}">
             <td><input type="checkbox" ${ESCLUSI.has(p.id)?'':'checked'} onchange="commuta('${p.id}')"></td>
             <td>${gg(p.checkout)}</td>
-            <td>${badge(p.camere)} ${p.nome || '<i style="color:var(--muted)">senza nome</i>'}</td>
+            <td>
+              ${badge(p.camere)} ${p.nome || '<i style="color:var(--muted)">senza nome</i>'}
+              <div class="vers">${dettaglioPag(p)}</div>
+            </td>
             <td>${(p.camere||[]).join('+')}</td>
             <td><span class="badge">${p.canale}</span></td>
-            <td class="num" title="${(PAGAMENTI[p.id]||[]).map(v=>v.t+' '+eur(v.i)).join(' · ')}">${eur(p.atteso)}</td>
+            <td class="num">${eur(p.atteso)}</td>
           </tr>`).join('')}
       </table>
     </div>`).join('') : '<div class="vuoto">Nessuna prenotazione senza documento.</div>';
+}
+
+// versamenti registrati, con la parte riferita alla tassa in grigio
+function dettaglioPag(p){
+  const voci = (PAGAMENTI[p.id] || []).filter(v => (v.i||0) > 0);
+  if(!voci.length) return '<span class="tassa">nessun pagamento registrato</span>';
+  const tassa = p.cityTax || 0, camera = p.atteso || 0;
+  return voci.map(v=>{
+    const soloTassa = (tassa && Math.abs(v.i - tassa) < 0.01) ||
+                      (v.i % 5 === 0 && camera && v.i <= Math.max(tassa, camera*0.25));
+    return `<span class="${soloTassa?'tassa':''}">${v.t} ${eur(v.i)}</span>`;
+  }).join(' · ');
 }
 
 window.commutaGruppo = (nome)=>{
