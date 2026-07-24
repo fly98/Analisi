@@ -426,7 +426,13 @@ function riconcilia(prenotazioni, ricevute) {
   function assegna(pren, ric, metodo) {
     if (pren.checkout >= LIMITE_EURISTICA) {
       const scarto = Math.abs(Number(ric.importo) - Number(pren.atteso));
-      if (scarto > 0.01) return;   // niente varianti sui soggiorni recenti
+      // accetto l'esatto, oppure uno scarto che sia tassa di soggiorno
+      // (multiplo di 5, fino a 10 notti): quello è legittimo, le altre no
+      const multiploTassa =
+        scarto > 0.01 &&
+        Math.abs(scarto % 5) < 0.01 &&
+        scarto <= 50;
+      if (scarto > 0.01 && !multiploTassa) return;
     }
     usate.add(ric.id);
     pren.ricevuta = ric;
