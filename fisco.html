@@ -613,7 +613,7 @@ function ricaricaVista(){
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v72';
+  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v73';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -902,7 +902,7 @@ function dialogo(titolo, testo, corpo, okLabel){
     // righe iniziali dalla prenotazione
     if(window.__pren){
       const p = window.__pren;
-      window.aggiungiRiga(descrizioneSoggiorno(p), p.atteso, '10', 1);
+      for(const r of righeSoggiorno(p)) window.aggiungiRiga(r.desc, r.imp, '10', 1);
       if(p.cityTax > 0){
         const u = p.cityTax / TASSA_UNITARIA;
         const q = Math.abs(u - Math.round(u)) < 0.01;
@@ -1210,18 +1210,32 @@ window.aggiungiPrenotazioni = async ()=>{
     const p = tutte.find(x=>x.id===id);
     if(!p || FT_COLLEGATE.some(x=>x.id===id)) continue;
     FT_COLLEGATE.push(p);
-    window.aggiungiRiga(descrizioneSoggiorno(p), p.atteso, '10', 1);
+    for(const r of righeSoggiorno(p)) window.aggiungiRiga(r.desc, r.imp, '10', 1);
   }
   ricalcolaTassa();
   mostraCollegate();
   toast(scelti.length + (scelti.length===1?' prenotazione aggiunta':' prenotazioni aggiunte'));
 };
 
-function descrizioneSoggiorno(p){
-  const cam = (p.camere || []).length;
-  const dove = cam > 1 ? ` · ${cam} camere` : '';
+function descrizioneSoggiorno(p, camera){
   return `Soggiorno dal ${dataIt(p.checkin)} al ${dataIt(p.checkout)}`
-    + (p.nome ? ` del Sig./Sig.ra ${p.nome}` : '') + dove;
+    + (p.nome ? ` del Sig./Sig.ra ${p.nome}` : '')
+    + (camera ? ` · camera ${camera}` : '');
+}
+
+// una riga per camera: l'importo per singola camera non arriva dal gestionale,
+// lo divido in parti uguali e resta modificabile
+function righeSoggiorno(p){
+  const camere = p.camere || [];
+  if(camere.length < 2) return [{ desc: descrizioneSoggiorno(p), imp: p.atteso }];
+  const quota = Math.round((p.atteso / camere.length) * 100) / 100;
+  return camere.map((c, i) => ({
+    desc: descrizioneSoggiorno(p, c),
+    // l'ultima assorbe l'eventuale centesimo di differenza
+    imp: i === camere.length - 1
+      ? Math.round((p.atteso - quota * (camere.length - 1)) * 100) / 100
+      : quota
+  }));
 }
 
 // la tassa di soggiorno resta una riga sola, con il totale di tutte
