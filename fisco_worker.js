@@ -1906,6 +1906,18 @@ export default {
         return json({ ok: true, ...(await emissioneAutomatica(env, g, prova)) });
       }
 
+      // mappa dei pagamenti registrati, caricata dal rapporto Amenitiz
+      if (url.pathname === '/pagamenti') {
+        if (request.method === 'POST') {
+          const body = await request.json();
+          if (!body || typeof body !== 'object') return json({ ok: false, error: 'dati mancanti' }, 400);
+          await env.FISCO_KV.put('fisco:pagamenti', JSON.stringify(body));
+          return json({ ok: true, salvati: Object.keys(body).length });
+        }
+        const m = (await env.FISCO_KV.get('fisco:pagamenti', 'json')) || {};
+        return json({ ok: true, count: Object.keys(m).length, pagamenti: m });
+      }
+
       if (url.pathname === '/ricostruisci' && request.method === 'POST') {
         return json({ ok: true, ...(await ricostruisciIndice(env)) });
       }
@@ -1955,7 +1967,7 @@ export default {
     return json(
       {
         error: 'endpoint sconosciuto',
-        disponibili: ['/health', '/infouser', '/dco', '/prenotazioni', '/riconcilia', '/elenco', '/stato', '/emetti', '/annulla', '/condividi', '/invia', '/rinnova', '/proposte', '/orfane', '/duplicati', '/automatico', '/promemoria', '/emettiLibera', '/r/{token}'],
+        disponibili: ['/health', '/infouser', '/dco', '/prenotazioni', '/riconcilia', '/elenco', '/stato', '/emetti', '/annulla', '/condividi', '/invia', '/rinnova', '/proposte', '/orfane', '/duplicati', '/automatico', '/promemoria', '/pagamenti', '/emettiLibera', '/r/{token}'],
       },
       404
     );
