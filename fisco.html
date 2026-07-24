@@ -105,7 +105,8 @@ button.act:disabled{opacity:.5}
 @media(max-width:640px){
   .filtri{gap:8px}
   .cerca{flex:1 1 100%;min-width:0}
-  .filtri select{flex:1 1 0;max-width:none;min-width:0}
+  /* due colonne esatte, allineate ai bordi come il campo di ricerca */
+  .filtri select{flex:1 1 0;width:0;max-width:none;min-width:0;text-overflow:ellipsis}
 
   .bar{flex-direction:column;align-items:center;gap:10px}
   .seg{width:100%;justify-content:center}
@@ -533,7 +534,7 @@ function ricaricaVista(){
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v43';
+  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v44';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
