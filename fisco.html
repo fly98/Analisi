@@ -613,7 +613,7 @@ function ricaricaVista(){
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v71';
+  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v72';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -902,7 +902,7 @@ function dialogo(titolo, testo, corpo, okLabel){
     // righe iniziali dalla prenotazione
     if(window.__pren){
       const p = window.__pren;
-      window.aggiungiRiga(`Soggiorno dal ${dataIt(p.checkin)} al ${dataIt(p.checkout)}` + (p.nome ? ` del Sig./Sig.ra ${p.nome}` : ''), p.atteso, '10', 1);
+      window.aggiungiRiga(descrizioneSoggiorno(p), p.atteso, '10', 1);
       if(p.cityTax > 0){
         const u = p.cityTax / TASSA_UNITARIA;
         const q = Math.abs(u - Math.round(u)) < 0.01;
@@ -1218,7 +1218,10 @@ window.aggiungiPrenotazioni = async ()=>{
 };
 
 function descrizioneSoggiorno(p){
-  return `Soggiorno dal ${dataIt(p.checkin)} al ${dataIt(p.checkout)}` + (p.nome ? ` del Sig./Sig.ra ${p.nome}` : '');
+  const cam = (p.camere || []).length;
+  const dove = cam > 1 ? ` · ${cam} camere` : '';
+  return `Soggiorno dal ${dataIt(p.checkin)} al ${dataIt(p.checkout)}`
+    + (p.nome ? ` del Sig./Sig.ra ${p.nome}` : '') + dove;
 }
 
 // la tassa di soggiorno resta una riga sola, con il totale di tutte
@@ -1239,6 +1242,8 @@ function ricalcolaTassa(){
     esistente.querySelector('.r-prezzo').value = prezzo.toFixed(2);
     esistente.querySelector('.r-qta').value = qta;
     esistente.querySelector('.r-desc').value = 'Imposta di soggiorno';
+    // la voglio sempre in fondo, dopo i soggiorni
+    esistente.parentNode.appendChild(esistente);
   }else{
     window.aggiungiRiga('Imposta di soggiorno', prezzo, 'N1', qta);
   }
