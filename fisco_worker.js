@@ -1616,8 +1616,8 @@ async function emissioneAutomatica(env, giornoRif, soloProva = false) {
 /* ---------------------------------------------------------------- */
 // Controllo di metà giornata: se restano partenze senza documento
 // manda un promemoria, senza emettere nulla.
-async function promemoriaSospese(env) {
-  const oggi = giorno(new Date());
+async function promemoriaSospese(env, giornoRif) {
+  const oggi = giornoRif || giorno(new Date());
   const dal = addGiorni(oggi, -3);
   const dati = await elenco(env, addGiorni(dal, -45), oggi, MARGINE_RICEVUTE);
   const restano = dati.righe.filter(
@@ -1857,7 +1857,7 @@ export default {
       }
 
       if (url.pathname === '/promemoria') {
-        return json({ ok: true, ...(await promemoriaSospese(env)) });
+        return json({ ok: true, ...(await promemoriaSospese(env, url.searchParams.get('giorno'))) });
       }
 
       if (url.pathname === '/automatico') {
