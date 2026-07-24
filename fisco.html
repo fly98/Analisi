@@ -187,11 +187,15 @@ button.act:disabled{opacity:.5}
 }
 .cam.num{background:#fff;color:#41503a;border:1.5px solid #5c6b52}
 
-.actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.actions{display:flex;gap:6px;margin-top:10px}
 .actions button{
-  font:inherit;font-size:13px;font-weight:600;padding:7px 11px;border-radius:8px;cursor:pointer;
-  border:1px solid var(--line);background:#fff;color:var(--ink)
+  flex:1 1 0;width:0;min-width:0;
+  font:inherit;font-size:12.5px;font-weight:600;padding:8px 4px;border-radius:8px;cursor:pointer;
+  border:1px solid var(--line);background:#fff;color:var(--ink);
+  display:inline-flex;align-items:center;justify-content:center;gap:4px;white-space:nowrap
 }
+.actions button svg{width:15px;height:15px;flex:0 0 auto}
+.actions .ico{font-size:15px;line-height:1}
 .actions button.primary{background:var(--ok);border-color:var(--ok);color:#fff}
 .actions button.ghost{color:var(--muted)}
 .actions button.danger{color:var(--danger);border-color:#f0c9c5}
@@ -534,7 +538,7 @@ function ricaricaVista(){
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v44';
+  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v45';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -623,6 +627,8 @@ function render(){
 
 }
 
+const SVG_WA = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 14.4c-.3-.2-1.8-.9-2-1-.3-.1-.5-.2-.7.1-.2.3-.7 1-.9 1.2-.2.2-.3.2-.6.1-1.6-.8-2.7-1.4-3.8-3.2-.3-.5.3-.5.8-1.5.1-.2 0-.4 0-.5s-.7-1.6-.9-2.2c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.4s1.1 2.8 1.2 3c.1.2 2.1 3.2 5 4.5 1.8.8 2.5.9 3.4.7.5-.1 1.8-.7 2-1.4.2-.7.2-1.3.2-1.4-.1-.1-.3-.2-.6-.3z"/><path d="M12 2C6.5 2 2 6.5 2 12c0 1.8.5 3.5 1.3 4.9L2 22l5.2-1.3c1.4.8 3 1.2 4.8 1.2 5.5 0 10-4.5 10-10S17.5 2 12 2zm0 18.2c-1.6 0-3.1-.4-4.4-1.2l-.3-.2-3.1.8.8-3-.2-.3c-.9-1.4-1.3-3-1.3-4.6 0-4.6 3.8-8.4 8.4-8.4s8.4 3.8 8.4 8.4-3.8 8.5-8.3 8.5z"/></svg>';
+
 const CAMERE = {
   'Gialla':{l:'G',c:'#e0a92e'}, 'Marrone':{l:'M',c:'#7a5230'}, 'Rossa':{l:'R',c:'#b03a2e'},
   'Verde':{l:'V',c:'#5c6b52'},  'Azzurra':{l:'A',c:'#5b8fb0'},
@@ -663,11 +669,11 @@ function riga(p){
         ${p.origine && p.origine.startsWith('match') ? '· abbinata automaticamente' : ''}</span>
     </div>
     ${idt ? `<div class="actions">
-      <button onclick="vediPdf('${idt}')">Apri PDF</button>
-      ${p.email ? `<button onclick="inviaMail('${p.id}','${idt}')">Invia email · ${linguaDa(p.telefono,p.lingua)}</button>` : ''}
-      ${p.telefono ? `<button onclick="inviaWa('${p.id}','${idt}')">WhatsApp</button>` : ''}
-      <button onclick="riemetti('${p.id}','${idt}')">Riemetti</button>
-      <button class="danger" onclick="annulla('${p.id}','${idt}')">Annulla ricevuta</button>
+      <button onclick="vediPdf('${idt}')" title="Apri il documento">PDF</button>
+      ${p.email ? `<button onclick="inviaMail('${p.id}','${idt}')" title="Invia per email">@ ${linguaDa(p.telefono,p.lingua)}</button>` : ''}
+      ${p.telefono ? `<button onclick="inviaWa('${p.id}','${idt}')" title="Invia su WhatsApp" style="color:#1f8f4e">${SVG_WA}</button>` : ''}
+      <button onclick="riemetti('${p.id}','${idt}')" title="Annulla e riemetti"><span class="ico">↻</span></button>
+      <button class="danger" onclick="annulla('${p.id}','${idt}')" title="Annulla la ricevuta">Annulla</button>
     </div>` : ''}`;
   } else if(p.stato === 'futura'){
     azioni = `<div class="docinfo"><span>Arrivo previsto il ${gg(p.checkin)}</span></div>
