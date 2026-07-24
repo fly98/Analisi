@@ -300,7 +300,10 @@ async function fetchPrenotazioni(env, dal, al) {
       const nomeDaDominio = (() => {
         if (!emailBooker.includes('@')) return '';
         const dom = emailBooker.split('@')[1] || '';
-        if (!dom || /guest\.booking\.com|expedia|airbnb|amenitiz/i.test(dom)) return '';
+        // i portali e le caselle personali non identificano un'azienda
+        const generici =
+          /guest\.booking\.com|expedia|airbnb|amenitiz|gmail|hotmail|outlook|live\.|yahoo|libero|icloud|virgilio|alice\.|tiscali|tin\.it|fastwebnet|me\.com|pec\./i;
+        if (!dom || generici.test(dom)) return '';
         const base = dom.split('.')[0] || '';
         return base ? base.charAt(0).toUpperCase() + base.slice(1) : '';
       })();
