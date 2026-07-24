@@ -828,7 +828,9 @@ async function annullaDocumento(env, idtrx) {
 /* Elenco operativo: prenotazioni + stato + ricevuta                 */
 /* ---------------------------------------------------------------- */
 async function elenco(env, dal, al, margine) {
-  const ricDal = dal;
+  // le ricevute si emettono anche in anticipo: allargo indietro la ricerca,
+  // altrimenti su periodi brevi una prenotazione sembra scoperta
+  const ricDal = addGiorni(dal, -15);
   const ricAl = addGiorni(al, margine);
 
   const [prenotazioni, ricevute] = await Promise.all([
