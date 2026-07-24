@@ -613,7 +613,7 @@ function ricaricaVista(){
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v74';
+  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v75';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -864,6 +864,12 @@ function dialogo(titolo, testo, corpo, okLabel){
   if(att && /INPUT|TEXTAREA|SELECT/.test(att.tagName)) att.blur();
 
   // modulo fattura: precompilo cliente e righe
+  // ogni campo della fattura tiene aggiornata la bozza
+  if(document.getElementById('fc-num')){
+    ['fc-piva','fc-den','fc-ind','fc-cap','fc-com','fc-pro','fc-sdi','fc-pec','fc-mail','fc-num','fc-pag']
+      .forEach(id=>{ const e = document.getElementById(id); if(e) e.addEventListener('input', salvaBozza); });
+  }
+
   const campoCerca = document.getElementById('fc-cerca');
   if(campoCerca){
     campoCerca.oninput = ()=>{
@@ -899,6 +905,21 @@ function dialogo(titolo, testo, corpo, okLabel){
       const mm = document.getElementById('fc-mail'); if(mm) mm.value = c.email || '';
       document.getElementById('fc-esito').textContent = '';
     };
+    // se sto riprendendo una bozza uso quei valori
+    const bz = window.__bozza;
+    if(bz){
+      const c = bz.cliente || {};
+      const set = (id,v)=>{ const e=document.getElementById(id); if(e && v!=null) e.value=v; };
+      set('fc-piva',c.piva); set('fc-den',c.denominazione); set('fc-ind',c.indirizzo);
+      set('fc-cap',c.cap); set('fc-com',c.comune); set('fc-pro',c.provincia);
+      set('fc-sdi',c.codiceDestinatario); set('fc-pec',c.pec); set('fc-mail',c.email);
+      set('fc-num',bz.numero); set('fc-pag',bz.pagamento);
+      for(const r of bz.righe || []) window.aggiungiRiga(r.descrizione, r.prezzo, r.aliquota, r.quantita);
+      mostraCollegate();
+      window.__bozza = null;
+      return;
+    }
+
     // righe iniziali dalla prenotazione
     if(window.__pren){
       const p = window.__pren;
@@ -955,10 +976,14 @@ window.apriFattura = async (id) => {
   if(f === 'emetti') moduloFattura(id);
 };
 
-async function moduloFattura(id){
+async function moduloFattura(id, bozza){
   const p = DATI.righe.find(x=>x.id===id);
   window.__pren = p;
   FT_COLLEGATE = [];
+  if(bozza && bozza.collegate && bozza.collegate.length){
+    FT_COLLEGATE = DATI.righe.filter(x=>bozza.collegate.includes(x.id));
+  }
+  window.__bozza = bozza || null;
   const clienti = await caricaClienti();
   let numero = '';
   try{ numero = (await api('/numeroFattura')).numero; }catch(e){}
@@ -1071,6 +1096,7 @@ async function moduloFattura(id){
          </p>`, 'Ho capito');
     }else{
       toast('Emessa ' + r.numero);
+      scartaBozza();
       CLIENTI = null; DATI = null; FATT = null; carica();
       inviaFattura(r.numero, p, cli);
     }
@@ -1141,9 +1167,14 @@ window.aggiungiRiga = (desc, prezzo, iva, qta)=>{
       <button type="button" onclick="this.closest('.rigaf').remove();totaleFattura()" style="border:0;background:none;color:var(--danger);font-size:16px;cursor:pointer;padding:0 4px">×</button>
     </div>`;
   c.appendChild(d);
-  d.querySelectorAll('input,select').forEach(x=>x.oninput = totaleFattura);
+  d.querySelectorAll('input,select,textarea').forEach(x=>{
+    x.oninput = ()=>{ totaleFattura(); salvaBozza(); };
+  });
   totaleFattura();
+  salvaBozza();
 };
+
+window.salvaBozza = salvaBozza;
 
 window.totaleFattura = ()=>{
   const el = document.getElementById('fc-tot');
@@ -1174,6 +1205,41 @@ window.scegliCliente = (piva)=>{
 // prenotazioni comprese nella fattura, oltre a quella di partenza
 let FT_COLLEGATE = [];
 const TASSA_UNITARIA = 5;   // euro per persona a notte
+const BOZZA = 'cassa_bozza_fattura';
+
+// iPadOS puo' scaricare la pagina quando cambi applicazione: tengo una copia
+// di quello che stai scrivendo, cosi' al ritorno non perdi niente
+function salvaBozza(){
+  if(!document.getElementById('fc-num')) return;
+  try{
+    localStorage.setItem(BOZZA, JSON.stringify({
+      quando: Date.now(),
+      prenotazione: (window.__pren || {}).id || '',
+      collegate: FT_COLLEGATE.map(x=>x.id),
+      cliente: {
+        piva: $('#fc-piva').value, denominazione: $('#fc-den').value,
+        indirizzo: $('#fc-ind').value, cap: $('#fc-cap').value,
+        comune: $('#fc-com').value, provincia: $('#fc-pro').value,
+        codiceDestinatario: $('#fc-sdi').value, pec: $('#fc-pec').value,
+        email: $('#fc-mail').value
+      },
+      numero: $('#fc-num').value,
+      pagamento: $('#fc-pag').value,
+      righe: leggiRighe()
+    }));
+  }catch(e){}
+}
+
+function scartaBozza(){ try{ localStorage.removeItem(BOZZA); }catch(e){} }
+
+function leggiBozza(){
+  try{
+    const b = JSON.parse(localStorage.getItem(BOZZA) || 'null');
+    // dopo un giorno la considero vecchia
+    if(b && Date.now() - b.quando < 86400000) return b;
+  }catch(e){}
+  return null;
+}
 
 window.aggiungiPrenotazioni = async ()=>{
   const base = window.__pren || {};
@@ -1680,6 +1746,26 @@ $('#ric-nuova').onclick = async ()=>{
   }catch(e){ toast('Emissione non riuscita: '+e.message, true); }
 };
 
+async function proponiBozza(){
+  const b = leggiBozza();
+  if(!b || !b.prenotazione || !DATI) return;
+  const p = DATI.righe.find(x=>x.id===b.prenotazione);
+  if(!p) return;
+  const min = Math.round((Date.now() - b.quando) / 60000);
+  const quando = min < 1 ? 'poco fa' : min < 60 ? `${min} minuti fa` : `${Math.round(min/60)} ore fa`;
+  const ok = await dialogo('Fattura non completata',
+    `Avevi iniziato una fattura per ${p.nome || 'senza nome'} ${quando}`,
+    `<div style="background:var(--warn-bg);border-radius:9px;padding:12px;font-size:13.5px">
+       ${(b.righe || []).length} righe · ${eur((b.righe||[]).reduce((s,r)=>s+r.prezzo*r.quantita,0))}
+       ${b.cliente && b.cliente.denominazione ? '<br>'+b.cliente.denominazione : ''}
+     </div>
+     <p style="font-size:13px;color:var(--muted);margin:12px 0 0">
+       Vuoi riprenderla da dove eri o ricominciare?
+     </p>`, 'Riprendi');
+  if(ok) moduloFattura(b.prenotazione, b);
+  else scartaBozza();
+}
+
 /* ---------- tabs ---------- */
 let tmr;
 $('#q').addEventListener('input', e => {
@@ -1718,7 +1804,7 @@ document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
   if(!TOKEN) chiediToken();
   applicaRecenti();
   renderCtx();
-  carica();
+  carica().then(()=> setTimeout(proponiBozza, 400));
 })();
 </script>
 </body>
