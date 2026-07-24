@@ -285,6 +285,14 @@ dialog::backdrop{background:rgba(10,25,45,.45)}
 .dlg .rigaf select{width:120px;flex:0 0 auto}
 .dlg .tot-f{background:var(--ok-bg);border-radius:9px;padding:10px;margin-top:10px;
   font-weight:700;display:flex;justify-content:space-between}
+.dlg #fc-risultati{max-height:190px;overflow:auto;margin-top:6px}
+.dlg .ris{
+  padding:8px 10px;border:1px solid var(--line);border-radius:8px;margin-bottom:5px;
+  cursor:pointer;font-size:13px;background:#fff
+}
+.dlg .ris:active{background:var(--ok-bg)}
+.dlg .ris b{font-weight:650}
+.dlg .ris span{color:var(--muted);font-size:11.5px;display:block;margin-top:2px}
 .dlg .cerca-cli{display:flex;gap:6px;align-items:center}
 .dlg .cerca-cli input{flex:1}
 .dlg .cerca-cli button{
@@ -581,7 +589,7 @@ function ricaricaVista(){
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v52';
+  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v53';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -756,6 +764,25 @@ function dialogo(titolo, testo, corpo, okLabel){
   const d = $('#dlg');
   d.showModal();
   // modulo fattura: precompilo cliente e righe
+  const campoCerca = document.getElementById('fc-cerca');
+  if(campoCerca){
+    campoCerca.oninput = ()=>{
+      const t = campoCerca.value.trim().toLowerCase();
+      const box = document.getElementById('fc-risultati');
+      if(t.length < 2){ box.innerHTML = ''; return; }
+      const trovati = Object.entries(CLIENTI||{}).filter(([piva,c])=>{
+        const campi = [c.denominazione, c.nome, c.cognome, piva, c.comune].join(' ').toLowerCase();
+        return t.split(/\s+/).every(x => campi.includes(x));
+      }).slice(0,8);
+      box.innerHTML = trovati.length ? trovati.map(([piva,c])=>`
+        <div class="ris" onclick="scegliCliente('${piva}')">
+          <b>${(c.denominazione || ((c.cognome||'')+' '+(c.nome||''))).slice(0,42)}</b>
+          <span>P.IVA ${piva}${c.comune ? ' · '+c.comune : ''}${c.codiceDestinatario ? ' · '+c.codiceDestinatario : ''}</span>
+        </div>`).join('')
+        : '<div style="font-size:12.5px;color:var(--muted);padding:6px">Nessun cliente in archivio: compila i campi sotto o cerca per partita IVA</div>';
+    };
+  }
+
   const selCli = document.getElementById('fc-sel');
   if(selCli){
     selCli.onchange = ()=>{
@@ -838,7 +865,9 @@ async function moduloFattura(id){
   const ok = await dialogo('Nuova fattura elettronica',
     `${p.nome || 'senza nome'} · ${gg(p.checkin)} → ${gg(p.checkout)} · ${eur(p.totale)}`,
     `<div class="sezione">Cliente</div>
-     <select id="fc-sel">
+     <input id="fc-cerca" placeholder="Cerca cliente per nome o partita IVA…" autocomplete="off">
+     <div id="fc-risultati"></div>
+     <select id="fc-sel" style="margin-top:8px">
        <option value="">— nuovo cliente —</option>
        ${opz}
      </select>
@@ -958,6 +987,24 @@ window.totaleFattura = ()=>{
   if(!el) return;
   const t = leggiRighe().reduce((s,r)=> s + r.prezzo * r.quantita, 0);
   el.textContent = eur(t);
+};
+
+window.scegliCliente = (piva)=>{
+  const c = (CLIENTI||{})[piva];
+  if(!c) return;
+  document.getElementById('fc-piva').value = c.piva || c.cf || '';
+  document.getElementById('fc-den').value  = c.denominazione || ((c.cognome||'')+' '+(c.nome||'')).trim();
+  document.getElementById('fc-ind').value  = (c.indirizzo||'') + (c.civico ? ' '+c.civico : '');
+  document.getElementById('fc-cap').value  = c.cap || '';
+  document.getElementById('fc-com').value  = c.comune || '';
+  document.getElementById('fc-pro').value  = c.provincia || '';
+  document.getElementById('fc-sdi').value  = c.codiceDestinatario || '';
+  document.getElementById('fc-pec').value  = c.pec || '';
+  const sel = document.getElementById('fc-sel'); if(sel) sel.value = piva;
+  document.getElementById('fc-risultati').innerHTML = '';
+  document.getElementById('fc-cerca').value = c.denominazione || '';
+  const es = document.getElementById('fc-esito');
+  if(es){ es.className = 'esito ok'; es.textContent = 'Dati caricati dall\u2019anagrafica'; }
 };
 
 window.cercaCliente = async ()=>{
