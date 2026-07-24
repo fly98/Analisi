@@ -1784,7 +1784,13 @@ async function emettiFattura(env, dati) {
 
   const anno = String(new Date().getFullYear()).slice(2);
   const { chiave, numero } = await prossimoNumeroFE(env, anno);
-  const numeroDoc = dati.numero || `${FE_SERIE} ${numero}/${anno}`;
+  const proposto = `${FE_SERIE} ${numero}/${anno}`;
+  const numeroDoc = dati.numero || proposto;
+
+  // il numero arriva dal modulo: se è quello proposto il contatore deve avanzare,
+  // se è stato cambiato a mano tengo comunque traccia del progressivo più alto
+  const usato = numeroDoc.match(/(\d+)\/(\d{2})$/);
+  const progressivo = usato && usato[2] === anno ? parseInt(usato[1], 10) : numero;
 
   // Nel tracciato della fattura il prezzo unitario e' l'IMPONIBILE:
   // gli importi inseriti sono comprensivi di IVA, quindi la scorporo.
@@ -1855,7 +1861,7 @@ async function emettiFattura(env, dati) {
   const res = await datacashFE(env, '/sendInvoice/', corpo);
 
   // il numero si consuma solo se la fattura è stata davvero trasmessa
-  if (!dati.prova && !dati.numero) await confermaNumeroFE(env, chiave, numero);
+  if (!dati.prova) await confermaNumeroFE(env, chiave, Math.max(progressivo, numero));
 
   // conservo i dati per la copia di cortesia da inviare al cliente:
   // rileggerli dall'XML firmato non e' affidabile
