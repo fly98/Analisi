@@ -243,6 +243,19 @@ button.act:disabled{opacity:.5}
   font:inherit;font-weight:600;font-size:13.5px;padding:8px 14px;border:0;border-radius:8px;
   background:var(--info);color:#fff;cursor:pointer;margin-top:8px
 }
+.tab-ric{width:100%;table-layout:fixed;font-size:12.5px}
+.tab-ric th,.tab-ric td{padding:7px 4px}
+.tab-ric th:nth-child(1),.tab-ric td:nth-child(1){width:20%}
+.tab-ric th:nth-child(2),.tab-ric td:nth-child(2){width:38%}
+.tab-ric th:nth-child(3),.tab-ric td:nth-child(3){width:16%;text-align:center}
+.tab-ric th:nth-child(4),.tab-ric td:nth-child(4){width:20%;text-align:right;white-space:nowrap}
+.tab-ric th:nth-child(5),.tab-ric td:nth-child(5){width:6%;text-align:center}
+.tab-ric .numdoc{font-size:11.5px;white-space:nowrap}
+.tab-ric .pill{font-size:10px;padding:2px 6px}
+.tab-ric .ann button{
+  font:inherit;font-size:14px;font-weight:700;line-height:1;color:var(--danger);
+  background:none;border:0;padding:4px 2px;cursor:pointer
+}
 .empty{text-align:center;padding:38px 16px;color:var(--muted)}
 .loading{text-align:center;padding:30px;color:var(--muted)}
 .hidden{display:none}
@@ -331,7 +344,7 @@ dialog::backdrop{background:rgba(10,25,45,.45)}
   <!-- VISTA RICEVUTE -->
   <section id="v-ricevute" class="hidden">
     <div class="kpis" id="kpis-ric"></div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;justify-content:center">
       <button class="act" id="ric-nuova">Nuova ricevuta</button>
       <button class="act" id="ric-csv" style="background:#fff;color:var(--ink);border:1px solid var(--line)">Esporta</button>
       <button class="act" id="ric-ricarica" style="background:#fff;color:var(--ink);border:1px solid var(--line)">Aggiorna</button>
@@ -543,7 +556,7 @@ function ricaricaVista(){
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v46';
+  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v47';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -933,10 +946,10 @@ function renderRicevute(){
     <div class="kpi ok"><b>${valide.length}</b><span>Valide</span></div>
     <div class="kpi"><b>${annull.length}</b><span>Annullate</span></div>
     <div class="kpi"><b>${rett.length}</b><span>Note di annullo</span></div>
-    <div class="kpi ok"><b>${eur(tot)}</b><span>Totale</span></div>`;
+    <div class="kpi ok"><b style="font-size:16px;letter-spacing:-.4px">${eur(tot)}</b><span>&nbsp;</span></div>`;
 
   const righe = [...RIC.documenti].sort((a,b)=> a.data < b.data ? 1 : -1);
-  $('#lista-ric').innerHTML = righe.length ? `<table>
+  $('#lista-ric').innerHTML = righe.length ? `<table class="tab-ric">
     <tr><th>Data</th><th>Numero</th><th>Tipo</th><th style="text-align:right">Importo</th><th></th></tr>
     ${righe.map(x=>{
       const st = x.annullata ? '<span class="pill p-esclusa">annullata</span>'
@@ -947,7 +960,7 @@ function renderRicevute(){
         <td><button class="numdoc" onclick="vediPdf('${x.id}')">${x.numero}</button></td>
         <td>${st}</td>
         <td class="num">${eur(x.importo)}</td>
-        <td>${x.tipo==='V' && !x.annullata ? `<button class="danger" style="font:inherit;font-size:12px;font-weight:600;padding:4px 9px;border-radius:6px;border:1px solid #f0c9c5;background:#fff;cursor:pointer" onclick="annullaRic('${x.id}','${x.numero}')">Annulla</button>` : ''}</td>
+        <td class="ann">${x.tipo==='V' && !x.annullata ? `<button title="Annulla" onclick="annullaRic('${x.id}','${x.numero}')">✕</button>` : ''}</td>
       </tr>`;
     }).join('')}
     </table>` : '<div class="empty">Nessuna ricevuta nel periodo.</div>';
