@@ -1908,6 +1908,18 @@ export default {
 
       // mappa dei pagamenti registrati, caricata dal rapporto Amenitiz
       // anagrafica clienti per la fatturazione
+      // prenotazioni escluse manualmente dall'analisi per il commercialista
+      if (url.pathname === '/esclusioni') {
+        if (request.method === 'POST') {
+          const body = await request.json();
+          const lista = Array.isArray(body) ? body : body.esclusi || [];
+          await env.FISCO_KV.put('fisco:esclusioni', JSON.stringify(lista));
+          return json({ ok: true, esclusi: lista.length });
+        }
+        const lista = (await env.FISCO_KV.get('fisco:esclusioni', 'json')) || [];
+        return json({ ok: true, count: lista.length, esclusi: lista });
+      }
+
       if (url.pathname === '/clienti') {
         if (request.method === 'POST') {
           const body = await request.json();
@@ -2017,7 +2029,7 @@ export default {
     return json(
       {
         error: 'endpoint sconosciuto',
-        disponibili: ['/health', '/infouser', '/dco', '/prenotazioni', '/riconcilia', '/elenco', '/stato', '/emetti', '/annulla', '/condividi', '/invia', '/rinnova', '/proposte', '/orfane', '/duplicati', '/automatico', '/promemoria', '/pagamenti', '/clienti', '/cercaPiva', '/emettiLibera', '/r/{token}'],
+        disponibili: ['/health', '/infouser', '/dco', '/prenotazioni', '/riconcilia', '/elenco', '/stato', '/emetti', '/annulla', '/condividi', '/invia', '/rinnova', '/proposte', '/orfane', '/duplicati', '/automatico', '/promemoria', '/pagamenti', '/clienti', '/cercaPiva', '/esclusioni', '/emettiLibera', '/r/{token}'],
       },
       404
     );
