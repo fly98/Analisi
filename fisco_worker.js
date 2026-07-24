@@ -2435,6 +2435,28 @@ export default {
         return json({ ok: true, link: `${url.origin}/f/${token}` });
       }
 
+      // l'annullo di una fattura si fa con una nota di credito di pari importo
+      if (url.pathname === '/notaCredito' && request.method === 'POST') {
+        const b = await request.json();
+        if (!b.numero) return json({ ok: false, error: 'numero fattura mancante' }, 400);
+        const orig = await env.FISCO_KV.get(`fisco:fatt:${b.numero}`, 'json');
+        if (!orig) return json({ ok: false, error: 'fattura non trovata fra quelle emesse da qui' }, 404);
+
+        const res = await emettiFattura(env, {
+          prova: !!b.prova,
+          tipoDocumento: 'TD04',
+          cliente: orig.cliente,
+          righe: orig.righe,
+          causale: `Storno integrale della fattura ${orig.numero} del ${dataIso(orig.data)}`,
+          modalitaPagamento: orig.modalitaPagamento,
+        });
+
+        if (!b.prova && b.prenotazione) {
+          await scriviStato(env, b.prenotazione, null);
+        }
+        return json({ ok: true, ...res, stornata: orig.numero });
+      }
+
       if (url.pathname === '/anteprimaFattura' && request.method === 'POST') {
         const b = await request.json();
         const righe = (b.righe || []).filter((r) => Number(r.prezzo) > 0);
@@ -2524,6 +2546,35 @@ export default {
               tipo: f.tipoDocumento,
             });
           }
+        // aggiungo le nostre, che possono non essere ancora nel cassetto
+        const numeriAde = new Set(fatture.map((f) => (f.numero || '').trim()));
+        for (const f of fatture) f.confermata = true;
+
+        if (env.FISCO_KV) {
+          const lista = await env.FISCO_KV.list({ prefix: 'fisco:fatt:' });
+          for (const k of lista.keys) {
+            const num = k.name.replace('fisco:fatt:', '');
+            if (numeriAde.has(num)) continue;
+            const d = await env.FISCO_KV.get(k.name, 'json');
+            if (!d) continue;
+            if (d.data < dal || d.data > al) continue;
+            fatture.push({
+              id: '',
+              numero: d.numero,
+              data: d.data,
+              cliente: (d.cliente || {}).denominazione || '',
+              piva: (d.cliente || {}).piva || '',
+              imponibile: (d.riepilogo || []).reduce((s, r) => s + r.imponibile, 0),
+              imposta: (d.riepilogo || []).reduce((s, r) => s + r.imposta, 0),
+              totale: d.totale,
+              stato: 'In elaborazione',
+              consegna: '',
+              tipo: d.tipoDocumento === 'TD04' ? 'Nota di credito' : 'Fattura',
+              confermata: false,
+            });
+          }
+        }
+
         fatture.sort((a, b) => (a.data < b.data ? 1 : -1));
         const tot = fatture.reduce((s, f) => s + f.totale, 0);
         return json({
@@ -2665,7 +2716,7 @@ export default {
     return json(
       {
         error: 'endpoint sconosciuto',
-        disponibili: ['/health', '/infouser', '/dco', '/prenotazioni', '/riconcilia', '/elenco', '/stato', '/emetti', '/annulla', '/condividi', '/invia', '/rinnova', '/proposte', '/orfane', '/duplicati', '/automatico', '/promemoria', '/pagamenti', '/clienti', '/cercaPiva', '/esclusioni', '/fattura', '/numeroFattura', '/fatture', '/anteprimaFattura', '/condividiFattura', '/f/{token}', '/inviaMail', '/emettiLibera', '/r/{token}'],
+        disponibili: ['/health', '/infouser', '/dco', '/prenotazioni', '/riconcilia', '/elenco', '/stato', '/emetti', '/annulla', '/condividi', '/invia', '/rinnova', '/proposte', '/orfane', '/duplicati', '/automatico', '/promemoria', '/pagamenti', '/clienti', '/cercaPiva', '/esclusioni', '/fattura', '/numeroFattura', '/fatture', '/anteprimaFattura', '/notaCredito', '/condividiFattura', '/f/{token}', '/inviaMail', '/emettiLibera', '/r/{token}'],
       },
       404
     );
