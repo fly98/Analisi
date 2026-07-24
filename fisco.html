@@ -322,6 +322,9 @@ dialog::backdrop{background:rgba(10,25,45,.45)}
     <h1>InternoUno Cassa</h1>
     <div style="display:flex;align-items:center;gap:10px">
       <span class="sub" id="periodo"></span>
+      <button id="clienti" title="Anagrafica clienti"
+        style="border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.08);color:#c3d2e6;
+               font:inherit;font-size:15px;line-height:1;padding:5px 9px;border-radius:8px;cursor:pointer">&#128100;</button>
       <button id="analisi" title="Analisi corrispettivi"
         style="border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.08);color:#c3d2e6;
                font:inherit;font-size:15px;line-height:1;padding:5px 9px;border-radius:8px;cursor:pointer">&#128202;</button>
@@ -578,7 +581,7 @@ function ricaricaVista(){
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v51';
+  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v52';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -1226,6 +1229,7 @@ $('#q').addEventListener('input', e => {
   clearTimeout(tmr);
   tmr = setTimeout(()=>{ QUERY = e.target.value; render(); }, 180);
 });
+$('#clienti').onclick = ()=> location.href = 'clienti.html';
 $('#analisi').onclick = ()=> location.href = 'analisi.html';
 
 $('#pwd').onclick = async () => {
