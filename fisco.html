@@ -602,7 +602,7 @@ function ricaricaVista(){
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v68';
+  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v69';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -1151,10 +1151,12 @@ window.aggiungiPrenotazioni = async ()=>{
 
   // cerco su tutto l'anno, non solo nel periodo visualizzato
   let tutte = [];
+  toast('Carico le prenotazioni…');
   try{
-    const oggi = new Date().toISOString().slice(0,10);
-    const d = await api(`/elenco?dal=${new Date().getFullYear()}-01-01&al=${oggi}`);
-    tutte = d.righe.filter(p => p.stato === 'da_emettere' && !gia.has(p.id));
+    // tutto l'anno, comprese le partenze future
+    const anno = new Date().getFullYear();
+    const d = await api(`/elenco?dal=${anno}-01-01&al=${anno}-12-31`);
+    tutte = d.righe.filter(p => (p.stato === 'da_emettere' || p.stato === 'futura') && !gia.has(p.id));
   }catch(e){ toast('Non riesco a caricare: '+e.message, true); return; }
 
   window.__cand = tutte;
@@ -1165,7 +1167,7 @@ window.aggiungiPrenotazioni = async ()=>{
     `<label>Cerca</label>
      <input id="ap-q" value="${nomeBase.replace(/"/g,'&quot;')}" placeholder="nome, camera o data" autocomplete="off">
      <div style="font-size:12px;color:var(--muted);margin-top:4px">
-       Filtrate per <b>${nomeBase || 'tutte'}</b> · cancella per cercarne altre
+       ${tutte.length} prenotazioni dell'anno · filtrate per <b>${nomeBase || 'tutte'}</b>, cancella per cercarne altre
      </div>
      <div id="ap-lista" style="max-height:300px;overflow:auto;margin-top:10px"></div>`,
     'Aggiungi');
