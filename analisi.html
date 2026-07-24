@@ -180,6 +180,7 @@ async function carica(){
       api('/pagamenti').catch(()=>({pagamenti:{}}))
     ]);
     RIGHE = d.righe.filter(p => p.stato === 'da_emettere');
+    if(ESCLUSI.size) salvaEsclusi();   // porto sull'archivio le scelte locali
     if(pag && pag.pagamenti && Object.keys(pag.pagamenti).length) PAGAMENTI = pag.pagamenti;
     $('#periodo').textContent = `dal ${ggl(dal)} al ${ggl(oggi)} · ${RIGHE.length} prenotazioni senza documento`;
     render();
@@ -357,20 +358,29 @@ window.commutaGruppo = (nome)=>{
   for(const p of g.righe){
     daEscludere ? ESCLUSI.add(p.id) : ESCLUSI.delete(p.id);
   }
-  localStorage.setItem('analisi_esclusi', JSON.stringify([...ESCLUSI]));
+  salvaEsclusi();
   render();
 };
+
+function salvaEsclusi(){
+  localStorage.setItem('analisi_esclusi', JSON.stringify([...ESCLUSI]));
+  // tengo allineato anche l'archivio, così le scelte valgono su ogni dispositivo
+  fetch(API + '/esclusioni', {
+    method:'POST', headers:{'X-Token':TOKEN,'Content-Type':'application/json'},
+    body: JSON.stringify([...ESCLUSI])
+  }).catch(()=>{});
+}
 
 window.commuta = (id)=>{
   ESCLUSI.has(id) ? ESCLUSI.delete(id) : ESCLUSI.add(id);
-  localStorage.setItem('analisi_esclusi', JSON.stringify([...ESCLUSI]));
+  salvaEsclusi();
   render();
 };
 
-$('#tutti').onclick = ()=>{ ESCLUSI.clear(); localStorage.setItem('analisi_esclusi','[]'); render(); };
+$('#tutti').onclick = ()=>{ ESCLUSI.clear(); salvaEsclusi(); render(); };
 $('#nessuno').onclick = ()=>{
   ESCLUSI = new Set(RIGHE.map(p=>p.id));
-  localStorage.setItem('analisi_esclusi', JSON.stringify([...ESCLUSI]));
+  salvaEsclusi();
   render();
 };
 
