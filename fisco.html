@@ -613,7 +613,7 @@ function ricaricaVista(){
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v73';
+  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v74';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -1277,6 +1277,12 @@ function mostraCollegate(){
     : '';
 }
 
+function chiudiAnteprima(){
+  const o = document.getElementById('overlay-ant');
+  if(o) o.remove();
+}
+window.chiudiAnteprima = chiudiAnteprima;
+
 window.anteprimaFattura = async ()=>{
   const cli = {
     piva: $('#fc-piva').value.replace(/[^0-9A-Za-z]/g,''),
@@ -1293,15 +1299,30 @@ window.anteprimaFattura = async ()=>{
     cliente: cli, righe: leggiRighe(),
     modalitaPagamento: $('#fc-pag').value
   };
-  const w = window.open('', '_blank');
+  toast('Preparo l\u2019anteprima…');
   try{
     const r = await fetch(API + '/anteprimaFattura', {
       method:'POST', headers:{'X-Token':TOKEN,'Content-Type':'application/json'},
       body: JSON.stringify(corpo)
     });
     const html = await r.text();
-    w.document.write(html); w.document.close();
-  }catch(e){ if(w) w.close(); toast('Anteprima non riuscita: '+e.message, true); }
+
+    chiudiAnteprima();
+    const o = document.createElement('div');
+    o.id = 'overlay-ant';
+    o.innerHTML = `
+      <div class="ant-barra">
+        <button onclick="chiudiAnteprima()">Chiudi</button>
+        <span>Anteprima · il documento non è stato emesso</span>
+        <button onclick="document.getElementById('ant-frame').contentWindow.print()">Stampa</button>
+      </div>
+      <iframe id="ant-frame"></iframe>`;
+    document.body.appendChild(o);
+    const f = document.getElementById('ant-frame');
+    f.contentWindow.document.open();
+    f.contentWindow.document.write(html);
+    f.contentWindow.document.close();
+  }catch(e){ toast('Anteprima non riuscita: '+e.message, true); }
 };
 
 window.cercaCliente = async ()=>{
