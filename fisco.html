@@ -612,7 +612,7 @@ function ricaricaVista(){
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v60';
+  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v61';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -764,7 +764,7 @@ function riga(p){
          <div class="actions">
            <button onclick="vediFattura('${num}')" title="Apri la copia">Copia</button>
            <button onclick="inviaCopia('${num}')" title="Invia al cliente">@</button>
-           <button class="ghost" onclick="segna('${p.id}',null)">Riapri</button>
+           <button class="danger" onclick="annullaFattura('${num}','${p.id}')" title="Storna con nota di credito">Annulla</button>
          </div>`
       : `<div class="docinfo">
            <span>Segnata come fatturata</span>
@@ -1592,7 +1592,7 @@ function renderFatture(){
   $('#kpis-ric').innerHTML = `
     <div class="kpi ok"><b>${f.length}</b><span>Fatture</span></div>
     <div class="kpi"><b>${nostre.length}</b><span>Serie FE</span></div>
-    <div class="kpi"><b>${f.length-nostre.length}</b><span>Altre</span></div>
+    <div class="kpi ${f.filter(x=>x.confermata===false).length?'warn':''}"><b>${f.filter(x=>x.confermata===false).length}</b><span>In elaborazione</span></div>
     <div class="kpi ok" style="display:flex;align-items:center;justify-content:center"><b>${Math.round(FATT.totale||0).toLocaleString('it-IT')} €</b></div>`;
 
   $('#lista-ric').innerHTML = f.length ? `<table class="tab-ric">
@@ -1600,12 +1600,30 @@ function renderFatture(){
     ${f.map(x=>`<tr>
       <td>${x.data ? x.data.slice(0,10) : ''}</td>
       <td>${/^FE /.test(x.numero||'') ? `<button class="numdoc" onclick="vediFattura('${x.numero}')">${x.numero}</button>` : `<span style="font-family:ui-monospace,Menlo,monospace;font-size:11.5px">${x.numero}</span>`}</td>
-      <td>${(x.cliente||'').slice(0,26)}</td>
+      <td>${(x.cliente||'').slice(0,24)}
+        ${x.confermata===false ? '<div style="font-size:10.5px;color:var(--warn)">in elaborazione</div>' : ''}</td>
       <td class="num">${eur(x.totale)}</td>
       <td class="ann">${/^FE /.test(x.numero||'') ? `<button title="Invia copia" style="color:var(--info)" onclick="inviaCopia('${x.numero}')">@</button>` : ''}</td>
     </tr>`).join('')}
     </table>` : '<div class="empty">Nessuna fattura nel periodo.</div>';
 }
+
+window.annullaFattura = async (numero, idPren)=>{
+  const ok = await dialogo('Annulla fattura',
+    `Per annullare ${numero} viene emessa una nota di credito di pari importo, come previsto dalla fatturazione elettronica.`,
+    `<p style="font-size:13px;color:var(--muted);margin:0">
+       La fattura originale resta nel cassetto fiscale, la nota di credito la storna.
+       La prenotazione tornerà fra quelle da sistemare.
+     </p>`, 'Emetti nota di credito');
+  if(!ok) return;
+  toast('Emissione nota di credito…');
+  try{
+    const r = await api('/notaCredito', {method:'POST', body: JSON.stringify({
+      numero, prenotazione: idPren })});
+    toast('Nota di credito ' + r.numero + ' emessa');
+    DATI = null; FATT = null; carica();
+  }catch(e){ toast('Non riuscita: '+e.message, true); }
+};
 
 window.vediFattura = async (numero)=>{
   try{
