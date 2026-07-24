@@ -1985,7 +1985,7 @@ function fatturaDaDati(f) {
 function paginaFattura(f) {
   const cl = f.cliente || {};
   const em = {
-    denominazione: "Azienda Castiglioni di C.F. S.a.s.",
+    denominazione: 'Azienda Castiglioni di C.F. S.a.s.',
     piva: '09336091005',
     indirizzo: 'Via Campaldino 6',
     cap: '00162',
@@ -1994,95 +1994,124 @@ function paginaFattura(f) {
   };
   const recapito = cl.codiceDestinatario
     ? 'Codice destinatario ' + cl.codiceDestinatario
-    : cl.pec
-    ? 'PEC ' + cl.pec
-    : '';
+    : cl.pec ? 'PEC ' + cl.pec : '';
   const etichetta = (al) => (/^N/.test(String(al)) ? NATURE[al] || al : parseInt(al, 10) + '%');
+  const nomeCliente = cl.denominazione || `${cl.cognome || ''} ${cl.nome || ''}`.trim();
+  const nota = f.tipoDocumento === 'TD04' ? 'Nota di credito' : 'Fattura';
 
   return `<!DOCTYPE html><html lang="it"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Fattura ${f.numero}</title>
+<title>${nota} ${f.numero} · InternoUno</title>
 <style>
-  body{font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
-    color:#12283f;margin:0;padding:24px;background:#f4f6f9}
-  .foglio{max-width:760px;margin:0 auto;background:#fff;padding:34px;border-radius:10px;
-    box-shadow:0 2px 14px rgba(18,40,63,.08)}
-  h1{font-size:19px;margin:0 0 2px;text-align:center;letter-spacing:.6px}
-  .sotto{text-align:center;color:#657896;font-size:13px;margin-bottom:26px}
-  .parti{display:flex;gap:24px;margin-bottom:22px;flex-wrap:wrap}
+  :root{--inchiostro:#1c2b39;--salvia:#5c6b52;--pietra:#8a9199;--filo:#e6e8e4;--fondo:#f2f3f0}
+  *{box-sizing:border-box}
+  body{margin:0;padding:28px 16px;background:var(--fondo);color:var(--inchiostro);
+    font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased}
+  .foglio{max-width:720px;margin:0 auto;background:#fff;border-top:3px solid var(--salvia);
+    box-shadow:0 1px 3px rgba(28,43,57,.06),0 12px 32px rgba(28,43,57,.07);padding:40px 44px 34px}
+  .testata{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;
+    padding-bottom:22px;border-bottom:1px solid var(--filo)}
+  .marchio{display:flex;align-items:center;gap:12px}
+  .marchio img{width:42px;height:42px;border-radius:9px;display:block}
+  .marchio .nome{font-family:Georgia,"Times New Roman",serif;font-size:20px;line-height:1.15}
+  .marchio .luogo{font-size:11px;color:var(--pietra);letter-spacing:1.4px;text-transform:uppercase;margin-top:3px}
+  .documento{text-align:right;flex:0 0 auto}
+  .documento .tipo{font-size:10px;letter-spacing:1.4px;text-transform:uppercase;color:var(--salvia);font-weight:700}
+  .documento .numero{font-family:Georgia,"Times New Roman",serif;font-size:25px;line-height:1.1;margin-top:4px}
+  .documento .data{font-size:12.5px;color:var(--pietra);margin-top:3px}
+  .parti{display:flex;gap:36px;margin:26px 0 0;flex-wrap:wrap}
   .parte{flex:1;min-width:210px}
-  .et{font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;color:#657896;font-weight:700;margin-bottom:5px}
-  .parte b{display:block;font-size:14.5px;margin-bottom:3px}
-  .parte div{font-size:13px;color:#3d4f66}
-  table{width:100%;border-collapse:collapse;margin:16px 0}
-  th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;color:#657896;
-    padding:8px 6px;border-bottom:2px solid #dde3ec}
-  td{padding:9px 6px;border-bottom:1px solid #eef1f5;font-size:13.5px;vertical-align:top}
-  .num{text-align:right;white-space:nowrap}
-  .tot{margin-left:auto;width:100%;max-width:330px}
-  .tot tr td{border:0;padding:5px 6px}
-  .tot .finale td{border-top:2px solid #12283f;font-weight:700;font-size:17px;padding-top:11px}
-  .piede{margin-top:26px;padding-top:14px;border-top:1px solid #dde3ec;
-    font-size:11.5px;color:#657896;text-align:center;line-height:1.6}
-  @media print{body{background:#fff;padding:0}.foglio{box-shadow:none;border-radius:0;max-width:none}}
+  .et{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--pietra);font-weight:700;margin-bottom:7px}
+  .parte .rag{font-size:15.5px;font-weight:600;margin-bottom:4px;line-height:1.3}
+  .parte .riga{font-size:13.5px;color:#4a5763;line-height:1.5}
+  .parte .rec{font-size:12px;color:var(--pietra);margin-top:6px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+  table{width:100%;border-collapse:collapse;margin-top:28px}
+  thead th{text-align:left;font-size:10px;letter-spacing:1.1px;text-transform:uppercase;color:var(--pietra);
+    font-weight:700;padding:0 8px 9px;border-bottom:1.5px solid var(--inchiostro)}
+  thead th.num{text-align:right}
+  tbody td{padding:13px 8px;border-bottom:1px solid var(--filo);font-size:14px;vertical-align:top}
+  tbody td.num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+  .aliq{font-size:11.5px;color:var(--pietra);margin-top:2px}
+  .chiusura{display:flex;justify-content:flex-end;margin-top:22px}
+  .totali{min-width:300px}
+  .totali .r{display:flex;justify-content:space-between;padding:6px 8px;font-size:13.5px;color:#4a5763}
+  .totali .r span:last-child{font-variant-numeric:tabular-nums}
+  .totali .finale{display:flex;justify-content:space-between;align-items:baseline;
+    margin-top:10px;padding:13px 8px 0;border-top:2px solid var(--inchiostro)}
+  .totali .finale .voce{font-size:11px;letter-spacing:1.1px;text-transform:uppercase;color:var(--pietra);font-weight:700}
+  .totali .finale .cifra{font-family:Georgia,"Times New Roman",serif;font-size:26px;font-variant-numeric:tabular-nums}
+  .pagamento{margin-top:26px;padding:14px 16px;background:#f7f8f5;border-left:2px solid var(--salvia);
+    font-size:13.5px;color:#4a5763}
+  .piede{margin-top:30px;padding-top:16px;border-top:1px solid var(--filo);font-size:11.5px;
+    color:var(--pietra);line-height:1.65}
+  .piede b{color:#4a5763;font-weight:600}
+  @media(max-width:640px){
+    body{padding:0}
+    .foglio{padding:26px 20px;box-shadow:none}
+    .testata{flex-direction:column;gap:16px}
+    .documento{text-align:left}
+    .chiusura{justify-content:stretch}.totali{min-width:0;width:100%}
+    thead th:nth-child(2),tbody td:nth-child(2){display:none}
+  }
+  @media print{body{background:#fff;padding:0}.foglio{box-shadow:none;max-width:none;padding:0 4mm}}
 </style></head><body><div class="foglio">
 
-<h1>${f.tipoDocumento === 'TD04' ? 'NOTA DI CREDITO' : 'FATTURA'}</h1>
-<div class="sotto">n. ${f.numero} del ${f.data}</div>
-
-<div class="parti">
-  <div class="parte">
-    <div class="et">Fornitore</div>
-    <b>${em.denominazione}</b>
-    <div>P.IVA ${em.piva}</div>
-    <div>${em.indirizzo}</div>
-    <div>${em.cap} ${em.comune} ${em.provincia}</div>
+  <div class="testata">
+    <div class="marchio">
+      <img src="https://fly98.github.io/Analisi/icon-192.png" alt="">
+      <div><div class="nome">InternoUno</div><div class="luogo">Roma</div></div>
+    </div>
+    <div class="documento">
+      <div class="tipo">${nota}</div>
+      <div class="numero">${f.numero}</div>
+      <div class="data">${f.data}</div>
+    </div>
   </div>
-  <div class="parte">
-    <div class="et">Cliente</div>
-    <b>${cl.denominazione || `${cl.cognome || ''} ${cl.nome || ''}`.trim()}</b>
-    <div>P.IVA ${cl.piva || cl.cf || ''}</div>
-    <div>${cl.indirizzo || ''}</div>
-    <div>${[cl.cap, cl.comune, cl.provincia].filter(Boolean).join(' ')}</div>
-    ${recapito ? `<div style="margin-top:4px;font-size:12px">${recapito}</div>` : ''}
+
+  <div class="parti">
+    <div class="parte">
+      <div class="et">Emessa da</div>
+      <div class="rag">${em.denominazione}</div>
+      <div class="riga">${em.indirizzo}</div>
+      <div class="riga">${em.cap} ${em.comune} (${em.provincia})</div>
+      <div class="rec">P.IVA ${em.piva}</div>
+    </div>
+    <div class="parte">
+      <div class="et">Intestata a</div>
+      <div class="rag">${nomeCliente}</div>
+      ${cl.indirizzo ? `<div class="riga">${cl.indirizzo}</div>` : ''}
+      <div class="riga">${[cl.cap, cl.comune, cl.provincia ? '(' + cl.provincia + ')' : ''].filter(Boolean).join(' ')}</div>
+      <div class="rec">P.IVA ${cl.piva || cl.cf || ''}</div>
+      ${recapito ? `<div class="rec">${recapito}</div>` : ''}
+    </div>
   </div>
-</div>
 
-<table>
-  <tr><th>Descrizione</th><th class="num">Q.tà</th><th class="num">Importo</th><th class="num">Aliquota</th></tr>
-  ${(f.righe || [])
-    .map(
-      (r) => `<tr>
-      <td>${r.descrizione}</td>
-      <td class="num">${Number(r.quantita).toLocaleString('it-IT')}</td>
-      <td class="num">${eur(r.totale)}</td>
-      <td class="num">${etichetta(r.aliquota)}</td>
-    </tr>`
-    )
-    .join('')}
-</table>
+  <table>
+    <thead><tr><th>Prestazione</th><th class="num">Q.tà</th><th class="num">Totale</th></tr></thead>
+    <tbody>
+      ${(f.righe || []).map((r) => `<tr>
+        <td>${r.descrizione}<div class="aliq">${etichetta(r.aliquota)}</div></td>
+        <td class="num">${Number(r.quantita).toLocaleString('it-IT')}</td>
+        <td class="num">${eur(r.totale)}</td>
+      </tr>`).join('')}
+    </tbody>
+  </table>
 
-<table class="tot">
-  ${(f.riepilogo || [])
-    .map(
-      (r) => `<tr><td>Imponibile ${etichetta(r.aliquota)}</td><td class="num">${eur(r.imponibile)}</td></tr>
-      ${r.imposta > 0 ? `<tr><td>IVA ${parseInt(r.aliquota, 10)}%</td><td class="num">${eur(r.imposta)}</td></tr>` : ''}`
-    )
-    .join('')}
-  <tr class="finale"><td>Totale documento</td><td class="num">${eur(f.totale)}</td></tr>
-</table>
+  <div class="chiusura"><div class="totali">
+    ${(f.riepilogo || []).map((r) => `<div class="r"><span>Imponibile ${etichetta(r.aliquota)}</span><span>${eur(r.imponibile)}</span></div>${r.imposta > 0 ? `<div class="r"><span>IVA ${parseInt(r.aliquota, 10)}%</span><span>${eur(r.imposta)}</span></div>` : ''}`).join('')}
+    <div class="finale"><span class="voce">Totale</span><span class="cifra">${eur(f.totale)}</span></div>
+  </div></div>
 
-${f.pagamento
-    ? `<div style="font-size:13px;color:#3d4f66;margin-top:18px">
-        <span class="et" style="display:inline">Pagamento</span> ${f.pagamento}
-        ${f.iban ? '<br>IBAN ' + f.iban : ''}
-       </div>`
-    : ''}
+  ${f.pagamento ? `<div class="pagamento"><div class="et">Pagamento</div>${f.pagamento}${f.iban ? `<br><span style="font-family:ui-monospace,Menlo,monospace;font-size:12.5px">IBAN ${f.iban}</span>` : ''}</div>` : ''}
 
-<div class="piede">
-  Copia di cortesia della fattura elettronica trasmessa al Sistema di Interscambio.<br>
-  Il documento originale in formato XML è disponibile nel portale Fatture e Corrispettivi dell'Agenzia delle Entrate.
-</div>
+  <div class="piede">
+    <b>Questa è una copia di cortesia.</b> La fattura elettronica originale è stata trasmessa al
+    Sistema di Interscambio dell'Agenzia delle Entrate e le sarà recapitata all'indirizzo telematico
+    che ci ha comunicato. Il documento con validità fiscale è consultabile nella sua area riservata
+    Fatture e Corrispettivi.
+  </div>
+
 </div></body></html>`;
 }
 
