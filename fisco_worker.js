@@ -2122,7 +2122,19 @@ function paginaFattura(f) {
     <div class="finale"><span class="voce">Totale</span><span class="cifra">${eur(f.totale)}</span></div>
   </div></div>
 
-  ${f.pagamento ? `<div class="pagamento"><div class="et">Pagamento</div>${f.pagamento}${f.iban ? `<br><span style="font-family:ui-monospace,Menlo,monospace;font-size:12.5px">IBAN ${f.iban}</span>` : ''}</div>` : ''}
+  ${f.pagamento
+      ? `<div class="pagamento">
+           <div class="et">Pagamento</div>
+           ${f.pagamento} · in unica soluzione
+           ${f.iban
+             ? `<div style="margin-top:7px;font-size:12.5px;line-height:1.65">
+                  ${CONTO.banca}<br>
+                  <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace">IBAN ${f.iban}</span><br>
+                  <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace">BIC ${CONTO.bic}</span>
+                </div>`
+             : ''}
+         </div>`
+      : ''}
 
   <div style="margin-top:22px;font-size:11.5px;color:var(--pietra)">
     Regime fiscale: ${FE_REGIME_TESTO}
