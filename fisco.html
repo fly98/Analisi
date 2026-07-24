@@ -590,7 +590,7 @@ function ricaricaVista(){
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v62';
+  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v63';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -839,6 +839,7 @@ function dialogo(titolo, testo, corpo, okLabel){
       document.getElementById('fc-pro').value  = c.provincia || '';
       document.getElementById('fc-sdi').value  = c.codiceDestinatario || '';
       document.getElementById('fc-pec').value  = c.pec || '';
+      const mm = document.getElementById('fc-mail'); if(mm) mm.value = c.email || '';
       document.getElementById('fc-esito').textContent = '';
     };
     // righe iniziali dalla prenotazione
@@ -933,6 +934,7 @@ async function moduloFattura(id){
        <div><label>Codice destinatario</label><input id="fc-sdi" maxlength="7"></div>
        <div><label>oppure PEC</label><input id="fc-pec"></div>
      </div>
+     <label>Email per l'invio della copia</label><input id="fc-mail" placeholder="amministrazione@dominio.it">
 
      <div class="sezione">Documento</div>
      <div class="riga2">
@@ -972,7 +974,8 @@ async function moduloFattura(id){
     provincia: $('#fc-pro').value.trim().toUpperCase(),
     nazione: 'IT',
     codiceDestinatario: $('#fc-sdi').value.trim().toUpperCase(),
-    pec: $('#fc-pec').value.trim()
+    pec: $('#fc-pec').value.trim(),
+    email: $('#fc-mail').value.trim()
   };
   const righe = leggiRighe();
   const prova = $('#fc-prova').checked;
@@ -1007,7 +1010,10 @@ async function moduloFattura(id){
 
 // dopo l'emissione propongo di mandarne copia al cliente
 async function inviaFattura(numero, p, cli){
-  const email = (p && p.email) || cli.pec || '';
+  // preferisco l'indirizzo dell'anagrafica: quello della prenotazione
+  // è spesso un alias del portale
+  const inAna = (CLIENTI || {})[cli.piva] || {};
+  const email = inAna.email || cli.email || (p && p.email) || cli.pec || '';
   const ok = await dialogo('Fattura emessa', `${numero} trasmessa al Sistema di Interscambio`,
     `<p style="font-size:13.5px;color:var(--muted);margin:0 0 10px">
        Vuoi mandare al cliente una copia di cortesia leggibile?
@@ -1082,6 +1088,7 @@ window.scegliCliente = (piva)=>{
   document.getElementById('fc-pro').value  = c.provincia || '';
   document.getElementById('fc-sdi').value  = c.codiceDestinatario || '';
   document.getElementById('fc-pec').value  = c.pec || '';
+  const m = document.getElementById('fc-mail'); if(m) m.value = c.email || '';
   const sel = document.getElementById('fc-sel'); if(sel) sel.value = piva;
   document.getElementById('fc-risultati').innerHTML = '';
   document.getElementById('fc-cerca').value = c.denominazione || '';
@@ -1348,8 +1355,11 @@ window.vediFattura = async (numero)=>{
 };
 
 window.inviaCopia = async (numero)=>{
-  const ok = await dialogo('Invia copia', `Fattura ${numero}`,
-    `<label>Indirizzo email</label><input id="ic-mail" placeholder="nome@dominio.it">`, 'Invia');
+  await caricaClienti();
+  const f = ((FATT && FATT.fatture) || []).find(x=>x.numero===numero);
+  const cli = f ? (CLIENTI || {})[f.piva] : null;
+  const ok = await dialogo('Invia copia', `Fattura ${numero}${cli ? ' · '+(cli.denominazione||'') : ''}`,
+    `<label>Indirizzo email</label><input id="ic-mail" value="${(cli && (cli.email || cli.pec)) || ''}" placeholder="nome@dominio.it">`, 'Invia');
   if(!ok) return;
   const dest = $('#ic-mail').value.trim();
   if(!dest){ toast('Nessun indirizzo', true); return; }
