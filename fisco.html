@@ -612,7 +612,7 @@ function ricaricaVista(){
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v58';
+  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v59';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -959,9 +959,11 @@ async function moduloFattura(id){
      <button type="button" class="act" style="width:100%;background:#fff;color:var(--ink);border:1px dashed var(--line);margin-top:4px" onclick="aggiungiRiga()">+ Aggiungi riga</button>
      <div class="tot-f"><span>Totale documento</span><span id="fc-tot">—</span></div>
 
+     <button type="button" class="act" style="width:100%;margin-top:10px;background:#fff;color:var(--ink);border:1px solid var(--line)" onclick="anteprimaFattura()">Vedi anteprima</button>
+
      <label style="margin-top:12px;display:flex;align-items:center;gap:8px;text-transform:none;font-size:13.5px;color:var(--ink)">
        <input type="checkbox" id="fc-prova" style="width:auto;margin:0" checked>
-       Prova: genera e verifica senza trasmettere
+       Prova: verifica senza trasmettere
      </label>`,
     'Emetti');
 
@@ -1005,7 +1007,7 @@ async function moduloFattura(id){
          </p>`, 'Ho capito');
     }else{
       toast('Emessa ' + r.numero);
-      CLIENTI = null; DATI = null; carica();
+      CLIENTI = null; DATI = null; FATT = null; carica();
       inviaFattura(r.numero, p, cli);
     }
   }catch(e){ toast('Non riuscita: '+e.message, true); }
@@ -1093,6 +1095,33 @@ window.scegliCliente = (piva)=>{
   document.getElementById('fc-cerca').value = c.denominazione || '';
   const es = document.getElementById('fc-esito');
   if(es){ es.className = 'esito ok'; es.textContent = 'Dati caricati dall\u2019anagrafica'; }
+};
+
+window.anteprimaFattura = async ()=>{
+  const cli = {
+    piva: $('#fc-piva').value.replace(/[^0-9A-Za-z]/g,''),
+    denominazione: $('#fc-den').value.trim(),
+    indirizzo: $('#fc-ind').value.trim(),
+    cap: $('#fc-cap').value.trim(),
+    comune: $('#fc-com').value.trim(),
+    provincia: $('#fc-pro').value.trim().toUpperCase(),
+    codiceDestinatario: $('#fc-sdi').value.trim().toUpperCase(),
+    pec: $('#fc-pec').value.trim()
+  };
+  const corpo = {
+    numero: $('#fc-num').value.trim(),
+    cliente: cli, righe: leggiRighe(),
+    modalitaPagamento: $('#fc-pag').value
+  };
+  const w = window.open('', '_blank');
+  try{
+    const r = await fetch(API + '/anteprimaFattura', {
+      method:'POST', headers:{'X-Token':TOKEN,'Content-Type':'application/json'},
+      body: JSON.stringify(corpo)
+    });
+    const html = await r.text();
+    w.document.write(html); w.document.close();
+  }catch(e){ if(w) w.close(); toast('Anteprima non riuscita: '+e.message, true); }
 };
 
 window.cercaCliente = async ()=>{
