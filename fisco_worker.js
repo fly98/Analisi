@@ -852,10 +852,31 @@ async function elenco(env, dal, al, margine) {
   const impegnateKV = new Set();
   for (const s of Object.values(stati)) {
     if (s && s.idtrx) impegnateKV.add(String(s.idtrx));
+    for (const e of (s && s.extra) || []) impegnateKV.add(String(e.idtrx || e.id));
   }
-  const orfaneReali = esito.ricevuteOrfane.filter(
-    (r) => !impegnateKV.has(String(r.id))
-  );
+
+  // una ricevuta emessa in anticipo appartiene a un soggiorno che si conclude
+  // dopo la fine del periodo: la confronto anche con quelli, altrimenti
+  // risulterebbe senza prenotazione solo per effetto del filtro
+  let orfaneReali = esito.ricevuteOrfane.filter((r) => !impegnateKV.has(String(r.id)));
+  if (orfaneReali.length) {
+    try {
+      const dopo = await fetchPrenotazioni(env, addGiorni(al, 1), addGiorni(al, margine));
+      const statiDopo = await leggiStati(env, dopo.map((p) => p.id));
+      const libereDopo = dopo.filter((p) => !statiDopo[p.id]);
+      for (const s of Object.values(statiDopo)) {
+        if (s && s.idtrx) impegnateKV.add(String(s.idtrx));
+      }
+      const esitoDopo = riconcilia(libereDopo, ricevute.documenti);
+      for (const a of esitoDopo.abbinamenti) {
+        impegnateKV.add(String(a.ricevuta.id));
+        for (const e of a.extra || []) impegnateKV.add(String(e.id));
+      }
+      orfaneReali = orfaneReali.filter((r) => !impegnateKV.has(String(r.id)));
+    } catch {
+      /* se il controllo aggiuntivo fallisce resta il conteggio precedente */
+    }
+  }
 
   const conta = (s) => righe.filter((r) => r.stato === s).length;
   return {
