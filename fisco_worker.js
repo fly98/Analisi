@@ -2410,6 +2410,40 @@ export default {
         return json({ ok: true, link: `${url.origin}/f/${token}` });
       }
 
+      if (url.pathname === '/anteprimaFattura' && request.method === 'POST') {
+        const b = await request.json();
+        const righe = (b.righe || []).filter((r) => Number(r.prezzo) > 0);
+        const riepilogo = righe.map((r) => {
+          const al = String(r.aliquota || '10');
+          const esente = /^N/.test(al);
+          const perc = esente ? 0 : parseInt(al, 10);
+          const lordo = Number(r.prezzo) * Number(r.quantita || 1);
+          const imponibile = esente ? lordo : Math.round((lordo / (1 + perc / 100)) * 100) / 100;
+          return { aliquota: al, imponibile, imposta: Math.round((lordo - imponibile) * 100) / 100 };
+        });
+        const MOD = { MP01: 'Contanti', MP05: 'Bonifico', MP08: 'Carta di pagamento' };
+        const html = paginaFattura({
+          numero: b.numero || 'anteprima',
+          data: dataIso(giorno(new Date())),
+          tipoDocumento: b.tipoDocumento || 'TD01',
+          cliente: b.cliente || {},
+          righe: righe.map((r) => ({
+            descrizione: r.descrizione,
+            quantita: Number(r.quantita || 1),
+            prezzo: Number(r.prezzo),
+            totale: Math.round(Number(r.prezzo) * Number(r.quantita || 1) * 100) / 100,
+            aliquota: String(r.aliquota || '10'),
+          })),
+          riepilogo,
+          totale: Math.round(righe.reduce((s, r) => s + Number(r.prezzo) * Number(r.quantita || 1), 0) * 100) / 100,
+          pagamento: MOD[b.modalitaPagamento || 'MP08'],
+          iban: b.iban || '',
+        });
+        return new Response(html, {
+          headers: { 'Content-Type': 'text/html; charset=utf-8', 'Access-Control-Allow-Origin': '*' },
+        });
+      }
+
       if (url.pathname === '/fatture') {
         const cred = credenziali(env);
         const blocchi = [];
@@ -2606,7 +2640,7 @@ export default {
     return json(
       {
         error: 'endpoint sconosciuto',
-        disponibili: ['/health', '/infouser', '/dco', '/prenotazioni', '/riconcilia', '/elenco', '/stato', '/emetti', '/annulla', '/condividi', '/invia', '/rinnova', '/proposte', '/orfane', '/duplicati', '/automatico', '/promemoria', '/pagamenti', '/clienti', '/cercaPiva', '/esclusioni', '/fattura', '/numeroFattura', '/fatture', '/condividiFattura', '/f/{token}', '/inviaMail', '/emettiLibera', '/r/{token}'],
+        disponibili: ['/health', '/infouser', '/dco', '/prenotazioni', '/riconcilia', '/elenco', '/stato', '/emetti', '/annulla', '/condividi', '/invia', '/rinnova', '/proposte', '/orfane', '/duplicati', '/automatico', '/promemoria', '/pagamenti', '/clienti', '/cercaPiva', '/esclusioni', '/fattura', '/numeroFattura', '/fatture', '/anteprimaFattura', '/condividiFattura', '/f/{token}', '/inviaMail', '/emettiLibera', '/r/{token}'],
       },
       404
     );
