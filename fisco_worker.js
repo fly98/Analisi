@@ -418,7 +418,16 @@ function riconcilia(prenotazioni, ricevute) {
     return Math.round((new Date(g) - new Date(pren.checkout)) / 86400000);
   };
 
+  // Sui soggiorni conclusi da poco (o non ancora conclusi) le ricevute
+  // nascono dall'app e il collegamento è già registrato: qui il motore
+  // accetta solo importi identici, per non inventare abbinamenti.
+  const LIMITE_EURISTICA = addGiorni(giorno(new Date()), -20);
+
   function assegna(pren, ric, metodo) {
+    if (pren.checkout >= LIMITE_EURISTICA) {
+      const scarto = Math.abs(Number(ric.importo) - Number(pren.atteso));
+      if (scarto > 0.01) return;   // niente varianti sui soggiorni recenti
+    }
     usate.add(ric.id);
     pren.ricevuta = ric;
     pren.metodo = metodo;
