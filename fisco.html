@@ -578,7 +578,8 @@ document.querySelectorAll('#seg button').forEach(b => b.onclick = ()=>{
 let calMese, calAnno, calDa = null, calA = null;
 
 function apriCalendario(){
-  const base = $('#dal').value ? new Date($('#dal').value+'T12:00:00') : new Date();
+  // parto sempre dal mese corrente: è quello su cui lavori
+  const base = new Date();
   calMese = base.getMonth(); calAnno = base.getFullYear();
   calDa = $('#dal').value || null;
   calA  = $('#al').value || null;
@@ -643,7 +644,7 @@ function ricaricaVista(){
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v80';
+  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v81';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
