@@ -274,6 +274,25 @@ dialog::backdrop{background:rgba(10,25,45,.45)}
 .dlg h3{margin:0 0 4px;font-size:16px}
 .dlg p{margin:0 0 14px;font-size:13.5px;color:var(--muted)}
 .dlg label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin:10px 0 4px}
+.dlg .sezione{font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);
+  font-weight:700;margin:14px 0 6px;padding-top:10px;border-top:1px solid var(--line)}
+.dlg .riga2{display:flex;gap:8px}
+.dlg .riga2>*{flex:1;min-width:0}
+.dlg .rigaf{border:1px solid var(--line);border-radius:9px;padding:9px;margin-bottom:7px;background:#fbfcfe}
+.dlg .rigaf .top{display:flex;gap:8px;align-items:center}
+.dlg .rigaf .top input:first-child{flex:1}
+.dlg .rigaf .top input[type=number]{width:88px;flex:0 0 auto}
+.dlg .rigaf select{width:120px;flex:0 0 auto}
+.dlg .tot-f{background:var(--ok-bg);border-radius:9px;padding:10px;margin-top:10px;
+  font-weight:700;display:flex;justify-content:space-between}
+.dlg .cerca-cli{display:flex;gap:6px;align-items:center}
+.dlg .cerca-cli input{flex:1}
+.dlg .cerca-cli button{
+  font:inherit;font-size:13px;font-weight:600;padding:9px 12px;border-radius:8px;
+  border:1px solid var(--line);background:#fff;cursor:pointer;white-space:nowrap
+}
+.dlg .esito{font-size:12px;margin-top:5px}
+.dlg .esito.ok{color:var(--ok)} .dlg .esito.ko{color:var(--danger)}
 .dlg input,.dlg select,.dlg textarea{
   width:100%;font:inherit;padding:9px;border:1px solid var(--line);border-radius:8px;background:#fff;
   resize:vertical
@@ -559,7 +578,7 @@ function ricaricaVista(){
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v50';
+  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v51';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -680,7 +699,7 @@ function riga(p){
   if(p.stato === 'da_emettere'){
     azioni = `<div class="actions">
       <button class="primary" onclick="apriEmissione('${p.id}')">Emetti ricevuta</button>
-      <button onclick="segna('${p.id}','fattura')">Segue fattura</button>
+      <button onclick="apriFattura('${p.id}')">Fattura</button>
       <button class="ghost" onclick="segna('${p.id}','esclusa')">Non emettere</button>
     </div>`;
   } else if(p.stato === 'emessa'){
@@ -700,7 +719,7 @@ function riga(p){
     azioni = `<div class="docinfo"><span>Arrivo previsto il ${gg(p.checkin)}</span></div>
     <div class="actions">
       <button onclick="apriEmissione('${p.id}')">Emetti in anticipo</button>
-      <button onclick="segna('${p.id}','fattura')">Segue fattura</button>
+      <button onclick="apriFattura('${p.id}')">Fattura</button>
       <button class="ghost" onclick="segna('${p.id}','esclusa')">Non emettere</button>
     </div>`;
   } else {
@@ -733,6 +752,30 @@ function dialogo(titolo, testo, corpo, okLabel){
   $('#dlg-ok').textContent = okLabel || 'Conferma';
   const d = $('#dlg');
   d.showModal();
+  // modulo fattura: precompilo cliente e righe
+  const selCli = document.getElementById('fc-sel');
+  if(selCli){
+    selCli.onchange = ()=>{
+      const c = (CLIENTI||{})[selCli.value];
+      if(!c){ ['fc-piva','fc-den','fc-ind','fc-cap','fc-com','fc-pro','fc-sdi','fc-pec'].forEach(i=>{const e=document.getElementById(i); if(e) e.value='';}); return; }
+      document.getElementById('fc-piva').value = c.piva || c.cf || '';
+      document.getElementById('fc-den').value  = c.denominazione || ((c.cognome||'')+' '+(c.nome||'')).trim();
+      document.getElementById('fc-ind').value  = (c.indirizzo||'') + (c.civico ? ' '+c.civico : '');
+      document.getElementById('fc-cap').value  = c.cap || '';
+      document.getElementById('fc-com').value  = c.comune || '';
+      document.getElementById('fc-pro').value  = c.provincia || '';
+      document.getElementById('fc-sdi').value  = c.codiceDestinatario || '';
+      document.getElementById('fc-pec').value  = c.pec || '';
+      document.getElementById('fc-esito').textContent = '';
+    };
+    // righe iniziali dalla prenotazione
+    if(window.__pren){
+      const p = window.__pren;
+      window.aggiungiRiga(`Soggiorno dal ${dataIt(p.checkin)} al ${dataIt(p.checkout)}` + (p.nome ? ` del Sig./Sig.ra ${p.nome}` : ''), p.atteso, '10', 1);
+      if(p.cityTax > 0) window.aggiungiRiga('Imposta di soggiorno', p.cityTax, 'N1', 1);
+    }
+  }
+
   // se la finestra contiene il riepilogo importi, lo tengo aggiornato
   const imp = document.getElementById('f-imp');
   if(imp && document.getElementById('f-tot')){
@@ -751,6 +794,183 @@ window.aggiornaTot = function(){
   el.textContent = tassa
     ? `Totale ricevuta ${eur(imp+tassa)} — soggiorno ${eur(imp)} + imposta ${eur(tassa)}`
     : `Totale ricevuta ${eur(imp)}`;
+};
+
+let CLIENTI = null;
+
+async function caricaClienti(){
+  if(CLIENTI) return CLIENTI;
+  try{
+    const d = await api('/clienti');
+    CLIENTI = d.clienti || {};
+  }catch(e){ CLIENTI = {}; }
+  return CLIENTI;
+}
+
+window.apriFattura = async (id) => {
+  const p = DATI.righe.find(x=>x.id===id);
+  const scelta = await dialogo('Fattura', `${p.nome || 'senza nome'} · ${gg(p.checkin)} → ${gg(p.checkout)}`,
+    `<div style="display:flex;flex-direction:column;gap:8px;margin-top:6px">
+       <button type="button" class="act primary" style="width:100%" onclick="window.__f='emetti';$('#dlg-ok').click()">Emetti fattura elettronica</button>
+       <button type="button" class="act" style="width:100%;background:#fff;color:var(--ink);border:1px solid var(--line)" onclick="window.__f='segna';$('#dlg-ok').click()">Segna come fatturata altrove</button>
+     </div>`, 'Annulla');
+  const f = window.__f; window.__f = null;
+  if(f === 'segna'){ segna(id,'fattura'); return; }
+  if(f === 'emetti') moduloFattura(id);
+};
+
+async function moduloFattura(id){
+  const p = DATI.righe.find(x=>x.id===id);
+  window.__pren = p;
+  const clienti = await caricaClienti();
+  let numero = '';
+  try{ numero = (await api('/numeroFattura')).numero; }catch(e){}
+
+  const opz = Object.entries(clienti)
+    .sort((a,b)=> (a[1].denominazione||'').localeCompare(b[1].denominazione||''))
+    .map(([piva,c])=>`<option value="${piva}">${(c.denominazione||c.cognome+' '+c.nome).slice(0,44)}</option>`).join('');
+
+  const desc = `Soggiorno dal ${dataIt(p.checkin)} al ${dataIt(p.checkout)}` + (p.nome ? ` del Sig./Sig.ra ${p.nome}` : '');
+
+  const ok = await dialogo('Nuova fattura elettronica',
+    `${p.nome || 'senza nome'} · ${gg(p.checkin)} → ${gg(p.checkout)} · ${eur(p.totale)}`,
+    `<div class="sezione">Cliente</div>
+     <select id="fc-sel">
+       <option value="">— nuovo cliente —</option>
+       ${opz}
+     </select>
+     <label style="margin-top:8px">Partita IVA o codice fiscale</label>
+     <div class="cerca-cli">
+       <input id="fc-piva" placeholder="11 cifre" autocomplete="off">
+       <button type="button" onclick="cercaCliente()">Cerca</button>
+     </div>
+     <div class="esito" id="fc-esito"></div>
+     <label>Denominazione</label><input id="fc-den">
+     <div class="riga2">
+       <div><label>Indirizzo</label><input id="fc-ind"></div>
+       <div><label>CAP</label><input id="fc-cap"></div>
+     </div>
+     <div class="riga2">
+       <div><label>Comune</label><input id="fc-com"></div>
+       <div><label>Prov.</label><input id="fc-pro" maxlength="2"></div>
+     </div>
+     <div class="riga2">
+       <div><label>Codice destinatario</label><input id="fc-sdi" maxlength="7"></div>
+       <div><label>oppure PEC</label><input id="fc-pec"></div>
+     </div>
+
+     <div class="sezione">Documento</div>
+     <div class="riga2">
+       <div><label>Numero</label><input id="fc-num" value="${numero}"></div>
+       <div><label>Pagamento</label>
+         <select id="fc-pag">
+           <option value="MP08">Carta</option>
+           <option value="MP05">Bonifico</option>
+           <option value="MP01">Contanti</option>
+         </select>
+       </div>
+     </div>
+
+     <div class="sezione">Righe</div>
+     <div id="fc-righe"></div>
+     <button type="button" class="act" style="width:100%;background:#fff;color:var(--ink);border:1px dashed var(--line);margin-top:4px" onclick="aggiungiRiga()">+ Aggiungi riga</button>
+     <div class="tot-f"><span>Totale documento</span><span id="fc-tot">—</span></div>
+
+     <label style="margin-top:12px;display:flex;align-items:center;gap:8px;text-transform:none;font-size:13.5px;color:var(--ink)">
+       <input type="checkbox" id="fc-prova" style="width:auto;margin:0" checked>
+       Prova: genera e verifica senza trasmettere
+     </label>`,
+    'Emetti');
+
+  // le righe si popolano dopo l'apertura
+  if(!ok) return;
+
+  const cli = {
+    piva: $('#fc-piva').value.replace(/[^0-9A-Za-z]/g,''),
+    cf: $('#fc-piva').value.replace(/[^0-9A-Za-z]/g,''),
+    denominazione: $('#fc-den').value.trim(),
+    indirizzo: $('#fc-ind').value.trim(),
+    cap: $('#fc-cap').value.trim(),
+    comune: $('#fc-com').value.trim(),
+    provincia: $('#fc-pro').value.trim().toUpperCase(),
+    nazione: 'IT',
+    codiceDestinatario: $('#fc-sdi').value.trim().toUpperCase(),
+    pec: $('#fc-pec').value.trim()
+  };
+  const righe = leggiRighe();
+  const prova = $('#fc-prova').checked;
+
+  if(!cli.denominazione){ toast('Manca la denominazione del cliente', true); return; }
+  if(!cli.codiceDestinatario && !cli.pec){ toast('Serve il codice destinatario o la PEC', true); return; }
+  if(!righe.length){ toast('Nessuna riga da fatturare', true); return; }
+
+  toast(prova ? 'Verifica in corso…' : 'Emissione in corso…');
+  try{
+    const r = await api('/fattura', {method:'POST', body: JSON.stringify({
+      prenotazione: id, cliente: cli, righe, numero: $('#fc-num').value.trim(),
+      modalitaPagamento: $('#fc-pag').value, prova
+    })});
+    if(prova){
+      toast('Fattura valida: ' + r.numero + ' · ' + eur(r.totale));
+    }else{
+      toast('Emessa ' + r.numero);
+      CLIENTI = null; DATI = null; carica();
+    }
+  }catch(e){ toast('Non riuscita: '+e.message, true); }
+}
+
+function leggiRighe(){
+  return [...document.querySelectorAll('#fc-righe .rigaf')].map(el=>({
+    descrizione: el.querySelector('.r-desc').value.trim(),
+    prezzo: parseFloat(el.querySelector('.r-prezzo').value) || 0,
+    quantita: parseFloat(el.querySelector('.r-qta').value) || 1,
+    aliquota: el.querySelector('.r-iva').value
+  })).filter(r=>r.prezzo>0);
+}
+
+window.aggiungiRiga = (desc, prezzo, iva, qta)=>{
+  const c = document.getElementById('fc-righe');
+  if(!c) return;
+  const d = document.createElement('div');
+  d.className = 'rigaf';
+  d.innerHTML = `
+    <input class="r-desc" value="${(desc||'').replace(/"/g,'&quot;')}" placeholder="Descrizione">
+    <div class="top" style="margin-top:6px">
+      <select class="r-iva">
+        <option value="10" ${iva==='10'||!iva?'selected':''}>IVA 10%</option>
+        <option value="22" ${iva==='22'?'selected':''}>IVA 22%</option>
+        <option value="N1" ${iva==='N1'?'selected':''}>Escl. art.15</option>
+      </select>
+      <input class="r-qta" type="number" step="1" value="${qta||1}" title="Quantità">
+      <input class="r-prezzo" type="number" step="0.01" value="${prezzo!=null?prezzo:''}" placeholder="0,00">
+      <button type="button" onclick="this.closest('.rigaf').remove();totaleFattura()" style="border:0;background:none;color:var(--danger);font-size:16px;cursor:pointer;padding:0 4px">×</button>
+    </div>`;
+  c.appendChild(d);
+  d.querySelectorAll('input,select').forEach(x=>x.oninput = totaleFattura);
+  totaleFattura();
+};
+
+window.totaleFattura = ()=>{
+  const el = document.getElementById('fc-tot');
+  if(!el) return;
+  const t = leggiRighe().reduce((s,r)=> s + r.prezzo * r.quantita, 0);
+  el.textContent = eur(t);
+};
+
+window.cercaCliente = async ()=>{
+  const piva = $('#fc-piva').value.replace(/[^0-9]/g,'');
+  const es = $('#fc-esito');
+  if(piva.length !== 11){ es.className='esito ko'; es.textContent='La partita IVA deve avere 11 cifre'; return; }
+  es.className='esito'; es.textContent='Cerco…';
+  try{
+    const d = await api('/cercaPiva?piva='+piva);
+    $('#fc-den').value = d.denominazione || '';
+    $('#fc-ind').value = d.indirizzo || '';
+    $('#fc-cap').value = d.cap || '';
+    $('#fc-com').value = d.comune || '';
+    $('#fc-pro').value = d.provincia || '';
+    es.className='esito ok'; es.textContent='Trovato: '+d.denominazione;
+  }catch(e){ es.className='esito ko'; es.textContent='Non trovato: '+e.message; }
 };
 
 window.apriEmissione = apriEmissione;
