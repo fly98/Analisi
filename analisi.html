@@ -72,6 +72,7 @@ input[type=checkbox]{width:19px;height:19px;accent-color:var(--ok);cursor:pointe
 .badge{display:inline-block;font-size:10.5px;padding:2px 7px;border-radius:999px;background:var(--info-bg);color:var(--info)}
 .vers{font-size:11px;color:var(--ok);margin-top:2px;line-height:1.35}
 .vers .tassa{color:var(--muted)}
+.vers .quando{color:var(--muted);font-size:10.5px}
 .camera{
   display:inline-flex;align-items:center;justify-content:center;width:19px;height:19px;
   border-radius:5px;font-size:10.5px;font-weight:700;color:#fff;margin-right:3px
@@ -204,7 +205,8 @@ $('#file').onchange = async (ev)=>{
     const iTipo = r.indexOf('tipo');
     const iPren = r.findIndex(x=>x.includes('numero di prenotazione'));
     const iTot  = r.findIndex(x=>x.includes('totale'));
-    if(iTipo>=0 && iPren>=0){ start=i+1; col={tipo:iTipo, pren:iPren, tot:iTot}; break; }
+    const iData = r.indexOf('data');
+    if(iTipo>=0 && iPren>=0){ start=i+1; col={tipo:iTipo, pren:iPren, tot:iTot, data:iData}; break; }
   }
   if(start<0){ alert('Non riconosco il formato del file.'); return; }
 
@@ -215,7 +217,10 @@ $('#file').onchange = async (ev)=>{
     const id = String(r[col.pren]||'').trim().replace(/\.0$/,'');
     if(!tipo || !id || /totale|pagamenti/i.test(tipo)) continue;
     const imp = parseFloat(String(r[col.tot]||'0').replace(/[^\d,.-]/g,'').replace(',','.')) || 0;
-    (PAGAMENTI[id] = PAGAMENTI[id] || []).push({t:tipo, i:imp});
+    let dd = col.data>=0 ? String(r[col.data]||'').trim() : '';
+    if(dd.includes(' ')) dd = dd.split(' ')[0];
+    if(dd.includes('-') && dd.length>=10) dd = `${dd.slice(8,10)}/${dd.slice(5,7)}/${dd.slice(2,4)}`;
+    (PAGAMENTI[id] = PAGAMENTI[id] || []).push({t:tipo, i:imp, d:dd});
   }
   render();
   try{
@@ -341,7 +346,7 @@ function dettaglioPag(p){
   return voci.map(v=>{
     const soloTassa = (tassa && Math.abs(v.i - tassa) < 0.01) ||
                       (v.i % 5 === 0 && camera && v.i <= Math.max(tassa, camera*0.25));
-    return `<span class="${soloTassa?'tassa':''}">${v.t} ${eur(v.i)}</span>`;
+    return `<span class="${soloTassa?'tassa':''}">${v.t} ${eur(v.i)}${v.d ? ' <span class="quando">'+v.d+'</span>' : ''}</span>`;
   }).join(' · ');
 }
 
@@ -371,14 +376,16 @@ $('#nessuno').onclick = ()=>{
 
 $('#genera').onclick = ()=>{
   const gruppi = raggruppa();
-  const righe = [['Metodo di incasso','Partenza','Arrivo','Ospite','Camera','Canale','Importo']];
+  const righe = [['Metodo di incasso','Partenza','Arrivo','Ospite','Camera','Canale','Importo','Versamenti registrati']];
   for(const g of gruppi){
     for(const p of g.righe){
       if(ESCLUSI.has(p.id)) continue;
+      const vers = (PAGAMENTI[p.id]||[]).filter(v=>(v.i||0)>0)
+        .map(v=>`${v.t} ${v.i.toFixed(2).replace('.',',')}€${v.d?' del '+v.d:''}`).join(' · ');
       righe.push([g.nome, ggl(p.checkout), ggl(p.checkin), p.nome || 'senza nome',
-                  (p.camere||[]).join('+'), p.canale, String(p.atteso.toFixed(2)).replace('.',',')]);
+                  (p.camere||[]).join('+'), p.canale, String(p.atteso.toFixed(2)).replace('.',','), vers]);
     }
-    righe.push([g.nome+' — totale','','','','','', String(g.totale.toFixed(2)).replace('.',',')]);
+    righe.push([g.nome+' — totale','','','','','', String(g.totale.toFixed(2)).replace('.',','), '']);
     righe.push([]);
   }
   const csv = righe.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(';')).join('\n');
