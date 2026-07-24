@@ -35,6 +35,15 @@
   .btn.sec{background:var(--sage);}
   .quick{max-width:560px;margin:8px auto 0;padding:0 16px;display:flex;gap:8px;}
   .quick button{flex:1;background:transparent;border:1.5px solid var(--line);color:var(--sage);font-weight:600;font-size:14px;padding:9px;border-radius:9px;cursor:pointer;}
+  .search-box{max-width:560px;margin:10px auto 0;padding:0 16px;}
+  .search-row{display:flex;gap:8px;}
+  .search-row input{flex:1;font-family:var(--sysfont);font-size:16px;padding:11px 13px;border:1.5px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);}
+  .btn-clear{background:var(--line);color:var(--ink);border:none;border-radius:10px;font-size:16px;font-weight:600;padding:0 15px;cursor:pointer;}
+  .range-row{display:flex;align-items:center;gap:6px;margin-top:8px;flex-wrap:wrap;}
+  .range-lbl{font-size:12px;color:var(--muted);font-weight:600;}
+  .range-btn{background:#f0f0f2;border:1.5px solid var(--line);color:var(--muted);font-weight:600;font-size:12px;padding:6px 11px;border-radius:8px;cursor:pointer;font-family:var(--sysfont);}
+  .range-btn.active{background:var(--ink);color:#fff;border-color:var(--ink);}
+  .range-info{font-size:11.5px;color:var(--muted);margin-left:auto;}
   .quick button:active{background:#eee7d8;}
   .list{padding:18px 16px 0;max-width:560px;margin:0 auto;}
   .status{text-align:center;color:var(--muted);padding:30px 16px;font-size:15px;}
@@ -211,6 +220,20 @@
   <button onclick="vaiA(0)">Oggi</button>
   <button onclick="vaiA(1)">Domani</button>
   <button onclick="vaiA(2)">Dopodomani</button>
+</div>
+
+<div class="search-box">
+  <div class="search-row">
+    <input type="text" id="searchInput" placeholder="🔍 Cerca ospite, email, telefono…" oninput="filtraRicerca()">
+    <button class="btn-clear" onclick="chiudiRicerca()" id="clearBtn" style="display:none">✕</button>
+  </div>
+  <div class="range-row" id="rangeRow" style="display:none">
+    <span class="range-lbl">Periodo:</span>
+    <button class="range-btn active" data-back="2" data-fwd="1" onclick="cambiaRange(this,2,1)">3 mesi</button>
+    <button class="range-btn" data-back="4" data-fwd="2" onclick="cambiaRange(this,4,2)">6 mesi</button>
+    <button class="range-btn" data-back="8" data-fwd="4" onclick="cambiaRange(this,8,4)">1 anno</button>
+    <span class="range-info" id="rangeInfo"></span>
+  </div>
 </div>
 
 <div class="daytitle" id="daytitle"></div>
@@ -653,13 +676,18 @@ function ordineDi(b){
   return (rn in ORDINE_CAMERE)?ORDINE_CAMERE[rn]:99;
 }
 
-function render(iso,bookings){
-  bookings = (bookings||[]).slice().sort((a,b)=>ordineDi(a)-ordineDi(b));
-  document.getElementById("daytitle").textContent=`${dataLunga(iso)} — ${bookings.length} ospiti`;
+function render(iso,bookings,isRicerca){
+  if(!isRicerca){
+    bookings = (bookings||[]).slice().sort((a,b)=>ordineDi(a)-ordineDi(b));
+    document.getElementById("daytitle").textContent=`${dataLunga(iso)} — ${bookings.length} ospiti`;
+  } else {
+    bookings = (bookings||[]).slice();
+  }
   const list=document.getElementById("list"); list.innerHTML=""; msgStore={};
   if(bookings.length===0){list.innerHTML='<div class="status">Nessun arrivo per questa data.</div>';return;}
 
   bookings.forEach((b,i)=>{
+    const isoCard = b.checkin || iso;
     const booker=b.booker||{};
     const guest=(b.rooms&&b.rooms[0]&&b.rooms[0].guests&&b.rooms[0].guests[0])||{};
     const nome=((booker.first_name||"").trim()||( guest.first_name||"").trim());
@@ -866,7 +894,7 @@ function render(iso,bookings){
         <div style="display:flex;gap:5px">${roomBadgesHtml}</div>
       </div>
       ${altriOspiti.length?`<div class="altri-ospiti">👤 ${altriOspiti.join(" · ")}</div>`:""}
-      <div class="meta"><span>${dataCompatta(iso)} → ${dataCompatta(b.checkout||"")}</span><span>${b.adults||""}${b.children?(" +"+b.children+"🧒"):""}👤</span>${badgeCanale(source)}</div><div class="meta"><span class="orario-chip${orarioSalvato?" set":""}" onclick="apriOrarioModal(${i},${b.booking_id},'${iso}')">${orarioSalvato?"🕐 "+orarioSalvato:"🕐 orario"}</span><span class="nota-chip${notaSalvata?" set":""}" onclick="apriNotaModal(${i},${b.booking_id},'${iso}')">${notaSalvata?"📝 note":"📝 note"}</span></div>
+      <div class="meta"><span>${dataCompatta(isoCard)} → ${dataCompatta(b.checkout||"")}</span><span>${b.adults||""}${b.children?(" +"+b.children+"🧒"):""}👤</span>${badgeCanale(source)}</div><div class="meta"><span class="orario-chip${orarioSalvato?" set":""}" onclick="apriOrarioModal(${i},${b.booking_id},'${isoCard}')">${orarioSalvato?"🕐 "+orarioSalvato:"🕐 orario"}</span><span class="nota-chip${notaSalvata?" set":""}" onclick="apriNotaModal(${i},${b.booking_id},'${isoCard}')">${notaSalvata?"📝 note":"📝 note"}</span></div>
       ${action}
 `;
     if(notaSalvata){
@@ -973,6 +1001,79 @@ function chiudiInfo(){document.getElementById("infoModal").classList.remove("sho
 
 let orariMap = {};
 let noteMap = {};
+
+// ====== RICERCA PRENOTAZIONI ======
+let cacheRicerca=null;       // prenotazioni scaricate
+let rangeBack=2, rangeFwd=1; // periodo attuale
+let ricercaAttiva=false;
+
+async function caricaCacheRicerca(){
+  const info=document.getElementById("rangeInfo");
+  info.textContent="carico…";
+  try{
+    const r=await fetch(`${WORKER}/?action=search&back=${rangeBack}&fwd=${rangeFwd}`);
+    const d=await r.json();
+    cacheRicerca=d.bookings||[];
+    info.textContent=`${cacheRicerca.length} prenotazioni`;
+  }catch(e){
+    info.textContent="errore caricamento";
+    cacheRicerca=[];
+  }
+}
+
+async function filtraRicerca(){
+  const q=(document.getElementById("searchInput").value||"").trim().toLowerCase();
+  const clearBtn=document.getElementById("clearBtn");
+  const rangeRow=document.getElementById("rangeRow");
+
+  if(!q){ chiudiRicerca(); return; }
+
+  clearBtn.style.display="block";
+  rangeRow.style.display="flex";
+  ricercaAttiva=true;
+
+  if(!cacheRicerca){ await caricaCacheRicerca(); }
+  if(q.length<2){ return; }
+
+  const res=cacheRicerca.filter(b=>{
+    const bk=b.booker||{};
+    const campi=[
+      bk.first_name, bk.last_name, bk.email, bk.phone,
+      String(b.booking_id), b.source,
+      ...(b.rooms||[]).map(r=>r.individual_room_name)
+    ].filter(Boolean).join(" ").toLowerCase();
+    return campi.includes(q);
+  });
+
+  document.getElementById("daytitle").textContent=`🔍 "${q}" — ${res.length} ${res.length===1?'risultato':'risultati'}`;
+  const list=document.getElementById("list");
+  if(res.length===0){ list.innerHTML='<div class="status">Nessuna prenotazione trovata.</div>'; return; }
+  // riuso il render standard (raggruppa per data di arrivo)
+  renderRicerca(res);
+}
+
+function renderRicerca(bookings){
+  // ordina per data check-in (più recenti prima) e usa il render standard
+  const ord=[...bookings].sort((a,b)=>(b.checkin||"").localeCompare(a.checkin||""));
+  // il render standard mostra le card; passo la data del primo per compatibilità
+  render(ord[0]?ord[0].checkin:"", ord, true);
+}
+
+function cambiaRange(btn,back,fwd){
+  document.querySelectorAll(".range-btn").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  rangeBack=back; rangeFwd=fwd;
+  cacheRicerca=null;
+  filtraRicerca();
+}
+
+function chiudiRicerca(){
+  document.getElementById("searchInput").value="";
+  document.getElementById("clearBtn").style.display="none";
+  document.getElementById("rangeRow").style.display="none";
+  ricercaAttiva=false;
+  caricaData();  // torna agli arrivi del giorno
+}
 
 async function caricaData(){
   // resetta modalità in casa se attiva
