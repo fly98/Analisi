@@ -556,7 +556,7 @@ function ricaricaVista(){
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v47';
+  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v48';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -730,41 +730,15 @@ function dialogo(titolo, testo, corpo, okLabel){
   $('#dlg-ok').textContent = okLabel || 'Conferma';
   const d = $('#dlg');
   d.showModal();
-  const q = document.getElementById('cp-q');
-  if(q){
-    const disegna = ()=>{
-      const t = q.value.trim().toLowerCase();
-      const lista = (ORF.scoperte||[]).filter(p=>{
-        if(!t) return false;
-        const campi = [p.nome, p.canale, (p.camere||[]).join(' '), p.checkin, p.checkout,
-                       gg(p.checkin), gg(p.checkout), String(p.atteso.toFixed(2)).replace('.',',')
-                      ].join(' ').toLowerCase();
-        return t.split(/\s+/).every(x=>campi.includes(x));
-      }).slice(0,30);
-      document.getElementById('cp-lista').innerHTML = lista.length ? lista.map(p=>`
-        <div onclick="scegliPren('${p.id}')" id="cp-${p.id}"
-             style="padding:8px;border:1px solid var(--line);border-radius:8px;margin-bottom:5px;cursor:pointer;font-size:13px">
-          <b>${p.nome || 'senza nome'}</b> · ${eur(p.atteso)}<br>
-          <span style="color:var(--muted)">${gg(p.checkin)} → ${gg(p.checkout)} · ${(p.camere||[]).join('+')} · ${p.canale}</span>
-        </div>`).join('')
-        : `<div style="color:var(--muted);font-size:13px;padding:6px">${t?'Nessun risultato':'Scrivi per cercare'}</div>`;
-    };
-    q.oninput = disegna; disegna();
-  }
-  if(document.getElementById('f-tot')){
-    const i = document.getElementById('f-imp');
-    if(i) i.oninput = window.aggiornaTot;
+  // se la finestra contiene il riepilogo importi, lo tengo aggiornato
+  const imp = document.getElementById('f-imp');
+  if(imp && document.getElementById('f-tot')){
+    imp.oninput = window.aggiornaTot;
     window.aggiornaTot();
   }
   return new Promise(res => d.addEventListener('close', ()=>res(d.returnValue==='si'), {once:true}));
 }
 
-window.scegliPren = function(id){
-  document.querySelectorAll('[id^=cp-]').forEach(e=>{ if(e.id!=='cp-q'&&e.id!=='cp-lista'&&e.id!=='cp-sel') e.style.borderColor='var(--line)'; });
-  const el = document.getElementById('cp-'+id);
-  if(el) el.style.borderColor = 'var(--ok)';
-  document.getElementById('cp-sel').value = id;
-};
 
 window.aggiornaTot = function(){
   const imp = parseFloat($('#f-imp').value)||0;
