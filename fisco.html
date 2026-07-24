@@ -46,7 +46,7 @@ h1{margin:0;font-size:17px;font-weight:650;letter-spacing:-.2px}
 .sub{font-size:12px;color:#9db2cd}
 .tabs{display:flex;gap:4px;margin-top:12px}
 .tab{
-  flex:1;padding:8px 4px 4px;border:0;border-radius:8px;font:inherit;font-size:12.5px;font-weight:600;
+  flex:1;padding:8px 4px;border:0;border-radius:8px;font:inherit;font-size:12.5px;font-weight:600;
   background:rgba(255,255,255,.1);color:#c3d2e6;cursor:pointer;
 }
 .tab.on{background:#fff;color:var(--ink)}
@@ -341,7 +341,6 @@ dialog::backdrop{background:rgba(10,25,45,.45)}
   <div class="tabs">
     <button class="tab on" data-view="operativo">Prenotazioni</button>
     <button class="tab" data-view="ricevute">Ricevute</button>
-    <button class="tab" data-view="storico">Match storico</button>
   </div>
 </header>
 
@@ -387,26 +386,6 @@ dialog::backdrop{background:rgba(10,25,45,.45)}
     <div id="lista-ric"><div class="loading">Caricamento…</div></div>
   </section>
 
-  <!-- VISTA STORICO -->
-  <section id="v-storico" class="hidden">
-    <div class="kpis" id="kpis-st"></div>
-    <div class="seg" id="verso" style="margin-bottom:12px">
-      <button data-v="ricevute" class="on">Dalle ricevute</button>
-      <button data-v="prenotazioni">Dalle prenotazioni</button>
-    </div>
-    <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
-      <div class="seg" id="ordina">
-        <button data-o="importo" class="on">Importo</button>
-        <button data-o="punti">Affidabilità</button>
-        <button data-o="data">Data</button>
-      </div>
-      <button class="act" id="ricalcola" style="padding:7px 12px;font-size:13px">Ricalcola</button>
-    </div>
-    <div id="massa"></div>
-    <div id="proposte"><div class="loading">Caricamento proposte…</div></div>
-    <h3 style="font-size:14px;margin:20px 0 8px">Ricevute senza prenotazione</h3>
-    <div id="orfane"></div>
-  </section>
 </main>
 
 <dialog id="cal">
@@ -603,16 +582,15 @@ $('#cal-ok').onclick  = ()=>{
 // ricarica la scheda attualmente aperta: cambiando periodo
 // non ha senso dover premere Aggiorna
 function ricaricaVista(){
-  DATI = null; RIC = null; FATT = null; ORF = null; PROP = null;
+  DATI = null; RIC = null; FATT = null;
   if(VIEW === 'ricevute') { TIPODOC==='fatture' ? caricaFatture() : caricaRicevute(); }
-  else if(VIEW === 'storico') caricaOrfane();
   else carica();
 }
 
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v61';
+  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v62';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -1300,269 +1278,6 @@ window.annulla = async (id, idtrx) => {
   }catch(e){ toast('Annullo non riuscito: '+e.message, true); }
 };
 
-/* ---------- proposte di abbinamento ---------- */
-let PROP = null, ORF = null, VERSO = 'ricevute', ORDINE = 'importo';
-
-document.querySelectorAll('#ordina button').forEach(b => b.onclick = ()=>{
-  document.querySelectorAll('#ordina button').forEach(x=>x.classList.remove('on'));
-  b.classList.add('on');
-  ORDINE = b.dataset.o;
-  if(VERSO==='ricevute' && ORF) renderOrfane();
-});
-
-function ordinaOrfane(lista){
-  const l = [...lista];
-  if(ORDINE==='importo') l.sort((a,b)=> b.ricevuta.importo - a.ricevuta.importo);
-  else if(ORDINE==='punti') l.sort((a,b)=> b.migliore - a.migliore);
-  else l.sort((a,b)=> a.ricevuta.giorno < b.ricevuta.giorno ? 1 : -1);
-  return l;
-}
-
-document.querySelectorAll('#verso button').forEach(b => b.onclick = ()=>{
-  document.querySelectorAll('#verso button').forEach(x=>x.classList.remove('on'));
-  b.classList.add('on');
-  VERSO = b.dataset.v;
-  $('#ordina').style.display = VERSO==='ricevute' ? '' : 'none';
-  if(VERSO==='ricevute'){ ORF ? renderOrfane() : caricaOrfane(); }
-  else { PROP ? renderProposte() : caricaProposte(); }
-});
-
-$('#ricalcola').onclick = ()=>{
-  ORF = null; PROP = null; DATI = null;
-  if(VERSO==='ricevute') caricaOrfane(); else caricaProposte();
-};
-
-async function caricaOrfane(){
-  $('#proposte').innerHTML = '<div class="loading">Cerco le prenotazioni possibili…</div>';
-  $('#massa').innerHTML = '';
-  try{
-    ORF = await api(`/orfane?dal=${$('#dal').value}&al=${$('#al').value}`);
-    renderOrfane();
-  }catch(e){
-    $('#proposte').innerHTML = `<div class="empty">Non riesco a caricare.<br><small>${e.message}</small></div>`;
-  }
-}
-
-function renderOrfane(){
-  if(!ORF) return;
-  const r = ORF.riepilogo;
-  $('#kpis-st').innerHTML = `
-    <div class="kpi warn"><b>${r.orfane}</b><span>Ricevute orfane</span></div>
-    <div class="kpi ok"><b>${r.conCandidati}</b><span>Con candidati</span></div>
-    <div class="kpi"><b>${r.senzaCandidati}</b><span>Senza</span></div>
-    <div class="kpi"><b>${eur(r.totaleOrfane)}</b><span>Valore</span></div>`;
-  $('#massa').innerHTML = '';
-  $('#proposte').innerHTML = ORF.orfane.length
-    ? ordinaOrfane(ORF.orfane).map(cardOrfana).join('')
-    : '<div class="empty">Nessuna ricevuta orfana.</div>';
-}
-
-function cardOrfana(o){
-  const r = o.ricevuta;
-  const f = fascia(o.migliore);
-  if(!o.candidati.length){
-    return `<div class="prop bassa" id="or-${r.idtrx}">
-      <div class="prop-top">
-        <div>
-          <button class="numdoc" onclick="vediPdf('${r.idtrx}')">${r.numero}</button>
-          <div class="meta">emessa il ${r.data}</div>
-        </div>
-        <div class="eur">${eur(r.importo)}</div>
-      </div>
-      <div class="meta" style="margin-top:8px">Nessuna prenotazione con importo compatibile.</div>
-      <div class="azioni">
-        <button onclick="cercaPrenotazione('${r.idtrx}')">Cerca prenotazione</button>
-        <button onclick="saltaOrfana('${r.idtrx}')">Ignora</button>
-      </div>
-    </div>`;
-  }
-  const opts = o.candidati.map((c,i)=>{
-    const segno = c.deltaImporto>=0 ? '+' : '';
-    const nome = (c.nome || 'senza nome').slice(0,22);
-    return `<option value="${i}">${nome} · ${gg(c.checkin)}→${gg(c.checkout)} · ${eur(c.atteso)} · ${segno}${c.deltaImporto.toFixed(2)} € · ${c.deltaGiorni>=0?'+':''}${c.deltaGiorni}gg${c.indizio?' · '+c.indizio:''}</option>`;
-  }).join('');
-  return `<div class="prop ${f}" id="or-${r.idtrx}">
-    <div class="prop-top">
-      <div>
-        <button class="numdoc" onclick="vediPdf('${r.idtrx}')">${r.numero}</button>
-        <div class="meta">emessa il ${r.data} · tocca il numero per aprire il documento</div>
-      </div>
-      <div style="text-align:right">
-        <div class="eur">${eur(r.importo)}</div>
-        <span class="punti ${f}">${o.migliore}</span>
-      </div>
-    </div>
-    <select id="so-${r.idtrx}">${opts}</select>
-    <div class="azioni">
-      <button class="ok" onclick="abbinaDaRicevuta('${r.idtrx}')">Abbina</button>
-      <button onclick="cercaPrenotazione('${r.idtrx}')">Cerca altra</button>
-      <button onclick="saltaOrfana('${r.idtrx}')">Nessuna</button>
-      <button class="danger" onclick="annullaOrfana('${r.idtrx}','${r.numero}')">Annulla</button>
-    </div>
-  </div>`;
-}
-
-window.abbinaDaRicevuta = async (idtrx) => {
-  const o = ORF.orfane.find(x=>x.ricevuta.idtrx===idtrx);
-  const c = o.candidati[parseInt($('#so-'+idtrx).value,10)];
-  try{
-    await api('/stato', {method:'POST', body: JSON.stringify({
-      id: c.id, stato:'emessa', idtrx, numero:o.ricevuta.numero,
-      data:o.ricevuta.giorno, importo:o.ricevuta.importo,
-      nota:`abbinata dalla ricevuta (${c.deltaImporto>=0?'+':''}${c.deltaImporto.toFixed(2)} €)` })});
-    const el = document.getElementById('or-'+idtrx);
-    if(el) el.remove();
-    ORF.orfane = ORF.orfane.filter(x=>x.ricevuta.idtrx!==idtrx);
-    // la prenotazione scelta non è più disponibile per le altre ricevute
-    for(const x of ORF.orfane) x.candidati = x.candidati.filter(k=>k.id!==c.id);
-    toast(`${o.ricevuta.numero} → ${c.nome || 'senza nome'}`);
-    DATI = null; PROP = null;
-  }catch(e){ toast('Non riesco a salvare: '+e.message, true); }
-};
-
-// ricerca libera fra tutte le prenotazioni scoperte
-window.cercaPrenotazione = async (idtrx) => {
-  const o = ORF.orfane.find(x=>x.ricevuta.idtrx===idtrx);
-  const r = o.ricevuta;
-  const ok = await dialogo(`Abbina ${r.numero}`,
-    `${eur(r.importo)} · emessa il ${r.data.slice(0,10)}`,
-    `<label>Cerca per nome, data o importo</label>
-     <input type="search" id="cp-q" placeholder="es. vanreekum oppure 02/06" autocomplete="off">
-     <div id="cp-lista" style="max-height:230px;overflow:auto;margin-top:10px"></div>
-     <input type="hidden" id="cp-sel">`, 'Abbina');
-  if(!ok) return;
-  const id = $('#cp-sel').value;
-  if(!id){ toast('Nessuna prenotazione selezionata', true); return; }
-  const p = ORF.scoperte.find(x=>x.id===id);
-  const delta = r.importo - p.atteso;
-  try{
-    await api('/stato', {method:'POST', body: JSON.stringify({
-      id, stato:'emessa', idtrx, numero:r.numero, data:r.giorno, importo:r.importo,
-      nota:`abbinata manualmente (${delta>=0?'+':''}${delta.toFixed(2)} € rispetto all'atteso)` })});
-    const el = document.getElementById('or-'+idtrx);
-    if(el) el.remove();
-    ORF.orfane = ORF.orfane.filter(x=>x.ricevuta.idtrx!==idtrx);
-    ORF.scoperte = ORF.scoperte.filter(x=>x.id!==id);
-    for(const x of ORF.orfane) x.candidati = x.candidati.filter(k=>k.id!==id);
-    toast(`${r.numero} → ${p.nome || 'senza nome'}`);
-    DATI = null; PROP = null;
-  }catch(e){ toast('Non riesco a salvare: '+e.message, true); }
-};
-
-window.saltaOrfana = (idtrx) => {
-  const el = document.getElementById('or-'+idtrx);
-  if(el) el.remove();
-  ORF.orfane = ORF.orfane.filter(x=>x.ricevuta.idtrx!==idtrx);
-};
-
-async function caricaProposte(){
-  $('#proposte').innerHTML = '<div class="loading">Cerco le corrispondenze…</div>';
-  try{
-    PROP = await api(`/proposte?dal=${$('#dal').value}&al=${$('#al').value}`);
-    renderProposte();
-  }catch(e){
-    $('#proposte').innerHTML = `<div class="empty">Non riesco a calcolare le proposte.<br><small>${e.message}</small></div>`;
-  }
-}
-
-const fascia = n => n>=95 ? 'alta' : n>=75 ? 'media' : 'bassa';
-
-function renderProposte(){
-  if(!PROP) return;
-  const r = PROP.riepilogo;
-  $('#kpis-st').innerHTML = `
-    <div class="kpi warn"><b>${r.scoperte}</b><span>Scoperte</span></div>
-    <div class="kpi ok"><b>${r.conProposta}</b><span>Con proposta</span></div>
-    <div class="kpi"><b>${r.senzaProposta}</b><span>Senza</span></div>
-    <div class="kpi"><b>${r.orfaneDisponibili}</b><span>Orfane</span></div>`;
-
-  const certe = PROP.proposte.filter(p => p.migliore >= 97);
-  $('#massa').innerHTML = certe.length ? `
-    <div class="massa">
-      <b>${certe.length} corrispondenze quasi certe</b><br>
-      Stesso giorno o giorno vicino, con scarto di pochi centesimi.
-      <button onclick="confermaMassa()">Conferma tutte le ${certe.length}</button>
-    </div>` : '';
-
-  $('#proposte').innerHTML = PROP.proposte.length
-    ? PROP.proposte.map(cardProposta).join('')
-    : '<div class="empty">Nessuna proposta: tutte le prenotazioni sono state sistemate.</div>';
-}
-
-function cardProposta(p){
-  const pr = p.prenotazione;
-  const f = fascia(p.migliore);
-  const opts = p.candidati.map((c,i)=>{
-    const segno = c.deltaImporto>=0 ? '+' : '';
-    return `<option value="${i}">${c.numero} · ${eur(c.importo)} · ${segno}${c.deltaImporto.toFixed(2)} € · ${c.deltaGiorni>=0?'+':''}${c.deltaGiorni}gg${c.indizio?' · '+c.indizio:''}</option>`;
-  }).join('');
-  return `<div class="prop ${f}" id="pr-${pr.id}">
-    <div class="prop-top">
-      <div>
-        <div class="nome">${badgeCamere(pr.camere)}${pr.nome || 'Ospite senza nome'}</div>
-        <div class="meta">${gg(pr.checkin)} → ${gg(pr.checkout)} · ${pr.notti} ${pr.notti==1?'notte':'notti'} · ${pr.canale}</div>
-      </div>
-      <div style="text-align:right">
-        <div class="eur">${eur(pr.atteso)}</div>
-        <span class="punti ${f}">${p.migliore}</span>
-      </div>
-    </div>
-    <select id="sel-${pr.id}">${opts}</select>
-    <div class="azioni">
-      <button class="ok" onclick="conferma('${pr.id}')">Abbina</button>
-      <button onclick="vediPdfScelto('${pr.id}')">Vedi ricevuta</button>
-      <button onclick="saltaProposta('${pr.id}')">Nessuna</button>
-    </div>
-  </div>`;
-}
-
-async function salvaAbbinamento(id, c){
-  await api('/stato', {method:'POST', body: JSON.stringify({
-    id, stato:'emessa', idtrx:c.idtrx, numero:c.numero, data:c.giorno, importo:c.importo,
-    nota:`abbinata manualmente (${c.deltaImporto>=0?'+':''}${c.deltaImporto.toFixed(2)} €)` })});
-}
-
-window.conferma = async (id) => {
-  const p = PROP.proposte.find(x=>x.prenotazione.id===id);
-  const c = p.candidati[parseInt($('#sel-'+id).value,10)];
-  try{
-    await salvaAbbinamento(id, c);
-    const el = document.getElementById('pr-'+id);
-    if(el) el.remove();
-    PROP.proposte = PROP.proposte.filter(x=>x.prenotazione.id!==id);
-    toast('Abbinata a ' + c.numero);
-    DATI = null;
-  }catch(e){ toast('Non riesco a salvare: '+e.message, true); }
-};
-
-window.vediPdfScelto = (id) => {
-  const p = PROP.proposte.find(x=>x.prenotazione.id===id);
-  const c = p.candidati[parseInt($('#sel-'+id).value,10)];
-  vediPdf(c.idtrx);
-};
-
-window.saltaProposta = (id) => {
-  const el = document.getElementById('pr-'+id);
-  if(el) el.remove();
-  PROP.proposte = PROP.proposte.filter(x=>x.prenotazione.id!==id);
-};
-
-window.confermaMassa = async () => {
-  const certe = PROP.proposte.filter(p => p.migliore >= 97);
-  if(!await dialogo('Conferma automatica',
-    `${certe.length} prenotazioni verranno abbinate alla ricevuta più probabile. Potrai sempre correggerle dalla scheda Prenotazioni.`,
-    '', 'Conferma tutte')) return;
-  let ok=0;
-  for(const p of certe){
-    try{ await salvaAbbinamento(p.prenotazione.id, p.candidati[0]); ok++; }
-    catch(e){ /* proseguo con le altre */ }
-    toast(`Abbinate ${ok} di ${certe.length}…`);
-  }
-  toast(`${ok} prenotazioni abbinate`);
-  DATI = null;
-  caricaProposte();
-};
-
 /* ---------- registro ricevute ---------- */
 let RIC = null, FATT = null, TIPODOC = 'ricevute';
 
@@ -1773,8 +1488,6 @@ document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
   VIEW = t.dataset.view;
   $('#v-operativo').classList.toggle('hidden', VIEW!=='operativo');
   $('#v-ricevute').classList.toggle('hidden', VIEW!=='ricevute');
-  $('#v-storico').classList.toggle('hidden', VIEW!=='storico');
-  if(VIEW==='storico' && !ORF && !PROP) caricaOrfane();
   if(VIEW==='ricevute' && TIPODOC==='ricevute' && !RIC) caricaRicevute();
   if(VIEW==='ricevute' && TIPODOC==='fatture' && !FATT) caricaFatture();
   if(VIEW==='operativo' && !DATI) carica();
