@@ -976,8 +976,7 @@ async function inviaFattura(numero, p, cli){
       `La fattura elettronica originale le sarà recapitata dal Sistema di Interscambio ` +
       `all'indirizzo telematico che ci ha comunicato.\n\n` +
       `Cordiali saluti\nInternoUno\nVia Campaldino 6, Roma`;
-    await api('/invia', {method:'POST', body: JSON.stringify({
-      a: dest, oggetto, testo, link: l.link })});
+    await api('/inviaMail', {method:'POST', body: JSON.stringify({ a: dest, oggetto, testo })});
     toast('Copia inviata a ' + dest);
   }catch(e){ toast('Invio non riuscito: '+e.message, true); }
 }
