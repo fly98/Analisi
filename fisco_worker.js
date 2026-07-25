@@ -2583,6 +2583,8 @@ export default {
         // camere 1-5 = Deluxe.
         const pren = await fetchPrenotazioni(env, dal, addGiorni(al, 40));
         const booking = pren.filter((p) => /booking/i.test(p.canale || ''));
+        // "altri" = tutto cio' che non e' Booking (Airbnb, Expedia, manual, ecc.)
+        const altri = pren.filter((p) => !/booking/i.test(p.canale || ''));
 
         const DELUXE = new Set(['Uno', 'Due', 'Tre', 'Quattro', 'Cinque']);
         const struttura = (p) =>
@@ -2600,22 +2602,40 @@ export default {
         };
 
         const settimane = {};
+        const vuota = (v) => ({
+          venerdi: v,
+          campaldino: 0, deluxe: 0, n: 0,          // Booking
+          altriCampaldino: 0, altriDeluxe: 0, altriN: 0,  // altri canali
+        });
         for (const p of booking) {
           const v = venerdiPagamento(p.checkout);
-          if (!settimane[v]) settimane[v] = { venerdi: v, campaldino: 0, deluxe: 0, n: 0, pren: [] };
+          if (!settimane[v]) settimane[v] = vuota(v);
           const s = settimane[v];
-          s[struttura(p)] += p.atteso;
+          s[struttura(p) === 'deluxe' ? 'deluxe' : 'campaldino'] += p.atteso;
           s.n++;
-          s.pren.push({ nome: p.nome, checkout: p.checkout, importo: p.atteso, struttura: struttura(p) });
+        }
+        for (const p of altri) {
+          const v = venerdiPagamento(p.checkout);
+          if (!settimane[v]) settimane[v] = vuota(v);
+          const s = settimane[v];
+          s[struttura(p) === 'deluxe' ? 'altriDeluxe' : 'altriCampaldino'] += p.atteso;
+          s.altriN++;
         }
 
         const oggi = giorno(new Date());
+        const r2 = (x) => Math.round(x * 100) / 100;
         const lista = Object.values(settimane)
           .map((s) => ({
-            ...s,
-            campaldino: Math.round(s.campaldino * 100) / 100,
-            deluxe: Math.round(s.deluxe * 100) / 100,
-            totale: Math.round((s.campaldino + s.deluxe) * 100) / 100,
+            venerdi: s.venerdi,
+            n: s.n,
+            campaldino: r2(s.campaldino),
+            deluxe: r2(s.deluxe),
+            totale: r2(s.campaldino + s.deluxe),
+            altriN: s.altriN,
+            altriCampaldino: r2(s.altriCampaldino),
+            altriDeluxe: r2(s.altriDeluxe),
+            altriTotale: r2(s.altriCampaldino + s.altriDeluxe),
+            totaleGenerale: r2(s.campaldino + s.deluxe + s.altriCampaldino + s.altriDeluxe),
             futuro: s.venerdi >= oggi,
           }))
           .sort((a, b) => (a.venerdi < b.venerdi ? 1 : -1));
