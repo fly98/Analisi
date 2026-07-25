@@ -2619,8 +2619,10 @@ export default {
         const fatture = await Promise.all(
           grezze.map(async (f) => {
             const chiave = `fisco:forn:${f.id}`;
-            let nome = env.FISCO_KV ? await env.FISCO_KV.get(chiave) : null;
-            if (nome === null) {
+            // se l'ho gia' vista, la prendo dalla cache: niente nuova chiamata
+            const cache = env.FISCO_KV ? await env.FISCO_KV.get(chiave, 'json') : null;
+            if (cache) return { ...f, fornitore: cache.nome, piva: cache.piva || '' };
+            {
               try {
                 const r = await fetch(`${FE_BASE}/detailInvoices/${f.id}/`, {
                   method: 'POST',
@@ -2628,13 +2630,18 @@ export default {
                   body: JSON.stringify({ ade_credentials_encrypted: cred }),
                 });
                 const d = await r.json();
-                nome = (d.clienteFornitore || '').trim();
-                if (env.FISCO_KV) await env.FISCO_KV.put(chiave, nome);
+                nome = (
+                  d.denominazioneEmittente ||
+                  `${d.nomeEmittente || ''} ${d.cognomeEmittente || ''}`.trim()
+                ).trim();
+                const piva = d.pivaEmittente || d.cfEmittente || '';
+                if (env.FISCO_KV)
+                  await env.FISCO_KV.put(chiave, JSON.stringify({ nome, piva }));
+                return { ...f, fornitore: nome, piva };
               } catch {
-                nome = '';
+                return { ...f, fornitore: '', piva: '' };
               }
             }
-            return { ...f, fornitore: nome };
           })
         );
         fatture.sort((a, b) => (a.data < b.data ? 1 : -1));
