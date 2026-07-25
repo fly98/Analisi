@@ -648,7 +648,7 @@ function ricaricaVista(){
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v85';
+  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v86';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -1625,7 +1625,10 @@ function renderPassive(){
     <tr><th>Data</th><th>Fornitore</th><th style="text-align:right">Imponibile</th><th style="text-align:right">IVA</th><th style="text-align:right">Totale</th></tr>
     ${f.map(x=>`<tr>
       <td>${x.data ? x.data.slice(0,10) : ''}</td>
-      <td>${(x.fornitore||x.piva||'—').slice(0,26)}${x.nota ? ' <span style="font-size:10.5px;color:var(--warn);font-weight:600">NC</span>' : ''}</td>
+      <td>${x.nota
+        ? '<span style="display:inline-block;font-size:10px;font-weight:700;color:var(--warn);background:var(--warn-bg);padding:1px 6px;border-radius:5px;margin-right:6px">NOTA CREDITO</span>'
+        : '<span style="display:inline-block;font-size:10px;font-weight:700;color:var(--muted);background:#eef1f5;padding:1px 6px;border-radius:5px;margin-right:6px">FATTURA</span>'
+      }${(x.fornitore||x.piva||'—').slice(0,24)}</td>
       <td class="num">${eur(x.imponibile)}</td>
       <td class="num">${eur(x.imposta)}</td>
       <td class="num">${eur(x.totale)}</td>
