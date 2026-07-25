@@ -422,6 +422,7 @@ dialog::backdrop{background:rgba(10,25,45,.45)}
       <button data-t="ricevute" class="on">Ricevute</button>
       <button data-t="fatture">Fatture</button>
       <button data-t="passive">Ricevute da fornitori</button>
+      <button data-t="booking">Pagamenti Booking</button>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;justify-content:center">
       <button class="act" id="ric-nuova">Nuova ricevuta</button>
@@ -650,15 +651,15 @@ $('#cal-ok').onclick  = ()=>{
 function ricaricaVista(){
   // cambiando periodo riparto senza filtri, altrimenti la lista sembra vuota
   FILTRO = 'tutte'; CANALE = 'tutti';
-  DATI = null; RIC = null; FATT = null; PASS = null;
-  if(VIEW === 'ricevute') { TIPODOC==='fatture' ? caricaFatture() : TIPODOC==='passive' ? caricaPassive() : caricaRicevute(); }
+  DATI = null; RIC = null; FATT = null; PASS = null; BOOK = null;
+  if(VIEW === 'ricevute') { TIPODOC==='fatture' ? caricaFatture() : TIPODOC==='passive' ? caricaPassive() : TIPODOC==='booking' ? caricaBooking() : caricaRicevute(); }
   else carica();
 }
 
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v87';
+  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v88';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -1592,7 +1593,7 @@ window.annulla = async (id, idtrx) => {
 };
 
 /* ---------- registro ricevute ---------- */
-let RIC = null, FATT = null, PASS = null, TIPODOC = 'ricevute';
+let RIC = null, FATT = null, PASS = null, BOOK = null, TIPODOC = 'ricevute';
 
 document.querySelectorAll('#tipo-doc button').forEach(b => b.onclick = ()=>{
   document.querySelectorAll('#tipo-doc button').forEach(x=>x.classList.remove('on'));
@@ -1601,8 +1602,65 @@ document.querySelectorAll('#tipo-doc button').forEach(b => b.onclick = ()=>{
   $('#ric-nuova').style.display = TIPODOC==='ricevute' ? '' : 'none';
   if(TIPODOC==='fatture'){ FATT ? renderFatture() : caricaFatture(); }
   else if(TIPODOC==='passive'){ PASS ? renderPassive() : caricaPassive(); }
+  else if(TIPODOC==='booking'){ BOOK ? renderBooking() : caricaBooking(); }
   else { RIC ? renderRicevute() : caricaRicevute(); }
 });
+
+async function caricaBooking(){
+  $('#lista-ric').innerHTML = '<div class="loading">Calcolo i pagamenti Booking…</div>';
+  try{
+    BOOK = await api(`/pagamentiBooking?dal=${$('#dal').value}&al=${$('#al').value}`);
+    renderBooking();
+  }catch(e){
+    $('#lista-ric').innerHTML = `<div class="empty">Non riesco a caricare.<br><small>${e.message}</small></div>`;
+  }
+}
+
+function rigaSett(s, evidenzia){
+  const dv = new Date(s.venerdi+'T12:00:00');
+  const gg = String(dv.getDate()).padStart(2,'0')+'/'+String(dv.getMonth()+1).padStart(2,'0');
+  return `<div style="${evidenzia
+    ? 'background:linear-gradient(135deg,var(--ok-bg),#fff);border:2px solid var(--ok);border-radius:14px;padding:16px;margin-bottom:16px'
+    : 'border:1px solid var(--line);border-radius:11px;padding:13px;margin-bottom:9px'}">
+    <div style="display:flex;justify-content:space-between;align-items:baseline">
+      <div>
+        ${evidenzia ? '<div style="font-size:11px;letter-spacing:.6px;text-transform:uppercase;color:var(--ok);font-weight:700">Prossimo pagamento</div>' : ''}
+        <div style="font-weight:${evidenzia?700:600};font-size:${evidenzia?17:14.5}px">Venerdì ${gg}</div>
+        <div style="font-size:12px;color:var(--muted)">${s.n} prenotazioni · checkout entro giovedì</div>
+      </div>
+      <div style="font-family:Georgia,serif;font-size:${evidenzia?24:18}px;font-weight:700">${eur(s.totale)}</div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:11px">
+      <div style="flex:1;background:#fff;border:1px solid var(--line);border-radius:9px;padding:8px 10px">
+        <div style="font-size:11px;color:var(--muted)">InternoUno</div>
+        <div style="font-weight:650;font-size:14.5px">${eur(s.campaldino)}</div>
+      </div>
+      <div style="flex:1;background:#fff;border:1px solid var(--line);border-radius:9px;padding:8px 10px">
+        <div style="font-size:11px;color:var(--muted)">Deluxe</div>
+        <div style="font-weight:650;font-size:14.5px">${eur(s.deluxe)}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderBooking(){
+  if(!BOOK) return;
+  const p = BOOK.prossimo, pass = BOOK.passati || [];
+  const totPass = pass.reduce((s,x)=>s+x.totale,0);
+  $('#kpis-ric').innerHTML = `
+    <div class="kpi ok"><b>${p ? Math.round(p.totale).toLocaleString('it-IT') : 0} €</b><span>Prossimo venerdì</span></div>
+    <div class="kpi"><b>${p ? p.n : 0}</b><span>Prenotazioni</span></div>
+    <div class="kpi"><b>${pass.length}</b><span>Settimane passate</span></div>
+    <div class="kpi"><b>${Math.round(totPass).toLocaleString('it-IT')} €</b><span>Totale periodo</span></div>`;
+
+  $('#lista-ric').innerHTML =
+    (p ? rigaSett(p, true) : '<div class="empty" style="margin-bottom:14px">Nessuna prenotazione per il prossimo pagamento</div>')
+    + (pass.length
+        ? `<div style="font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);font-weight:700;margin:6px 2px 10px">Pagamenti precedenti</div>`
+          + pass.map(s=>rigaSett(s,false)).join('')
+        : '');
+}
+
 
 async function caricaPassive(){
   $('#lista-ric').innerHTML = '<div class="loading">Carico le fatture ricevute…</div>';
@@ -1884,6 +1942,7 @@ document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
   if(VIEW==='ricevute' && TIPODOC==='ricevute' && !RIC) caricaRicevute();
   if(VIEW==='ricevute' && TIPODOC==='fatture' && !FATT) caricaFatture();
   if(VIEW==='ricevute' && TIPODOC==='passive' && !PASS) caricaPassive();
+  if(VIEW==='ricevute' && TIPODOC==='booking' && !BOOK) caricaBooking();
   if(VIEW==='operativo' && !DATI) carica();
 });
 
