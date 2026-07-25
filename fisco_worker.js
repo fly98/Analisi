@@ -2563,18 +2563,6 @@ export default {
       }
 
       // fatture ricevute (passive) dal cassetto, via DataCash
-      if (url.pathname === '/debug2') {
-        const idf = url.searchParams.get('id');
-        const cred = credenziali(env);
-        const r = await fetch(`${FE_BASE}/detailInvoices/${idf}/`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Datacash-Key': env.DATACASH_KEY },
-          body: JSON.stringify({ ade_credentials_encrypted: cred }),
-        });
-        const d = await r.json();
-        return json({ status: r.status, denom: d.denominazioneEmittente, tipo: typeof d, keys: Object.keys(d).slice(0,5) });
-      }
-
       if (url.pathname === '/pulisciForn' && request.method === 'POST') {
         if (!env.FISCO_KV) return json({ ok: false });
         let cur = null, tolte = 0;
@@ -2663,7 +2651,7 @@ export default {
                   body: JSON.stringify({ ade_credentials_encrypted: cred }),
                 });
                 const d = await r.json();
-                nome = (
+                const nome = (
                   d.denominazioneEmittente ||
                   `${d.nomeEmittente || ''} ${d.cognomeEmittente || ''}`.trim()
                 ).trim();
