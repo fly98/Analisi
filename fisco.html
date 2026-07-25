@@ -648,7 +648,7 @@ function ricaricaVista(){
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v83 ';
+  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v84';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -1604,16 +1604,24 @@ async function caricaPassive(){
   }
 }
 
+let PASS_Q = '';
 function renderPassive(){
   if(!PASS) return;
-  const f = PASS.fatture || [];
+  let f = PASS.fatture || [];
+  if(PASS_Q){
+    const t = PASS_Q.toLowerCase();
+    f = f.filter(x => [x.fornitore, x.piva, x.numero, x.data].join(' ').toLowerCase().includes(t));
+  }
   $('#kpis-ric').innerHTML = `
     <div class="kpi"><b>${f.length}</b><span>Fatture ricevute</span></div>
     <div class="kpi"><b>${Math.round(PASS.imponibile||0).toLocaleString('it-IT')} €</b><span>Imponibile</span></div>
-    <div class="kpi ok"><b>${Math.round(PASS.ivaDetraibile||0).toLocaleString('it-IT')} €</b><span>IVA a credito</span></div>
-    <div class="kpi"><b>${Math.round(PASS.totale||0).toLocaleString('it-IT')} €</b><span>Totale</span></div>`;
+    <div class="kpi ok"><b>${Math.round((f.reduce((s,x)=>s+x.imposta,0))||0).toLocaleString('it-IT')} €</b><span>IVA a credito</span></div>
+    <div class="kpi"><b>${Math.round((f.reduce((s,x)=>s+x.totale,0))||0).toLocaleString('it-IT')} €</b><span>Totale</span></div>`;
 
-  $('#lista-ric').innerHTML = f.length ? `<table class="tab-ric">
+  $('#lista-ric').innerHTML = `
+    <input id="pass-cerca" value="${PASS_Q.replace(/"/g,'&quot;')}" placeholder="Filtra per fornitore, partita IVA o numero…"
+      style="width:100%;padding:10px;border:1px solid var(--line);border-radius:9px;font:inherit;font-size:14px;margin-bottom:10px">
+    ` + (f.length ? `<table class="tab-ric">
     <tr><th>Data</th><th>Fornitore</th><th style="text-align:right">Imponibile</th><th style="text-align:right">IVA</th><th style="text-align:right">Totale</th></tr>
     ${f.map(x=>`<tr>
       <td>${x.data ? x.data.slice(0,10) : ''}</td>
@@ -1622,7 +1630,13 @@ function renderPassive(){
       <td class="num">${eur(x.imposta)}</td>
       <td class="num">${eur(x.totale)}</td>
     </tr>`).join('')}
-    </table>` : '<div class="empty">Nessuna fattura ricevuta nel periodo.</div>';
+    </table>` : '<div class="empty">Nessuna fattura ricevuta trovata.</div>');
+
+  const c = document.getElementById('pass-cerca');
+  if(c){
+    c.oninput = ()=>{ PASS_Q = c.value.trim(); renderPassive();
+      const cc = document.getElementById('pass-cerca'); if(cc){ cc.focus(); cc.setSelectionRange(cc.value.length,cc.value.length); } };
+  }
 }
 
 async function caricaFatture(){
