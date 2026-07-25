@@ -2563,6 +2563,17 @@ export default {
       }
 
       // fatture ricevute (passive) dal cassetto, via DataCash
+      if (url.pathname === '/pulisciForn' && request.method === 'POST') {
+        if (!env.FISCO_KV) return json({ ok: false });
+        let cur = null, tolte = 0;
+        do {
+          const l = await env.FISCO_KV.list({ prefix: 'fisco:forn:', cursor: cur });
+          for (const k of l.keys) { await env.FISCO_KV.delete(k.name); tolte++; }
+          cur = l.list_complete ? null : l.cursor;
+        } while (cur);
+        return json({ ok: true, tolte });
+      }
+
       if (url.pathname === '/passive') {
         const cred = credenziali(env);
         const blocchi = [];
