@@ -336,9 +336,11 @@ async function fetchPrenotazioni(env, dal, al) {
         bambini: b.children || 0,
         camere,
         totale: totale / 100,
-        cityTax: cityTax / 100,
-        attesoCents: totale - cityTax,
-        atteso: (totale - cityTax) / 100,
+        // Airbnb incassa e versa la tassa di soggiorno per conto nostro:
+        // su questi canali certifichiamo l'intero importo, senza scorporarla
+        cityTax: /airbnb/i.test(b.source || '') ? 0 : cityTax / 100,
+        attesoCents: /airbnb/i.test(b.source || '') ? totale : totale - cityTax,
+        atteso: (/airbnb/i.test(b.source || '') ? totale : totale - cityTax) / 100,
         // varianti usate solo dal motore di abbinamento:
         // la tassa puo' essere stata calcolata su un numero di persone
         // diverso da quello registrato in Amenitiz
