@@ -2576,6 +2576,57 @@ export default {
         return json({ ok: true, tolte });
       }
 
+      if (url.pathname === '/pagamentiBooking') {
+        // Booking versa ogni venerdi i soggiorni con checkout entro il giovedi
+        // precedente. Importo = soggiorno senza tassa (la tassa la incassa il
+        // gestore dai clienti). Divido per struttura: G/M/R/V/A = InternoUno,
+        // camere 1-5 = Deluxe.
+        const pren = await fetchPrenotazioni(env, dal, addGiorni(al, 40));
+        const booking = pren.filter((p) => /booking/i.test(p.canale || ''));
+
+        const DELUXE = new Set(['Uno', 'Due', 'Tre', 'Quattro', 'Cinque']);
+        const struttura = (p) =>
+          (p.camere || []).some((c) => DELUXE.has(c)) ? 'deluxe' : 'campaldino';
+
+        // il venerdi di pagamento per un dato checkout: il primo venerdi
+        // successivo al giovedi che chiude quella prenotazione
+        const venerdiPagamento = (checkout) => {
+          const d = new Date(checkout + 'T12:00:00');
+          // porto al giovedi >= checkout
+          while (d.getDay() !== 4) d.setDate(d.getDate() + 1);
+          // il venerdi dopo quel giovedi
+          d.setDate(d.getDate() + 1);
+          return giorno(d);
+        };
+
+        const settimane = {};
+        for (const p of booking) {
+          const v = venerdiPagamento(p.checkout);
+          if (!settimane[v]) settimane[v] = { venerdi: v, campaldino: 0, deluxe: 0, n: 0, pren: [] };
+          const s = settimane[v];
+          s[struttura(p)] += p.atteso;
+          s.n++;
+          s.pren.push({ nome: p.nome, checkout: p.checkout, importo: p.atteso, struttura: struttura(p) });
+        }
+
+        const oggi = giorno(new Date());
+        const lista = Object.values(settimane)
+          .map((s) => ({
+            ...s,
+            campaldino: Math.round(s.campaldino * 100) / 100,
+            deluxe: Math.round(s.deluxe * 100) / 100,
+            totale: Math.round((s.campaldino + s.deluxe) * 100) / 100,
+            futuro: s.venerdi >= oggi,
+          }))
+          .sort((a, b) => (a.venerdi < b.venerdi ? 1 : -1));
+
+        // il prossimo pagamento atteso: il primo venerdi >= oggi
+        const prossimo = lista.filter((s) => s.futuro).sort((a, b) => (a.venerdi < b.venerdi ? -1 : 1))[0] || null;
+        const passati = lista.filter((s) => !s.futuro);
+
+        return json({ ok: true, periodo: { dal, al }, prossimo, passati });
+      }
+
       if (url.pathname === '/passive') {
         const cred = credenziali(env);
         const blocchi = [];
@@ -2906,7 +2957,7 @@ export default {
     return json(
       {
         error: 'endpoint sconosciuto',
-        disponibili: ['/health', '/infouser', '/dco', '/prenotazioni', '/riconcilia', '/elenco', '/stato', '/emetti', '/annulla', '/condividi', '/invia', '/rinnova', '/proposte', '/orfane', '/duplicati', '/automatico', '/promemoria', '/pagamenti', '/clienti', '/cercaPiva', '/esclusioni', '/fattura', '/numeroFattura', '/fatture', '/passive', '/anteprimaFattura', '/notaCredito', '/condividiFattura', '/f/{token}', '/inviaMail', '/emettiLibera', '/r/{token}'],
+        disponibili: ['/health', '/infouser', '/dco', '/prenotazioni', '/riconcilia', '/elenco', '/stato', '/emetti', '/annulla', '/condividi', '/invia', '/rinnova', '/proposte', '/orfane', '/duplicati', '/automatico', '/promemoria', '/pagamenti', '/clienti', '/cercaPiva', '/esclusioni', '/fattura', '/numeroFattura', '/fatture', '/passive', '/pagamentiBooking', '/anteprimaFattura', '/notaCredito', '/condividiFattura', '/f/{token}', '/inviaMail', '/emettiLibera', '/r/{token}'],
       },
       404
     );
