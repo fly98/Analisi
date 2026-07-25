@@ -1619,6 +1619,7 @@ async function caricaBooking(){
 function rigaSett(s, evidenzia){
   const dv = new Date(s.venerdi+'T12:00:00');
   const gg = String(dv.getDate()).padStart(2,'0')+'/'+String(dv.getMonth()+1).padStart(2,'0');
+  const cell = 'text-align:right;padding:6px 6px';
   return `<div style="${evidenzia
     ? 'background:linear-gradient(135deg,var(--ok-bg),#fff);border:2px solid var(--ok);border-radius:14px;padding:16px;margin-bottom:16px'
     : 'border:1px solid var(--line);border-radius:11px;padding:13px;margin-bottom:9px'}">
@@ -1626,20 +1627,39 @@ function rigaSett(s, evidenzia){
       <div>
         ${evidenzia ? '<div style="font-size:11px;letter-spacing:.6px;text-transform:uppercase;color:var(--ok);font-weight:700">Prossimo pagamento</div>' : ''}
         <div style="font-weight:${evidenzia?700:600};font-size:${evidenzia?17:14.5}px">Venerdì ${gg}</div>
-        <div style="font-size:12px;color:var(--muted)">${s.n} prenotazioni · checkout entro giovedì</div>
+        <div style="font-size:12px;color:var(--muted)">checkout entro giovedì</div>
       </div>
-      <div style="font-family:Georgia,serif;font-size:${evidenzia?24:18}px;font-weight:700">${eur(s.totale)}</div>
-    </div>
-    <div style="display:flex;gap:8px;margin-top:11px">
-      <div style="flex:1;background:#fff;border:1px solid var(--line);border-radius:9px;padding:8px 10px">
-        <div style="font-size:11px;color:var(--muted)">InternoUno</div>
-        <div style="font-weight:650;font-size:14.5px">${eur(s.campaldino)}</div>
-      </div>
-      <div style="flex:1;background:#fff;border:1px solid var(--line);border-radius:9px;padding:8px 10px">
-        <div style="font-size:11px;color:var(--muted)">Deluxe</div>
-        <div style="font-weight:650;font-size:14.5px">${eur(s.deluxe)}</div>
+      <div style="text-align:right">
+        <div style="font-family:Georgia,serif;font-size:${evidenzia?24:18}px;font-weight:700">${eur(s.totaleGenerale)}</div>
+        <div style="font-size:11px;color:var(--muted)">Booking ${eur(s.totale)}</div>
       </div>
     </div>
+    <table style="width:100%;margin-top:11px;border-collapse:collapse;font-size:13px">
+      <tr style="font-size:10px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)">
+        <th style="text-align:left;padding:4px 6px;font-weight:700"></th>
+        <th style="${cell};font-weight:700">InternoUno</th>
+        <th style="${cell};font-weight:700">Deluxe</th>
+        <th style="${cell};font-weight:700">Totale</th>
+      </tr>
+      <tr style="border-top:1px solid var(--line)">
+        <td style="padding:6px 6px;color:var(--muted)">Booking <span style="font-size:11px">(${s.n})</span></td>
+        <td style="${cell}">${eur(s.campaldino)}</td>
+        <td style="${cell}">${eur(s.deluxe)}</td>
+        <td style="${cell};font-weight:650">${eur(s.totale)}</td>
+      </tr>
+      <tr>
+        <td style="padding:6px 6px;color:var(--muted)">Altri canali <span style="font-size:11px">(${s.altriN})</span></td>
+        <td style="${cell}">${eur(s.altriCampaldino)}</td>
+        <td style="${cell}">${eur(s.altriDeluxe)}</td>
+        <td style="${cell};font-weight:650">${eur(s.altriTotale)}</td>
+      </tr>
+      <tr style="border-top:2px solid var(--ink)">
+        <td style="padding:7px 6px;font-weight:700">Totale</td>
+        <td style="${cell};font-weight:700">${eur(s.campaldino+s.altriCampaldino)}</td>
+        <td style="${cell};font-weight:700">${eur(s.deluxe+s.altriDeluxe)}</td>
+        <td style="${cell};font-weight:700">${eur(s.totaleGenerale)}</td>
+      </tr>
+    </table>
   </div>`;
 }
 
