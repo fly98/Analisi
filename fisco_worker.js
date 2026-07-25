@@ -2615,6 +2615,7 @@ export default {
             viste.add(f.idFattura);
             const imp = parseFloat(String(f.imponibile || '0').replace(/[+]/g, '').replace(',', '.'));
             const iva = parseFloat(String(f.imposta || '0').replace(/[+]/g, '').replace(',', '.'));
+            const isNota = /TD04/i.test(f.tipoDocumento || '') || (imp < 0);
             grezze.push({
               id: f.idFattura,
               numero: f.numeroFattura,
@@ -2622,6 +2623,7 @@ export default {
               imponibile: Math.round(imp * 100) / 100,
               imposta: Math.round(iva * 100) / 100,
               totale: Math.round((imp + iva) * 100) / 100,
+              nota: isNota,
             });
           }
 
