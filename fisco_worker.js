@@ -2615,7 +2615,9 @@ export default {
           s.n++;
         }
         for (const p of altri) {
-          const v = venerdiPagamento(p.checkout);
+          // gli altri canali (Airbnb, Expedia...) pagano al check-in,
+          // quindi li raggruppo sulla settimana di arrivo
+          const v = venerdiPagamento(p.checkin);
           if (!settimane[v]) settimane[v] = vuota(v);
           const s = settimane[v];
           s[struttura(p) === 'deluxe' ? 'altriDeluxe' : 'altriCampaldino'] += p.atteso;
