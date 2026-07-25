@@ -2619,9 +2619,16 @@ export default {
         const fatture = await Promise.all(
           grezze.map(async (f) => {
             const chiave = `fisco:forn:${f.id}`;
-            // se l'ho gia' vista, la prendo dalla cache: niente nuova chiamata
-            const cache = env.FISCO_KV ? await env.FISCO_KV.get(chiave, 'json') : null;
-            if (cache) return { ...f, fornitore: cache.nome, piva: cache.piva || '' };
+            // se l'ho gia' vista bene, la prendo dalla cache
+            let cache = null;
+            if (env.FISCO_KV) {
+              const raw = await env.FISCO_KV.get(chiave);
+              if (raw && raw[0] === '{') {
+                try { cache = JSON.parse(raw); } catch {}
+              }
+            }
+            if (cache && cache.nome && cache.nome !== 'Fornitore')
+              return { ...f, fornitore: cache.nome, piva: cache.piva || '' };
             {
               try {
                 const r = await fetch(`${FE_BASE}/detailInvoices/${f.id}/`, {
