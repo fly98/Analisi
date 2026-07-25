@@ -411,6 +411,7 @@ dialog::backdrop{background:rgba(10,25,45,.45)}
     <div class="seg" id="tipo-doc" style="margin-bottom:12px">
       <button data-t="ricevute" class="on">Ricevute</button>
       <button data-t="fatture">Fatture</button>
+      <button data-t="passive">Ricevute da fornitori</button>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;justify-content:center">
       <button class="act" id="ric-nuova">Nuova ricevuta</button>
@@ -639,15 +640,15 @@ $('#cal-ok').onclick  = ()=>{
 function ricaricaVista(){
   // cambiando periodo riparto senza filtri, altrimenti la lista sembra vuota
   FILTRO = 'tutte'; CANALE = 'tutti';
-  DATI = null; RIC = null; FATT = null;
-  if(VIEW === 'ricevute') { TIPODOC==='fatture' ? caricaFatture() : caricaRicevute(); }
+  DATI = null; RIC = null; FATT = null; PASS = null;
+  if(VIEW === 'ricevute') { TIPODOC==='fatture' ? caricaFatture() : TIPODOC==='passive' ? caricaPassive() : caricaRicevute(); }
   else carica();
 }
 
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v82';
+  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v83';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -1581,7 +1582,7 @@ window.annulla = async (id, idtrx) => {
 };
 
 /* ---------- registro ricevute ---------- */
-let RIC = null, FATT = null, TIPODOC = 'ricevute';
+let RIC = null, FATT = null, PASS = null, TIPODOC = 'ricevute';
 
 document.querySelectorAll('#tipo-doc button').forEach(b => b.onclick = ()=>{
   document.querySelectorAll('#tipo-doc button').forEach(x=>x.classList.remove('on'));
@@ -1589,8 +1590,40 @@ document.querySelectorAll('#tipo-doc button').forEach(b => b.onclick = ()=>{
   TIPODOC = b.dataset.t;
   $('#ric-nuova').style.display = TIPODOC==='ricevute' ? '' : 'none';
   if(TIPODOC==='fatture'){ FATT ? renderFatture() : caricaFatture(); }
+  else if(TIPODOC==='passive'){ PASS ? renderPassive() : caricaPassive(); }
   else { RIC ? renderRicevute() : caricaRicevute(); }
 });
+
+async function caricaPassive(){
+  $('#lista-ric').innerHTML = '<div class="loading">Carico le fatture ricevute…</div>';
+  try{
+    PASS = await api(`/passive?dal=${$('#dal').value}&al=${$('#al').value}`);
+    renderPassive();
+  }catch(e){
+    $('#lista-ric').innerHTML = `<div class="empty">Non riesco a caricare.<br><small>${e.message}</small></div>`;
+  }
+}
+
+function renderPassive(){
+  if(!PASS) return;
+  const f = PASS.fatture || [];
+  $('#kpis-ric').innerHTML = `
+    <div class="kpi"><b>${f.length}</b><span>Fatture ricevute</span></div>
+    <div class="kpi"><b>${Math.round(PASS.imponibile||0).toLocaleString('it-IT')} €</b><span>Imponibile</span></div>
+    <div class="kpi ok"><b>${Math.round(PASS.ivaDetraibile||0).toLocaleString('it-IT')} €</b><span>IVA a credito</span></div>
+    <div class="kpi"><b>${Math.round(PASS.totale||0).toLocaleString('it-IT')} €</b><span>Totale</span></div>`;
+
+  $('#lista-ric').innerHTML = f.length ? `<table class="tab-ric">
+    <tr><th>Data</th><th>Fornitore</th><th style="text-align:right">Imponibile</th><th style="text-align:right">IVA</th><th style="text-align:right">Totale</th></tr>
+    ${f.map(x=>`<tr>
+      <td>${x.data ? x.data.slice(0,10) : ''}</td>
+      <td>${(x.fornitore||x.piva||'—').slice(0,26)}</td>
+      <td class="num">${eur(x.imponibile)}</td>
+      <td class="num">${eur(x.imposta)}</td>
+      <td class="num">${eur(x.totale)}</td>
+    </tr>`).join('')}
+    </table>` : '<div class="empty">Nessuna fattura ricevuta nel periodo.</div>';
+}
 
 async function caricaFatture(){
   $('#lista-ric').innerHTML = '<div class="loading">Carico le fatture…</div>';
@@ -1823,6 +1856,7 @@ document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
   $('#v-ricevute').classList.toggle('hidden', VIEW!=='ricevute');
   if(VIEW==='ricevute' && TIPODOC==='ricevute' && !RIC) caricaRicevute();
   if(VIEW==='ricevute' && TIPODOC==='fatture' && !FATT) caricaFatture();
+  if(VIEW==='ricevute' && TIPODOC==='passive' && !PASS) caricaPassive();
   if(VIEW==='operativo' && !DATI) carica();
 });
 
