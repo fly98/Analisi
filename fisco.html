@@ -251,6 +251,16 @@ button.act:disabled{opacity:.5}
 .tab-ric th:nth-child(3),.tab-ric td:nth-child(3){width:16%;text-align:center}
 .tab-ric th:nth-child(4),.tab-ric td:nth-child(4){width:20%;text-align:right;white-space:nowrap}
 .tab-ric th:nth-child(5),.tab-ric td:nth-child(5){width:6%;text-align:center}
+.tab-pass{width:100%;table-layout:fixed;font-size:12.5px;border-collapse:collapse}
+.tab-pass th,.tab-pass td{padding:8px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tab-pass th:nth-child(1),.tab-pass td:nth-child(1){width:13%}
+.tab-pass th:nth-child(2),.tab-pass td:nth-child(2){width:37%;white-space:normal}
+.tab-pass th:nth-child(3),.tab-pass td:nth-child(3){width:17%;text-align:right}
+.tab-pass th:nth-child(4),.tab-pass td:nth-child(4){width:14%;text-align:right}
+.tab-pass th:nth-child(5),.tab-pass td:nth-child(5){width:19%;text-align:right}
+.tab-pass td{border-bottom:1px solid var(--line)}
+.tab-pass th{border-bottom:2px solid var(--line);font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);text-align:left}
+.tab-pass th:nth-child(3),.tab-pass th:nth-child(4),.tab-pass th:nth-child(5){text-align:right}
 .tab-ric .numdoc{font-size:11.5px;white-space:nowrap}
 .tab-ric .pill{font-size:10px;padding:2px 6px}
 .tab-ric .ann button{
@@ -648,7 +658,7 @@ function ricaricaVista(){
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v86';
+  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v87';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -1621,7 +1631,7 @@ function renderPassive(){
   $('#lista-ric').innerHTML = `
     <input id="pass-cerca" value="${PASS_Q.replace(/"/g,'&quot;')}" placeholder="Filtra per fornitore, partita IVA o numero…"
       style="width:100%;padding:10px;border:1px solid var(--line);border-radius:9px;font:inherit;font-size:14px;margin-bottom:10px">
-    ` + (f.length ? `<table class="tab-ric">
+    ` + (f.length ? `<table class="tab-pass">
     <tr><th>Data</th><th>Fornitore</th><th style="text-align:right">Imponibile</th><th style="text-align:right">IVA</th><th style="text-align:right">Totale</th></tr>
     ${f.map(x=>`<tr>
       <td>${x.data ? x.data.slice(0,10) : ''}</td>
