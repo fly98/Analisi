@@ -2597,24 +2597,46 @@ export default {
           })
         );
         const viste = new Set();
-        const fatture = [];
+        const grezze = [];
         for (const g of risposte)
           for (const f of g) {
             if (viste.has(f.idFattura)) continue;
             viste.add(f.idFattura);
             const imp = parseFloat(String(f.imponibile || '0').replace(/[+]/g, '').replace(',', '.'));
             const iva = parseFloat(String(f.imposta || '0').replace(/[+]/g, '').replace(',', '.'));
-            fatture.push({
+            grezze.push({
               id: f.idFattura,
               numero: f.numeroFattura,
               data: f.dataFattura,
-              fornitore: f.denominazioneCedente || f.denominazioneFornitore || '',
-              piva: f.pivaCedente || f.pivaFornitore || '',
               imponibile: Math.round(imp * 100) / 100,
               imposta: Math.round(iva * 100) / 100,
               totale: Math.round((imp + iva) * 100) / 100,
             });
           }
+
+        // il nome del fornitore sta solo nel dettaglio: lo recupero una volta
+        // e lo tengo in cache, cosi' le volte dopo e' immediato
+        const fatture = await Promise.all(
+          grezze.map(async (f) => {
+            const chiave = `fisco:forn:${f.id}`;
+            let nome = env.FISCO_KV ? await env.FISCO_KV.get(chiave) : null;
+            if (nome === null) {
+              try {
+                const r = await fetch(`${FE_BASE}/detailInvoices/${f.id}/`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json', 'Datacash-Key': env.DATACASH_KEY },
+                  body: JSON.stringify({ ade_credentials_encrypted: cred }),
+                });
+                const d = await r.json();
+                nome = (d.clienteFornitore || '').trim();
+                if (env.FISCO_KV) await env.FISCO_KV.put(chiave, nome);
+              } catch {
+                nome = '';
+              }
+            }
+            return { ...f, fornitore: nome };
+          })
+        );
         fatture.sort((a, b) => (a.data < b.data ? 1 : -1));
         return json({
           ok: true,
