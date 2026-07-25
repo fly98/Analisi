@@ -2563,20 +2563,6 @@ export default {
       }
 
       // fatture ricevute (passive) dal cassetto, via DataCash
-      if (url.pathname === '/debugPassiva') {
-        const idf = url.searchParams.get('id');
-        const r = await fetch(`${FE_BASE}/detailInvoices/${idf}/`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Datacash-Key': env.DATACASH_KEY },
-          body: JSON.stringify({ ade_credentials_encrypted: credenziali(env) }),
-        });
-        const d = await r.json();
-        const chiavi = Object.keys(d);
-        const emit = {};
-        for (const k of chiavi) if (/emitt/i.test(k) || /fornitore|cedente|cliente/i.test(k)) emit[k] = d[k];
-        return json({ tutteLeChiavi: chiavi, campiEmittente: emit });
-      }
-
       if (url.pathname === '/passive') {
         const cred = credenziali(env);
         const blocchi = [];
@@ -2638,7 +2624,10 @@ export default {
             if (env.FISCO_KV) {
               const raw = await env.FISCO_KV.get(chiave);
               if (raw && raw[0] === '{') {
-                try { cache = JSON.parse(raw); } catch {}
+                try {
+                  const c = JSON.parse(raw);
+                  if (c.nome && c.nome !== 'Fornitore') cache = c;
+                } catch {}
               }
             }
             if (cache && cache.nome && cache.nome !== 'Fornitore')
