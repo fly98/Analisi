@@ -1617,7 +1617,7 @@ async function caricaBooking(){
 }
 
 function rigaSett(s, evidenzia){
-  const dv = new Date(s.venerdi+'T12:00:00');
+  const dv = new Date(s.giovedi+'T12:00:00');
   const gg = String(dv.getDate()).padStart(2,'0')+'/'+String(dv.getMonth()+1).padStart(2,'0');
   const cell = 'text-align:right;padding:6px 6px';
   return `<div style="${evidenzia
@@ -1626,8 +1626,8 @@ function rigaSett(s, evidenzia){
     <div style="display:flex;justify-content:space-between;align-items:baseline">
       <div>
         ${evidenzia ? '<div style="font-size:11px;letter-spacing:.6px;text-transform:uppercase;color:var(--ok);font-weight:700">Prossimo pagamento</div>' : ''}
-        <div style="font-weight:${evidenzia?700:600};font-size:${evidenzia?17:14.5}px">Venerdì ${gg}</div>
-        <div style="font-size:12px;color:var(--muted)">checkout entro giovedì</div>
+        <div style="font-weight:${evidenzia?700:600};font-size:${evidenzia?17:14.5}px">Giovedì ${gg}</div>
+        <div style="font-size:12px;color:var(--muted)">checkout entro mercoledì · arriva venerdì</div>
       </div>
       <div style="text-align:right">
         <div style="font-family:Georgia,serif;font-size:${evidenzia?24:18}px;font-weight:700">${eur(s.totaleGenerale)}</div>
