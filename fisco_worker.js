@@ -2581,7 +2581,10 @@ export default {
         // che finisce il mercoledi. Importo = soggiorno senza tassa (la tassa la
         // incassa il gestore dai clienti). Struttura: G/M/R/V/A = InternoUno,
         // camere 1-5 = Deluxe.
-        const pren = await fetchPrenotazioni(env, dal, addGiorni(al, 40));
+        // arretro di 7 giorni: altrimenti la settimana piu' vecchia mostrata
+        // e' troncata (mancano i checkout precedenti a "dal" che appartengono
+        // alla stessa finestra di pagamento) e risulta sottostimata
+        const pren = await fetchPrenotazioni(env, addGiorni(dal, -7), addGiorni(al, 40));
         const booking = pren.filter((p) => /booking/i.test(p.canale || ''));
         // "altri" = tutto cio' che non e' Booking (Airbnb, Expedia, manual, ecc.)
         const altri = pren.filter((p) => !/booking/i.test(p.canale || ''));
@@ -2590,12 +2593,16 @@ export default {
         const struttura = (p) =>
           (p.camere || []).some((c) => DELUXE.has(c)) ? 'deluxe' : 'campaldino';
 
-        // il prossimo pagamento: il primo giovedi di invio >= oggi
-        // che termina quel giovedi stesso (verificato sui pagamenti reali:
-        // pagamento del 23/07 = checkout dal 16 al 22 luglio).
+        // Finestra Booking: checkout dal giovedi INCLUSO al mercoledi
+        // successivo; il pagamento parte il giovedi seguente e si vede in
+        // banca il venerdi. Verificato sui pagamenti reali: il pagamento del
+        // 23/07 raccoglie i checkout dal 16 al 22 luglio.
+        // Quindi il giovedi di pagamento e' il primo giovedi STRETTAMENTE
+        // successivo al checkout (un checkout di giovedi apre la settimana,
+        // non la chiude).
         const giovediPagamento = (data) => {
           const d = new Date(data + 'T12:00:00');
-          // porto al primo giovedi >= data
+          d.setDate(d.getDate() + 1);
           while (d.getDay() !== 4) d.setDate(d.getDate() + 1);
           return giorno(d);
         };
@@ -2625,6 +2632,9 @@ export default {
         const oggi = giorno(new Date());
         const r2 = (x) => Math.round(x * 100) / 100;
         const lista = Object.values(settimane)
+          // le settimane con giovedi < dal si appoggiano su checkout fuori
+          // periodo: le ho calcolate solo per completare la prima riga utile
+          .filter((s) => s.giovedi >= dal)
           .map((s) => ({
             giovedi: s.giovedi,
             n: s.n,
