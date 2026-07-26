@@ -477,9 +477,11 @@ export default {
     if (path === '/cfgflow' && request.method === 'POST') {
       try {
         const flowId = url.searchParams.get('flow_id')
-        const target = flowId
-          ? `${HA_URL}/api/config/config_entries/flow/${flowId}`
+        const kind = url.searchParams.get('type') === 'options' ? 'options' : 'flow'
+        const base = kind === 'options'
+          ? `${HA_URL}/api/config/config_entries/options/flow`
           : `${HA_URL}/api/config/config_entries/flow`
+        const target = flowId ? `${base}/${flowId}` : base
         const body = await request.text()
         const resp = await fetch(target, {
           method: 'POST',
@@ -488,6 +490,19 @@ export default {
         })
         const text = await resp.text()
         return new Response(text, { status: resp.status, headers: corsHeaders })
+      } catch(e) {
+        return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders })
+      }
+    }
+
+    // GET /svc[?domain=notify] - elenco servizi disponibili
+    if (path === '/svc') {
+      try {
+        const resp = await fetch(`${HA_URL}/api/services`, { headers: haHeaders })
+        let data = await resp.json()
+        const domain = url.searchParams.get('domain')
+        if (domain && Array.isArray(data)) data = data.filter(d => d.domain === domain)
+        return new Response(JSON.stringify(data), { headers: corsHeaders })
       } catch(e) {
         return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders })
       }
