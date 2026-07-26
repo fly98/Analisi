@@ -2590,34 +2590,32 @@ export default {
         const struttura = (p) =>
           (p.camere || []).some((c) => DELUXE.has(c)) ? 'deluxe' : 'campaldino';
 
-        // il venerdi di pagamento per un dato checkout: il primo venerdi
-        // successivo al giovedi che chiude quella prenotazione
-        const venerdiPagamento = (checkout) => {
-          const d = new Date(checkout + 'T12:00:00');
-          // porto al giovedi >= checkout
+        // Booking paga di giovedi i checkout della settimana venerdi->giovedi
+        // che termina quel giovedi stesso (verificato sui pagamenti reali:
+        // pagamento del 23/07 = checkout dal 16 al 22 luglio).
+        const giovediPagamento = (data) => {
+          const d = new Date(data + 'T12:00:00');
+          // porto al primo giovedi >= data
           while (d.getDay() !== 4) d.setDate(d.getDate() + 1);
-          // il venerdi dopo quel giovedi
-          d.setDate(d.getDate() + 1);
           return giorno(d);
         };
 
         const settimane = {};
         const vuota = (v) => ({
-          venerdi: v,
+          giovedi: v,
           campaldino: 0, deluxe: 0, n: 0,          // Booking
           altriCampaldino: 0, altriDeluxe: 0, altriN: 0,  // altri canali
         });
         for (const p of booking) {
-          const v = venerdiPagamento(p.checkout);
+          const v = giovediPagamento(p.checkout);
           if (!settimane[v]) settimane[v] = vuota(v);
           const s = settimane[v];
           s[struttura(p) === 'deluxe' ? 'deluxe' : 'campaldino'] += p.atteso;
           s.n++;
         }
         for (const p of altri) {
-          // gli altri canali (Airbnb, Expedia...) pagano al check-in,
-          // quindi li raggruppo sulla settimana di arrivo
-          const v = venerdiPagamento(p.checkin);
+          // gli altri canali pagano al check-in: raggruppo sull'arrivo
+          const v = giovediPagamento(p.checkin);
           if (!settimane[v]) settimane[v] = vuota(v);
           const s = settimane[v];
           s[struttura(p) === 'deluxe' ? 'altriDeluxe' : 'altriCampaldino'] += p.atteso;
@@ -2628,7 +2626,7 @@ export default {
         const r2 = (x) => Math.round(x * 100) / 100;
         const lista = Object.values(settimane)
           .map((s) => ({
-            venerdi: s.venerdi,
+            giovedi: s.giovedi,
             n: s.n,
             campaldino: r2(s.campaldino),
             deluxe: r2(s.deluxe),
@@ -2638,12 +2636,12 @@ export default {
             altriDeluxe: r2(s.altriDeluxe),
             altriTotale: r2(s.altriCampaldino + s.altriDeluxe),
             totaleGenerale: r2(s.campaldino + s.deluxe + s.altriCampaldino + s.altriDeluxe),
-            futuro: s.venerdi >= oggi,
+            futuro: s.giovedi >= oggi,
           }))
-          .sort((a, b) => (a.venerdi < b.venerdi ? 1 : -1));
+          .sort((a, b) => (a.giovedi < b.giovedi ? 1 : -1));
 
         // il prossimo pagamento atteso: il primo venerdi >= oggi
-        const prossimo = lista.filter((s) => s.futuro).sort((a, b) => (a.venerdi < b.venerdi ? -1 : 1))[0] || null;
+        const prossimo = lista.filter((s) => s.futuro).sort((a, b) => (a.giovedi < b.giovedi ? -1 : 1))[0] || null;
         const passati = lista.filter((s) => !s.futuro);
 
         return json({ ok: true, periodo: { dal, al }, prossimo, passati });
