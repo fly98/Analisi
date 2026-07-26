@@ -14,7 +14,7 @@ export default {
 
     const corsHeaders = {
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-API-Key',
       'Content-Type': 'application/json'
     }
@@ -464,6 +464,53 @@ export default {
           body: JSON.stringify({ entity_id, ...data })
         })
         return new Response(JSON.stringify({ ok: true, status: resp.status }), { headers: corsHeaders })
+      } catch(e) {
+        return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders })
+      }
+    }
+
+    // ── CONFIG FLOW (helper creati da config entry: template, threshold, ecc.) ──
+    // POST /cfgflow            body {handler:"template", show_advanced_options:true}  → avvia flusso
+    // POST /cfgflow?flow_id=X  body {...}                                             → step successivo
+    // GET  /cfgentries[?domain=template]                                              → elenco config entries
+    // DELETE /cfgentries?entry_id=X                                                   → rimuove una entry
+    if (path === '/cfgflow' && request.method === 'POST') {
+      try {
+        const flowId = url.searchParams.get('flow_id')
+        const target = flowId
+          ? `${HA_URL}/api/config/config_entries/flow/${flowId}`
+          : `${HA_URL}/api/config/config_entries/flow`
+        const body = await request.text()
+        const resp = await fetch(target, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${TOKEN}`, 'Content-Type': 'application/json' },
+          body: body
+        })
+        const text = await resp.text()
+        return new Response(text, { status: resp.status, headers: corsHeaders })
+      } catch(e) {
+        return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders })
+      }
+    }
+
+    if (path === '/cfgentries') {
+      try {
+        const entryId = url.searchParams.get('entry_id')
+        if (request.method === 'DELETE' && entryId) {
+          const resp = await fetch(`${HA_URL}/api/config/config_entries/entry/${entryId}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${TOKEN}` }
+          })
+          const text = await resp.text()
+          return new Response(text, { status: resp.status, headers: corsHeaders })
+        }
+        const resp = await fetch(`${HA_URL}/api/config/config_entries/entry`, {
+          headers: { 'Authorization': `Bearer ${TOKEN}` }
+        })
+        let data = await resp.json()
+        const domain = url.searchParams.get('domain')
+        if (domain && Array.isArray(data)) data = data.filter(e => e.domain === domain)
+        return new Response(JSON.stringify(data), { headers: corsHeaders })
       } catch(e) {
         return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders })
       }
