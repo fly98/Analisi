@@ -2577,9 +2577,9 @@ export default {
       }
 
       if (url.pathname === '/pagamentiBooking') {
-        // Booking versa ogni venerdi i soggiorni con checkout entro il giovedi
-        // precedente. Importo = soggiorno senza tassa (la tassa la incassa il
-        // gestore dai clienti). Divido per struttura: G/M/R/V/A = InternoUno,
+        // Booking invia il pagamento il giovedi, per i checkout della settimana
+        // che finisce il mercoledi. Importo = soggiorno senza tassa (la tassa la
+        // incassa il gestore dai clienti). Struttura: G/M/R/V/A = InternoUno,
         // camere 1-5 = Deluxe.
         const pren = await fetchPrenotazioni(env, dal, addGiorni(al, 40));
         const booking = pren.filter((p) => /booking/i.test(p.canale || ''));
@@ -2590,7 +2590,7 @@ export default {
         const struttura = (p) =>
           (p.camere || []).some((c) => DELUXE.has(c)) ? 'deluxe' : 'campaldino';
 
-        // Booking paga di giovedi i checkout della settimana venerdi->giovedi
+        // il prossimo pagamento: il primo giovedi di invio >= oggi
         // che termina quel giovedi stesso (verificato sui pagamenti reali:
         // pagamento del 23/07 = checkout dal 16 al 22 luglio).
         const giovediPagamento = (data) => {
@@ -2640,7 +2640,7 @@ export default {
           }))
           .sort((a, b) => (a.giovedi < b.giovedi ? 1 : -1));
 
-        // il prossimo pagamento atteso: il primo venerdi >= oggi
+        // il prossimo pagamento: il primo giovedi di invio >= oggi
         const prossimo = lista.filter((s) => s.futuro).sort((a, b) => (a.giovedi < b.giovedi ? -1 : 1))[0] || null;
         const passati = lista.filter((s) => !s.futuro);
 
