@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-07-26T11:09:07.797Z",
+  "timestamp": "2026-07-26T15:09:28.094Z",
   "total": 776,
   "lights": [
     {
@@ -161,8 +161,8 @@
     {
       "id": "light.ventola_cucina_light_a",
       "name": "Ventola Cucina Light A",
-      "state": "off",
-      "brightness": null
+      "state": "on",
+      "brightness": 86.7
     },
     {
       "id": "light.ventola_cucina_light_b",
@@ -411,7 +411,7 @@
     {
       "id": "switch.camera_da_letto_condizionatore_camera_dimmer",
       "name": "Condizionatore Camera Dimmer",
-      "state": "on"
+      "state": "off"
     },
     {
       "id": "switch.camera_da_letto_condizionatore_camera_silenzioso",
@@ -461,7 +461,7 @@
     {
       "id": "switch.echo_alessia_non_disturbare",
       "name": "Echo Alessia Non disturbare",
-      "state": "off"
+      "state": "unavailable"
     },
     {
       "id": "switch.camera_non_disturbare",
@@ -710,7 +710,7 @@
     {
       "id": "sensor.sun_next_noon",
       "name": "Sun Prossimo mezzogiorno",
-      "state": "2026-07-26T11:16:30+00:00",
+      "state": "2026-07-27T11:16:30+00:00",
       "unit": null
     },
     {
@@ -728,13 +728,13 @@
     {
       "id": "sensor.hub_2_tempsensor_temperatura",
       "name": "Hub 2 TempSensor Temperatura",
-      "state": "28.5",
+      "state": "28.9",
       "unit": "°C"
     },
     {
       "id": "sensor.hub_2_humisensor_umidita",
       "name": "Hub 2 HumiSensor Umidità",
-      "state": "65.0",
+      "state": "64.0",
       "unit": "%"
     },
     {
@@ -746,7 +746,7 @@
     {
       "id": "sensor.flypad_battery_level",
       "name": "FlyPad Battery Level",
-      "state": "70",
+      "state": "100",
       "unit": "%"
     },
     {
@@ -770,7 +770,7 @@
     {
       "id": "sensor.flypad_battery_state",
       "name": "FlyPad Battery State",
-      "state": "Not Charging",
+      "state": "Full",
       "unit": null
     },
     {
@@ -926,13 +926,13 @@
     {
       "id": "sensor.hue_motion_sensor_1_temperature",
       "name": "Hue motion sensor 1 Temperatura",
-      "state": "26.6",
+      "state": "27.3",
       "unit": "°C"
     },
     {
       "id": "sensor.hue_motion_sensor_1_illuminance",
       "name": "Hue motion sensor 1 Illuminamento",
-      "state": "4",
+      "state": "3",
       "unit": "lx"
     },
     {
@@ -962,7 +962,7 @@
     {
       "id": "sensor.hue_dimmer_switch_1_battery",
       "name": "Hue dimmer Alessia Batteria",
-      "state": "25",
+      "state": "15",
       "unit": "%"
     },
     {
@@ -974,13 +974,13 @@
     {
       "id": "sensor.cancello_ultima_attivita",
       "name": "Cancello Ultima attività",
-      "state": "2026-07-25T22:55:52+00:00",
+      "state": "2026-07-26T14:29:12+00:00",
       "unit": null
     },
     {
       "id": "sensor.cancello_ultimo_ding",
       "name": "Cancello Ultimo ding",
-      "state": "2026-07-25T22:55:52+00:00",
+      "state": "2026-07-26T14:29:12+00:00",
       "unit": null
     },
     {
@@ -1088,25 +1088,25 @@
     {
       "id": "sensor.sensore_di_presenza_cucina_light_level",
       "name": "Sensore di presenza cucina Light level",
-      "state": "10",
+      "state": "11",
       "unit": null
     },
     {
       "id": "sensor.hub_2_fb_temperatura",
       "name": "Hub 2 FB Temperatura",
-      "state": "28.5",
+      "state": "28.9",
       "unit": "°C"
     },
     {
       "id": "sensor.hub_2_fb_umidita",
       "name": "Hub 2 FB Umidità",
-      "state": "65",
+      "state": "64",
       "unit": "%"
     },
     {
       "id": "sensor.lavanderia_signal_level",
       "name": "lavanderia Signal level",
-      "state": "1",
+      "state": "2",
       "unit": null
     },
     {
@@ -1130,7 +1130,7 @@
     {
       "id": "sensor.camera_da_letto_condizionatore_camera_consumo_energetico_giornaliero",
       "name": "Condizionatore Camera Consumo energetico giornaliero",
-      "state": "2.02",
+      "state": "2.46",
       "unit": "kWh"
     },
     {
@@ -1238,19 +1238,19 @@
     {
       "id": "sensor.netatmo_casa_temperature",
       "name": "Casa Temperatura",
-      "state": "31.4",
+      "state": "33.2",
       "unit": "°C"
     },
     {
       "id": "sensor.netatmo_casa_pressure",
       "name": "Casa Pressione atmosferica",
-      "state": "1010.1",
+      "state": "1009.4",
       "unit": "mbar"
     },
     {
       "id": "sensor.netatmo_casa_humidity",
       "name": "Casa Umidità",
-      "state": "61.7",
+      "state": "59.6",
       "unit": "%"
     },
     {
@@ -1262,13 +1262,13 @@
     {
       "id": "sensor.netatmo_casa_rain_today",
       "name": "Casa Precipitazioni oggi",
-      "state": "0.0",
+      "state": "0.3",
       "unit": "mm"
     },
     {
       "id": "sensor.netatmo_casa_wind_strength",
       "name": "Casa Velocità del vento",
-      "state": "8.1",
+      "state": "7.4",
       "unit": "km/h"
     },
     {
@@ -1280,25 +1280,25 @@
     {
       "id": "sensor.netatmo_la_mia_abitazione_interno_temperature",
       "name": "Termometro Camera Temperatura",
-      "state": "26.3",
+      "state": "27.1",
       "unit": "°C"
     },
     {
       "id": "sensor.netatmo_la_mia_abitazione_interno_co2",
       "name": "Termometro Camera Anidride carbonica",
-      "state": "2095",
+      "state": "943",
       "unit": "ppm"
     },
     {
       "id": "sensor.netatmo_la_mia_abitazione_interno_pressure",
       "name": "Termometro Camera Pressione atmosferica",
-      "state": "1014.7",
+      "state": "1014.2",
       "unit": "mbar"
     },
     {
       "id": "sensor.netatmo_la_mia_abitazione_interno_noise",
       "name": "Termometro Camera Noise",
-      "state": "40",
+      "state": "44",
       "unit": "dB"
     },
     {
@@ -1310,13 +1310,13 @@
     {
       "id": "sensor.netatmo_la_mia_abitazione_interno_esterno_temperature",
       "name": "Termomentro Giardino Temperatura",
-      "state": "30.8",
+      "state": "35.2",
       "unit": "°C"
     },
     {
       "id": "sensor.netatmo_la_mia_abitazione_interno_esterno_humidity",
       "name": "Termomentro Giardino Umidità",
-      "state": "66",
+      "state": "56",
       "unit": "%"
     },
     {
@@ -1340,7 +1340,7 @@
     {
       "id": "sensor.echo_alessia_illuminamento",
       "name": "Echo Alessia Illuminamento",
-      "state": "11.0",
+      "state": "unavailable",
       "unit": "lx"
     },
     {
@@ -1772,7 +1772,7 @@
     {
       "id": "sensor.camera_cucina_info",
       "name": "Camera Cucina Info",
-      "state": "2026-07-26T11:04:31+00:00",
+      "state": "2026-07-26T15:04:32+00:00",
       "unit": null
     },
     {
@@ -1808,13 +1808,13 @@
     {
       "id": "sensor.cancello_info",
       "name": "Cancello Info",
-      "state": "2026-07-26T01:58:33+00:00",
+      "state": "2026-07-26T14:29:45+00:00",
       "unit": null
     },
     {
       "id": "sensor.cancello_wireless",
       "name": "Cancello Wireless",
-      "state": "-27",
+      "state": "-25",
       "unit": "dBm"
     },
     {
@@ -2059,20 +2059,20 @@
       "name": "Condizionatore Camera",
       "state": "off",
       "temp": 26,
-      "target": 26
+      "target": 25
     },
     {
       "id": "climate.wellis_spa_thermostat_1",
       "name": "Weelis Jupiter Spa",
       "state": "heat",
-      "temp": 32,
+      "temp": 32.5,
       "target": 20
     },
     {
       "id": "climate.salone",
       "name": "Termostato",
       "state": "off",
-      "temp": 27.8,
+      "temp": 28.2,
       "target": null
     }
   ],
