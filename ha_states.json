@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-07-27T00:38:32.902Z",
+  "timestamp": "2026-07-27T00:43:16.068Z",
   "total": 778,
   "lights": [
     {
@@ -311,7 +311,7 @@
     {
       "id": "switch.camera2",
       "name": "Camera2",
-      "state": "off"
+      "state": "on"
     },
     {
       "id": "switch.quadro_socket",
@@ -401,7 +401,7 @@
     {
       "id": "switch.camera_da_letto_condizionatore_camera_eco",
       "name": "Condizionatore Camera Eco",
-      "state": "off"
+      "state": "on"
     },
     {
       "id": "switch.camera_da_letto_condizionatore_camera_aria_fresca",
@@ -411,12 +411,12 @@
     {
       "id": "switch.camera_da_letto_condizionatore_camera_dimmer",
       "name": "Condizionatore Camera Dimmer",
-      "state": "on"
+      "state": "off"
     },
     {
       "id": "switch.camera_da_letto_condizionatore_camera_silenzioso",
       "name": "Condizionatore Camera Silenzioso",
-      "state": "off"
+      "state": "on"
     },
     {
       "id": "switch.camera_da_letto_condizionatore_camera_oscillazione_orizzontale",
@@ -728,13 +728,13 @@
     {
       "id": "sensor.hub_2_tempsensor_temperatura",
       "name": "Hub 2 TempSensor Temperatura",
-      "state": "28.6",
+      "state": "28.4",
       "unit": "°C"
     },
     {
       "id": "sensor.hub_2_humisensor_umidita",
       "name": "Hub 2 HumiSensor Umidità",
-      "state": "67.0",
+      "state": "66.0",
       "unit": "%"
     },
     {
@@ -1118,7 +1118,7 @@
     {
       "id": "sensor.camera_da_letto_condizionatore_camera_elettricita",
       "name": "Condizionatore Camera Elettricità",
-      "state": "0",
+      "state": "120",
       "unit": "mA"
     },
     {
@@ -1772,7 +1772,7 @@
     {
       "id": "sensor.camera_cucina_info",
       "name": "Camera Cucina Info",
-      "state": "2026-07-27T00:34:32+00:00",
+      "state": "2026-07-27T00:39:32+00:00",
       "unit": null
     },
     {
@@ -1838,7 +1838,7 @@
     {
       "id": "sensor.casa_range_extender_info_2",
       "name": "Casa Range Extender Info",
-      "state": "error",
+      "state": "ok",
       "unit": null
     },
     {
@@ -2048,7 +2048,7 @@
     {
       "id": "sensor.aria_camera",
       "name": "Aria Camera",
-      "state": "🌀 26° → 25°",
+      "state": "❄️ 26° → 25°",
       "unit": null
     }
   ],
@@ -2063,7 +2063,7 @@
     {
       "id": "climate.camera_da_letto_condizionatore_camera",
       "name": "Condizionatore Camera",
-      "state": "fan_only",
+      "state": "cool",
       "temp": 26,
       "target": 25
     },
