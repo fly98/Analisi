@@ -2857,6 +2857,17 @@ export default {
         });
       }
 
+      // diagnostica: restituisce l'XML realmente trasmesso al SDI,
+      // per confrontarlo con la copia di cortesia conservata in KV
+      if (url.pathname === '/xmlFattura') {
+        const id = url.searchParams.get('id');
+        if (!id) return json({ ok: false, error: 'id mancante' }, 400);
+        const buf = await scaricaFatturaXml(env, id);
+        return new Response(testoXml(buf), {
+          headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Access-Control-Allow-Origin': '*' },
+        });
+      }
+
       if (url.pathname === '/numeroFattura') {
         const anno = String(new Date().getFullYear()).slice(2);
         const { numero } = await prossimoNumeroFE(env, anno);
