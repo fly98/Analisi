@@ -1801,7 +1801,18 @@ async function datacashFE(env, path, payload) {
 async function prossimoNumeroFE(env, anno) {
   const chiave = `fisco:numeroFE:${anno}`;
   const attuale = parseInt((await env.FISCO_KV.get(chiave)) || '0', 10);
-  return { chiave, numero: attuale + 1 };
+  let n = attuale + 1;
+  // Salto i numeri gia' impegnati: quelli con una copia conservata (emessi) e
+  // quelli con un invio rimasto in sospeso, di cui non possiamo sapere se sia
+  // partito. Un buco nella numerazione e' innocuo, un doppione no.
+  for (let i = 0; i < 50; i++) {
+    const num = `${FE_SERIE} ${n}/${anno}`;
+    if (await env.FISCO_KV.get(`fisco:fatt:${num}`)) { n++; continue; }
+    const marc = await env.FISCO_KV.get(`fisco:fenum:${num}`, 'json');
+    if (marc && (marc.stato === 'inviata' || marc.stato === 'in corso')) { n++; continue; }
+    break;
+  }
+  return { chiave, numero: n };
 }
 
 async function confermaNumeroFE(env, chiave, numero) {
@@ -1949,26 +1960,12 @@ async function emettiFattura(env, dati) {
       );
     }
     if (gia && gia.stato === 'in corso') {
-      // non e' un vicolo cieco: vado a guardare nel cassetto se quel numero
-      // e' davvero uscito. Se non c'e', l'invio si e' interrotto prima di
-      // partire e il numero torna utilizzabile.
-      const uscito = await numeroNelCassetto(env, numeroDoc, gia.data);
-      if (uscito === true) {
-        await env.FISCO_KV.put(
-          `fisco:fenum:${numeroDoc}`,
-          JSON.stringify({ stato: 'inviata', data: gia.data, totale: gia.totale })
-        );
-        throw new Error(
-          `il numero ${numeroDoc} risulta gia' presente nel cassetto: usa un numero nuovo`
-        );
-      }
-      if (uscito === null) {
-        throw new Error(
-          `il numero ${numeroDoc} ha un invio in sospeso e il cassetto non risponde: riprova fra poco`
-        );
-      }
-      // uscito === false: sblocco e proseguo
-      await env.FISCO_KV.delete(`fisco:fenum:${numeroDoc}`);
+      // Il cassetto AdE ci mette giorni a mostrare le fatture appena inviate,
+      // quindi la sua assenza NON prova che il documento non sia partito.
+      // Meglio bruciare il numero: l'app ne propone gia' uno nuovo da sola.
+      throw new Error(
+        `il numero ${numeroDoc} ha un invio rimasto in sospeso del ${gia.data} e non e' possibile sapere se sia partito: usa il numero successivo, che l'app propone da sola`
+      );
     }
     // i numeri emessi prima che esistessero i marcatori si riconoscono
     // dalla copia di cortesia conservata
