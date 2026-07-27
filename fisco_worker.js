@@ -1799,10 +1799,12 @@ async function datacashFE(env, path, payload) {
   // invoiceXmlSeal }. In pratica alcune risposte li espongono al primo
   // livello. Normalizzo entrambe le forme, altrimenti errori e idSdi
   // finiscono ignorati e una trasmissione fallita passa per riuscita.
-  const piatto =
-    dati.fatture && !Array.isArray(dati.fatture) && typeof dati.fatture === 'object'
-      ? { ...dati, ...dati.fatture }
-      : dati;
+  const dettaglio = Array.isArray(dati.fatture)
+    ? dati.fatture[0] || {}
+    : dati.fatture && typeof dati.fatture === 'object'
+      ? dati.fatture
+      : null;
+  const piatto = dettaglio ? { ...dati, ...dettaglio } : dati;
   if (Array.isArray(piatto.errori) && piatto.errori.length) {
     const d = piatto.errori
       .map((e) => (typeof e === 'string' ? e : `${e.codice || ''} ${e.descrizione || e.messaggio || ''}`.trim()))
@@ -1907,8 +1909,10 @@ async function emettiFattura(env, dati) {
           valuta: 'EUR',
           numero: numeroDoc,
           tipoDocumento: dati.tipoDocumento || 'TD01',
-          // l'array finisce nell'XML con parentesi e apici: serve testo puro
-          causale: dati.causale ? String(dati.causale).slice(0, 200) : '',
+          // Testo puro, mai un array (uscirebbe con parentesi e apici) e mai
+          // stringa vuota: <Causale></Causale> fa scartare il file dal SDI
+          // con codice 00200. Se non c'e' causale, il campo non si manda.
+          ...(dati.causale ? { causale: String(dati.causale).slice(0, 200) } : {}),
         },
         elementiContabili,
         datiPagamento: [
