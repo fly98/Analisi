@@ -2609,15 +2609,33 @@ export default {
           if (!righeXml.length) {
             return json({ ok: false, error: 'XML della fattura non leggibile' }, 502);
           }
+          const ces = (blocchi(xml, 'CessionarioCommittente')[0] || '');
+          const sede = (blocchi(ces, 'Sede')[0] || '');
+          const clienteXml = {
+            denominazione: tagUno(ces, 'Denominazione'),
+            nome: tagUno(ces, 'Nome'),
+            cognome: tagUno(ces, 'Cognome'),
+            cf: tagUno(ces, 'CodiceFiscale'),
+            piva: tagUno(ces, 'IdCodice'),
+            indirizzo: tagUno(sede, 'Indirizzo'),
+            cap: tagUno(sede, 'CAP'),
+            comune: tagUno(sede, 'Comune'),
+            provincia: tagUno(sede, 'Provincia'),
+            nazione: tagUno(sede, 'Nazione') || 'IT',
+            codiceDestinatario: tagUno(blocchi(xml, 'DatiTrasmissione')[0] || '', 'CodiceDestinatario'),
+            pec: tagUno(blocchi(xml, 'DatiTrasmissione')[0] || '', 'PECDestinatario'),
+          };
           orig = {
             numero: tagUno(xml, 'Numero') || b.numero,
             data: tagUno(xml, 'Data'),
-            cliente: (orig && orig.cliente) || b.cliente,
+            // il destinatario dello storno deve essere quello che ha davvero
+            // ricevuto l'originale, non quello scritto nella copia locale
+            cliente: clienteXml,
             righe: righeXml,
             modalitaPagamento: (orig && orig.modalitaPagamento) || b.modalitaPagamento || 'MP05',
           };
-          if (!orig.cliente) {
-            return json({ ok: false, error: 'servono i dati del cliente per lo storno' }, 400);
+          if (!orig.cliente.denominazione && !orig.cliente.cognome) {
+            return json({ ok: false, error: 'cliente non leggibile dall\u2019XML' }, 502);
           }
         }
         if (!orig) return json({ ok: false, error: 'fattura non trovata fra quelle emesse da qui' }, 404);
