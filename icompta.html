@@ -894,7 +894,7 @@ select.form-input { height: 42px; }
 
     </div>
     <div style="padding:10px 16px 14px;text-align:center;border-top:1px solid var(--border);margin-top:4px">
-      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v2.0.6</span>
+      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v2.1.0</span>
     </div>
   </div>
 </div>
@@ -5239,6 +5239,64 @@ function import2UpdateStats() {
 
 // ── IMPORT ──────────────────────────────────────────────────────────────────
 var _import2Running = false;
+
+// ── REGOLE SPECIALI D'IMPORT: una riga genera movimenti aggiuntivi ───────────
+// Es. versamento fondo pensione Amundi su Fineco CC: oltre all'uscita, crea
+//  (a) trasferimento a Valore di carico  (b) riga sul conto Fondo Pensione.
+// Il tutto SENZA categoria e fuori dall'economico: e' uno spostamento di capitale.
+var IMPORT2_SPECIAL_RULES = [
+  {
+    match: function(m){ return /amundi\s+rata\s+500297353/i.test((m.desc||'') + ' ' + (m.key||'')); },
+    label: 'Versamento fondo pensione Amundi',
+    apply: async function(m, sourceAccId, sourceTxId){
+      var vcId = 'ACC-VALORE-CARICO';
+      var fpId = 'ACC-FONDO-PENSIONE';
+      var imp = Math.abs(m.importo);   // la riga Fineco e' negativa (uscita)
+      var out = [];
+      // (a) Trasferimento verso Valore di carico, collegato reciprocamente alla
+      //     riga Fineco tramite linkedTxId (come i trasferimenti normali).
+      var txVc = { id:null, date:m.dateISO, name:'Versamento fondo pensione', accountId:vcId,
+        status:'cleared', comment:'Amundi Core Pension \u2014 rata mensile', useSumOfSplits:true,
+        amount:null, linkedTxId: sourceTxId || null,
+        splits:[{amount: imp, categoryId:null, comment:null}] };
+      try {
+        var rv = await api('POST','/api/tx',{tx:txVc});
+        if (rv && rv.id) {
+          out.push(rv.id);
+          // aggiorno la riga Fineco perche' punti alla controparte (doppio legame)
+          if (sourceTxId) {
+            try {
+              var src = { id: sourceTxId, date:m.dateISO, name:m.key, accountId: sourceAccId,
+                status:'cleared', comment:(m.etich||m.desc), useSumOfSplits:true, amount:null,
+                linkedTxId: rv.id, ebRef: m.ebRef||null,
+                splits:[{amount:m.importo, categoryId:null, comment:null}] };
+              await api('POST','/api/tx',{tx:src});
+            } catch(e){}
+          }
+        }
+      } catch(e){}
+      // (b) Riga sul conto Fondo Pensione (aumenta il capitale versato nel fondo)
+      var txFp = { id:null, date:m.dateISO, name:'Versamento mensile', accountId:fpId,
+        status:'cleared', comment:'Amundi Core Pension \u2014 rata', useSumOfSplits:true,
+        amount:null, linkedTxId:null,
+        splits:[{amount: imp, categoryId:null, comment:null}] };
+      try { var rf = await api('POST','/api/tx',{tx:txFp}); if(rf&&rf.id) out.push(rf.id); } catch(e){}
+      return out;
+    }
+  }
+];
+
+async function import2ApplySpecial(m, sourceAccId, sourceTxId) {
+  for (var i=0;i<IMPORT2_SPECIAL_RULES.length;i++) {
+    var rule = IMPORT2_SPECIAL_RULES[i];
+    if (rule.match(m)) {
+      import2Log('Regola: ' + rule.label);
+      return await rule.apply(m, sourceAccId, sourceTxId);
+    }
+  }
+  return [];
+}
+
 async function import2DoImport() {
   if (_import2Running) return;
   var cfg = IMPORT2_CONFIGS[IMPORT2_STATE.accName];
@@ -5261,8 +5319,11 @@ async function import2DoImport() {
       status:'cleared', comment:(m.etich||m.desc), useSumOfSplits:true, amount:null, linkedTxId:null,
       ebRef: m.ebRef || null,
       splits:[{amount:m.importo, categoryId:m.catObj?m.catObj.id:null, comment:null}] };
-    try { var r = await api('POST','/api/tx',{tx:tx}); if(r&&r.id) txMainIds.push(r.id); else errs++; }
+    var mainId = null;
+    try { var r = await api('POST','/api/tx',{tx:tx}); if(r&&r.id){ txMainIds.push(r.id); mainId=r.id; } else errs++; }
     catch(e){ errs++; }
+    // Regole speciali (es. versamento fondo pensione -> valore di carico + conto fondo)
+    try { var extra = await import2ApplySpecial(m, accId, mainId); if(extra&&extra.length) txMainIds=txMainIds.concat(extra); } catch(e){}
   }
 
   // 2) TX aggregate sull'economico (righe con eco), segno opposto
