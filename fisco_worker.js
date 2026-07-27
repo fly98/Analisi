@@ -1794,10 +1794,17 @@ async function datacashFE(env, path, payload) {
   if (dati.errore) {
     throw new Error(`${dati.errore.codice || ''} ${dati.errore.descrizione || ''}`.trim());
   }
-  // errori al plurale: e' il campo che l'API usa davvero. Ignorarlo faceva
-  // passare per riuscite delle trasmissioni rifiutate.
-  if (Array.isArray(dati.errori) && dati.errori.length) {
-    const d = dati.errori
+  // La documentazione Telnet Data descrive la risposta di /sendInvoice/ con i
+  // campi annidati dentro "fatture": { nome, idSdi, esito, errori,
+  // invoiceXmlSeal }. In pratica alcune risposte li espongono al primo
+  // livello. Normalizzo entrambe le forme, altrimenti errori e idSdi
+  // finiscono ignorati e una trasmissione fallita passa per riuscita.
+  const piatto =
+    dati.fatture && !Array.isArray(dati.fatture) && typeof dati.fatture === 'object'
+      ? { ...dati, ...dati.fatture }
+      : dati;
+  if (Array.isArray(piatto.errori) && piatto.errori.length) {
+    const d = piatto.errori
       .map((e) => (typeof e === 'string' ? e : `${e.codice || ''} ${e.descrizione || e.messaggio || ''}`.trim()))
       .join('; ');
     throw new Error(d || 'documento rifiutato senza dettagli');
@@ -1805,7 +1812,8 @@ async function datacashFE(env, path, payload) {
   if (!res.ok) {
     throw new Error(`Fatture ${path} HTTP ${res.status}: ${testo.slice(0, 200)}`);
   }
-  return dati;
+  piatto.__grezza = testo.slice(0, 800);
+  return piatto;
 }
 
 // numerazione della serie FE, indipendente da quella usata su Aruba
@@ -2043,15 +2051,13 @@ async function emettiFattura(env, dati) {
   // partito o no.
   const idSdi = res && (res.idSdi || res.idsdi || res.id_sdi);
   if (!idSdi) {
-    await scriviRegistro('incerta', {
-      risposta: JSON.stringify(res || {}).slice(0, 500),
-    });
+    await scriviRegistro('incerta', { risposta: (res && res.__grezza) || JSON.stringify(res || {}).slice(0, 500) });
     if (!dati.prova) await confermaNumeroFE(env, chiave, Math.max(progressivo, numero));
     throw new Error(
       `${numeroDoc}: il fornitore ha risposto senza identificativo SdI, quindi non e' possibile confermare la trasmissione. Verifica sul portale dell'Agenzia prima di riemettere: il numero resta bloccato.`
     );
   }
-  await scriviRegistro('inviata', { idSdi, file: res && res.nome });
+  await scriviRegistro('inviata', { idSdi, file: res && res.nome, risposta: res && res.__grezza });
 
   // il numero si consuma solo se la fattura è stata davvero trasmessa
   if (!dati.prova) await confermaNumeroFE(env, chiave, Math.max(progressivo, numero));
