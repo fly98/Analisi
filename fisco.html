@@ -659,7 +659,7 @@ function ricaricaVista(){
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v89';
+  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v90';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -961,7 +961,10 @@ function dialogo(titolo, testo, corpo, okLabel){
       set('fc-piva',c.piva); set('fc-den',c.denominazione); set('fc-ind',c.indirizzo);
       set('fc-cap',c.cap); set('fc-com',c.comune); set('fc-pro',c.provincia);
       set('fc-sdi',c.codiceDestinatario); set('fc-pec',c.pec); set('fc-mail',c.email);
-      set('fc-num',bz.numero); set('fc-pag',bz.pagamento);
+      // il numero NON si ripristina dalla bozza: nel frattempo puo' essere
+      // stato consumato da un'altra fattura, e il documento verrebbe
+      // rifiutato. Resta quello fresco chiesto al Worker all'apertura.
+      set('fc-pag',bz.pagamento);
       for(const r of bz.righe || []) window.aggiungiRiga(r.descrizione, r.prezzo, r.aliquota, r.quantita);
       mostraCollegate();
       window.__bozza = null;
@@ -1149,7 +1152,15 @@ async function moduloFattura(id, bozza){
       CLIENTI = null; DATI = null; FATT = null; carica();
       inviaFattura(r.numero, p, cli);
     }
-  }catch(e){ toast('Non riuscita: '+e.message, true); }
+  }catch(e){
+    // un errore in emissione non puo' essere un messaggio che svanisce:
+    // resta finche' non viene letto e chiuso
+    if(sblocca) sblocca();
+    await dialogo('Fattura non emessa', String(e.message || e),
+      `<p style="font-size:13px;color:var(--muted);margin:0">
+         Nessun documento è stato trasmesso. La bozza è conservata: puoi correggere e riprovare.
+       </p>`, 'Ho capito');
+  }
   finally{ if(sblocca) sblocca(); }
 }
 
