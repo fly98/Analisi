@@ -3183,6 +3183,21 @@ export default {
 
       // confronta il registro locale col cassetto e marca cio' che risulta
       // effettivamente arrivato. Da lanciare il giorno dopo le emissioni.
+      // correzione manuale di un record del registro, per documenti gia'
+      // verificati sul portale dell'Agenzia
+      if (url.pathname === '/annotaRegistro' && request.method === 'POST') {
+        const b = await request.json();
+        const num = String(b.numero || '').trim();
+        if (!num) return json({ ok: false, error: 'numero mancante' }, 400);
+        const rec = (await env.FISCO_KV.get(`fisco:fenum:${num}`, 'json')) || {};
+        const agg = { ...rec };
+        if (b.idSdi) agg.idSdi = b.idSdi;
+        if (b.confermata !== undefined) agg.confermata = !!b.confermata;
+        if (b.nota) agg.nota = String(b.nota).slice(0, 200);
+        await env.FISCO_KV.put(`fisco:fenum:${num}`, JSON.stringify(agg));
+        return json({ ok: true, numero: num, record: agg });
+      }
+
       if (url.pathname === '/verificaConsegne') {
         const giorni = parseInt(url.searchParams.get('giorni') || '10', 10);
         return json({ ok: true, ...(await verificaConsegne(env, giorni)) });
