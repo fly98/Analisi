@@ -3106,6 +3106,7 @@ export default {
             const d = await env.FISCO_KV.get(k.name, 'json');
             if (!d) continue;
             if (d.data < dal || d.data > al) continue;
+            const reg = await env.FISCO_KV.get(`fisco:fenum:${d.numero}`, 'json');
             fatture.push({
               id: '',
               numero: d.numero,
@@ -3115,10 +3116,15 @@ export default {
               imponibile: (d.riepilogo || []).reduce((s, r) => s + r.imponibile, 0),
               imposta: (d.riepilogo || []).reduce((s, r) => s + r.imposta, 0),
               totale: d.totale,
-              stato: 'In elaborazione',
+              // Il cassetto e' lento di giorni: la sua assenza non significa
+              // "non trasmessa". Uso il registro, che conserva l'identificativo
+              // SdI restituito al momento dell'invio.
+              stato: reg && reg.idSdi ? 'Trasmessa' : 'Non confermata',
               consegna: '',
+              idSdi: (reg && reg.idSdi) || '',
               tipo: d.tipoDocumento === 'TD04' ? 'Nota di credito' : 'Fattura',
               confermata: false,
+              trasmessa: !!(reg && reg.idSdi),
             });
           }
         }
