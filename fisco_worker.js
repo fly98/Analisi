@@ -1923,6 +1923,13 @@ async function emettiFattura(env, dati) {
   if (!cliente.codiceDestinatario && !cliente.pec && cliente.cf && !cliente.piva) {
     cliente.codiceDestinatario = '0000000';
   }
+  // Cliente estero: il tracciato prevede sette X come codice destinatario.
+  // L'invio al SDI assolve anche la comunicazione delle operazioni
+  // transfrontaliere che una volta era l'esterometro.
+  const estero = String(cliente.nazione || 'IT').toUpperCase() !== 'IT';
+  if (estero && !cliente.codiceDestinatario && !cliente.pec) {
+    cliente.codiceDestinatario = 'XXXXXXX';
+  }
   if (!cliente.codiceDestinatario && !cliente.pec) {
     throw new Error('serve il codice destinatario oppure la PEC');
   }
@@ -1975,10 +1982,12 @@ async function emettiFattura(env, dati) {
         : { pec: cliente.pec }),
       indirizzoCompleto: {
         indirizzo: cliente.indirizzo || '',
-        cap: cliente.cap || '',
+        // per l'estero il CAP convenzionale e' 00000 e la provincia,
+        // che e' un dato italiano, non va indicata
+        cap: cliente.cap || (estero ? '00000' : ''),
         comune: cliente.comune || '',
-        provincia: cliente.provincia || '',
-        nazione: cliente.nazione || 'IT',
+        ...(estero || !cliente.provincia ? {} : { provincia: cliente.provincia }),
+        nazione: (cliente.nazione || 'IT').toUpperCase(),
       },
     },
     fiscalRegime: FE_REGIME,
