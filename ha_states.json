@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-07-27T01:01:13.906Z",
+  "timestamp": "2026-07-27T01:06:34.046Z",
   "total": 778,
   "lights": [
     {
@@ -962,7 +962,7 @@
     {
       "id": "sensor.hue_dimmer_switch_1_battery",
       "name": "Hue dimmer Alessia Batteria",
-      "state": "60",
+      "state": "72",
       "unit": "%"
     },
     {
@@ -1118,7 +1118,7 @@
     {
       "id": "sensor.camera_da_letto_condizionatore_camera_elettricita",
       "name": "Condizionatore Camera Elettricità",
-      "state": "720",
+      "state": "1720",
       "unit": "mA"
     },
     {
@@ -1772,7 +1772,7 @@
     {
       "id": "sensor.camera_cucina_info",
       "name": "Camera Cucina Info",
-      "state": "2026-07-27T00:59:32+00:00",
+      "state": "2026-07-27T01:04:32+00:00",
       "unit": null
     },
     {
