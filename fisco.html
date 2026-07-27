@@ -1773,21 +1773,30 @@ async function caricaFatture(){
 function renderFatture(){
   if(!FATT) return;
   const f = FATT.fatture || [];
+  const isNC = x => /credito/i.test(x.tipo || '');
   const nostre = f.filter(x=>/^FE /.test(x.numero||''));
+  const note = f.filter(isNC);
+  // il totale grezzo somma anche gli storni: il netto e' fatture meno note
+  const netto = f.reduce((s,x)=> s + (isNC(x) ? -Number(x.totale||0) : Number(x.totale||0)), 0);
   $('#kpis-ric').innerHTML = `
-    <div class="kpi ok"><b>${f.length}</b><span>Fatture</span></div>
-    <div class="kpi"><b>${nostre.length}</b><span>Serie FE</span></div>
+    <div class="kpi ok"><b>${f.length - note.length}</b><span>Fatture</span></div>
+    <div class="kpi ${note.length?'warn':''}"><b>${note.length}</b><span>Note credito</span></div>
     <div class="kpi ${f.filter(x=>x.confermata===false).length?'warn':''}"><b>${f.filter(x=>x.confermata===false).length}</b><span>In elaborazione</span></div>
-    <div class="kpi ok" style="display:flex;align-items:center;justify-content:center"><b>${Math.round(FATT.totale||0).toLocaleString('it-IT')} €</b></div>`;
+    <div class="kpi ok" style="display:flex;align-items:center;justify-content:center"><b>${Math.round(netto).toLocaleString('it-IT')} €</b></div>`;
+
+  const badge = x => isNC(x)
+    ? '<span style="display:inline-block;font-size:10px;font-weight:700;color:var(--warn);background:var(--warn-bg);padding:1px 6px;border-radius:5px;white-space:nowrap">NOTA CREDITO</span>'
+    : '<span style="display:inline-block;font-size:10px;font-weight:700;color:var(--muted);background:#eef1f5;padding:1px 6px;border-radius:5px;white-space:nowrap">FATTURA</span>';
 
   $('#lista-ric').innerHTML = f.length ? `<table class="tab-ric">
-    <tr><th>Data</th><th>Numero</th><th>Cliente</th><th style="text-align:right">Totale</th><th></th></tr>
+    <tr><th>Data</th><th>Numero</th><th>Tipo</th><th>Cliente</th><th style="text-align:right">Totale</th><th></th></tr>
     ${f.map(x=>`<tr>
       <td>${x.data ? x.data.slice(0,10) : ''}</td>
       <td>${/^FE /.test(x.numero||'') ? `<button class="numdoc" onclick="vediFattura('${x.numero}')">${x.numero}</button>` : `<span style="font-family:ui-monospace,Menlo,monospace;font-size:11.5px">${x.numero}</span>`}</td>
+      <td>${badge(x)}</td>
       <td>${(x.cliente||'').slice(0,24)}
         ${x.confermata===false ? '<div style="font-size:10.5px;color:var(--warn)">in elaborazione</div>' : ''}</td>
-      <td class="num">${eur(x.totale)}</td>
+      <td class="num" ${isNC(x) ? 'style="color:var(--warn)"' : ''}>${isNC(x) ? '\u2212' : ''}${eur(x.totale)}</td>
       <td class="ann">${/^FE /.test(x.numero||'') ? `<button title="Invia copia" style="color:var(--info)" onclick="inviaCopia('${x.numero}')">@</button>` : ''}</td>
     </tr>`).join('')}
     </table>` : '<div class="empty">Nessuna fattura nel periodo.</div>';
