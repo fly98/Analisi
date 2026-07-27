@@ -3029,6 +3029,19 @@ export default {
         });
       }
 
+      if (url.pathname === '/registro') {
+        const num = url.searchParams.get('numero');
+        if (num) {
+          return json({ ok: true, numero: num, record: await env.FISCO_KV.get(`fisco:fenum:${num}`, 'json') });
+        }
+        const el = await env.FISCO_KV.list({ prefix: 'fisco:fenum:' });
+        const out = [];
+        for (const k of el.keys) {
+          out.push({ numero: k.name.replace('fisco:fenum:', ''), ...(await env.FISCO_KV.get(k.name, 'json')) });
+        }
+        return json({ ok: true, registro: out });
+      }
+
       if (url.pathname === '/numeroFattura') {
         const anno = String(new Date().getFullYear()).slice(2);
         const { numero } = await prossimoNumeroFE(env, anno);
