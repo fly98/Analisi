@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-07-27T00:58:44.719Z",
+  "timestamp": "2026-07-27T00:58:50.695Z",
   "total": 778,
   "lights": [
     {
@@ -311,7 +311,7 @@
     {
       "id": "switch.camera2",
       "name": "Camera2",
-      "state": "on"
+      "state": "off"
     },
     {
       "id": "switch.quadro_socket",
@@ -1838,7 +1838,7 @@
     {
       "id": "sensor.casa_range_extender_info_2",
       "name": "Casa Range Extender Info",
-      "state": "ok",
+      "state": "error",
       "unit": null
     },
     {
