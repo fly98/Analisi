@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-07-27T00:58:13.859Z",
+  "timestamp": "2026-07-27T00:58:19.858Z",
   "total": 778,
   "lights": [
     {
@@ -1130,7 +1130,7 @@
     {
       "id": "sensor.camera_da_letto_condizionatore_camera_consumo_energetico_giornaliero",
       "name": "Condizionatore Camera Consumo energetico giornaliero",
-      "state": "0.1",
+      "state": "0.11",
       "unit": "kWh"
     },
     {
