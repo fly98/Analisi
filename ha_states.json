@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-07-27T01:06:34.046Z",
+  "timestamp": "2026-07-27T01:16:10.449Z",
   "total": 778,
   "lights": [
     {
@@ -416,7 +416,7 @@
     {
       "id": "switch.camera_da_letto_condizionatore_camera_silenzioso",
       "name": "Condizionatore Camera Silenzioso",
-      "state": "on"
+      "state": "off"
     },
     {
       "id": "switch.camera_da_letto_condizionatore_camera_oscillazione_orizzontale",
@@ -926,7 +926,7 @@
     {
       "id": "sensor.hue_motion_sensor_1_temperature",
       "name": "Hue motion sensor 1 Temperatura",
-      "state": "27.0",
+      "state": "26.9",
       "unit": "°C"
     },
     {
@@ -1118,7 +1118,7 @@
     {
       "id": "sensor.camera_da_letto_condizionatore_camera_elettricita",
       "name": "Condizionatore Camera Elettricità",
-      "state": "1720",
+      "state": "120",
       "unit": "mA"
     },
     {
@@ -1772,7 +1772,7 @@
     {
       "id": "sensor.camera_cucina_info",
       "name": "Camera Cucina Info",
-      "state": "2026-07-27T01:04:32+00:00",
+      "state": "2026-07-27T01:14:32+00:00",
       "unit": null
     },
     {
