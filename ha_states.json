@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-07-27T01:16:10.449Z",
+  "timestamp": "2026-07-27T01:16:38.293Z",
   "total": 778,
   "lights": [
     {
@@ -2048,7 +2048,7 @@
     {
       "id": "sensor.aria_camera",
       "name": "Aria Camera",
-      "state": "❄️ 26° → 25°",
+      "state": "🌀 26° → 25°",
       "unit": null
     }
   ],
@@ -2063,7 +2063,7 @@
     {
       "id": "climate.camera_da_letto_condizionatore_camera",
       "name": "Condizionatore Camera",
-      "state": "cool",
+      "state": "fan_only",
       "temp": 26,
       "target": 25
     },
