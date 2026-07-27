@@ -251,6 +251,14 @@ button.act:disabled{opacity:.5}
 .tab-ric th:nth-child(3),.tab-ric td:nth-child(3){width:16%;text-align:center}
 .tab-ric th:nth-child(4),.tab-ric td:nth-child(4){width:20%;text-align:right;white-space:nowrap}
 .tab-ric th:nth-child(5),.tab-ric td:nth-child(5){width:6%;text-align:center}
+.tab-fat{width:100%;table-layout:fixed;font-size:12.5px}
+.tab-fat th,.tab-fat td{padding:7px 4px;vertical-align:top}
+.tab-fat th:nth-child(1),.tab-fat td:nth-child(1){width:15%}
+.tab-fat th:nth-child(2),.tab-fat td:nth-child(2){width:15%}
+.tab-fat th:nth-child(3),.tab-fat td:nth-child(3){width:17%;text-align:center}
+.tab-fat th:nth-child(4),.tab-fat td:nth-child(4){width:28%}
+.tab-fat th:nth-child(5),.tab-fat td:nth-child(5){width:19%;text-align:right;white-space:nowrap}
+.tab-fat th:nth-child(6),.tab-fat td:nth-child(6){width:6%;text-align:center}
 .tab-pass{width:100%;table-layout:fixed;font-size:12.5px;border-collapse:collapse}
 .tab-pass th,.tab-pass td{padding:8px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tab-pass th:nth-child(1),.tab-pass td:nth-child(1){width:13%}
@@ -659,7 +667,7 @@ function ricaricaVista(){
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v91';
+  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v92';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -1799,7 +1807,7 @@ function renderFatture(){
     ? '<span style="display:inline-block;font-size:10px;font-weight:700;color:var(--warn);background:var(--warn-bg);padding:1px 6px;border-radius:5px;white-space:nowrap">NOTA CREDITO</span>'
     : '<span style="display:inline-block;font-size:10px;font-weight:700;color:var(--muted);background:#eef1f5;padding:1px 6px;border-radius:5px;white-space:nowrap">FATTURA</span>';
 
-  $('#lista-ric').innerHTML = f.length ? `<table class="tab-ric">
+  $('#lista-ric').innerHTML = f.length ? `<table class="tab-fat">
     <tr><th>Data</th><th>Numero</th><th>Tipo</th><th>Cliente</th><th style="text-align:right">Totale</th><th></th></tr>
     ${f.map(x=>`<tr>
       <td>${x.data ? x.data.slice(0,10) : ''}</td>
