@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-07-27T00:44:28.809Z",
+  "timestamp": "2026-07-27T00:46:58.751Z",
   "total": 778,
   "lights": [
     {
@@ -938,7 +938,7 @@
     {
       "id": "sensor.hue_motion_sensor_1_battery",
       "name": "Hue motion sensor 1 Batteria",
-      "state": "11",
+      "state": "5",
       "unit": "%"
     },
     {
@@ -1094,13 +1094,13 @@
     {
       "id": "sensor.hub_2_fb_temperatura",
       "name": "Hub 2 FB Temperatura",
-      "state": "28.6",
+      "state": "28.4",
       "unit": "°C"
     },
     {
       "id": "sensor.hub_2_fb_umidita",
       "name": "Hub 2 FB Umidità",
-      "state": "67",
+      "state": "66",
       "unit": "%"
     },
     {
@@ -1118,7 +1118,7 @@
     {
       "id": "sensor.camera_da_letto_condizionatore_camera_elettricita",
       "name": "Condizionatore Camera Elettricità",
-      "state": "120",
+      "state": "2720",
       "unit": "mA"
     },
     {
@@ -1772,7 +1772,7 @@
     {
       "id": "sensor.camera_cucina_info",
       "name": "Camera Cucina Info",
-      "state": "2026-07-27T00:39:32+00:00",
+      "state": "2026-07-27T00:44:32+00:00",
       "unit": null
     },
     {
