@@ -2650,10 +2650,23 @@ export default {
           modalitaPagamento: orig.modalitaPagamento,
         });
 
-        if (!b.prova && b.prenotazione) {
-          await scriviStato(env, b.prenotazione, null);
+        // Libero da solo ogni prenotazione agganciata alla fattura stornata:
+        // prima dipendeva dal fatto che il chiamante passasse l'id, e bastava
+        // dimenticarlo per lasciare soggiorni legati a un documento annullato.
+        let liberate = [];
+        if (!b.prova) {
+          const indice = await leggiIndice(env);
+          const bersaglio = String(orig.numero || '').trim();
+          for (const [id, rec] of Object.entries(indice)) {
+            const num = String((rec && rec.numero) || '').trim();
+            if (num && num === bersaglio) liberate.push(id);
+          }
+          if (b.prenotazione && !liberate.includes(String(b.prenotazione))) {
+            liberate.push(String(b.prenotazione));
+          }
+          for (const id of liberate) await scriviStato(env, id, null);
         }
-        return json({ ok: true, ...res, stornata: orig.numero });
+        return json({ ok: true, ...res, stornata: orig.numero, liberate });
       }
 
       if (url.pathname === '/anteprimaFattura' && request.method === 'POST') {
