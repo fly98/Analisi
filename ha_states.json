@@ -1,6 +1,6 @@
 {
-  "timestamp": "2026-07-26T15:09:28.094Z",
-  "total": 776,
+  "timestamp": "2026-07-27T00:38:32.902Z",
+  "total": 778,
   "lights": [
     {
       "id": "light.giardino_grande",
@@ -29,26 +29,26 @@
     {
       "id": "light.tavolo_cucina",
       "name": "Tavolo Cucina",
-      "state": "on",
+      "state": "off",
       "brightness": null
     },
     {
       "id": "light.mobile_cucina",
       "name": "Mobile Cucina",
-      "state": "on",
+      "state": "off",
       "brightness": null
     },
     {
       "id": "light.giardino_patio_socket_1",
       "name": "Patio",
-      "state": "off",
+      "state": "unavailable",
       "brightness": null
     },
     {
       "id": "light.luce_tavolo",
       "name": "Luce tavolo",
-      "state": "off",
-      "brightness": null
+      "state": "on",
+      "brightness": 67
     },
     {
       "id": "light.lampada_tv",
@@ -65,50 +65,50 @@
     {
       "id": "light.piantana_alessia",
       "name": "Piantana Alessia",
-      "state": "off",
-      "brightness": null
+      "state": "on",
+      "brightness": 255
     },
     {
       "id": "light.luce_filippo",
       "name": "Luce Filippo",
-      "state": "on",
-      "brightness": 255
+      "state": "off",
+      "brightness": null
     },
     {
       "id": "light.luna",
       "name": "Luna",
-      "state": "on",
-      "brightness": 255
+      "state": "off",
+      "brightness": null
     },
     {
       "id": "light.luce_letto",
       "name": "Luce letto",
-      "state": "on",
-      "brightness": 255
+      "state": "off",
+      "brightness": null
     },
     {
       "id": "light.ikea3",
       "name": "Ikea3",
-      "state": "off",
+      "state": "unavailable",
       "brightness": null
     },
     {
       "id": "light.ikea1",
       "name": "Ikea1",
-      "state": "off",
+      "state": "unavailable",
       "brightness": null
     },
     {
       "id": "light.osram",
       "name": "Quadro",
-      "state": "off",
+      "state": "unavailable",
       "brightness": null
     },
     {
       "id": "light.scrivania",
       "name": "Scrivania",
-      "state": "on",
-      "brightness": 255
+      "state": "off",
+      "brightness": null
     },
     {
       "id": "light.muro",
@@ -119,38 +119,38 @@
     {
       "id": "light.ikea2",
       "name": "Ikea2",
-      "state": "off",
+      "state": "unavailable",
       "brightness": null
     },
     {
       "id": "light.lampada_divano",
       "name": "Lampada divano",
-      "state": "off",
-      "brightness": null
+      "state": "on",
+      "brightness": 51
     },
     {
       "id": "light.luce_mena",
       "name": "Luce Mena",
-      "state": "on",
-      "brightness": 255
+      "state": "off",
+      "brightness": null
     },
     {
       "id": "light.camera",
       "name": "Camera",
-      "state": "on",
-      "brightness": 255
+      "state": "off",
+      "brightness": null
     },
     {
       "id": "light.alessia",
       "name": "Alessia",
-      "state": "off",
-      "brightness": null
+      "state": "on",
+      "brightness": 255
     },
     {
       "id": "light.salone",
       "name": "Salone",
-      "state": "off",
-      "brightness": null
+      "state": "on",
+      "brightness": 59
     },
     {
       "id": "light.pranzo",
@@ -161,13 +161,13 @@
     {
       "id": "light.ventola_cucina_light_a",
       "name": "Ventola Cucina Light A",
-      "state": "on",
-      "brightness": 86.7
+      "state": "unavailable",
+      "brightness": null
     },
     {
       "id": "light.ventola_cucina_light_b",
       "name": "Ventola Cucina Light B",
-      "state": "off",
+      "state": "unavailable",
       "brightness": null
     },
     {
@@ -185,13 +185,13 @@
     {
       "id": "light.comodino",
       "name": "Comodino",
-      "state": "unavailable",
-      "brightness": null
+      "state": "on",
+      "brightness": 255
     },
     {
       "id": "light.lavanderia",
       "name": "lavanderia",
-      "state": "off",
+      "state": "unavailable",
       "brightness": null
     },
     {
@@ -236,12 +236,12 @@
     {
       "id": "switch.relay_switch_2pm_o1",
       "name": "Relay Switch 2PM O1",
-      "state": "on"
+      "state": "off"
     },
     {
       "id": "switch.relay_switch_2pm_o2",
       "name": "Relay Switch 2PM O2",
-      "state": "on"
+      "state": "off"
     },
     {
       "id": "switch.bot_30",
@@ -331,7 +331,7 @@
     {
       "id": "switch.niovapresa2_socket_1",
       "name": "Patio",
-      "state": "off"
+      "state": "unavailable"
     },
     {
       "id": "switch.salone_ventola_salone_suono",
@@ -361,17 +361,17 @@
     {
       "id": "switch.tavolo_cucina",
       "name": "Tavolo Cucina",
-      "state": "on"
+      "state": "off"
     },
     {
       "id": "switch.mobile_cucina",
       "name": "Mobile Cucina",
-      "state": "on"
+      "state": "off"
     },
     {
       "id": "switch.lavanderia_auto_update_enabled",
       "name": "lavanderia Auto-update enabled",
-      "state": "on"
+      "state": "unavailable"
     },
     {
       "id": "switch.camera_da_letto_condizionatore_camera_super",
@@ -391,12 +391,12 @@
     {
       "id": "switch.camera_da_letto_condizionatore_camera_ai",
       "name": "Condizionatore Camera AI",
-      "state": "on"
+      "state": "off"
     },
     {
       "id": "switch.camera_da_letto_condizionatore_camera_purificatore_dell_aria",
       "name": "Condizionatore Camera Purificatore dell'aria",
-      "state": "off"
+      "state": "on"
     },
     {
       "id": "switch.camera_da_letto_condizionatore_camera_eco",
@@ -411,7 +411,7 @@
     {
       "id": "switch.camera_da_letto_condizionatore_camera_dimmer",
       "name": "Condizionatore Camera Dimmer",
-      "state": "off"
+      "state": "on"
     },
     {
       "id": "switch.camera_da_letto_condizionatore_camera_silenzioso",
@@ -421,7 +421,7 @@
     {
       "id": "switch.camera_da_letto_condizionatore_camera_oscillazione_orizzontale",
       "name": "Condizionatore Camera Oscillazione orizzontale",
-      "state": "on"
+      "state": "off"
     },
     {
       "id": "switch.asciugatrice_wrinkle_prevent",
@@ -441,7 +441,7 @@
     {
       "id": "switch.salone_non_disturbare",
       "name": "Salone Non disturbare",
-      "state": "off"
+      "state": "on"
     },
     {
       "id": "switch.alexa_giardino_non_disturbare",
@@ -461,12 +461,12 @@
     {
       "id": "switch.echo_alessia_non_disturbare",
       "name": "Echo Alessia Non disturbare",
-      "state": "unavailable"
+      "state": "off"
     },
     {
       "id": "switch.camera_non_disturbare",
       "name": "Camera Non disturbare",
-      "state": "off"
+      "state": "on"
     },
     {
       "id": "switch.cucina_non_disturbare",
@@ -698,13 +698,13 @@
     {
       "id": "sensor.sun_next_dusk",
       "name": "Sun Prossimo crepuscolo",
-      "state": "2026-07-26T19:08:56+00:00",
+      "state": "2026-07-27T19:07:50+00:00",
       "unit": null
     },
     {
       "id": "sensor.sun_next_midnight",
       "name": "Sun Prossima mezzanotte",
-      "state": "2026-07-26T23:16:31+00:00",
+      "state": "2026-07-27T23:16:29+00:00",
       "unit": null
     },
     {
@@ -722,19 +722,19 @@
     {
       "id": "sensor.sun_next_setting",
       "name": "Sun Prossimo tramonto",
-      "state": "2026-07-26T18:36:26+00:00",
+      "state": "2026-07-27T18:35:26+00:00",
       "unit": null
     },
     {
       "id": "sensor.hub_2_tempsensor_temperatura",
       "name": "Hub 2 TempSensor Temperatura",
-      "state": "28.9",
+      "state": "28.6",
       "unit": "°C"
     },
     {
       "id": "sensor.hub_2_humisensor_umidita",
       "name": "Hub 2 HumiSensor Umidità",
-      "state": "64.0",
+      "state": "67.0",
       "unit": "%"
     },
     {
@@ -824,7 +824,7 @@
     {
       "id": "sensor.flyphoneair3_battery_level",
       "name": "FlyPhoneAir Battery Level",
-      "state": "95",
+      "state": "40",
       "unit": "%"
     },
     {
@@ -884,7 +884,7 @@
     {
       "id": "sensor.flyphoneair3_battery_state",
       "name": "FlyPhoneAir Battery State",
-      "state": "Charging",
+      "state": "Not Charging",
       "unit": null
     },
     {
@@ -926,13 +926,13 @@
     {
       "id": "sensor.hue_motion_sensor_1_temperature",
       "name": "Hue motion sensor 1 Temperatura",
-      "state": "27.3",
+      "state": "27.1",
       "unit": "°C"
     },
     {
       "id": "sensor.hue_motion_sensor_1_illuminance",
       "name": "Hue motion sensor 1 Illuminamento",
-      "state": "3",
+      "state": "0",
       "unit": "lx"
     },
     {
@@ -962,7 +962,7 @@
     {
       "id": "sensor.hue_dimmer_switch_1_battery",
       "name": "Hue dimmer Alessia Batteria",
-      "state": "15",
+      "state": "60",
       "unit": "%"
     },
     {
@@ -974,13 +974,13 @@
     {
       "id": "sensor.cancello_ultima_attivita",
       "name": "Cancello Ultima attività",
-      "state": "2026-07-26T14:29:12+00:00",
+      "state": "2026-07-26T17:30:56+00:00",
       "unit": null
     },
     {
       "id": "sensor.cancello_ultimo_ding",
       "name": "Cancello Ultimo ding",
-      "state": "2026-07-26T14:29:12+00:00",
+      "state": "2026-07-26T17:30:56+00:00",
       "unit": null
     },
     {
@@ -1010,61 +1010,61 @@
     {
       "id": "sensor.patio_energia_totale",
       "name": "Patio Energia totale",
-      "state": "0",
+      "state": "unavailable",
       "unit": "kWh"
     },
     {
       "id": "sensor.luci_scale_campaldino_energia_totale",
       "name": "Luci scale Campaldino  Energia totale",
-      "state": "0.24",
+      "state": "0.488",
       "unit": "kWh"
     },
     {
       "id": "sensor.tavolo_cucina_potenza",
       "name": "Tavolo Cucina Potenza",
-      "state": "34.9",
+      "state": "0",
       "unit": "W"
     },
     {
       "id": "sensor.mobile_cucina_potenza",
       "name": "Mobile Cucina Potenza",
-      "state": "46.2",
+      "state": "0",
       "unit": "W"
     },
     {
       "id": "sensor.tavolo_cucina_tensione",
       "name": "Tavolo Cucina Tensione",
-      "state": "229.1",
+      "state": "0",
       "unit": "V"
     },
     {
       "id": "sensor.mobile_cucina_tensione",
       "name": "Mobile Cucina Tensione",
-      "state": "229.1",
+      "state": "0",
       "unit": "V"
     },
     {
       "id": "sensor.tavolo_cucina_corrente",
       "name": "Tavolo Cucina Corrente",
-      "state": "171",
+      "state": "0",
       "unit": "mA"
     },
     {
       "id": "sensor.mobile_cucina_corrente",
       "name": "Mobile Cucina Corrente",
-      "state": "275",
+      "state": "0",
       "unit": "mA"
     },
     {
       "id": "sensor.tavolo_cucina_energia",
       "name": "Tavolo Cucina Energia",
-      "state": "0.0951833333333333",
+      "state": "0.0160166666666667",
       "unit": "kWh"
     },
     {
       "id": "sensor.mobile_cucina_energia",
       "name": "Mobile Cucina Energia",
-      "state": "0.137733333333333",
+      "state": "0.0198",
       "unit": "kWh"
     },
     {
@@ -1088,25 +1088,25 @@
     {
       "id": "sensor.sensore_di_presenza_cucina_light_level",
       "name": "Sensore di presenza cucina Light level",
-      "state": "11",
+      "state": "1",
       "unit": null
     },
     {
       "id": "sensor.hub_2_fb_temperatura",
       "name": "Hub 2 FB Temperatura",
-      "state": "28.9",
+      "state": "28.6",
       "unit": "°C"
     },
     {
       "id": "sensor.hub_2_fb_umidita",
       "name": "Hub 2 FB Umidità",
-      "state": "64",
+      "state": "67",
       "unit": "%"
     },
     {
       "id": "sensor.lavanderia_signal_level",
       "name": "lavanderia Signal level",
-      "state": "2",
+      "state": "unavailable",
       "unit": null
     },
     {
@@ -1130,7 +1130,7 @@
     {
       "id": "sensor.camera_da_letto_condizionatore_camera_consumo_energetico_giornaliero",
       "name": "Condizionatore Camera Consumo energetico giornaliero",
-      "state": "2.46",
+      "state": "0.1",
       "unit": "kWh"
     },
     {
@@ -1238,19 +1238,19 @@
     {
       "id": "sensor.netatmo_casa_temperature",
       "name": "Casa Temperatura",
-      "state": "33.2",
+      "state": "27.9",
       "unit": "°C"
     },
     {
       "id": "sensor.netatmo_casa_pressure",
       "name": "Casa Pressione atmosferica",
-      "state": "1009.4",
+      "state": "1011.7",
       "unit": "mbar"
     },
     {
       "id": "sensor.netatmo_casa_humidity",
       "name": "Casa Umidità",
-      "state": "59.6",
+      "state": "72.1",
       "unit": "%"
     },
     {
@@ -1262,13 +1262,13 @@
     {
       "id": "sensor.netatmo_casa_rain_today",
       "name": "Casa Precipitazioni oggi",
-      "state": "0.3",
+      "state": "0.1",
       "unit": "mm"
     },
     {
       "id": "sensor.netatmo_casa_wind_strength",
       "name": "Casa Velocità del vento",
-      "state": "7.4",
+      "state": "4.8",
       "unit": "km/h"
     },
     {
@@ -1280,43 +1280,43 @@
     {
       "id": "sensor.netatmo_la_mia_abitazione_interno_temperature",
       "name": "Termometro Camera Temperatura",
-      "state": "27.1",
+      "state": "27.3",
       "unit": "°C"
     },
     {
       "id": "sensor.netatmo_la_mia_abitazione_interno_co2",
       "name": "Termometro Camera Anidride carbonica",
-      "state": "943",
+      "state": "1398",
       "unit": "ppm"
     },
     {
       "id": "sensor.netatmo_la_mia_abitazione_interno_pressure",
       "name": "Termometro Camera Pressione atmosferica",
-      "state": "1014.2",
+      "state": "1015.9",
       "unit": "mbar"
     },
     {
       "id": "sensor.netatmo_la_mia_abitazione_interno_noise",
       "name": "Termometro Camera Noise",
-      "state": "44",
+      "state": "42",
       "unit": "dB"
     },
     {
       "id": "sensor.netatmo_la_mia_abitazione_interno_humidity",
       "name": "Termometro Camera Umidità",
-      "state": "75",
+      "state": "77",
       "unit": "%"
     },
     {
       "id": "sensor.netatmo_la_mia_abitazione_interno_esterno_temperature",
       "name": "Termomentro Giardino Temperatura",
-      "state": "35.2",
+      "state": "27.7",
       "unit": "°C"
     },
     {
       "id": "sensor.netatmo_la_mia_abitazione_interno_esterno_humidity",
       "name": "Termomentro Giardino Umidità",
-      "state": "56",
+      "state": "72",
       "unit": "%"
     },
     {
@@ -1340,7 +1340,7 @@
     {
       "id": "sensor.echo_alessia_illuminamento",
       "name": "Echo Alessia Illuminamento",
-      "state": "unavailable",
+      "state": "20.0",
       "unit": "lx"
     },
     {
@@ -1772,7 +1772,7 @@
     {
       "id": "sensor.camera_cucina_info",
       "name": "Camera Cucina Info",
-      "state": "2026-07-26T15:04:32+00:00",
+      "state": "2026-07-27T00:34:32+00:00",
       "unit": null
     },
     {
@@ -1808,7 +1808,7 @@
     {
       "id": "sensor.cancello_info",
       "name": "Cancello Info",
-      "state": "2026-07-26T14:29:45+00:00",
+      "state": "2026-07-26T23:49:12+00:00",
       "unit": null
     },
     {
@@ -1844,7 +1844,7 @@
     {
       "id": "sensor.casa_range_extender_battery_2",
       "name": "Casa Range Extender Battery",
-      "state": "0",
+      "state": "15",
       "unit": "%"
     },
     {
@@ -2044,6 +2044,12 @@
       "name": "Backup State",
       "state": "backed_up",
       "unit": null
+    },
+    {
+      "id": "sensor.aria_camera",
+      "name": "Aria Camera",
+      "state": "🌀 26° → 25°",
+      "unit": null
     }
   ],
   "climate": [
@@ -2057,7 +2063,7 @@
     {
       "id": "climate.camera_da_letto_condizionatore_camera",
       "name": "Condizionatore Camera",
-      "state": "off",
+      "state": "fan_only",
       "temp": 26,
       "target": 25
     },
@@ -2072,7 +2078,7 @@
       "id": "climate.salone",
       "name": "Termostato",
       "state": "off",
-      "temp": 28.2,
+      "temp": 28.1,
       "target": null
     }
   ],
