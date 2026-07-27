@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-07-27T00:57:30.846Z",
+  "timestamp": "2026-07-27T00:57:37.142Z",
   "total": 778,
   "lights": [
     {
@@ -401,7 +401,7 @@
     {
       "id": "switch.camera_da_letto_condizionatore_camera_eco",
       "name": "Condizionatore Camera Eco",
-      "state": "on"
+      "state": "off"
     },
     {
       "id": "switch.camera_da_letto_condizionatore_camera_aria_fresca",
@@ -416,12 +416,12 @@
     {
       "id": "switch.camera_da_letto_condizionatore_camera_silenzioso",
       "name": "Condizionatore Camera Silenzioso",
-      "state": "on"
+      "state": "off"
     },
     {
       "id": "switch.camera_da_letto_condizionatore_camera_oscillazione_orizzontale",
       "name": "Condizionatore Camera Oscillazione orizzontale",
-      "state": "off"
+      "state": "on"
     },
     {
       "id": "switch.asciugatrice_wrinkle_prevent",
