@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-07-27T00:46:58.751Z",
+  "timestamp": "2026-07-27T00:56:35.974Z",
   "total": 778,
   "lights": [
     {
@@ -411,7 +411,7 @@
     {
       "id": "switch.camera_da_letto_condizionatore_camera_dimmer",
       "name": "Condizionatore Camera Dimmer",
-      "state": "off"
+      "state": "on"
     },
     {
       "id": "switch.camera_da_letto_condizionatore_camera_silenzioso",
@@ -421,7 +421,7 @@
     {
       "id": "switch.camera_da_letto_condizionatore_camera_oscillazione_orizzontale",
       "name": "Condizionatore Camera Oscillazione orizzontale",
-      "state": "off"
+      "state": "on"
     },
     {
       "id": "switch.asciugatrice_wrinkle_prevent",
@@ -926,7 +926,7 @@
     {
       "id": "sensor.hue_motion_sensor_1_temperature",
       "name": "Hue motion sensor 1 Temperatura",
-      "state": "26.9",
+      "state": "27.1",
       "unit": "°C"
     },
     {
@@ -1118,7 +1118,7 @@
     {
       "id": "sensor.camera_da_letto_condizionatore_camera_elettricita",
       "name": "Condizionatore Camera Elettricità",
-      "state": "2720",
+      "state": "120",
       "unit": "mA"
     },
     {
@@ -1280,13 +1280,13 @@
     {
       "id": "sensor.netatmo_la_mia_abitazione_interno_temperature",
       "name": "Termometro Camera Temperatura",
-      "state": "27.3",
+      "state": "27.2",
       "unit": "°C"
     },
     {
       "id": "sensor.netatmo_la_mia_abitazione_interno_co2",
       "name": "Termometro Camera Anidride carbonica",
-      "state": "1398",
+      "state": "1479",
       "unit": "ppm"
     },
     {
@@ -1298,13 +1298,13 @@
     {
       "id": "sensor.netatmo_la_mia_abitazione_interno_noise",
       "name": "Termometro Camera Noise",
-      "state": "42",
+      "state": "43",
       "unit": "dB"
     },
     {
       "id": "sensor.netatmo_la_mia_abitazione_interno_humidity",
       "name": "Termometro Camera Umidità",
-      "state": "77",
+      "state": "75",
       "unit": "%"
     },
     {
@@ -1772,7 +1772,7 @@
     {
       "id": "sensor.camera_cucina_info",
       "name": "Camera Cucina Info",
-      "state": "2026-07-27T00:44:32+00:00",
+      "state": "2026-07-27T00:54:32+00:00",
       "unit": null
     },
     {
@@ -2078,7 +2078,7 @@
       "id": "climate.salone",
       "name": "Termostato",
       "state": "off",
-      "temp": 28.1,
+      "temp": 28,
       "target": null
     }
   ],
