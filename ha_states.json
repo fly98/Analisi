@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-07-27T00:59:15.133Z",
+  "timestamp": "2026-07-27T00:59:47.106Z",
   "total": 778,
   "lights": [
     {
@@ -1772,7 +1772,7 @@
     {
       "id": "sensor.camera_cucina_info",
       "name": "Camera Cucina Info",
-      "state": "2026-07-27T00:54:32+00:00",
+      "state": "2026-07-27T00:59:32+00:00",
       "unit": null
     },
     {
@@ -2048,7 +2048,7 @@
     {
       "id": "sensor.aria_camera",
       "name": "Aria Camera",
-      "state": "🌀 26° → 25°",
+      "state": "❄️ 26° → 25°",
       "unit": null
     }
   ],
@@ -2063,7 +2063,7 @@
     {
       "id": "climate.camera_da_letto_condizionatore_camera",
       "name": "Condizionatore Camera",
-      "state": "fan_only",
+      "state": "cool",
       "temp": 26,
       "target": 25
     },
