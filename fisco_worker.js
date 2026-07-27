@@ -1898,7 +1898,74 @@ async function emettiFattura(env, dati) {
     ],
   };
 
-  const res = await datacashFE(env, '/sendInvoice/', corpo);
+  // --- Paracadute prima di trasmettere --------------------------------
+  // 1) coerenza aritmetica: la somma di imponibili e imposta deve fare
+  //    esattamente il totale dichiarato. Senza questo controllo e' uscita
+  //    la FE 1/26, che dichiarava 200,00 ma sommava 218,00.
+  const calcolato =
+    Math.round(
+      elementiContabili.reduce(
+        (s, e) => s + e.prezzoUnitario * e.quantita * (1 + e.percentualeIva / 100),
+        0
+      ) * 100
+    ) / 100;
+  if (Math.abs(calcolato - totale) > 0.02) {
+    throw new Error(
+      `documento incoerente: le righe sommano ${calcolato.toFixed(2)} ma il totale e' ${totale.toFixed(2)}`
+    );
+  }
+
+  // 2) il numero non deve essere gia' stato usato: e' il difetto che ha
+  //    fatto uscire due FE 2/26 con contenuti diversi
+  if (env.FISCO_KV) {
+    const gia = await env.FISCO_KV.get(`fisco:fenum:${numeroDoc}`, 'json');
+    if (gia && gia.stato === 'inviata') {
+      throw new Error(
+        `il numero ${numeroDoc} risulta gia' trasmesso il ${gia.data} per ${gia.totale} EUR: usa un numero nuovo`
+      );
+    }
+  }
+
+  // 3) in prova non si trasmette nulla: la modalita' test dell'API
+  //    consegnava comunque il documento al destinatario reale
+  if (dati.prova) {
+    return {
+      ok: true,
+      numero: numeroDoc,
+      totale,
+      prova: true,
+      verificato: true,
+      messaggio: 'Controlli superati. Nessun documento e\u2019 stato trasmesso.',
+    };
+  }
+
+  // riservo il numero prima dell'invio, cosi' un errore a meta' strada
+  // non lascia il numero libero per una seconda emissione diversa
+  if (env.FISCO_KV) {
+    await env.FISCO_KV.put(
+      `fisco:fenum:${numeroDoc}`,
+      JSON.stringify({ stato: 'in corso', data: giorno(new Date()), totale })
+    );
+  }
+
+  let res;
+  try {
+    res = await datacashFE(env, '/sendInvoice/', corpo);
+  } catch (e) {
+    if (env.FISCO_KV) {
+      await env.FISCO_KV.put(
+        `fisco:fenum:${numeroDoc}`,
+        JSON.stringify({ stato: 'errore', data: giorno(new Date()), totale, errore: String(e.message || e) })
+      );
+    }
+    throw e;
+  }
+  if (env.FISCO_KV) {
+    await env.FISCO_KV.put(
+      `fisco:fenum:${numeroDoc}`,
+      JSON.stringify({ stato: 'inviata', data: giorno(new Date()), totale })
+    );
+  }
 
   // il numero si consuma solo se la fattura è stata davvero trasmessa
   if (!dati.prova) await confermaNumeroFE(env, chiave, Math.max(progressivo, numero));
@@ -1926,7 +1993,10 @@ async function emettiFattura(env, dati) {
       modalitaPagamento: dati.modalitaPagamento || 'MP08',
       iban: (dati.modalitaPagamento || '') === 'MP05' ? dati.iban || CONTO.iban : '',
     };
-    await env.FISCO_KV.put(`fisco:fatt:${numeroDoc}`, JSON.stringify(copia));
+    // non sovrascrivo mai una copia esistente: e' cosi' che la cortesia di
+    // FE 2/26 ha finito per mostrare un documento mai arrivato al cliente
+    const esistente = await env.FISCO_KV.get(`fisco:fatt:${numeroDoc}`);
+    if (!esistente) await env.FISCO_KV.put(`fisco:fatt:${numeroDoc}`, JSON.stringify(copia));
   }
 
   // memorizzo il cliente per le volte successive
@@ -2512,7 +2582,38 @@ export default {
       if (url.pathname === '/notaCredito' && request.method === 'POST') {
         const b = await request.json();
         if (!b.numero) return json({ ok: false, error: 'numero fattura mancante' }, 400);
-        const orig = await env.FISCO_KV.get(`fisco:fatt:${b.numero}`, 'json');
+        // La copia in KV puo' non coincidere con il file trasmesso: lo storno
+        // deve ricalcare l'XML realmente consegnato al SDI. Se il chiamante
+        // passa l'id del cassetto lo leggo da li', altrimenti uso la copia
+        // locale ma solo dopo aver verificato che gli importi combacino.
+        let orig = await env.FISCO_KV.get(`fisco:fatt:${b.numero}`, 'json');
+        if (b.idFattura) {
+          const xml = testoXml(await scaricaFatturaXml(env, b.idFattura));
+          const righeXml = blocchi(xml, 'DettaglioLinee').map((r) => ({
+            descrizione: tagUno(r, 'Descrizione'),
+            quantita: Number(tagUno(r, 'Quantita') || 1),
+            prezzo:
+              Math.round(
+                Number(tagUno(r, 'PrezzoUnitario') || 0) *
+                  (1 + Number(tagUno(r, 'AliquotaIVA') || 0) / 100) *
+                  100
+              ) / 100,
+            aliquota: tagUno(r, 'Natura') || String(parseInt(tagUno(r, 'AliquotaIVA') || '10', 10)),
+          }));
+          if (!righeXml.length) {
+            return json({ ok: false, error: 'XML della fattura non leggibile' }, 502);
+          }
+          orig = {
+            numero: tagUno(xml, 'Numero') || b.numero,
+            data: tagUno(xml, 'Data'),
+            cliente: (orig && orig.cliente) || b.cliente,
+            righe: righeXml,
+            modalitaPagamento: (orig && orig.modalitaPagamento) || b.modalitaPagamento || 'MP05',
+          };
+          if (!orig.cliente) {
+            return json({ ok: false, error: 'servono i dati del cliente per lo storno' }, 400);
+          }
+        }
         if (!orig) return json({ ok: false, error: 'fattura non trovata fra quelle emesse da qui' }, 404);
 
         const res = await emettiFattura(env, {
