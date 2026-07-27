@@ -1877,7 +1877,8 @@ async function emettiFattura(env, dati) {
           valuta: 'EUR',
           numero: numeroDoc,
           tipoDocumento: dati.tipoDocumento || 'TD01',
-          causale: dati.causale ? [String(dati.causale).slice(0, 200)] : [],
+          // l'array finisce nell'XML con parentesi e apici: serve testo puro
+          causale: dati.causale ? String(dati.causale).slice(0, 200) : '',
         },
         elementiContabili,
         datiPagamento: [
