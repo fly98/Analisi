@@ -659,7 +659,7 @@ function ricaricaVista(){
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v90';
+  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v91';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -1792,7 +1792,7 @@ function renderFatture(){
   $('#kpis-ric').innerHTML = `
     <div class="kpi ok"><b>${f.length - note.length}</b><span>Fatture</span></div>
     <div class="kpi ${note.length?'warn':''}"><b>${note.length}</b><span>Note credito</span></div>
-    <div class="kpi ${f.filter(x=>x.confermata===false).length?'warn':''}"><b>${f.filter(x=>x.confermata===false).length}</b><span>In elaborazione</span></div>
+    <div class="kpi ${f.filter(x=>x.confermata===false && !x.trasmessa).length?'warn':''}"><b>${f.filter(x=>x.confermata===false && !x.trasmessa).length}</b><span>Da confermare</span></div>
     <div class="kpi ok" style="display:flex;align-items:center;justify-content:center"><b>${Math.round(netto).toLocaleString('it-IT')} €</b></div>`;
 
   const badge = x => isNC(x)
@@ -1806,7 +1806,9 @@ function renderFatture(){
       <td>${/^FE /.test(x.numero||'') ? `<button class="numdoc" onclick="vediFattura('${x.numero}')">${x.numero}</button>` : `<span style="font-family:ui-monospace,Menlo,monospace;font-size:11.5px">${x.numero}</span>`}</td>
       <td>${badge(x)}</td>
       <td>${(x.cliente||'').slice(0,24)}
-        ${x.confermata===false ? '<div style="font-size:10.5px;color:var(--warn)">in elaborazione</div>' : ''}</td>
+        ${x.confermata===false ? (x.trasmessa
+            ? `<div style="font-size:10.5px;color:var(--muted)">trasmessa · SdI ${x.idSdi}</div>`
+            : '<div style="font-size:10.5px;color:var(--warn)">non confermata</div>') : ''}</td>
       <td class="num" ${isNC(x) ? 'style="color:var(--warn)"' : ''}>${isNC(x) ? '\u2212' : ''}${eur(x.totale)}</td>
       <td class="ann">${/^FE /.test(x.numero||'') ? `<button title="Invia copia" style="color:var(--info)" onclick="inviaCopia('${x.numero}')">@</button>` : ''}</td>
     </tr>`).join('')}
