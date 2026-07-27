@@ -1808,6 +1808,29 @@ async function confermaNumeroFE(env, chiave, numero) {
   await env.FISCO_KV.put(chiave, String(numero));
 }
 
+// true = il numero e' nel cassetto, false = non c'e', null = non verificabile
+async function numeroNelCassetto(env, numero, dataRif) {
+  try {
+    const base = dataRif || giorno(new Date());
+    const r = await fetch(`${FE_BASE}/findInvoices/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Datacash-Key': env.DATACASH_KEY },
+      body: JSON.stringify({
+        ade_credentials_encrypted: credenziali(env),
+        tipo: 'emesse',
+        start: addGiorni(base, -5),
+        end: addGiorni(base, 2),
+      }),
+    });
+    const d = await r.json();
+    if (!d || !Array.isArray(d.fatture)) return null;
+    const cercato = String(numero).trim();
+    return d.fatture.some((f) => String(f.numeroFattura || '').trim() === cercato);
+  } catch {
+    return null;
+  }
+}
+
 async function emettiFattura(env, dati) {
   const cliente = dati.cliente || {};
   if (!cliente.denominazione && !(cliente.nome && cliente.cognome)) {
@@ -1926,9 +1949,26 @@ async function emettiFattura(env, dati) {
       );
     }
     if (gia && gia.stato === 'in corso') {
-      throw new Error(
-        `il numero ${numeroDoc} ha un invio rimasto in sospeso del ${gia.data}: controlla nel cassetto se il documento e' partito prima di riprovare`
-      );
+      // non e' un vicolo cieco: vado a guardare nel cassetto se quel numero
+      // e' davvero uscito. Se non c'e', l'invio si e' interrotto prima di
+      // partire e il numero torna utilizzabile.
+      const uscito = await numeroNelCassetto(env, numeroDoc, gia.data);
+      if (uscito === true) {
+        await env.FISCO_KV.put(
+          `fisco:fenum:${numeroDoc}`,
+          JSON.stringify({ stato: 'inviata', data: gia.data, totale: gia.totale })
+        );
+        throw new Error(
+          `il numero ${numeroDoc} risulta gia' presente nel cassetto: usa un numero nuovo`
+        );
+      }
+      if (uscito === null) {
+        throw new Error(
+          `il numero ${numeroDoc} ha un invio in sospeso e il cassetto non risponde: riprova fra poco`
+        );
+      }
+      // uscito === false: sblocco e proseguo
+      await env.FISCO_KV.delete(`fisco:fenum:${numeroDoc}`);
     }
     // i numeri emessi prima che esistessero i marcatori si riconoscono
     // dalla copia di cortesia conservata
