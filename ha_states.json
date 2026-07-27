@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-07-27T00:58:26.104Z",
+  "timestamp": "2026-07-27T00:58:32.382Z",
   "total": 778,
   "lights": [
     {
@@ -416,12 +416,12 @@
     {
       "id": "switch.camera_da_letto_condizionatore_camera_silenzioso",
       "name": "Condizionatore Camera Silenzioso",
-      "state": "off"
+      "state": "on"
     },
     {
       "id": "switch.camera_da_letto_condizionatore_camera_oscillazione_orizzontale",
       "name": "Condizionatore Camera Oscillazione orizzontale",
-      "state": "on"
+      "state": "off"
     },
     {
       "id": "switch.asciugatrice_wrinkle_prevent",
@@ -2048,7 +2048,7 @@
     {
       "id": "sensor.aria_camera",
       "name": "Aria Camera",
-      "state": "❄️ 26° → 25°",
+      "state": "🌀 26° → 25°",
       "unit": null
     }
   ],
@@ -2063,7 +2063,7 @@
     {
       "id": "climate.camera_da_letto_condizionatore_camera",
       "name": "Condizionatore Camera",
-      "state": "cool",
+      "state": "fan_only",
       "temp": 26,
       "target": 25
     },
