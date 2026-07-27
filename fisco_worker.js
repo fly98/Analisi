@@ -3065,6 +3065,83 @@ export default {
         });
       }
 
+      // libera un numero il cui invio non e' mai stato confermato.
+      // Vietato se nel registro risulta un identificativo SdI: quello prova
+      // che il documento e' arrivato al Sistema di Interscambio.
+      if (url.pathname === '/liberaNumero' && request.method === 'POST') {
+        const b = await request.json();
+        const num = String(b.numero || '').trim();
+        if (!num || b.conferma !== true) {
+          return json({ ok: false, error: 'servono numero e conferma esplicita' }, 400);
+        }
+        const rec = await env.FISCO_KV.get(`fisco:fenum:${num}`, 'json');
+        if (rec && rec.idSdi) {
+          return json(
+            { ok: false, error: `${num} ha identificativo SdI ${rec.idSdi}: e' stato trasmesso, non si libera` },
+            409
+          );
+        }
+        await env.FISCO_KV.delete(`fisco:fenum:${num}`);
+        await env.FISCO_KV.delete(`fisco:fatt:${num}`);
+        // riporto indietro il contatore, cosi' il numero torna disponibile
+        const m = num.match(/(\d+)\/(\d+)$/);
+        if (m) {
+          const chiave = `fisco:numeroFE:${m[2]}`;
+          const attuale = parseInt((await env.FISCO_KV.get(chiave)) || '0', 10);
+          const n = parseInt(m[1], 10);
+          if (attuale >= n) await env.FISCO_KV.put(chiave, String(n - 1));
+        }
+        // libero anche le prenotazioni che erano agganciate
+        const indice = await leggiIndice(env);
+        const liberate = [];
+        for (const [id, r] of Object.entries(indice)) {
+          if (String((r && r.numero) || '').trim() === num) liberate.push(id);
+        }
+        for (const id of liberate) await scriviStato(env, id, null);
+        return json({ ok: true, numero: num, liberato: true, prenotazioniLiberate: liberate });
+      }
+
+      // confronta il registro locale col cassetto e marca cio' che risulta
+      // effettivamente arrivato. Da lanciare il giorno dopo le emissioni.
+      if (url.pathname === '/verificaConsegne') {
+        const giorni = parseInt(url.searchParams.get('giorni') || '10', 10);
+        const fine = giorno(new Date());
+        const inizio = addGiorni(fine, -giorni);
+        const r = await fetch(`${FE_BASE}/findInvoices/`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Datacash-Key': env.DATACASH_KEY },
+          body: JSON.stringify({
+            ade_credentials_encrypted: credenziali(env),
+            tipo: 'emesse',
+            start: inizio,
+            end: fine,
+          }),
+        });
+        const d = await r.json().catch(() => null);
+        const nelCassetto = new Map(
+          ((d && d.fatture) || []).map((f) => [String(f.numeroFattura || '').trim(), f])
+        );
+        const el = await env.FISCO_KV.list({ prefix: 'fisco:fenum:' });
+        const confermate = [];
+        const mancanti = [];
+        for (const k of el.keys) {
+          const num = k.name.replace('fisco:fenum:', '');
+          const rec = (await env.FISCO_KV.get(k.name, 'json')) || {};
+          if (!rec.data || rec.data < inizio) continue;
+          const trovata = nelCassetto.get(num);
+          if (trovata) {
+            await env.FISCO_KV.put(
+              k.name,
+              JSON.stringify({ ...rec, confermata: true, idFattura: trovata.idFattura })
+            );
+            confermate.push(num);
+          } else {
+            mancanti.push({ numero: num, stato: rec.stato, data: rec.data, idSdi: rec.idSdi || null });
+          }
+        }
+        return json({ ok: true, periodo: [inizio, fine], confermate, mancanti });
+      }
+
       if (url.pathname === '/registro') {
         const num = url.searchParams.get('numero');
         if (num) {
