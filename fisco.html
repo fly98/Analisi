@@ -1097,8 +1097,8 @@ async function moduloFattura(id, bozza){
      <button type="button" class="act" style="width:100%;margin-top:10px;background:#fff;color:var(--ink);border:1px solid var(--line)" onclick="anteprimaFattura()">Vedi anteprima</button>
 
      <label style="margin-top:12px;display:flex;align-items:center;gap:8px;text-transform:none;font-size:13.5px;color:var(--ink)">
-       <input type="checkbox" id="fc-prova" style="width:auto;margin:0" checked>
-       Prova: verifica senza trasmettere
+       <input type="checkbox" id="fc-prova" style="width:auto;margin:0">
+       Prova: verifica senza trasmettere (non emette nulla)
      </label>`,
     'Emetti');
 
@@ -1126,6 +1126,7 @@ async function moduloFattura(id, bozza){
   if(!righe.length){ toast('Nessuna riga da fatturare', true); return; }
 
   toast(prova ? 'Verifica in corso…' : 'Emissione in corso…');
+  const sblocca = prova ? null : bloccaEmissione();
   try{
     const r = await api('/fattura', {method:'POST', body: JSON.stringify({
       prenotazione: id, prenotazioni: FT_COLLEGATE.map(x=>x.id),
@@ -1149,6 +1150,35 @@ async function moduloFattura(id, bozza){
       inviaFattura(r.numero, p, cli);
     }
   }catch(e){ toast('Non riuscita: '+e.message, true); }
+  finally{ if(sblocca) sblocca(); }
+}
+
+// Durante la trasmissione di una fattura la pagina non deve poter essere
+// toccata ne' chiusa: un'interruzione a meta' lascerebbe un numero riservato
+// senza sapere se il documento e' partito davvero.
+function bloccaEmissione(){
+  const v = document.createElement('div');
+  v.id = 'blocco-emissione';
+  v.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(17,20,24,.72);'+
+    'display:flex;align-items:center;justify-content:center';
+  const box = document.createElement('div');
+  box.style.cssText = 'background:#fff;border-radius:14px;padding:22px 26px;max-width:300px;'+
+    'text-align:center;line-height:1.45;color:#1a1d21';
+  const t = document.createElement('div');
+  t.style.cssText = 'font-weight:650;margin-bottom:6px;font-size:15px';
+  t.textContent = 'Trasmissione in corso';
+  const s = document.createElement('div');
+  s.style.cssText = 'color:#6b7280;font-size:13px';
+  s.textContent = 'Non chiudere la pagina finche\u0301 non compare l\u2019esito.';
+  box.appendChild(t); box.appendChild(s); v.appendChild(box);
+  document.body.appendChild(v);
+  const avviso = (e)=>{ e.preventDefault(); e.returnValue = ''; return ''; };
+  window.addEventListener('beforeunload', avviso);
+  return ()=>{
+    window.removeEventListener('beforeunload', avviso);
+    const el = document.getElementById('blocco-emissione');
+    if(el) el.remove();
+  };
 }
 
 // dopo l'emissione propongo di mandarne copia al cliente
