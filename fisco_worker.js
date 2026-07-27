@@ -1598,6 +1598,24 @@ function haGiaDocumento(riga) {
   return riga.stato !== 'da_emettere' && riga.stato !== 'futura';
 }
 
+// controllo giornaliero: avvisa su Telegram solo se qualcosa non torna
+async function controlloConsegne(env) {
+  try {
+    const r = await verificaConsegne(env, 15);
+    if (!r || r.errore || !r.daControllare || !r.daControllare.length) return;
+    const righe = r.daControllare
+      .map((x) => `• *${x.numero}* — ${x.stato}${x.idSdi ? ` (SdI ${x.idSdi})` : ', mai trasmessa'}, da ${x.giorni} gg`)
+      .join('\n');
+    await avvisaTelegram(
+      env,
+      `⚠️ *Fatture da controllare*\n\nQueste risultano nel registro ma non nel cassetto:\n\n${righe}`
+    );
+  } catch {
+    /* il controllo non deve mai far fallire il cron */
+  }
+}
+
+
 const TG_BASE = 'https://tg-worker.f-castiglioni.workers.dev';
 
 // avviso su Telegram per le ricevute che restano da fare a mano
@@ -1817,6 +1835,60 @@ async function datacashFE(env, path, payload) {
   piatto.__grezza = testo.slice(0, 800);
   return piatto;
 }
+
+// Confronta il registro locale col cassetto e marca cio' che risulta davvero
+// arrivato. Il cassetto e' lento di giorni: un documento recente che non c'e'
+// ancora NON e' un problema, lo diventa dopo GIORNI_TOLLERANZA.
+const GIORNI_TOLLERANZA = 4;
+
+async function verificaConsegne(env, giorni) {
+  const fine = giorno(new Date());
+  const inizio = addGiorni(fine, -(giorni || 10));
+  let nelCassetto = new Map();
+  try {
+    const r = await fetch(`${FE_BASE}/findInvoices/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Datacash-Key': env.DATACASH_KEY },
+      body: JSON.stringify({
+        ade_credentials_encrypted: credenziali(env),
+        tipo: 'emesse',
+        start: inizio,
+        end: fine,
+      }),
+    });
+    const d = await r.json();
+    nelCassetto = new Map(((d && d.fatture) || []).map((f) => [String(f.numeroFattura || '').trim(), f]));
+  } catch (e) {
+    return { errore: 'cassetto non raggiungibile: ' + String(e.message || e) };
+  }
+
+  const el = await env.FISCO_KV.list({ prefix: 'fisco:fenum:' });
+  const confermate = [];
+  const attesa = [];
+  const daControllare = [];
+  for (const k of el.keys) {
+    const num = k.name.replace('fisco:fenum:', '');
+    const rec = (await env.FISCO_KV.get(k.name, 'json')) || {};
+    if (!rec.data || rec.data < inizio) continue;
+    const trovata = nelCassetto.get(num);
+    if (trovata) {
+      await env.FISCO_KV.put(k.name, JSON.stringify({ ...rec, confermata: true, idFattura: trovata.idFattura }));
+      confermate.push(num);
+      continue;
+    }
+    const eta = Math.round((Date.parse(fine) - Date.parse(rec.data)) / 86400000);
+    const voce = { numero: num, stato: rec.stato, data: rec.data, idSdi: rec.idSdi || null, giorni: eta };
+    // senza identificativo SdI il documento non e' mai partito: da vedere subito.
+    // Con identificativo, si aspetta che il cassetto si aggiorni.
+    if (!rec.idSdi || rec.stato === 'incerta' || rec.stato === 'errore' || eta >= GIORNI_TOLLERANZA) {
+      daControllare.push(voce);
+    } else {
+      attesa.push(voce);
+    }
+  }
+  return { periodo: [inizio, fine], confermate, attesa, daControllare };
+}
+
 
 // numerazione della serie FE, indipendente da quella usata su Aruba
 async function prossimoNumeroFE(env, anno) {
@@ -2360,7 +2432,11 @@ export default {
   // 08:00 UTC (10:00) emissione · 11:00 UTC (13:00) promemoria
   async scheduled(event, env, ctx) {
     const ora = new Date(event.scheduledTime).getUTCHours();
-    ctx.waitUntil(ora >= 10 ? promemoriaSospese(env) : emissioneAutomatica(env));
+    ctx.waitUntil(
+      ora >= 10
+        ? Promise.all([promemoriaSospese(env), controlloConsegne(env)])
+        : emissioneAutomatica(env)
+    );
   },
 
   async fetch(request, env) {
@@ -3109,41 +3185,7 @@ export default {
       // effettivamente arrivato. Da lanciare il giorno dopo le emissioni.
       if (url.pathname === '/verificaConsegne') {
         const giorni = parseInt(url.searchParams.get('giorni') || '10', 10);
-        const fine = giorno(new Date());
-        const inizio = addGiorni(fine, -giorni);
-        const r = await fetch(`${FE_BASE}/findInvoices/`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Datacash-Key': env.DATACASH_KEY },
-          body: JSON.stringify({
-            ade_credentials_encrypted: credenziali(env),
-            tipo: 'emesse',
-            start: inizio,
-            end: fine,
-          }),
-        });
-        const d = await r.json().catch(() => null);
-        const nelCassetto = new Map(
-          ((d && d.fatture) || []).map((f) => [String(f.numeroFattura || '').trim(), f])
-        );
-        const el = await env.FISCO_KV.list({ prefix: 'fisco:fenum:' });
-        const confermate = [];
-        const mancanti = [];
-        for (const k of el.keys) {
-          const num = k.name.replace('fisco:fenum:', '');
-          const rec = (await env.FISCO_KV.get(k.name, 'json')) || {};
-          if (!rec.data || rec.data < inizio) continue;
-          const trovata = nelCassetto.get(num);
-          if (trovata) {
-            await env.FISCO_KV.put(
-              k.name,
-              JSON.stringify({ ...rec, confermata: true, idFattura: trovata.idFattura })
-            );
-            confermate.push(num);
-          } else {
-            mancanti.push({ numero: num, stato: rec.stato, data: rec.data, idSdi: rec.idSdi || null });
-          }
-        }
-        return json({ ok: true, periodo: [inizio, fine], confermate, mancanti });
+        return json({ ok: true, ...(await verificaConsegne(env, giorni)) });
       }
 
       if (url.pathname === '/registro') {
