@@ -1924,6 +1924,12 @@ async function emettiFattura(env, dati) {
         `il numero ${numeroDoc} risulta gia' trasmesso il ${gia.data} per ${gia.totale} EUR: usa un numero nuovo`
       );
     }
+    // i numeri emessi prima che esistessero i marcatori si riconoscono
+    // dalla copia di cortesia conservata
+    const copiaVecchia = await env.FISCO_KV.get(`fisco:fatt:${numeroDoc}`);
+    if (!gia && copiaVecchia) {
+      throw new Error(`il numero ${numeroDoc} risulta gia' emesso: usa un numero nuovo`);
+    }
   }
 
   // 3) in prova non si trasmette nulla: la modalita' test dell'API
