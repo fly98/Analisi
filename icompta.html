@@ -894,7 +894,7 @@ select.form-input { height: 42px; }
 
     </div>
     <div style="padding:10px 16px 14px;text-align:center;border-top:1px solid var(--border);margin-top:4px">
-      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v2.1.1</span>
+      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v2.1.2</span>
     </div>
   </div>
 </div>
@@ -5249,44 +5249,32 @@ var IMPORT2_SPECIAL_RULES = [
     match: function(m){ return /amundi\s+rata\s+500297353/i.test((m.desc||'') + ' ' + (m.key||'')); },
     label: 'Versamento fondo pensione Amundi',
     apply: async function(m, sourceAccId, sourceTxId){
-      var vcId = 'ACC-VALORE-CARICO';
-      var fpId = 'ACC-FONDO-PENSIONE';
-      var imp = Math.abs(m.importo);   // la riga Fineco e' negativa (uscita)
+      // Fineco CC e' gia' dentro i Conti Titoli: la rata e' un semplice
+      // TRASFERIMENTO interno Fineco CC -> Fondo Pensione. Una sola contropartita,
+      // collegata via linkedTxId. Categoria 'Fondo pensione' su entrambe le righe.
+      var fpId  = 'ACC-FONDO-PENSIONE';
+      var catFP = 'ECFCC2E7-DC93-4FBE-BCE6-1F5EEFC8D73C';  // categoria "Fondo pensione"
+      var imp = Math.abs(m.importo);   // riga Fineco negativa (uscita)
       var out = [];
-
-      // (a) Trasferimento verso Valore di carico, collegato alla riga Fineco.
-      var rvId = null;
       try {
-        var txVc = { id:null, date:m.dateISO, name:'Versamento fondo pensione', accountId:vcId,
-          status:'cleared', comment:'Amundi Core Pension \u2014 rata mensile', useSumOfSplits:true,
-          amount:null, linkedTxId: sourceTxId || null,
-          splits:[{amount: imp, categoryId:null, comment:null}] };
-        var rv = await api('POST','/api/tx',{tx:txVc});
-        if (rv && rv.id) { out.push(rv.id); rvId = rv.id; }
-      } catch(e){ import2Log('Amundi: errore valore di carico', 'err'); }
-
-      // (a-bis) Doppio legame: la riga Fineco punta alla controparte. Isolato:
-      //         se fallisce, NON deve impedire la riga sul fondo.
-      if (rvId && sourceTxId) {
-        try {
-          var src = { id: sourceTxId, date:m.dateISO, name:m.key, accountId: sourceAccId,
-            status:'cleared', comment:(m.etich||m.desc), useSumOfSplits:true, amount:null,
-            linkedTxId: rvId, ebRef: m.ebRef||null,
-            splits:[{amount:m.importo, categoryId:null, comment:null}] };
-          await api('POST','/api/tx',{tx:src});
-        } catch(e){ import2Log('Amundi: legame non riuscito (non grave)', 'err'); }
-      }
-
-      // (b) Riga sul conto Fondo Pensione (aumenta il capitale versato). Isolata.
-      try {
-        var txFp = { id:null, date:m.dateISO, name:'Versamento mensile', accountId:fpId,
+        // Contropartita: entrata sul Fondo Pensione, collegata alla riga Fineco
+        var txFp = { id:null, date:m.dateISO, name:'Versamento fondo pensione', accountId:fpId,
           status:'cleared', comment:'Amundi Core Pension \u2014 rata', useSumOfSplits:true,
-          amount:null, linkedTxId:null,
-          splits:[{amount: imp, categoryId:null, comment:null}] };
+          amount:null, linkedTxId: sourceTxId || null,
+          splits:[{amount: imp, categoryId: catFP, comment:null}] };
         var rf = await api('POST','/api/tx',{tx:txFp});
-        if (rf && rf.id) out.push(rf.id);
-      } catch(e){ import2Log('Amundi: errore riga fondo pensione', 'err'); }
-
+        if (rf && rf.id) {
+          out.push(rf.id);
+          // La riga Fineco punta alla controparte (trasferimento a doppio legame) + categoria
+          if (sourceTxId) {
+            var src = { id: sourceTxId, date:m.dateISO, name:m.key, accountId: sourceAccId,
+              status:'cleared', comment:(m.etich||m.desc), useSumOfSplits:true, amount:null,
+              linkedTxId: rf.id, ebRef: m.ebRef||null,
+              splits:[{amount:m.importo, categoryId: catFP, comment:null}] };
+            try { await api('POST','/api/tx',{tx:src}); } catch(e){}
+          }
+        }
+      } catch(e){ import2Log('Amundi: errore trasferimento fondo pensione', 'err'); }
       return out;
     }
   }
