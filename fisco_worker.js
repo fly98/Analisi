@@ -1819,29 +1819,6 @@ async function confermaNumeroFE(env, chiave, numero) {
   await env.FISCO_KV.put(chiave, String(numero));
 }
 
-// true = il numero e' nel cassetto, false = non c'e', null = non verificabile
-async function numeroNelCassetto(env, numero, dataRif) {
-  try {
-    const base = dataRif || giorno(new Date());
-    const r = await fetch(`${FE_BASE}/findInvoices/`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Datacash-Key': env.DATACASH_KEY },
-      body: JSON.stringify({
-        ade_credentials_encrypted: credenziali(env),
-        tipo: 'emesse',
-        start: addGiorni(base, -5),
-        end: addGiorni(base, 2),
-      }),
-    });
-    const d = await r.json();
-    if (!d || !Array.isArray(d.fatture)) return null;
-    const cercato = String(numero).trim();
-    return d.fatture.some((f) => String(f.numeroFattura || '').trim() === cercato);
-  } catch {
-    return null;
-  }
-}
-
 async function emettiFattura(env, dati) {
   const cliente = dati.cliente || {};
   if (!cliente.denominazione && !(cliente.nome && cliente.cognome)) {
@@ -1988,65 +1965,68 @@ async function emettiFattura(env, dati) {
     };
   }
 
-  // riservo il numero prima dell'invio, cosi' un errore a meta' strada
-  // non lascia il numero libero per una seconda emissione diversa
-  if (env.FISCO_KV) {
+  // REGISTRO LOCALE — e' questo, non il cassetto AdE, la fonte di verita' su
+  // cosa abbiamo trasmesso. L'Agenzia ci mette giorni a mostrare le fatture
+  // appena inviate, quindi la sua assenza non prova nulla.
+  // Scrivo tutto PRIMA della chiamata: se l'esecuzione si interrompe dopo che
+  // DataCash ha gia' accettato il documento, la traccia resta comunque.
+  const copia = {
+    numero: numeroDoc,
+    data: giorno(new Date()),
+    tipoDocumento: dati.tipoDocumento || 'TD01',
+    cliente,
+    righe: righe.map((r) => ({
+      descrizione: r.descrizione,
+      quantita: Number(r.quantita || 1),
+      prezzo: Number(r.prezzo),
+      aliquota: String(r.aliquota || '10'),
+    })),
+    riepilogo: elementiContabili.map((e) => ({
+      aliquota: e.aliquotaIVA,
+      imponibile: Math.round(e.prezzoUnitario * e.quantita * 100) / 100,
+      imposta: Math.round(e.prezzoUnitario * e.quantita * (e.percentualeIva / 100) * 100) / 100,
+    })),
+    totale,
+    modalitaPagamento: dati.modalitaPagamento || 'MP08',
+    iban: (dati.modalitaPagamento || '') === 'MP05' ? dati.iban || CONTO.iban : '',
+  };
+
+  const scriviRegistro = async (stato, extra) => {
+    if (!env.FISCO_KV) return;
     await env.FISCO_KV.put(
       `fisco:fenum:${numeroDoc}`,
-      JSON.stringify({ stato: 'in corso', data: giorno(new Date()), totale })
+      JSON.stringify({
+        stato,
+        data: giorno(new Date()),
+        istante: new Date().toISOString(),
+        tipoDocumento: dati.tipoDocumento || 'TD01',
+        cliente: cliente.denominazione || `${cliente.nome || ''} ${cliente.cognome || ''}`.trim(),
+        totale,
+        ...(extra || {}),
+      })
     );
+  };
+
+  if (env.FISCO_KV) {
+    await scriviRegistro('in corso');
+    // non sovrascrivo mai una copia esistente
+    const esistente = await env.FISCO_KV.get(`fisco:fatt:${numeroDoc}`);
+    if (!esistente) await env.FISCO_KV.put(`fisco:fatt:${numeroDoc}`, JSON.stringify(copia));
   }
 
   let res;
   try {
     res = await datacashFE(env, '/sendInvoice/', corpo);
   } catch (e) {
-    if (env.FISCO_KV) {
-      await env.FISCO_KV.put(
-        `fisco:fenum:${numeroDoc}`,
-        JSON.stringify({ stato: 'errore', data: giorno(new Date()), totale, errore: String(e.message || e) })
-      );
-    }
+    await scriviRegistro('errore', { errore: String(e.message || e) });
     throw e;
   }
-  if (env.FISCO_KV) {
-    await env.FISCO_KV.put(
-      `fisco:fenum:${numeroDoc}`,
-      JSON.stringify({ stato: 'inviata', data: giorno(new Date()), totale })
-    );
-  }
+  await scriviRegistro('inviata', { idSdi: res && res.idSdi, file: res && res.nome });
 
   // il numero si consuma solo se la fattura è stata davvero trasmessa
   if (!dati.prova) await confermaNumeroFE(env, chiave, Math.max(progressivo, numero));
 
-  // conservo i dati per la copia di cortesia da inviare al cliente:
-  // rileggerli dall'XML firmato non e' affidabile
-  if (!dati.prova && env.FISCO_KV) {
-    const copia = {
-      numero: numeroDoc,
-      data: giorno(new Date()),
-      tipoDocumento: dati.tipoDocumento || 'TD01',
-      cliente,
-      righe: righe.map((r) => ({
-        descrizione: r.descrizione,
-        quantita: Number(r.quantita || 1),
-        prezzo: Number(r.prezzo),
-        aliquota: String(r.aliquota || '10'),
-      })),
-      riepilogo: elementiContabili.map((e) => ({
-        aliquota: e.aliquotaIVA,
-        imponibile: Math.round(e.prezzoUnitario * e.quantita * 100) / 100,
-        imposta: Math.round(e.prezzoUnitario * e.quantita * (e.percentualeIva / 100) * 100) / 100,
-      })),
-      totale,
-      modalitaPagamento: dati.modalitaPagamento || 'MP08',
-      iban: (dati.modalitaPagamento || '') === 'MP05' ? dati.iban || CONTO.iban : '',
-    };
-    // non sovrascrivo mai una copia esistente: e' cosi' che la cortesia di
-    // FE 2/26 ha finito per mostrare un documento mai arrivato al cliente
-    const esistente = await env.FISCO_KV.get(`fisco:fatt:${numeroDoc}`);
-    if (!esistente) await env.FISCO_KV.put(`fisco:fatt:${numeroDoc}`, JSON.stringify(copia));
-  }
+  // la copia di cortesia e' gia' stata scritta nel registro, prima dell'invio
 
   // memorizzo il cliente per le volte successive
   if (cliente.piva && env.FISCO_KV) {
