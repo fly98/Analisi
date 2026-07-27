@@ -1794,6 +1794,17 @@ async function datacashFE(env, path, payload) {
   if (dati.errore) {
     throw new Error(`${dati.errore.codice || ''} ${dati.errore.descrizione || ''}`.trim());
   }
+  // errori al plurale: e' il campo che l'API usa davvero. Ignorarlo faceva
+  // passare per riuscite delle trasmissioni rifiutate.
+  if (Array.isArray(dati.errori) && dati.errori.length) {
+    const d = dati.errori
+      .map((e) => (typeof e === 'string' ? e : `${e.codice || ''} ${e.descrizione || e.messaggio || ''}`.trim()))
+      .join('; ');
+    throw new Error(d || 'documento rifiutato senza dettagli');
+  }
+  if (!res.ok) {
+    throw new Error(`Fatture ${path} HTTP ${res.status}: ${testo.slice(0, 200)}`);
+  }
   return dati;
 }
 
@@ -1809,7 +1820,7 @@ async function prossimoNumeroFE(env, anno) {
     const num = `${FE_SERIE} ${n}/${anno}`;
     if (await env.FISCO_KV.get(`fisco:fatt:${num}`)) { n++; continue; }
     const marc = await env.FISCO_KV.get(`fisco:fenum:${num}`, 'json');
-    if (marc && (marc.stato === 'inviata' || marc.stato === 'in corso')) { n++; continue; }
+    if (marc && ['inviata','in corso','incerta'].includes(marc.stato)) { n++; continue; }
     break;
   }
   return { chiave, numero: n };
@@ -1936,6 +1947,11 @@ async function emettiFattura(env, dati) {
         `il numero ${numeroDoc} risulta gia' trasmesso il ${gia.data} per ${gia.totale} EUR: usa un numero nuovo`
       );
     }
+    if (gia && gia.stato === 'incerta') {
+      throw new Error(
+        `il numero ${numeroDoc} ha una trasmissione non confermata del ${gia.data}: verifica sul portale dell'Agenzia, poi usa un numero nuovo`
+      );
+    }
     if (gia && gia.stato === 'in corso') {
       // Il cassetto AdE ci mette giorni a mostrare le fatture appena inviate,
       // quindi la sua assenza NON prova che il documento non sia partito.
@@ -2021,7 +2037,21 @@ async function emettiFattura(env, dati) {
     await scriviRegistro('errore', { errore: String(e.message || e) });
     throw e;
   }
-  await scriviRegistro('inviata', { idSdi: res && res.idSdi, file: res && res.nome });
+  // Senza identificativo SdI non abbiamo alcuna prova che il documento sia
+  // arrivato al Sistema di Interscambio: non lo dichiaro riuscito. Lo stato
+  // resta 'incerta' e il numero resta bloccato, perche' non sappiamo se sia
+  // partito o no.
+  const idSdi = res && (res.idSdi || res.idsdi || res.id_sdi);
+  if (!idSdi) {
+    await scriviRegistro('incerta', {
+      risposta: JSON.stringify(res || {}).slice(0, 500),
+    });
+    if (!dati.prova) await confermaNumeroFE(env, chiave, Math.max(progressivo, numero));
+    throw new Error(
+      `${numeroDoc}: il fornitore ha risposto senza identificativo SdI, quindi non e' possibile confermare la trasmissione. Verifica sul portale dell'Agenzia prima di riemettere: il numero resta bloccato.`
+    );
+  }
+  await scriviRegistro('inviata', { idSdi, file: res && res.nome });
 
   // il numero si consuma solo se la fattura è stata davvero trasmessa
   if (!dati.prova) await confermaNumeroFE(env, chiave, Math.max(progressivo, numero));
