@@ -1917,6 +1917,12 @@ async function emettiFattura(env, dati) {
   if (!cliente.denominazione && !(cliente.nome && cliente.cognome)) {
     throw new Error('dati del cliente incompleti');
   }
+  // Privato senza partita IVA: il tracciato prevede codice destinatario
+  // '0000000', il SDI deposita la fattura nella sua area riservata e noi gli
+  // consegniamo la copia di cortesia.
+  if (!cliente.codiceDestinatario && !cliente.pec && cliente.cf && !cliente.piva) {
+    cliente.codiceDestinatario = '0000000';
+  }
   if (!cliente.codiceDestinatario && !cliente.pec) {
     throw new Error('serve il codice destinatario oppure la PEC');
   }
@@ -1958,7 +1964,8 @@ async function emettiFattura(env, dati) {
   const corpo = {
     test: !!dati.prova,
     customer: {
-      denominazione: cliente.denominazione || '',
+      // campo vuoto = file scartato, la lezione della causale
+      ...(cliente.denominazione ? { denominazione: cliente.denominazione } : {}),
       ...(cliente.nome ? { nome: cliente.nome } : {}),
       ...(cliente.cognome ? { cognome: cliente.cognome } : {}),
       codiceFiscale: cliente.cf || cliente.piva || '',
@@ -2141,9 +2148,10 @@ async function emettiFattura(env, dati) {
   // la copia di cortesia e' gia' stata scritta nel registro, prima dell'invio
 
   // memorizzo il cliente per le volte successive
-  if (cliente.piva && env.FISCO_KV) {
+  const chiaveAna = cliente.piva || cliente.cf;
+  if (chiaveAna && env.FISCO_KV) {
     const ana = (await env.FISCO_KV.get('fisco:clienti', 'json')) || {};
-    ana[cliente.piva] = { ...(ana[cliente.piva] || {}), ...cliente };
+    ana[chiaveAna] = { ...(ana[chiaveAna] || {}), ...cliente };
     await env.FISCO_KV.put('fisco:clienti', JSON.stringify(ana));
   }
 
