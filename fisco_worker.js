@@ -1925,6 +1925,11 @@ async function emettiFattura(env, dati) {
         `il numero ${numeroDoc} risulta gia' trasmesso il ${gia.data} per ${gia.totale} EUR: usa un numero nuovo`
       );
     }
+    if (gia && gia.stato === 'in corso') {
+      throw new Error(
+        `il numero ${numeroDoc} ha un invio rimasto in sospeso del ${gia.data}: controlla nel cassetto se il documento e' partito prima di riprovare`
+      );
+    }
     // i numeri emessi prima che esistessero i marcatori si riconoscono
     // dalla copia di cortesia conservata
     const copiaVecchia = await env.FISCO_KV.get(`fisco:fatt:${numeroDoc}`);
