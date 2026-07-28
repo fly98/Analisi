@@ -667,7 +667,7 @@ function ricaricaVista(){
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v92';
+  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v93';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -1807,7 +1807,19 @@ function renderFatture(){
     ? '<span style="display:inline-block;font-size:10px;font-weight:700;color:var(--warn);background:var(--warn-bg);padding:1px 6px;border-radius:5px;white-space:nowrap">NOTA CREDITO</span>'
     : '<span style="display:inline-block;font-size:10px;font-weight:700;color:var(--muted);background:#eef1f5;padding:1px 6px;border-radius:5px;white-space:nowrap">FATTURA</span>';
 
-  $('#lista-ric').innerHTML = f.length ? `<table class="tab-fat">
+  const uv = FATT.ultimaVerifica;
+  const barra = !uv
+    ? '<div style="font-size:11.5px;color:var(--muted);margin:0 0 10px">Controllo consegne: mai eseguito</div>'
+    : (uv.daControllare && uv.daControllare.length
+        ? `<div style="font-size:11.5px;color:var(--warn);background:var(--warn-bg);padding:6px 10px;border-radius:7px;margin:0 0 10px">
+             Controllo del ${new Date(uv.istante).toLocaleString('it-IT',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}:
+             ${uv.daControllare.length} document${uv.daControllare.length===1?'o':'i'} da verificare —
+             ${uv.daControllare.map(x=>x.numero).join(', ')}</div>`
+        : `<div style="font-size:11.5px;color:var(--muted);margin:0 0 10px">
+             Controllo consegne del ${new Date(uv.istante).toLocaleString('it-IT',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}:
+             tutto in ordine${uv.attesa?` · ${uv.attesa} in attesa nel cassetto`:''}</div>`);
+
+  $('#lista-ric').innerHTML = barra + (f.length ? `<table class="tab-fat">
     <tr><th>Data</th><th>Numero</th><th>Tipo</th><th>Cliente</th><th style="text-align:right">Totale</th><th></th></tr>
     ${f.map(x=>`<tr>
       <td>${x.data ? x.data.slice(0,10) : ''}</td>
@@ -1820,7 +1832,7 @@ function renderFatture(){
       <td class="num" ${isNC(x) ? 'style="color:var(--warn)"' : ''}>${isNC(x) ? '\u2212' : ''}${eur(x.totale)}</td>
       <td class="ann">${/^FE /.test(x.numero||'') ? `<button title="Invia copia" style="color:var(--info)" onclick="inviaCopia('${x.numero}')">@</button>` : ''}</td>
     </tr>`).join('')}
-    </table>` : '<div class="empty">Nessuna fattura nel periodo.</div>';
+    </table>` : '<div class="empty">Nessuna fattura nel periodo.</div>');
 }
 
 window.annullaFattura = async (numero, idPren)=>{
