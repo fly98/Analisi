@@ -309,6 +309,8 @@ const WORKER = 'https://icompta-worker.f-castiglioni.workers.dev';
 let TOKEN = localStorage.getItem('icompta_token') || localStorage.getItem('analisi_token') || '';
 let snapshots = [];
 var grafMode = 'perf';  // 'perf' = performance vs carico, 'tot' = valore totale
+var _altriTitoli = 0;   // saldo conti titoli diversi da Fineco Investimenti (attuale)
+var _vcRows = [];       // righe storiche del conto Valore di carico [{date,amount}]
 let variazioniPeriodo = 'giorno';
 let strumenti = [];
 let txByYear = {};
@@ -489,6 +491,8 @@ async function loadSnapshots() {
     const data = await api('GET', '/api/snapshot');
     snapshots = Array.isArray(data) ? data : [];
   } catch(e) { snapshots = []; }
+  // Dati per il tab Performance: saldo conti titoli (tranne Fineco Inv) + righe valore di carico
+  try { await loadPerfData(); } catch(e) {}
   // Carica demo se meno di 5 snapshot reali (in sviluppo)
   if (snapshots.length < 1) {
     try {
@@ -579,6 +583,44 @@ document.getElementById('range-bar').addEventListener('click', function(e) {
 });
 
 
+// Carica: (a) saldo attuale dei conti titoli diversi da Fineco Investimenti,
+//         (b) le righe storiche del conto Valore di carico (per il saldo a data).
+async function loadPerfData() {
+  try {
+    var meta = await api('GET', '/api/meta');
+    var bal  = await api('GET', '/api/balance');
+    var GID = 'GRP-CONTI-TITOLI';
+    _altriTitoli = 0;
+    (meta.accounts || []).forEach(function(a){
+      if (a.groupId === GID && a.name !== 'Fineco Investimenti')
+        _altriTitoli += (bal.accounts && bal.accounts[a.id]) || 0;
+    });
+    // righe valore di carico da tutti gli anni
+    _vcRows = [];
+    var years = meta.years || [];
+    for (var i=0;i<years.length;i++) {
+      try {
+        var txs = await api('GET', '/api/tx/' + years[i]);
+        txs.forEach(function(tx){
+          if (tx.accountId !== 'ACC-VALORE-CARICO') return;
+          var v = 0, sp = tx.splits || [];
+          if (tx.useSumOfSplits && sp.length) sp.forEach(function(s){ if(s.amount!=null) v+=s.amount; });
+          else if (tx.amount != null) v = tx.amount;
+          _vcRows.push({ date: tx.date, amount: v });
+        });
+      } catch(e){}
+    }
+    _vcRows.sort(function(a,b){ return a.date.localeCompare(b.date); });
+  } catch(e){}
+}
+
+// Saldo del conto Valore di carico a una certa data (somma righe fino a quella data)
+function vcAt(dstr) {
+  var v = 0;
+  for (var i=0;i<_vcRows.length;i++) { if (_vcRows[i].date <= dstr) v += _vcRows[i].amount; else break; }
+  return v;
+}
+
 function setGrafMode(mode) {
   grafMode = mode;
   document.querySelectorAll('.graf-tab').forEach(function(b){
@@ -619,9 +661,12 @@ function renderAndamento() {
   });
   // Valore di carico attuale (stabile: cambia solo con acquisti/vendite).
   // In performance mostriamo lo scarto totale - carico (guadagno/perdita).
-  var vcNow = strumenti.reduce(function(s, x) { return s + (x.vc || x.carico || 0); }, 0);
   var values = filtered.map(function(s) {
-    return grafMode === 'perf' ? (s.totale - vcNow) : s.totale;
+    if (grafMode === 'perf') {
+      // (conti titoli tranne Fineco Inv) + valore Fineco a quella data - valore di carico a quella data
+      return (_altriTitoli + s.totale) - vcAt(s.date);
+    }
+    return s.totale;
   });
   var first = values[0];
 
