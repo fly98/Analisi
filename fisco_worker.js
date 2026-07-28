@@ -1602,6 +1602,21 @@ function haGiaDocumento(riga) {
 async function controlloConsegne(env) {
   try {
     const r = await verificaConsegne(env, 15);
+    // traccia sempre l'esecuzione: un controllo silenzioso e' indistinguibile
+    // da un controllo rotto
+    if (env.FISCO_KV) {
+      await env.FISCO_KV.put(
+        'fisco:verifica:ultima',
+        JSON.stringify({
+          istante: new Date().toISOString(),
+          esito: r && r.errore ? 'errore' : 'ok',
+          errore: (r && r.errore) || null,
+          confermate: (r && r.confermate && r.confermate.length) || 0,
+          attesa: (r && r.attesa && r.attesa.length) || 0,
+          daControllare: (r && r.daControllare) || [],
+        })
+      );
+    }
     if (!r || r.errore || !r.daControllare || !r.daControllare.length) return;
     const righe = r.daControllare
       .map((x) => `• *${x.numero}* — ${x.stato}${x.idSdi ? ` (SdI ${x.idSdi})` : ', mai trasmessa'}, da ${x.giorni} gg`)
@@ -3147,6 +3162,7 @@ export default {
         }
 
         fatture.sort((a, b) => (a.data < b.data ? 1 : -1));
+        const ultimaVerifica = await env.FISCO_KV.get('fisco:verifica:ultima', 'json');
         const tot = fatture.reduce((s, f) => s + f.totale, 0);
         return json({
           ok: true,
@@ -3154,6 +3170,7 @@ export default {
           count: fatture.length,
           totale: Math.round(tot * 100) / 100,
           fatture,
+          ultimaVerifica,
         });
       }
 
