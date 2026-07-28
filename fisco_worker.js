@@ -1602,19 +1602,10 @@ function haGiaDocumento(riga) {
 async function controlloConsegne(env) {
   try {
     const r = await verificaConsegne(env, 15);
-    // traccia sempre l'esecuzione: un controllo silenzioso e' indistinguibile
-    // da un controllo rotto
-    if (env.FISCO_KV) {
+    if (r && r.errore && env.FISCO_KV) {
       await env.FISCO_KV.put(
         'fisco:verifica:ultima',
-        JSON.stringify({
-          istante: new Date().toISOString(),
-          esito: r && r.errore ? 'errore' : 'ok',
-          errore: (r && r.errore) || null,
-          confermate: (r && r.confermate && r.confermate.length) || 0,
-          attesa: (r && r.attesa && r.attesa.length) || 0,
-          daControllare: (r && r.daControllare) || [],
-        })
+        JSON.stringify({ istante: new Date().toISOString(), esito: 'errore', errore: r.errore, daControllare: [] })
       );
     }
     if (!r || r.errore || !r.daControllare || !r.daControllare.length) return;
@@ -1901,7 +1892,19 @@ async function verificaConsegne(env, giorni) {
       attesa.push(voce);
     }
   }
-  return { periodo: [inizio, fine], confermate, attesa, daControllare };
+  const esito = { periodo: [inizio, fine], confermate, attesa, daControllare };
+  // ogni esecuzione lascia traccia, sia dal cron sia richiamata a mano
+  await env.FISCO_KV.put(
+    'fisco:verifica:ultima',
+    JSON.stringify({
+      istante: new Date().toISOString(),
+      esito: 'ok',
+      confermate: confermate.length,
+      attesa: attesa.length,
+      daControllare,
+    })
+  );
+  return esito;
 }
 
 
