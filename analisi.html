@@ -188,7 +188,10 @@ main { max-width:900px; margin:0 auto; padding:16px; display:flex;
     <!-- Grafico andamento -->
     <div class="card">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-        <div class="card-title" style="margin-bottom:0">Andamento portafoglio</div>
+        <div style="display:flex;gap:4px">
+          <button class="graf-tab active" data-mode="perf" onclick="setGrafMode('perf')" style="padding:4px 12px;border-radius:8px;border:1px solid var(--border);background:var(--accent,#1a4a7a);color:#fff;font-size:12px;font-weight:700;cursor:pointer">Performance</button>
+          <button class="graf-tab" data-mode="tot" onclick="setGrafMode('tot')" style="padding:4px 12px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer">Portafoglio</button>
+        </div>
         <div class="range-bar" id="range-bar">
           <button class="range-btn" data-days="30">1M</button>
           <button class="range-btn" data-days="90">3M</button>
@@ -305,6 +308,7 @@ main { max-width:900px; margin:0 auto; padding:16px; display:flex;
 const WORKER = 'https://icompta-worker.f-castiglioni.workers.dev';
 let TOKEN = localStorage.getItem('icompta_token') || localStorage.getItem('analisi_token') || '';
 let snapshots = [];
+var grafMode = 'perf';  // 'perf' = performance vs carico, 'tot' = valore totale
 let variazioniPeriodo = 'giorno';
 let strumenti = [];
 let txByYear = {};
@@ -574,6 +578,19 @@ document.getElementById('range-bar').addEventListener('click', function(e) {
   renderAndamento();
 });
 
+
+function setGrafMode(mode) {
+  grafMode = mode;
+  document.querySelectorAll('.graf-tab').forEach(function(b){
+    var on = b.getAttribute('data-mode') === mode;
+    b.style.background = on ? (getComputedStyle(document.documentElement).getPropertyValue('--accent') || '#1a4a7a') : 'none';
+    b.style.color = on ? '#fff' : 'var(--muted)';
+    b.style.fontWeight = on ? '700' : '600';
+    b.classList.toggle('active', on);
+  });
+  renderAndamento();
+}
+
 function renderAndamento() {
   var canvas = document.getElementById('chart-andamento');
   var emptyEl = document.getElementById('chart-empty');
@@ -600,7 +617,12 @@ function renderAndamento() {
     if (filtered.length > 250) return p[2]+'/'+p[1]+'/'+p[0].slice(2);
     return p[2]+'/'+p[1];
   });
-  var values = filtered.map(function(s) { return s.totale; });
+  // Valore di carico attuale (stabile: cambia solo con acquisti/vendite).
+  // In performance mostriamo lo scarto totale - carico (guadagno/perdita).
+  var vcNow = strumenti.reduce(function(s, x) { return s + (x.vc || x.carico || 0); }, 0);
+  var values = filtered.map(function(s) {
+    return grafMode === 'perf' ? (s.totale - vcNow) : s.totale;
+  });
   var first = values[0];
 
   // Indici di massimo e minimo (per evidenziarli e etichettarli)
@@ -673,6 +695,7 @@ function renderAndamento() {
           title: function(items) { return items.length ? items[0].label : ''; },
           label: function(ctx) {
             var s = fmt(ctx.raw);
+            if (grafMode === 'perf') s = (ctx.raw >= 0 ? '+' : '') + s + ' vs carico';
             if (ctx.dataIndex === iMax) return '📈 Massimo · ' + s;
             if (ctx.dataIndex === iMin) return '📉 Minimo · ' + s;
             return s;
