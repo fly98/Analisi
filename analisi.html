@@ -602,7 +602,49 @@ function renderAndamento() {
   });
   var values = filtered.map(function(s) { return s.totale; });
   var first = values[0];
-  var colors = values.map(function(v) { return v >= first ? '#1a7a4a' : '#b83232'; });
+
+  // Indici di massimo e minimo (per evidenziarli e etichettarli)
+  var iMax = 0, iMin = 0;
+  for (var i = 1; i < values.length; i++) {
+    if (values[i] > values[iMax]) iMax = i;
+    if (values[i] < values[iMin]) iMin = i;
+  }
+
+  // Colore/raggio per punto: max verde, min rosso, gli altri blu.
+  // Raggio piccolo ma non nullo, cosi' i punti restano tappabili anche con molti dati.
+  var many = filtered.length > 60;
+  var ptRadius = values.map(function(v, i) {
+    if (i === iMax || i === iMin) return 6;
+    return many ? 2.5 : 3;
+  });
+  var ptColor = values.map(function(v, i) {
+    if (i === iMax) return '#1a7a4a';
+    if (i === iMin) return '#b83232';
+    return '#1a4a7a';
+  });
+  // Area di tap piu' ampia del punto visibile (px) per il tocco su mobile
+  var ptHit = values.map(function(v, i) { return (i === iMax || i === iMin) ? 12 : 10; });
+
+  // Plugin: etichetta permanente su max e min
+  var maxMinLabels = {
+    id: 'maxMinLabels',
+    afterDatasetsDraw: function(chart) {
+      var ctx = chart.ctx;
+      var meta = chart.getDatasetMeta(0);
+      [[iMax, '#1a7a4a', 'MAX'], [iMin, '#b83232', 'MIN']].forEach(function(t) {
+        var idx = t[0], col = t[1], tag = t[2];
+        var pt = meta.data[idx]; if (!pt) return;
+        var val = '€' + (values[idx]/1000).toFixed(1) + 'k';
+        ctx.save();
+        ctx.font = 'bold 11px -apple-system,sans-serif';
+        ctx.fillStyle = col;
+        ctx.textAlign = 'center';
+        var up = tag === 'MAX';
+        ctx.fillText(val, pt.x, pt.y + (up ? -12 : 20));
+        ctx.restore();
+      });
+    }
+  };
 
   if (chartAndamento) chartAndamento.destroy();
   chartAndamento = new Chart(canvas.getContext('2d'), {
@@ -614,23 +656,36 @@ function renderAndamento() {
         borderColor: '#1a4a7a',
         backgroundColor: 'rgba(26,74,122,.07)',
         borderWidth: 2,
-        pointRadius: filtered.length > 60 ? 0 : 3,
-        pointBackgroundColor: '#1a4a7a',
+        pointRadius: ptRadius,
+        pointHoverRadius: ptRadius.map(function(r){ return r + 3; }),
+        pointHitRadius: ptHit,
+        pointBackgroundColor: ptColor,
+        pointBorderColor: ptColor,
         fill: true,
         tension: 0.3
       }]
     },
     options: {
       responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'nearest', intersect: false },
       plugins: { legend: { display: false },
-        tooltip: { callbacks: { label: function(ctx) { return fmt(ctx.raw); } } }
+        tooltip: { callbacks: {
+          title: function(items) { return items.length ? items[0].label : ''; },
+          label: function(ctx) {
+            var s = fmt(ctx.raw);
+            if (ctx.dataIndex === iMax) return '📈 Massimo · ' + s;
+            if (ctx.dataIndex === iMin) return '📉 Minimo · ' + s;
+            return s;
+          }
+        } }
       },
       scales: {
         x: { grid: { display: false }, ticks: { maxTicksLimit: 8, font: { size: 10 } } },
         y: { grid: { color: 'rgba(0,0,0,.05)' },
           ticks: { callback: function(v) { return '€' + (v/1000).toFixed(0) + 'k'; }, font: { size: 10 } } }
       }
-    }
+    },
+    plugins: [maxMinLabels]
   });
 }
 
