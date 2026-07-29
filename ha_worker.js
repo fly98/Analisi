@@ -528,6 +528,34 @@ export default {
       }
     }
 
+    // GET /log - error log di Home Assistant
+    if (path === '/log') {
+      try {
+        const resp = await fetch(`${HA_URL}/api/error_log`, {
+          headers: { 'Authorization': `Bearer ${TOKEN}` }
+        })
+        const text = await resp.text()
+        return new Response(text, { status: resp.status, headers: { ...corsHeaders, 'Content-Type': 'text/plain' } })
+      } catch(e) {
+        return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders })
+      }
+    }
+
+    // POST /reload?entry_id=X - ricarica una config entry
+    if (path === '/reload' && request.method === 'POST') {
+      try {
+        const entryId = url.searchParams.get('entry_id')
+        const resp = await fetch(`${HA_URL}/api/config/config_entries/entry/${entryId}/reload`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${TOKEN}` }
+        })
+        const text = await resp.text()
+        return new Response(text, { status: resp.status, headers: corsHeaders })
+      } catch(e) {
+        return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders })
+      }
+    }
+
     // GET /svc[?domain=notify] - elenco servizi disponibili
     if (path === '/svc') {
       try {
