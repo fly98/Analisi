@@ -309,7 +309,7 @@ const WORKER = 'https://icompta-worker.f-castiglioni.workers.dev';
 let TOKEN = localStorage.getItem('icompta_token') || localStorage.getItem('analisi_token') || '';
 let snapshots = [];
 var grafMode = 'perf';  // 'perf' = performance vs carico, 'tot' = valore totale
-var _altriTitoli = 0;   // saldo conti titoli diversi da Fineco Investimenti (attuale)
+var _titoliRows = [];   // righe datate conti titoli (tranne Fineco Inv) per saldo a data
 var _vcRows = [];       // righe storiche del conto Valore di carico [{date,amount}]
 let variazioniPeriodo = 'giorno';
 let strumenti = [];
@@ -588,38 +588,45 @@ document.getElementById('range-bar').addEventListener('click', function(e) {
 async function loadPerfData() {
   try {
     var meta = await api('GET', '/api/meta');
-    var bal  = await api('GET', '/api/balance');
     var GID = 'GRP-CONTI-TITOLI';
-    _altriTitoli = 0;
+    // conti titoli con transazioni datate (tutti tranne Fineco Investimenti,
+    // che ha invece lo snapshot). Il loro saldo a una data = somma righe fino a lì.
+    var titoliIds = {};
     (meta.accounts || []).forEach(function(a){
-      if (a.groupId === GID && a.name !== 'Fineco Investimenti')
-        _altriTitoli += (bal.accounts && bal.accounts[a.id]) || 0;
+      if (a.groupId === GID && a.name !== 'Fineco Investimenti') titoliIds[a.id] = true;
     });
-    // righe valore di carico da tutti gli anni
+    _titoliRows = [];
     _vcRows = [];
     var years = meta.years || [];
+    function valOf(tx){
+      var v = 0, sp = tx.splits || [];
+      if (tx.useSumOfSplits && sp.length) sp.forEach(function(s){ if(s.amount!=null) v+=s.amount; });
+      else if (tx.amount != null) v = tx.amount;
+      return v;
+    }
     for (var i=0;i<years.length;i++) {
       try {
         var txs = await api('GET', '/api/tx/' + years[i]);
         txs.forEach(function(tx){
-          if (tx.accountId !== 'ACC-VALORE-CARICO') return;
-          var v = 0, sp = tx.splits || [];
-          if (tx.useSumOfSplits && sp.length) sp.forEach(function(s){ if(s.amount!=null) v+=s.amount; });
-          else if (tx.amount != null) v = tx.amount;
-          _vcRows.push({ date: tx.date, amount: v });
+          if (!tx.date) return;
+          if (titoliIds[tx.accountId]) _titoliRows.push({ date: tx.date, amount: valOf(tx) });
+          else if (tx.accountId === 'ACC-VALORE-CARICO') _vcRows.push({ date: tx.date, amount: valOf(tx) });
         });
       } catch(e){}
     }
+    _titoliRows.sort(function(a,b){ return a.date.localeCompare(b.date); });
     _vcRows.sort(function(a,b){ return a.date.localeCompare(b.date); });
   } catch(e){}
 }
 
-// Saldo del conto Valore di carico a una certa data (somma righe fino a quella data)
-function vcAt(dstr) {
+// Saldo cumulato a una data (somma delle righe fino a quella data inclusa)
+function _sumUpTo(rows, dstr) {
   var v = 0;
-  for (var i=0;i<_vcRows.length;i++) { if (_vcRows[i].date <= dstr) v += _vcRows[i].amount; else break; }
+  for (var i=0;i<rows.length;i++) { if (rows[i].date <= dstr) v += rows[i].amount; else break; }
   return v;
 }
+function vcAt(dstr)     { return _sumUpTo(_vcRows, dstr); }
+function titoliAt(dstr) { return _sumUpTo(_titoliRows, dstr); }
 
 function setGrafMode(mode) {
   grafMode = mode;
@@ -664,7 +671,7 @@ function renderAndamento() {
   var values = filtered.map(function(s) {
     if (grafMode === 'perf') {
       // (conti titoli tranne Fineco Inv) + valore Fineco a quella data - valore di carico a quella data
-      return (_altriTitoli + s.totale) - vcAt(s.date);
+      return (titoliAt(s.date) + s.totale) - vcAt(s.date);
     }
     return s.totale;
   });
