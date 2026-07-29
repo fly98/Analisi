@@ -705,16 +705,32 @@ function renderAndamento() {
     afterDatasetsDraw: function(chart) {
       var ctx = chart.ctx;
       var meta = chart.getDatasetMeta(0);
-      [[iMax, '#1a7a4a', 'MAX'], [iMin, '#b83232', 'MIN']].forEach(function(t) {
-        var idx = t[0], col = t[1], tag = t[2];
+      var area = chart.chartArea;
+      // MAX -> etichetta SOTTO la curva; MIN -> SOPRA. Cosi' non escono dai bordi.
+      [[iMax, '#1a7a4a', false], [iMin, '#b83232', true]].forEach(function(t) {
+        var idx = t[0], col = t[1], above = t[2];
         var pt = meta.data[idx]; if (!pt) return;
         var val = '€' + (values[idx]/1000).toFixed(1) + 'k';
         ctx.save();
         ctx.font = 'bold 11px -apple-system,sans-serif';
         ctx.fillStyle = col;
-        ctx.textAlign = 'center';
-        var up = tag === 'MAX';
-        ctx.fillText(val, pt.x, pt.y + (up ? -12 : 20));
+
+        // posizione verticale con clamp entro l'area del grafico
+        var y = pt.y + (above ? -10 : 18);
+        if (y < area.top + 10)    y = area.top + 10;      // non uscire in alto
+        if (y > area.bottom - 4)  y = area.bottom - 4;    // ne' in basso
+
+        // allineamento orizzontale: centrato, ma spostato se vicino ai bordi
+        var w = ctx.measureText(val).width;
+        var x = pt.x, align = 'center';
+        if (pt.x - w/2 < area.left + 2)      { align = 'left';  x = area.left + 2; }
+        else if (pt.x + w/2 > area.right - 2){ align = 'right'; x = area.right - 2; }
+        ctx.textAlign = align;
+
+        // alone bianco per leggibilita' sopra la linea/area
+        ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(255,255,255,.9)';
+        ctx.strokeText(val, x, y);
+        ctx.fillText(val, x, y);
         ctx.restore();
       });
     }
