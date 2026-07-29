@@ -495,6 +495,22 @@ export default {
       }
     }
 
+    // POST /render  body {template:"{{ ... }}"} - valuta un template Jinja lato HA
+    if (path === '/render' && request.method === 'POST') {
+      try {
+        const body = await request.text()
+        const resp = await fetch(`${HA_URL}/api/template`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${TOKEN}`, 'Content-Type': 'application/json' },
+          body: body
+        })
+        const text = await resp.text()
+        return new Response(text, { status: resp.status, headers: corsHeaders })
+      } catch(e) {
+        return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders })
+      }
+    }
+
     // GET /svc[?domain=notify] - elenco servizi disponibili
     if (path === '/svc') {
       try {
