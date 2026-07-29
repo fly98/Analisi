@@ -474,6 +474,23 @@ export default {
     // POST /cfgflow?flow_id=X  body {...}                                             → step successivo
     // GET  /cfgentries[?domain=template]                                              → elenco config entries
     // DELETE /cfgentries?entry_id=X                                                   → rimuove una entry
+    if (path === '/cfgflow' && (request.method === 'GET' || request.method === 'DELETE')) {
+      try {
+        const flowId = url.searchParams.get('flow_id')
+        const target = flowId
+          ? `${HA_URL}/api/config/config_entries/flow/${flowId}`
+          : `${HA_URL}/api/config/config_entries/flow`
+        const resp = await fetch(target, {
+          method: request.method,
+          headers: { 'Authorization': `Bearer ${TOKEN}` }
+        })
+        const text = await resp.text()
+        return new Response(text, { status: resp.status, headers: corsHeaders })
+      } catch(e) {
+        return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders })
+      }
+    }
+
     if (path === '/cfgflow' && request.method === 'POST') {
       try {
         const flowId = url.searchParams.get('flow_id')
