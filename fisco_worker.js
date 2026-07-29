@@ -2512,6 +2512,22 @@ export default {
     }
 
     // link pubblico alla ricevuta: nessun token, l'indirizzo stesso e' il segreto
+    // documenti generici pubblicati con link diretto (prospetti, note, allegati)
+    if (url.pathname.startsWith('/d/')) {
+      const token = url.pathname.slice(3).replace(/[^a-z0-9]/gi, '');
+      if (!token || !env.FISCO_KV) return new Response('Link non valido', { status: 404 });
+      const rec = await env.FISCO_KV.get(`fisco:doc:${token}`, 'json');
+      if (!rec) return new Response('Documento non disponibile o link scaduto', { status: 404 });
+      const bin = Uint8Array.from(atob(rec.b64), (c) => c.charCodeAt(0));
+      return new Response(bin, {
+        headers: {
+          'Content-Type': rec.mime || 'application/pdf',
+          'Content-Disposition': `inline; filename="${rec.nome || 'documento.pdf'}"`,
+          'Cache-Control': 'private, max-age=3600',
+        },
+      });
+    }
+
     if (url.pathname.startsWith('/r/')) {
       const token = url.pathname.slice(3).replace(/[^a-z0-9]/gi, '');
       if (!token || !env.FISCO_KV) return new Response('Link non valido', { status: 404 });
@@ -3244,6 +3260,18 @@ export default {
       if (url.pathname === '/verificaConsegne') {
         const giorni = parseInt(url.searchParams.get('giorni') || '10', 10);
         return json({ ok: true, ...(await verificaConsegne(env, giorni)) });
+      }
+
+      if (url.pathname === '/pubblicaDoc' && request.method === 'POST') {
+        const b = await request.json();
+        if (!b.b64 || !b.nome) return json({ ok: false, error: 'servono nome e b64' }, 400);
+        const token = Math.random().toString(36).slice(2) + Date.now().toString(36);
+        await env.FISCO_KV.put(
+          `fisco:doc:${token}`,
+          JSON.stringify({ nome: b.nome, mime: b.mime || 'application/pdf', b64: b.b64 }),
+          { expirationTtl: 60 * 60 * 24 * 365 }
+        );
+        return json({ ok: true, token, link: `${url.origin}/d/${token}` });
       }
 
       if (url.pathname === '/registro') {
