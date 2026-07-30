@@ -492,9 +492,11 @@ async function loadSnapshots() {
     const data = await api('GET', '/api/snapshot');
     snapshots = Array.isArray(data) ? data : [];
   } catch(e) { snapshots = []; }
-  // Dati per il tab Performance: saldo conti titoli (tranne Fineco Inv) + righe valore di carico
-  try { await loadPerfData(); } catch(e) {}
-  // Carica demo se meno di 5 snapshot reali (in sviluppo)
+  // Dati per il tab Performance: caricati in background, NON bloccano il render.
+  // (se lenti/errore, il grafico performance userà 0 finché non arrivano, ma i dati
+  //  veri degli snapshot si mostrano subito)
+  loadPerfData().then(function(){ try { renderAndamento(); renderVariazioni(); } catch(e){} });
+  // Demo SOLO se non c'è davvero nessuno snapshot reale
   if (snapshots.length < 1) {
     try {
       var r = await fetch('https://fly98.github.io/Analisi/demo_snapshots.json');
@@ -610,23 +612,28 @@ async function loadPerfData() {
     });
     _titoliRows = [];
     _vcRows = [];
-    var years = meta.years || [];
+    var allYears = meta.years || [];
+    // Solo gli ultimi 2 anni: i conti titoli e il valore di carico non hanno righe
+    // piu' vecchie che servano al periodo mostrato. Evita 26 chiamate sequenziali
+    // (che scaricavano decine di migliaia di TX e bloccavano la pagina su iPad).
+    var years = allYears.slice(-2);
     function valOf(tx){
       var v = 0, sp = tx.splits || [];
       if (tx.useSumOfSplits && sp.length) sp.forEach(function(s){ if(s.amount!=null) v+=s.amount; });
       else if (tx.amount != null) v = tx.amount;
       return v;
     }
-    for (var i=0;i<years.length;i++) {
-      try {
-        var txs = await api('GET', '/api/tx/' + years[i]);
-        txs.forEach(function(tx){
-          if (!tx.date) return;
-          if (titoliIds[tx.accountId]) _titoliRows.push({ date: tx.date, amount: valOf(tx) });
-          else if (tx.accountId === 'ACC-VALORE-CARICO') _vcRows.push({ date: tx.date, amount: valOf(tx) });
-        });
-      } catch(e){}
-    }
+    // chiamate in parallelo, non in serie
+    var results = await Promise.all(years.map(function(y){
+      return api('GET', '/api/tx/' + y).catch(function(){ return []; });
+    }));
+    results.forEach(function(txs){
+      (txs || []).forEach(function(tx){
+        if (!tx.date) return;
+        if (titoliIds[tx.accountId]) _titoliRows.push({ date: tx.date, amount: valOf(tx) });
+        else if (tx.accountId === 'ACC-VALORE-CARICO') _vcRows.push({ date: tx.date, amount: valOf(tx) });
+      });
+    });
     _titoliRows.sort(function(a,b){ return a.date.localeCompare(b.date); });
     _vcRows.sort(function(a,b){ return a.date.localeCompare(b.date); });
   } catch(e){}
