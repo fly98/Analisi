@@ -26,7 +26,9 @@ export default {
     // Sicurezza: se è impostato il secret HA_API_KEY, ogni richiesta
     // deve presentare l'header X-API-Key corretto. Se il secret non è
     // ancora impostato, il worker resta aperto (nessuna rottura al deploy).
-    if (env.HA_API_KEY) {
+    // Eccezione: /cancello ha già la sua chiave in query string (CANCELLO_KEY),
+    // serve per i tag NFC che non possono mandare header custom.
+    if (env.HA_API_KEY && path !== '/cancello') {
       const provided = request.headers.get('X-API-Key')
       if (provided !== env.HA_API_KEY) {
         return new Response(JSON.stringify({ error: 'unauthorized' }), { status: 401, headers: corsHeaders })
