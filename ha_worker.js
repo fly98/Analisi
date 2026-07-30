@@ -604,6 +604,17 @@ export default {
     if (path === '/cfgentries') {
       try {
         const entryId = url.searchParams.get('entry_id')
+        // POST /cfgentries?entry_id=X  body {pref_disable_polling:true, ...}
+        if (request.method === 'POST' && entryId) {
+          const body = await request.text()
+          const resp = await fetch(`${HA_URL}/api/config/config_entries/entry/${entryId}`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${TOKEN}`, 'Content-Type': 'application/json' },
+            body: body
+          })
+          const text = await resp.text()
+          return new Response(text, { status: resp.status, headers: corsHeaders })
+        }
         if (request.method === 'DELETE' && entryId) {
           const resp = await fetch(`${HA_URL}/api/config/config_entries/entry/${entryId}`, {
             method: 'DELETE',
