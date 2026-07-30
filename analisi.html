@@ -1015,7 +1015,7 @@ function puntiVariazioni(periodo) {
   if (periodo !== 'settimana' && periodo !== 'mese') {
     return snapshots.map(function(s) {
       var p = s.date.split('-');
-      return { totale: s.totale, label: p[2] + '/' + p[1] };
+      return { totale: s.totale, date: s.date, label: p[2] + '/' + p[1] };
     });
   }
   var byKey = {};
@@ -1030,7 +1030,7 @@ function puntiVariazioni(periodo) {
     } else {
       label = p[2] + '/' + p[1];
     }
-    return { totale: s.totale, label: label };
+    return { totale: s.totale, date: s.date, label: label };
   });
 }
 
@@ -1053,10 +1053,22 @@ function renderVariazioni() {
 
   var recent = punti.slice(-11);
   var labels = [], deltas = [], pcts = [], colors = [];
+  // La variazione mostrata è quella della PERFORMANCE (valore - carico), non del
+  // valore totale: così un versamento/prelievo (che alza sia valore sia carico)
+  // NON appare come guadagno/perdita fittizio.
+  function perfAt(pt) {
+    if (typeof titoliAt === 'function' && typeof vcAt === 'function' && pt.date) {
+      return (titoliAt(pt.date) + pt.totale) - vcAt(pt.date);
+    }
+    return pt.totale; // fallback
+  }
   for (var i = 1; i < recent.length; i++) {
     var curr = recent[i], prev = recent[i-1];
-    var delta = Math.round((curr.totale - prev.totale) * 100) / 100;
-    var pct = prev.totale > 0 ? Math.round(delta / prev.totale * 10000) / 100 : 0;
+    var pc = perfAt(curr), pp = perfAt(prev);
+    var delta = Math.round((pc - pp) * 100) / 100;
+    // percentuale riferita al valore di mercato del periodo prima (più significativa)
+    var base = prev.totale > 0 ? prev.totale : 1;
+    var pct = Math.round(delta / base * 10000) / 100;
     labels.push(curr.label);
     deltas.push(delta);
     pcts.push(pct);
