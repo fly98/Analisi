@@ -1565,7 +1565,7 @@ function regolaCliente(p) {
 // stato viene sempre scritto in KV. Il match euristico serviva a ricostruire il
 // pregresso: applicarlo anche al recente produce falsi positivi che fanno
 // saltare l'emissione automatica. Oltre questa soglia non si abbina piu' nulla.
-const SOGLIA_MATCH = '2026-07-01';
+const SOGLIA_MATCH = '2099-01-01'; // TEMPORANEO: consolidamento in corso
 
 const CANALI_GARANTITI = ['booking.com', 'airbnb', 'expedia', 'expedia affiliate network', 'hotels.com'];
 
