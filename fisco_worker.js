@@ -864,7 +864,9 @@ async function elenco(env, dal, al, margine) {
   const stati = await leggiStati(env, prenotazioni.map((p) => p.id));
 
   // match euristico solo per le prenotazioni senza stato registrato
-  const senzaStato = prenotazioni.filter((p) => !stati[p.id] && !daFatturare(p));
+  const senzaStato = prenotazioni.filter(
+    (p) => !stati[p.id] && !daFatturare(p) && String(p.checkout || '') < SOGLIA_MATCH
+  );
 
   // le ricevute gia' collegate a una decisione registrata sono impegnate:
   // se restassero disponibili verrebbero assegnate una seconda volta
@@ -1559,6 +1561,12 @@ function regolaCliente(p) {
 }
 
 // Canali dove il pagamento è garantito dal portale
+// Dal 1° luglio 2026 le ricevute vengono emesse dall'automatismo o a mano, e lo
+// stato viene sempre scritto in KV. Il match euristico serviva a ricostruire il
+// pregresso: applicarlo anche al recente produce falsi positivi che fanno
+// saltare l'emissione automatica. Oltre questa soglia non si abbina piu' nulla.
+const SOGLIA_MATCH = '2026-07-01';
+
 const CANALI_GARANTITI = ['booking.com', 'airbnb', 'expedia', 'expedia affiliate network', 'hotels.com'];
 
 // Somma i pagamenti registrati per una prenotazione leggendo le notifiche
@@ -1594,6 +1602,7 @@ async function pagamentiRegistrati(env, bookingId) {
 
 // Verifica che non esista gia' un documento per quella prenotazione:
 // controlla sia le decisioni registrate sia le ricevute del cassetto fiscale
+
 function haGiaDocumento(riga) {
   return riga.stato !== 'da_emettere' && riga.stato !== 'futura';
 }
@@ -1655,7 +1664,7 @@ async function emissioneAutomatica(env, giornoRif, soloProva = false) {
     (p) => p.checkout >= dal && p.checkout <= oggi && !haGiaDocumento(p)
   );
 
-  const esito = { data: oggi, esaminate: daTrattare.length, emesse: [], segnate: [], sospese: [], errori: [] };
+  const esito = { data: oggi, esaminate: daTrattare.length, emesse: [], segnate: [], sospese: [], errori: [], daMano: [] };
 
   for (const p of daTrattare) {
     try {
@@ -1739,8 +1748,22 @@ async function emissioneAutomatica(env, giornoRif, soloProva = false) {
     }
   }
 
+  // quello che il giro non ha risolto resta da fare a mano
+  const risolte = new Set([...esito.emesse, ...esito.segnate].map((x) => String(x.id)));
+  for (const p of daTrattare) {
+    if (risolte.has(String(p.id))) continue;
+    const sos = esito.sospese.find((s2) => String(s2.id) === String(p.id));
+    const err = esito.errori.find((e) => String(e.id) === String(p.id));
+    esito.daMano.push({
+      id: p.id, nome: p.nome, canale: p.canale, checkout: p.checkout,
+      importo: Number(p.atteso || 0),
+      motivo: (sos && sos.motivo) || (err && `errore: ${err.errore}`) || 'non trattata dall\u2019automatismo',
+      oggi: p.checkout === oggi,
+    });
+  }
+
   // riepilogo giornaliero a me stesso
-  if (!soloProva && (esito.emesse.length || esito.sospese.length || esito.errori.length)) {
+  if (!soloProva && (esito.emesse.length || esito.sospese.length || esito.errori.length || esito.daMano.length)) {
     const righe = [];
     righe.push(`Emissione automatica del ${dataIt(oggi)}`);
     righe.push('');
@@ -1756,9 +1779,22 @@ async function emissioneAutomatica(env, giornoRif, soloProva = false) {
       for (const s of esito.segnate) righe.push(`· ${s.nome || 'senza nome'} — ${s.motivo}`);
       righe.push('');
     }
-    if (esito.sospese.length) {
-      righe.push(`IN ATTESA, DA VALUTARE: ${esito.sospese.length}`);
-      for (const s of esito.sospese) righe.push(`· ${s.nome || 'senza nome'} (${s.canale}) — ${s.motivo}`);
+    if (esito.daMano.length) {
+      const diOggi = esito.daMano.filter((x) => x.oggi);
+      const arretrate = esito.daMano.filter((x) => !x.oggi);
+      righe.push(`DA EMETTERE A MANO: ${esito.daMano.length}`);
+      if (diOggi.length) {
+        righe.push(`Partenze di oggi rimaste senza ricevuta: ${diOggi.length}`);
+        for (const x of diOggi) {
+          righe.push(`· ${x.nome || 'senza nome'} (${x.canale}) — ${x.importo.toFixed(2)} € — ${x.motivo}`);
+        }
+      }
+      if (arretrate.length) {
+        righe.push(`Partenze dei giorni scorsi ancora aperte: ${arretrate.length}`);
+        for (const x of arretrate) {
+          righe.push(`· ${x.nome || 'senza nome'} (${x.canale}) — partenza ${dataIt(x.checkout)} — ${x.importo.toFixed(2)} € — ${x.motivo}`);
+        }
+      }
       righe.push('');
     }
     if (esito.errori.length) {
@@ -1766,7 +1802,7 @@ async function emissioneAutomatica(env, giornoRif, soloProva = false) {
       for (const e of esito.errori) righe.push(`· ${e.nome || e.id} — ${e.errore}`);
     }
     try {
-      await inviaEmail(env, 'info@interno1.it', `Cassa · ${esito.emesse.length} ricevute emesse`, righe.join('\n'));
+      await inviaEmail(env, 'info@interno1.it', `Cassa · ${esito.emesse.length} ricevute emesse${esito.daMano.length ? ` · ${esito.daMano.length} da fare a mano` : ''}`, righe.join('\n'));
     } catch {
       /* il riepilogo è secondario rispetto all'emissione */
     }
