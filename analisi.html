@@ -712,22 +712,16 @@ function renderAndamento() {
   // al loro valore di carico (non oscillano). Isola il movimento di azionario/ETF/oro.
   var values2 = null;
   if (grafMode === 'perf') {
-    values2 = filtered.map(function(s, idx) {
-      // Parte dalla performance "vera" (linea blu) e NEUTRALIZZA lo scarto latente
-      // dei soli bond: per ogni bond presente nel breakdown, sostituisce il suo
-      // valore di mercato con il carico. Robusto: se un bond manca nel breakdown,
-      // semplicemente non contribuisce (niente sbilanciamento -> niente crolli).
-      var bd = s.breakdown || {};
-      var scartoBond = 0;
-      for (var nome in bd) {
-        var info = _strMap[nome];
-        if (info && info.isBond) {
-          scartoBond += (bd[nome] - info.vc);  // mercato - carico del bond
-        }
-      }
-      // performance con bond congelati = performance vera - scarto latente bond
-      return values[idx] - scartoBond;
-    });
+    // Scarto latente dei bond OGGI (mercato - carico), calcolato una volta sola dagli
+    // strumenti attuali. È uno spostamento verticale costante: la tratteggiata segue
+    // la blu in parallelo, appena sopra se i bond sono in minus, appena sotto se in plus.
+    // (Non si ricalcola punto per punto col breakdown storico, che dava crolli spurii.)
+    var scartoBondOggi = 0;
+    for (var nm in _strMap) {
+      var inf = _strMap[nm];
+      if (inf && inf.isBond) scartoBondOggi += ((inf.vm || 0) - (inf.vc || 0));
+    }
+    values2 = values.map(function(v) { return v - scartoBondOggi; });
   }
   var first = values[0];
 
