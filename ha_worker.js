@@ -528,6 +528,19 @@ export default {
       }
     }
 
+    // GET /hacfg - configurazione HA (include l'elenco dei componenti caricati)
+    if (path === '/hacfg') {
+      try {
+        const resp = await fetch(`${HA_URL}/api/config`, {
+          headers: { 'Authorization': `Bearer ${TOKEN}` }
+        })
+        const text = await resp.text()
+        return new Response(text, { status: resp.status, headers: corsHeaders })
+      } catch(e) {
+        return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders })
+      }
+    }
+
     // GET /log - error log di Home Assistant
     if (path === '/log') {
       try {
