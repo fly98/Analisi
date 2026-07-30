@@ -417,6 +417,10 @@ async function loadLastUpdate() {
 
 async function loadAll() {
   await Promise.all([loadSnapshots(), loadStrumenti(), loadTxFineco()]);
+  // loadPerfData DOPO il Promise.all: costruisce _strMap da 'strumenti' (che ora è
+  // caricato) e carica _titoliRows/_vcRows. Deve stare qui, prima dei render, altrimenti
+  // KPI Var.periodo e grafici performance/tratteggiata partono con dati vuoti.
+  try { await loadPerfData(); } catch(e){}
   loadSemaforo(); // non bloccante
   renderKpi();
   renderAndamento();
@@ -492,10 +496,6 @@ async function loadSnapshots() {
     const data = await api('GET', '/api/snapshot');
     snapshots = Array.isArray(data) ? data : [];
   } catch(e) { snapshots = []; }
-  // Dati per il tab Performance: caricati in background, NON bloccano il render.
-  // (se lenti/errore, il grafico performance userà 0 finché non arrivano, ma i dati
-  //  veri degli snapshot si mostrano subito)
-  loadPerfData().then(function(){ try { renderAndamento(); renderVariazioni(); } catch(e){} });
   // Demo SOLO se non c'è davvero nessuno snapshot reale
   if (snapshots.length < 1) {
     try {
