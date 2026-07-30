@@ -553,8 +553,20 @@ function renderKpi() {
     if (snapshots[pi].date < today) { prevSnap = snapshots[pi]; break; }
   }
   if (vm > 0 && prevSnap) {
-    var delta = vm - prevSnap.totale;
-    var deltaPct = prevSnap.totale > 0 ? (delta / prevSnap.totale * 100) : 0;
+    // Variazione della PERFORMANCE (valore-carico), non del valore totale:
+    // così un versamento/prelievo odierno non compare come guadagno fittizio.
+    // perf oggi = pm (già = vm - vc attuale).
+    // perf prevSnap = (conti titoli + Fineco allo snapshot) - valore di carico a quella data.
+    var perfOggi = pm;
+    var perfPrev;
+    if (typeof titoliAt === 'function' && typeof vcAt === 'function') {
+      perfPrev = (titoliAt(prevSnap.date) + prevSnap.totale) - vcAt(prevSnap.date);
+    } else {
+      perfPrev = prevSnap.totale - vc; // fallback
+    }
+    var delta = perfOggi - perfPrev;
+    var base = prevSnap.totale > 0 ? prevSnap.totale : 1;
+    var deltaPct = delta / base * 100;
     dayEl.textContent = (delta >= 0 ? '+' : '') + fmt(delta);
     dayEl.className = 'kpi-value ' + (delta >= 0 ? 'pos' : 'neg');
     var pp = prevSnap.date.split('-');
