@@ -530,6 +530,23 @@ export default {
       }
     }
 
+    // GET /logbook?hours=48[&entity=X] - voci del logbook
+    if (path === '/logbook') {
+      try {
+        const hours = parseInt(url.searchParams.get('hours') || '24', 10)
+        const start = new Date(Date.now() - hours * 3600 * 1000).toISOString()
+        const ent = url.searchParams.get('entity')
+        const q = ent ? `?entity=${encodeURIComponent(ent)}` : ''
+        const resp = await fetch(`${HA_URL}/api/logbook/${start}${q}`, {
+          headers: { 'Authorization': `Bearer ${TOKEN}` }
+        })
+        const text = await resp.text()
+        return new Response(text, { status: resp.status, headers: corsHeaders })
+      } catch(e) {
+        return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders })
+      }
+    }
+
     // GET /hacfg - configurazione HA (include l'elenco dei componenti caricati)
     if (path === '/hacfg') {
       try {
