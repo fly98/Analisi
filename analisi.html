@@ -559,12 +559,17 @@ function renderKpi() {
     // così un versamento/prelievo odierno non compare come guadagno fittizio.
     // perf oggi = pm (già = vm - vc attuale).
     // perf prevSnap = (conti titoli + Fineco allo snapshot) - valore di carico a quella data.
-    var perfOggi = pm;
-    var perfPrev;
-    if (typeof titoliAt === 'function' && typeof vcAt === 'function') {
+    // Stesso perimetro per oggi e per ieri: performance del GRUPPO Conti Titoli
+    // (titoli con transazioni datate + valore Fineco a mercato) meno valore di carico.
+    // Prima 'perfOggi' usava pm (solo Fineco Investimenti) mentre 'perfPrev' usava il
+    // gruppo intero -> perimetri diversi -> numero assurdo (es. -26.717).
+    var perfOggi, perfPrev;
+    var lastSnap = snapshots.length ? snapshots[snapshots.length-1] : null;
+    if (typeof titoliAt === 'function' && typeof vcAt === 'function' && lastSnap) {
+      perfOggi = (titoliAt(lastSnap.date) + lastSnap.totale) - vcAt(lastSnap.date);
       perfPrev = (titoliAt(prevSnap.date) + prevSnap.totale) - vcAt(prevSnap.date);
     } else {
-      perfPrev = prevSnap.totale - vc; // fallback
+      perfOggi = pm; perfPrev = prevSnap.totale - vc; // fallback
     }
     var delta = perfOggi - perfPrev;
     var base = prevSnap.totale > 0 ? prevSnap.totale : 1;
@@ -707,15 +712,21 @@ function renderAndamento() {
   // al loro valore di carico (non oscillano). Isola il movimento di azionario/ETF/oro.
   var values2 = null;
   if (grafMode === 'perf') {
-    values2 = filtered.map(function(s) {
+    values2 = filtered.map(function(s, idx) {
+      // Parte dalla performance "vera" (linea blu) e NEUTRALIZZA lo scarto latente
+      // dei soli bond: per ogni bond presente nel breakdown, sostituisce il suo
+      // valore di mercato con il carico. Robusto: se un bond manca nel breakdown,
+      // semplicemente non contribuisce (niente sbilanciamento -> niente crolli).
       var bd = s.breakdown || {};
-      var finecoAdj = 0;
+      var scartoBond = 0;
       for (var nome in bd) {
         var info = _strMap[nome];
-        if (info && info.isBond) finecoAdj += info.vc;   // bond: valore di carico fisso
-        else finecoAdj += bd[nome];                       // resto: valore di mercato storico
+        if (info && info.isBond) {
+          scartoBond += (bd[nome] - info.vc);  // mercato - carico del bond
+        }
       }
-      return (titoliAt(s.date) + finecoAdj) - vcAt(s.date);
+      // performance con bond congelati = performance vera - scarto latente bond
+      return values[idx] - scartoBond;
     });
   }
   var first = values[0];
