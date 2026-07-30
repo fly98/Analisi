@@ -1561,11 +1561,12 @@ function regolaCliente(p) {
 }
 
 // Canali dove il pagamento è garantito dal portale
-// Dal 1° luglio 2026 le ricevute vengono emesse dall'automatismo o a mano, e lo
-// stato viene sempre scritto in KV. Il match euristico serviva a ricostruire il
-// pregresso: applicarlo anche al recente produce falsi positivi che fanno
-// saltare l'emissione automatica. Oltre questa soglia non si abbina piu' nulla.
-const SOGLIA_MATCH = '2099-01-01'; // TEMPORANEO: consolidamento in corso
+// Dal 24 luglio 2026 le ricevute vengono emesse dall'automatismo o a mano, e lo
+// stato viene sempre scritto in KV. Prima di quella data le ricevute venivano
+// fatte a mano e il match per importo e' l'unico modo di ritrovarle, quindi resta
+// attivo. Oltre la soglia non si abbina piu' nulla: un falso positivo farebbe
+// saltare l'emissione automatica senza che nessuno se ne accorga.
+const SOGLIA_MATCH = '2026-07-24';
 
 const CANALI_GARANTITI = ['booking.com', 'airbnb', 'expedia', 'expedia affiliate network', 'hotels.com'];
 
