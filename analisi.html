@@ -312,6 +312,7 @@ var grafMode = 'perf';  // 'perf' = performance vs carico, 'tot' = valore totale
 var _titoliRows = [];   // righe datate conti titoli (tranne Fineco Inv) per saldo a data
 var _vcRows = [];       // righe storiche del conto Valore di carico [{date,amount}]
 var _strMap = {};       // strumento -> {isBond, vc, vm} per la 2a linea
+var _bondCarico = {};   // 'YYYY-MM-DD' -> {nomeBond: carico a quella data}
 let variazioniPeriodo = 'giorno';
 let strumenti = [];
 let txByYear = {};
@@ -649,6 +650,41 @@ async function loadPerfData() {
     var cl = getClasse(s);   // usa la classificazione gia' esistente
     _strMap[nome] = { isBond: (cl === 'obbligazionario'), vc: (s.vc || s.carico || 0), vm: (s.vm || 0) };
   });
+  buildBondCaricoHistory();
+}
+
+// Ricostruisce il valore di CARICO di ogni obbligazione a ogni data storica.
+// Serve perche' _strMap ha solo il carico di OGGI: se si compra altro di un bond,
+// il carico odierno e' piu' alto e confrontarlo col mercato di ieri produce uno
+// scarto fasullo (la 2a linea si alzava di ~11k e poi crollava sull'ultimo punto).
+// Metodo: si parte dal carico odierno e si cammina all'indietro sugli snapshot;
+// quando il valore di un titolo salta troppo per essere un movimento di prezzo,
+// e' un acquisto/vendita e si toglie quel delta dal carico.
+function buildBondCaricoHistory() {
+  _bondCarico = {};
+  if (!snapshots || !snapshots.length) return;
+  var bondNames = [];
+  for (var n in _strMap) { if (_strMap[n].isBond) bondNames.push(n); }
+  if (!bondNames.length) return;
+  var run = {};
+  bondNames.forEach(function(n){ run[n] = _strMap[n].vc || 0; });
+  for (var i = snapshots.length - 1; i >= 0; i--) {
+    var d = snapshots[i].date, bd = snapshots[i].breakdown || {};
+    var row = {};
+    bondNames.forEach(function(n){ row[n] = run[n] || 0; });
+    _bondCarico[d] = row;
+    if (i > 0) {
+      var prev = snapshots[i-1].breakdown || {};
+      bondNames.forEach(function(n){
+        var cur = bd[n], pr = prev[n];
+        if (cur == null || pr == null) return;
+        var delta = cur - pr;
+        // soglia: oltre questa un salto non e' prezzo ma acquisto/vendita
+        var lim = Math.max(1500, Math.abs(pr) * 0.04);
+        if (Math.abs(delta) > lim) run[n] = (run[n] || 0) - delta;
+      });
+    }
+  }
 }
 
 // Saldo cumulato a una data (somma delle righe fino a quella data inclusa)
@@ -712,16 +748,23 @@ function renderAndamento() {
   // al loro valore di carico (non oscillano). Isola il movimento di azionario/ETF/oro.
   var values2 = null;
   if (grafMode === 'perf') {
-    // Scarto latente dei bond OGGI (mercato - carico), calcolato una volta sola dagli
-    // strumenti attuali. È uno spostamento verticale costante: la tratteggiata segue
-    // la blu in parallelo, appena sopra se i bond sono in minus, appena sotto se in plus.
-    // (Non si ricalcola punto per punto col breakdown storico, che dava crolli spurii.)
-    var scartoBondOggi = 0;
-    for (var nm in _strMap) {
-      var inf = _strMap[nm];
-      if (inf && inf.isBond) scartoBondOggi += ((inf.vm || 0) - (inf.vc || 0));
-    }
-    values2 = values.map(function(v) { return v - scartoBondOggi; });
+    // Performance con le OBBLIGAZIONI congelate al loro valore di carico: si parte
+    // dalla linea vera e si toglie, punto per punto, la plus/minus latente dei bond
+    // a quella data (mercato di quel giorno - carico di quel giorno).
+    // Bond sopra il carico -> scarto positivo -> tratteggiata SOTTO la blu.
+    // Bond sotto il carico -> scarto negativo -> tratteggiata SOPRA la blu.
+    values2 = filtered.map(function(s, idx) {
+      var bd = s.breakdown || {};
+      var caricoRow = _bondCarico[s.date] || null;
+      var scarto = 0;
+      for (var nome in bd) {
+        var info = _strMap[nome];
+        if (!info || !info.isBond) continue;
+        var car = caricoRow && caricoRow[nome] != null ? caricoRow[nome] : info.vc;
+        scarto += (bd[nome] - car);
+      }
+      return values[idx] - scarto;
+    });
   }
   var first = values[0];
 
