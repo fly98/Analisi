@@ -372,6 +372,23 @@ export default {
 
     // POST /call
     // GET /automation?id=XXXX - legge la config di un'automazione
+    // DELETE /automation?id=XXXX  oppure  DELETE /script?id=XXXX
+    if ((path === '/automation' || path === '/script') && request.method === 'DELETE') {
+      try {
+        const id = url.searchParams.get('id')
+        if (!id) return new Response(JSON.stringify({ error: 'manca parametro id' }), { status: 400, headers: corsHeaders })
+        const dom = path === '/automation' ? 'automation' : 'script'
+        const resp = await fetch(`${HA_URL}/api/config/${dom}/config/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${TOKEN}` }
+        })
+        const text = await resp.text()
+        return new Response(JSON.stringify({ ok: resp.ok, status: resp.status, response: text }), { headers: corsHeaders })
+      } catch(e) {
+        return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders })
+      }
+    }
+
     if (path === '/automation' && request.method === 'GET') {
       try {
         const id = url.searchParams.get('id')
