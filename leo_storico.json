@@ -57,7 +57,14 @@
       "daMe": 969,
       "saldo": 151.02999999999997,
       "ferieDal": null,
-      "ferieAl": null
+      "ferieAl": null,
+      "txIds": [
+        "57DA1170-C811-4AF1-9B4E-259008E95670",
+        "E42F77C7-8870-412E-865C-AC7A0F733F53",
+        "3B2E563D-1FDB-467A-B67D-E4E574567105",
+        "EACA576E-062E-457F-A168-E48599242C3D",
+        "CFADB3CC-DF04-41E9-8A12-626A5254C752"
+      ]
     },
     {
       "id": 1783436088765,
@@ -226,5 +233,5 @@
       "saldo": -185.92
     }
   ],
-  "sha": "d7864da672667893189c663f01ec904184e90697"
+  "sha": "39b8edd137980a947df62f3f2bde2fd0dd2d2ecb"
 }
