@@ -870,7 +870,7 @@ async function getStorico(){
 }
 
 // Core salvataggio storico (senza dipendenze da event/pulsante) — usato da salva() e dall'import
-async function _salvaStoricoCore(){
+async function _salvaStoricoCore(txIds){
   const hist=_cache||await getStorico();
   const sessioni=hist.sessioni||[];
   // IDs selezionati da tracciare nello storico — formato: "DD/MM/YYYY|Nome Ospite|importo"
@@ -886,6 +886,8 @@ async function _salvaStoricoCore(){
   const nuova={
     id:Date.now(),
     dataSalvataggio:new Date().toISOString(),
+    // ID delle transazioni create sui conti: servono al cestino per rimuoverle
+    txIds:Array.isArray(txIds)?txIds:[],
     // Il periodo parte dal giorno DOPO l'ultimo import (refStart), non dall'inizio
     // del file: lo storico deve rappresentare esattamente l'intervallo importato.
     periodo:(S.refStart||S.periodStart)&&S.fileDate?fmtDate(S.refStart||S.periodStart)+' - '+fmtDate(S.fileDate):'',
@@ -949,7 +951,6 @@ function renderSto(hist){
       <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
         <span style="font-size:18px;color:var(--faint)">›</span>
         <button class="btn" onclick="event.stopPropagation();generaPDF(${i})" style="font-size:12px;padding:5px 10px">📄 PDF</button>
-        <button class="btn" onclick="event.stopPropagation();esportaIComptaSto(${i})" style="font-size:12px;padding:5px 10px;background:#007aff;color:#fff">📲 iCompta</button>
         <button class="btn btn-d" onclick="event.stopPropagation();delSto(${i})">🗑</button>
       </div>
     </div>
@@ -1037,11 +1038,29 @@ function closeStoDetail(){
 }
 
 async function delSto(idx){
-  if(!confirm('Eliminare questa sessione?')) return;
   const hist=_cache||await getStorico();
+  const s=hist.sessioni[idx];
+  if(!s) return;
+  const ids=Array.isArray(s.txIds)?s.txIds:[];
+  // Lo storico e' la fotografia dell'import: eliminando la sessione si eliminano
+  // anche le voci che aveva creato sui conti.
+  const msg = ids.length
+    ? 'Eliminare questa sessione e le '+ids.length+' voci create sui conti?'
+    : 'Eliminare questa sessione?\n\n\u26a0\ufe0f Questa sessione non ha il tracciamento delle voci '
+      +'(salvata prima di questa funzione): le righe sui conti NON verranno rimosse e vanno '
+      +'cancellate a mano da Quadra.';
+  if(!confirm(msg)) return;
+  let del=0, err=0;
+  for(const id of ids){
+    try{ await iComptaApi('DELETE','/api/tx/'+id); del++; }
+    catch(e){ err++; }
+  }
   hist.sessioni.splice(idx,1);
   await fetch(WORKER+'?action=saveStorico',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(hist)});
   _cache=hist; renderSto(hist);
+  // avviso Quadra di ricaricare saldi e movimenti
+  if(window.LEO_EMBED){try{parent.postMessage({type:'leo:imported',count:-del},'https://fly98.github.io');}catch(e){}}
+  if(err) alert('\u26a0\ufe0f Sessione eliminata, ma '+err+' voce/i non sono state rimosse dai conti: controlla in Quadra.');
 }
 
 // ---------- TASTIERINO NUMERICO ----------
@@ -1324,14 +1343,15 @@ async function _doExportICompta(s, saveStorico) {
 
     // Crea TX
     let ok = 0;
+    const createdIds = [];
     for (const tx of txs) {
       const r = await iComptaApi('POST', '/api/tx', {tx});
-      if (r && r.id) ok++;
+      if (r && r.id) { ok++; createdIds.push(r.id); }
     }
 
     // Salvataggio storico automatico (solo per import fresco, non per re-import da storico)
     if (saveStorico) {
-      try { await _salvaStoricoCore(); }
+      try { await _salvaStoricoCore(createdIds); }
       catch(e) { alert('⚠️ Transazioni importate ma salvataggio storico fallito: '+e.message); }
     }
 
