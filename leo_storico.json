@@ -1,6 +1,65 @@
 {
   "sessioni": [
     {
+      "id": 1785507543799,
+      "dataSalvataggio": "2026-07-31T14:19:03.799Z",
+      "periodo": "01/07/2026 - 31/07/2026",
+      "periodoWk": "08/07/2026 - 31/07/2026",
+      "cashIds": [
+        "31/07/2026|Sheerelyn Apas|70",
+        "31/07/2026|Jules Anseaume|60",
+        "30/07/2026|Biftu Rebirra Merga|70",
+        "30/07/2026|CINZIA SEMERARO|70",
+        "28/07/2026|angelo scopelliti|5",
+        "28/07/2026|Oriana Chita|10",
+        "28/07/2026|Oriana Chita|10",
+        "27/07/2026|angelo scopelliti|5",
+        "27/07/2026|Marco Sammito|10",
+        "25/07/2026|STEFANO HERNANDEZ|10",
+        "25/07/2026|Veronika Babajanyan|20",
+        "24/07/2026|Christine Burdeos|5",
+        "23/07/2026|Daniela Baldesi|-10",
+        "23/07/2026|Daniela Baldesi|10",
+        "23/07/2026|Giunta Stefano|5",
+        "23/07/2026|Daniela Baldesi|10",
+        "23/07/2026|Stanislav Riabovol|60",
+        "19/07/2026|Harald Kores|30",
+        "18/07/2026|Vitalii Babych|110.03",
+        "18/07/2026|Iulia Negru|10",
+        "18/07/2026|Claudio Ballatore|60",
+        "18/07/2026|Claudio Ballatore|60",
+        "18/07/2026|Claudio Ballatore|120",
+        "18/07/2026|Claudio Ballatore|60",
+        "17/07/2026|Giovanni D’Anna|80",
+        "16/07/2026|Veronika Saratova|50",
+        "15/07/2026|Antonio Schifano|80",
+        "13/07/2026|Alisher Rasulov|40"
+      ],
+      "cash": 1120.03,
+      "stripe": 0,
+      "totContanti": 1120.03,
+      "wkTot": 360,
+      "wkN": 6,
+      "wkDateSel": [
+        "11/07/2026",
+        "12/07/2026",
+        "18/07/2026",
+        "19/07/2026",
+        "25/07/2026",
+        "26/07/2026"
+      ],
+      "sp": 119,
+      "man": 140,
+      "bab": 350,
+      "ferie": 0,
+      "stip": 0,
+      "spTot": 609,
+      "daMe": 969,
+      "saldo": 151.02999999999997,
+      "ferieDal": null,
+      "ferieAl": null
+    },
+    {
       "id": 1783436088765,
       "dataSalvataggio": "2026-07-07T14:54:48.765Z",
       "periodo": "24/06/2026 - 07/07/2026",
@@ -166,6 +225,5 @@
       "daMe": 1157,
       "saldo": -185.92
     }
-  ],
-  "sha": "272d75096b48c9f225c569144880dbca952ce759"
+  ]
 }
