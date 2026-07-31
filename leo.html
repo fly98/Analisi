@@ -1261,7 +1261,8 @@ async function buildIComptaTx(s) {
   const catClienti     = '600FE5ED-A4B4-4876-A785-33627FFF0FDC';
   const catWeekend     = findCatUnder('Weekend', 'Spese Interno1');
   const catFerie       = findCatUnder('Ferie', 'Spese Interno1');
-  const catPulizia     = '4DE42F08-CBBE-43B4-8D4B-6C8FAB4D142F';
+  const catPulizia     = '4DE42F08-CBBE-43B4-8D4B-6C8FAB4D142F';   // stipendio Leo
+  const catProdPulizia = 'ADA9C968-AFD7-4596-8EB1-6BCF0A96AD6F';   // spesa Leo (materiali)
   const catManutenzione= findCatUnder('Manutenzione', 'Spese Interno1');
 
   const dataSal = s.dataSalvataggio ? new Date(s.dataSalvataggio) : new Date();
@@ -1284,7 +1285,7 @@ async function buildIComptaTx(s) {
     txs.push(iComptaMakeTx(dateISO,'Ferie',Math.abs(s.ferie),catFerie,fd,accInterno));
   }
   if (s.sp)
-    txs.push(iComptaMakeTx(dateISO,'Spesa Leo',Math.abs(s.sp),catPulizia,'Importazione LEO del '+oggiLabel,accInterno));
+    txs.push(iComptaMakeTx(dateISO,'Spesa Leo',Math.abs(s.sp),catProdPulizia,'Importazione LEO del '+oggiLabel,accInterno));
   if (s.man)
     txs.push(iComptaMakeTx(dateISO,'Manutenzione Leo',Math.abs(s.man),catManutenzione,'Importazione LEO del '+oggiLabel,accInterno));
   if (s.stip)
