@@ -305,8 +305,7 @@ input[type=checkbox]{accent-color:var(--text);cursor:pointer}
     </div>
     <div id="saldo-box"></div>
     <div style="display:flex;justify-content:flex-end;margin-top:1rem">
-      <button class="btn btn-p" onclick="salva()">💾 Salva in storico</button>
-      <button class="btn" onclick="esportaICompta()" style="margin-left:8px;background:#007aff;color:#fff">📲 Importa su iCompta</button>
+      <button class="btn" onclick="esportaICompta()" style="background:#007aff;color:#fff">📲 Importa su Quadra</button>
     </div>
   </div>
 
@@ -613,7 +612,8 @@ function renderCash(){
   const dw=document.getElementById('dup-warn');
   if(dups>0){dw.textContent=`⚠️ ${dups} pagament${dups>1?'i':'o'} già contabilizzat${dups>1?'i':'o'} — deselezionat${dups>1?'i':'o'}.`;dw.classList.remove('hidden');}
   else dw.classList.add('hidden');
-  document.getElementById('period-badge').textContent=S.periodStart&&S.fileDate?fmtDate(S.periodStart)+' - '+fmtDate(S.fileDate):'';
+  var _ps=S.refStart||S.periodStart;
+  document.getElementById('period-badge').textContent=_ps&&S.fileDate?fmtDate(_ps)+' - '+fmtDate(S.fileDate):'';
   onCashCheck();
 }
 
@@ -886,7 +886,9 @@ async function _salvaStoricoCore(){
   const nuova={
     id:Date.now(),
     dataSalvataggio:new Date().toISOString(),
-    periodo:S.periodStart&&S.fileDate?fmtDate(S.periodStart)+' - '+fmtDate(S.fileDate):'',
+    // Il periodo parte dal giorno DOPO l'ultimo import (refStart), non dall'inizio
+    // del file: lo storico deve rappresentare esattamente l'intervallo importato.
+    periodo:(S.refStart||S.periodStart)&&S.fileDate?fmtDate(S.refStart||S.periodStart)+' - '+fmtDate(S.fileDate):'',
     periodoWk:S.wkStart&&S.wkEnd?fmtDate(S.wkStart)+' - '+fmtDate(S.wkEnd):'',
     cashIds,
     ...S.lastCalc
