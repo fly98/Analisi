@@ -44,10 +44,31 @@
   .card h3{margin:0 0 12px;font-size:14px;font-weight:700;color:var(--ink);display:flex;align-items:center;gap:6px;}
   .card .hint{font-size:11.5px;color:var(--muted);font-weight:400;margin-left:auto;}
 
-  .bar-chart{display:flex;align-items:flex-end;gap:3px;height:90px;padding-top:6px;}
+  .bar-chart{display:flex;align-items:flex-end;gap:3px;height:110px;padding-top:6px;}
   .bar-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;position:relative;}
   .bar{width:100%;max-width:22px;background:var(--terra);border-radius:4px 4px 0 0;min-height:2px;transition:height .3s;}
+  .bar.zero{background:var(--line);}
   .bar-day-label{font-size:9px;color:var(--muted);margin-top:4px;white-space:nowrap;}
+  .bar-val{font-size:9.5px;font-weight:700;color:var(--ink);margin-bottom:3px;line-height:1;}
+  .bar-val.zero{color:var(--muted);font-weight:500;}
+
+  .dayt{width:100%;border-collapse:collapse;font-size:13px;}
+  .dayt th{font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:700;text-align:right;padding:0 0 8px;}
+  .dayt th:first-child{text-align:left;}
+  .dayt td{padding:9px 0;border-top:1px solid var(--line);text-align:right;}
+  .dayt td:first-child{text-align:left;color:var(--ink);font-weight:500;}
+  .dayrow{cursor:pointer;}
+  .dayrow.vuoto td{color:var(--muted);font-weight:400;}
+  .dayrow .num{font-weight:700;font-variant-numeric:tabular-nums;}
+  .dayrow .num.sec{font-weight:500;color:var(--muted);}
+  .dayrow .chev{width:16px;color:var(--muted);font-size:11px;}
+  .dayrow.oggi td:first-child::after{content:'oggi';font-size:9.5px;color:var(--terra);font-weight:700;margin-left:6px;text-transform:uppercase;letter-spacing:.04em;}
+  .daydet td{background:var(--paper);border-top:none;padding:10px 12px;text-align:left;border-radius:0 0 10px 10px;}
+  .det-line{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;padding:3px 0;color:#4a4a4a;}
+  .det-line b{font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums;}
+  .det-title{font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:700;margin:6px 0 2px;}
+  .det-title:first-child{margin-top:0;}
+  .scroll-y{max-height:420px;overflow-y:auto;-webkit-overflow-scrolling:touch;}
 
   .hbar-row{display:flex;align-items:center;gap:10px;margin-bottom:9px;}
   .hbar-label{font-size:13px;min-width:92px;flex-shrink:0;color:var(--ink);font-weight:500;}
@@ -69,7 +90,7 @@
 <header>
   <div class="eyebrow">InternoUno</div>
   <h1>Analisi utilizzo</h1>
-  <div class="subtitle" id="subtitle">Come ospiti e viaggiatori usano le tue app</div>
+  <div class="subtitle" id="subtitle">Utilizzatori e attività, giorno per giorno</div>
 </header>
 
 <div class="setup" id="setupBox" style="display:none">
@@ -103,7 +124,8 @@ const PROPRIETA = { experience: ["campaldino","lorenzo"], flytour: ["flytour"] }
 const NOMI_PROPRIETA = { campaldino:"Via Campaldino", lorenzo:"Lorenzo il Magnifico" };
 const NOMI_LINGUA = { it:"Italiano", en:"Inglese", es:"Spagnolo", fr:"Francese", de:"Tedesco", pt:"Portoghese", zh:"Cinese" };
 const BANDIERE = { it:"🇮🇹", en:"🇬🇧", es:"🇪🇸", fr:"🇫🇷", de:"🇩🇪", pt:"🇵🇹", zh:"🇨🇳" };
-const NOMI_EVENTO = { view:"Aperture pagina", tab:"Cambi sezione", subtab:"Sotto-sezioni", wifi_open:"WiFi consultato", chat_msg:"Messaggi al concierge", lang:"Cambi lingua", tour_open:"Tour aperti", stop_view:"Tappe visualizzate", audio_play:"Audio riprodotti" };
+const NOMI_EVENTO = { view:"Aperture pagina", tab:"Cambi sezione", subtab:"Sotto-sezioni", wifi_open:"WiFi consultato", chat_msg:"Messaggi al concierge", lang:"Cambi lingua testo", tour_open:"Tour aperti", tour_view:"Tour aperti", stop_view:"Tappe visualizzate", audio_play:"Audio riprodotti", stop_play_manual:"Audio avviati a mano", stop_play_auto:"Audio partiti da soli", audio_lang:"Cambi lingua audio" };
+const NOMI_TOUR = { roma:"Roma in un Giorno", vaticano:"Musei Vaticani", trastevere:"Trastevere Nascosta", sanpietro:"San Pietro e Borgo Pio", "ghetto-testaccio":"Dal Ghetto al Mattatoio", esoterica:"Roma Esoterica", perugia:"Perugia", evora:"Évora", milfontes:"Milfontes", sagres:"Sagres", alfama:"Alfama e Graça", baixa:"Baixa Pombalina", belem:"Belém", tram28:"Tram 28", home:"Elenco tour" };
 
 if (new URLSearchParams(location.search).get('reset') === '1') {
   localStorage.removeItem('wb_admin_key');
@@ -111,6 +133,7 @@ if (new URLSearchParams(location.search).get('reset') === '1') {
 let adminKey = localStorage.getItem('wb_admin_key') || '';
 let appAttiva = 'experience';
 let rangeGiorni = 14;
+let datiCorrenti = null;
 
 function salvaChiave(){
   const v = document.getElementById('adminKeyInput').value.trim();
@@ -143,10 +166,14 @@ async function fetchStats(slug, days){
 }
 
 function sommaStats(lista){
-  const out = { byDay:{}, uniqueByDay:{}, uniqueVisitorsTotal:0, sections:{}, langs:{}, events:{}, recentQuestions:[] };
+  const out = { byDay:{}, uniqueByDay:{}, uniqueVisitorsTotal:0, sections:{}, sectionsByDay:{}, langs:{}, events:{}, recentQuestions:[] };
   for(const s of lista){
     for(const [day,val] of Object.entries(s.byDay||{})) out.byDay[day] = (out.byDay[day]||0) + val;
     for(const [day,val] of Object.entries(s.uniqueByDay||{})) out.uniqueByDay[day] = (out.uniqueByDay[day]||0) + val;
+    for(const [day,secs] of Object.entries(s.sectionsByDay||{})){
+      out.sectionsByDay[day] = out.sectionsByDay[day] || {};
+      for(const [k,val] of Object.entries(secs||{})) out.sectionsByDay[day][k] = (out.sectionsByDay[day][k]||0) + val;
+    }
     out.uniqueVisitorsTotal += s.uniqueVisitorsTotal || 0;
     for(const [k,val] of Object.entries(s.sections||{})) out.sections[k] = (out.sections[k]||0) + val;
     for(const [k,val] of Object.entries(s.langs||{})) out.langs[k] = (out.langs[k]||0) + val;
@@ -156,24 +183,86 @@ function sommaStats(lista){
   return out;
 }
 
-function renderBarChart(byDay, days){
+function elencoGiorni(days){
   const oggi = new Date();
   const giorni = [];
   for(let i=days-1;i>=0;i--){
     const d = new Date(oggi); d.setUTCDate(d.getUTCDate()-i);
     giorni.push(d.toISOString().slice(0,10));
   }
-  const max = Math.max(1, ...giorni.map(g=>byDay[g]||0));
+  return giorni;
+}
+
+function etichettaGiorno(g){
+  const d = new Date(g+'T12:00:00Z');
+  return d.toLocaleDateString('it-IT', { weekday:'short', day:'numeric', month:'short', timeZone:'UTC' });
+}
+
+function renderBarChart(perGiorno, days){
+  const giorni = elencoGiorni(days);
+  const max = Math.max(1, ...giorni.map(g=>perGiorno[g]||0));
   const mostraEtichette = days<=14;
+  const mostraNumeri = days<=30;
   return `<div class="bar-chart">${giorni.map(g=>{
-    const v = byDay[g]||0;
-    const h = Math.max(2, Math.round((v/max)*80));
+    const v = perGiorno[g]||0;
+    const h = Math.max(2, Math.round((v/max)*72));
     const [,m,dd] = g.split('-');
-    return `<div class="bar-col" title="${g}: ${v}">
-      <div class="bar" style="height:${h}px"></div>
+    return `<div class="bar-col" title="${etichettaGiorno(g)}: ${v}">
+      ${mostraNumeri?`<div class="bar-val${v?'':' zero'}">${v}</div>`:''}
+      <div class="bar${v?'':' zero'}" style="height:${h}px"></div>
       ${mostraEtichette?`<div class="bar-day-label">${dd}/${m}</div>`:''}
     </div>`;
   }).join('')}</div>`;
+}
+
+function renderTabellaGiorni(s, days){
+  const giorni = elencoGiorni(days).slice().reverse();
+  const oggi = new Date().toISOString().slice(0,10);
+  const righe = giorni.map(g=>{
+    const u = s.uniqueByDay[g]||0;
+    const a = s.byDay[g]||0;
+    const vuoto = (u===0 && a===0);
+    return `<tr class="dayrow${vuoto?' vuoto':''}${g===oggi?' oggi':''}" onclick="apriDettaglio('${g}')">
+        <td>${etichettaGiorno(g)}</td>
+        <td class="num">${u}</td>
+        <td class="num sec">${a}</td>
+        <td class="chev">${vuoto?'':'›'}</td>
+      </tr>
+      <tr class="daydet" id="det-${g}" style="display:none"><td colspan="4">${dettaglioGiorno(g)}</td></tr>`;
+  }).join('');
+  return `<div class="scroll-y"><table class="dayt">
+    <thead><tr><th>Giorno</th><th>Utilizzatori</th><th>Azioni</th><th></th></tr></thead>
+    <tbody>${righe}</tbody></table></div>`;
+}
+
+function dettaglioGiorno(g){
+  if(!datiCorrenti) return '';
+  const { slugs, validi, somma } = datiCorrenti;
+  let html = '';
+  if(slugs.length>1){
+    html += `<div class="det-title">Per struttura</div>`;
+    validi.forEach((v,i)=>{
+      const nome = NOMI_PROPRIETA[slugs[i]] || slugs[i];
+      html += `<div class="det-line"><span>${nome}</span><span><b>${(v.uniqueByDay||{})[g]||0}</b> utilizzatori · ${(v.byDay||{})[g]||0} azioni</span></div>`;
+    });
+  }
+  const secs = (somma.sectionsByDay||{})[g] || {};
+  const entries = Object.entries(secs).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
+  if(entries.length){
+    const mappa = appAttiva==='flytour' ? NOMI_TOUR : null;
+    html += `<div class="det-title">${appAttiva==='flytour' ? 'Attività per tour' : 'Sezioni aperte'}</div>`;
+    html += entries.map(([k,v])=>`<div class="det-line"><span>${(mappa&&mappa[k])||k}</span><b>${v}</b></div>`).join('');
+  }
+  if(!html) html = `<div class="det-line"><span>Nessuna attività registrata</span></div>`;
+  return html;
+}
+
+function apriDettaglio(g){
+  const el = document.getElementById('det-'+g);
+  if(!el) return;
+  const aperto = el.style.display !== 'none';
+  document.querySelectorAll('.daydet').forEach(r=>r.style.display='none');
+  el.style.display = aperto ? 'none' : 'table-row';
 }
 
 function renderHBars(obj, nomiMap, colore){
@@ -199,36 +288,46 @@ async function carica(){
     const risultati = await Promise.all(slugs.map(s=>fetchStats(s, rangeGiorni).catch(()=>null)));
     const validi = risultati.filter(Boolean);
     if(!validi.length){
-      content.innerHTML = `<div class="card"><div class="empty-note">
-        ${appAttiva==='flytour' ? "Il tracciamento per FlyTour non è ancora attivo — arriva a breve." : "Nessun dato disponibile per questo periodo."}
-      </div></div>`;
+      content.innerHTML = `<div class="card"><div class="empty-note">Nessun dato disponibile per questo periodo.</div></div>`;
+      datiCorrenti = null;
       return;
     }
     const s = sommaStats(validi);
+    datiCorrenti = { slugs, validi, somma: s };
 
     const totaleVisite = Object.values(s.byDay).reduce((a,b)=>a+b,0);
-    const mediaGiorno = rangeGiorni>0 ? (totaleVisite/rangeGiorni).toFixed(1) : 0;
+    const totaleUtentiGiorni = Object.values(s.uniqueByDay).reduce((a,b)=>a+b,0);
+    const mediaUtenti = rangeGiorni>0 ? (totaleUtentiGiorni/rangeGiorni).toFixed(1) : '0';
+    const giorniAttivi = Object.values(s.uniqueByDay).filter(v=>v>0).length;
     const linguaTop = Object.entries(s.langs).sort((a,b)=>b[1]-a[1])[0];
     const domande = s.events.chat_msg || 0;
+    const tourAperti = (s.events.tour_view || 0) + (s.events.tour_open || 0);
 
     let propBreakdown = '';
     if(slugs.length>1){
       const perProp = {};
-      validi.forEach((v,i)=>{ perProp[slugs[i]] = Object.values(v.byDay||{}).reduce((a,b)=>a+b,0); });
-      propBreakdown = `<div class="card"><h3>🏠 Per struttura</h3>${renderHBars(perProp, NOMI_PROPRIETA, 'var(--terra)')}</div>`;
+      validi.forEach((v,i)=>{ perProp[slugs[i]] = v.uniqueVisitorsTotal || 0; });
+      propBreakdown = `<div class="card"><h3>🏠 Utilizzatori per struttura <span class="hint">${rangeGiorni} giorni</span></h3>${renderHBars(perProp, NOMI_PROPRIETA, 'var(--terra)')}</div>`;
     }
 
     content.innerHTML = `
       <div class="kpi-grid">
-        <div class="kpi-card"><div class="kpi-val">${s.uniqueVisitorsTotal}</div><div class="kpi-label">Visitatori unici (${rangeGiorni}gg)</div></div>
+        <div class="kpi-card"><div class="kpi-val">${s.uniqueVisitorsTotal}</div><div class="kpi-label">Utilizzatori diversi (${rangeGiorni}gg)</div></div>
+        <div class="kpi-card"><div class="kpi-val">${mediaUtenti}</div><div class="kpi-label">Media utilizzatori al giorno</div></div>
+        <div class="kpi-card"><div class="kpi-val">${giorniAttivi}<span style="font-size:15px;color:var(--muted)">/${rangeGiorni}</span></div><div class="kpi-label">Giorni con utilizzo</div></div>
         <div class="kpi-card"><div class="kpi-val">${totaleVisite}</div><div class="kpi-label">Azioni totali</div></div>
         <div class="kpi-card"><div class="kpi-val">${linguaTop ? (BANDIERE[linguaTop[0]]||'') + ' ' + (NOMI_LINGUA[linguaTop[0]]||linguaTop[0]) : '—'}</div><div class="kpi-label">Lingua più usata</div></div>
-        <div class="kpi-card"><div class="kpi-val">${domande}</div><div class="kpi-label">Domande al concierge</div></div>
+        <div class="kpi-card"><div class="kpi-val">${appAttiva==='flytour' ? tourAperti : domande}</div><div class="kpi-label">${appAttiva==='flytour' ? 'Tour aperti' : 'Domande al concierge'}</div></div>
       </div>
 
       <div class="card">
-        <h3>📈 Andamento visite <span class="hint">${rangeGiorni} giorni</span></h3>
-        ${renderBarChart(s.byDay, rangeGiorni)}
+        <h3>👥 Utilizzatori per giorno <span class="hint">${rangeGiorni} giorni</span></h3>
+        ${renderBarChart(s.uniqueByDay, rangeGiorni)}
+      </div>
+
+      <div class="card">
+        <h3>📅 Dettaglio giorno per giorno <span class="hint">tocca una riga</span></h3>
+        ${renderTabellaGiorni(s, rangeGiorni)}
       </div>
 
       ${propBreakdown}
@@ -239,8 +338,8 @@ async function carica(){
       </div>
 
       <div class="card">
-        <h3>📍 Sezioni più visitate</h3>
-        ${renderHBars(s.sections, null, 'var(--gold)')}
+        <h3>${appAttiva==='flytour' ? '🗺️ Tour più usati' : '📍 Sezioni più visitate'}</h3>
+        ${renderHBars(s.sections, appAttiva==='flytour' ? NOMI_TOUR : null, 'var(--gold)')}
       </div>
 
       <div class="card">
