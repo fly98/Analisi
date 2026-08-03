@@ -161,6 +161,31 @@ function gmailPlainText(part) {
   if (part.parts) { for (const s of part.parts) { const t = gmailPlainText(s); if (t) return t; } }
   return "";
 }
+function gmailHtmlPart(part) {
+  if (!part) return "";
+  if (part.mimeType === "text/html" && part.body && part.body.data) return b64UrlToUtf8(part.body.data);
+  if (part.parts) { for (const s of part.parts) { const t = gmailHtmlPart(s); if (t) return t; } }
+  return "";
+}
+function htmlToText(html) {
+  if (!html) return "";
+  return html
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/(p|div|tr|td|h[1-6]|li)>/gi, "\n")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#0?39;/g, "'")
+    .replace(/&#(\d+);/g, (m, n) => String.fromCharCode(parseInt(n, 10)))
+    .replace(/[ \t]+/g, " ")
+    .replace(/\n\s*\n\s*\n+/g, "\n\n")
+    .trim();
+}
 const IT_MESI = { gennaio:1, febbraio:2, marzo:3, aprile:4, maggio:5, giugno:6, luglio:7, agosto:8, settembre:9, ottobre:10, novembre:11, dicembre:12 };
 function itDateToIso(str) {
   if (!str) return "";
@@ -1468,7 +1493,7 @@ export default {
         }
         const headers = (mJson.payload && mJson.payload.headers) || [];
         const get = (name) => (headers.find(h => h.name === name) || {}).value || "";
-        const bodyText = gmailPlainText(mJson.payload) || "";
+        const bodyText = gmailPlainText(mJson.payload) || htmlToText(gmailHtmlPart(mJson.payload)) || "";
         return new Response(JSON.stringify({
           account,
           id,
