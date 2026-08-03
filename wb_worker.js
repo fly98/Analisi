@@ -495,7 +495,7 @@ async function handleStats(request, env, slug, url) {
   if (!env.WB_ADMIN_KEY || key !== env.WB_ADMIN_KEY) return json({ error: "non autorizzato" }, 401);
 
   const days = Math.min(parseInt(url.searchParams.get("days") || "14", 10), 90);
-  const out = { slug, days, byDay: {}, uniqueByDay: {}, sections: {}, langs: {}, events: {} };
+  const out = { slug, days, byDay: {}, uniqueByDay: {}, sections: {}, sectionsByDay: {}, langs: {}, events: {} };
   const sidVisti = new Set();
 
   for (let i = 0; i < days; i++) {
@@ -506,6 +506,7 @@ async function handleStats(request, env, slug, url) {
     const list = await env.WB_KV.list({ prefix });
     let total = 0;
     let visitatoriGiorno = 0;
+    const secGiorno = {};
     for (const k of list.keys) {
       const rest = k.name.slice(prefix.length);
       if (rest.startsWith("visitor:")) {
@@ -515,12 +516,17 @@ async function handleStats(request, env, slug, url) {
       }
       const val = parseInt((await env.WB_KV.get(k.name)) || "0", 10);
       if (rest === "total") { total = val; continue; }
-      if (rest.startsWith("sec:")) out.sections[rest.slice(4)] = (out.sections[rest.slice(4)] || 0) + val;
+      if (rest.startsWith("sec:")) {
+        const sec = rest.slice(4);
+        out.sections[sec] = (out.sections[sec] || 0) + val;
+        secGiorno[sec] = (secGiorno[sec] || 0) + val;
+      }
       else if (rest.startsWith("lang:")) out.langs[rest.slice(5)] = (out.langs[rest.slice(5)] || 0) + val;
       else if (rest.startsWith("evt:")) out.events[rest.slice(4)] = (out.events[rest.slice(4)] || 0) + val;
     }
     out.byDay[day] = total;
     out.uniqueByDay[day] = visitatoriGiorno;
+    out.sectionsByDay[day] = secGiorno;
   }
   // visitatori unici distinti nell'intero periodo (una persona che torna più giorni conta una volta sola)
   out.uniqueVisitorsTotal = sidVisti.size;
