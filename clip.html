@@ -49,6 +49,12 @@
   .compose textarea:focus{border-color:var(--acc)}
   .compose .row{display:flex; gap:8px; margin-top:10px; align-items:center}
   .hint{color:var(--dim); font-size:12px; flex:1}
+  .tabs{display:flex; gap:6px; background:var(--panel); border:1px solid var(--line);
+    border-radius:11px; padding:4px; margin-bottom:14px}
+  .tabs button{flex:1; background:transparent; border:none; padding:8px; border-radius:8px;
+    color:var(--dim); font-size:13.5px; font-weight:600}
+  .tabs button.on{background:var(--panel2); color:var(--txt); box-shadow:0 1px 3px rgba(0,0,0,.3)}
+  .label{font-size:13.5px; font-weight:650; color:var(--warn); margin-bottom:6px}
   .search{
     width:100%; background:var(--panel); border:1px solid var(--line); border-radius:11px;
     padding:10px 12px; color:var(--txt); font:14px inherit; outline:none; margin-bottom:14px;
@@ -129,6 +135,10 @@
       <input id="file" type="file" hidden accept="image/*" onchange="pushFile(this.files[0])">
     </div>
 
+    <div class="tabs">
+      <button id="tabRec" class="on" onclick="setTab('recenti')">Recenti</button>
+      <button id="tabArc" onclick="setTab('archivio')">Archivio</button>
+    </div>
     <input id="q" class="search" placeholder="Cerca…" oninput="render()">
     <div id="list"></div>
   </main>
@@ -141,7 +151,9 @@
 const API = 'https://fly-clip.f-castiglioni.workers.dev';
 let KEY = localStorage.getItem('flyclip_key') || '';
 let items = [];
+let saved = [];
 let lastId = null;
+let tab = localStorage.getItem('flyclip_tab') || 'recenti';
 
 const $ = id => document.getElementById(id);
 
@@ -184,6 +196,7 @@ async function boot() {
     return;
   }
   $('gate').hidden = true; $('app').hidden = false;
+  setTab(tab);
   load(true);
   setInterval(() => load(false), 5000);
 }
@@ -191,11 +204,15 @@ async function boot() {
 // ---------- caricamento ----------
 async function load(loud) {
   try {
-    const r = await api('/list?limit=100');
-    const d = await r.json();
-    if (!d.ok) throw new Error(d.error);
-    const changed = !items.length || (d.items[0] && d.items[0].id !== lastId);
-    items = d.items;
+    const [r1, r2] = await Promise.all([
+      api('/list?saved=0&limit=100'),
+      api('/list?saved=1&limit=300'),
+    ]);
+    const d1 = await r1.json(), d2 = await r2.json();
+    if (!d1.ok || !d2.ok) throw new Error(d1.error || d2.error);
+    const changed = (d1.items[0]?.id || null) !== lastId || saved.length !== d2.items.length;
+    items = d1.items;
+    saved = d2.items;
     lastId = items.length ? items[0].id : null;
     setDot('ok');
     if (changed || loud) render();
@@ -203,6 +220,14 @@ async function load(loud) {
     setDot('err');
     if (loud) toast('Errore di rete', true);
   }
+}
+
+function setTab(t) {
+  tab = t;
+  localStorage.setItem('flyclip_tab', t);
+  $('tabRec').className = t === 'recenti' ? 'on' : '';
+  $('tabArc').className = t === 'archivio' ? 'on' : '';
+  render();
 }
 
 function ago(ts) {
@@ -226,9 +251,17 @@ function sizeStr(b) {
 
 function render() {
   const q = $('q').value.trim().toLowerCase();
-  const list = items.filter(i => !q || (i.preview || '').toLowerCase().includes(q) || (i.name || '').toLowerCase().includes(q));
+  const src = tab === 'archivio' ? saved : items;
+  const list = src.filter(i => !q ||
+    (i.preview || '').toLowerCase().includes(q) ||
+    (i.label || '').toLowerCase().includes(q) ||
+    (i.name || '').toLowerCase().includes(q));
   if (!list.length) {
-    $('list').innerHTML = '<div class="empty">' + (q ? 'Nessun risultato' : 'Clipboard vuota.<br>Copia qualcosa dal telefono.') + '</div>';
+    const msg = q ? 'Nessun risultato'
+      : tab === 'archivio'
+        ? 'Archivio vuoto.<br>Premi <b>Salva</b> su un elemento<br>per conservarlo per sempre.'
+        : 'Clipboard vuota.<br>Copia qualcosa dal telefono.';
+    $('list').innerHTML = '<div class="empty">' + msg + '</div>';
     return;
   }
   $('list').innerHTML = list.map(i => {
@@ -241,14 +274,15 @@ function render() {
         <span class="tag ${i.kind}">${i.kind}</span>
         <span>${ago(i.ts)}</span>
         ${i.size ? `<span>· ${sizeStr(i.size)}</span>` : ''}
-        ${i.pinned ? '<span>· 📌</span>' : ''}
       </div>
+      ${i.label ? `<div class="label">${esc(i.label)}</div>` : ''}
       ${body}
       <div class="acts">
         <button class="pri" onclick="copyItem('${i.id}','${i.kind}')">Copia</button>
         ${i.kind === 'url' ? `<button onclick="openUrl('${i.id}')">Apri</button>` : ''}
         ${isImg ? `<button onclick="window.open('${API}/item/${i.id}?k=${encodeURIComponent(KEY)}','_blank')">Apri</button>` : ''}
-        <button onclick="pin('${i.id}')">${i.pinned ? 'Spin' : 'Pin'}</button>
+        <button onclick="pin('${i.id}')">${i.pinned ? 'Togli' : 'Salva'}</button>
+        ${i.pinned ? `<button onclick="setLabel('${i.id}')">${i.label ? 'Rinomina' : 'Etichetta'}</button>` : ''}
         <button onclick="del('${i.id}')">Elimina</button>
       </div>
     </div>`;
@@ -299,7 +333,24 @@ async function openUrl(id) {
   window.open((await r.text()).trim(), '_blank');
 }
 
-async function pin(id) { await api('/pin/' + id, { method: 'POST' }); load(true); }
+async function pin(id) {
+  const r = await api('/pin/' + id, { method: 'POST' });
+  const d = await r.json();
+  toast(d.pinned ? 'Salvato in archivio' : 'Rimosso dall\'archivio');
+  load(true);
+}
+
+async function setLabel(id) {
+  const cur = (saved.find(x => x.id === id) || {}).label || '';
+  const v = prompt('Etichetta per questo elemento:', cur);
+  if (v === null) return;
+  await api('/label/' + id, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+    body: v.trim(),
+  });
+  load(true);
+}
 async function del(id) { await api('/item/' + id, { method: 'DELETE' }); load(true); }
 
 async function pushText() {
