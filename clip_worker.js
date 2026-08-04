@@ -336,7 +336,6 @@ export default {
 
     const url = new URL(request.url);
     if (url.pathname === '/health') return json({ ok: true, service: 'fly-clip' });
-    }
 
     const key = request.headers.get('X-API-Key') || url.searchParams.get('k');
     if (!env.CLIP_KEY || key !== env.CLIP_KEY) {
