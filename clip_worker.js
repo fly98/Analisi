@@ -72,10 +72,14 @@ export class Clip {
       label TEXT,
       saved_at INTEGER
     )`);
-    // migrazione idempotente per DB creati prima delle etichette
-    for (const col of ['label TEXT', 'saved_at INTEGER']) {
-      try { this.sql.exec(`ALTER TABLE items ADD COLUMN ${col}`); } catch (e) { /* già presente */ }
-    }
+    // migrazione idempotente: aggiunge le colonne solo se davvero mancanti.
+    // In un Durable Object un'eccezione SQL nel costruttore rompe l'oggetto,
+    // quindi si controlla prima invece di affidarsi al try/catch.
+    const have = new Set(
+      this.sql.exec(`PRAGMA table_info(items)`).toArray().map(r => r.name)
+    );
+    if (!have.has('label')) this.sql.exec(`ALTER TABLE items ADD COLUMN label TEXT`);
+    if (!have.has('saved_at')) this.sql.exec(`ALTER TABLE items ADD COLUMN saved_at INTEGER`);
     this.sql.exec(`CREATE TABLE IF NOT EXISTS blobs (
       id TEXT NOT NULL,
       seq INTEGER NOT NULL,
