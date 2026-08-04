@@ -68,8 +68,14 @@ export class Clip {
       name TEXT,
       size INTEGER DEFAULT 0,
       pinned INTEGER DEFAULT 0,
-      device TEXT
+      device TEXT,
+      label TEXT,
+      saved_at INTEGER
     )`);
+    // migrazione idempotente per DB creati prima delle etichette
+    for (const col of ['label TEXT', 'saved_at INTEGER']) {
+      try { this.sql.exec(`ALTER TABLE items ADD COLUMN ${col}`); } catch (e) { /* già presente */ }
+    }
     this.sql.exec(`CREATE TABLE IF NOT EXISTS blobs (
       id TEXT NOT NULL,
       seq INTEGER NOT NULL,
@@ -240,12 +246,22 @@ export class Clip {
 
       // GET /list
       if (method === 'GET' && seg[0] === 'list') {
-        const limit = Math.min(parseInt(url.searchParams.get('limit') || '60', 10), 300);
-        const items = this.rows(
-          `SELECT id, ts, kind, mime, name, size, pinned, device,
-                  CASE WHEN kind = 'image' THEN NULL ELSE substr(text, 1, 400) END AS preview
-           FROM items ORDER BY pinned DESC, ts DESC LIMIT ?`, limit
-        );
+        const limit = Math.min(parseInt(url.searchParams.get('limit') || '60', 10), 500);
+        const saved = url.searchParams.get('saved');
+        const cols = `id, ts, kind, mime, name, size, pinned, device, label, saved_at,
+                  CASE WHEN kind = 'image' THEN NULL ELSE substr(text, 1, 400) END AS preview`;
+        let items;
+        if (saved === '1') {
+          items = this.rows(
+            `SELECT ${cols} FROM items WHERE pinned = 1
+             ORDER BY COALESCE(saved_at, ts) DESC LIMIT ?`, limit);
+        } else if (saved === '0') {
+          items = this.rows(
+            `SELECT ${cols} FROM items WHERE pinned = 0 ORDER BY ts DESC LIMIT ?`, limit);
+        } else {
+          items = this.rows(
+            `SELECT ${cols} FROM items ORDER BY pinned DESC, ts DESC LIMIT ?`, limit);
+        }
         return json({ ok: true, count: items.length, items: items.map(i => ({ ...i, pinned: !!i.pinned })) });
       }
 
@@ -269,8 +285,28 @@ export class Clip {
         const r = this.meta(seg[1]);
         if (!r) return json({ ok: false, error: 'non trovato' }, 404);
         const val = r.pinned ? 0 : 1;
-        this.sql.exec(`UPDATE items SET pinned = ? WHERE id = ?`, val, seg[1]);
+        this.sql.exec(
+          `UPDATE items SET pinned = ?, saved_at = ? WHERE id = ?`,
+          val, val ? Date.now() : null, seg[1]
+        );
         return json({ ok: true, id: seg[1], pinned: !!val });
+      }
+
+      // POST /label/:id  — etichetta per lo storico permanente
+      if (method === 'POST' && seg[0] === 'label' && seg[1]) {
+        const r = this.meta(seg[1]);
+        if (!r) return json({ ok: false, error: 'non trovato' }, 404);
+        let label = null;
+        const ct = (request.headers.get('Content-Type') || '').toLowerCase();
+        if (ct.includes('application/json')) {
+          const b = await request.json();
+          label = b.label != null ? String(b.label).slice(0, 120) : null;
+        } else {
+          const t = (await request.text()).trim();
+          label = t ? t.slice(0, 120) : null;
+        }
+        this.sql.exec(`UPDATE items SET label = ? WHERE id = ?`, label || null, seg[1]);
+        return json({ ok: true, id: seg[1], label });
       }
 
       // POST /clear
