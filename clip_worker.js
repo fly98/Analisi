@@ -335,16 +335,7 @@ export default {
     if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
 
     const url = new URL(request.url);
-    if (url.pathname === '/health') {
-      const k = env.CLIP_KEY;
-      return json({
-        ok: true,
-        service: 'fly-clip',
-        keySet: !!k,
-        keyLen: k ? k.length : 0,
-        keyTrimmed: k ? k.length === k.trim().length : null,
-        envKeys: Object.keys(env),
-      });
+    if (url.pathname === '/health') return json({ ok: true, service: 'fly-clip' });
     }
 
     const key = request.headers.get('X-API-Key') || url.searchParams.get('k');
