@@ -894,7 +894,7 @@ select.form-input { height: 42px; }
 
     </div>
     <div style="padding:10px 16px 14px;text-align:center;border-top:1px solid var(--border);margin-top:4px">
-      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v2.1.4</span>
+      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v2.1.5</span>
     </div>
   </div>
 </div>
@@ -931,6 +931,15 @@ select.form-input { height: 42px; }
       <div class="form-group">
         <label class="form-label">Conto</label>
         <select class="form-input" id="tx-account"></select>
+      </div>
+      <div class="form-group" id="tx-pending-group">
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:10px 12px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg)">
+          <input type="checkbox" id="tx-pending" style="width:18px;height:18px;flex-shrink:0">
+          <span style="font-size:14px;line-height:1.35">
+            <b>In attesa di contabilizzazione</b><br>
+            <span style="color:var(--muted);font-size:12.5px">Riga provvisoria: verra' riconciliata automaticamente con il movimento della banca, mantenendo questa data.</span>
+          </span>
+        </label>
       </div>
       <div class="form-group">
         <label class="form-label">Note</label>
@@ -1579,6 +1588,7 @@ function openNewTx() {
   document.getElementById('tx-date').value = _td;
   txDateChanged(_td);
   document.getElementById('tx-status').value = 'created';
+  var _pn=document.getElementById('tx-pending'); if(_pn) _pn.checked=false;
   document.getElementById('tx-name').value = '';
   document.getElementById('tx-comment').value = '';
   
@@ -1609,6 +1619,7 @@ async function openEditTx(tx) {
   document.getElementById('tx-date').value = tx.date;
   txDateChanged(tx.date);
   document.getElementById('tx-status').value = tx.status || 'created';
+  var _pe=document.getElementById('tx-pending'); if(_pe) _pe.checked=!!tx.pending;
   document.getElementById('tx-name').value = tx.name || '';
   document.getElementById('tx-comment').value = tx.comment || '';
 
@@ -1831,6 +1842,10 @@ async function saveTx() {
     // Va PRESERVATO: se si perde modificando la TX (es. cambiando la data), il dedup
     // dell'import non riconosce piu' la riga e la ripropone come nuova.
     ebRef: editingTx?.ebRef || null,
+    // Riga provvisoria in attesa dell'addebito bancario (es. acquisto titoli:
+    // il portafoglio si muove subito, il conto 5-6 giorni dopo). L'import la
+    // riconcilia invece di creare un doppione.
+    pending: !!(document.getElementById('tx-pending') && document.getElementById('tx-pending').checked) || undefined,
     splits
   };
 
@@ -3764,6 +3779,7 @@ function _autoLog(logId, msg, type) {
     var accId = cfg.iComptaAccId;
     var existingKeys = await _ebGetExistingKeys(accId);
     sellaMovimenti = [];
+    var _ebPendingUsati = {};
     for (var i=0; i<txs.length; i++) {
       var t = txs[i];
       // Salta TX non ancora contabilizzate (senza booking_date)
@@ -3866,6 +3882,12 @@ function _autoLog(logId, msg, type) {
           if (!isDup && cands.length === 1) isDup = true;
         }
       }
+      // Riconciliazione con una riga provvisoria già presente (acquisto titoli ecc.)
+      var _rec = null;
+      if (!isDup) {
+        _rec = _ebFindPending(amt, dateISO, _ebPendingUsati);
+        if (_rec) _ebPendingUsati[_rec.id] = true;
+      }
       sellaMovimenti.push({
         dateISO: dateISO,
         dataOp: dateISO ? dateISO.split('-').reverse().join('/') : '',
@@ -3875,6 +3897,8 @@ function _autoLog(logId, msg, type) {
         storKey: storKey,
         ebRef: ebRef,
         isDup: isDup,
+        recId: _rec ? _rec.id : null,
+        recDate: _rec ? _rec.date : null,
         includi: !isDup,
         catObj: sellaGuessCategory(desc, '', amt),
         _ebTipo: tipo,
@@ -3919,11 +3943,36 @@ function _autoLog(logId, msg, type) {
 
   var _ebExistingByDateAmt = {};
   var _ebExistingRefs = new Set();
+  var _ebPending = [];   // righe provvisorie del conto, da riconciliare
+
+  // Cerca una riga provvisoria ("in attesa di contabilizzazione") da riconciliare con
+  // il movimento bancario in arrivo: stesso importo, entro 15 giorni. Serve per gli
+  // acquisti titoli, che entrano nel portafoglio subito ma vengono addebitati giorni
+  // dopo. La riga provvisoria conserva la sua data (quella reale dell'operazione).
+  function _ebFindPending(amt, dateISO, usati) {
+    if (!dateISO || dateISO.length !== 10) return null;
+    var base = Date.parse(dateISO + 'T00:00:00Z');
+    if (isNaN(base)) return null;
+    var best = null, bestGap = 999;
+    for (var i = 0; i < _ebPending.length; i++) {
+      var p = _ebPending[i];
+      if (usati[p.id]) continue;
+      if (Math.abs(p.amount - amt) > 0.005) continue;
+      var pd = Date.parse(p.date + 'T00:00:00Z');
+      if (isNaN(pd)) continue;
+      var gap = Math.abs(base - pd) / 86400000;
+      if (gap > 15) continue;
+      if (gap < bestGap) { bestGap = gap; best = p; }
+    }
+    return best;
+  }
+
   async function _ebGetExistingKeys(accId) {
     // Reset cache per avere dati freschi
     txCache = {};
     _ebExistingByDateAmt = {};
     _ebExistingRefs = new Set();
+    _ebPending = [];
     var keys = new Set();
     var totalTx = 0, matchTx = 0;
     for (var yi=0; yi<(meta.years||[]).length; yi++) {
@@ -3939,6 +3988,7 @@ function _autoLog(logId, msg, type) {
         // fallback fuzzy (data+importo+descrizione). Altrimenti una TX gemella legittima
         // (stesso giorno, importo e descrizione, ma codice univoco diverso) verrebbe
         // scartata per errore — es. due commissioni bonifico da 0,50 € lo stesso giorno.
+        if (tx.pending) _ebPending.push({ id: tx.id, date: tx.date, amount: getTxAmount(tx) });
         if (tx.ebRef) { _ebExistingRefs.add(tx.ebRef); continue; }
         var amt = 0;
         if (tx.useSumOfSplits && tx.splits && tx.splits.length > 0) {
@@ -4513,7 +4563,8 @@ function amexRenderTable() {
     var opts = buildCatOptions(m.catObj ? m.catObj.id : null);
     rows += '<tr style="'+(m.isDup?'opacity:.45;text-decoration:line-through':'')+'" id="amex-row-'+i+'">'+
       '<td style="white-space:nowrap;color:var(--muted);font-size:12px;padding:6px 8px">'+m.dataOp+'</td>'+
-      '<td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:6px 8px" title="'+esc(m.desc)+'">'+esc(m.desc)+'</td>'+
+      '<td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:6px 8px" title="'+esc(m.desc)+'">'+esc(m.desc)+
+        (m.recId?' <span style="display:inline-block;background:#e8f0fe;color:#1a4a7a;border-radius:6px;padding:1px 6px;font-size:11px;font-weight:700;vertical-align:middle" title="Riconcilia la riga provvisoria del '+(m.recDate||'').split('-').reverse().join('/')+' (ne mantiene la data)">\u21c4 riconcilia '+(m.recDate||'').slice(8,10)+'/'+(m.recDate||'').slice(5,7)+'</span>':'')+'</td>'+
       '<td class="'+amtCls+'" style="white-space:nowrap;text-align:right;padding:6px 8px">'+amtStr+'</td>'+
       '<td style="padding:4px 8px"><select class="sella-cat-sel" onchange="amexSetCat('+i+',this.value)">'+opts+'</select></td>'+
       '<td style="text-align:center;padding:6px 8px"><button class="amex-eco-tog '+(m.eco?'on':'')+'" onclick="amexToggleEco('+i+')" title="Riporta su conto economico InternoUno"></button></td>'+
@@ -5317,9 +5368,14 @@ async function import2DoImport() {
   for (var i=0;i<inc.length;i++) {
     var m = inc[i];
     btn.textContent = '\u23f3 '+(i+1)+'/'+inc.length;
-    var tx = { id:null, date:m.dateISO, name:m.key, accountId:accId,
+    // Se il movimento riconcilia una riga provvisoria, si AGGIORNA quella (stesso id)
+    // conservandone la DATA (quella reale dell'operazione, es. giorno dell'acquisto
+    // titoli) e togliendo il flag pending. Nessun doppione.
+    var _isRec = !!m.recId;
+    var tx = { id: _isRec ? m.recId : null,
+      date: _isRec ? m.recDate : m.dateISO, name:m.key, accountId:accId,
       status:'cleared', comment:(m.etich||m.desc), useSumOfSplits:true, amount:null, linkedTxId:null,
-      ebRef: m.ebRef || null,
+      ebRef: m.ebRef || null, pending: undefined,
       splits:[{amount:m.importo, categoryId:m.catObj?m.catObj.id:null, comment:null}] };
     var mainId = null;
     try { var r = await api('POST','/api/tx',{tx:tx}); if(r&&r.id){ txMainIds.push(r.id); mainId=r.id; } else errs++; }
