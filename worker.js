@@ -1054,7 +1054,7 @@ async function sendGmailHtml(env, to, subject, html) {
 // Gmail settings) instead of the default interno1bbroma@gmail.com. Gmail API honors this
 // only if the address is a verified alias on the authenticated account; otherwise it's ignored
 // or the send fails.
-async function sendGmailHtmlMulti(env, account, to, subject, html, fromOverride, contentType) {
+async function sendGmailHtmlMulti(env, account, to, subject, html, fromOverride, contentType, cc, bcc) {
   const tokenData = await getGmailAccessTokenFor(env, account);
   if (!tokenData.access_token) {
     return { ok: false, error: "Token Gmail non ottenuto", detail: tokenData };
@@ -1065,8 +1065,10 @@ async function sendGmailHtmlMulti(env, account, to, subject, html, fromOverride,
   if (account !== "personal") {
     headers.push(`From: ${fromOverride || "InternoUno <info@interno1.it>"}`);
   }
+  headers.push(`To: ${to}`);
+  if (cc) headers.push(`Cc: ${cc}`);
+  if (bcc) headers.push(`Bcc: ${bcc}`);
   headers.push(
-    `To: ${to}`,
     `Subject: ${subjectEnc}`,
     "MIME-Version: 1.0",
     `Content-Type: ${ctype}; charset=UTF-8`,
@@ -1589,14 +1591,14 @@ export default {
             status: 400, headers: { ...CORS, "Content-Type": "application/json" }
           });
         }
-        const { to, subject, html, account, from } = body || {};
+        const { to, subject, html, account, from, cc, bcc } = body || {};
         if (!to || !subject || !html) {
           return new Response(JSON.stringify({ error: "Parametri mancanti (to, subject, html)" }), {
             status: 400, headers: { ...CORS, "Content-Type": "application/json" }
           });
         }
         const acc = account === "personal" ? "personal" : "business";
-        const result = await sendGmailHtmlMulti(env, acc, to, subject, html, from);
+        const result = await sendGmailHtmlMulti(env, acc, to, subject, html, from, null, cc, bcc);
         if (!result.ok) {
           return new Response(JSON.stringify(result), {
             status: result.status || 502, headers: { ...CORS, "Content-Type": "application/json" }
