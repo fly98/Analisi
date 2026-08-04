@@ -339,6 +339,7 @@ export default {
         keySet: !!k,
         keyLen: k ? k.length : 0,
         keyTrimmed: k ? k.length === k.trim().length : null,
+        envKeys: Object.keys(env),
       });
     }
 
