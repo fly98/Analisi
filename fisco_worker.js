@@ -1882,7 +1882,12 @@ async function datacashFE(env, path, payload) {
 // Confronta il registro locale col cassetto e marca cio' che risulta davvero
 // arrivato. Il cassetto e' lento di giorni: un documento recente che non c'e'
 // ancora NON e' un problema, lo diventa dopo GIORNI_TOLLERANZA.
-const GIORNI_TOLLERANZA = 4;
+// Con identificativo SdI il documento e' gia' arrivato al Sistema di
+// Interscambio: l'assenza dal cassetto e' solo lentezza dell'Agenzia, che puo'
+// superare la settimana (le FE 4-7/26 del 27/07 sono comparse il 5/08, 9 giorni).
+// Senza identificativo, invece, non c'e' prova di nulla e va guardato subito.
+const GIORNI_TOLLERANZA = 15;
+const GIORNI_TOLLERANZA_SENZA_SDI = 1;
 
 async function verificaConsegne(env, giorni) {
   const fine = giorno(new Date());
@@ -1923,7 +1928,8 @@ async function verificaConsegne(env, giorni) {
     const voce = { numero: num, stato: rec.stato, data: rec.data, idSdi: rec.idSdi || null, giorni: eta };
     // senza identificativo SdI il documento non e' mai partito: da vedere subito.
     // Con identificativo, si aspetta che il cassetto si aggiorni.
-    if (!rec.idSdi || rec.stato === 'incerta' || rec.stato === 'errore' || eta >= GIORNI_TOLLERANZA) {
+    const limite = rec.idSdi ? GIORNI_TOLLERANZA : GIORNI_TOLLERANZA_SENZA_SDI;
+    if (rec.stato === 'incerta' || rec.stato === 'errore' || eta >= limite) {
       daControllare.push(voce);
     } else {
       attesa.push(voce);
