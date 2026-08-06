@@ -894,7 +894,7 @@ select.form-input { height: 42px; }
 
     </div>
     <div style="padding:10px 16px 14px;text-align:center;border-top:1px solid var(--border);margin-top:4px">
-      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v2.1.5</span>
+      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v2.1.6</span>
     </div>
   </div>
 </div>
@@ -4891,6 +4891,15 @@ function import2ApplyEcoDefault(rows) {
   if (cfg && cfg.ecoDefault) {
     rows.forEach(function(m){ if (!m.isDup) m.eco = true; });
   }
+  // Le righe gestite da una regola speciale con noEco non vanno mai sull'economico
+  rows.forEach(function(m){
+    var r = import2SpecialFor(m);
+    if (r && r.noEco) m.eco = false;
+    if (r && r.catId && !m.catObj) {
+      var c = meta && meta.categories ? meta.categories.find(function(x){return x.id===r.catId;}) : null;
+      if (c) m.catObj = { name:c.name, id:c.id };
+    }
+  });
   return rows;
 }
 
@@ -5305,6 +5314,46 @@ var _import2Running = false;
 // Il tutto SENZA categoria e fuori dall'economico: e' uno spostamento di capitale.
 var IMPORT2_SPECIAL_RULES = [
   {
+    // Addebito mensile dell'estratto conto American Express su InternoUno Banca.
+    // Non e' una spesa: i soldi si spostano dal conto corrente alla carta (che e' un
+    // conto a se'), quindi va registrato come TRASFERIMENTO verso Amex e NON deve
+    // finire sull'economico InternoUno (le singole spese Amex ci arrivano gia' con
+    // l'import della carta: riportarlo qui le conterebbe due volte).
+    match: function(m){
+      if (IMPORT2_STATE && IMPORT2_STATE.accName !== 'InternoUno Banca') return false;
+      return /american\s+express/i.test((m.desc||'') + ' ' + (m.key||''));
+    },
+    label: 'Pagamento estratto conto American Express',
+    noEco: true,                 // mai riportare sull'economico
+    catId: 'A17E4C35-F713-4DD5-88BD-3BD20BC9ADAA',   // categoria "Trasferimenti"
+    apply: async function(m, sourceAccId, sourceTxId){
+      var amexId = 'ACC-1783074394401';
+      var catTr  = 'A17E4C35-F713-4DD5-88BD-3BD20BC9ADAA';
+      var imp = Math.abs(m.importo);   // riga banca negativa (uscita)
+      var out = [];
+      try {
+        // Contropartita sul conto Amex: l'incasso riduce il debito della carta
+        var txAmex = { id:null, date:m.dateISO, name:'Pagamento estratto conto', accountId:amexId,
+          status:'cleared', comment:'Addebito American Express da InternoUno Banca',
+          useSumOfSplits:true, amount:null, linkedTxId: sourceTxId || null,
+          splits:[{amount: imp, categoryId: catTr, comment:null}] };
+        var ra = await api('POST','/api/tx',{tx:txAmex});
+        if (ra && ra.id) {
+          out.push(ra.id);
+          // doppio legame: la riga di banca punta alla contropartita
+          if (sourceTxId) {
+            var src = { id: sourceTxId, date:m.dateISO, name:m.key, accountId: sourceAccId,
+              status:'cleared', comment:(m.etich||m.desc), useSumOfSplits:true, amount:null,
+              linkedTxId: ra.id, ebRef: m.ebRef||null,
+              splits:[{amount:m.importo, categoryId: catTr, comment:null}] };
+            try { await api('POST','/api/tx',{tx:src}); } catch(e){}
+          }
+        }
+      } catch(e){ import2Log('Amex: errore trasferimento', 'err'); }
+      return out;
+    }
+  },
+  {
     match: function(m){ return /amundi\s+rata\s+500297353/i.test((m.desc||'') + ' ' + (m.key||'')); },
     label: 'Versamento fondo pensione Amundi',
     apply: async function(m, sourceAccId, sourceTxId){
@@ -5338,6 +5387,14 @@ var IMPORT2_SPECIAL_RULES = [
     }
   }
 ];
+
+// Regola speciale che governa questo movimento (o null)
+function import2SpecialFor(m) {
+  for (var i=0;i<IMPORT2_SPECIAL_RULES.length;i++) {
+    try { if (IMPORT2_SPECIAL_RULES[i].match(m)) return IMPORT2_SPECIAL_RULES[i]; } catch(e){}
+  }
+  return null;
+}
 
 async function import2ApplySpecial(m, sourceAccId, sourceTxId) {
   for (var i=0;i<IMPORT2_SPECIAL_RULES.length;i++) {
@@ -5386,7 +5443,10 @@ async function import2DoImport() {
 
   // 2) TX aggregate sull'economico (righe con eco), segno opposto
   if (cfg.hasEco && ecoId) {
-    var ecoRows = inc.filter(function(m){return m.eco;});
+    var ecoRows = inc.filter(function(m){
+      var r = import2SpecialFor(m);
+      return m.eco && !(r && r.noEco);
+    });
     if (ecoRows.length) {
       var bycat = {};
       ecoRows.forEach(function(m){
