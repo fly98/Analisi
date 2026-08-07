@@ -546,6 +546,62 @@ async function handleStats(request, env, slug, url) {
 
 /* ===================== ALEXA -> CLAUDE ===================== */
 
+/* --- dati personali via tg-worker (/voce) --- */
+
+async function voce(env, qs) {
+  if (!env.TG || !env.VOCE_KEY) return null;
+  try {
+    const r = await env.TG.fetch(new Request("https://tg-worker/voce?" + qs, {
+      headers: { "X-Voce-Key": env.VOCE_KEY }
+    }));
+    const d = await r.json();
+    return d && d.ok ? d : null;
+  } catch (e) { return null; }
+}
+
+function eur(n) {
+  const v = Math.round(Math.abs(n));
+  if (v >= 1000) {
+    const mila = Math.round(v / 100) / 10;
+    return (n < 0 ? "meno " : "") + String(mila).replace(".", " virgola ") + " mila euro";
+  }
+  return (n < 0 ? "meno " : "") + v + " euro";
+}
+
+function gruppo(g, nomi) {
+  let t = 0;
+  for (const x of (g || [])) if (nomi.indexOf(x.nome) >= 0) t += x.totale;
+  return t;
+}
+
+function dataParlata(iso) {
+  const MESI = ["gennaio","febbraio","marzo","aprile","maggio","giugno","luglio","agosto","settembre","ottobre","novembre","dicembre"];
+  const oggi = new Date(); oggi.setHours(0,0,0,0);
+  const d = new Date(iso + "T00:00:00");
+  const diff = Math.round((d - oggi) / 86400000);
+  if (diff === 0) return "oggi";
+  if (diff === 1) return "domani";
+  if (diff === 2) return "dopodomani";
+  return "il " + d.getDate() + " " + MESI[d.getMonth()];
+}
+
+function arriviParlati(testo, iso) {
+  const righe = String(testo || "")
+    .replace(/[*_`]/g, "")
+    .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, "")
+    .split("\n").map(function (s) { return s.trim(); }).filter(Boolean);
+  righe.shift();
+  if (!righe.length) return "Nessun arrivo previsto " + dataParlata(iso) + ".";
+  const out = [];
+  for (let i = 0; i < righe.length; i += 2) {
+    const nome = righe[i].replace(/\s+(Air|B|Booking|Diretta)\s*$/i, "").trim();
+    const det = (righe[i + 1] || "").replace(/\s*·\s*/g, ", ");
+    out.push(nome + ": " + det);
+  }
+  return out.join(". ") + ".";
+}
+
+
 const ALEXA_SKILL_ID = "amzn1.ask.skill.e819a2c6-425e-4ff3-b5ef-62a8fe218464";
 const ALEXA_FAST = "claude-haiku-4-5";
 const ALEXA_SMART = "claude-sonnet-5";
@@ -655,6 +711,29 @@ async function handleAlexa(request, env) {
     if (name === "AMAZON.StopIntent" || name === "AMAZON.CancelIntent") return alexaSpeak("A dopo.", { end: true });
     if (name === "AMAZON.NavigateHomeIntent") return alexaSpeak("Dimmi pure.", { end: false });
     if (name === "AMAZON.HelpIntent") return alexaSpeak("Chiedimi quello che vuoi, ti rispondo io invece di Alexa.", { end: false });
+
+    if (name === "SaldoIntent") {
+      const d = await voce(env, "c=saldo");
+      if (!d) return alexaSpeak("Non riesco a leggere i conti in questo momento.", { end: false });
+      const liq = gruppo(d.gruppi, ["Banche", "Contanti"]);
+      const inv = gruppo(d.gruppi, ["Investimenti", "Conti Titoli"]);
+      return alexaSpeak("Liquidità " + eur(liq) + ", investimenti " + eur(inv) + ".", { end: false });
+    }
+
+    if (name === "ArriviIntent") {
+      const sl = (body.request.intent && body.request.intent.slots) || {};
+      let iso = (sl.quando && sl.quando.value) || "";
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) {
+        const t = new Date(); t.setDate(t.getDate() + 1);
+        iso = t.toISOString().slice(0, 10);
+      }
+      const d = await voce(env, "c=arrivi&date=" + iso);
+      if (!d) return alexaSpeak("Non riesco a leggere gli arrivi in questo momento.", { end: false });
+      const quando = dataParlata(iso);
+      if (!d.arrivi) return alexaSpeak("Nessun arrivo " + quando + ".", { end: false });
+      const testa = d.arrivi === 1 ? ("Un arrivo " + quando + ". ") : (d.arrivi + " arrivi " + quando + ". ");
+      return alexaSpeak(alexaClean(testa + arriviParlati(d.testo, iso)), { end: false });
+    }
 
     const slots = body.request.intent && body.request.intent.slots;
     const q = slots && slots.query && slots.query.value;
