@@ -560,8 +560,14 @@ async function voce(env, qs) {
 }
 
 function eur(n) {
-  const v = Math.round(Math.abs(n) / 100) * 100;
-  return (n < 0 ? "meno " : "") + v + " euro";
+  const a = Math.abs(n);
+  const v = a >= 10000 ? Math.round(a / 100) * 100 : Math.round(a);
+  return v + " euro";
+}
+
+function pct(p) {
+  const v = Math.round(Math.abs(p) * 100) / 100;
+  return String(v).replace(".", " virgola ") + " per cento";
 }
 
 function gruppo(g, nomi) {
@@ -710,10 +716,19 @@ async function handleAlexa(request, env) {
 
     if (name === "SaldoIntent") {
       const d = await voce(env, "c=saldo");
-      if (!d) return alexaSpeak("Non riesco a leggere i conti in questo momento.", { end: false });
-      const liq = gruppo(d.gruppi, ["Banche", "Contanti"]);
-      const inv = gruppo(d.gruppi, ["Investimenti", "Conti Titoli"]);
-      return alexaSpeak("Liquidità " + eur(liq) + ", investimenti " + eur(inv) + ".", { end: false });
+      const p = d && d.portafoglio;
+      if (!p) return alexaSpeak("Non riesco a leggere il portafoglio in questo momento.", { end: false });
+      const L = [];
+      if (p.delta != null) {
+        L.push("Oggi " + (p.delta >= 0 ? "più " : "meno ") + eur(p.delta) +
+               (p.pct != null ? ", " + pct(p.pct) : "") + ".");
+      }
+      L.push("Portafoglio " + eur(p.totale) + ".");
+      if (p.latente != null) {
+        L.push((p.latente >= 0 ? "Utile" : "Perdita") + " latente " + eur(p.latente) +
+               (p.latentePct != null ? ", " + pct(p.latentePct) : "") + ".");
+      }
+      return alexaSpeak(L.join(" "), { end: false });
     }
 
     if (name === "ArriviIntent") {
