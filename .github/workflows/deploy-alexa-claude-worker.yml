@@ -19,4 +19,4 @@ jobs:
           apiToken: ${{ secrets.CF_API_TOKEN }}
           accountId: ${{ secrets.CF_ACCOUNT_ID }}
           wranglerVersion: '3'
-          command: deploy alexa_claude_worker.js --name alexa-claude --compatibility-date 2024-01-01 --no-bundle
+          command: deploy alexa_claude_worker.js --name alexa-claude --compatibility-date 2024-01-01 --no-bundle --var SKILL_ID:amzn1.ask.skill.69ee538d-55fa-4d6e-9184-b9f2f8e28556
