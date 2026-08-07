@@ -1,0 +1,22 @@
+name: Deploy Alexa Claude Worker
+
+on:
+  push:
+    paths:
+      - 'alexa_claude_worker.js'
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy with Wrangler
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CF_API_TOKEN }}
+          accountId: ${{ secrets.CF_ACCOUNT_ID }}
+          wranglerVersion: '3'
+          command: deploy alexa_claude_worker.js --name alexa-claude --compatibility-date 2024-01-01 --no-bundle
