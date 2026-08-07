@@ -1,6 +1,44 @@
 {
   "sessioni": [
     {
+      "id": 1786107706703,
+      "dataSalvataggio": "2026-08-07T13:01:46.703Z",
+      "txIds": [
+        "7573B7B8-BE21-453A-98BB-E70414052F4A",
+        "FD88B772-8732-410C-8CE2-B497DE0B4A4F",
+        "AAB2ABED-EB0C-493F-B939-1E1C8CA427E9",
+        "91E7FC78-64A3-445D-9EDE-34FEBACEFDD0"
+      ],
+      "periodo": "01/08/2026 - 07/08/2026",
+      "periodoWk": "01/08/2026 - 07/08/2026",
+      "cashIds": [
+        "05/08/2026|Parisi Natale|15",
+        "04/08/2026|Natalia Prus|20",
+        "02/08/2026|Jules Anseaume|-30",
+        "01/08/2026|Mateusz Łubkowski|40",
+        "01/08/2026|Passante .|160"
+      ],
+      "cash": 205,
+      "stripe": 0,
+      "totContanti": 205,
+      "wkTot": 120,
+      "wkN": 2,
+      "wkDateSel": [
+        "01/08/2026",
+        "02/08/2026"
+      ],
+      "sp": 34,
+      "man": 0,
+      "bab": 0,
+      "ferie": 0,
+      "stip": 750,
+      "spTot": 34,
+      "daMe": 904,
+      "saldo": -699,
+      "ferieDal": null,
+      "ferieAl": null
+    },
+    {
       "id": 1785507543799,
       "dataSalvataggio": "2026-07-31T14:19:03.799Z",
       "periodo": "08/07/2026 - 31/07/2026",
@@ -30,7 +68,7 @@
         "18/07/2026|Claudio Ballatore|60",
         "18/07/2026|Claudio Ballatore|120",
         "18/07/2026|Claudio Ballatore|60",
-        "17/07/2026|Giovanni D’Anna|80",
+        "17/07/2026|Giovanni DâAnna|80",
         "16/07/2026|Veronika Saratova|50",
         "15/07/2026|Antonio Schifano|80",
         "13/07/2026|Alisher Rasulov|40"
@@ -232,6 +270,5 @@
       "daMe": 1157,
       "saldo": -185.92
     }
-  ],
-  "sha": "39b8edd137980a947df62f3f2bde2fd0dd2d2ecb"
+  ]
 }
