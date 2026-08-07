@@ -650,6 +650,23 @@ var icompta_worker_default = {
     }
 
     // ── TEST REPORT TELEGRAM (usa gli snapshot già in KV, non tocca il Mac) ────
+    if (path === "/api/voce-portafoglio" && method === "GET") {
+      const list = await env.ICOMPTA_KV.list({ prefix: "icompta:snapshot:" });
+      const dates = list.keys.map(k => k.name.replace("icompta:snapshot:", "")).sort();
+      if (!dates.length) return err("Nessuno snapshot in KV", 404);
+      const last = JSON.parse(await env.ICOMPTA_KV.get("icompta:snapshot:" + dates[dates.length - 1]));
+      const prev = await prevSnapshot(env, last.date);
+      const strumenti = JSON.parse((await env.ICOMPTA_KV.get("icompta:fineco-inv:strumenti")) || "[]");
+      const delta = prev ? (last.totale - prev.totale) : null;
+      const pct = (prev && prev.totale) ? (delta / prev.totale) * 100 : null;
+      let latente = null, latentePct = null;
+      if (Array.isArray(strumenti) && strumenti.length) {
+        const vcTot = strumenti.reduce((s, x) => s + (x.vc || 0), 0);
+        if (vcTot > 0) { latente = last.totale - vcTot; latentePct = (latente / vcTot) * 100; }
+      }
+      return json({ date: last.date, totale: last.totale, delta, pct, latente, latentePct });
+    }
+
     if (path === "/api/tg-report-now" && method === "GET") {
       const list = await env.ICOMPTA_KV.list({ prefix: "icompta:snapshot:" });
       const dates = list.keys.map(k => k.name.replace("icompta:snapshot:", "")).sort();
