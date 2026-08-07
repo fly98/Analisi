@@ -43,3 +43,11 @@ jobs:
           accountId: ${{ secrets.CF_ACCOUNT_ID }}
           wranglerVersion: '3'
           command: deploy --config wrangler_tg_deploy.toml
+
+      - name: Set voce key
+        run: |
+          npm install -g wrangler@3
+          echo "${{ secrets.VOCE_KEY }}" | wrangler secret put VOCE_KEY --name tg-worker --config wrangler_tg_deploy.toml
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
