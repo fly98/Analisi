@@ -543,11 +543,143 @@ async function handleStats(request, env, slug, url) {
   return json(out);
 }
 
+
+/* ===================== ALEXA -> CLAUDE ===================== */
+
+const ALEXA_SKILL_ID = "amzn1.ask.skill.69ee538d-55fa-4d6e-9184-b9f2f8e28556";
+const ALEXA_FAST = "claude-haiku-4-5";
+const ALEXA_SMART = "claude-sonnet-5";
+
+const ALEXA_SYSTEM = `Sei l'assistente vocale di Filippo. Parli da un altoparlante Alexa in casa sua, a Roma.
+Regole assolute:
+- Rispondi SEMPRE in italiano.
+- Massimo tre frasi, meglio una. Vieni ascoltato, non letto.
+- Niente markdown, niente elenchi, niente link, niente simboli: solo parlato naturale.
+- Se la domanda e' ambigua, scegli la lettura piu' probabile e rispondi, invece di chiedere chiarimenti.
+- Se non sai una cosa dillo in mezza riga, senza scusarti a lungo.
+- Tono confidenziale, un filo ironico. Niente preamboli tipo "certamente".`;
+
+function alexaClean(s) {
+  return String(s)
+    .replace(/\[(.*?)\]\((.*?)\)/g, "$1")
+    .replace(/[*_`#>|]/g, "")
+    .replace(/&/g, " e ")
+    .replace(/[<>]/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 3000);
+}
+
+function alexaSpeak(text, opts) {
+  const o = opts || {};
+  const end = o.end !== false;
+  const r = {
+    version: "1.0",
+    response: {
+      outputSpeech: { type: "PlainText", text: text },
+      shouldEndSession: end
+    }
+  };
+  if (!end) r.response.reprompt = { outputSpeech: { type: "PlainText", text: "Dimmi pure." } };
+  if (o.attrs) r.sessionAttributes = o.attrs;
+  return new Response(JSON.stringify(r), { headers: { "content-type": "application/json" } });
+}
+
+function alexaPickModel(q) {
+  const words = q.trim().split(/\s+/).length;
+  const hard = /(perch|spiega|calcola|confronta|differenza|conviene|analizza|riassum|scrivi|traduci|come si fa|secondo te)/i.test(q);
+  return (words > 12 || hard) ? ALEXA_SMART : ALEXA_FAST;
+}
+
+function alexaThinking(body) {
+  try {
+    const ep = body && body.context && body.context.System && body.context.System.apiEndpoint;
+    const tok = body && body.context && body.context.System && body.context.System.apiAccessToken;
+    if (!ep || !tok) return;
+    fetch(ep + "/v1/directives", {
+      method: "POST",
+      headers: { authorization: "Bearer " + tok, "content-type": "application/json" },
+      body: JSON.stringify({
+        header: { requestId: body.request.requestId },
+        directive: { type: "VoicePlayer.Speak", speech: "Un attimo." }
+      })
+    }).catch(function () {});
+  } catch (e) {}
+}
+
+async function alexaAsk(env, messages, model) {
+  const ctl = new AbortController();
+  const t = setTimeout(function () { ctl.abort(); }, 6500);
+  try {
+    const r = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      signal: ctl.signal,
+      headers: {
+        "content-type": "application/json",
+        "x-api-key": env.ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01"
+      },
+      body: JSON.stringify({ model: model, max_tokens: 300, system: ALEXA_SYSTEM, messages: messages })
+    });
+    if (!r.ok) return "Errore dal modello, codice " + r.status + ".";
+    const d = await r.json();
+    const out = (d.content || []).filter(function (b) { return b.type === "text"; })
+      .map(function (b) { return b.text; }).join(" ");
+    return out || "Non ho una risposta a questa.";
+  } catch (e) {
+    return "Ci sto mettendo troppo. Riprova tra un attimo.";
+  } finally {
+    clearTimeout(t);
+  }
+}
+
+async function handleAlexa(request, env) {
+  if (request.method !== "POST") return new Response("alexa ok");
+  let body;
+  try { body = await request.json(); } catch (e) { return new Response("bad request", { status: 400 }); }
+
+  const appId = (body.session && body.session.application && body.session.application.applicationId) ||
+    (body.context && body.context.System && body.context.System.application && body.context.System.application.applicationId);
+  if (appId !== ALEXA_SKILL_ID) return new Response("forbidden", { status: 403 });
+
+  const type = body.request && body.request.type;
+
+  if (type === "SessionEndedRequest") {
+    return new Response(JSON.stringify({ version: "1.0", response: {} }), { headers: { "content-type": "application/json" } });
+  }
+  if (type === "LaunchRequest") {
+    return alexaSpeak("Ciao Filippo, dimmi.", { end: false, attrs: { h: [] } });
+  }
+  if (type === "IntentRequest") {
+    const name = body.request.intent && body.request.intent.name;
+    if (name === "AMAZON.StopIntent" || name === "AMAZON.CancelIntent") return alexaSpeak("A dopo.", { end: true });
+    if (name === "AMAZON.NavigateHomeIntent") return alexaSpeak("Dimmi pure.", { end: false });
+    if (name === "AMAZON.HelpIntent") return alexaSpeak("Chiedimi quello che vuoi, ti rispondo io invece di Alexa.", { end: false });
+
+    const slots = body.request.intent && body.request.intent.slots;
+    const q = slots && slots.query && slots.query.value;
+    if (!q) return alexaSpeak("Non ho capito la domanda, ripeti.", { end: false });
+
+    alexaThinking(body);
+
+    const prev = (body.session && body.session.attributes && Array.isArray(body.session.attributes.h)) ? body.session.attributes.h : [];
+    const messages = prev.concat([{ role: "user", content: q }]);
+    const answer = await alexaAsk(env, messages, alexaPickModel(q));
+    const spoken = alexaClean(answer);
+    const hist = messages.concat([{ role: "assistant", content: spoken }]).slice(-6);
+    return alexaSpeak(spoken, { end: false, attrs: { h: hist } });
+  }
+  return alexaSpeak("Non ho capito.", { end: true });
+}
+
+/* =================== FINE ALEXA -> CLAUDE =================== */
+
 export default {
   async fetch(request, env) {
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: CORS });
     try {
       const url = new URL(request.url);
+      if (url.pathname === "/alexa") return await handleAlexa(request, env);
       const parts = url.pathname.split("/").filter(Boolean); // ["wb", slug, action]
       if (parts[0] !== "wb" || !parts[1]) return json({ error: "Percorso non valido" }, 404);
       const slug = parts[1];
