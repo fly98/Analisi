@@ -330,6 +330,40 @@ export default {
       return json({ ok: true, comando: c, nota: 'Il risultato arriva su Telegram.' });
     }
 
+    // --- 5b. Dati per la skill Alexa (JSON, niente Telegram) ---
+    if (path === '/voce') {
+      const c = (url.searchParams.get('c') || '').toLowerCase().trim();
+
+      if (c === 'saldo') {
+        if (!env.ICOMPTA || !env.ICOMPTA_TOKEN) return json({ error: 'iCompta non collegato' }, 500);
+        const H = { Authorization: 'Bearer ' + env.ICOMPTA_TOKEN };
+        const [rb, rm] = await Promise.all([
+          env.ICOMPTA.fetch(new Request('https://icompta-worker/api/balance', { headers: H })),
+          env.ICOMPTA.fetch(new Request('https://icompta-worker/api/meta', { headers: H })),
+        ]);
+        if (!rb.ok || !rm.ok) return json({ error: 'iCompta non risponde' }, 502);
+        const bal = await rb.json();
+        const meta = await rm.json();
+        const gruppi = (meta.groups || []).map(function (g) {
+          return { nome: g.name || g.id, totale: Math.round((bal.groups[g.id] || 0)) };
+        }).filter(function (g) { return g.totale !== 0; });
+        const totale = gruppi.reduce(function (s, g) { return s + g.totale; }, 0);
+        return json({ ok: true, totale: totale, gruppi: gruppi });
+      }
+
+      if (c === 'arrivi') {
+        if (!env.LS) return json({ error: 'little-shadow non collegato' }, 500);
+        const date = url.searchParams.get('date') || '';
+        const q = 'https://little-shadow/?action=tgArrivi&dry=1&notrack=1' + (date ? '&date=' + date : '');
+        const r = await env.LS.fetch(new Request(q));
+        const d = await r.json();
+        if (d.error) return json({ error: d.error }, 502);
+        return json({ ok: true, data: d.data, arrivi: d.arrivi, testo: d.preview });
+      }
+
+      return json({ error: 'comando sconosciuto', disponibili: ['saldo', 'arrivi'] }, 400);
+    }
+
     // --- 6. Info ---
     return json({
       worker: 'tg-worker',
