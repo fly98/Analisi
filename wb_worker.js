@@ -560,11 +560,7 @@ async function voce(env, qs) {
 }
 
 function eur(n) {
-  const v = Math.round(Math.abs(n));
-  if (v >= 1000) {
-    const mila = Math.round(v / 100) / 10;
-    return (n < 0 ? "meno " : "") + String(mila).replace(".", " virgola ") + " mila euro";
-  }
+  const v = Math.round(Math.abs(n) / 100) * 100;
   return (n < 0 ? "meno " : "") + v + " euro";
 }
 
@@ -588,7 +584,7 @@ function dataParlata(iso) {
 function arriviParlati(testo, iso) {
   const righe = String(testo || "")
     .replace(/[*_`]/g, "")
-    .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, "")
+    .replace(/[\u{1F1E6}-\u{1F1FF}\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, "")
     .split("\n").map(function (s) { return s.trim(); }).filter(Boolean);
   righe.shift();
   if (!righe.length) return "Nessun arrivo previsto " + dataParlata(iso) + ".";
