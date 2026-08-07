@@ -546,7 +546,7 @@ async function handleStats(request, env, slug, url) {
 
 /* ===================== ALEXA -> CLAUDE ===================== */
 
-const ALEXA_SKILL_ID = "amzn1.ask.skill.69ee538d-55fa-4d6e-9184-b9f2f8e28556";
+const ALEXA_SKILL_ID = "amzn1.ask.skill.e819a2c6-425e-4ff3-b5ef-62a8fe218464";
 const ALEXA_FAST = "claude-haiku-4-5";
 const ALEXA_SMART = "claude-sonnet-5";
 
