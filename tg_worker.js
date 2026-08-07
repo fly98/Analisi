@@ -253,18 +253,10 @@ export default {
       if (c === 'saldo') {
         if (!env.ICOMPTA || !env.ICOMPTA_TOKEN) return json({ error: 'iCompta non collegato' }, 500);
         const H = { Authorization: 'Bearer ' + env.ICOMPTA_TOKEN };
-        const [rb, rm] = await Promise.all([
-          env.ICOMPTA.fetch(new Request('https://icompta-worker/api/balance', { headers: H })),
-          env.ICOMPTA.fetch(new Request('https://icompta-worker/api/meta', { headers: H })),
-        ]);
-        if (!rb.ok || !rm.ok) return json({ error: 'iCompta non risponde' }, 502);
-        const bal = await rb.json();
-        const meta = await rm.json();
-        const gruppi = (meta.groups || []).map(function (g) {
-          return { nome: g.name || g.id, totale: Math.round((bal.groups[g.id] || 0)) };
-        }).filter(function (g) { return g.totale !== 0; });
-        const totale = gruppi.reduce(function (s, g) { return s + g.totale; }, 0);
-        return json({ ok: true, totale: totale, gruppi: gruppi });
+        const r = await env.ICOMPTA.fetch(new Request('https://icompta-worker/api/voce-portafoglio', { headers: H }));
+        if (!r.ok) return json({ error: 'iCompta non risponde' }, 502);
+        const d = await r.json();
+        return json({ ok: true, portafoglio: d });
       }
 
       if (c === 'arrivi') {
