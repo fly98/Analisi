@@ -894,7 +894,7 @@ select.form-input { height: 42px; }
 
     </div>
     <div style="padding:10px 16px 14px;text-align:center;border-top:1px solid var(--border);margin-top:4px">
-      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v2.1.8</span>
+      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v2.1.9</span>
     </div>
   </div>
 </div>
@@ -5315,43 +5315,31 @@ var _import2Running = false;
 var IMPORT2_SPECIAL_RULES = [
   {
     // Addebito mensile dell'estratto conto American Express su InternoUno Banca.
-    // Non e' una spesa: i soldi si spostano dal conto corrente alla carta (che e' un
-    // conto a se'), quindi va registrato come TRASFERIMENTO verso Amex e NON deve
-    // finire sull'economico InternoUno (le singole spese Amex ci arrivano gia' con
-    // l'import della carta: riportarlo qui le conterebbe due volte).
+    // Non e' una spesa: i soldi si spostano dal conto corrente alla carta, quindi
+    // categoria Trasferimenti e MAI sull'economico (le singole spese Amex ci arrivano
+    // gia' dall'import della carta: riportarlo qui le conterebbe due volte).
+    // NB: NON si genera la contropartita sul conto Amex, perche' la stessa operazione
+    // compare gia' nell'estratto Amex come "ADDEBITO IN C/C SALVO BUON FINE" (positiva):
+    // generarla creerebbe un doppione.
     match: function(m){
       if (IMPORT2_STATE && IMPORT2_STATE.accName !== 'InternoUno Banca') return false;
       return /american\s+express/i.test((m.desc||'') + ' ' + (m.key||''));
     },
     label: 'Pagamento estratto conto American Express',
-    noEco: true,                 // mai riportare sull'economico
-    catId: 'A17E4C35-F713-4DD5-88BD-3BD20BC9ADAA',   // categoria "Trasferimenti"
-    apply: async function(m, sourceAccId, sourceTxId){
-      var amexId = 'ACC-1783074394401';
-      var catTr  = 'A17E4C35-F713-4DD5-88BD-3BD20BC9ADAA';
-      var imp = Math.abs(m.importo);   // riga banca negativa (uscita)
-      var out = [];
-      try {
-        // Contropartita sul conto Amex: l'incasso riduce il debito della carta
-        var txAmex = { id:null, date:m.dateISO, name:'Pagamento estratto conto', accountId:amexId,
-          status:'cleared', comment:'Addebito American Express da InternoUno Banca',
-          useSumOfSplits:true, amount:null, linkedTxId: sourceTxId || null,
-          splits:[{amount: imp, categoryId: catTr, comment:null}] };
-        var ra = await api('POST','/api/tx',{tx:txAmex});
-        if (ra && ra.id) {
-          out.push(ra.id);
-          // doppio legame: la riga di banca punta alla contropartita
-          if (sourceTxId) {
-            var src = { id: sourceTxId, date:m.dateISO, name:m.key, accountId: sourceAccId,
-              status:'cleared', comment:(m.etich||m.desc), useSumOfSplits:true, amount:null,
-              linkedTxId: ra.id, ebRef: m.ebRef||null,
-              splits:[{amount:m.importo, categoryId: catTr, comment:null}] };
-            try { await api('POST','/api/tx',{tx:src}); } catch(e){}
-          }
-        }
-      } catch(e){ import2Log('Amex: errore trasferimento', 'err'); }
-      return out;
-    }
+    noEco: true,
+    catId: 'A17E4C35-F713-4DD5-88BD-3BD20BC9ADAA'   // categoria "Trasferimenti"
+  },
+  {
+    // L'altra faccia della stessa operazione, sull'estratto conto Amex: importo
+    // positivo perche' riduce il debito della carta. Anche questa e' un trasferimento
+    // e non deve toccare l'economico.
+    match: function(m){
+      if (IMPORT2_STATE && IMPORT2_STATE.accName !== 'Amex') return false;
+      return /addebito\s+in\s+c\/c/i.test((m.desc||'') + ' ' + (m.key||''));
+    },
+    label: 'Addebito in c/c dell\'estratto conto Amex',
+    noEco: true,
+    catId: 'A17E4C35-F713-4DD5-88BD-3BD20BC9ADAA'
   },
   {
     match: function(m){ return /amundi\s+rata\s+500297353/i.test((m.desc||'') + ' ' + (m.key||'')); },
@@ -5401,6 +5389,7 @@ async function import2ApplySpecial(m, sourceAccId, sourceTxId) {
     var rule = IMPORT2_SPECIAL_RULES[i];
     if (rule.match(m)) {
       import2Log('Regola: ' + rule.label);
+      if (typeof rule.apply !== 'function') return [];   // regole di sola categoria/eco
       return await rule.apply(m, sourceAccId, sourceTxId);
     }
   }
