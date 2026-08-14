@@ -29,6 +29,10 @@ jobs:
           name = "LOBBY"
           class_name = "Lobby"
 
+          [[durable_objects.bindings]]
+          name = "SEGNA"
+          class_name = "Segna"
+
           [[migrations]]
           tag = "v1"
           new_sqlite_classes = ["Room"]
@@ -36,6 +40,10 @@ jobs:
           [[migrations]]
           tag = "v2"
           new_sqlite_classes = ["Lobby"]
+
+          [[migrations]]
+          tag = "v3"
+          new_sqlite_classes = ["Segna"]
           TOML
 
       - name: Deploy with Wrangler
