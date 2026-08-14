@@ -108,6 +108,36 @@ export class Room {
   }
 }
 
+// Durable Object "Segna": un documento condiviso per gruppo di gioco.
+// Lo usa segnapunti.html per tenere allineati i tabelloni su piu' dispositivi.
+// Nessuna chiave segreta: il codice del gruppo e' esso stesso la credenziale
+// (sta solo sui telefoni di chi gioca, mai nel repo pubblico).
+export class Segna {
+  constructor(state) { this.state = state; }
+
+  async fetch(req) {
+    const url = new URL(req.url);
+    const doc = (await this.state.storage.get('doc')) || { rev: 0, ts: 0, dati: null };
+
+    if (req.method === 'GET') return Response.json(doc);
+
+    if (req.method === 'POST') {
+      let body;
+      try { body = await req.json(); } catch (e) { return Response.json({ errore: 'json' }, { status: 400 }); }
+      const testo = JSON.stringify(body.dati || null);
+      if (testo.length > 400000) return Response.json({ errore: 'troppo grande' }, { status: 413 });
+      // scrittura condizionata: chi ha una revisione vecchia riceve indietro quella buona
+      if (typeof body.rev !== 'number' || body.rev !== doc.rev)
+        return Response.json({ conflitto: true, ...doc }, { status: 409 });
+      const nuovo = { rev: doc.rev + 1, ts: Date.now(), dati: body.dati };
+      await this.state.storage.put('doc', nuovo);
+      return Response.json({ rev: nuovo.rev, ts: nuovo.ts });
+    }
+
+    return new Response('not found', { status: 404 });
+  }
+}
+
 export class Lobby {
   constructor(state) { this.state = state; }
 
@@ -198,6 +228,16 @@ export default {
     if (url.pathname === '/rooms') {
       const lobby = env.LOBBY.get(env.LOBBY.idFromName('lobby'));
       const res = await lobby.fetch('https://do/list');
+      const nr = new Response(res.body, res);
+      for (const [k, v] of Object.entries(CORS)) nr.headers.set(k, v);
+      return nr;
+    }
+
+    // /segna/CODICE — documento condiviso del segnapunti (GET legge, POST scrive)
+    const s = url.pathname.match(/^\/segna\/([A-Z0-9]{4,12})$/);
+    if (s) {
+      const stub = env.SEGNA.get(env.SEGNA.idFromName(s[1].toUpperCase()));
+      const res = await stub.fetch(new Request('https://do/doc', req));
       const nr = new Response(res.body, res);
       for (const [k, v] of Object.entries(CORS)) nr.headers.set(k, v);
       return nr;
