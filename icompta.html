@@ -894,7 +894,7 @@ select.form-input { height: 42px; }
 
     </div>
     <div style="padding:10px 16px 14px;text-align:center;border-top:1px solid var(--border);margin-top:4px">
-      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v2.1.9</span>
+      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v2.2.0</span>
     </div>
   </div>
 </div>
@@ -3722,6 +3722,28 @@ function _autoLog(logId, msg, type) {
     }
   };
 
+  // Riautorizzazione Enable Banking: serve quando si supera il limite PSD2 di 4
+  // accessi al giorno, o quando la sessione e' scaduta/revocata. Apre la pagina SCA
+  // della banca; al termine la nuova sessione viene salvata dal callback.
+  window.ebRinnovaAutorizzazione = function(ebTipo) {
+    var cfg = EB_ACCOUNTS[ebTipo];
+    if (!cfg) { alert('Conto Enable Banking sconosciuto: ' + ebTipo); return; }
+    // sessionKey = icompta:eb:session:<Banca>:<psu>  ->  nome banca leggibile
+    var parts = cfg.sessionKey.split(':');
+    var bank = (parts[3] || '').replace(/-/g, ' ');
+    var psu  = parts[4] || 'personal';
+    return api('GET', '/api/enable-banking/auth?bank=' + encodeURIComponent(bank) + '&psu_type=' + encodeURIComponent(psu))
+      .then(function(d){
+        if (d && d.ok && d.url) {
+          var w = window.open(d.url, '_blank');
+          if (!w) alert('Il browser ha bloccato la finestra.\n\nConsenti i popup per questo sito e riprova.');
+        } else {
+          alert('Non sono riuscito ad avviare la riautorizzazione.\n' + JSON.stringify(d));
+        }
+      })
+      .catch(function(e){ alert('Errore riautorizzazione: ' + (e.message||e)); });
+  };
+
   function _ebLog(tipo, msg) {
     var id = (tipo === 'fineco' || tipo === 'unicredit') ? 'eb-log-fineco' : tipo === 'personale' ? 'eb-log-personale' : 'eb-log-azienda';
     var el = document.getElementById(id);
@@ -4906,6 +4928,27 @@ function import2ApplyEcoDefault(rows) {
 // ── ADAPTER ENABLE BANKING: riusa _ebImportMovimenti (dedup completo) ────────
 // Non riscrive la logica: attiva la modalità import2 sul motore, che ritorna
 // le righe gia' normalizzate (con ebRef, dedup ±3gg, alias Amazon/PayPal).
+// Riconosce l'errore di limite accessi / sessione non piu' valida di Enable Banking.
+// Il limite PSD2 e' di 4 letture al giorno per conto senza nuova autenticazione forte.
+function _ebIsLimitError(msg) {
+  msg = String(msg || '');
+  return /429|too many|quota|rate.?limit|limit exceeded|ACCESS_EXCEEDED|SESSION_EXPIRED|401|403|invalid.?session|expired/i.test(msg);
+}
+
+
+// Rinnovo manuale dell'autorizzazione della banca (link nel modal import).
+function import2Reauth(ev) {
+  if (ev) ev.preventDefault();
+  var cfg = IMPORT2_CONFIGS[IMPORT2_STATE.accName];
+  if (!cfg || !cfg.ebTipo) return;
+  if (!confirm('Rinnovare l\'autorizzazione di ' + (cfg.chip || cfg.accountName) + '?\n\n'
+      + 'Si apre la pagina della banca per l\'autenticazione. Al termine torna qui e riprova lo scarico.')) return;
+  import2Log('Apro la pagina di autorizzazione della banca\u2026');
+  if (typeof ebRinnovaAutorizzazione === 'function') ebRinnovaAutorizzazione(cfg.ebTipo);
+  else alert('Funzione di riautorizzazione non disponibile: ricarica la pagina.');
+}
+
+
 async function import2FetchEB(ebTipo) {
   window._ebImport2Mode = true;
   try {
@@ -5107,6 +5150,8 @@ async function openImport2(accountName) {
     autoBtn.querySelector('span:last-child').textContent = cfg.autoLabel;
     autoBtn.querySelector('span:first-child').textContent = isEB ? '🏦' : '📥';
   } else { autoBtn.style.display = 'none'; }
+  var reauth = document.getElementById('imp2-reauth');
+  if (reauth) reauth.style.display = isEB ? 'block' : 'none';
 
   // area file: mostrata SEMPRE (anche per conti EB) come fallback manuale
   var dropWrap = document.getElementById('imp2-drop');
@@ -5200,8 +5245,19 @@ async function import2AutoDownload() {
       var nDup = rows.filter(function(m){return m.isDup;}).length;
       import2Log(rows.length + ' transazioni \u00b7 ' + (rows.length-nDup) + ' nuove, ' + nDup + ' gi\u00e0 presenti', 'ok');
     } catch(e) {
-      import2Log('Errore Enable Banking: ' + e.message, 'err');
-      alert('Errore: ' + e.message);
+      var _msg = e.message || String(e);
+      if (_ebIsLimitError(_msg)) {
+        import2Log('Limite accessi giornalieri raggiunto \u2014 serve una nuova autorizzazione', 'err');
+        if (confirm('\u26a0\ufe0f ' + (cfg.chip || cfg.accountName) + ': limite di accessi raggiunto '
+            + '(4 al giorno) oppure autorizzazione scaduta.\n\n'
+            + 'Vuoi rinnovare ora l\'autorizzazione presso la banca?\n'
+            + 'Si apre la pagina della banca: al termine torna qui e riprova lo scarico.')) {
+          ebRinnovaAutorizzazione(cfg.ebTipo);
+        }
+      } else {
+        import2Log('Errore Enable Banking: ' + _msg, 'err');
+        alert('Errore: ' + _msg);
+      }
     } finally {
       btn.disabled = false; lbl.textContent = orig;
     }
@@ -5554,6 +5610,9 @@ async function import2SessionDelete(s) {
         </select>
       </div>
       <div id="eb-log-azienda" style="display:none;background:#1a1a1a;border-radius:8px;padding:8px 10px;max-height:100px;overflow-y:auto;font-family:monospace;font-size:11px;margin-bottom:8px"></div>
+      <div id="imp2-reauth" style="display:none;text-align:center;margin:-4px 0 10px">
+        <a href="#" onclick="import2Reauth(event)" style="font-size:12.5px;color:var(--muted);text-decoration:underline">Rinnova autorizzazione banca</a>
+      </div>
       <div id="imp2-or-sep" style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
         <div style="flex:1;height:1px;background:var(--border)"></div>
         <span style="font-size:12px;color:var(--faint)">oppure</span>
