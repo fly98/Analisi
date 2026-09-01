@@ -329,7 +329,21 @@ input[type=checkbox]{accent-color:var(--text);cursor:pointer}
 <script>
 const WORKER = 'https://leo-worker.f-castiglioni.workers.dev';
 const STIP_DEF = 750;
-const FESTIVI = ['01-01','06-01','25-04','01-05','02-06','15-08','01-11','08-12','25-12','26-12'];
+// Festivita' in formato MM-DD (come le compone isHol). Prima erano scritte GG-MM:
+// il confronto era invertito, quindi il 12/08 risultava festivo (leggeva l'Immacolata
+// '08-12' come mese 08 giorno 12) mentre Ferragosto e Natale non venivano mai visti.
+const FESTIVI = [
+  '01-01', // Capodanno
+  '01-06', // Epifania
+  '04-25', // Liberazione
+  '05-01', // Festa del lavoro
+  '06-02', // Repubblica
+  '08-15', // Ferragosto
+  '11-01', // Ognissanti
+  '12-08', // Immacolata
+  '12-25', // Natale
+  '12-26'  // Santo Stefano
+];
 
 // Stato globale
 let S = {
