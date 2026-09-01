@@ -1106,8 +1106,10 @@ let calYear=new Date().getFullYear(), calMonth=new Date().getMonth();
 let ferieStart=null, ferieEnd=null, ferieStep=0;
 
 function openFerie(){
-  ferieStart=S.ferieDal?new Date(S.ferieDal):null;
-  ferieEnd=S.ferieAl?new Date(S.ferieAl):null;
+  // Le date salvate ('YYYY-MM-DD') vanno lette come date LOCALI: new Date(stringa)
+  // le interpreta come UTC e puo' spostare il giorno.
+  ferieStart=S.ferieDal?fromISO(S.ferieDal):null;
+  ferieEnd=S.ferieAl?fromISO(S.ferieAl):null;
   ferieStep=ferieEnd?2:ferieStart?1:0;
   if(S.fileDate){calYear=S.fileDate.getFullYear();calMonth=S.fileDate.getMonth();}
   document.getElementById('ferie-apply-btn').disabled=!(ferieStart&&ferieEnd);
@@ -1199,7 +1201,13 @@ function resetFerie(){
 // ---------- UTILS ----------
 function fmtDate(d){return d.toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'});}
 function fmtEur(n){return '€'+Number(n).toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2});}
-function toISO(d){return d.toISOString().slice(0,10);}
+function fromISO(s){var p=String(s).split('-');return new Date(+p[0],(+p[1])-1,+p[2]);}
+function toISO(d){
+  // NB: NON usare toISOString(): converte in UTC e con l'ora legale italiana la
+  // mezzanotte locale diventa le 22:00 del giorno PRIMA (ferie salvate sfasate di 1gg).
+  var p=function(n){return String(n).padStart(2,'0');};
+  return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());
+}
 
 calcSaldo();
 
