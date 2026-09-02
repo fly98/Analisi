@@ -894,7 +894,7 @@ select.form-input { height: 42px; }
 
     </div>
     <div style="padding:10px 16px 14px;text-align:center;border-top:1px solid var(--border);margin-top:4px">
-      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v2.2.0</span>
+      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v2.2.1</span>
     </div>
   </div>
 </div>
@@ -6034,8 +6034,55 @@ async function aggiornaFinecoOra(btn) {
   }
 }
 
+// ── FONDO PENSIONE: allineamento al valore reale ─────────────────────────────
+// Il portale Previnet (funds.previnet.it) espone il "Totale posizione", aggiornato
+// il 15 e l'ultimo giorno lavorativo del mese. Qui si inserisce quel valore: la
+// differenza col saldo attuale diventa una riga di rivalutazione, cosi' il conto
+// riflette il valore di mercato senza toccare i versamenti.
+async function openFondoPensione() {
+  var ACC = 'ACC-FONDO-PENSIONE';
+  var saldo = 0;
+  try {
+    var b = await api('GET', '/api/balance');
+    saldo = (b && b.accounts && b.accounts[ACC]) || 0;
+  } catch(e) { alert('Non riesco a leggere il saldo attuale: ' + (e.message||e)); return; }
+
+  var msg = 'Valore attuale in Quadra: ' + fmt(saldo) + '\n\n'
+          + 'Inserisci il "Totale posizione" letto su Previnet\n'
+          + '(funds.previnet.it \u2192 La Tua Posizione Previdenziale):';
+  var inp = prompt(msg, '');
+  if (inp === null) return;
+  inp = String(inp).trim().replace(/[\s\u20ac]/g, '');
+  // accetta sia 15.306,47 sia 15306.47
+  if (/,/.test(inp)) inp = inp.replace(/\./g, '').replace(',', '.');
+  var val = parseFloat(inp);
+  if (isNaN(val) || val <= 0) { alert('Valore non valido.'); return; }
+
+  var delta = Math.round((val - saldo) * 100) / 100;
+  if (Math.abs(delta) < 0.01) { alert('Il valore coincide gia\': nessuna rivalutazione necessaria.'); return; }
+
+  var oggi = new Date();
+  var dISO = oggi.getFullYear() + '-' + String(oggi.getMonth()+1).padStart(2,'0') + '-' + String(oggi.getDate()).padStart(2,'0');
+  if (!confirm('Posizione Previnet: ' + fmt(val) + '\n'
+      + 'Saldo in Quadra: ' + fmt(saldo) + '\n\n'
+      + 'Verra\' creata una rivalutazione di ' + (delta>=0?'+':'') + fmt(delta) + ' in data ' + dISO + '.')) return;
+
+  var tx = { id:null, date:dISO, name:'Rivalutazione fondo pensione', accountId:ACC,
+    status:'cleared', comment:'Allineamento a posizione Previnet: ' + fmt(val),
+    useSumOfSplits:true, amount:null, linkedTxId:null,
+    splits:[{amount: delta, categoryId:null, comment:null}] };
+  try {
+    await api('POST','/api/tx',{tx:tx});
+    txCache = {}; await loadBalances();
+    if (typeof loadTx === 'function' && currentViewAccId === ACC) loadTx(ACC);
+    alert('\u2705 Fondo pensione allineato a ' + fmt(val));
+  } catch(e) { alert('Errore nel salvataggio: ' + (e.message||e)); }
+}
+
+
 var IMPORT_MAP = {
   'ACC-FINECO-INV':  { label: 'Aggiorna', fn: function() { aggiornaFinecoOra(document.getElementById('btn-import-contestuale')); } },
+  'ACC-FONDO-PENSIONE': { label: 'Aggiorna valore', fn: function() { openFondoPensione(); } },
   'ACC-FINECO-CC':   { label: 'Aggiorna', fn: function() { openImport2('Fineco CC'); } },
   '164E70BD-E589-4380-877D-1308AAEDFFF1': { label: 'Aggiorna', fn: function() { openImport2('Genius Unicredit'); } },
 };
