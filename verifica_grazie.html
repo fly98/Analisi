@@ -74,6 +74,26 @@
 
 <script>
 const WORKER_URL = "https://little-shadow-145e.f-castiglioni.workers.dev";
+// ====== AUTENTICAZIONE (2/9/2026): stessa chiave della pagina arrivi ======
+function appKey(){
+  let k = localStorage.getItem("arrivi_key") || "";
+  if (!k) { k = (prompt("Inserisci la chiave di accesso InternoUno:") || "").trim(); if (k) localStorage.setItem("arrivi_key", k); }
+  return k;
+}
+(function(){
+  const _fetch = window.fetch.bind(window);
+  window.fetch = function(input, init){
+    try{
+      let u = (typeof input === "string") ? input : (input && input.url) || "";
+      if (u.indexOf("little-shadow") !== -1) {
+        const sep = u.includes("?") ? "&" : "?";
+        u = u + sep + "k=" + encodeURIComponent(appKey());
+        if (typeof input === "string") input = u; else input = new Request(u, init);
+      }
+    }catch(e){}
+    return _fetch(input, init);
+  };
+})();
 const dataInput = document.getElementById("dataInput");
 const btnCarica = document.getElementById("btnCarica");
 const btnOggi = document.getElementById("btnOggi");
