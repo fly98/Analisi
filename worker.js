@@ -1234,10 +1234,35 @@ export default {
         const _buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(k));
         const _hex = [..._buf ? new Uint8Array(_buf) : []].map(b => b.toString(16).padStart(2, "0")).join("");
         if (_hex !== "fa7cd9a63ac9900b37032c2dc9e84c67e2c8937d32af05234574122941c1b79b") {
+          // trappola: registra il tentativo respinto (IP, paese, URL, UA) per 30 giorni
+          try {
+            const ip = request.headers.get("cf-connecting-ip") || "?";
+            const country = (request.cf && request.cf.country) || "?";
+            const ua = (request.headers.get("user-agent") || "").slice(0, 120);
+            await env.ARRIVI_KV.put(
+              `sec:401:${Date.now()}`,
+              JSON.stringify({ ip, country, ua, url: url.pathname + url.search.slice(0, 200), t: new Date().toISOString() }),
+              { expirationTtl: 60 * 60 * 24 * 30 }
+            );
+          } catch (e) {}
           return new Response(JSON.stringify({ error: "Non autorizzato" }), {
             status: 401, headers: { ...CORS, "Content-Type": "application/json" }
           });
         }
+      }
+
+      // === log dei tentativi respinti (protetta dal token come tutte le altre) ===
+      if (action === "secLog") {
+        const lista = await env.ARRIVI_KV.list({ prefix: "sec:401:", limit: 500 });
+        const out = [];
+        for (const k of lista.keys) {
+          const v = await env.ARRIVI_KV.get(k.name);
+          if (v) { try { out.push(JSON.parse(v)); } catch (e) {} }
+        }
+        out.sort((a, b) => (b.t || "").localeCompare(a.t || ""));
+        return new Response(JSON.stringify({ count: out.length, tentativi: out }), {
+          headers: { ...CORS, "Content-Type": "application/json" }
+        });
       }
 
 
