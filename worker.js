@@ -1233,7 +1233,11 @@ export default {
         const k = url.searchParams.get("k") || request.headers.get("X-App-Key") || "";
         const _buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(k));
         const _hex = [..._buf ? new Uint8Array(_buf) : []].map(b => b.toString(16).padStart(2, "0")).join("");
-        if (_hex !== "fa7cd9a63ac9900b37032c2dc9e84c67e2c8937d32af05234574122941c1b79b") {
+        const _HASHES = new Set([
+          "fa7cd9a63ac9900b37032c2dc9e84c67e2c8937d32af05234574122941c1b79b", // chiave app
+          "f25df4765127195a28aeec508d07dfd7886f8052fa321c3705985d97c07a2f35"  // fisco-worker (service binding)
+        ]);
+        if (!_HASHES.has(_hex)) {
           // trappola: registra il tentativo respinto (IP, paese, URL, UA) per 30 giorni
           try {
             const ip = request.headers.get("cf-connecting-ip") || "?";
