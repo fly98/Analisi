@@ -1225,6 +1225,21 @@ export default {
       const url = new URL(request.url);
       const action = url.searchParams.get("action");
 
+      // ====== PROTEZIONE DATI (2/9/2026): tutte le action tranne quelle pubbliche
+      // richiedono un token (?k= o header X-App-Key). Nel codice c'è solo lo
+      // SHA-256 del token: il token vero non è mai nel repo. ======
+      const PUBLIC_ACTIONS = new Set(["rooms", "availabilities", "prices"]);
+      if (!PUBLIC_ACTIONS.has(action || "__default__")) {
+        const k = url.searchParams.get("k") || request.headers.get("X-App-Key") || "";
+        const _buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(k));
+        const _hex = [..._buf ? new Uint8Array(_buf) : []].map(b => b.toString(16).padStart(2, "0")).join("");
+        if (_hex !== "fa7cd9a63ac9900b37032c2dc9e84c67e2c8937d32af05234574122941c1b79b") {
+          return new Response(JSON.stringify({ error: "Non autorizzato" }), {
+            status: 401, headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        }
+      }
+
 
       // Avvio re-autorizzazione Gmail: apri questo URL nel browser una sola volta
       // account=business (default, mailbox InternoUno) oppure account=personal (Gmail personale)
