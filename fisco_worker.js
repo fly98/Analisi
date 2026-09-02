@@ -252,7 +252,7 @@ async function fetchPrenotazioni(env, dal, al) {
       const target = `${LS_BASE}/?action=debugBooking&from=${b.from}&to=${b.to}`;
       try {
         const res = env.LS
-          ? await env.LS.fetch(new Request(target, { headers: { 'User-Agent': 'fisco-worker' } }))
+          ? await env.LS.fetch(new Request(target, { headers: { 'User-Agent': 'fisco-worker', 'X-App-Key': env.API_TOKEN || '' } }))
           : await fetch(target, { headers: { 'User-Agent': 'fisco-worker' } });
         if (!res.ok) return [];
         let raw = await res.json();
@@ -1086,7 +1086,7 @@ async function inviaEmail(env, destinatario, oggetto, testo) {
     `${LS_BASE}/?action=send`;
   const req = new Request(target, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'User-Agent': 'fisco-worker' },
+    headers: { 'Content-Type': 'application/json', 'User-Agent': 'fisco-worker', 'X-App-Key': env.API_TOKEN || '' },
     body: JSON.stringify({ to: destinatario, subject: oggetto, html, account: 'business' }),
   });
   const res = env.LS ? await env.LS.fetch(req) : await fetch(req);
@@ -1577,7 +1577,7 @@ async function pagamentiRegistrati(env, bookingId) {
   const q = `subject:"Nuovo pagamento AmenitizPay" "${bookingId}"`;
   const target = `${LS_BASE}/?action=gmailCerca&q=${encodeURIComponent(q)}&max=20`;
   try {
-    const res = await env.LS.fetch(new Request(target, { headers: { 'User-Agent': 'fisco-worker' } }));
+    const res = await env.LS.fetch(new Request(target, { headers: { 'User-Agent': 'fisco-worker', 'X-App-Key': env.API_TOKEN || '' } }));
     if (!res.ok) return null;
     const d = await res.json();
     if (!d.ok) return null;
@@ -2605,7 +2605,7 @@ export default {
       if (url.pathname === '/debugls') {
         const target = `${LS_BASE}/?action=debugBooking&from=${dal}&to=${al}`;
         const viaBinding = env.LS
-          ? await env.LS.fetch(new Request(target, { headers: { 'User-Agent': 'fisco-worker' } }))
+          ? await env.LS.fetch(new Request(target, { headers: { 'User-Agent': 'fisco-worker', 'X-App-Key': env.API_TOKEN || '' } }))
           : null;
         const viaPubblico = await fetch(target, { headers: { 'User-Agent': 'fisco-worker' } });
         return json({
