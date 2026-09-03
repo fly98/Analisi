@@ -1366,6 +1366,17 @@ async function arricchisciTassa(env, lista) {
 const MSG_FONTI = /booking|airbnb/i;
 
 // Estrazione condivisa: la usano sia il pulsante dell'app sia il lavoro automatico.
+// Taglio di sicurezza della nota. Prima era un .slice(0, 140) secco, rimasto indietro
+// quando il limite nelle istruzioni e' passato a 200: le note finivano a meta' parola
+// ("...paghera' in contanti il giorno do", 04/09/2026). Ora taglia all'ultimo spazio
+// e lo dichiara con i puntini, cosi' si capisce che manca qualcosa.
+function accorcia(t, max) {
+  if (t.length <= max) return t;
+  const tagliato = t.slice(0, max);
+  const spazio = tagliato.lastIndexOf(" ");
+  return (spazio > max * 0.6 ? tagliato.slice(0, spazio) : tagliato).replace(/[ ,;.]+$/, "") + "…";
+}
+
 async function estraiDaMessaggi(env, grezzi) {
   const k = env.ANTHROPIC_API_KEY;
   if (!k) return { errore: "ANTHROPIC_API_KEY assente" };
@@ -1467,7 +1478,7 @@ async function estraiDaMessaggi(env, grezzi) {
   return {
     orario: valido ? o : "",
     fonte: valido ? (String(dati.fonte || "").trim() || "dichiarato") : "",
-    note: String(dati.note || "").trim().slice(0, 140),
+    note: accorcia(String(dati.note || "").trim(), 200),
     contanti: dati.contanti === true,
     modello: j.model || null,
     costo_token: j.usage ? { ingresso: j.usage.input_tokens, uscita: j.usage.output_tokens } : null
