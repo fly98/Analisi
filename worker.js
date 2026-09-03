@@ -1216,6 +1216,62 @@ async function runAutoSend(env, testMode) {
   return { finestra: { from, to }, totaleControllate: (bookings || []).length, inviate, saltate, scartiPerMotivo, dettagli };
 }
 
+// ====== TASSA DI SOGGIORNO (03/09/2026): link di pagamento preparati dal Mac ======
+// L'API Amenitiz non espone i pagamenti ne' crea link: lo fa uno script Playwright sul Mac
+// (~/automazioni/amenitiz-tassa.js, endpoint /amenitiz-tassa sul trigger server), che legge
+// la scheda della prenotazione e crea il link SOLO se l'importo dovuto e' esattamente la tassa.
+// Perimetro: solo Booking ed Expedia (Amenitiz diretto include la tassa, Airbnb la incassa lui,
+// le manuali sono eccezioni). Esito e link vengono salvati in KV: tassa_<bookingId>.
+const TASSA_FONTI = /booking|expedia/i;
+const MAC_TASSA_URL = "http://fly98.duckdns.org:3456/amenitiz-tassa";
+
+function domaniRoma() {
+  const d = new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/Rome" }));
+  d.setDate(d.getDate() + 1);
+  return d.toISOString().slice(0, 10);
+}
+
+async function tassaUna(env, b, crea) {
+  const id = String(b.booking_id);
+  const key = `tassa_${id}`;
+  const prev = await env.ARRIVI_KV.get(key, "json");
+  if (prev && prev.link) return { ...prev, cached: true };     // idempotente: link gia' pronto
+  let r = null;
+  for (let tent = 0; tent < 3; tent++) {
+    r = await fetch(`${MAC_TASSA_URL}?ref=${encodeURIComponent(id)}${crea ? "&crea=1" : ""}`, {
+      headers: { "X-Trigger-Key": env.TRIGGER_KEY || "" },
+      signal: AbortSignal.timeout(170000)
+    }).catch(e => ({ ok: false, status: 0, text: async () => "fetch: " + String(e) }));
+    if (r.status !== 423) break;                                  // 423 = profilo browser occupato: riprovo
+    await new Promise(res => setTimeout(res, 20000));
+  }
+  const txt = await r.text();
+  let j; try { j = JSON.parse(txt); } catch (e) { j = { esito: "errore", errore: `HTTP ${r.status}: ${txt.slice(0, 200)}` }; }
+  const rec = {
+    bookingId: id, esito: j.esito || "errore", link: j.link || "",
+    tassa: j.tassa == null ? null : j.tassa, dovuto: j.dovuto == null ? null : j.dovuto,
+    nome: j.nome || "", source: b.source || "", checkin: b.checkin || "",
+    ts: new Date().toISOString(), errore: j.errore || ""
+  };
+  await env.ARRIVI_KV.put(key, JSON.stringify(rec));
+  return rec;
+}
+
+async function runTassaPrepara(env, date, crea) {
+  const day = date || domaniRoma();
+  const r = await amenitizGet(`/bookings/checkin?from=${day}&to=${day}&hotel_id=${HOTEL_UUID}`, env);
+  if (!r.ok) return { error: "API Amenitiz", status: r.status, date: day };
+  const list = await r.json();
+  const esiti = [];
+  for (const b of (Array.isArray(list) ? list : [])) {
+    const s = (b.status || "").toLowerCase();
+    if (s === "cancelled" || s === "canceled") continue;
+    if (!TASSA_FONTI.test(b.source || "")) { esiti.push({ bookingId: String(b.booking_id), source: b.source || "", esito: "fuori_perimetro" }); continue; }
+    esiti.push(await tassaUna(env, b, crea));   // sequenziale: un solo browser alla volta sul profilo
+  }
+  return { date: day, crea: !!crea, count: esiti.length, esiti };
+}
+
 export default {
   async fetch(request, env) {
     if (request.method === "OPTIONS") {
@@ -1906,6 +1962,12 @@ export default {
           }
         }
         tutte.sort((x, y) => (y.checkin || "").localeCompare(x.checkin || ""));
+        // Tassa di soggiorno (03/09/2026): aggancio esito/link da KV, solo per arrivi da ieri in poi
+        const ieriD = new Date(); ieriD.setDate(ieriD.getDate() - 1);
+        const ieriIso = ieriD.toISOString().slice(0, 10);
+        await Promise.all(tutte.filter(b => (b.checkin || "") >= ieriIso).map(async b => {
+          b.tassa = await env.ARRIVI_KV.get(`tassa_${b.booking_id}`, "json").catch(() => null);
+        }));
         return new Response(JSON.stringify({
           count: tutte.length,
           from: parti.length ? parti[0][0] : "",
@@ -2210,6 +2272,17 @@ export default {
 
       // ===== SEGNA cancellazione come contattata / non contattata =====
       // ── NOTIFICA TELEGRAM ARRIVI (domani) ──────────────────────────────────
+      if (action === "tassaPrepara") {
+        // prepara (o solo legge, senza crea=1) i link della tassa per gli arrivi di una data (default: domani)
+        const res = await runTassaPrepara(env, url.searchParams.get("date"), url.searchParams.get("crea") === "1");
+        return jsonRes(res, res.error ? 502 : 200);
+      }
+      if (action === "getTassa") {
+        const bid = url.searchParams.get("bookingId");
+        if (!bid) return jsonRes({ error: "bookingId mancante" }, 400);
+        return jsonRes((await env.ARRIVI_KV.get(`tassa_${bid}`, "json")) || { bookingId: bid, esito: "assente" });
+      }
+
       if (action === "tgArrivi") {
         const dryRun = url.searchParams.get("dry") === "1";
         const res = await runArriviTg(env, url.searchParams.get("date"), dryRun);
@@ -2276,7 +2349,10 @@ export default {
 
     // Mapping ESPLICITO orario -> job. Niente "else" generico: un orario non
     // previsto non deve far partire invii di email agli ospiti per sbaglio.
-    if (hourUTC === 4) {
+    if (hourUTC === 2) {
+      // Notte: prepara i link della tassa di soggiorno per gli arrivi di domani (crea=true)
+      ctx.waitUntil(runTassaPrepara(env, null, true));
+    } else if (hourUTC === 4) {
       ctx.waitUntil(runAutoSend(env, false));
     } else if (hourUTC === 10) {
       ctx.waitUntil(runThankYou(env, false));
