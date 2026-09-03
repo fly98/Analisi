@@ -270,7 +270,7 @@
 </div>
 
 
-<div class="modal-bg" id="msgModal" onclick="if(event.target===this)chiudiMessaggi()">
+<div class="modal-bg" id="ospiteModal" onclick="if(event.target===this)chiudiMessaggi()">
   <div class="modal">
     <h3>Messaggi dell'ospite</h3>
     <p>Solo i messaggi scritti dall'ospite. In viola quello che ne è stato dedotto.</p>
@@ -725,7 +725,7 @@ async function generaLink(i, bookingId, intero){
 async function apriMessaggi(i,bookingId,source,iso){
   ospiteCur={i,bookingId,source,iso};
   const box=document.getElementById("msgBox");
-  document.getElementById("msgModal").classList.add("show");
+  document.getElementById("ospiteModal").classList.add("show");
   const rec=msgOspite[i];
   if(rec&&rec.messaggi&&rec.messaggi.length){ disegnaMessaggi(rec); return; }
   box.innerHTML='<div class="copy-note">Leggo i messaggi su Amenitiz… può richiedere una quarantina di secondi.</div>';
@@ -761,7 +761,7 @@ function disegnaMessaggi(d){
     : '<div class="copy-note">Nessun messaggio scritto dall\'ospite.</div>';
   box.innerHTML=html;
 }
-function chiudiMessaggi(){document.getElementById("msgModal").classList.remove("show");}
+function chiudiMessaggi(){document.getElementById("ospiteModal").classList.remove("show");}
 
 function apriTassa(i){
   taxCurrent=i;
