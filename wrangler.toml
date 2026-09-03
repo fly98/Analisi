@@ -13,4 +13,4 @@ binding = "TG"
 service = "tg-worker"
 
 [triggers]
-crons = ["0 4,10,15,16 * * *"]
+crons = ["0 2,4,10,15,16 * * *"]   # 2 UTC = tassa di soggiorno (link per domani)
