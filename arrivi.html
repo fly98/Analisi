@@ -427,6 +427,21 @@ function lingua(language,phone){
   // default
   return"en";
 }
+// Numero per la RICERCA su WhatsApp. Piu' permissivo di numeroValido, che serve a costruire
+// un collegamento e quindi pretende il prefisso internazionale: qui basta un numero
+// plausibile, perche' il confronto avviene sulle ultime nove cifre e il prefisso non conta.
+// Le prenotazioni non-Booking sono inserite a mano e spesso hanno il numero senza "+",
+// oppure lo hanno sull'anagrafica dell'ospite invece che su quella di chi prenota (04/09/2026).
+function telePerRicerca(b){
+  const bk=(b&&b.booker)||{};
+  const g=(b&&b.rooms&&b.rooms[0]&&b.rooms[0].guests&&b.rooms[0].guests[0])||{};
+  const cand=[bk.phone,bk.mobile,bk.telephone,g.phone,g.mobile,g.telephone,b&&b.phone];
+  for(const c of cand){
+    const t=String(c||"").trim();
+    if(t.replace(/\D/g,"").length>=9) return t;
+  }
+  return "";
+}
 function numeroValido(phone){
   if(!phone)return false;
   const p=phone.replace(/[\s-]/g,"");
@@ -1300,12 +1315,14 @@ function render(iso,bookings,isRicerca){
     const mHa=!!(mRec&&mRec.messaggi&&mRec.messaggi.length);
     const msgAttivo=/booking|airbnb/i.test(source||"");
     const waHa=!!(mRec&&mRec.whatsapp&&mRec.whatsapp.length);
-    const telOk=numeroValido(phone);
+    const telWa=telePerRicerca(b);
+    const telOk=!!telWa;
     // Con cinque pulsanti in riga lo spazio su telefono e' poco: messaggi e WhatsApp
     // restano solo icona, il nome per esteso e' nel suggerimento (chiesto il 04/09/2026).
-    const apri=(x)=>`apriMessaggi(${i},${b.booking_id},'${source}','${isoCard}',${JSON.stringify((nome+' '+cognome).trim()).replace(/"/g,'&quot;')},'${lng}',${JSON.stringify(phone||"").replace(/"/g,'&quot;')},'${x}')`;
+    const apri=(x)=>`apriMessaggi(${i},${b.booking_id},'${source}','${isoCard}',${JSON.stringify((nome+' '+cognome).trim()).replace(/"/g,'&quot;')},'${lng}',${JSON.stringify(telWa||"").replace(/"/g,'&quot;')},'${x}')`;
     const msgChip=msgAttivo?`<span class="msg-chip solo-icona${mHa?" set":""}" title="${mHa?("Messaggi su "+(/airbnb/i.test(source||"")?"Airbnb":"Booking")+": "+mRec.messaggi.length):"Messaggi dell'ospite su "+(/airbnb/i.test(source||"")?"Airbnb":"Booking")}" onclick="${apri('ota')}">💬</span>`:"";
-    const waChip=telOk?`<span class="wa-chip solo-icona${waHa?" set":""}" title="${waHa?("Messaggi WhatsApp: "+mRec.whatsapp.length):("Leggi la chat WhatsApp di "+phone)}" onclick="${apri('wa')}">📱</span>`:"";
+    const waChip=telOk?`<span class="wa-chip solo-icona${waHa?" set":""}" title="${waHa?("Messaggi WhatsApp: "+mRec.whatsapp.length):("Leggi la chat WhatsApp di "+telWa)}" onclick="${apri('wa')}">📱</span>`
+      :`<span class="wa-chip solo-icona" style="opacity:.4;cursor:default" title="Nessun numero di telefono su questa prenotazione">📱</span>`;
     msgOspite[i]=mRec;
     const restoBadge=restoDaPagare?`<span class="resto-alert" title="Oltre alla tassa risulta da pagare anche il resto della prenotazione: verifica su Amenitiz">❗️ resto da pagare</span>`:"";
 
