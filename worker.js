@@ -2390,6 +2390,23 @@ export default {
         const rec = await tassaUna(env, { booking_id: bid, source: "", checkin: "" }, true, modo);
         return jsonRes(rec, rec.esito === "errore" ? 502 : 200);
       }
+      if (action === "apiCheck") {
+        // diagnostica: la chiave Anthropic c'e' ed e' valida? Non mostra mai il valore.
+        const k = env.ANTHROPIC_API_KEY || "";
+        if (!k) return jsonRes({ chiave: "assente", nota: "aggiungere il secret ANTHROPIC_API_KEY al worker" });
+        const r = await fetch("https://api.anthropic.com/v1/messages", {
+          method: "POST",
+          headers: { "x-api-key": k, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+          body: JSON.stringify({ model: "claude-haiku-4-5", max_tokens: 5, messages: [{ role: "user", content: "di' solo: ok" }] })
+        });
+        const j = await r.json().catch(() => ({}));
+        return jsonRes({
+          chiave: "presente", lunghezza: k.length, http: r.status,
+          funziona: r.ok,
+          risposta: r.ok ? (j.content || []).map(b => b.text).join("") : (j.error && j.error.message) || "",
+          modello: j.model || null
+        });
+      }
       if (action === "tassaSet") {
         // importa un link creato a mano su Amenitiz, cosi' l'app lo conosce
         // (serve anche a verificare che il chip diventi verde quando la tassa risulta pagata)
