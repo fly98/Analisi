@@ -1267,7 +1267,12 @@ const PAGAMENTI_CACHE_KEY = "pagamenti_mail";
 const PAGAMENTI_TTL_MS = 10 * 60 * 1000;
 
 function corpoTesto(payload) {
-  const dec = (d) => atob(String(d).replace(/-/g, "+").replace(/_/g, "/"));
+  // atob restituisce byte grezzi: senza TextDecoder gli accenti e il simbolo €
+  // arrivano storti ("giovedÃ¬") e le regex sugli importi falliscono.
+  const dec = (d) => {
+    const bin = atob(String(d).replace(/-/g, "+").replace(/_/g, "/"));
+    return new TextDecoder("utf-8").decode(Uint8Array.from(bin, (c) => c.charCodeAt(0)));
+  };
   const cerca = (part, mime) => {
     if (!part) return "";
     if (part.mimeType === mime && part.body && part.body.data) return dec(part.body.data);
@@ -1298,7 +1303,7 @@ async function scansionaPagamentiMail(env, forza) {
     const t = corpoTesto(full.payload).replace(/ /g, " ");
     const id = (t.match(/ID pagamento:\s*(\d{6,})/i) || [])[1];
     if (!id) continue;
-    const imp = (t.match(/Importo pagamento:\s*([\d.,]+)\s*€/i) || [])[1];
+    const imp = (t.match(/Importo pagamento:\s*([\d.,]+)\s*(?:€|EUR)?/i) || [])[1];
     const data = (t.match(/Data pagamento:\s*([^\n]+)/i) || [])[1];
     const n = imp ? parseFloat(imp.replace(/\./g, "").replace(",", ".")) : null;
     const prec = cache.byBooking[id];
