@@ -1285,7 +1285,10 @@ function corpoTesto(payload) {
 }
 
 async function scansionaPagamentiMail(env, forza) {
-  const cache = (await env.ARRIVI_KV.get(PAGAMENTI_CACHE_KEY, "json")) || { byBooking: {}, visti: [], ts: 0 };
+  // forza=true: riscansione COMPLETA (svuota anche l'elenco dei messaggi gia' letti),
+  // altrimenti un cambio di parsing non verrebbe mai applicato alle email vecchie.
+  const salvata = (await env.ARRIVI_KV.get(PAGAMENTI_CACHE_KEY, "json")) || { byBooking: {}, visti: [], ts: 0 };
+  const cache = forza ? { byBooking: {}, visti: [], ts: 0 } : salvata;
   if (!forza && Date.now() - (cache.ts || 0) < PAGAMENTI_TTL_MS) return cache;
   const tok = await getGmailAccessToken(env);
   if (!tok.access_token) return cache;
