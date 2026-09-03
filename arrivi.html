@@ -648,6 +648,8 @@ function apriTassa(i){
   document.getElementById("taxLink").value="";
   document.getElementById("taxResult").innerHTML="";
   document.getElementById("taxModal").classList.add("show");
+  const d=taxStore[i];
+  if(d&&d.link){ document.getElementById("taxLink").value=d.link; generaTassa(); return; }   // link gia' preparato di notte
   setTimeout(()=>document.getElementById("taxLink").focus(),100);
 }
 function chiudiTassa(){document.getElementById("taxModal").classList.remove("show");}
@@ -835,6 +837,18 @@ function render(iso,bookings,isRicerca){
       notti=Math.max(1,Math.round((co-ci)/(1000*60*60*24)));
     }catch(e){}
 
+    // Tassa di soggiorno (03/09/2026): esito preparato di notte dal worker (KV tassa_<id>)
+
+    const tEs=(b.tassa&&b.tassa.esito)||"";
+
+    const tassaBadge = (tEs==="link_creato"||tEs==="solo_tassa_link_esistente") ? `<div class="copy-note">💶 Tassa: link pronto — premi Tassa</div>`
+
+      : tEs==="gia_pagata" ? `<div class="copy-note">💶 Tassa: già pagata</div>`
+
+      : tEs==="saldo_intero_controllare" ? `<div class="copy-note">⚠️ Saldo intero da pagare — controlla su Amenitiz</div>`
+
+      : (tEs && tEs!=="fuori_perimetro") ? `<div class="copy-note">⚠️ Tassa da verificare (${tEs})</div>` : "";
+
     let action="";
     const waLink=numeroValido(phone)?`whatsapp://send?phone=${phone.replace(/\s/g,"").replace("+","")}&text=${encodeURIComponent(testo)}`:"";
     if(numeroValido(phone)){
@@ -897,7 +911,7 @@ function render(iso,bookings,isRicerca){
         </div>`;
     }
     // salva dati per le modali
-    taxStore[i]={nome,lng,notti,phone:numeroValido(phone)?phone:""};
+    taxStore[i]={nome,lng,notti,phone:numeroValido(phone)?phone:"", link:(b.tassa&&b.tassa.link)||"", esito:(b.tassa&&b.tassa.esito)||""};
     msgFull[i]={testo:testoCopia, email:(booker.email||""), nome, lng, waLink, testiPerLingua, phone:(numeroValido(phone)?phone:""), rebuild:rebuildTesti};
     infoStore[i]={
       nome:`${nome} ${cognome}`.trim(), struttura, room:roomName, roomLabel,
@@ -918,7 +932,7 @@ function render(iso,bookings,isRicerca){
       </div>
       ${altriOspiti.length?`<div class="altri-ospiti">👤 ${altriOspiti.join(" · ")}</div>`:""}
       <div class="meta"><span>${dataCompatta(isoCard)} → ${dataCompatta(b.checkout||"")}</span><span>${b.adults||""}${b.children?(" +"+b.children+"🧒"):""}👤</span>${badgeCanale(source)}</div><div class="meta"><span class="orario-chip${orarioSalvato?" set":""}" onclick="apriOrarioModal(${i},${b.booking_id},'${isoCard}')">${orarioSalvato?"🕐 "+orarioSalvato:"🕐 orario"}</span><span class="nota-chip${notaSalvata?" set":""}" onclick="apriNotaModal(${i},${b.booking_id},'${isoCard}')">${notaSalvata?"📝 note":"📝 note"}</span></div>
-      ${action}
+      ${tassaBadge}${action}
 `;
     if(notaSalvata){
       const prev=document.createElement('div');
