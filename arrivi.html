@@ -188,7 +188,13 @@
     border:1.5px solid #2d6ded;background:#2d6ded;color:#fff;}
   .risp-invio button[disabled]{opacity:.5;cursor:default;}
   .risp-invio button.conferma{background:#b3261e;border-color:#b3261e;}
-  .risp-nota{font-size:11.5px;color:var(--muted);}
+  .risp-nota{font-size:11.5px;color:var(--muted);margin-top:6px;}
+  .risp-invio button.secondario{background:var(--card);color:var(--sage);border-color:var(--line);}
+  .risp-orig{margin-top:8px;padding:8px 10px;border-radius:8px;background:var(--paper);
+    border:1px dashed var(--line);font-size:12px;color:var(--muted);line-height:1.4;}
+  .risp-orig b{color:var(--ink);}
+  .risp-orig button{margin-top:6px;font:inherit;font-size:11.5px;font-weight:600;background:none;
+    border:none;color:#2d6ded;cursor:pointer;padding:0;text-decoration:underline;}
   #allarme{margin:0 0 12px;padding:10px 12px;border-radius:10px;font-size:13px;line-height:1.45;
     background:#fdecea;border:1.5px solid #b3261e;color:#7a1a15;font-weight:600;}
   #allarme.avviso{background:#fff6e5;border-color:var(--gold);color:#7a5200;}
@@ -309,9 +315,11 @@
       <div class="msg-sez">Rispondi all'ospite</div>
       <textarea class="risp-area" id="rispTesto" placeholder="Scrivi qui la risposta…" oninput="rispCambia()"></textarea>
       <div class="risp-invio">
+        <button id="rispTradBtn" class="secondario" onclick="traduciRisposta()" disabled>Traduci</button>
         <button id="rispBtn" onclick="inviaRisposta()" disabled>Invia all'ospite</button>
-        <span class="risp-nota" id="rispNota">Parte sul canale della prenotazione (Booking o Airbnb).</span>
       </div>
+      <div class="risp-nota" id="rispNota">Parte sul canale della prenotazione (Booking o Airbnb).</div>
+      <div class="risp-orig" id="rispOrig" hidden></div>
     </div>
     <div class="modal-actions">
       <button class="m-cancel" onclick="chiudiMessaggi()">Chiudi</button>
@@ -764,8 +772,8 @@ function statoMsg(testo,classe){
   const e=document.getElementById("msgStato"); if(!e) return;
   e.textContent=testo||""; e.className="msg-stato"+(classe?" "+classe:"");
 }
-function apriMessaggi(i,bookingId,source,iso,nome){
-  ospiteCur={i,bookingId,source,iso,nome:nome||""};
+function apriMessaggi(i,bookingId,source,iso,nome,lng){
+  ospiteCur={i,bookingId,source,iso,nome:nome||"",lng:lng||"it"};
   document.getElementById("ospiteModal").classList.add("show");
   // Mostro subito l'ultima lettura, se ce l'ho, e poi rileggo.
   // Regola: il riquadro non viene MAI svuotato, cambia solo la riga di stato in alto,
@@ -774,6 +782,7 @@ function apriMessaggi(i,bookingId,source,iso,nome){
   // La rilettura la si chiede col pulsante, quando serve (deciso da Filippo il 03/09/2026:
   // aspettare quaranta secondi a ogni apertura non ha senso).
   rispReset();
+  rispCambia();
   const rec=msgOspite[i];
   if(rec&&rec.esito==="fuori_perimetro"){ document.getElementById("rispZona").style.display="none"; }
   if(rec&&(rec.messaggi&&rec.messaggi.length||rec.orario||rec.note||(rec.inviati||[]).length)){
@@ -848,10 +857,51 @@ function rispCambia(){
   const t=(document.getElementById("rispTesto").value||"").trim();
   const b=document.getElementById("rispBtn");
   b.disabled=!t;
+  const tb=document.getElementById("rispTradBtn");
+  const lng=(ospiteCur&&ospiteCur.lng)||"it";
+  if(tb){ tb.disabled=!t||lng==="it"; tb.textContent=lng==="it"?"Traduci":("Traduci in "+(LNG_NOMI[lng]||lng)); }
   if(rispArmato){ rispArmato=false; b.textContent="Invia all'ospite"; b.classList.remove("conferma"); }
+}
+// Traduce il testo NELLA casella: quello che leggi e' esattamente quello che partira'.
+// Nessuna traduzione al momento dell'invio, altrimenti manderesti parole che non hai letto.
+async function traduciRisposta(){
+  const c=ospiteCur; if(!c) return;
+  const area=document.getElementById("rispTesto");
+  const originale=(area.value||"").trim();
+  if(!originale) return;
+  const tb=document.getElementById("rispTradBtn");
+  tb.disabled=true; tb.textContent="Traduco…";
+  try{
+    const r=await fetch(`${WORKER}/?action=traduci&lingua=${encodeURIComponent(c.lng)}&testo=${encodeURIComponent(originale)}`);
+    const d=await r.json();
+    if(d.traduzione){
+      area.value=d.traduzione;
+      const o=document.getElementById("rispOrig");
+      o.innerHTML=`<b>Tradotto in ${LNG_NOMI[c.lng]||c.lng}.</b> Rileggi prima di inviare — parte quello che vedi nella casella.`
+        +`<br>Il tuo testo italiano: «${originale.replace(/</g,"&lt;")}»`
+        +`<br><button onclick="tornaAllItaliano()">Rimetti il testo italiano</button>`;
+      o.hidden=false;
+      o.dataset.originale=originale;
+      statoMsg("","");
+    } else {
+      statoMsg("Traduzione non riuscita: "+(d.error||d.dettaglio||"motivo sconosciuto")+". Il testo italiano è rimasto nella casella.","ko");
+    }
+  }catch(e){
+    statoMsg("Traduzione non riuscita: "+e.message+". Il testo italiano è rimasto nella casella.","ko");
+  }
+  rispCambia();
+}
+function tornaAllItaliano(){
+  const o=document.getElementById("rispOrig");
+  const area=document.getElementById("rispTesto");
+  if(o&&o.dataset.originale){ area.value=o.dataset.originale; }
+  if(o){ o.hidden=true; o.innerHTML=""; delete o.dataset.originale; }
+  rispCambia();
 }
 function rispReset(){
   const t=document.getElementById("rispTesto"); if(t)t.value="";
+  const o=document.getElementById("rispOrig"); if(o){o.hidden=true;o.innerHTML="";delete o.dataset.originale;}
+  const tb=document.getElementById("rispTradBtn"); if(tb){tb.disabled=true;}
   rispArmato=false;
   const b=document.getElementById("rispBtn");
   if(b){b.disabled=true;b.textContent="Invia all'ospite";b.classList.remove("conferma");}
@@ -1142,7 +1192,7 @@ function render(iso,bookings,isRicerca){
     const mRec=b.messaggi||null;
     const mHa=!!(mRec&&mRec.messaggi&&mRec.messaggi.length);
     const msgAttivo=/booking|airbnb/i.test(source||"");
-    const msgChip=msgAttivo?`<span class="msg-chip${mHa?" set":""}" title="${mHa?("Messaggi dell'ospite: "+mRec.messaggi.length):"Leggi i messaggi dell'ospite"}" onclick="apriMessaggi(${i},${b.booking_id},'${source}','${isoCard}',${JSON.stringify((nome+' '+cognome).trim()).replace(/"/g,'&quot;')})">💬 messaggi</span>`:"";
+    const msgChip=msgAttivo?`<span class="msg-chip${mHa?" set":""}" title="${mHa?("Messaggi dell'ospite: "+mRec.messaggi.length):"Leggi i messaggi dell'ospite"}" onclick="apriMessaggi(${i},${b.booking_id},'${source}','${isoCard}',${JSON.stringify((nome+' '+cognome).trim()).replace(/"/g,'&quot;')},'${lng}')">💬 messaggi</span>`:"";
     msgOspite[i]=mRec;
     const restoBadge=restoDaPagare?`<span class="resto-alert" title="Oltre alla tassa risulta da pagare anche il resto della prenotazione: verifica su Amenitiz">❗️ resto da pagare</span>`:"";
 
