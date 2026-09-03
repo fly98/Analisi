@@ -1311,7 +1311,8 @@ async function scansionaPagamentiMail(env, forza) {
     const t = corpoTesto(full.payload).replace(/ /g, " ");
     const id = (t.match(/ID pagamento:\s*(\d{6,})/i) || [])[1];
     if (!id) continue;
-    const imp = (t.match(/Importo pagamento:\s*([\d.,]+)\s*(?:€|EUR)?/i) || [])[1];
+    // nei pagamenti l'etichetta e' "Importo pagamento", negli annullamenti e' "Quantita'"
+    const imp = (t.match(/(?:Importo pagamento|Quantit[àa]):?\s*\n?\s*([\d.,]+)\s*(?:€|EUR)?/i) || [])[1];
     const data = (t.match(/Data pagamento:\s*([^\n]+)/i) || [])[1];
     const n = imp ? parseFloat(imp.replace(/\./g, "").replace(",", ".")) : null;
     const prec = cache.byBooking[id] || { importi: [], annullati: [] };
