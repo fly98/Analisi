@@ -1234,12 +1234,15 @@ function domaniRoma() {
 async function tassaUna(env, b, crea, modo) {
   const id = String(b.booking_id);
   const intero = modo === "intero";
-  const key = intero ? `camera_${id}` : `tassa_${id}`;
+  const soloRiga = modo === "riga";
+  const key = soloRiga ? `riga_${id}` : (intero ? `camera_${id}` : `tassa_${id}`);
   const prev = await env.ARRIVI_KV.get(key, "json");
-  if (prev && prev.link) return { ...prev, cached: true };     // idempotente: link gia' pronto
+  if (prev && (soloRiga ? prev.esito === "riga_gia_presente" || prev.esito === "riga_creata" : prev.link)) {
+    return { ...prev, cached: true };     // idempotente: gia' fatto
+  }
   let r = null;
   for (let tent = 0; tent < 3; tent++) {
-    r = await fetch(`${MAC_TASSA_URL}?ref=${encodeURIComponent(id)}${crea ? "&crea=1" : ""}${intero ? "&modo=intero" : ""}`, {
+    r = await fetch(`${MAC_TASSA_URL}?ref=${encodeURIComponent(id)}${crea ? "&crea=1" : ""}${intero ? "&modo=intero" : ""}${soloRiga ? "&modo=riga" : ""}`, {
       headers: { "X-Trigger-Key": env.TRIGGER_KEY || "" },
       signal: AbortSignal.timeout(170000)
     }).catch(e => ({ ok: false, status: 0, text: async () => "fetch: " + String(e) }));
@@ -1249,7 +1252,8 @@ async function tassaUna(env, b, crea, modo) {
   const txt = await r.text();
   let j; try { j = JSON.parse(txt); } catch (e) { j = { esito: "errore", errore: `HTTP ${r.status}: ${txt.slice(0, 200)}` }; }
   const rec = {
-    bookingId: id, modo: intero ? "intero" : "tassa", esito: j.esito || "errore", link: j.link || "",
+    bookingId: id, modo: modo || "tassa", esito: j.esito || "errore", link: j.link || "",
+    resto_da_pagare: !!j.resto_da_pagare, riga_importo: j.riga_importo == null ? null : j.riga_importo,
     tassa: j.tassa == null ? null : j.tassa, dovuto: j.dovuto == null ? null : j.dovuto,
     nome: j.nome || "", source: b.source || "", checkin: b.checkin || "",
     ts: new Date().toISOString(), errore: j.errore || ""
@@ -1294,7 +1298,7 @@ async function scansionaPagamentiMail(env, forza) {
   const tok = await getGmailAccessToken(env);
   if (!tok.access_token) return cache;
   const h = { Authorization: `Bearer ${tok.access_token}` };
-  const q = encodeURIComponent('subject:"Nuovo pagamento AmenitizPay ricevuto"');
+  const q = encodeURIComponent('subject:"Nuovo pagamento AmenitizPay ricevuto" OR subject:"Un pagamento è stato cancellato"');
   const lista = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${q}&maxResults=40`, { headers: h })
     .then(r => r.json()).catch(() => ({}));
   const visti = new Set(cache.visti || []);
@@ -1310,9 +1314,15 @@ async function scansionaPagamentiMail(env, forza) {
     const imp = (t.match(/Importo pagamento:\s*([\d.,]+)\s*(?:€|EUR)?/i) || [])[1];
     const data = (t.match(/Data pagamento:\s*([^\n]+)/i) || [])[1];
     const n = imp ? parseFloat(imp.replace(/\./g, "").replace(",", ".")) : null;
-    const prec = cache.byBooking[id];
-    // piu' pagamenti sulla stessa prenotazione: tengo l'elenco degli importi
-    cache.byBooking[id] = { importi: [...new Set([...(prec ? prec.importi : []), n].filter(x => x != null))], ultimo: (data || "").trim() };
+    const prec = cache.byBooking[id] || { importi: [], annullati: [] };
+    const annullata = /Un pagamento . stato cancellato|Payment Cancelled/i.test(t);
+    if (annullata) {
+      // link annullato a mano: serve a far tornare grigio il chip invece di puntare a un link morto
+      const dataAnn = (t.match(/Data di cancellazione\s*\n?\s*([^\n]+)/i) || [])[1];
+      cache.byBooking[id] = { ...prec, annullati: [...new Set([...(prec.annullati || []), n].filter(x => x != null))], ultimoAnnullo: (dataAnn || "").trim() };
+    } else {
+      cache.byBooking[id] = { ...prec, importi: [...new Set([...(prec.importi || []), n].filter(x => x != null))], ultimo: (data || "").trim() };
+    }
   }
   cache.visti = [...visti].slice(-400);
   cache.ts = Date.now();
@@ -1328,9 +1338,19 @@ async function arricchisciTassa(env, lista) {
     const rec = await env.ARRIVI_KV.get(`tassa_${b.booking_id}`, "json").catch(() => null);
     if (!rec) { b.tassa = null; return; }
     const p = pag.byBooking ? pag.byBooking[String(b.booking_id)] : null;
-    const pagata = rec.esito === "gia_pagata" ||
-      !!(p && rec.tassa != null && (p.importi || []).some(x => Math.abs(x - rec.tassa) < 0.01));
-    b.tassa = { ...rec, pagata, pagataData: pagata && p ? p.ultimo : (rec.esito === "gia_pagata" ? "" : "") };
+    const corrisponde = (lista) => !!(p && rec.tassa != null && (lista || []).some(x => Math.abs(x - rec.tassa) < 0.01));
+    const pagata = rec.esito === "gia_pagata" || corrisponde(p && p.importi);
+    // se il link e' stato annullato a mano (email "Un pagamento e' stato cancellato") il chip
+    // deve tornare grigio: il link salvato non vale piu'.
+    const annullato = !pagata && !!rec.link && corrisponde(p && p.annullati);
+    b.tassa = {
+      ...rec,
+      link: annullato ? "" : rec.link,
+      pagata,
+      annullato,
+      pagataData: pagata && p ? p.ultimo : "",
+      annullatoData: annullato && p ? p.ultimoAnnullo : ""
+    };
   }));
 }
 
@@ -1344,7 +1364,15 @@ async function runTassaPrepara(env, date, crea) {
     const s = (b.status || "").toLowerCase();
     if (s === "cancelled" || s === "canceled") continue;
     if (!TASSA_FONTI.test(b.source || "")) { esiti.push({ bookingId: String(b.booking_id), source: b.source || "", esito: "fuori_perimetro" }); continue; }
-    esiti.push(await tassaUna(env, b, crea, "tassa"));   // sequenziale: un solo browser alla volta sul profilo
+    // Expedia arriva senza la riga "Tassa di soggiorno": va aggiunta prima di creare il link.
+    // Lo script sul Mac controlla da solo se c'e' gia' (riga_gia_presente) e in quel caso non tocca nulla.
+    let riga = null;
+    if (/expedia/i.test(b.source || "")) {
+      riga = await tassaUna(env, b, crea, "riga");
+      if (riga && riga.esito === "errore") { esiti.push({ ...riga, fase: "riga" }); continue; }
+    }
+    const r = await tassaUna(env, b, crea, "tassa");   // sequenziale: un solo browser alla volta sul profilo
+    esiti.push(riga ? { ...r, riga: riga.esito } : r);
   }
   return { date: day, crea: !!crea, count: esiti.length, esiti };
 }
@@ -2360,6 +2388,13 @@ export default {
         const modo = action === "cameraCrea" ? "intero" : "tassa";
         const rec = await tassaUna(env, { booking_id: bid, source: "", checkin: "" }, true, modo);
         return jsonRes(rec, rec.esito === "errore" ? 502 : 200);
+      }
+      if (action === "tassaReset") {
+        // dimentica quanto salvato per una prenotazione: il chip torna grigio e si puo' rigenerare
+        const bid = url.searchParams.get("bookingId");
+        if (!bid) return jsonRes({ error: "bookingId mancante" }, 400);
+        await Promise.all([`tassa_${bid}`, `camera_${bid}`, `riga_${bid}`].map(k => env.ARRIVI_KV.delete(k)));
+        return jsonRes({ ok: true, bookingId: bid, azzerato: true });
       }
       if (action === "pagamentiMail") {
         const c = await scansionaPagamentiMail(env, url.searchParams.get("forza") === "1");
