@@ -1336,6 +1336,8 @@ async function scansionaPagamentiMail(env, forza) {
 async function arricchisciTassa(env, lista) {
   const pag = await scansionaPagamentiMail(env, false).catch(() => ({ byBooking: {} }));
   await Promise.all(lista.map(async (b) => {
+    // messaggi gia' letti: servono a colorare il chip senza doverli rileggere da Amenitiz
+    b.messaggi = await env.ARRIVI_KV.get(`msg_${b.booking_id}`, "json").catch(() => null);
     const rec = await env.ARRIVI_KV.get(`tassa_${b.booking_id}`, "json").catch(() => null);
     if (!rec) { b.tassa = null; return; }
     const p = pag.byBooking ? pag.byBooking[String(b.booking_id)] : null;
