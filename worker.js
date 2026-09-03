@@ -2322,6 +2322,10 @@ export default {
         const s = (b.status || "").toLowerCase();
         return s !== "cancelled" && s !== "canceled";
       });
+      // Tassa di soggiorno (03/09/2026): esito/link preparati di notte, da KV tassa_<bookingId>
+      await Promise.all(attivi.map(async (b) => {
+        b.tassa = await env.ARRIVI_KV.get(`tassa_${b.booking_id}`, "json").catch(() => null);
+      }));
       if (env.GMAIL_CLIENT_ID) {
         await Promise.all(attivi.map(async (b) => {
           const bk = b.booker || {};
