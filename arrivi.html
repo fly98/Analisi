@@ -821,7 +821,7 @@ function disegnaMessaggi(d){
   }
   const inv=(d&&d.inviati)||[];
   if(inv.length){
-    html+='<div class="msg-sez">Risposte gia\' mandate da te</div>'
+    html+='<div class="msg-sez">Risposte già mandate da te</div>'
        + inv.map(x=>{
            const q=x.ts?new Date(x.ts).toLocaleString("it-IT",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}):"";
            return `<div class="msg-inviato">${String(x.testo||"").replace(/</g,"&lt;")}${q?` <span class="msg-ora">${q}</span>`:""}</div>`;
@@ -2027,10 +2027,10 @@ async function controllaGiro(){
     const g=await r.json();
     if(g.stato==="ok"){ box.hidden=true; return; }
     let t="", dett="", avviso=false;
-    if(g.stato==="mai_girato"){ t="Il lavoro notturno non ha mai lasciato traccia."; dett="Se hai appena installato il campanello e' normale: si popola stanotte."; avviso=true; }
+    if(g.stato==="mai_girato"){ t="Il lavoro notturno non ha mai lasciato traccia."; dett="Se hai appena installato il campanello è normale: la prima firma arriva stanotte alle 4."; avviso=true; }
     else if(g.stato==="archivio_non_leggibile"){ t="Non riesco a leggere l'archivio Cloudflare."; dett="Possibile tetto giornaliero superato: le prenotazioni potrebbero non essere state preparate."; }
     else if(g.stato==="vecchio"){ t=`Il lavoro notturno non gira da ${g.ore} ore.`; dett="Ultima riuscita: "+(g.ts?new Date(g.ts).toLocaleString("it-IT"):"?")+". Controlla i link della tassa a mano."; }
-    else if(g.stato==="interrotto"){ t="Il lavoro notturno si e' interrotto."; dett=(g.guasto||"motivo non registrato")+" — le prenotazioni di oggi vanno controllate a mano."; }
+    else if(g.stato==="interrotto"){ t="Il lavoro notturno si è interrotto."; dett=(g.guasto||"motivo non registrato")+" — le prenotazioni di oggi vanno controllate a mano."; }
     else if(g.stato==="con_errori"){ t=`Il lavoro notturno ha lasciato ${g.n_errori} prenotazion${g.n_errori===1?"e":"i"} da controllare.`;
       dett=(g.errori||[]).map(e=>e.bookingId+": "+(e.esito||e.errore)).join(" · "); avviso=true; }
     box.className=avviso?"avviso":"";
