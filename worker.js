@@ -2725,6 +2725,31 @@ export default {
         const ok = ["risposta_inviata", "risposta_inviata_non_confermata", "risposta_pronta_non_inviata"];
         return jsonRes(j, ok.includes(j.esito) ? 200 : 502);
       }
+      if (action === "waGiorno") {
+        // Legge le chat WhatsApp di tutti gli arrivi di un giorno. Un giorno alla volta:
+        // ogni chat richiede quaranta secondi sul Mac e una richiesta lunghissima morirebbe.
+        const giorno = url.searchParams.get("giorno") || "";
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(giorno)) return jsonRes({ error: "giorno non valido" }, 400);
+        const r = await amenitizGet(`/bookings/checkin?from=${giorno}&to=${giorno}&hotel_id=${HOTEL_UUID}`, env);
+        if (!r.ok) return jsonRes({ error: "API Amenitiz", status: r.status, giorno }, 502);
+        const lista = await r.json();
+        const esiti = [];
+        for (const b of (Array.isArray(lista) ? lista : [])) {
+          const st = (b.status || "").toLowerCase();
+          if (st === "cancelled" || st === "canceled") continue;
+          const tel = String((b.booker && b.booker.phone) || "");
+          const nome = [(b.booker && b.booker.first_name) || "", (b.booker && b.booker.last_name) || ""].join(" ").trim();
+          if (tel.replace(/\D/g, "").length < 9) { esiti.push({ nome, esito: "senza_telefono" }); continue; }
+          const rec = await whatsappUna(env, String(b.booking_id), tel, 45, b.checkin || giorno);
+          esiti.push({
+            nome, tel, esito: rec.wa_esito, confermato: !!rec.wa_confermato,
+            messaggi: (rec.whatsapp || []).length,
+            orario: rec.orario || "", nota: rec.note || "", contanti: !!rec.contanti,
+            orario_scritto: !!rec.orario_scritto, nota_scritta: !!rec.nota_scritta
+          });
+        }
+        return jsonRes({ giorno, totale: esiti.length, esiti });
+      }
       if (action === "whatsapp") {
         // legge la chat WhatsApp del numero della prenotazione e rifa' l'interpretazione
         const bid = url.searchParams.get("bookingId");
