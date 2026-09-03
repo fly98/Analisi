@@ -2027,7 +2027,11 @@ async function controllaGiro(){
     const g=await r.json();
     if(g.stato==="ok"){ box.hidden=true; return; }
     let t="", dett="", avviso=false;
-    if(g.stato==="mai_girato"){ t="Il lavoro notturno non ha mai lasciato traccia."; dett="Se hai appena installato il campanello è normale: la prima firma arriva stanotte alle 4."; avviso=true; }
+    // Il campanello e' stato installato la sera del 03/09/2026: la prima firma arriva alle 4 del 04/09.
+    // Fino ad allora "mai girato" e' la normalita' e non va segnalato. Dopo, invece, e' un guasto vero.
+    if(g.stato==="mai_girato"){
+      if(new Date() < new Date("2026-09-05T00:00:00")){ box.hidden=true; return; }
+      t="Il lavoro notturno non ha mai lasciato traccia."; dett="Dovrebbe girare ogni notte alle 4: controlla il worker e il Mac."; }
     else if(g.stato==="archivio_non_leggibile"){ t="Non riesco a leggere l'archivio Cloudflare."; dett="Possibile tetto giornaliero superato: le prenotazioni potrebbero non essere state preparate."; }
     else if(g.stato==="vecchio"){ t=`Il lavoro notturno non gira da ${g.ore} ore.`; dett="Ultima riuscita: "+(g.ts?new Date(g.ts).toLocaleString("it-IT"):"?")+". Controlla i link della tassa a mano."; }
     else if(g.stato==="interrotto"){ t="Il lavoro notturno si è interrotto."; dett=(g.guasto||"motivo non registrato")+" — le prenotazioni di oggi vanno controllate a mano."; }
