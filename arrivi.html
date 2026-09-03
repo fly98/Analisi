@@ -165,6 +165,7 @@
   .tassa-chip.busy{opacity:0.65;pointer-events:none;}
   .msg-chip.set{color:#6b4fa8;border-color:#6b4fa8;background:#f2eefa;font-weight:700;}
   .msg-chip.busy{opacity:0.65;pointer-events:none;}
+  .contanti-alert{display:inline-flex;align-items:center;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;background:#f0f4ee;border:1.5px solid var(--sage);color:var(--sage);margin-left:4px;}
   .msg-riga{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin-bottom:6px;font-size:13px;line-height:1.4;}
   .msg-ora{color:var(--muted);font-size:11px;}
   .msg-estratto{background:#f2eefa;border:1.5px solid #6b4fa8;border-radius:8px;padding:8px 10px;font-size:13px;margin-bottom:10px;}
@@ -980,7 +981,10 @@ function render(iso,bookings,isRicerca){
     const tassaWarn=(tEs==="importo_link_diverso"||tEs==="importi_non_letti"||tEs==="tassa_incoerente"||tEs==="link_attesa_importo_diverso");
     const tassaCls=tassaPagata?" paid":(tassaPronta?" set":(tassaWarn?" warn":""));   // contanti resta grigio: nessun link da mandare
     const tassaContanti=(tEs==="tassa_in_contanti");
-    const tassaTxt=tassaPagata?"💶 pagata":(tassaContanti?"💵 contanti":(tassaWarn?"⚠️ tassa":"💶 tassa"));
+    const tassaTxt=tassaPagata?"💶 pagata":(tassaWarn?"⚠️ tassa":"💶 tassa");
+    // L'ospite ha chiesto di pagare in contanti: lo segnalo accanto, ma il pulsante resta
+    // premibile — se cambia idea il link si genera lo stesso.
+    const contantiBadge=(tassaContanti&&!tassaPagata)?`<span class="contanti-alert" title="L'ospite ha scritto che paga la tassa in contanti — nessun link creato, ma puoi generarlo lo stesso premendo Tassa">💵 in contanti</span>`:"";
     const tassaTitle=tassaPagata?("Tassa pagata"+(tRec.pagataData?" — "+tRec.pagataData:""))
       :(tassaPronta?("Link pronto"+(tRec.tassa!=null?" — €"+tRec.tassa:""))
       :(tRec&&tRec.annullato?("Link annullato"+(tRec.annullatoData?" il "+tRec.annullatoData:"")+": premi per rifarlo")
@@ -1080,7 +1084,7 @@ function render(iso,bookings,isRicerca){
         <div style="display:flex;gap:5px">${roomBadgesHtml}</div>
       </div>
       ${altriOspiti.length?`<div class="altri-ospiti">👤 ${altriOspiti.join(" · ")}</div>`:""}
-      <div class="meta"><span>${dataCompatta(isoCard)} → ${dataCompatta(b.checkout||"")}</span><span>${b.adults||""}${b.children?(" +"+b.children+"🧒"):""}👤</span>${badgeCanale(source)}</div><div class="meta"><span class="orario-chip${orarioSalvato?" set":""}" onclick="apriOrarioModal(${i},${b.booking_id},'${isoCard}')">${orarioSalvato?"🕐 "+orarioSalvato:"🕐 orario"}</span><span class="nota-chip${notaSalvata?" set":""}" onclick="apriNotaModal(${i},${b.booking_id},'${isoCard}')">${notaSalvata?"📝 note":"📝 note"}</span><span class="tassa-chip${tassaCls}" title="${tassaTitle}" onclick="${tassaPronta||tassaPagata?`apriTassa(${i})`:`generaLink(${i},${b.booking_id},false)`}">${tassaTxt}</span>${msgChip}${restoBadge}</div>
+      <div class="meta"><span>${dataCompatta(isoCard)} → ${dataCompatta(b.checkout||"")}</span><span>${b.adults||""}${b.children?(" +"+b.children+"🧒"):""}👤</span>${badgeCanale(source)}</div><div class="meta"><span class="orario-chip${orarioSalvato?" set":""}" onclick="apriOrarioModal(${i},${b.booking_id},'${isoCard}')">${orarioSalvato?"🕐 "+orarioSalvato:"🕐 orario"}</span><span class="nota-chip${notaSalvata?" set":""}" onclick="apriNotaModal(${i},${b.booking_id},'${isoCard}')">${notaSalvata?"📝 note":"📝 note"}</span><span class="tassa-chip${tassaCls}" title="${tassaTitle}" onclick="${tassaPronta||tassaPagata?`apriTassa(${i})`:`generaLink(${i},${b.booking_id},false)`}">${tassaTxt}</span>${contantiBadge}${msgChip}${restoBadge}</div>
       ${action}
 `;
     if(notaSalvata){
