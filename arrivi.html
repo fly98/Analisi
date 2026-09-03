@@ -199,6 +199,7 @@
     background:#fdecea;border:1.5px solid #b3261e;color:#7a1a15;font-weight:600;}
   #allarme.avviso{background:#fff6e5;border-color:var(--gold);color:#7a5200;}
   #allarme .dett{display:block;font-weight:500;margin-top:4px;font-size:12px;}
+  .msg-riga.wa{border-left:3px solid #25d366;}
   .msg-inviato{background:#eef4ff;border:1px solid #2d6ded;border-radius:8px;padding:8px 10px;margin-bottom:6px;
     font-size:13px;line-height:1.4;}
   .resto-alert{display:inline-flex;align-items:center;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;background:#fdf0ec;border:1.5px solid var(--terra);color:var(--terra);margin-left:4px;}
@@ -323,6 +324,7 @@
     </div>
     <div class="modal-actions">
       <button class="m-cancel" onclick="chiudiMessaggi()">Chiudi</button>
+      <button class="m-ok" id="msgWa" onclick="leggiWhatsapp()">Leggi WhatsApp</button>
       <button class="m-ok" id="msgRileggi" onclick="caricaMessaggi(true)">Rileggi da Amenitiz</button>
     </div>
   </div>
@@ -772,8 +774,8 @@ function statoMsg(testo,classe){
   const e=document.getElementById("msgStato"); if(!e) return;
   e.textContent=testo||""; e.className="msg-stato"+(classe?" "+classe:"");
 }
-function apriMessaggi(i,bookingId,source,iso,nome,lng){
-  ospiteCur={i,bookingId,source,iso,nome:nome||"",lng:lng||"it"};
+function apriMessaggi(i,bookingId,source,iso,nome,lng,tel){
+  ospiteCur={i,bookingId,source,iso,nome:nome||"",lng:lng||"it",tel:tel||""};
   document.getElementById("ospiteModal").classList.add("show");
   // Mostro subito l'ultima lettura, se ce l'ho, e poi rileggo.
   // Regola: il riquadro non viene MAI svuotato, cambia solo la riga di stato in alto,
@@ -783,9 +785,14 @@ function apriMessaggi(i,bookingId,source,iso,nome,lng){
   // aspettare quaranta secondi a ogni apertura non ha senso).
   rispReset();
   rispCambia();
+  const bw=document.getElementById("msgWa");
+  if(bw){
+    const ok=String(tel||"").replace(/\D/g,"").length>=9;
+    bw.disabled=!ok; bw.title=ok?("Cerca la chat di "+tel):"Prenotazione senza numero di telefono";
+  }
   const rec=msgOspite[i];
   if(rec&&rec.esito==="fuori_perimetro"){ document.getElementById("rispZona").style.display="none"; }
-  if(rec&&(rec.messaggi&&rec.messaggi.length||rec.orario||rec.note||(rec.inviati||[]).length)){
+  if(rec&&(rec.messaggi&&rec.messaggi.length||rec.orario||rec.note||(rec.inviati||[]).length||(rec.whatsapp||[]).length)){
     disegnaMessaggi(rec);
     statoMsg(rec.letto_il?("Ultima lettura: "+rec.letto_il+"."):"","");
   } else if(rec&&rec.esito==="fuori_perimetro"){
@@ -844,8 +851,14 @@ function disegnaMessaggi(d){
            return `<div class="msg-inviato">${String(x.testo||"").replace(/</g,"&lt;")}${q?` <span class="msg-ora">${q}</span>`:""}</div>`;
          }).join("");
   }
+  const wa=(d&&d.whatsapp)||[];
+  if(wa.length){
+    html+='<div class="msg-sez">Parole dell\'ospite — su WhatsApp</div>'
+       + wa.map(m=>`<div class="msg-riga wa">${String(m.testo||"").replace(/</g,"&lt;")}`
+          +`${(m.data||m.inviato)?` <span class="msg-ora">${[m.data,m.inviato].filter(Boolean).join(" ")}</span>`:""}</div>`).join("");
+  }
   if(ms.length){
-    html+='<div class="msg-sez">Parole dell\'ospite</div>'
+    html+='<div class="msg-sez">Parole dell\'ospite — su '+((d&&/airbnb/i.test(d.canale||ospiteCur&&ospiteCur.source||""))?"Airbnb":"Booking")+'</div>'
        + ms.map(m=>`<div class="msg-riga">${String(m.testo||m).replace(/</g,"&lt;")}${m.inviato?` <span class="msg-ora">inviato alle ${m.inviato}</span>`:""}</div>`).join("");
   } else if(!(d&&d.errore)&&d&&d.esito!=="fuori_perimetro"){
     html+='<div class="msg-vuoto">L\'ospite non ha scritto nessun messaggio.</div>';
@@ -951,6 +964,40 @@ async function inviaRisposta(){
     b.disabled=false; b.textContent="Invia all'ospite";
     n.textContent="Parte sul canale della prenotazione (Booking o Airbnb).";
   }
+}
+async function leggiWhatsapp(){
+  const c=ospiteCur; if(!c) return;
+  const b=document.getElementById("msgWa");
+  if(!c.tel||String(c.tel).replace(/\D/g,"").length<9){
+    statoMsg("Questa prenotazione non ha un numero di telefono: non posso cercare la chat.","ko");
+    return;
+  }
+  b.disabled=true; b.textContent="Leggo…";
+  statoMsg("Cerco la chat WhatsApp di "+c.tel+"… una quarantina di secondi.","lavoro");
+  try{
+    const r=await fetch(`${WORKER}/?action=whatsapp&bookingId=${encodeURIComponent(c.bookingId)}&tel=${encodeURIComponent(c.tel)}`);
+    const d=await r.json();
+    if(d.wa_esito==="messaggi_letti"||d.wa_esito==="nessun_messaggio_in_arrivo"){
+      msgOspite[c.i]=d; disegnaMessaggi(d);
+      const n=(d.whatsapp||[]).length;
+      statoMsg(n?(n+" messagg"+(n===1?"io":"i")+" da WhatsApp, letti alle "+(d.wa_letto_il||"")+"."
+                 +(d.wa_confermato?"":" ⚠️ il numero non è confermato dall'intestazione della chat."))
+              :"Nessun messaggio ricevuto su WhatsApp da questo numero.", d.wa_confermato?"":"ko");
+      const mc=document.querySelectorAll(".msg-chip")[c.i];
+      if(mc&&n)mc.classList.add("set");
+    } else if(d.wa_esito==="chat_non_trovata"){
+      statoMsg("Nessuna chat WhatsApp con il numero "+c.tel+".","");
+    } else if(d.wa_esito==="chat_diversa_dal_numero"){
+      statoMsg("Fermato: la chat aperta non era di quel numero. Non ho letto nulla.","ko");
+    } else if(d.wa_esito==="sessione_assente"){
+      statoMsg("WhatsApp Web non è più collegato sul Mac: va rifatto il collegamento col codice QR.","ko");
+    } else {
+      statoMsg("Lettura WhatsApp non riuscita: "+(d.wa_errore||d.error||d.wa_esito||"motivo sconosciuto"),"ko");
+    }
+  }catch(e){
+    statoMsg("Lettura WhatsApp non riuscita: "+e.message,"ko");
+  }
+  b.disabled=false; b.textContent="Leggi WhatsApp";
 }
 function chiudiMessaggi(){document.getElementById("ospiteModal").classList.remove("show");}
 
@@ -1192,7 +1239,7 @@ function render(iso,bookings,isRicerca){
     const mRec=b.messaggi||null;
     const mHa=!!(mRec&&mRec.messaggi&&mRec.messaggi.length);
     const msgAttivo=/booking|airbnb/i.test(source||"");
-    const msgChip=msgAttivo?`<span class="msg-chip${mHa?" set":""}" title="${mHa?("Messaggi dell'ospite: "+mRec.messaggi.length):"Leggi i messaggi dell'ospite"}" onclick="apriMessaggi(${i},${b.booking_id},'${source}','${isoCard}',${JSON.stringify((nome+' '+cognome).trim()).replace(/"/g,'&quot;')},'${lng}')">💬 messaggi</span>`:"";
+    const msgChip=msgAttivo?`<span class="msg-chip${mHa?" set":""}" title="${mHa?("Messaggi dell'ospite: "+mRec.messaggi.length):"Leggi i messaggi dell'ospite"}" onclick="apriMessaggi(${i},${b.booking_id},'${source}','${isoCard}',${JSON.stringify((nome+' '+cognome).trim()).replace(/"/g,'&quot;')},'${lng}',${JSON.stringify(phone||"").replace(/"/g,'&quot;')})">💬 messaggi</span>`:"";
     msgOspite[i]=mRec;
     const restoBadge=restoDaPagare?`<span class="resto-alert" title="Oltre alla tassa risulta da pagare anche il resto della prenotazione: verifica su Amenitiz">❗️ resto da pagare</span>`:"";
 
