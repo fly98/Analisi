@@ -162,6 +162,7 @@
   .tassa-chip.paid{color:var(--sage);border-color:var(--sage);background:#f0f4ee;font-weight:700;}
   .tassa-chip.warn{color:var(--terra);border-color:var(--terra);background:#fdf0ec;font-weight:700;}
   .tassa-chip:active{filter:brightness(0.93);}
+  .tassa-chip.busy{opacity:0.65;pointer-events:none;}
   .nota-textarea{width:100%;font-family:var(--sysfont);font-size:15px;padding:12px;border:1.5px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);resize:none;height:120px;margin-bottom:16px;}
   .orario-modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.4);display:none;align-items:center;justify-content:center;z-index:300;padding:20px;}
   .orario-modal-bg.show{display:flex;}
@@ -251,7 +252,7 @@
     <input type="text" id="taxLink" placeholder="https://...link Stripe...">
     <div class="modal-actions">
       <button class="m-cancel" onclick="chiudiTassa()">Annulla</button>
-      <button class="m-ok" onclick="generaTassa()">Genera messaggio</button>
+      <button class="m-ok" onclick="generaTassa()">Genera messaggio</button><button class="btn sec" id="taxInteraBtn" style="margin-left:8px" onclick="generaIntera()">🏠 Intera camera</button>
     </div>
     <div class="tax-result" id="taxResult"></div>
   </div>
@@ -648,6 +649,40 @@ function msgTassa(nome,lng,notti,link){
 let taxStore={};
 let taxCurrent=null;
 
+// ====== TASSA: generazione del link su richiesta (03/09/2026) ======
+// Il chip grigio lancia la creazione sul Mac tramite il worker: dura ~40s (apre Amenitiz
+// in un browser), quindi il chip si disabilita e mostra "creo…" finche' non arriva la risposta.
+async function generaLink(i, bookingId, intero){
+  const chip=document.querySelectorAll(".tassa-chip")[i];
+  if(!chip || chip.classList.contains("busy")) return;
+  const testoPrec=chip.textContent, clsPrec=chip.className;
+  chip.classList.add("busy");
+  chip.textContent = intero ? "🏠 creo…" : "💶 creo…";
+  try{
+    const azione = intero ? "cameraCrea" : "tassaCrea";
+    const r = await fetch(`${WORKER}/?action=${azione}&bookingId=${encodeURIComponent(bookingId)}`);
+    const d = await r.json();
+    if(d && d.link){
+      if(!taxStore[i]) taxStore[i]={};
+      taxStore[i].link=d.link;
+      chip.className="tassa-chip set";
+      chip.textContent="💶 tassa";
+      chip.title=(intero?"Link intera camera":"Link pronto")+(d.tassa!=null&&!intero?" — €"+d.tassa:"")+(intero&&d.dovuto!=null?" — €"+d.dovuto:"");
+      chip.setAttribute("onclick",`apriTassa(${i})`);
+      if(intero){ taxStore[i].linkIntero=d.link; apriTassa(i); }
+    } else {
+      chip.className=clsPrec.replace(" busy","");
+      chip.textContent=testoPrec;
+      chip.title="Non creato: "+((d&&(d.esito||d.errore))||"errore");
+      alert("Link non creato: "+((d&&(d.esito||d.errore))||"errore sconosciuto"));
+    }
+  }catch(e){
+    chip.className=clsPrec.replace(" busy","");
+    chip.textContent=testoPrec;
+    alert("Errore nella creazione del link: "+e.message);
+  }
+}
+
 function apriTassa(i){
   taxCurrent=i;
   document.getElementById("taxLink").value="";
@@ -658,6 +693,26 @@ function apriTassa(i){
   setTimeout(()=>document.getElementById("taxLink").focus(),100);
 }
 function chiudiTassa(){document.getElementById("taxModal").classList.remove("show");}
+// Intera camera: stesso meccanismo della tassa ma senza il controllo "dovuto == tassa";
+// crea un unico link per tutto l'importo dovuto e lo mostra da copiare/inviare.
+async function generaIntera(){
+  const i=taxCurrent, d=taxStore[i]; if(!d) return;
+  const btn=document.getElementById("taxInteraBtn"); if(!btn||btn.disabled) return;
+  const t=btn.textContent; btn.disabled=true; btn.textContent="creo…";
+  try{
+    const r=await fetch(`${WORKER}/?action=cameraCrea&bookingId=${encodeURIComponent(d.bookingId||"")}`);
+    const j=await r.json();
+    if(j&&j.link){
+      document.getElementById("taxLink").value=j.link;
+      const res=document.getElementById("taxResult");
+      const wa=d.phone?`<a class="wa-btn" style="margin-top:10px" href="whatsapp://send?phone=${d.phone.replace(/\s/g,"").replace("+","")}&text=${encodeURIComponent(j.link)}" onclick="setTimeout(chiudiTassa,300)">${waIcon}Invia su WhatsApp</a>`:"";
+      res.innerHTML=`<div class="copy-note">🏠 Intera camera${j.dovuto!=null?" — €"+j.dovuto:""}: link generato</div>
+        <div class="msg-box"><button class="copy-btn" id="taxCopyBtn">Copia</button>${j.link}</div>${wa}`;
+      document.getElementById("taxCopyBtn").onclick=function(){navigator.clipboard.writeText(j.link).then(()=>{this.textContent="Copiato ✓";this.classList.add("done");});};
+    } else alert("Link intera camera non creato: "+((j&&(j.esito||j.errore))||"errore"));
+  }catch(e){ alert("Errore: "+e.message); }
+  btn.disabled=false; btn.textContent=t;
+}
 function generaTassa(){
   const link=document.getElementById("taxLink").value.trim();
   if(!link){document.getElementById("taxLink").focus();return;}
@@ -668,7 +723,7 @@ function generaTassa(){
   let waBtn="";
   if(d.phone){
     const waLink=`whatsapp://send?phone=${d.phone.replace(/\s/g,"").replace("+","")}&text=${encodeURIComponent(testo)}`;
-    waBtn=`<a class="wa-btn" style="margin-top:10px" href="${waLink}">${waIcon}Invia su WhatsApp</a>`;
+    waBtn=`<a class="wa-btn" style="margin-top:10px" href="${waLink}" onclick="setTimeout(chiudiTassa,300)">${waIcon}Invia su WhatsApp</a>`;
   }
   res.innerHTML=`<div class="copy-note">${nota}</div>
     <div class="msg-box"><button class="copy-btn" id="taxCopyBtn">Copia</button>${testo.replace(/</g,"&lt;")}</div>
@@ -847,7 +902,7 @@ function render(iso,bookings,isRicerca){
     const tassaPronta=!!(tRec&&tRec.link);
     const tassaWarn=(tEs==="saldo_intero_controllare"||tEs==="importo_link_diverso"||tEs==="importi_non_letti");
     const tassaCls=tassaPagata?" paid":(tassaPronta?" set":(tassaWarn?" warn":""));
-    const tassaTxt=tassaPagata?"💶 pagata":(tassaPronta?"💶 link":(tassaWarn?"⚠️ tassa":"💶 tassa"));
+    const tassaTxt=tassaPagata?"💶 pagata":(tassaWarn?"⚠️ tassa":"💶 tassa");
     const tassaTitle=tassaPagata?("Tassa pagata"+(tRec.pagataData?" — "+tRec.pagataData:"")):(tassaPronta?("Link pronto"+(tRec.tassa!=null?" — €"+tRec.tassa:"")):(tEs==="fuori_perimetro"?"Canale senza tassa da incassare":(tEs?("Da controllare: "+tEs):"Nessun link preparato")));
 
     let action="";
@@ -912,7 +967,7 @@ function render(iso,bookings,isRicerca){
         </div>`;
     }
     // salva dati per le modali
-    taxStore[i]={nome,lng,notti,phone:numeroValido(phone)?phone:"", link:(b.tassa&&b.tassa.link)||"", esito:(b.tassa&&b.tassa.esito)||""};
+    taxStore[i]={nome,lng,notti,phone:numeroValido(phone)?phone:"", link:(b.tassa&&b.tassa.link)||"", esito:(b.tassa&&b.tassa.esito)||"", bookingId:b.booking_id};
     msgFull[i]={testo:testoCopia, email:(booker.email||""), nome, lng, waLink, testiPerLingua, phone:(numeroValido(phone)?phone:""), rebuild:rebuildTesti};
     infoStore[i]={
       nome:`${nome} ${cognome}`.trim(), struttura, room:roomName, roomLabel,
@@ -932,7 +987,7 @@ function render(iso,bookings,isRicerca){
         <div style="display:flex;gap:5px">${roomBadgesHtml}</div>
       </div>
       ${altriOspiti.length?`<div class="altri-ospiti">👤 ${altriOspiti.join(" · ")}</div>`:""}
-      <div class="meta"><span>${dataCompatta(isoCard)} → ${dataCompatta(b.checkout||"")}</span><span>${b.adults||""}${b.children?(" +"+b.children+"🧒"):""}👤</span>${badgeCanale(source)}</div><div class="meta"><span class="orario-chip${orarioSalvato?" set":""}" onclick="apriOrarioModal(${i},${b.booking_id},'${isoCard}')">${orarioSalvato?"🕐 "+orarioSalvato:"🕐 orario"}</span><span class="nota-chip${notaSalvata?" set":""}" onclick="apriNotaModal(${i},${b.booking_id},'${isoCard}')">${notaSalvata?"📝 note":"📝 note"}</span><span class="tassa-chip${tassaCls}" title="${tassaTitle}" onclick="apriTassa(${i})">${tassaTxt}</span></div>
+      <div class="meta"><span>${dataCompatta(isoCard)} → ${dataCompatta(b.checkout||"")}</span><span>${b.adults||""}${b.children?(" +"+b.children+"🧒"):""}👤</span>${badgeCanale(source)}</div><div class="meta"><span class="orario-chip${orarioSalvato?" set":""}" onclick="apriOrarioModal(${i},${b.booking_id},'${isoCard}')">${orarioSalvato?"🕐 "+orarioSalvato:"🕐 orario"}</span><span class="nota-chip${notaSalvata?" set":""}" onclick="apriNotaModal(${i},${b.booking_id},'${isoCard}')">${notaSalvata?"📝 note":"📝 note"}</span><span class="tassa-chip${tassaCls}" title="${tassaTitle}" onclick="${tassaPronta||tassaPagata?`apriTassa(${i})`:`generaLink(${i},${b.booking_id},false)`}">${tassaTxt}</span></div>
       ${action}
 `;
     if(notaSalvata){
