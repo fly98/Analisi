@@ -656,6 +656,72 @@ export default {
       return new Response(JSON.stringify({ ok: true, ha_url: HA_URL, has_token: !!TOKEN }), { headers: corsHeaders })
     }
 
+    // POST /ws  -> ponte verso l'API WebSocket di Home Assistant.
+    // Body: { "messages": [ {type:"config/entity_registry/list"}, ... ] }
+    // Sblocca cio' che la REST non espone: registro entita', aree, zone,
+    // dashboard, opzioni delle integrazioni.
+    if (path === '/ws' && request.method === 'POST') {
+      try {
+        const body = await request.json()
+        const msgs = Array.isArray(body.messages) ? body.messages : (body.message ? [body.message] : null)
+        if (!msgs || !msgs.length) {
+          return new Response(JSON.stringify({ error: 'manca "messages": [...]' }), { status: 400, headers: corsHeaders })
+        }
+        const wsUrl = HA_URL.replace(/^http/, 'ws') + '/api/websocket'
+        const resp = await fetch(wsUrl, { headers: { Upgrade: 'websocket' } })
+        const ws = resp.webSocket
+        if (!ws) {
+          return new Response(JSON.stringify({ error: 'handshake websocket fallito', status: resp.status }), { status: 502, headers: corsHeaders })
+        }
+        ws.accept()
+
+        const results = []
+        let id = 1
+        const pending = new Map()
+        let authOk = false
+
+        const done = new Promise((resolve) => {
+          const finish = () => { try { ws.close() } catch (e) {} ; resolve() }
+          const timer = setTimeout(finish, 25000)
+
+          ws.addEventListener('message', (ev) => {
+            let m
+            try { m = JSON.parse(ev.data) } catch (e) { return }
+
+            if (m.type === 'auth_required') {
+              ws.send(JSON.stringify({ type: 'auth', access_token: TOKEN }))
+              return
+            }
+            if (m.type === 'auth_invalid') {
+              results.push({ error: 'auth_invalid', message: m.message })
+              clearTimeout(timer); finish(); return
+            }
+            if (m.type === 'auth_ok') {
+              authOk = true
+              for (const msg of msgs) {
+                const mid = id++
+                pending.set(mid, msg.type || 'msg')
+                ws.send(JSON.stringify(Object.assign({ id: mid }, msg)))
+              }
+              return
+            }
+            if (m.type === 'result') {
+              results.push({ id: m.id, request: pending.get(m.id), success: m.success, result: m.result, error: m.error })
+              pending.delete(m.id)
+              if (pending.size === 0) { clearTimeout(timer); finish() }
+            }
+          })
+          ws.addEventListener('close', () => { clearTimeout(timer); resolve() })
+          ws.addEventListener('error', () => { clearTimeout(timer); resolve() })
+        })
+
+        await done
+        return new Response(JSON.stringify({ ok: authOk, count: results.length, results }), { headers: corsHeaders })
+      } catch (e) {
+        return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: corsHeaders })
+      }
+    }
+
     return new Response(JSON.stringify({ error: 'endpoint not found' }), { status: 404, headers: corsHeaders })
   }
 }
