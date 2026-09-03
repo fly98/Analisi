@@ -1457,6 +1457,35 @@ async function estraiDaMessaggi(env, grezzi) {
   };
 }
 
+// Manda una risposta all'ospite sul filo di Amenitiz, passando dal Mac.
+// Senza invia=true il testo viene solo scritto nella casella e cancellato: serve a provare.
+async function rispondiUna(env, id, testo, ospite, invia) {
+  const q = new URLSearchParams({ ref: String(id), modo: "messaggi", testo: String(testo) });
+  if (ospite) q.set("ospite", String(ospite));
+  if (invia) q.set("invia", "1");
+  let r = null;
+  for (let t = 0; t < 3; t++) {
+    r = await fetch(`${MAC_TASSA_URL}?${q}`, {
+      headers: { "X-Trigger-Key": env.TRIGGER_KEY || "" }, signal: AbortSignal.timeout(260000)
+    }).catch(e => ({ ok: false, status: 0, text: async () => String(e) }));
+    if (r.status !== 423) break;
+    await new Promise(res => setTimeout(res, 20000));
+  }
+  const txt = await r.text();
+  let j; try { j = JSON.parse(txt); } catch (e) { j = { esito: "errore", errore: txt.slice(0, 200) }; }
+  // se e' partita davvero, la registro accanto ai messaggi cosi' resta traccia nella scheda
+  if (invia && (j.esito === "risposta_inviata" || j.esito === "risposta_inviata_non_confermata")) {
+    const key = `msg_${id}`;
+    const prev = await env.ARRIVI_KV.get(key, "json").catch(() => null);
+    const rec = prev || { bookingId: String(id), esito: "messaggi_letti", messaggi: [] };
+    rec.inviati = Array.isArray(rec.inviati) ? rec.inviati : [];
+    rec.inviati.push({ testo: String(testo), ts: new Date().toISOString(), confermato: j.esito === "risposta_inviata" });
+    await env.ARRIVI_KV.put(key, JSON.stringify(rec));
+    j.inviati = rec.inviati;
+  }
+  return j;
+}
+
 async function messaggiUna(env, b, rileggi) {
   const id = String(b.booking_id);
   const key = `msg_${id}`;
@@ -1481,7 +1510,10 @@ async function messaggiUna(env, b, rileggi) {
   const messaggi = Array.isArray(j.messaggi) ? j.messaggi : [];
   const rec = {
     bookingId: id, esito: j.esito || "errore", messaggi,
-    orario: "", fonte: "", note: "", contanti: false, ts: new Date().toISOString(), errore: j.errore || ""
+    orario: "", fonte: "", note: "", contanti: false, ts: new Date().toISOString(), errore: j.errore || "",
+    letto_il: j.letto_il || "",
+    // le risposte gia' mandate non si perdono a ogni rilettura
+    inviati: (prev && Array.isArray(prev.inviati)) ? prev.inviati : []
   };
   // 2) li faccio interpretare (stessa logica dell'azione leggiMessaggi)
   if (messaggi.length && env.ANTHROPIC_API_KEY) {
@@ -2574,6 +2606,18 @@ export default {
         };
         const rec = await messaggiUna(env, b, url.searchParams.get("rileggi") === "1");
         return jsonRes(rec, rec.esito === "errore" ? 502 : 200);
+      }
+      if (action === "rispondi") {
+        // scrive una risposta all'ospite sul filo Amenitiz. invia=1 la manda davvero.
+        const bid = url.searchParams.get("bookingId");
+        const testo = (url.searchParams.get("testo") || "").trim();
+        if (!bid) return jsonRes({ error: "bookingId mancante" }, 400);
+        if (!testo) return jsonRes({ error: "testo mancante" }, 400);
+        if (testo.length > 2000) return jsonRes({ error: "testo troppo lungo" }, 400);
+        const j = await rispondiUna(env, bid, testo,
+          url.searchParams.get("ospite") || "", url.searchParams.get("invia") === "1");
+        const ok = ["risposta_inviata", "risposta_inviata_non_confermata", "risposta_pronta_non_inviata"];
+        return jsonRes(j, ok.includes(j.esito) ? 200 : 502);
       }
       if (action === "apiCheck") {
         // diagnostica: la chiave Anthropic c'e' ed e' valida? Non mostra mai il valore.
