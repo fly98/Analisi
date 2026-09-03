@@ -1224,6 +1224,7 @@ async function runAutoSend(env, testMode) {
 // le manuali sono eccezioni). Esito e link vengono salvati in KV: tassa_<bookingId>.
 const TASSA_FONTI = /booking|expedia/i;
 const MAC_TASSA_URL = "http://fly98.duckdns.org:3456/amenitiz-tassa";
+const MAC_WA_URL = "http://fly98.duckdns.org:3456/whatsapp-messaggi";
 
 function domaniRoma() {
   const d = new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/Rome" }));
@@ -1369,7 +1370,8 @@ async function estraiDaMessaggi(env, grezzi) {
   const k = env.ANTHROPIC_API_KEY;
   if (!k) return { errore: "ANTHROPIC_API_KEY assente" };
   const messaggi = grezzi.map(m => typeof m === "string" ? { testo: m, inviato: "" }
-    : { testo: String(m.testo || ""), inviato: String(m.inviato || "") }).filter(m => m.testo);
+    : { testo: String(m.testo || ""), inviato: String(m.inviato || ""),
+        data: String(m.data || ""), fonte: String(m.fonte || "") }).filter(m => m.testo);
   if (!messaggi.length) return { errore: "nessun messaggio" };
   // Regole dettate da Filippo (03/09/2026): meglio un orario approssimativo che nessun orario.
   // Il check-in e' automatico, quindi un errore non fa aspettare nessuno fuori dalla porta:
@@ -1440,8 +1442,10 @@ async function estraiDaMessaggi(env, grezzi) {
       model: "claude-haiku-4-5",
       max_tokens: 300,
       system: sistema,
-      messages: [{ role: "user", content: "Messaggi dell'ospite (fra parentesi l'ora di INVIO, che non e' l'ora di arrivo):\n\n"
-        + messaggi.map((m, i) => `[${i + 1}${m.inviato ? " inviato alle " + m.inviato : ""}] ${m.testo}`).join("\n") }],
+      messages: [{ role: "user", content: "Messaggi dell'ospite. Fra parentesi il canale e il momento di INVIO,\n"
+        + "che non e' mai l'ora di arrivo. Se le fonti si contraddicono, vale il messaggio piu' recente.\n\n"
+        + messaggi.map((m, i) => `[${i + 1}${m.fonte ? " via " + m.fonte : ""}`
+            + `${m.data ? " il " + m.data : ""}${m.inviato ? " alle " + m.inviato : ""}] ${m.testo}`).join("\n") }],
       output_config: { format: { type: "json_schema", schema: {
         type: "object", additionalProperties: false,
         properties: {
@@ -1497,6 +1501,46 @@ async function rispondiUna(env, id, testo, ospite, invia) {
     j.inviati = rec.inviati;
   }
   return j;
+}
+
+// Legge da WhatsApp i messaggi ricevuti dal numero della prenotazione e li unisce
+// a quelli di Amenitiz, poi rifa' l'interpretazione su TUTTO insieme: l'ospite puo'
+// aver scritto l'orario su un canale e la richiesta sull'altro.
+async function whatsappUna(env, id, tel, giorni) {
+  const key = `msg_${id}`;
+  const prev = await env.ARRIVI_KV.get(key, "json").catch(() => null);
+  const rec = prev || { bookingId: String(id), esito: "messaggi_letti", messaggi: [] };
+
+  let r = null;
+  for (let t = 0; t < 3; t++) {
+    r = await fetch(`${MAC_WA_URL}?numero=${encodeURIComponent(tel)}&giorni=${giorni || 30}`, {
+      headers: { "X-Trigger-Key": env.TRIGGER_KEY || "" }, signal: AbortSignal.timeout(220000)
+    }).catch(e => ({ ok: false, status: 0, text: async () => String(e) }));
+    if (r.status !== 423) break;
+    await new Promise(res => setTimeout(res, 20000));
+  }
+  const txt = await r.text();
+  let j; try { j = JSON.parse(txt); } catch (e) { j = { esito: "errore", errore: txt.slice(0, 200) }; }
+
+  rec.wa_esito = j.esito || "errore";
+  rec.wa_errore = j.errore || "";
+  rec.wa_numero = tel;
+  rec.wa_confermato = !!j.numero_confermato;
+  rec.whatsapp = Array.isArray(j.messaggi) ? j.messaggi : [];
+  rec.wa_letto_il = new Date().toLocaleString("it-IT", { dateStyle: "short", timeStyle: "short" });
+
+  // interpretazione su entrambe le fonti, ognuna dichiarata
+  const insieme = []
+    .concat((rec.messaggi || []).map(m => ({ ...m, fonte: "Booking/Airbnb" })))
+    .concat((rec.whatsapp || []).map(m => ({ ...m, fonte: "WhatsApp" })));
+  if (insieme.length && env.ANTHROPIC_API_KEY) {
+    const est = await estraiDaMessaggi(env, insieme);
+    if (est && !est.errore) {
+      rec.orario = est.orario; rec.fonte = est.fonte; rec.note = est.note; rec.contanti = !!est.contanti;
+    } else if (est) rec.errore_estrazione = est.errore;
+  }
+  await env.ARRIVI_KV.put(key, JSON.stringify(rec));
+  return rec;
 }
 
 async function messaggiUna(env, b, rileggi) {
@@ -2662,6 +2706,15 @@ export default {
           url.searchParams.get("ospite") || "", url.searchParams.get("invia") === "1");
         const ok = ["risposta_inviata", "risposta_inviata_non_confermata", "risposta_pronta_non_inviata"];
         return jsonRes(j, ok.includes(j.esito) ? 200 : 502);
+      }
+      if (action === "whatsapp") {
+        // legge la chat WhatsApp del numero della prenotazione e rifa' l'interpretazione
+        const bid = url.searchParams.get("bookingId");
+        const tel = (url.searchParams.get("tel") || "").trim();
+        if (!bid) return jsonRes({ error: "bookingId mancante" }, 400);
+        if (tel.replace(/\D/g, "").length < 9) return jsonRes({ error: "numero di telefono assente o troppo corto" }, 400);
+        const rec = await whatsappUna(env, bid, tel, parseInt(url.searchParams.get("giorni") || "30", 10) || 30);
+        return jsonRes(rec, rec.wa_esito === "errore" ? 502 : 200);
       }
       if (action === "traduci") {
         // Traduce la risposta di Filippo nella lingua dell'ospite. Non invia nulla:
