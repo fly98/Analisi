@@ -726,15 +726,23 @@ async function apriMessaggi(i,bookingId,source,iso){
   ospiteCur={i,bookingId,source,iso};
   const box=document.getElementById("msgBox");
   document.getElementById("ospiteModal").classList.add("show");
+  // Mostro subito quello che ho gia', poi rileggo SEMPRE da Amenitiz:
+  // cosi' vedi i messaggi vecchi mentre arrivano gli eventuali nuovi.
   const rec=msgOspite[i];
-  if(rec&&rec.messaggi&&rec.messaggi.length){ disegnaMessaggi(rec); return; }
-  box.innerHTML='<div class="copy-note">Leggo i messaggi su Amenitiz… può richiedere una quarantina di secondi.</div>';
-  await caricaMessaggi(false);
+  if(rec&&rec.messaggi&&rec.messaggi.length){
+    disegnaMessaggi(rec);
+    box.insertAdjacentHTML("afterbegin",'<div class="copy-note" id="msgAgg">Rileggo da Amenitiz… una quarantina di secondi.</div>');
+  } else {
+    box.innerHTML='<div class="copy-note">Leggo i messaggi su Amenitiz… può richiedere una quarantina di secondi.</div>';
+  }
+  await caricaMessaggi(true);
 }
 async function caricaMessaggi(rileggi){
   const c=ospiteCur; if(!c) return;
   const box=document.getElementById("msgBox");
-  box.innerHTML='<div class="copy-note">Lettura in corso…</div>';
+  const bloccaBtn=document.getElementById("msgRileggi");
+  if(bloccaBtn){bloccaBtn.disabled=true;bloccaBtn.textContent="Lettura…";}
+  if(!document.getElementById("msgAgg")) box.innerHTML='<div class="copy-note">Lettura in corso…</div>';
   try{
     const r=await fetch(`${WORKER}/?action=messaggi&bookingId=${encodeURIComponent(c.bookingId)}&source=${encodeURIComponent(c.source)}&checkin=${encodeURIComponent(c.iso)}${rileggi?"&rileggi=1":""}`);
     const d=await r.json();
@@ -746,6 +754,7 @@ async function caricaMessaggi(rileggi){
     const mc=document.querySelectorAll(".msg-chip")[c.i];
     if(mc&&d.messaggi&&d.messaggi.length)mc.classList.add("set");
   }catch(e){ box.innerHTML='<div class="copy-note">Errore nella lettura: '+e.message+'</div>'; }
+  if(bloccaBtn){bloccaBtn.disabled=false;bloccaBtn.textContent="Rileggi da Amenitiz";}
 }
 function disegnaMessaggi(d){
   const box=document.getElementById("msgBox");
