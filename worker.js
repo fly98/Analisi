@@ -2390,6 +2390,22 @@ export default {
         const rec = await tassaUna(env, { booking_id: bid, source: "", checkin: "" }, true, modo);
         return jsonRes(rec, rec.esito === "errore" ? 502 : 200);
       }
+      if (action === "tassaSet") {
+        // importa un link creato a mano su Amenitiz, cosi' l'app lo conosce
+        // (serve anche a verificare che il chip diventi verde quando la tassa risulta pagata)
+        const bid = url.searchParams.get("bookingId");
+        const link = url.searchParams.get("link");
+        const tassa = parseFloat(url.searchParams.get("tassa") || "");
+        if (!bid || !link) return jsonRes({ error: "servono bookingId e link" }, 400);
+        const rec = {
+          bookingId: bid, modo: "tassa", esito: "solo_tassa_link_esistente", link,
+          tassa: isNaN(tassa) ? null : tassa, dovuto: null, resto_da_pagare: false,
+          nome: url.searchParams.get("nome") || "", source: "", checkin: url.searchParams.get("checkin") || "",
+          ts: new Date().toISOString(), errore: "", importato: true
+        };
+        await env.ARRIVI_KV.put(`tassa_${bid}`, JSON.stringify(rec));
+        return jsonRes(rec);
+      }
       if (action === "tassaReset") {
         // dimentica quanto salvato per una prenotazione: il chip torna grigio e si puo' rigenerare
         const bid = url.searchParams.get("bookingId");
