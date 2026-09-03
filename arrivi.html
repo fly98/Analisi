@@ -2166,7 +2166,7 @@ vaiA(1);
 // ====== CAMPANELLO DEL GIRO NOTTURNO (03/09/2026) ======
 // Cloudflare non avvisa quando si superano i suoi tetti: smette e basta.
 // Quindi controlliamo noi che il lavoro notturno abbia lasciato la sua firma.
-async function controllaGiro(){
+async function controllaGiro(tentativo){
   const box=document.getElementById("allarme");
   try{
     const r=await fetch(`${WORKER}/?action=statoGiro`);
@@ -2187,8 +2187,13 @@ async function controllaGiro(){
     box.innerHTML="⚠️ "+t+(dett?`<span class="dett">${dett.replace(/</g,"&lt;")}</span>`:"");
     box.hidden=false;
   }catch(e){
+    // Un buco di rete di un secondo non e' un guasto: riprovo due volte prima di allarmare.
+    // Capitava tipicamente durante una pubblicazione del worker (03/09/2026).
+    const n=(tentativo||0)+1;
+    if(n<3){ setTimeout(()=>controllaGiro(n), n*2500); return; }
     box.className="";
-    box.innerHTML='⚠️ Non riesco a contattare il server.<span class="dett">'+String(e.message).replace(/</g,"&lt;")+'</span>';
+    box.innerHTML='⚠️ Non riesco a contattare il server.<span class="dett">'
+      +String(e.message).replace(/</g,"&lt;")+' — tre tentativi falliti. Se l\'app non carica gli arrivi, riprova fra un minuto.</span>';
     box.hidden=false;
   }
 }
