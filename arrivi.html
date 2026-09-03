@@ -978,14 +978,16 @@ function render(iso,bookings,isRicerca){
     const tassaPagata=!!(tRec&&tRec.pagata);
     const tassaPronta=!!(tRec&&tRec.link);
     const tassaWarn=(tEs==="importo_link_diverso"||tEs==="importi_non_letti"||tEs==="tassa_incoerente"||tEs==="link_attesa_importo_diverso");
-    const tassaCls=tassaPagata?" paid":(tassaPronta?" set":(tassaWarn?" warn":""));
-    const tassaTxt=tassaPagata?"💶 pagata":(tassaWarn?"⚠️ tassa":"💶 tassa");
+    const tassaCls=tassaPagata?" paid":(tassaPronta?" set":(tassaWarn?" warn":""));   // contanti resta grigio: nessun link da mandare
+    const tassaContanti=(tEs==="tassa_in_contanti");
+    const tassaTxt=tassaPagata?"💶 pagata":(tassaContanti?"💵 contanti":(tassaWarn?"⚠️ tassa":"💶 tassa"));
     const tassaTitle=tassaPagata?("Tassa pagata"+(tRec.pagataData?" — "+tRec.pagataData:""))
       :(tassaPronta?("Link pronto"+(tRec.tassa!=null?" — €"+tRec.tassa:""))
       :(tRec&&tRec.annullato?("Link annullato"+(tRec.annullatoData?" il "+tRec.annullatoData:"")+": premi per rifarlo")
       :(tEs==="fuori_perimetro"?"Canale senza tassa da incassare"
+      :(tEs==="tassa_in_contanti"?"L'ospite ha scritto che paga la tassa in contanti: nessun link creato"
       :(tEs==="senza_tassa"?"Nessuna tassa da incassare"
-      :(tEs?("Da controllare: "+tEs):"Nessun link preparato")))));
+      :(tEs?("Da controllare: "+tEs):"Nessun link preparato"))))));
     // Resto della camera ancora da pagare: non blocca il link della tassa, ma va ricordato
     const restoDaPagare=!!(tRec&&tRec.resto_da_pagare&&!tassaPagata);
     // Messaggi dell'ospite: solo Booking e Airbnb hanno la messaggistica attiva
