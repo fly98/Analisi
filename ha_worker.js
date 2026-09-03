@@ -667,7 +667,7 @@ export default {
         if (!msgs || !msgs.length) {
           return new Response(JSON.stringify({ error: 'manca "messages": [...]' }), { status: 400, headers: corsHeaders })
         }
-        const wsUrl = HA_URL.replace(/^http/, 'ws') + '/api/websocket'
+        const wsUrl = HA_URL + '/api/websocket'
         const resp = await fetch(wsUrl, { headers: { Upgrade: 'websocket' } })
         const ws = resp.webSocket
         if (!ws) {
