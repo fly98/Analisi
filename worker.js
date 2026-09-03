@@ -1393,7 +1393,7 @@ async function estraiDaMessaggi(env, grezzi) {
     "   NEGANO la richiesta: in quel caso NON scriverla come richiesta. Semmai annota che l'ospite",
     "   ha corretto o ritirato una richiesta precedente.",
     "",
-    "3) note: in poche parole (max 140 caratteri) le richieste particolari (deposito bagagli, culla,",
+    "3) note: in poche parole (max 200 caratteri) le richieste particolari (deposito bagagli, culla,",
     "   check-out tardivo, parcheggio, allergie, letto aggiuntivo, arrivo con animali...) E le indicazioni",
     "   vaghe sull'arrivo che non sono diventate un orario (es. 'arriva martedi nel pomeriggio').",
     "   VANNO SEMPRE ANNOTATE, anche se poste come domanda e anche se gia' risposte, le cose che",
@@ -1410,6 +1410,17 @@ async function estraiDaMessaggi(env, grezzi) {
     "   NO: 'Informazioni sul pagamento'  SI: 'Chiede di pagare la tassa di soggiorno in contanti'",
     "   NO: 'Comunica ritardo'            SI: 'Arriva in ritardo, atterra alle 22:40'",
     "   Se le cose da dire sono piu' di una, separale con '; ' e mettile in ordine di importanza.",
+    "",
+    "   DUE REGOLE SEVERE, nate da un errore vero del 03/09/2026.",
+    "   a) DESCRIVI, NON COMANDARE. La nota dice che cosa ha chiesto o detto l'ospite, mai che cosa",
+    "      deve fare la struttura. Non dedurre conseguenze operative, non usare formule che suonano",
+    "      come istruzioni ('bloccare', 'annullare', 'non emettere', 'sospendere', 'disattivare').",
+    "      Un ospite che chiede la fattura ha chiesto la fattura: NON scrivere 'ricevuta bloccata'.",
+    "      NO: 'Ricevuta bloccata'   SI: 'Chiede fattura via email al check-out'",
+    "   b) I DATI CONCRETI NON SI BUTTANO MAI. Partita IVA, codice fiscale, numero di volo, targa,",
+    "      indirizzo, numero di telefono, nome dell'azienda, orari e cifre vanno riportati TALI E QUALI,",
+    "      cifra per cifra, senza abbreviarli. Se lo spazio non basta, taglia le parole di contorno,",
+    "      mai i numeri: sono la ragione per cui la nota esiste.",
     "",
     "4) contanti: true SOLO se l'ospite dice che intende pagare la TASSA DI SOGGIORNO in contanti",
     "   (o chiede se puo' farlo). false in tutti gli altri casi, compreso il pagamento della camera.",
@@ -1537,8 +1548,39 @@ async function messaggiUna(env, b, rileggi) {
   return rec;
 }
 
+// Firma del giro notturno. Serve a sapere che e' andato: se questa manca, o e' vecchia,
+// o dice completato:false, l'app suona il campanello. Copre anche il caso peggiore,
+// cioe' i tetti di Cloudflare superati: se le scritture falliscono, la firma resta indietro
+// e l'app se ne accorge lo stesso (03/09/2026).
+async function firmaGiro(env, dati) {
+  try { await env.ARRIVI_KV.put("giro_ultimo", JSON.stringify(dati)); return true; }
+  catch (e) { return false; }
+}
+
 async function runTassaPrepara(env, date, crea) {
   const day = date || domaniRoma();
+  const iniziato = new Date().toISOString();
+  try {
+    const res = await runTassaPreparaInterno(env, day, crea);
+    const errori = (res.esiti || []).filter(x => x && (x.esito === "errore" || x.esito === "tassa_incoerente" || x.errore))
+      .map(x => ({ bookingId: x.bookingId || "", esito: x.esito || "", errore: (x.errore || "").slice(0, 160) }));
+    await firmaGiro(env, {
+      ts: new Date().toISOString(), iniziato, giorno: day, crea: !!crea,
+      completato: !res.error, totale: res.count || 0,
+      errori, n_errori: errori.length, guasto: res.error ? (res.error + " " + (res.status || "")) : ""
+    });
+    return res;
+  } catch (e) {
+    await firmaGiro(env, {
+      ts: new Date().toISOString(), iniziato, giorno: day, crea: !!crea,
+      completato: false, totale: 0, errori: [], n_errori: 0, guasto: String(e && e.message || e).slice(0, 300)
+    });
+    throw e;
+  }
+}
+
+async function runTassaPreparaInterno(env, date, crea) {
+  const day = date;
   const r = await amenitizGet(`/bookings/checkin?from=${day}&to=${day}&hotel_id=${HOTEL_UUID}`, env);
   if (!r.ok) return { error: "API Amenitiz", status: r.status, date: day };
   const list = await r.json();
@@ -2618,6 +2660,16 @@ export default {
           url.searchParams.get("ospite") || "", url.searchParams.get("invia") === "1");
         const ok = ["risposta_inviata", "risposta_inviata_non_confermata", "risposta_pronta_non_inviata"];
         return jsonRes(j, ok.includes(j.esito) ? 200 : 502);
+      }
+      if (action === "statoGiro") {
+        // l'app lo chiede all'avvio per sapere se il giro notturno e' andato a buon fine
+        let g = null, leggibile = true;
+        try { g = await env.ARRIVI_KV.get("giro_ultimo", "json"); } catch (e) { leggibile = false; }
+        if (!leggibile) return jsonRes({ stato: "archivio_non_leggibile" });
+        if (!g) return jsonRes({ stato: "mai_girato" });
+        const ore = (Date.now() - Date.parse(g.ts || 0)) / 3600000;
+        const stato = !g.completato ? "interrotto" : (ore > 30 ? "vecchio" : (g.n_errori ? "con_errori" : "ok"));
+        return jsonRes({ stato, ore: Math.round(ore), ...g });
       }
       if (action === "apiCheck") {
         // diagnostica: la chiave Anthropic c'e' ed e' valida? Non mostra mai il valore.
