@@ -628,6 +628,22 @@ const waIcon='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 14.4c-
 
 // ====== TASSA DI SOGGIORNO ======
 // regola: 1 notte -> solo link Stripe; 2+ notti -> aggiungi opzione contanti
+// Messaggio per il pagamento dell'intera camera (testo deciso da Filippo il 03/09/2026):
+// breve, senza importo e senza alternativa in contanti.
+function msgCamera(lng,link,importo){
+  const imp = (importo==null||importo==="") ? "" : ("€ "+Number(importo).toFixed(2).replace(".",","));
+  const R={ it:"Importo", en:"Amount", es:"Importe", fr:"Montant", pt:"Valor", de:"Betrag" };
+  const riga = imp ? `\n${R[lng]||R.en}: ${imp}` : "";
+  const T={
+    it:`Le invio il link di pagamento per la sua prenotazione ad InternoUno 🏨${riga}\n👉 ${link}\nGrazie!`,
+    en:`Here is the payment link for your booking at InternoUno 🏨${riga}\n👉 ${link}\nThank you!`,
+    es:`Le envío el enlace de pago para su reserva en InternoUno 🏨${riga}\n👉 ${link}\n¡Gracias!`,
+    fr:`Je vous envoie le lien de paiement pour votre réservation à InternoUno 🏨${riga}\n👉 ${link}\nMerci !`,
+    pt:`Envio o link de pagamento para a sua reserva no InternoUno 🏨${riga}\n👉 ${link}\nObrigado!`,
+    de:`Hier ist der Zahlungslink für Ihre Buchung im InternoUno 🏨${riga}\n👉 ${link}\nVielen Dank!`,
+  };
+  return T[lng]||T.en;
+}
 function msgTassa(nome,lng,notti,link){
   const T={
     it:{base:`Il pagamento della camera risulta già effettuato tramite il canale di prenotazione. 😊\nLe invio il link per il pagamento della tassa di soggiorno, da corrispondere direttamente alla struttura:\n👉 ${link}`,
@@ -704,11 +720,12 @@ async function generaIntera(){
     const j=await r.json();
     if(j&&j.link){
       document.getElementById("taxLink").value=j.link;
+      const testo=msgCamera(d.lng,j.link,j.dovuto);
       const res=document.getElementById("taxResult");
-      const wa=d.phone?`<a class="wa-btn" style="margin-top:10px" href="whatsapp://send?phone=${d.phone.replace(/\s/g,"").replace("+","")}&text=${encodeURIComponent(j.link)}" onclick="setTimeout(chiudiTassa,300)">${waIcon}Invia su WhatsApp</a>`:"";
-      res.innerHTML=`<div class="copy-note">🏠 Intera camera${j.dovuto!=null?" — €"+j.dovuto:""}: link generato</div>
-        <div class="msg-box"><button class="copy-btn" id="taxCopyBtn">Copia</button>${j.link}</div>${wa}`;
-      document.getElementById("taxCopyBtn").onclick=function(){navigator.clipboard.writeText(j.link).then(()=>{this.textContent="Copiato ✓";this.classList.add("done");});};
+      const wa=d.phone?`<a class="wa-btn" style="margin-top:10px" href="whatsapp://send?phone=${d.phone.replace(/\s/g,"").replace("+","")}&text=${encodeURIComponent(testo)}" onclick="setTimeout(chiudiTassa,300)">${waIcon}Invia su WhatsApp</a>`:"";
+      res.innerHTML=`<div class="copy-note">🏠 Intera camera${j.dovuto!=null?" — €"+j.dovuto:""}</div>
+        <div class="msg-box"><button class="copy-btn" id="taxCopyBtn">Copia</button>${testo.replace(/</g,"&lt;")}</div>${wa}`;
+      document.getElementById("taxCopyBtn").onclick=function(){navigator.clipboard.writeText(testo).then(()=>{this.textContent="Copiato ✓";this.classList.add("done");setTimeout(()=>{this.textContent="Copia";this.classList.remove("done");},2000);});};
     } else alert("Link intera camera non creato: "+((j&&(j.esito||j.errore))||"errore"));
   }catch(e){ alert("Errore: "+e.message); }
   btn.disabled=false; btn.textContent=t;
