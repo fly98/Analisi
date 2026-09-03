@@ -1400,6 +1400,9 @@ async function estraiDaMessaggi(env, grezzi) {
     "   NON vanno annotati i soli convenevoli ('grazie', 'ciao', 'ok', 'perfetto', 'a presto') ne' le",
     "   conferme di lettura: se il messaggio contiene solo quelli, lascia le note vuote.",
     "",
+    "4) contanti: true SOLO se l'ospite dice che intende pagare la TASSA DI SOGGIORNO in contanti",
+    "   (o chiede se puo' farlo). false in tutti gli altri casi, compreso il pagamento della camera.",
+    "",
     "Non confondere MAI l'ora in cui un messaggio e' stato INVIATO con l'ora di arrivo:",
     "l'ora di invio ti viene indicata a parte come contesto, e non e' mai un orario di arrivo.",
     "",
@@ -1420,9 +1423,10 @@ async function estraiDaMessaggi(env, grezzi) {
         properties: {
           orario: { type: "string", description: "HH:MM oppure stringa vuota" },
           fonte: { type: "string", description: "dichiarato, stimato oppure stringa vuota" },
-          note: { type: "string", description: "richieste e indicazioni sull'arrivo, in italiano, oppure vuoto" }
+          note: { type: "string", description: "richieste e indicazioni sull'arrivo, in italiano, oppure vuoto" },
+          contanti: { type: "boolean", description: "true se vuole pagare la tassa di soggiorno in contanti" }
         },
-        required: ["orario", "fonte", "note"]
+        required: ["orario", "fonte", "note", "contanti"]
       } } }
     })
   });
@@ -1436,6 +1440,7 @@ async function estraiDaMessaggi(env, grezzi) {
     orario: valido ? o : "",
     fonte: valido ? (String(dati.fonte || "").trim() || "dichiarato") : "",
     note: String(dati.note || "").trim().slice(0, 140),
+    contanti: dati.contanti === true,
     modello: j.model || null,
     costo_token: j.usage ? { ingresso: j.usage.input_tokens, uscita: j.usage.output_tokens } : null
   };
@@ -1465,12 +1470,12 @@ async function messaggiUna(env, b, rileggi) {
   const messaggi = Array.isArray(j.messaggi) ? j.messaggi : [];
   const rec = {
     bookingId: id, esito: j.esito || "errore", messaggi,
-    orario: "", fonte: "", note: "", ts: new Date().toISOString(), errore: j.errore || ""
+    orario: "", fonte: "", note: "", contanti: false, ts: new Date().toISOString(), errore: j.errore || ""
   };
   // 2) li faccio interpretare (stessa logica dell'azione leggiMessaggi)
   if (messaggi.length && env.ANTHROPIC_API_KEY) {
     const est = await estraiDaMessaggi(env, messaggi);
-    if (est && !est.errore) { rec.orario = est.orario; rec.fonte = est.fonte; rec.note = est.note; rec.modello = est.modello; }
+    if (est && !est.errore) { rec.orario = est.orario; rec.fonte = est.fonte; rec.note = est.note; rec.contanti = !!est.contanti; rec.modello = est.modello; }
     else if (est) rec.errore_estrazione = est.errore;
   }
   await env.ARRIVI_KV.put(key, JSON.stringify(rec));
@@ -1499,6 +1504,21 @@ async function runTassaPrepara(env, date, crea) {
     const s = (b.status || "").toLowerCase();
     if (s === "cancelled" || s === "canceled") continue;
     if (!TASSA_FONTI.test(b.source || "")) { esiti.push({ bookingId: String(b.booking_id), source: b.source || "", esito: "fuori_perimetro" }); continue; }
+    // Se l'ospite ha scritto che paga la tassa in contanti, il link non serve: lo salta.
+    // I messaggi vanno quindi letti PRIMA di creare il link (solo Booking e Airbnb ce li hanno).
+    let msg = null;
+    if (MSG_FONTI.test(b.source || "")) {
+      msg = await messaggiUna(env, b, false);
+      if (msg && msg.contanti) {
+        esiti.push({ bookingId: String(b.booking_id), source: b.source || "", esito: "tassa_in_contanti",
+                     nota: msg.note || "", messaggi: (msg.messaggi || []).length });
+        await env.ARRIVI_KV.put(`tassa_${b.booking_id}`, JSON.stringify({
+          bookingId: String(b.booking_id), modo: "tassa", esito: "tassa_in_contanti", link: "",
+          nome: "", source: b.source || "", checkin: b.checkin || "", ts: new Date().toISOString(), errore: ""
+        }));
+        continue;
+      }
+    }
     // Expedia arriva senza la riga "Tassa di soggiorno": va aggiunta prima di creare il link.
     // Lo script sul Mac controlla da solo se c'e' gia' (riga_gia_presente) e in quel caso non tocca nulla.
     let riga = null;
