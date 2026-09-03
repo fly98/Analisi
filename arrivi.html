@@ -163,6 +163,7 @@
   .tassa-chip.warn{color:var(--terra);border-color:var(--terra);background:#fdf0ec;font-weight:700;}
   .tassa-chip:active{filter:brightness(0.93);}
   .tassa-chip.busy{opacity:0.65;pointer-events:none;}
+  .resto-alert{display:inline-flex;align-items:center;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;background:#fdf0ec;border:1.5px solid var(--terra);color:var(--terra);margin-left:4px;}
   .nota-textarea{width:100%;font-family:var(--sysfont);font-size:15px;padding:12px;border:1.5px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);resize:none;height:120px;margin-bottom:16px;}
   .orario-modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.4);display:none;align-items:center;justify-content:center;z-index:300;padding:20px;}
   .orario-modal-bg.show{display:flex;}
@@ -917,10 +918,18 @@ function render(iso,bookings,isRicerca){
     const tRec=b.tassa||null, tEs=(tRec&&tRec.esito)||"";
     const tassaPagata=!!(tRec&&tRec.pagata);
     const tassaPronta=!!(tRec&&tRec.link);
-    const tassaWarn=(tEs==="saldo_intero_controllare"||tEs==="importo_link_diverso"||tEs==="importi_non_letti");
+    const tassaWarn=(tEs==="importo_link_diverso"||tEs==="importi_non_letti"||tEs==="tassa_incoerente"||tEs==="link_attesa_importo_diverso");
     const tassaCls=tassaPagata?" paid":(tassaPronta?" set":(tassaWarn?" warn":""));
     const tassaTxt=tassaPagata?"💶 pagata":(tassaWarn?"⚠️ tassa":"💶 tassa");
-    const tassaTitle=tassaPagata?("Tassa pagata"+(tRec.pagataData?" — "+tRec.pagataData:"")):(tassaPronta?("Link pronto"+(tRec.tassa!=null?" — €"+tRec.tassa:"")):(tEs==="fuori_perimetro"?"Canale senza tassa da incassare":(tEs?("Da controllare: "+tEs):"Nessun link preparato")));
+    const tassaTitle=tassaPagata?("Tassa pagata"+(tRec.pagataData?" — "+tRec.pagataData:""))
+      :(tassaPronta?("Link pronto"+(tRec.tassa!=null?" — €"+tRec.tassa:""))
+      :(tRec&&tRec.annullato?("Link annullato"+(tRec.annullatoData?" il "+tRec.annullatoData:"")+": premi per rifarlo")
+      :(tEs==="fuori_perimetro"?"Canale senza tassa da incassare"
+      :(tEs==="senza_tassa"?"Nessuna tassa da incassare"
+      :(tEs?("Da controllare: "+tEs):"Nessun link preparato")))));
+    // Resto della camera ancora da pagare: non blocca il link della tassa, ma va ricordato
+    const restoDaPagare=!!(tRec&&tRec.resto_da_pagare&&!tassaPagata);
+    const restoBadge=restoDaPagare?`<span class="resto-alert" title="Oltre alla tassa risulta da pagare anche il resto della prenotazione: verifica su Amenitiz">❗️ resto da pagare</span>`:"";
 
     let action="";
     const waLink=numeroValido(phone)?`whatsapp://send?phone=${phone.replace(/\s/g,"").replace("+","")}&text=${encodeURIComponent(testo)}`:"";
@@ -1004,7 +1013,7 @@ function render(iso,bookings,isRicerca){
         <div style="display:flex;gap:5px">${roomBadgesHtml}</div>
       </div>
       ${altriOspiti.length?`<div class="altri-ospiti">👤 ${altriOspiti.join(" · ")}</div>`:""}
-      <div class="meta"><span>${dataCompatta(isoCard)} → ${dataCompatta(b.checkout||"")}</span><span>${b.adults||""}${b.children?(" +"+b.children+"🧒"):""}👤</span>${badgeCanale(source)}</div><div class="meta"><span class="orario-chip${orarioSalvato?" set":""}" onclick="apriOrarioModal(${i},${b.booking_id},'${isoCard}')">${orarioSalvato?"🕐 "+orarioSalvato:"🕐 orario"}</span><span class="nota-chip${notaSalvata?" set":""}" onclick="apriNotaModal(${i},${b.booking_id},'${isoCard}')">${notaSalvata?"📝 note":"📝 note"}</span><span class="tassa-chip${tassaCls}" title="${tassaTitle}" onclick="${tassaPronta||tassaPagata?`apriTassa(${i})`:`generaLink(${i},${b.booking_id},false)`}">${tassaTxt}</span></div>
+      <div class="meta"><span>${dataCompatta(isoCard)} → ${dataCompatta(b.checkout||"")}</span><span>${b.adults||""}${b.children?(" +"+b.children+"🧒"):""}👤</span>${badgeCanale(source)}</div><div class="meta"><span class="orario-chip${orarioSalvato?" set":""}" onclick="apriOrarioModal(${i},${b.booking_id},'${isoCard}')">${orarioSalvato?"🕐 "+orarioSalvato:"🕐 orario"}</span><span class="nota-chip${notaSalvata?" set":""}" onclick="apriNotaModal(${i},${b.booking_id},'${isoCard}')">${notaSalvata?"📝 note":"📝 note"}</span><span class="tassa-chip${tassaCls}" title="${tassaTitle}" onclick="${tassaPronta||tassaPagata?`apriTassa(${i})`:`generaLink(${i},${b.booking_id},false)`}">${tassaTxt}</span>${restoBadge}</div>
       ${action}
 `;
     if(notaSalvata){
