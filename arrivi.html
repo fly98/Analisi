@@ -169,6 +169,12 @@
   .msg-riga{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin-bottom:6px;font-size:13px;line-height:1.4;}
   .msg-ora{color:var(--muted);font-size:11px;}
   .msg-estratto{background:#f2eefa;border:1.5px solid #6b4fa8;border-radius:8px;padding:8px 10px;font-size:13px;margin-bottom:10px;}
+  .msg-sez{font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin:14px 0 6px;}
+  .msg-sez.io{color:#6b4fa8;margin-top:0;}
+  .msg-stato{font-size:12px;color:var(--muted);margin:0 0 12px;min-height:16px;}
+  .msg-stato.lavoro{color:var(--gold);font-weight:600;}
+  .msg-stato.ko{color:#b3261e;font-weight:600;}
+  .msg-vuoto{font-size:13px;color:var(--muted);font-style:italic;}
   .resto-alert{display:inline-flex;align-items:center;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;background:#fdf0ec;border:1.5px solid var(--terra);color:var(--terra);margin-left:4px;}
   .nota-textarea{width:100%;font-family:var(--sysfont);font-size:15px;padding:12px;border:1.5px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);resize:none;height:120px;margin-bottom:16px;}
   .orario-modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.4);display:none;align-items:center;justify-content:center;z-index:300;padding:20px;}
@@ -273,7 +279,7 @@
 <div class="modal-bg" id="ospiteModal" onclick="if(event.target===this)chiudiMessaggi()">
   <div class="modal">
     <h3>Messaggi dell'ospite</h3>
-    <p>Solo i messaggi scritti dall'ospite. In viola quello che ne è stato dedotto.</p>
+    <div class="msg-stato" id="msgStato"></div>
     <div id="msgBox"></div>
     <div class="modal-actions">
       <button class="m-cancel" onclick="chiudiMessaggi()">Chiudi</button>
@@ -722,52 +728,67 @@ async function generaLink(i, bookingId, intero){
 // ====== MESSAGGI DELL'OSPITE (03/09/2026) ======
 // Mostra solo i messaggi scritti dall'ospite (non i nostri) e cio' che ne e' stato dedotto.
 // La lettura passa dal Mac: la prima volta richiede una quarantina di secondi.
+function statoMsg(testo,classe){
+  const e=document.getElementById("msgStato"); if(!e) return;
+  e.textContent=testo||""; e.className="msg-stato"+(classe?" "+classe:"");
+}
 async function apriMessaggi(i,bookingId,source,iso){
   ospiteCur={i,bookingId,source,iso};
-  const box=document.getElementById("msgBox");
   document.getElementById("ospiteModal").classList.add("show");
-  // Mostro subito quello che ho gia', poi rileggo SEMPRE da Amenitiz:
-  // cosi' vedi i messaggi vecchi mentre arrivano gli eventuali nuovi.
+  // Mostro subito l'ultima lettura, se ce l'ho, e poi rileggo.
+  // Regola: il riquadro non viene MAI svuotato, cambia solo la riga di stato in alto,
+  // cosi' il contenuto non balla sotto gli occhi mentre si aspetta Amenitiz.
   const rec=msgOspite[i];
-  if(rec&&rec.messaggi&&rec.messaggi.length){
-    disegnaMessaggi(rec);
-    box.insertAdjacentHTML("afterbegin",'<div class="copy-note" id="msgAgg">Rileggo da Amenitiz… una quarantina di secondi.</div>');
-  } else {
-    box.innerHTML='<div class="copy-note">Leggo i messaggi su Amenitiz… può richiedere una quarantina di secondi.</div>';
-  }
+  if(rec&&rec.messaggi&&rec.messaggi.length){ disegnaMessaggi(rec); }
+  else { document.getElementById("msgBox").innerHTML=""; }
   await caricaMessaggi(true);
 }
 async function caricaMessaggi(rileggi){
   const c=ospiteCur; if(!c) return;
   const box=document.getElementById("msgBox");
-  const bloccaBtn=document.getElementById("msgRileggi");
-  if(bloccaBtn){bloccaBtn.disabled=true;bloccaBtn.textContent="Lettura…";}
-  if(!document.getElementById("msgAgg")) box.innerHTML='<div class="copy-note">Lettura in corso…</div>';
+  const btn=document.getElementById("msgRileggi");
+  const avevaRoba=!!box.innerHTML.trim();
+  if(btn){btn.disabled=true;btn.textContent="Lettura…";}
+  statoMsg(avevaRoba?"Rileggo da Amenitiz… una quarantina di secondi.":"Leggo i messaggi su Amenitiz… una quarantina di secondi.","lavoro");
   try{
     const r=await fetch(`${WORKER}/?action=messaggi&bookingId=${encodeURIComponent(c.bookingId)}&source=${encodeURIComponent(c.source)}&checkin=${encodeURIComponent(c.iso)}${rileggi?"&rileggi=1":""}`);
     const d=await r.json();
-    msgOspite[c.i]=d;
-    disegnaMessaggi(d);
-    // se l'interpretazione ha riempito orario o note, aggiorno i chip senza ricaricare
+    if(d && (d.errore||d.esito==="fuori_perimetro") && avevaRoba){
+      // lettura fallita ma qualcosa di buono ce l'ho gia': lo tengo, non lo cancello
+      statoMsg("Non sono riuscito a rileggere ("+(d.errore||d.esito)+"). Qui sotto l'ultima lettura riuscita.","ko");
+    } else {
+      msgOspite[c.i]=d;
+      disegnaMessaggi(d);
+      const ora=new Date().toLocaleTimeString("it-IT",{hour:"2-digit",minute:"2-digit"});
+      if(d.errore) statoMsg("Lettura non riuscita: "+d.errore,"ko");
+      else if(d.esito==="fuori_perimetro") statoMsg("Questo canale non ha la messaggistica attiva.","");
+      else statoMsg("Riletto da Amenitiz alle "+ora+".","");
+    }
     if(d.orario_scritto){const ch=document.querySelectorAll(".orario-chip")[c.i]; if(ch){ch.textContent="🕐 "+d.orario;ch.classList.add("set");}}
     if(d.nota_scritta){const ch=document.querySelectorAll(".nota-chip")[c.i]; if(ch)ch.classList.add("set");}
     const mc=document.querySelectorAll(".msg-chip")[c.i];
     if(mc&&d.messaggi&&d.messaggi.length)mc.classList.add("set");
-  }catch(e){ box.innerHTML='<div class="copy-note">Errore nella lettura: '+e.message+'</div>'; }
-  if(bloccaBtn){bloccaBtn.disabled=false;bloccaBtn.textContent="Rileggi da Amenitiz";}
+  }catch(e){
+    statoMsg(avevaRoba?("Rilettura non riuscita ("+e.message+"). Qui sotto l'ultima lettura riuscita.")
+                     :("Lettura non riuscita: "+e.message),"ko");
+  }
+  if(btn){btn.disabled=false;btn.textContent="Rileggi da Amenitiz";}
 }
 function disegnaMessaggi(d){
   const box=document.getElementById("msgBox");
-  if(d.esito==="fuori_perimetro"){ box.innerHTML='<div class="copy-note">Questo canale non ha la messaggistica attiva.</div>'; return; }
-  if(d.errore){ box.innerHTML='<div class="copy-note">Lettura non riuscita: '+d.errore+'</div>'; return; }
-  const ms=d.messaggi||[];
+  const ms=(d&&d.messaggi)||[];
   let html="";
-  if(d.orario||d.note){
-    html+=`<div class="msg-estratto">${d.orario?`🕐 <b>${d.orario}</b>${d.fonte==="stimato"?" <i>(stimato)</i>":""}<br>`:""}${d.note?`📝 ${d.note}`:""}</div>`;
+  // Prima quello che ho dedotto io, dichiarato come tale; poi le parole dell'ospite.
+  if(d&&(d.orario||d.note)){
+    html+='<div class="msg-sez io">Cosa ne ho capito io</div>'
+       +  `<div class="msg-estratto">${d.orario?`🕐 <b>${d.orario}</b>${d.fonte==="stimato"?" <i>(stimato)</i>":""}${d.note?"<br>":""}`:""}${d.note?`📝 ${d.note}`:""}</div>`;
   }
-  html+= ms.length
-    ? ms.map(m=>`<div class="msg-riga">${(m.testo||m).replace(/</g,"&lt;")}${m.inviato?` <span class="msg-ora">${m.inviato}</span>`:""}</div>`).join("")
-    : '<div class="copy-note">Nessun messaggio scritto dall\'ospite.</div>';
+  if(ms.length){
+    html+='<div class="msg-sez">Parole dell\'ospite</div>'
+       + ms.map(m=>`<div class="msg-riga">${String(m.testo||m).replace(/</g,"&lt;")}${m.inviato?` <span class="msg-ora">inviato alle ${m.inviato}</span>`:""}</div>`).join("");
+  } else if(!(d&&d.errore)&&d&&d.esito!=="fuori_perimetro"){
+    html+='<div class="msg-vuoto">L\'ospite non ha scritto nessun messaggio.</div>';
+  }
   box.innerHTML=html;
 }
 function chiudiMessaggi(){document.getElementById("ospiteModal").classList.remove("show");}
