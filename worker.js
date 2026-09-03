@@ -1231,14 +1231,15 @@ function domaniRoma() {
   return d.toISOString().slice(0, 10);
 }
 
-async function tassaUna(env, b, crea) {
+async function tassaUna(env, b, crea, modo) {
   const id = String(b.booking_id);
-  const key = `tassa_${id}`;
+  const intero = modo === "intero";
+  const key = intero ? `camera_${id}` : `tassa_${id}`;
   const prev = await env.ARRIVI_KV.get(key, "json");
   if (prev && prev.link) return { ...prev, cached: true };     // idempotente: link gia' pronto
   let r = null;
   for (let tent = 0; tent < 3; tent++) {
-    r = await fetch(`${MAC_TASSA_URL}?ref=${encodeURIComponent(id)}${crea ? "&crea=1" : ""}`, {
+    r = await fetch(`${MAC_TASSA_URL}?ref=${encodeURIComponent(id)}${crea ? "&crea=1" : ""}${intero ? "&modo=intero" : ""}`, {
       headers: { "X-Trigger-Key": env.TRIGGER_KEY || "" },
       signal: AbortSignal.timeout(170000)
     }).catch(e => ({ ok: false, status: 0, text: async () => "fetch: " + String(e) }));
@@ -1248,7 +1249,7 @@ async function tassaUna(env, b, crea) {
   const txt = await r.text();
   let j; try { j = JSON.parse(txt); } catch (e) { j = { esito: "errore", errore: `HTTP ${r.status}: ${txt.slice(0, 200)}` }; }
   const rec = {
-    bookingId: id, esito: j.esito || "errore", link: j.link || "",
+    bookingId: id, modo: intero ? "intero" : "tassa", esito: j.esito || "errore", link: j.link || "",
     tassa: j.tassa == null ? null : j.tassa, dovuto: j.dovuto == null ? null : j.dovuto,
     nome: j.nome || "", source: b.source || "", checkin: b.checkin || "",
     ts: new Date().toISOString(), errore: j.errore || ""
@@ -1343,7 +1344,7 @@ async function runTassaPrepara(env, date, crea) {
     const s = (b.status || "").toLowerCase();
     if (s === "cancelled" || s === "canceled") continue;
     if (!TASSA_FONTI.test(b.source || "")) { esiti.push({ bookingId: String(b.booking_id), source: b.source || "", esito: "fuori_perimetro" }); continue; }
-    esiti.push(await tassaUna(env, b, crea));   // sequenziale: un solo browser alla volta sul profilo
+    esiti.push(await tassaUna(env, b, crea, "tassa"));   // sequenziale: un solo browser alla volta sul profilo
   }
   return { date: day, crea: !!crea, count: esiti.length, esiti };
 }
@@ -2350,6 +2351,15 @@ export default {
         // prepara (o solo legge, senza crea=1) i link della tassa per gli arrivi di una data (default: domani)
         const res = await runTassaPrepara(env, url.searchParams.get("date"), url.searchParams.get("crea") === "1");
         return jsonRes(res, res.error ? 502 : 200);
+      }
+      if (action === "tassaCrea" || action === "cameraCrea") {
+        // Generazione su richiesta dall'app (chip grigio / pulsante intera camera).
+        // Vale per QUALSIASI data, non solo domani. Idempotente: se il link c'e' gia', lo restituisce.
+        const bid = url.searchParams.get("bookingId");
+        if (!bid) return jsonRes({ error: "bookingId mancante" }, 400);
+        const modo = action === "cameraCrea" ? "intero" : "tassa";
+        const rec = await tassaUna(env, { booking_id: bid, source: "", checkin: "" }, true, modo);
+        return jsonRes(rec, rec.esito === "errore" ? 502 : 200);
       }
       if (action === "pagamentiMail") {
         const c = await scansionaPagamentiMail(env, url.searchParams.get("forza") === "1");
