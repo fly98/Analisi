@@ -1142,7 +1142,7 @@ function render(iso,bookings,isRicerca){
     const mRec=b.messaggi||null;
     const mHa=!!(mRec&&mRec.messaggi&&mRec.messaggi.length);
     const msgAttivo=/booking|airbnb/i.test(source||"");
-    const msgChip=msgAttivo?`<span class="msg-chip${mHa?" set":""}" title="${mHa?("Messaggi dell'ospite: "+mRec.messaggi.length):"Leggi i messaggi dell'ospite"}" onclick="apriMessaggi(${i},${b.booking_id},'${source}','${isoCard}',${JSON.stringify((nome+' '+cognome).trim())})">💬 messaggi</span>`:"";
+    const msgChip=msgAttivo?`<span class="msg-chip${mHa?" set":""}" title="${mHa?("Messaggi dell'ospite: "+mRec.messaggi.length):"Leggi i messaggi dell'ospite"}" onclick="apriMessaggi(${i},${b.booking_id},'${source}','${isoCard}',${JSON.stringify((nome+' '+cognome).trim()).replace(/"/g,'&quot;')})">💬 messaggi</span>`:"";
     msgOspite[i]=mRec;
     const restoBadge=restoDaPagare?`<span class="resto-alert" title="Oltre alla tassa risulta da pagare anche il resto della prenotazione: verifica su Amenitiz">❗️ resto da pagare</span>`:"";
 
