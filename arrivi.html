@@ -175,6 +175,17 @@
   .msg-stato.lavoro{color:var(--gold);font-weight:600;}
   .msg-stato.ko{color:#b3261e;font-weight:600;}
   .msg-vuoto{font-size:13px;color:var(--muted);font-style:italic;}
+  .risp-area{width:100%;box-sizing:border-box;min-height:70px;resize:vertical;font:inherit;font-size:13px;
+    padding:8px 10px;border:1.5px solid var(--line);border-radius:8px;background:var(--paper);color:inherit;}
+  .risp-area:focus{outline:none;border-color:#2d6ded;}
+  .risp-invio{margin-top:8px;display:flex;gap:8px;align-items:center;}
+  .risp-invio button{font:inherit;font-size:13px;font-weight:700;padding:7px 14px;border-radius:8px;cursor:pointer;
+    border:1.5px solid #2d6ded;background:#2d6ded;color:#fff;}
+  .risp-invio button[disabled]{opacity:.5;cursor:default;}
+  .risp-invio button.conferma{background:#b3261e;border-color:#b3261e;}
+  .risp-nota{font-size:11.5px;color:var(--muted);}
+  .msg-inviato{background:#eef4ff;border:1px solid #2d6ded;border-radius:8px;padding:8px 10px;margin-bottom:6px;
+    font-size:13px;line-height:1.4;}
   .resto-alert{display:inline-flex;align-items:center;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;background:#fdf0ec;border:1.5px solid var(--terra);color:var(--terra);margin-left:4px;}
   .nota-textarea{width:100%;font-family:var(--sysfont);font-size:15px;padding:12px;border:1.5px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);resize:none;height:120px;margin-bottom:16px;}
   .orario-modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.4);display:none;align-items:center;justify-content:center;z-index:300;padding:20px;}
@@ -281,6 +292,14 @@
     <h3>Messaggi dell'ospite</h3>
     <div class="msg-stato" id="msgStato"></div>
     <div id="msgBox"></div>
+    <div id="rispZona">
+      <div class="msg-sez">Rispondi all'ospite</div>
+      <textarea class="risp-area" id="rispTesto" placeholder="Scrivi qui la risposta…" oninput="rispCambia()"></textarea>
+      <div class="risp-invio">
+        <button id="rispBtn" onclick="inviaRisposta()" disabled>Invia all'ospite</button>
+        <span class="risp-nota" id="rispNota">Parte sul canale della prenotazione (Booking o Airbnb).</span>
+      </div>
+    </div>
     <div class="modal-actions">
       <button class="m-cancel" onclick="chiudiMessaggi()">Chiudi</button>
       <button class="m-ok" id="msgRileggi" onclick="caricaMessaggi(true)">Rileggi da Amenitiz</button>
@@ -732,16 +751,28 @@ function statoMsg(testo,classe){
   const e=document.getElementById("msgStato"); if(!e) return;
   e.textContent=testo||""; e.className="msg-stato"+(classe?" "+classe:"");
 }
-async function apriMessaggi(i,bookingId,source,iso){
-  ospiteCur={i,bookingId,source,iso};
+function apriMessaggi(i,bookingId,source,iso,nome){
+  ospiteCur={i,bookingId,source,iso,nome:nome||""};
   document.getElementById("ospiteModal").classList.add("show");
   // Mostro subito l'ultima lettura, se ce l'ho, e poi rileggo.
   // Regola: il riquadro non viene MAI svuotato, cambia solo la riga di stato in alto,
   // cosi' il contenuto non balla sotto gli occhi mentre si aspetta Amenitiz.
+  // Apre e basta: mostra quello che c'e' gia' in archivio, SENZA rileggere da Amenitiz.
+  // La rilettura la si chiede col pulsante, quando serve (deciso da Filippo il 03/09/2026:
+  // aspettare quaranta secondi a ogni apertura non ha senso).
+  rispReset();
   const rec=msgOspite[i];
-  if(rec&&rec.messaggi&&rec.messaggi.length){ disegnaMessaggi(rec); }
-  else { document.getElementById("msgBox").innerHTML=""; }
-  await caricaMessaggi(true);
+  if(rec&&rec.esito==="fuori_perimetro"){ document.getElementById("rispZona").style.display="none"; }
+  if(rec&&(rec.messaggi&&rec.messaggi.length||rec.orario||rec.note||(rec.inviati||[]).length)){
+    disegnaMessaggi(rec);
+    statoMsg(rec.letto_il?("Ultima lettura: "+rec.letto_il+"."):"","");
+  } else if(rec&&rec.esito==="fuori_perimetro"){
+    document.getElementById("msgBox").innerHTML="";
+    statoMsg("Questo canale non ha la messaggistica attiva.","");
+  } else {
+    document.getElementById("msgBox").innerHTML="";
+    statoMsg("Non ho ancora letto i messaggi di questa prenotazione. Premi «Rileggi da Amenitiz».","");
+  }
 }
 async function caricaMessaggi(rileggi){
   const c=ospiteCur; if(!c) return;
@@ -783,6 +814,14 @@ function disegnaMessaggi(d){
     html+='<div class="msg-sez io">Cosa ne ho capito io</div>'
        +  `<div class="msg-estratto">${d.orario?`🕐 <b>${d.orario}</b>${d.fonte==="stimato"?" <i>(stimato)</i>":""}${d.note?"<br>":""}`:""}${d.note?`📝 ${d.note}`:""}</div>`;
   }
+  const inv=(d&&d.inviati)||[];
+  if(inv.length){
+    html+='<div class="msg-sez">Risposte gia\' mandate da te</div>'
+       + inv.map(x=>{
+           const q=x.ts?new Date(x.ts).toLocaleString("it-IT",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}):"";
+           return `<div class="msg-inviato">${String(x.testo||"").replace(/</g,"&lt;")}${q?` <span class="msg-ora">${q}</span>`:""}</div>`;
+         }).join("");
+  }
   if(ms.length){
     html+='<div class="msg-sez">Parole dell\'ospite</div>'
        + ms.map(m=>`<div class="msg-riga">${String(m.testo||m).replace(/</g,"&lt;")}${m.inviato?` <span class="msg-ora">inviato alle ${m.inviato}</span>`:""}</div>`).join("");
@@ -790,6 +829,65 @@ function disegnaMessaggi(d){
     html+='<div class="msg-vuoto">L\'ospite non ha scritto nessun messaggio.</div>';
   }
   box.innerHTML=html;
+}
+let rispArmato=false;
+function rispCambia(){
+  const t=(document.getElementById("rispTesto").value||"").trim();
+  const b=document.getElementById("rispBtn");
+  b.disabled=!t;
+  if(rispArmato){ rispArmato=false; b.textContent="Invia all'ospite"; b.classList.remove("conferma"); }
+}
+function rispReset(){
+  const t=document.getElementById("rispTesto"); if(t)t.value="";
+  rispArmato=false;
+  const b=document.getElementById("rispBtn");
+  if(b){b.disabled=true;b.textContent="Invia all'ospite";b.classList.remove("conferma");}
+  const n=document.getElementById("rispNota");
+  if(n)n.textContent="Parte sul canale della prenotazione (Booking o Airbnb).";
+  const z=document.getElementById("rispZona");
+  if(z)z.style.display="";
+}
+async function inviaRisposta(){
+  const c=ospiteCur; if(!c) return;
+  const testo=(document.getElementById("rispTesto").value||"").trim();
+  if(!testo) return;
+  const b=document.getElementById("rispBtn"), n=document.getElementById("rispNota");
+  // Due passaggi: il messaggio va a una persona vera e non si puo' richiamare.
+  if(!rispArmato){
+    rispArmato=true; b.textContent="Confermi l'invio?"; b.classList.add("conferma");
+    n.textContent="Premi di nuovo per mandarlo davvero. Una volta partito non si annulla.";
+    return;
+  }
+  rispArmato=false; b.disabled=true; b.textContent="Invio…"; b.classList.remove("conferma");
+  n.textContent="";
+  statoMsg("Sto scrivendo la risposta su Amenitiz… una quarantina di secondi.","lavoro");
+  try{
+    const u=`${WORKER}/?action=rispondi&bookingId=${encodeURIComponent(c.bookingId)}`
+      +`&ospite=${encodeURIComponent(c.nome||"")}&invia=1&testo=${encodeURIComponent(testo)}`;
+    const r=await fetch(u);
+    const d=await r.json();
+    if(d.esito==="risposta_inviata"||d.esito==="risposta_inviata_non_confermata"){
+      const rec=msgOspite[c.i]||{messaggi:[]};
+      rec.inviati=d.inviati||(rec.inviati||[]).concat([{testo,ts:new Date().toISOString()}]);
+      msgOspite[c.i]=rec;
+      disegnaMessaggi(rec);
+      rispReset();
+      statoMsg(d.esito==="risposta_inviata"?"Risposta inviata e ritrovata nel filo. ✓"
+        :"Risposta inviata, ma non sono riuscito a rileggerla nel filo: controlla su Amenitiz.",
+        d.esito==="risposta_inviata"?"":"ko");
+    } else if(d.esito==="ospite_non_corrisponde"){
+      statoMsg("Non ho inviato nulla: la scheda aperta era di un altro ospite ("+(d.nome||"?")+").","ko");
+      b.disabled=false; b.textContent="Invia all'ospite";
+    } else {
+      statoMsg("Invio non riuscito: "+(d.errore||d.error||d.esito||"motivo sconosciuto")+". Il testo e' rimasto qui sotto.","ko");
+      b.disabled=false; b.textContent="Invia all'ospite";
+      n.textContent="Parte sul canale della prenotazione (Booking o Airbnb).";
+    }
+  }catch(e){
+    statoMsg("Invio non riuscito: "+e.message+". Il testo e' rimasto qui sotto.","ko");
+    b.disabled=false; b.textContent="Invia all'ospite";
+    n.textContent="Parte sul canale della prenotazione (Booking o Airbnb).";
+  }
 }
 function chiudiMessaggi(){document.getElementById("ospiteModal").classList.remove("show");}
 
@@ -1031,7 +1129,7 @@ function render(iso,bookings,isRicerca){
     const mRec=b.messaggi||null;
     const mHa=!!(mRec&&mRec.messaggi&&mRec.messaggi.length);
     const msgAttivo=/booking|airbnb/i.test(source||"");
-    const msgChip=msgAttivo?`<span class="msg-chip${mHa?" set":""}" title="${mHa?("Messaggi dell'ospite: "+mRec.messaggi.length):"Leggi i messaggi dell'ospite"}" onclick="apriMessaggi(${i},${b.booking_id},'${source}','${isoCard}')">💬 messaggi</span>`:"";
+    const msgChip=msgAttivo?`<span class="msg-chip${mHa?" set":""}" title="${mHa?("Messaggi dell'ospite: "+mRec.messaggi.length):"Leggi i messaggi dell'ospite"}" onclick="apriMessaggi(${i},${b.booking_id},'${source}','${isoCard}',${JSON.stringify((nome+' '+cognome).trim())})">💬 messaggi</span>`:"";
     msgOspite[i]=mRec;
     const restoBadge=restoDaPagare?`<span class="resto-alert" title="Oltre alla tassa risulta da pagare anche il resto della prenotazione: verifica su Amenitiz">❗️ resto da pagare</span>`:"";
 
