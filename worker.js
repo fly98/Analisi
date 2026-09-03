@@ -1257,6 +1257,74 @@ async function tassaUna(env, b, crea) {
   return rec;
 }
 
+// ====== TASSA PAGATA (03/09/2026): verifica dalle email "Nuovo pagamento AmenitizPay ricevuto" ======
+// Gmail non indicizza il CORPO di queste email (verificato: ricerche per numero prenotazione
+// danno 0 risultati), quindi non si puo' cercare per booking id. Strategia: prendo le ultime
+// email di pagamento cercando per OGGETTO (che invece funziona), leggo il corpo di quelle nuove
+// e costruisco la mappa bookingId -> {importo, data}. Cache in KV per non interrogare Gmail
+// a ogni apertura dell'app.
+const PAGAMENTI_CACHE_KEY = "pagamenti_mail";
+const PAGAMENTI_TTL_MS = 10 * 60 * 1000;
+
+function corpoTesto(payload) {
+  const dec = (d) => atob(String(d).replace(/-/g, "+").replace(/_/g, "/"));
+  const cerca = (part, mime) => {
+    if (!part) return "";
+    if (part.mimeType === mime && part.body && part.body.data) return dec(part.body.data);
+    for (const sub of (part.parts || [])) { const t = cerca(sub, mime); if (t) return t; }
+    return "";
+  };
+  const plain = cerca(payload, "text/plain");
+  if (plain) return plain;
+  return cerca(payload, "text/html").replace(/<[^>]+>/g, " ");
+}
+
+async function scansionaPagamentiMail(env, forza) {
+  const cache = (await env.ARRIVI_KV.get(PAGAMENTI_CACHE_KEY, "json")) || { byBooking: {}, visti: [], ts: 0 };
+  if (!forza && Date.now() - (cache.ts || 0) < PAGAMENTI_TTL_MS) return cache;
+  const tok = await getGmailAccessToken(env);
+  if (!tok.access_token) return cache;
+  const h = { Authorization: `Bearer ${tok.access_token}` };
+  const q = encodeURIComponent('subject:"Nuovo pagamento AmenitizPay ricevuto"');
+  const lista = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${q}&maxResults=40`, { headers: h })
+    .then(r => r.json()).catch(() => ({}));
+  const visti = new Set(cache.visti || []);
+  const nuovi = (lista.messages || []).filter(m => !visti.has(m.id)).slice(0, 25);
+  for (const m of nuovi) {
+    const full = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${m.id}?format=full`, { headers: h })
+      .then(r => r.json()).catch(() => null);
+    visti.add(m.id);
+    if (!full) continue;
+    const t = corpoTesto(full.payload).replace(/ /g, " ");
+    const id = (t.match(/ID pagamento:\s*(\d{6,})/i) || [])[1];
+    if (!id) continue;
+    const imp = (t.match(/Importo pagamento:\s*([\d.,]+)\s*€/i) || [])[1];
+    const data = (t.match(/Data pagamento:\s*([^\n]+)/i) || [])[1];
+    const n = imp ? parseFloat(imp.replace(/\./g, "").replace(",", ".")) : null;
+    const prec = cache.byBooking[id];
+    // piu' pagamenti sulla stessa prenotazione: tengo l'elenco degli importi
+    cache.byBooking[id] = { importi: [...new Set([...(prec ? prec.importi : []), n].filter(x => x != null))], ultimo: (data || "").trim() };
+  }
+  cache.visti = [...visti].slice(-400);
+  cache.ts = Date.now();
+  await env.ARRIVI_KV.put(PAGAMENTI_CACHE_KEY, JSON.stringify(cache));
+  return cache;
+}
+
+// Aggiunge b.tassa a ogni prenotazione (da KV) e marca pagata=true se esiste
+// un'email di pagamento con importo uguale alla tassa.
+async function arricchisciTassa(env, lista) {
+  const pag = await scansionaPagamentiMail(env, false).catch(() => ({ byBooking: {} }));
+  await Promise.all(lista.map(async (b) => {
+    const rec = await env.ARRIVI_KV.get(`tassa_${b.booking_id}`, "json").catch(() => null);
+    if (!rec) { b.tassa = null; return; }
+    const p = pag.byBooking ? pag.byBooking[String(b.booking_id)] : null;
+    const pagata = rec.esito === "gia_pagata" ||
+      !!(p && rec.tassa != null && (p.importi || []).some(x => Math.abs(x - rec.tassa) < 0.01));
+    b.tassa = { ...rec, pagata, pagataData: pagata && p ? p.ultimo : (rec.esito === "gia_pagata" ? "" : "") };
+  }));
+}
+
 async function runTassaPrepara(env, date, crea) {
   const day = date || domaniRoma();
   const r = await amenitizGet(`/bookings/checkin?from=${day}&to=${day}&hotel_id=${HOTEL_UUID}`, env);
@@ -1965,9 +2033,7 @@ export default {
         // Tassa di soggiorno (03/09/2026): aggancio esito/link da KV, solo per arrivi da ieri in poi
         const ieriD = new Date(); ieriD.setDate(ieriD.getDate() - 1);
         const ieriIso = ieriD.toISOString().slice(0, 10);
-        await Promise.all(tutte.filter(b => (b.checkin || "") >= ieriIso).map(async b => {
-          b.tassa = await env.ARRIVI_KV.get(`tassa_${b.booking_id}`, "json").catch(() => null);
-        }));
+        await arricchisciTassa(env, tutte.filter(b => (b.checkin || "") >= ieriIso));
         return new Response(JSON.stringify({
           count: tutte.length,
           from: parti.length ? parti[0][0] : "",
@@ -2277,6 +2343,10 @@ export default {
         const res = await runTassaPrepara(env, url.searchParams.get("date"), url.searchParams.get("crea") === "1");
         return jsonRes(res, res.error ? 502 : 200);
       }
+      if (action === "pagamentiMail") {
+        const c = await scansionaPagamentiMail(env, url.searchParams.get("forza") === "1");
+        return jsonRes({ aggiornato: new Date(c.ts || 0).toISOString(), prenotazioni: Object.keys(c.byBooking || {}).length, byBooking: c.byBooking });
+      }
       if (action === "getTassa") {
         const bid = url.searchParams.get("bookingId");
         if (!bid) return jsonRes({ error: "bookingId mancante" }, 400);
@@ -2322,10 +2392,8 @@ export default {
         const s = (b.status || "").toLowerCase();
         return s !== "cancelled" && s !== "canceled";
       });
-      // Tassa di soggiorno (03/09/2026): esito/link preparati di notte, da KV tassa_<bookingId>
-      await Promise.all(attivi.map(async (b) => {
-        b.tassa = await env.ARRIVI_KV.get(`tassa_${b.booking_id}`, "json").catch(() => null);
-      }));
+      // Tassa di soggiorno (03/09/2026): esito/link da KV + verifica "pagata" dalle email AmenitizPay
+      await arricchisciTassa(env, attivi);
       if (env.GMAIL_CLIENT_ID) {
         await Promise.all(attivi.map(async (b) => {
           const bk = b.booker || {};
