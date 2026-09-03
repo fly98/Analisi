@@ -30,6 +30,10 @@
   h1{font-weight:700;font-size:34px;line-height:1.05;letter-spacing:-0.02em;}
   .controls{max-width:560px;margin:18px auto 0;padding:0 16px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
   .controls input[type=date]{flex:1;min-width:150px;font-family:var(--sysfont);font-size:16px;padding:11px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);}
+  .btn-freccia{background:var(--card);border:1.5px solid var(--line);color:var(--sage);
+    font-size:22px;line-height:1;font-weight:700;width:44px;height:44px;border-radius:10px;
+    cursor:pointer;flex:0 0 auto;display:flex;align-items:center;justify-content:center;}
+  .btn-freccia:active{background:var(--paper);}
   .btn{background:var(--terra);color:#fff;border:none;padding:12px 18px;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;}
   .btn:active{filter:brightness(0.92);}
   .btn.sec{background:var(--sage);}
@@ -247,7 +251,9 @@
 </header>
 
 <div class="controls">
-  <input type="date" id="dateInput">
+  <button class="btn-freccia" onclick="spostaGiorno(-1)" aria-label="Giorno precedente" title="Giorno precedente">‹</button>
+  <input type="date" id="dateInput" onchange="dataScelta()">
+  <button class="btn-freccia" onclick="spostaGiorno(1)" aria-label="Giorno successivo" title="Giorno successivo">›</button>
   <button class="btn" onclick="caricaData()">Cerca</button>
 </div>
 <div class="quick">
@@ -1506,10 +1512,28 @@ async function cancellaOrario(){
   }catch(e){console.error("Errore rimozione orario:",e);}
 }
 
+// Data del calendario di casa, non di Greenwich: toISOString() fra mezzanotte e le 2
+// restituirebbe il giorno prima, e Filippo lavora spesso a quell'ora (03/09/2026).
+function isoLocale(d){
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+}
 function vaiA(giorniDopo){
   const d=new Date(); d.setDate(d.getDate()+giorniDopo);
-  const iso=d.toISOString().slice(0,10);
-  document.getElementById("dateInput").value=iso;
+  document.getElementById("dateInput").value=isoLocale(d);
+  caricaData();
+}
+// Scelta sul calendario: chiude il calendario e carica subito, senza passare da Cerca.
+function dataScelta(){
+  const el=document.getElementById("dateInput");
+  el.blur();
+  caricaData();
+}
+function spostaGiorno(passi){
+  const el=document.getElementById("dateInput");
+  // mezzogiorno: cosi' il cambio dell'ora legale non fa saltare o ripetere un giorno
+  const d=el.value?new Date(el.value+"T12:00:00"):new Date();
+  d.setDate(d.getDate()+passi);
+  el.value=isoLocale(d);
   caricaData();
 }
 
@@ -1551,7 +1575,7 @@ async function apriInCasa(){
   modalitaInCasa=true;
   document.getElementById("inCasaBtn").classList.add("active");
 
-  const isoOggi=new Date().toISOString().slice(0,10);
+  const isoOggi=isoLocale(new Date());
   const list=document.getElementById("list");
   document.getElementById("daytitle").textContent="";
   list.innerHTML='<div class="status">Carico ospiti in struttura…</div>';
