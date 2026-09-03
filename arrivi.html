@@ -1064,6 +1064,10 @@ async function leggiWhatsapp(){
       statoMsg("Nessuna chat WhatsApp con il numero "+c.tel+".","");
     } else if(d.wa_esito==="chat_diversa_dal_numero"){
       statoMsg("Fermato: la chat aperta non era di quel numero. Non ho letto nulla.","ko");
+    } else if(d.wa_esito==="profilo_occupato"){
+      statoMsg("C'è già una lettura di WhatsApp in corso. Riprova fra un minuto.","");
+    } else if(d.wa_esito==="browser_non_avviato"){
+      statoMsg("Il browser sul Mac non è partito. Se stavi leggendo un'altra chat, aspetta che finisca.","ko");
     } else if(d.wa_esito==="sessione_assente"){
       statoMsg("WhatsApp Web non è più collegato sul Mac: va rifatto il collegamento col codice QR.","ko");
     } else {
