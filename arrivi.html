@@ -270,12 +270,15 @@
 </div>
 
 
-<div class="modal-bg" id="msgModal">
+<div class="modal-bg" id="msgModal" onclick="if(event.target===this)chiudiMessaggi()">
   <div class="modal">
-    <h3 style="margin-bottom:4px">Messaggi dell'ospite</h3>
-    <div class="copy-note" style="margin-bottom:10px">Solo i messaggi scritti dall'ospite. In viola cio' che e' stato dedotto.</div>
+    <h3>Messaggi dell'ospite</h3>
+    <p>Solo i messaggi scritti dall'ospite. In viola quello che ne è stato dedotto.</p>
     <div id="msgBox"></div>
-    <div class="actions" style="margin-top:12px"><button class="btn" onclick="chiudiMessaggi()">Chiudi</button></div>
+    <div class="modal-actions">
+      <button class="m-cancel" onclick="chiudiMessaggi()">Chiudi</button>
+      <button class="m-ok" id="msgRileggi" onclick="caricaMessaggi(true)">Rileggi da Amenitiz</button>
+    </div>
   </div>
 </div>
 <div class="modal-bg" id="infoModal">
@@ -747,6 +750,7 @@ async function caricaMessaggi(rileggi){
 function disegnaMessaggi(d){
   const box=document.getElementById("msgBox");
   if(d.esito==="fuori_perimetro"){ box.innerHTML='<div class="copy-note">Questo canale non ha la messaggistica attiva.</div>'; return; }
+  if(d.errore){ box.innerHTML='<div class="copy-note">Lettura non riuscita: '+d.errore+'</div>'; return; }
   const ms=d.messaggi||[];
   let html="";
   if(d.orario||d.note){
@@ -755,7 +759,6 @@ function disegnaMessaggi(d){
   html+= ms.length
     ? ms.map(m=>`<div class="msg-riga">${(m.testo||m).replace(/</g,"&lt;")}${m.inviato?` <span class="msg-ora">${m.inviato}</span>`:""}</div>`).join("")
     : '<div class="copy-note">Nessun messaggio scritto dall\'ospite.</div>';
-  html+=`<button class="btn sec" style="margin-top:10px" onclick="caricaMessaggi(true)">Rileggi da Amenitiz</button>`;
   box.innerHTML=html;
 }
 function chiudiMessaggi(){document.getElementById("msgModal").classList.remove("show");}
