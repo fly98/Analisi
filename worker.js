@@ -1506,7 +1506,7 @@ async function rispondiUna(env, id, testo, ospite, invia) {
 // Legge da WhatsApp i messaggi ricevuti dal numero della prenotazione e li unisce
 // a quelli di Amenitiz, poi rifa' l'interpretazione su TUTTO insieme: l'ospite puo'
 // aver scritto l'orario su un canale e la richiesta sull'altro.
-async function whatsappUna(env, id, tel, giorni) {
+async function whatsappUna(env, id, tel, giorni, checkin) {
   const key = `msg_${id}`;
   const prev = await env.ARRIVI_KV.get(key, "json").catch(() => null);
   const rec = prev || { bookingId: String(id), esito: "messaggi_letti", messaggi: [] };
@@ -1540,6 +1540,24 @@ async function whatsappUna(env, id, tel, giorni) {
     } else if (est) rec.errore_estrazione = est.errore;
   }
   await env.ARRIVI_KV.put(key, JSON.stringify(rec));
+
+  // Orario e nota vanno scritti anche quando l'informazione arriva da WhatsApp: mancava,
+  // e la lettura restava senza effetto sulla scheda (segnalato da Filippo il 04/09/2026).
+  // Regola invariata: non si sovrascrive mai quello che c'e' gia', vedi le note scritte a mano.
+  const giorno = String(checkin || "").slice(0, 10);
+  rec.orario_scritto = false; rec.nota_scritta = false;
+  if (giorno) {
+    if (rec.orario) {
+      const kO = `orario_${giorno}_${id}`;
+      if (!(await env.ARRIVI_KV.get(kO))) { await env.ARRIVI_KV.put(kO, rec.orario); rec.orario_scritto = true; }
+    }
+    if (rec.note) {
+      const kN = `nota_${giorno}_${id}`;
+      if (!(await env.ARRIVI_KV.get(kN))) { await env.ARRIVI_KV.put(kN, rec.note); rec.nota_scritta = true; }
+    }
+  } else {
+    rec.avviso = "senza data di arrivo non posso scrivere orario e nota";
+  }
   return rec;
 }
 
@@ -2713,7 +2731,8 @@ export default {
         const tel = (url.searchParams.get("tel") || "").trim();
         if (!bid) return jsonRes({ error: "bookingId mancante" }, 400);
         if (tel.replace(/\D/g, "").length < 9) return jsonRes({ error: "numero di telefono assente o troppo corto" }, 400);
-        const rec = await whatsappUna(env, bid, tel, parseInt(url.searchParams.get("giorni") || "30", 10) || 30);
+        const rec = await whatsappUna(env, bid, tel, parseInt(url.searchParams.get("giorni") || "30", 10) || 30,
+          url.searchParams.get("checkin") || "");
         return jsonRes(rec, rec.wa_esito === "errore" ? 502 : 200);
       }
       if (action === "traduci") {
@@ -2885,9 +2904,20 @@ export default {
 
     // Mapping ESPLICITO orario -> job. Niente "else" generico: un orario non
     // previsto non deve far partire invii di email agli ospiti per sbaglio.
-    if (hourUTC === 2) {
-      // Notte: prepara i link della tassa di soggiorno per gli arrivi di domani (crea=true)
-      ctx.waitUntil(runTassaPrepara(env, null, true));
+    if (hourUTC === 2 || hourUTC === 3) {
+      // Notte: prepara i link della tassa di soggiorno per gli arrivi di domani (crea=true).
+      // Cloudflare conosce solo l'ora di Greenwich: due orari UTC coprono ora legale e solare,
+      // e parte solo quello che cade davvero alle 4 italiane (stesso metodo del riepilogo
+      // delle 17). Senza questo, da fine ottobre il giro sarebbe partito alle 3.
+      const oraNotte = parseInt(
+        new Date(event.scheduledTime).toLocaleString("en-GB", { timeZone: "Europe/Rome", hour: "2-digit", hour12: false }),
+        10
+      );
+      if (oraNotte === 4) {
+        ctx.waitUntil(runTassaPrepara(env, null, true));
+      } else {
+        console.log("Cron tassa: ora italiana " + oraNotte + ", salto (attendo le 4)");
+      }
     } else if (hourUTC === 4) {
       ctx.waitUntil(runAutoSend(env, false));
     } else if (hourUTC === 10) {
