@@ -153,7 +153,7 @@
   .disp-totale span{font-size:16px!important;font-weight:700!important;color:var(--ink)!important;}
   .disp-sconto span{color:var(--sage)!important;}
   .disp-sconto span:last-child{font-weight:700!important;}
-  .orario-chip,.nota-chip,.tassa-chip{display:inline-flex;align-items:center;font-size:11px;font-weight:600;padding:3px 8px;border-radius:6px;background:var(--paper);border:1.5px solid var(--line);color:var(--muted);cursor:pointer;user-select:none;}
+  .orario-chip,.nota-chip,.tassa-chip,.msg-chip{display:inline-flex;align-items:center;font-size:11px;font-weight:600;padding:3px 8px;border-radius:6px;background:var(--paper);border:1.5px solid var(--line);color:var(--muted);cursor:pointer;user-select:none;}
   .nota-chip.set{color:var(--terra);border-color:var(--terra);background:#fdf0ec;font-weight:700;}
   .orario-chip:active,.nota-chip:active{filter:brightness(0.93);}
   .orario-chip.set{color:var(--sage);border-color:var(--sage);background:#f0f4ee;}
@@ -163,6 +163,11 @@
   .tassa-chip.warn{color:var(--terra);border-color:var(--terra);background:#fdf0ec;font-weight:700;}
   .tassa-chip:active{filter:brightness(0.93);}
   .tassa-chip.busy{opacity:0.65;pointer-events:none;}
+  .msg-chip.set{color:#6b4fa8;border-color:#6b4fa8;background:#f2eefa;font-weight:700;}
+  .msg-chip.busy{opacity:0.65;pointer-events:none;}
+  .msg-riga{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin-bottom:6px;font-size:13px;line-height:1.4;}
+  .msg-ora{color:var(--muted);font-size:11px;}
+  .msg-estratto{background:#f2eefa;border:1.5px solid #6b4fa8;border-radius:8px;padding:8px 10px;font-size:13px;margin-bottom:10px;}
   .resto-alert{display:inline-flex;align-items:center;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;background:#fdf0ec;border:1.5px solid var(--terra);color:var(--terra);margin-left:4px;}
   .nota-textarea{width:100%;font-family:var(--sysfont);font-size:15px;padding:12px;border:1.5px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);resize:none;height:120px;margin-bottom:16px;}
   .orario-modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.4);display:none;align-items:center;justify-content:center;z-index:300;padding:20px;}
@@ -264,6 +269,14 @@
 </div>
 
 
+<div class="modal-bg" id="msgModal">
+  <div class="modal">
+    <h3 style="margin-bottom:4px">Messaggi dell'ospite</h3>
+    <div class="copy-note" style="margin-bottom:10px">Solo i messaggi scritti dall'ospite. In viola cio' che e' stato dedotto.</div>
+    <div id="msgBox"></div>
+    <div class="actions" style="margin-top:12px"><button class="btn" onclick="chiudiMessaggi()">Chiudi</button></div>
+  </div>
+</div>
 <div class="modal-bg" id="infoModal">
   <div class="modal" id="infoModalBox"></div>
 </div>
@@ -664,6 +677,8 @@ function msgTassa(nome,lng,notti,link){
   return t.base+(notti>=2?t.cash:"");
 }
 let taxStore={};
+let msgOspite={};
+let ospiteCur=null;
 let taxCurrent=null;
 
 // ====== TASSA: generazione del link su richiesta (03/09/2026) ======
@@ -699,6 +714,50 @@ async function generaLink(i, bookingId, intero){
     alert("Errore nella creazione del link: "+e.message);
   }
 }
+
+// ====== MESSAGGI DELL'OSPITE (03/09/2026) ======
+// Mostra solo i messaggi scritti dall'ospite (non i nostri) e cio' che ne e' stato dedotto.
+// La lettura passa dal Mac: la prima volta richiede una quarantina di secondi.
+async function apriMessaggi(i,bookingId,source,iso){
+  ospiteCur={i,bookingId,source,iso};
+  const box=document.getElementById("msgBox");
+  document.getElementById("msgModal").classList.add("show");
+  const rec=msgOspite[i];
+  if(rec&&rec.messaggi&&rec.messaggi.length){ disegnaMessaggi(rec); return; }
+  box.innerHTML='<div class="copy-note">Leggo i messaggi su Amenitiz… può richiedere una quarantina di secondi.</div>';
+  await caricaMessaggi(false);
+}
+async function caricaMessaggi(rileggi){
+  const c=ospiteCur; if(!c) return;
+  const box=document.getElementById("msgBox");
+  box.innerHTML='<div class="copy-note">Lettura in corso…</div>';
+  try{
+    const r=await fetch(`${WORKER}/?action=messaggi&bookingId=${encodeURIComponent(c.bookingId)}&source=${encodeURIComponent(c.source)}&checkin=${encodeURIComponent(c.iso)}${rileggi?"&rileggi=1":""}`);
+    const d=await r.json();
+    msgOspite[c.i]=d;
+    disegnaMessaggi(d);
+    // se l'interpretazione ha riempito orario o note, aggiorno i chip senza ricaricare
+    if(d.orario_scritto){const ch=document.querySelectorAll(".orario-chip")[c.i]; if(ch){ch.textContent="🕐 "+d.orario;ch.classList.add("set");}}
+    if(d.nota_scritta){const ch=document.querySelectorAll(".nota-chip")[c.i]; if(ch)ch.classList.add("set");}
+    const mc=document.querySelectorAll(".msg-chip")[c.i];
+    if(mc&&d.messaggi&&d.messaggi.length)mc.classList.add("set");
+  }catch(e){ box.innerHTML='<div class="copy-note">Errore nella lettura: '+e.message+'</div>'; }
+}
+function disegnaMessaggi(d){
+  const box=document.getElementById("msgBox");
+  if(d.esito==="fuori_perimetro"){ box.innerHTML='<div class="copy-note">Questo canale non ha la messaggistica attiva.</div>'; return; }
+  const ms=d.messaggi||[];
+  let html="";
+  if(d.orario||d.note){
+    html+=`<div class="msg-estratto">${d.orario?`🕐 <b>${d.orario}</b>${d.fonte==="stimato"?" <i>(stimato)</i>":""}<br>`:""}${d.note?`📝 ${d.note}`:""}</div>`;
+  }
+  html+= ms.length
+    ? ms.map(m=>`<div class="msg-riga">${(m.testo||m).replace(/</g,"&lt;")}${m.inviato?` <span class="msg-ora">${m.inviato}</span>`:""}</div>`).join("")
+    : '<div class="copy-note">Nessun messaggio scritto dall\'ospite.</div>';
+  html+=`<button class="btn sec" style="margin-top:10px" onclick="caricaMessaggi(true)">Rileggi da Amenitiz</button>`;
+  box.innerHTML=html;
+}
+function chiudiMessaggi(){document.getElementById("msgModal").classList.remove("show");}
 
 function apriTassa(i){
   taxCurrent=i;
@@ -929,6 +988,12 @@ function render(iso,bookings,isRicerca){
       :(tEs?("Da controllare: "+tEs):"Nessun link preparato")))));
     // Resto della camera ancora da pagare: non blocca il link della tassa, ma va ricordato
     const restoDaPagare=!!(tRec&&tRec.resto_da_pagare&&!tassaPagata);
+    // Messaggi dell'ospite: solo Booking e Airbnb hanno la messaggistica attiva
+    const mRec=b.messaggi||null;
+    const mHa=!!(mRec&&mRec.messaggi&&mRec.messaggi.length);
+    const msgAttivo=/booking|airbnb/i.test(source||"");
+    const msgChip=msgAttivo?`<span class="msg-chip${mHa?" set":""}" title="${mHa?("Messaggi dell'ospite: "+mRec.messaggi.length):"Leggi i messaggi dell'ospite"}" onclick="apriMessaggi(${i},${b.booking_id},'${source}','${isoCard}')">💬 messaggi</span>`:"";
+    msgOspite[i]=mRec;
     const restoBadge=restoDaPagare?`<span class="resto-alert" title="Oltre alla tassa risulta da pagare anche il resto della prenotazione: verifica su Amenitiz">❗️ resto da pagare</span>`:"";
 
     let action="";
@@ -1013,7 +1078,7 @@ function render(iso,bookings,isRicerca){
         <div style="display:flex;gap:5px">${roomBadgesHtml}</div>
       </div>
       ${altriOspiti.length?`<div class="altri-ospiti">👤 ${altriOspiti.join(" · ")}</div>`:""}
-      <div class="meta"><span>${dataCompatta(isoCard)} → ${dataCompatta(b.checkout||"")}</span><span>${b.adults||""}${b.children?(" +"+b.children+"🧒"):""}👤</span>${badgeCanale(source)}</div><div class="meta"><span class="orario-chip${orarioSalvato?" set":""}" onclick="apriOrarioModal(${i},${b.booking_id},'${isoCard}')">${orarioSalvato?"🕐 "+orarioSalvato:"🕐 orario"}</span><span class="nota-chip${notaSalvata?" set":""}" onclick="apriNotaModal(${i},${b.booking_id},'${isoCard}')">${notaSalvata?"📝 note":"📝 note"}</span><span class="tassa-chip${tassaCls}" title="${tassaTitle}" onclick="${tassaPronta||tassaPagata?`apriTassa(${i})`:`generaLink(${i},${b.booking_id},false)`}">${tassaTxt}</span>${restoBadge}</div>
+      <div class="meta"><span>${dataCompatta(isoCard)} → ${dataCompatta(b.checkout||"")}</span><span>${b.adults||""}${b.children?(" +"+b.children+"🧒"):""}👤</span>${badgeCanale(source)}</div><div class="meta"><span class="orario-chip${orarioSalvato?" set":""}" onclick="apriOrarioModal(${i},${b.booking_id},'${isoCard}')">${orarioSalvato?"🕐 "+orarioSalvato:"🕐 orario"}</span><span class="nota-chip${notaSalvata?" set":""}" onclick="apriNotaModal(${i},${b.booking_id},'${isoCard}')">${notaSalvata?"📝 note":"📝 note"}</span><span class="tassa-chip${tassaCls}" title="${tassaTitle}" onclick="${tassaPronta||tassaPagata?`apriTassa(${i})`:`generaLink(${i},${b.booking_id},false)`}">${tassaTxt}</span>${msgChip}${restoBadge}</div>
       ${action}
 `;
     if(notaSalvata){
