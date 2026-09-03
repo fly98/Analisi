@@ -815,6 +815,7 @@ function statoMsg(testo,classe){
   e.textContent=testo||""; e.className="msg-stato"+(classe?" "+classe:"");
 }
 function apriMessaggi(i,bookingId,source,iso,nome,lng,tel,da){
+  msgHaScritto=false;
   ospiteCur={i,bookingId,source,iso,nome:nome||"",lng:lng||"it",tel:tel||"",da:da||"ota"};
   document.getElementById("ospiteModal").classList.add("show");
   // Mostro subito l'ultima lettura, se ce l'ho, e poi rileggo.
@@ -874,6 +875,7 @@ async function caricaMessaggi(rileggi){
       else if(d.esito==="fuori_perimetro") statoMsg("Questo canale non ha la messaggistica attiva.","");
       else statoMsg("Riletto da Amenitiz alle "+ora+".","");
     }
+    allineaScritti(c.bookingId,d);
     if(d.orario_scritto){const ch=document.querySelectorAll(".orario-chip")[c.i]; if(ch){ch.textContent="🕐 "+d.orario;ch.classList.add("set");}}
     if(d.nota_scritta){const ch=document.querySelectorAll(".nota-chip")[c.i]; if(ch)ch.classList.add("set");}
     const mc=document.querySelectorAll(".msg-chip")[c.i];
@@ -916,6 +918,15 @@ function disegnaMessaggi(d){
   box.innerHTML=html;
 }
 let rispArmato=false;
+let msgHaScritto=false;   // qualcosa e' stato scritto mentre la finestra era aperta
+// Il colore del pulsante non basta: orario e nota vivono in orariMap/noteMap, e se non li
+// aggiorno qui la nota risulta vuota quando la apri e la riga sotto la scheda non compare
+// (segnalato il 04/09/2026).
+function allineaScritti(bookingId,d){
+  const id=String(bookingId);
+  if(d && d.orario_scritto && d.orario){ orariMap[id]=d.orario; msgHaScritto=true; }
+  if(d && d.nota_scritta && d.note){ noteMap[id]=d.note; msgHaScritto=true; }
+}
 function rispCambia(){
   const t=(document.getElementById("rispTesto").value||"").trim();
   const b=document.getElementById("rispBtn");
@@ -1055,6 +1066,7 @@ async function leggiWhatsapp(){
       const wc=document.querySelectorAll(".wa-chip")[c.i];
       if(wc&&n)wc.classList.add("set");
       // orario e note scritti dall'interpretazione: aggiorno i pulsanti senza ricaricare
+      allineaScritti(c.bookingId,d);
       if(d.orario_scritto){const ch=document.querySelectorAll(".orario-chip")[c.i]; if(ch){ch.textContent="🕐 "+d.orario;ch.classList.add("set");}}
       if(d.nota_scritta){const ch=document.querySelectorAll(".nota-chip")[c.i]; if(ch)ch.classList.add("set");}
       const scritti=[d.orario_scritto?("orario "+d.orario):"",d.nota_scritta?"nota":""].filter(Boolean).join(" e ");
@@ -1078,7 +1090,15 @@ async function leggiWhatsapp(){
   }
   b.disabled=false; b.textContent="Leggi WhatsApp";
 }
-function chiudiMessaggi(){document.getElementById("ospiteModal").classList.remove("show");}
+function chiudiMessaggi(){
+  document.getElementById("ospiteModal").classList.remove("show");
+  // Ridisegno la giornata solo se e' cambiato qualcosa: cosi' compare anche l'anteprima
+  // della nota sotto la scheda, che vive nel disegno della riga e non nel pulsante.
+  if(msgHaScritto){
+    msgHaScritto=false;
+    if(!ricercaAttiva) caricaData();
+  }
+}
 
 function apriTassa(i){
   taxCurrent=i;
