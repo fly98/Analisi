@@ -30,6 +30,15 @@
   h1{font-weight:700;font-size:34px;line-height:1.05;letter-spacing:-0.02em;}
   .controls{max-width:560px;margin:18px auto 0;padding:0 16px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
   .controls input[type=date]{flex:1;min-width:150px;font-family:var(--sysfont);font-size:16px;padding:11px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);}
+  .wa-scan-row{max-width:560px;margin:10px auto 0;padding:0 16px;text-align:center;}
+  .wa-scan-row button{font:inherit;font-size:12px;font-weight:600;color:var(--sage);background:var(--card);
+    border:1.5px solid var(--line);border-radius:9px;padding:8px 12px;cursor:pointer;}
+  .wa-scan-row button[disabled]{opacity:.55;cursor:default;}
+  #waScanEsito{max-width:560px;margin:10px auto 0;padding:10px 14px;font-size:12.5px;line-height:1.5;
+    background:var(--paper);border:1.5px solid var(--line);border-radius:10px;}
+  #waScanEsito b{color:var(--ink);}
+  #waScanEsito .riga{padding:4px 0;border-top:1px solid var(--line);}
+  #waScanEsito .riga:first-of-type{border-top:none;}
   #notteNota{max-width:560px;margin:8px auto 0;padding:0 16px;font-size:12px;color:var(--muted);text-align:center;}
   .btn-freccia{background:var(--card);border:1.5px solid var(--line);color:var(--sage);
     font-size:22px;line-height:1;font-weight:700;width:44px;height:44px;border-radius:10px;
@@ -203,6 +212,7 @@
   .risp-invio button.conferma{background:#b3261e;border-color:#b3261e;}
   .risp-nota{font-size:11.5px;color:var(--muted);margin-top:6px;}
   .risp-invio button.secondario{background:var(--card);color:var(--sage);border-color:var(--line);}
+  .risp-invio button.verde{background:#25d366;border-color:#25d366;color:#0b3d21;}
   .risp-orig{margin-top:8px;padding:8px 10px;border-radius:8px;background:var(--paper);
     border:1px dashed var(--line);font-size:12px;color:var(--muted);line-height:1.4;}
   .risp-orig b{color:var(--ink);}
@@ -283,6 +293,10 @@
   <button onclick="vaiA(2)">Dopodomani</button>
 </div>
 <div id="notteNota" hidden></div>
+<div class="wa-scan-row">
+  <button id="waScanBtn" onclick="scansionaWhatsapp()">📱 Cerca messaggi WhatsApp (da 2 giorni fa a 2 avanti)</button>
+</div>
+<div id="waScanEsito" hidden></div>
 
 <div class="search-box">
   <div class="search-row">
@@ -337,7 +351,7 @@
     </div>
     <div class="modal-actions">
       <button class="m-cancel" onclick="chiudiMessaggi()">Chiudi</button>
-      <button class="m-ok" id="msgWa" onclick="leggiWhatsapp()">Leggi WhatsApp</button>
+      <button class="m-ok" id="msgWa" onclick="leggiWhatsapp()">Aggiorna WhatsApp</button>
       <button class="m-ok" id="msgRileggi" onclick="caricaMessaggi(true)">Rileggi da Amenitiz</button>
     </div>
   </div>
@@ -798,11 +812,18 @@ function apriMessaggi(i,bookingId,source,iso,nome,lng,tel,da){
   // aspettare quaranta secondi a ogni apertura non ha senso).
   rispReset();
   rispCambia();
+  // Una finestra, due modi: da 📱 si lavora su WhatsApp, da 💬 su Booking/Airbnb.
+  // Tenere entrambi i pulsanti confondeva (segnalato il 04/09/2026).
+  const inWa=(da==="wa");
+  document.querySelector("#ospiteModal h3").textContent=inWa?"Messaggi WhatsApp":"Messaggi dell'ospite";
   const bw=document.getElementById("msgWa");
+  const br=document.getElementById("msgRileggi");
   if(bw){
     const ok=String(tel||"").replace(/\D/g,"").length>=9;
-    bw.disabled=!ok; bw.title=ok?("Cerca la chat di "+tel):"Prenotazione senza numero di telefono";
+    bw.hidden=!inWa; bw.disabled=!ok;
+    bw.title=ok?("Rilegge la chat di "+tel):"Prenotazione senza numero di telefono";
   }
+  if(br) br.hidden=inWa;
   const rec=msgOspite[i];
   if(rec&&rec.esito==="fuori_perimetro"){ document.getElementById("rispZona").style.display="none"; }
   if(rec&&(rec.messaggi&&rec.messaggi.length||rec.orario||rec.note||(rec.inviati||[]).length||(rec.whatsapp||[]).length)){
@@ -885,7 +906,14 @@ let rispArmato=false;
 function rispCambia(){
   const t=(document.getElementById("rispTesto").value||"").trim();
   const b=document.getElementById("rispBtn");
+  const inWa=(ospiteCur&&ospiteCur.da==="wa");
   b.disabled=!t;
+  b.classList.toggle("verde",inWa);
+  if(!rispArmato) b.textContent=inWa?"Apri WhatsApp col messaggio":"Invia all'ospite";
+  const n=document.getElementById("rispNota");
+  if(n&&!rispArmato) n.textContent=inWa
+    ? "Apre WhatsApp col testo già scritto: l'invio lo dai tu."
+    : "Parte sul canale della prenotazione (Booking o Airbnb).";
   const tb=document.getElementById("rispTradBtn");
   const lng=(ospiteCur&&ospiteCur.lng)||"it";
   if(tb){ tb.disabled=!t||lng==="it"; tb.textContent=lng==="it"?"Traduci":("Traduci in "+(LNG_NOMI[lng]||lng)); }
@@ -945,9 +973,20 @@ async function inviaRisposta(){
   if(!testo) return;
   const b=document.getElementById("rispBtn"), n=document.getElementById("rispNota");
   // Due passaggi: il messaggio va a una persona vera e non si puo' richiamare.
-  if(!rispArmato){
+  // La doppia conferma serve dove l'invio parte davvero da qui. Su WhatsApp non serve:
+  // l'ultimo gesto e' comunque tuo, dentro l'app.
+  if(!rispArmato && ospiteCur.da!=="wa"){
     rispArmato=true; b.textContent="Confermi l'invio?"; b.classList.add("conferma");
     n.textContent="Premi di nuovo per mandarlo davvero. Una volta partito non si annulla.";
+    return;
+  }
+  // Su WhatsApp non invio io: apro l'app col testo pronto e l'ultimo gesto lo fai tu.
+  if(ospiteCur.da==="wa"){
+    const tel=String(c.tel||"").replace(/[^0-9]/g,"");
+    rispArmato=false;
+    b.textContent="Apri WhatsApp col messaggio"; b.classList.remove("conferma");
+    document.getElementById("rispNota").textContent="WhatsApp si apre con il testo già scritto.";
+    window.location.href="whatsapp://send?phone="+tel+"&text="+encodeURIComponent(testo);
     return;
   }
   rispArmato=false; b.disabled=true; b.textContent="Invio…"; b.classList.remove("conferma");
@@ -2228,6 +2267,49 @@ async function controllaGiro(tentativo){
 }
 controllaGiro();
 notteAvviso();
+
+// Prova manuale: legge le chat WhatsApp degli arrivi da due giorni fa a due avanti.
+// Un giorno per volta, cosi' si vede l'avanzamento e nessuna richiesta dura troppo.
+async function scansionaWhatsapp(){
+  const b=document.getElementById("waScanBtn");
+  const box=document.getElementById("waScanEsito");
+  b.disabled=true; box.hidden=false;
+  const base=oggiLavorativo();
+  const giorni=[];
+  for(let d=-2; d<=2; d++){ const x=new Date(base); x.setDate(x.getDate()+d); giorni.push(isoLocale(x)); }
+  let html="", trovati=0, letti=0;
+  for(const g of giorni){
+    b.textContent="Cerco… "+g;
+    box.innerHTML=html+`<div class="riga">⏳ ${g}…</div>`;
+    try{
+      const r=await fetch(`${WORKER}/?action=waGiorno&giorno=${g}`);
+      const d=await r.json();
+      if(d.error){ html+=`<div class="riga">⚠️ <b>${g}</b> — ${d.error}</div>`; }
+      else if(!d.totale){ html+=`<div class="riga">— <b>${g}</b> nessun arrivo</div>`; }
+      else {
+        d.esiti.forEach(e=>{
+          letti++;
+          if(e.esito==="senza_telefono"){ html+=`<div class="riga">☎️ <b>${e.nome}</b> — senza telefono</div>`; return; }
+          if(e.messaggi){
+            trovati++;
+            const scritti=[e.orario_scritto?("orario "+e.orario):"",e.nota_scritta?"nota":""].filter(Boolean).join(" + ");
+            html+=`<div class="riga">✅ <b>${e.nome}</b> — ${e.messaggi} messagg${e.messaggi===1?"io":"i"}`
+              +`${e.orario?", arrivo "+e.orario:""}${e.contanti?" 💵":""}`
+              +`${scritti?` <i>(scritti: ${scritti})</i>`:" <i>(già compilati, non toccati)</i>"}`
+              +`${e.confermato?"":' <span style="color:#b3261e">⚠️ numero non confermato</span>'}`
+              +`${e.nota?`<br><span style="color:var(--muted)">${String(e.nota).replace(/</g,"&lt;")}</span>`:""}</div>`;
+          } else {
+            html+=`<div class="riga">▫️ <b>${e.nome}</b> — ${e.esito==="chat_non_trovata"?"nessuna chat":"nessun messaggio ricevuto"}</div>`;
+          }
+        });
+      }
+    }catch(e){ html+=`<div class="riga">⚠️ <b>${g}</b> — ${String(e.message).replace(/</g,"&lt;")}</div>`; }
+    box.innerHTML=html;
+  }
+  box.innerHTML=`<div class="riga"><b>Finito.</b> ${letti} prenotazioni esaminate, ${trovati} con messaggi WhatsApp.</div>`+html;
+  b.disabled=false; b.textContent="📱 Cerca messaggi WhatsApp (da 2 giorni fa a 2 avanti)";
+  caricaData();
+}
 </script>
   </div>
 </div>
