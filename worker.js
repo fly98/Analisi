@@ -1681,7 +1681,9 @@ async function runWhatsappPrepara(env, date) {
         contanti: !!rec.contanti, orario_scritto: !!rec.orario_scritto, nota_scritta: !!rec.nota_scritta
       });
     }
-    const errori = esiti.filter(e => e.esito === "errore" || e.esito === "sessione_assente" || e.esito === "chat_diversa_dal_numero");
+    // "messaggi_da_sincronizzare" va segnalato come gli altri: il messaggio c'e' ma WhatsApp
+    // Web non riesce a decifrarlo, e proprio quello e' spesso l'aggiornamento last minute.
+    const errori = esiti.filter(e => ["errore", "sessione_assente", "chat_diversa_dal_numero", "messaggi_da_sincronizzare"].includes(e.esito));
     await env.ARRIVI_KV.put("giro_whatsapp", JSON.stringify({
       ts: new Date().toISOString(), iniziato, giorno: day, completato: true,
       totale: esiti.length, con_messaggi: esiti.filter(e => e.messaggi).length,
