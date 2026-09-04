@@ -1654,6 +1654,50 @@ async function runTassaPrepara(env, date, crea) {
   }
 }
 
+// Passaggio delle 3: legge le chat WhatsApp degli arrivi di domani e ne ricava orario e note.
+// Vale per TUTTI i canali, non solo Booking e Airbnb: e' il vantaggio su Amenitiz, che ha
+// la messaggistica solo su quei due. Gira un'ora prima della tassa apposta, perche' se
+// l'ospite scrive che paga in contanti il link non va nemmeno creato (04/09/2026).
+async function runWhatsappPrepara(env, date) {
+  const day = date || domaniRoma();
+  const iniziato = new Date().toISOString();
+  const esiti = [];
+  try {
+    const r = await amenitizGet(`/bookings/checkin?from=${day}&to=${day}&hotel_id=${HOTEL_UUID}`, env);
+    if (!r.ok) throw new Error("API Amenitiz " + r.status);
+    const lista = await r.json();
+    for (const b of (Array.isArray(lista) ? lista : [])) {
+      const st = (b.status || "").toLowerCase();
+      if (st === "cancelled" || st === "canceled") continue;
+      const tel = String((b.booker && (b.booker.phone || b.booker.mobile)) || "");
+      const nome = [(b.booker && b.booker.first_name) || "", (b.booker && b.booker.last_name) || ""].join(" ").trim();
+      if (tel.replace(/\D/g, "").length < 9) { esiti.push({ bookingId: String(b.booking_id), nome, esito: "senza_telefono" }); continue; }
+      // i messaggi dell'agenzia vanno letti prima, cosi' l'interpretazione li vede insieme
+      if (MSG_FONTI.test(b.source || "")) await messaggiUna(env, b, false).catch(() => null);
+      const rec = await whatsappUna(env, String(b.booking_id), tel, 45, b.checkin || day).catch(e => ({ wa_esito: "errore", wa_errore: String(e && e.message || e) }));
+      esiti.push({
+        bookingId: String(b.booking_id), nome, esito: rec.wa_esito || "errore",
+        errore: rec.wa_errore || "", messaggi: (rec.whatsapp || []).length,
+        contanti: !!rec.contanti, orario_scritto: !!rec.orario_scritto, nota_scritta: !!rec.nota_scritta
+      });
+    }
+    const errori = esiti.filter(e => e.esito === "errore" || e.esito === "sessione_assente" || e.esito === "chat_diversa_dal_numero");
+    await env.ARRIVI_KV.put("giro_whatsapp", JSON.stringify({
+      ts: new Date().toISOString(), iniziato, giorno: day, completato: true,
+      totale: esiti.length, con_messaggi: esiti.filter(e => e.messaggi).length,
+      errori: errori.map(e => ({ bookingId: e.bookingId, esito: e.esito, errore: (e.errore || "").slice(0, 160) })),
+      n_errori: errori.length, guasto: ""
+    })).catch(() => {});
+    return { giorno: day, totale: esiti.length, esiti };
+  } catch (e) {
+    await env.ARRIVI_KV.put("giro_whatsapp", JSON.stringify({
+      ts: new Date().toISOString(), iniziato, giorno: day, completato: false,
+      totale: esiti.length, errori: [], n_errori: 0, guasto: String(e && e.message || e).slice(0, 300)
+    })).catch(() => {});
+    throw e;
+  }
+}
+
 async function runTassaPreparaInterno(env, date, crea) {
   const day = date;
   const r = await amenitizGet(`/bookings/checkin?from=${day}&to=${day}&hotel_id=${HOTEL_UUID}`, env);
@@ -1666,9 +1710,12 @@ async function runTassaPreparaInterno(env, date, crea) {
     if (!TASSA_FONTI.test(b.source || "")) { esiti.push({ bookingId: String(b.booking_id), source: b.source || "", esito: "fuori_perimetro" }); continue; }
     // Se l'ospite ha scritto che paga la tassa in contanti, il link non serve: lo salta.
     // I messaggi vanno quindi letti PRIMA di creare il link (solo Booking e Airbnb ce li hanno).
+    // Il "pago in contanti" puo' essere arrivato da WhatsApp anche su prenotazioni senza
+    // messaggistica (dirette, Expedia): leggo comunque quello che il passaggio delle 3 ha scritto.
     let msg = null;
-    if (MSG_FONTI.test(b.source || "")) {
-      msg = await messaggiUna(env, b, false);
+    if (MSG_FONTI.test(b.source || "")) msg = await messaggiUna(env, b, false);
+    else msg = await env.ARRIVI_KV.get(`msg_${b.booking_id}`, "json").catch(() => null);
+    {
       if (msg && msg.contanti) {
         esiti.push({ bookingId: String(b.booking_id), source: b.source || "", esito: "tassa_in_contanti",
                      nota: msg.note || "", messaggi: (msg.messaggi || []).length });
@@ -2819,8 +2866,19 @@ export default {
         if (!leggibile) return jsonRes({ stato: "archivio_non_leggibile" });
         if (!g) return jsonRes({ stato: "mai_girato" });
         const ore = (Date.now() - Date.parse(g.ts || 0)) / 3600000;
-        const stato = !g.completato ? "interrotto" : (ore > 30 ? "vecchio" : (g.n_errori ? "con_errori" : "ok"));
-        return jsonRes({ stato, ore: Math.round(ore), ...g });
+        // Il passaggio WhatsApp delle 3 e' un giro a se': se ha lasciato guai, finiscono
+        // nello stesso avviso, cosi' Filippo ha un solo posto da guardare (04/09/2026).
+        const w = await env.ARRIVI_KV.get("giro_whatsapp", "json").catch(() => null);
+        const erroriWa = [];
+        if (w) {
+          if (!w.completato) erroriWa.push({ bookingId: "WhatsApp", esito: "interrotto", errore: (w.guasto || "").slice(0, 160) });
+          for (const e of (w.errori || [])) erroriWa.push({ ...e, bookingId: "WhatsApp " + e.bookingId });
+        }
+        const errori = (g.errori || []).concat(erroriWa);
+        const nErr = errori.length;
+        const stato = !g.completato ? "interrotto" : (ore > 30 ? "vecchio" : (nErr ? "con_errori" : "ok"));
+        return jsonRes({ stato, ore: Math.round(ore), ...g, errori, n_errori: nErr,
+          whatsapp: w ? { ts: w.ts, totale: w.totale, con_messaggi: w.con_messaggi, n_errori: w.n_errori } : null });
       }
       if (action === "apiCheck") {
         // diagnostica: la chiave Anthropic c'e' ed e' valida? Non mostra mai il valore.
@@ -2940,7 +2998,7 @@ export default {
 
     // Mapping ESPLICITO orario -> job. Niente "else" generico: un orario non
     // previsto non deve far partire invii di email agli ospiti per sbaglio.
-    if (hourUTC === 2 || hourUTC === 3) {
+    if (hourUTC === 1 || hourUTC === 2 || hourUTC === 3) {
       // Notte: prepara i link della tassa di soggiorno per gli arrivi di domani (crea=true).
       // Cloudflare conosce solo l'ora di Greenwich: due orari UTC coprono ora legale e solare,
       // e parte solo quello che cade davvero alle 4 italiane (stesso metodo del riepilogo
@@ -2949,10 +3007,12 @@ export default {
         new Date(event.scheduledTime).toLocaleString("en-GB", { timeZone: "Europe/Rome", hour: "2-digit", hour12: false }),
         10
       );
-      if (oraNotte === 4) {
+      if (oraNotte === 3) {
+        ctx.waitUntil(runWhatsappPrepara(env, null));
+      } else if (oraNotte === 4) {
         ctx.waitUntil(runTassaPrepara(env, null, true));
       } else {
-        console.log("Cron tassa: ora italiana " + oraNotte + ", salto (attendo le 4)");
+        console.log("Cron notte: ora italiana " + oraNotte + ", niente da fare");
       }
     } else if (hourUTC === 4) {
       ctx.waitUntil(runAutoSend(env, false));
