@@ -933,6 +933,7 @@ function disegnaMessaggi(d){
 }
 let schedeGiorno=[];
 let aggiornamentoGiorno=false;
+let giornoInAggiornamento=null;
 let rispArmato=false;
 let msgHaScritto=false;   // qualcosa e' stato scritto mentre la finestra era aperta
 // Il colore del pulsante non basta: orario e nota vivono in orariMap/noteMap, e se non li
@@ -1209,6 +1210,7 @@ function render(iso,bookings,isRicerca){
     bookings = (bookings||[]).slice();
   }
   const list=document.getElementById("list"); list.innerHTML=""; msgStore={}; schedeGiorno=[];
+  setTimeout(sincronizzaIconaGiorno,0);
   if(bookings.length===0){list.innerHTML='<div class="status">Nessun arrivo per questa data.</div>';return;}
 
   bookings.forEach((b,i)=>{
@@ -2284,12 +2286,23 @@ vaiA(1);
 // Nessun testo a schermo: l'icona gira mentre lavora e si spegne quando ha finito
 // (chiesto cosi' il 04/09/2026).
 async function aggiornaGiornoMsg(iso){
-  if(aggiornamentoGiorno) return;
-  const icona=document.getElementById("aggiornaGiorno");
+  // Se un aggiornamento e' gia' in corso non ne parte un secondo (sul Mac c'e' un solo
+  // browser per profilo). Prima restava zitto e sembrava rotto: ora lo dice (04/09/2026).
+  if(aggiornamentoGiorno){
+    const ic=document.getElementById("aggiornaGiorno");
+    if(ic){
+      const era=ic.textContent;
+      ic.textContent="⏳";
+      ic.title="Aggiornamento già in corso su "+(giornoInAggiornamento||"un altro giorno")+": aspetta che finisca";
+      setTimeout(()=>{ ic.textContent=era; sincronizzaIconaGiorno(); },2200);
+    }
+    return;
+  }
   const schede=schedeGiorno.slice();
   if(!schede.length) return;
   aggiornamentoGiorno=true;
-  if(icona) icona.classList.add("attivo");
+  giornoInAggiornamento=iso;
+  sincronizzaIconaGiorno();
   try{
     // Prima i pagamenti: rilegge le email di AmenitizPay, cosi' le tasse gia' incassate
     // diventano verdi al ricaricamento (chiesto il 04/09/2026). E' una sola chiamata.
@@ -2313,10 +2326,27 @@ async function aggiornaGiornoMsg(iso){
     }
   } finally {
     aggiornamentoGiorno=false;
-    if(icona) icona.classList.remove("attivo");
+    giornoInAggiornamento=null;
+    sincronizzaIconaGiorno();
     msgHaScritto=false;
-    caricaData();
+    // Ricarico solo se sei ancora su quel giorno: se ti sei spostato, i dati sono comunque
+    // salvati sul server e li ritrovi tornando indietro — non ti strappo la pagina sotto i piedi.
+    const mostrato=document.getElementById("dateInput").value;
+    if(mostrato===iso && !ricercaAttiva) caricaData();
   }
+}
+// L'icona vive dentro il titolo del giorno, che viene ridisegnato a ogni cambio data:
+// dopo ogni disegno va rimessa nello stato giusto, altrimenti spostandosi si perde di vista
+// che un aggiornamento sta ancora girando.
+function sincronizzaIconaGiorno(){
+  const ic=document.getElementById("aggiornaGiorno");
+  if(!ic) return;
+  const suQuestoGiorno = giornoInAggiornamento &&
+    giornoInAggiornamento===document.getElementById("dateInput").value;
+  ic.classList.toggle("attivo", !!suQuestoGiorno);
+  ic.title = giornoInAggiornamento
+    ? (suQuestoGiorno ? "Aggiornamento in corso…" : "Aggiornamento in corso su "+giornoInAggiornamento)
+    : "Rilegge messaggi, chat WhatsApp e pagamenti della tassa di questo giorno";
 }
 
 // ====== CAMPANELLO DEL GIRO NOTTURNO (03/09/2026) ======
