@@ -1,6 +1,65 @@
 {
   "sessioni": [
     {
+      "id": 1788531867419,
+      "dataSalvataggio": "2026-09-04T14:24:27.419Z",
+      "txIds": [
+        "3DE1BC03-E651-4579-8F92-D739DCFFEECF",
+        "3EE7B861-EB6B-4337-BE03-FF344E02FC54",
+        "35A86941-1419-4A5D-A130-9C18614D5A5E",
+        "A07BE4AD-071D-4737-B92F-79025B08E842",
+        "34867A2A-516E-4ADD-9E14-5C6D51C881C9",
+        "72AAAEFC-16C1-4F2B-BA48-BE62ACB4FB89",
+        "40ABE686-A561-4786-8CC6-AD740C62BBB6"
+      ],
+      "periodo": "06/08/2026 - 04/09/2026",
+      "periodoWk": "08/08/2026 - 04/09/2026",
+      "cashIds": [
+        "04/09/2026|Ivana Grimaldi|110",
+        "04/09/2026|Giovanni D’Anna|90",
+        "03/09/2026|Antonio Schifano|80",
+        "01/09/2026|Passante .|120",
+        "30/08/2026|Nataliia Lozova|15",
+        "30/08/2026|Moraglio Margherita|15",
+        "29/08/2026|Elena Calvi|20",
+        "28/08/2026|Sandra Ricci|30",
+        "20/08/2026|Joseph Rukulamyampi Bahane|5",
+        "19/08/2026|Attilio Cero|20",
+        "19/08/2026|Eleonora De Bonis|20",
+        "12/08/2026|Elisei Davide Fedorca|88",
+        "12/08/2026|Elisei Davide Fedorca|-88",
+        "11/08/2026|Alona Sychova|20",
+        "11/08/2026|Diego Primerano|20",
+        "09/08/2026|Davide Belluco|10",
+        "06/08/2026|LINGHAO WANG|395"
+      ],
+      "cash": 970,
+      "stripe": 0,
+      "totContanti": 970,
+      "wkTot": 480,
+      "wkN": 8,
+      "wkDateSel": [
+        "08/08/2026",
+        "09/08/2026",
+        "15/08/2026",
+        "16/08/2026",
+        "22/08/2026",
+        "23/08/2026",
+        "29/08/2026",
+        "30/08/2026"
+      ],
+      "sp": 164,
+      "man": 20,
+      "bab": 412,
+      "ferie": 450,
+      "stip": 1700,
+      "spTot": 596,
+      "daMe": 3226,
+      "saldo": -2256,
+      "ferieDal": "2026-08-08",
+      "ferieAl": "2026-08-30"
+    },
+    {
       "id": 1786107706703,
       "dataSalvataggio": "2026-08-07T13:01:46.703Z",
       "txIds": [
@@ -15,7 +74,7 @@
         "05/08/2026|Parisi Natale|15",
         "04/08/2026|Natalia Prus|20",
         "02/08/2026|Jules Anseaume|-30",
-        "01/08/2026|Mateusz Łubkowski|40",
+        "01/08/2026|Mateusz Åubkowski|40",
         "01/08/2026|Passante .|160"
       ],
       "cash": 205,
@@ -68,7 +127,7 @@
         "18/07/2026|Claudio Ballatore|60",
         "18/07/2026|Claudio Ballatore|120",
         "18/07/2026|Claudio Ballatore|60",
-        "17/07/2026|Giovanni DâAnna|80",
+        "17/07/2026|Giovanni DÃ¢ÂÂAnna|80",
         "16/07/2026|Veronika Saratova|50",
         "15/07/2026|Antonio Schifano|80",
         "13/07/2026|Alisher Rasulov|40"
