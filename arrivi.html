@@ -221,10 +221,18 @@
   .risp-orig b{color:var(--ink);}
   .risp-orig button{margin-top:6px;font:inherit;font-size:11.5px;font-weight:600;background:none;
     border:none;color:#2d6ded;cursor:pointer;padding:0;text-decoration:underline;}
-  #allarme{margin:0 0 12px;padding:10px 12px;border-radius:10px;font-size:13px;line-height:1.45;
-    background:#fdecea;border:1.5px solid #b3261e;color:#7a1a15;font-weight:600;}
-  #allarme.avviso{background:#fff6e5;border-color:var(--gold);color:#7a5200;}
-  #allarme .dett{display:block;font-weight:500;margin-top:4px;font-size:12px;}
+  /* Riga sottile, non un cartellone: i dettagli si aprono solo se li chiedi (04/09/2026) */
+  #allarme{max-width:560px;margin:8px auto 4px;padding:5px 8px;border-radius:8px;font-size:11.5px;
+    line-height:1.35;background:#fdf0ee;border:1px solid #e0a49c;color:#7a1a15;
+    display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+  #allarme.avviso{background:#fffaf0;border-color:#e6cf9a;color:#7a5200;}
+  #allarme .a-testo{flex:1;min-width:0;font-weight:600;}
+  #allarme .a-piu,#allarme .a-chiudi{font:inherit;background:none;border:none;cursor:pointer;
+    color:inherit;opacity:.75;padding:2px 4px;}
+  #allarme .a-piu{text-decoration:underline;font-size:11px;}
+  #allarme .a-chiudi{font-size:13px;line-height:1;}
+  #allarme .a-piu:active,#allarme .a-chiudi:active{opacity:1;}
+  #allarme .a-dett{flex-basis:100%;font-weight:400;font-size:11px;margin-top:4px;opacity:.9;}
   .msg-riga.wa{border-left:3px solid #25d366;}
   .msg-inviato{background:#eef4ff;border:1px solid #2d6ded;border-radius:8px;padding:8px 10px;margin-bottom:6px;
     font-size:13px;line-height:1.4;}
@@ -2335,19 +2343,50 @@ async function controllaGiro(tentativo){
         const cosa=spiega[e.esito]||e.esito||"da controllare";
         return `${e.bookingId} — ${cosa}${e.errore?": "+e.errore:""}`;
       }).join("<br>"); avviso=true; }
-    box.className=avviso?"avviso":"";
-    box.innerHTML="⚠️ "+t+(dett?`<span class="dett">${dett.replace(/</g,"&lt;")}</span>`:"");
-    box.hidden=false;
+    mostraAllarme(t, dett, avviso, chiaveAllarme(g));
   }catch(e){
     // Un buco di rete di un secondo non e' un guasto: riprovo due volte prima di allarmare.
     // Capitava tipicamente durante una pubblicazione del worker (03/09/2026).
     const n=(tentativo||0)+1;
     if(n<3){ setTimeout(()=>controllaGiro(n), n*2500); return; }
-    box.className="";
-    box.innerHTML='⚠️ Non riesco a contattare il server.<span class="dett">'
-      +String(e.message).replace(/</g,"&lt;")+' — tre tentativi falliti. Se l\'app non carica gli arrivi, riprova fra un minuto.</span>';
-    box.hidden=false;
+    mostraAllarme("Non riesco a contattare il server.",
+      String(e.message)+" — tre tentativi falliti. Se l'app non carica gli arrivi, riprova fra un minuto.",
+      false, "server-irraggiungibile");
   }
+}
+
+// Un avviso letto e verificato non deve piu' occupare spazio. La × lo chiude PER SEMPRE,
+// ma solo per quel problema: la chiave contiene le prenotazioni coinvolte, quindi un guaio
+// nuovo torna a farsi vedere (chiesto il 04/09/2026).
+function chiaveAllarme(g){
+  const ids=(g.errori||[]).map(e=>e.bookingId).sort().join(",");
+  return [g.stato||"", g.giorno||"", ids].join("|");
+}
+function mostraAllarme(titolo, dettagli, soloAvviso, chiave){
+  const box=document.getElementById("allarme");
+  let letti={};
+  try{ letti=JSON.parse(localStorage.getItem("allarmi_letti")||"{}"); }catch(e){}
+  if(chiave && letti[chiave]){ box.hidden=true; return; }
+  box.className=soloAvviso?"avviso":"";
+  box.innerHTML=`<span class="a-testo">⚠️ ${titolo}</span>`
+    +(dettagli?`<button class="a-piu" onclick="apriDettagliAllarme(this)">dettagli</button>`:"")
+    +`<button class="a-chiudi" title="Ho verificato, non mostrarlo più" onclick="chiudiAllarme(${JSON.stringify(chiave||"").replace(/"/g,'&quot;')})">✕</button>`
+    +(dettagli?`<div class="a-dett" hidden>${String(dettagli).replace(/</g,"&lt;").replace(/&lt;br&gt;/g,"<br>")}</div>`:"");
+  box.hidden=false;
+}
+function apriDettagliAllarme(btn){
+  const d=btn.parentElement.querySelector(".a-dett");
+  if(!d) return;
+  d.hidden=!d.hidden;
+  btn.textContent=d.hidden?"dettagli":"nascondi";
+}
+function chiudiAllarme(chiave){
+  try{
+    const letti=JSON.parse(localStorage.getItem("allarmi_letti")||"{}");
+    if(chiave) letti[chiave]=Date.now();
+    localStorage.setItem("allarmi_letti", JSON.stringify(letti));
+  }catch(e){}
+  document.getElementById("allarme").hidden=true;
 }
 controllaGiro();
 
