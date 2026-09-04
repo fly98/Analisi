@@ -1196,7 +1196,7 @@ function render(iso,bookings,isRicerca){
   if(!isRicerca){
     bookings = (bookings||[]).slice().sort((a,b)=>ordineDi(a)-ordineDi(b));
     document.getElementById("daytitle").innerHTML=`${dataLunga(iso)} — ${bookings.length} ospiti`
-      + ` <span id="aggiornaGiorno" title="Rilegge messaggi WhatsApp e Amenitiz di questo giorno"
+      + ` <span id="aggiornaGiorno" title="Rilegge messaggi, chat WhatsApp e pagamenti della tassa di questo giorno"
            onclick="aggiornaGiornoMsg('${iso}')">🔄</span>`;
   } else {
     bookings = (bookings||[]).slice();
@@ -2284,6 +2284,10 @@ async function aggiornaGiornoMsg(iso){
   aggiornamentoGiorno=true;
   if(icona) icona.classList.add("attivo");
   try{
+    // Prima i pagamenti: rilegge le email di AmenitizPay, cosi' le tasse gia' incassate
+    // diventano verdi al ricaricamento (chiesto il 04/09/2026). E' una sola chiamata.
+    try{ await fetch(`${WORKER}/?action=pagamentiMail&forza=1`); }
+    catch(e){ /* se fallisce, il resto dell'aggiornamento prosegue lo stesso */ }
     for(const sc of schede){
       if(sc.ota){
         try{
