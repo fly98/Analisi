@@ -823,7 +823,8 @@ async function generaLink(i, bookingId, intero){
 
 // ====== MESSAGGI DELL'OSPITE (03/09/2026) ======
 // Mostra solo i messaggi scritti dall'ospite (non i nostri) e cio' che ne e' stato dedotto.
-// La lettura passa dal Mac: la prima volta richiede una quarantina di secondi.
+// La lettura passa dal Mac. Tempi misurati il 04/09/2026: messaggi Amenitiz 9-13 secondi,
+// chat WhatsApp 17-18. (Prima qui c'era scritto "una quarantina": era una stima a occhio.)
 function statoMsg(testo,classe){
   const e=document.getElementById("msgStato"); if(!e) return;
   e.textContent=testo||""; e.className="msg-stato"+(classe?" "+classe:"");
