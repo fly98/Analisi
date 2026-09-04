@@ -13,4 +13,4 @@ binding = "TG"
 service = "tg-worker"
 
 [triggers]
-crons = ["0 2,3,4,10,15,16 * * *"]   # 2 e 3 UTC = tassa di soggiorno: parte solo quello che cade alle 4 italiane
+crons = ["0 1,2,3,4,10,15,16 * * *"]   # 2 e 3 UTC = tassa di soggiorno: parte solo quello che cade alle 4 italiane
