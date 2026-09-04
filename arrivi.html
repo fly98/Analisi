@@ -2319,7 +2319,22 @@ async function controllaGiro(tentativo){
     else if(g.stato==="vecchio"){ t=`Il lavoro notturno non gira da ${g.ore} ore.`; dett="Ultima riuscita: "+(g.ts?new Date(g.ts).toLocaleString("it-IT"):"?")+". Controlla i link della tassa a mano."; }
     else if(g.stato==="interrotto"){ t="Il lavoro notturno si è interrotto."; dett=(g.guasto||"motivo non registrato")+" — le prenotazioni di oggi vanno controllate a mano."; }
     else if(g.stato==="con_errori"){ t=`Il lavoro notturno ha lasciato ${g.n_errori} prenotazion${g.n_errori===1?"e":"i"} da controllare.`;
-      dett=(g.errori||[]).map(e=>e.bookingId+": "+(e.esito||e.errore)).join(" · "); avviso=true; }
+      // Il motivo e' la parte utile: l'etichetta interna da sola non dice niente
+      // ("solo_tassa" ha fatto giustamente chiedere "che vuol dire?", 04/09/2026).
+      const spiega={
+        solo_tassa:"il link della tassa non e' stato creato",
+        tassa_incoerente:"le voci della tassa non tornano col totale",
+        importo_link_diverso:"l'importo proposto non corrispondeva alla tassa",
+        voci_non_selezionabili:"non sono riuscito a selezionare le voci della tassa",
+        importi_non_letti:"non sono riuscito a leggere gli importi",
+        link_creato_non_letto:"link creato ma non sono riuscito a rileggerlo",
+        sessione_scaduta:"la sessione Amenitiz e' scaduta, serve un accesso a mano",
+        errore:"errore durante la lavorazione"
+      };
+      dett=(g.errori||[]).map(e=>{
+        const cosa=spiega[e.esito]||e.esito||"da controllare";
+        return `${e.bookingId} — ${cosa}${e.errore?": "+e.errore:""}`;
+      }).join("<br>"); avviso=true; }
     box.className=avviso?"avviso":"";
     box.innerHTML="⚠️ "+t+(dett?`<span class="dett">${dett.replace(/</g,"&lt;")}</span>`:"");
     box.hidden=false;
