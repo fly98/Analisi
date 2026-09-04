@@ -874,7 +874,7 @@ async function caricaMessaggi(rileggi){
   const btn=document.getElementById("msgRileggi");
   const avevaRoba=!!box.innerHTML.trim();
   if(btn){btn.disabled=true;btn.textContent="Lettura…";}
-  statoMsg(avevaRoba?"Rileggo da Amenitiz… una quarantina di secondi.":"Leggo i messaggi su Amenitiz… una quarantina di secondi.","lavoro");
+  statoMsg(avevaRoba?"Rileggo da Amenitiz… una decina di secondi.":"Leggo i messaggi su Amenitiz… una decina di secondi.","lavoro");
   try{
     const r=await fetch(`${WORKER}/?action=messaggi&bookingId=${encodeURIComponent(c.bookingId)}&source=${encodeURIComponent(c.source)}&checkin=${encodeURIComponent(c.iso)}${rileggi?"&rileggi=1":""}`);
     const d=await r.json();
@@ -1032,7 +1032,7 @@ async function inviaRisposta(){
   }
   rispArmato=false; b.disabled=true; b.textContent="Invio…"; b.classList.remove("conferma");
   n.textContent="";
-  statoMsg("Sto scrivendo la risposta su Amenitiz… una quarantina di secondi.","lavoro");
+  statoMsg("Sto scrivendo la risposta su Amenitiz… una ventina di secondi.","lavoro");
   try{
     const u=`${WORKER}/?action=rispondi&bookingId=${encodeURIComponent(c.bookingId)}`
       +`&ospite=${encodeURIComponent(c.nome||"")}&invia=1&testo=${encodeURIComponent(testo)}`;
@@ -1069,7 +1069,7 @@ async function leggiWhatsapp(){
     return;
   }
   b.disabled=true; b.textContent="Leggo…";
-  statoMsg("Cerco la chat WhatsApp di "+c.tel+"… una quarantina di secondi.","lavoro");
+  statoMsg("Cerco la chat WhatsApp di "+c.tel+"… una ventina di secondi.","lavoro");
   try{
     const r=await fetch(`${WORKER}/?action=whatsapp&bookingId=${encodeURIComponent(c.bookingId)}`
       +`&tel=${encodeURIComponent(c.tel)}&checkin=${encodeURIComponent(c.iso||"")}`);
