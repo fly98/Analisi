@@ -1681,7 +1681,11 @@ async function runTassaPrepara(env, date, crea) {
   }
 }
 
-// Passaggio delle 3: legge le chat WhatsApp degli arrivi di domani e ne ricava orario e note.
+// Passaggio delle 3: legge TUTTI i messaggi degli arrivi di domani — quelli di Booking e
+// Airbnb su Amenitiz e le chat WhatsApp — e ne ricava orario e note. Alle 4 restano solo
+// i pagamenti. Divisione voluta da Filippo il 04/09/2026: prima i messaggi dell'agenzia
+// venivano riletti solo se non erano mai stati letti, quindi un messaggio nuovo su una
+// prenotazione gia' vista non sarebbe mai stato raccolto.
 // Vale per TUTTI i canali, non solo Booking e Airbnb: e' il vantaggio su Amenitiz, che ha
 // la messaggistica solo su quei due. Gira un'ora prima della tassa apposta, perche' se
 // l'ospite scrive che paga in contanti il link non va nemmeno creato (04/09/2026).
@@ -1698,13 +1702,22 @@ async function runWhatsappPrepara(env, date) {
       if (st === "cancelled" || st === "canceled") continue;
       const tel = String((b.booker && (b.booker.phone || b.booker.mobile)) || "");
       const nome = [(b.booker && b.booker.first_name) || "", (b.booker && b.booker.last_name) || ""].join(" ").trim();
-      if (tel.replace(/\D/g, "").length < 9) { esiti.push({ bookingId: String(b.booking_id), nome, esito: "senza_telefono" }); continue; }
-      // i messaggi dell'agenzia vanno letti prima, cosi' l'interpretazione li vede insieme
-      if (MSG_FONTI.test(b.source || "")) await messaggiUna(env, b, false).catch(() => null);
+      if (tel.replace(/\D/g, "").length < 9) {
+        // niente telefono: WhatsApp non si puo' cercare, ma i messaggi dell'agenzia si'
+        const soloOta = MSG_FONTI.test(b.source || "") ? await messaggiUna(env, b, true).catch(() => null) : null;
+        esiti.push({ bookingId: String(b.booking_id), nome, esito: "senza_telefono",
+                     messaggi_ota: soloOta ? (soloOta.messaggi || []).length : 0 });
+        continue;
+      }
+      // rilettura VERA dei messaggi dell'agenzia (rileggi=true), non la copia in archivio:
+      // e' questo il passaggio che deve accorgersi dei messaggi arrivati durante il giorno
+      let ota = null;
+      if (MSG_FONTI.test(b.source || "")) ota = await messaggiUna(env, b, true).catch(() => null);
       const rec = await whatsappUna(env, String(b.booking_id), tel, 45, b.checkin || day).catch(e => ({ wa_esito: "errore", wa_errore: String(e && e.message || e) }));
       esiti.push({
         bookingId: String(b.booking_id), nome, esito: rec.wa_esito || "errore",
         errore: rec.wa_errore || "", messaggi: (rec.whatsapp || []).length,
+        messaggi_ota: ota ? (ota.messaggi || []).length : 0,
         contanti: !!rec.contanti, orario_scritto: !!rec.orario_scritto, nota_scritta: !!rec.nota_scritta
       });
     }
