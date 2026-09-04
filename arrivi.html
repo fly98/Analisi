@@ -1070,7 +1070,11 @@ async function leggiWhatsapp(){
     const r=await fetch(`${WORKER}/?action=whatsapp&bookingId=${encodeURIComponent(c.bookingId)}`
       +`&tel=${encodeURIComponent(c.tel)}&checkin=${encodeURIComponent(c.iso||"")}`);
     const d=await r.json();
-    if(d.wa_esito==="messaggi_letti"||d.wa_esito==="nessun_messaggio_in_arrivo"){
+    if(d.wa_esito==="messaggi_da_sincronizzare"){
+      msgOspite[c.i]=d; disegnaMessaggi(d);
+      statoMsg("⚠️ Ci sono messaggi più recenti che WhatsApp Web non riesce ancora a leggere. "
+        +"Apri WhatsApp sul telefono e lascialo aperto qualche secondo, poi premi di nuovo Aggiorna.","ko");
+    } else if(d.wa_esito==="messaggi_letti"||d.wa_esito==="nessun_messaggio_in_arrivo"){
       msgOspite[c.i]=d; disegnaMessaggi(d);
       const n=(d.whatsapp||[]).length;
       statoMsg(n?(n+" messagg"+(n===1?"io":"i")+" da WhatsApp, letti alle "+(d.wa_letto_il||"")+"."
@@ -2334,6 +2338,7 @@ async function controllaGiro(tentativo){
       // Il motivo e' la parte utile: l'etichetta interna da sola non dice niente
       // ("solo_tassa" ha fatto giustamente chiedere "che vuol dire?", 04/09/2026).
       const spiega={
+        messaggi_da_sincronizzare:"WhatsApp Web non riesce a leggere i messaggi piu' recenti: apri WhatsApp sul telefono",
         solo_tassa:"il link della tassa non e' stato creato",
         tassa_incoerente:"le voci della tassa non tornano col totale",
         importo_link_diverso:"l'importo proposto non corrispondeva alla tassa",
