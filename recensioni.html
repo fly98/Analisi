@@ -254,6 +254,8 @@
   .chip.neg { background: var(--negative-soft); color: var(--negative); }
   .chip .conteggio { opacity: .7; font-family: "IBM Plex Mono", monospace; margin-left: 4px; }
   .nota-v1 { font-size: 12px; color: var(--muted); margin-top: 14px; }
+  .riassunto-ai { font-size: 14px; margin: 0 0 16px; padding: 12px 14px; background: var(--accent-soft); border-radius: 10px; color: var(--ink); }
+  .chip[title] { cursor: help; }
 
   /* ── metodologia ─────────────────────────────────────────────── */
   details.metodo summary {
@@ -320,7 +322,8 @@
 
   <section class="card">
     <h2>Cosa dicono le recensioni</h2>
-    <div class="sottotitolo">Parole più ricorrenti nei commenti positivi e negativi.</div>
+    <div class="sottotitolo" id="temiSottotitolo">Parole più ricorrenti nei commenti positivi e negativi.</div>
+    <p class="riassunto-ai" id="riassuntoAI" hidden></p>
     <div class="temi-griglia">
       <div class="temi-colonna">
         <h3><span class="pallino pos"></span>Apprezzato</h3>
@@ -331,7 +334,7 @@
         <div class="chip-lista" id="temiNegativi"></div>
       </div>
     </div>
-    <div class="nota-v1">Analisi automatica per frequenza delle parole (v1) — l'analisi con AI dei temi arriva in una fase successiva.</div>
+    <div class="nota-v1" id="notaTemi">Analisi automatica per frequenza delle parole (v1) — l'analisi con AI dei temi arriva in una fase successiva.</div>
   </section>
 
   <details class="metodo card">
@@ -487,7 +490,9 @@
 
   // ── temi ──────────────────────────────────────────────────────
   function renderTemi(s) {
-    function lista(id, temi, classe) {
+    var ai = s.temi.analisiAI;
+
+    function lista(id, temi, classe, campoEtichetta, campoEsempio) {
       var box = el(id);
       box.innerHTML = "";
       if (!temi || !temi.length) { box.innerHTML = "<span style=\"color:var(--muted);font-size:13px\">Nessun dato.</span>"; return; }
@@ -496,12 +501,26 @@
         var chip = document.createElement("span");
         chip.className = "chip " + classe;
         chip.style.opacity = (0.55 + 0.45 * (t.conteggio / max)).toFixed(2);
-        chip.innerHTML = t.parola + '<span class="conteggio">' + t.conteggio + '</span>';
+        if (campoEsempio && t[campoEsempio]) chip.title = t[campoEsempio];
+        chip.innerHTML = t[campoEtichetta] + '<span class="conteggio">' + t.conteggio + '</span>';
         box.appendChild(chip);
       });
     }
-    lista("temiPositivi", s.temi.positivi, "pos");
-    lista("temiNegativi", s.temi.negativi, "neg");
+
+    if (ai) {
+      el("temiSottotitolo").textContent = "Temi ricorrenti individuati dall'AI nei commenti (passa il mouse su un tema per un esempio reale).";
+      el("notaTemi").textContent = "Analisi AI" + (ai.generatoIl ? (" del " + formattaData(ai.generatoIl.slice(0, 10))) : "") + ".";
+      if (ai.riassunto) { el("riassuntoAI").textContent = ai.riassunto; el("riassuntoAI").hidden = false; }
+      else { el("riassuntoAI").hidden = true; }
+      lista("temiPositivi", ai.temiPositivi, "pos", "tema", "esempio");
+      lista("temiNegativi", ai.temiNegativi, "neg", "tema", "esempio");
+    } else {
+      el("temiSottotitolo").textContent = "Parole più ricorrenti nei commenti positivi e negativi.";
+      el("notaTemi").textContent = "Analisi automatica per frequenza delle parole (v1) — l'analisi AI arriva al prossimo aggiornamento.";
+      el("riassuntoAI").hidden = true;
+      lista("temiPositivi", s.temi.positivi, "pos", "parola", null);
+      lista("temiNegativi", s.temi.negativi, "neg", "parola", null);
+    }
   }
 
   // ── aggiorna ──────────────────────────────────────────────────
