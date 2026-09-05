@@ -1,0 +1,33 @@
+name: Deploy Recensioni Worker
+
+on:
+  push:
+    paths:
+      - 'recensioni_worker.js'
+      - 'wrangler_recensioni.toml'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      HAS_RECENSIONI_TOKEN: ${{ secrets.RECENSIONI_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy Worker via Wrangler
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CF_API_TOKEN }}
+          accountId: ${{ secrets.CF_ACCOUNT_ID }}
+          wranglerVersion: '3'
+          command: deploy --config wrangler_recensioni.toml
+
+      - name: Set token (una volta configurato il secret RECENSIONI_TOKEN)
+        if: ${{ env.HAS_RECENSIONI_TOKEN != '' }}
+        run: |
+          npm install -g wrangler@3
+          echo "${{ secrets.RECENSIONI_TOKEN }}" | wrangler secret put RECENSIONI_TOKEN --name recensioni-worker --config wrangler_recensioni.toml
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
