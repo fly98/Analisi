@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recensioni InternoUno</title>
+<meta name="description" content="Punteggio Booking calcolato con la media ponderata per recenza, simulatore di impatto e andamento nel tempo.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #F6F3EC;
+    --surface: #FFFFFF;
+    --surface-2: #FBF8F2;
+    --ink: #1E2422;
+    --muted: #5C6A63;
+    --border: #E3DDCD;
+    --accent: #0B6E62;
+    --accent-ink: #FFFFFF;
+    --accent-soft: #E1F0EC;
+    --positive: #2E7D46;
+    --positive-soft: #E7F2E9;
+    --negative: #B8452C;
+    --negative-soft: #FBEAE4;
+    --shadow: 0 1px 2px rgba(30,36,34,0.05), 0 8px 24px -12px rgba(30,36,34,0.12);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #121615;
+      --surface: #1A211F;
+      --surface-2: #1F2725;
+      --ink: #ECE9E0;
+      --muted: #93A29A;
+      --border: #2A3330;
+      --accent: #4ED0BE;
+      --accent-ink: #0B211D;
+      --accent-soft: #17332E;
+      --positive: #6FCB8E;
+      --positive-soft: #17281C;
+      --negative: #E2896A;
+      --negative-soft: #2E1D18;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #121615;
+    --surface: #1A211F;
+    --surface-2: #1F2725;
+    --ink: #ECE9E0;
+    --muted: #93A29A;
+    --border: #2A3330;
+    --accent: #4ED0BE;
+    --accent-ink: #0B211D;
+    --accent-soft: #17332E;
+    --positive: #6FCB8E;
+    --positive-soft: #17281C;
+    --negative: #E2896A;
+    --negative-soft: #2E1D18;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.55;
+  }
+  .num { font-family: "IBM Plex Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+  h1, h2, h3 { font-family: "Fraunces", Georgia, serif; font-weight: 600; text-wrap: balance; margin: 0; }
+
+  .pagina {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 28px 20px 80px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  /* ── barra in alto ───────────────────────────────────────────── */
+  .topbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+  }
+  .switcher {
+    display: flex;
+    gap: 6px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 4px;
+  }
+  .switcher button {
+    font: inherit;
+    font-size: 13.5px;
+    font-weight: 500;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    padding: 8px 16px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background .15s, color .15s;
+  }
+  .switcher button[aria-pressed="true"] {
+    background: var(--accent);
+    color: var(--accent-ink);
+  }
+  .azioni-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .aggiorna-stato {
+    font-size: 12.5px;
+    color: var(--muted);
+    text-align: right;
+  }
+  button.bottone {
+    font: inherit;
+    font-size: 13.5px;
+    font-weight: 600;
+    background: var(--accent);
+    color: var(--accent-ink);
+    border: none;
+    padding: 10px 18px;
+    border-radius: 10px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  button.bottone:disabled { opacity: .55; cursor: progress; }
+  button.bottone:focus-visible, .switcher button:focus-visible, input:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 2px;
+  }
+
+  /* ── card generiche ──────────────────────────────────────────── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 22px 24px;
+    box-shadow: var(--shadow);
+  }
+  .card > h2 {
+    font-size: 17px;
+    margin-bottom: 4px;
+  }
+  .card .sottotitolo {
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 18px;
+  }
+
+  /* ── hero: due punteggi ──────────────────────────────────────── */
+  .hero {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  .tile {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 22px 24px;
+    box-shadow: var(--shadow);
+  }
+  .tile .etichetta {
+    font-size: 12.5px;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .tile .valore {
+    font-size: 44px;
+    font-weight: 600;
+    line-height: 1.1;
+    margin-top: 8px;
+  }
+  .tile.calcolato .valore { color: var(--accent); }
+  .tile .dettaglio { margin-top: 6px; font-size: 13px; color: var(--muted); }
+  .delta-riga {
+    grid-column: 1 / -1;
+    font-size: 13.5px;
+    color: var(--muted);
+    text-align: center;
+    padding-top: 2px;
+  }
+  .delta-riga strong { color: var(--ink); }
+
+  /* ── simulatore ──────────────────────────────────────────────── */
+  .sim-riga {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    font-size: 15px;
+  }
+  .sim-riga input[type="number"] {
+    font: inherit;
+    font-family: "IBM Plex Mono", monospace;
+    width: 4.5em;
+    text-align: center;
+    padding: 8px 6px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--ink);
+  }
+  .sim-risultato {
+    margin-top: 16px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: var(--surface-2);
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .sim-risultato .delta { font-size: 20px; font-weight: 600; }
+  .sim-risultato .delta.su { color: var(--positive); }
+  .sim-risultato .delta.giu { color: var(--negative); }
+  .sim-risultato .nuovo-punteggio { color: var(--muted); font-size: 13.5px; }
+
+  /* ── grafico ─────────────────────────────────────────────────── */
+  .legenda { display: flex; gap: 18px; font-size: 12.5px; color: var(--muted); margin-bottom: 10px; }
+  .legenda span { display: inline-flex; align-items: center; gap: 6px; }
+  .legenda i { width: 14px; height: 3px; border-radius: 2px; display: inline-block; }
+  svg.grafico { width: 100%; height: auto; overflow: visible; }
+  svg.grafico text { font-family: "IBM Plex Mono", monospace; font-size: 10.5px; fill: var(--muted); }
+
+  /* ── temi ────────────────────────────────────────────────────── */
+  .temi-griglia { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .temi-colonna h3 { font-size: 14px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+  .pallino { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+  .pallino.pos { background: var(--positive); }
+  .pallino.neg { background: var(--negative); }
+  .chip-lista { display: flex; flex-wrap: wrap; gap: 7px; }
+  .chip {
+    font-size: 12.5px;
+    padding: 5px 11px;
+    border-radius: 999px;
+    font-weight: 500;
+  }
+  .chip.pos { background: var(--positive-soft); color: var(--positive); }
+  .chip.neg { background: var(--negative-soft); color: var(--negative); }
+  .chip .conteggio { opacity: .7; font-family: "IBM Plex Mono", monospace; margin-left: 4px; }
+  .nota-v1 { font-size: 12px; color: var(--muted); margin-top: 14px; }
+
+  /* ── metodologia ─────────────────────────────────────────────── */
+  details.metodo summary {
+    cursor: pointer;
+    font-size: 13.5px;
+    color: var(--muted);
+    font-weight: 500;
+  }
+  details.metodo[open] summary { color: var(--ink); }
+  details.metodo .corpo { margin-top: 12px; font-size: 13.5px; color: var(--muted); display: flex; flex-direction: column; gap: 8px; }
+  details.metodo code { font-family: "IBM Plex Mono", monospace; background: var(--surface-2); padding: 1px 5px; border-radius: 4px; }
+
+  @media (max-width: 620px) {
+    .hero, .temi-griglia { grid-template-columns: 1fr; }
+    .tile .valore { font-size: 36px; }
+  }
+</style>
+</head>
+<body>
+<div class="pagina">
+
+  <header class="topbar">
+    <nav class="switcher" id="switcher" role="tablist" aria-label="Struttura"></nav>
+    <div class="azioni-top">
+      <div class="aggiorna-stato" id="statoAggiorna">—</div>
+      <button class="bottone" id="btnAggiorna" type="button">Aggiorna</button>
+    </div>
+  </header>
+
+  <section class="hero" id="hero">
+    <div class="tile mostrato">
+      <div class="etichetta">Booking mostra</div>
+      <div class="valore num" id="valoreMostrato">—</div>
+      <div class="dettaglio" id="dettaglioMostrato">—</div>
+    </div>
+    <div class="tile calcolato">
+      <div class="etichetta">Calcolato qui (ponderato)</div>
+      <div class="valore num" id="valoreCalcolato">—</div>
+      <div class="dettaglio" id="dettaglioCalcolato">—</div>
+    </div>
+    <div class="delta-riga" id="deltaRiga"></div>
+  </section>
+
+  <section class="card">
+    <h2>Simulatore</h2>
+    <div class="sottotitolo">Che effetto avrebbe una nuova recensione, arrivata oggi, sul punteggio ponderato.</div>
+    <div class="sim-riga">
+      Se domani arriva una recensione da
+      <input type="number" id="simVoto" min="1" max="10" step="1" value="10" aria-label="Voto della recensione simulata">
+      <span>/ 10</span>
+    </div>
+    <div class="sim-risultato" id="simRisultato"></div>
+  </section>
+
+  <section class="card">
+    <h2>Andamento</h2>
+    <div class="sottotitolo">Punteggio ponderato ricostruito settimana per settimana dalle date reali delle recensioni.</div>
+    <div class="legenda">
+      <span><i style="background:var(--accent)"></i> Ponderato (85/10/5)</span>
+      <span><i style="background:var(--muted); opacity:.6"></i> Media semplice</span>
+    </div>
+    <div id="graficoWrap"></div>
+  </section>
+
+  <section class="card">
+    <h2>Cosa dicono le recensioni</h2>
+    <div class="sottotitolo">Parole più ricorrenti nei commenti positivi e negativi.</div>
+    <div class="temi-griglia">
+      <div class="temi-colonna">
+        <h3><span class="pallino pos"></span>Apprezzato</h3>
+        <div class="chip-lista" id="temiPositivi"></div>
+      </div>
+      <div class="temi-colonna">
+        <h3><span class="pallino neg"></span>Segnalato</h3>
+        <div class="chip-lista" id="temiNegativi"></div>
+      </div>
+    </div>
+    <div class="nota-v1">Analisi automatica per frequenza delle parole (v1) — l'analisi con AI dei temi arriva in una fase successiva.</div>
+  </section>
+
+  <details class="metodo card">
+    <summary>Come viene calcolato il punteggio</summary>
+    <div class="corpo">
+      <p>Booking pesa le recensioni per recenza, a blocchi annuali: <code id="pesoAnno1">85%</code> alle recensioni degli ultimi 12 mesi, <code id="pesoAnno2">10%</code> a quelle fra 12 e 24 mesi, <code id="pesoAnno3">5%</code> a quelle fra 24 e 36 mesi. Oltre i 36 mesi una recensione esce dal calcolo. Booking non pubblica la formula esatta: questi pesi sono una ricostruzione (Mellinas / Di Nolfo-Aiassa / Martín-Fuentes, <em>Tourism and Hospitality Research</em>, 2025, su 100 hotel spagnoli), quindi il valore qui non coincidera' mai al centesimo con quello mostrato da Booking — ma si muove nella stessa direzione e con lo stesso ordine di grandezza.</p>
+      <p>Le recensioni vengono lette dalla pagina pubblica della struttura (non dall'extranet), che non le mostra tutte in un colpo solo: un aggiornamento completo puo' richiedere piu' tentativi se Booking rallenta la lettura.</p>
+    </div>
+  </details>
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var WORKER_URL = "https://recensioni-worker.f-castiglioni.workers.dev/aggiorna";
+  var TOKEN_KEY = "recensioni_token";
+
+  var dati = null;
+  var proprietaAttiva = null;
+
+  function el(id) { return document.getElementById(id); }
+
+  function formattaData(iso) {
+    var d = new Date(iso + "T00:00:00");
+    return d.toLocaleDateString("it-IT", { day: "numeric", month: "short", year: "numeric" });
+  }
+
+  function formattaNumero(n, decimali) {
+    if (n === null || n === undefined || isNaN(n)) return "—";
+    return n.toLocaleString("it-IT", { minimumFractionDigits: decimali, maximumFractionDigits: decimali });
+  }
+
+  // ── caricamento dati ──────────────────────────────────────────
+  function caricaDati() {
+    return fetch("./recensioni_dati.json", { cache: "no-store" })
+      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+      .then(function (json) {
+        dati = json;
+        var chiavi = Object.keys(dati.strutture || {});
+        if (!proprietaAttiva || chiavi.indexOf(proprietaAttiva) === -1) proprietaAttiva = chiavi[0];
+        renderSwitcher();
+        renderTutto();
+      });
+  }
+
+  function renderSwitcher() {
+    var nav = el("switcher");
+    nav.innerHTML = "";
+    Object.keys(dati.strutture).forEach(function (id) {
+      var s = dati.strutture[id];
+      var b = document.createElement("button");
+      b.type = "button";
+      b.textContent = s.nome;
+      b.setAttribute("aria-pressed", id === proprietaAttiva ? "true" : "false");
+      b.addEventListener("click", function () { proprietaAttiva = id; renderSwitcher(); renderTutto(); });
+      nav.appendChild(b);
+    });
+  }
+
+  function renderTutto() {
+    var s = dati.strutture[proprietaAttiva];
+    if (!s) return;
+
+    el("pesoAnno1").textContent = Math.round(dati.pesi.anno1 * 100) + "%";
+    el("pesoAnno2").textContent = Math.round(dati.pesi.anno2 * 100) + "%";
+    el("pesoAnno3").textContent = Math.round(dati.pesi.anno3 * 100) + "%";
+
+    var ultima = s.recensioni.length ? s.recensioni[s.recensioni.length - 1] : null;
+    el("valoreMostrato").textContent = formattaNumero(s.displayedScore, 1);
+    el("dettaglioMostrato").textContent = (s.displayedCount || s.totaleRecensioniRaccolte) + " recensioni" +
+      (s.totaleRecensioniRaccolte < (s.displayedCount || 0) ? " (" + s.totaleRecensioniRaccolte + " lette finora)" : "") +
+      (ultima ? " · ultima " + formattaData(ultima.data) : "");
+    el("valoreCalcolato").textContent = formattaNumero(s.mediaPonderata, 3);
+    el("dettaglioCalcolato").textContent = "media semplice: " + formattaNumero(s.mediaFlat, 3);
+
+    var diff = (s.mediaPonderata !== null && s.mediaFlat !== null) ? (s.mediaPonderata - s.mediaFlat) : null;
+    if (diff !== null) {
+      var verso = diff >= 0 ? "sopra" : "sotto";
+      el("deltaRiga").innerHTML = "Il peso sulle recensioni recenti porta il punteggio <strong>" + formattaNumero(Math.abs(diff), 3) + " punti " + verso + "</strong> la media semplice.";
+    }
+
+    renderSimulatore(s);
+    renderGrafico(s);
+    renderTemi(s);
+  }
+
+  // ── simulatore ────────────────────────────────────────────────
+  function renderSimulatore(s) {
+    function aggiorna() {
+      var voto = parseFloat(el("simVoto").value);
+      var box = el("simRisultato");
+      if (isNaN(voto) || voto < 1 || voto > 10 || s.mediaPonderata === null) {
+        box.innerHTML = "<span class=\"nuovo-punteggio\">Inserisci un voto da 1 a 10.</span>";
+        return;
+      }
+      var pesoJ = dati.pesi.anno1; // una recensione nuova e' sempre nel blocco piu' pesante
+      var delta = (pesoJ * (voto - s.mediaPonderata)) / (s.sommaPesi + pesoJ);
+      var nuovo = s.mediaPonderata + delta;
+      var cls = delta >= 0 ? "su" : "giu";
+      var segno = delta >= 0 ? "+" : "";
+      box.innerHTML =
+        "<span class=\"delta " + cls + "\">" + segno + formattaNumero(delta, 4) + "</span>" +
+        "<span class=\"nuovo-punteggio\">nuovo punteggio: " + formattaNumero(nuovo, 4) + " (da " + formattaNumero(s.mediaPonderata, 4) + ")</span>";
+    }
+    el("simVoto").oninput = aggiorna;
+    aggiorna();
+  }
+
+  // ── grafico ───────────────────────────────────────────────────
+  function renderGrafico(s) {
+    var wrap = el("graficoWrap");
+    var serie = s.serieStorica || [];
+    if (serie.length < 2) { wrap.innerHTML = "<p style=\"color:var(--muted);font-size:13px\">Non ancora abbastanza storico per un grafico.</p>"; return; }
+
+    var W = 800, H = 220, ml = 34, mr = 8, mt = 10, mb = 24;
+    var valori = [];
+    serie.forEach(function (p) { valori.push(p.mediaPonderata); if (p.mediaFlat !== null) valori.push(p.mediaFlat); });
+    var yMin = Math.floor(Math.min.apply(null, valori) * 5) / 5 - 0.1;
+    var yMax = Math.ceil(Math.max.apply(null, valori) * 5) / 5 + 0.1;
+
+    function x(i) { return ml + (i / (serie.length - 1)) * (W - ml - mr); }
+    function y(v) { return mt + (1 - (v - yMin) / (yMax - yMin)) * (H - mt - mb); }
+
+    function linea(campo) {
+      return serie.map(function (p, i) { return (i === 0 ? "M" : "L") + x(i).toFixed(1) + " " + y(p[campo]).toFixed(1); }).join(" ");
+    }
+
+    var yTicks = [];
+    for (var v = Math.ceil(yMin * 5) / 5; v <= yMax; v += 0.2) yTicks.push(Math.round(v * 10) / 10);
+
+    var xTickIdx = [];
+    var passo = Math.max(1, Math.round(serie.length / 6));
+    for (var i2 = 0; i2 < serie.length; i2 += passo) xTickIdx.push(i2);
+    if (xTickIdx[xTickIdx.length - 1] !== serie.length - 1) xTickIdx.push(serie.length - 1);
+
+    var svg = '<svg class="grafico" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Andamento del punteggio ponderato nel tempo">';
+    yTicks.forEach(function (t) {
+      svg += '<line x1="' + ml + '" x2="' + (W - mr) + '" y1="' + y(t).toFixed(1) + '" y2="' + y(t).toFixed(1) + '" stroke="var(--border)" stroke-width="1"/>';
+      svg += '<text x="4" y="' + (y(t) + 3.5).toFixed(1) + '">' + t.toFixed(1).replace(".", ",") + '</text>';
+    });
+    xTickIdx.forEach(function (i3) {
+      svg += '<text x="' + x(i3).toFixed(1) + '" y="' + (H - 4) + '" text-anchor="middle">' + formattaData(serie[i3].data).replace(/\\s\\d{4}$/, "") + '</text>';
+    });
+    svg += '<path d="' + linea("mediaFlat") + '" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-opacity="0.55" stroke-dasharray="3 4"/>';
+    svg += '<path d="' + linea("mediaPonderata") + '" fill="none" stroke="var(--accent)" stroke-width="2.5"/>';
+    var ultimo = serie.length - 1;
+    svg += '<circle cx="' + x(ultimo).toFixed(1) + '" cy="' + y(serie[ultimo].mediaPonderata).toFixed(1) + '" r="3.5" fill="var(--accent)"/>';
+    svg += '</svg>';
+    wrap.innerHTML = svg;
+  }
+
+  // ── temi ──────────────────────────────────────────────────────
+  function renderTemi(s) {
+    function lista(id, temi, classe) {
+      var box = el(id);
+      box.innerHTML = "";
+      if (!temi || !temi.length) { box.innerHTML = "<span style=\"color:var(--muted);font-size:13px\">Nessun dato.</span>"; return; }
+      var max = temi[0].conteggio;
+      temi.forEach(function (t) {
+        var chip = document.createElement("span");
+        chip.className = "chip " + classe;
+        chip.style.opacity = (0.55 + 0.45 * (t.conteggio / max)).toFixed(2);
+        chip.innerHTML = t.parola + '<span class="conteggio">' + t.conteggio + '</span>';
+        box.appendChild(chip);
+      });
+    }
+    lista("temiPositivi", s.temi.positivi, "pos");
+    lista("temiNegativi", s.temi.negativi, "neg");
+  }
+
+  // ── aggiorna ──────────────────────────────────────────────────
+  function chiediToken() {
+    var t = localStorage.getItem(TOKEN_KEY);
+    if (t) return t;
+    t = window.prompt("Codice di aggiornamento (una volta sola, resta salvato su questo dispositivo):");
+    if (t) localStorage.setItem(TOKEN_KEY, t);
+    return t;
+  }
+
+  el("btnAggiorna").addEventListener("click", function () {
+    var token = chiediToken();
+    if (!token) return;
+    var btn = el("btnAggiorna");
+    var stato = el("statoAggiorna");
+    btn.disabled = true;
+    stato.textContent = "Aggiornamento in corso (puo' richiedere qualche minuto)...";
+    fetch(WORKER_URL + "?property=" + encodeURIComponent(proprietaAttiva), {
+      method: "POST",
+      headers: { "X-Auth": token },
+    })
+      .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+      .then(function (res) {
+        if (!res.ok || res.j.esito === "errore") {
+          stato.textContent = "Non riuscito: " + (res.j && (res.j.errore || res.j.error) || "errore sconosciuto");
+          if (res.j && (res.j.error === "non autorizzato")) localStorage.removeItem(TOKEN_KEY);
+          return;
+        }
+        stato.textContent = res.j.scrapeParziale
+          ? "Aggiornato (Booking ha rallentato la lettura: dati parziali, si completa da solo ai prossimi giri)."
+          : "Aggiornato.";
+        return caricaDati();
+      })
+      .catch(function (e) { stato.textContent = "Mac non raggiungibile (" + e.message + ")."; })
+      .then(function () { btn.disabled = false; });
+  });
+
+  caricaDati().catch(function (e) {
+    el("hero").insertAdjacentHTML("beforebegin", '<p style="color:var(--negative)">Non riesco a caricare i dati (' + e.message + ').</p>');
+  });
+})();
+</script>
+</body>
+</html>
