@@ -764,6 +764,68 @@ async function handleAlexa(request, env) {
 
 /* =================== FINE ALEXA -> CLAUDE =================== */
 
+
+// ---------------- Analisi AI recensioni (progetto recensioni Booking) ----------------
+// Non fa parte del welcome book: riusa solo la chiave ANTHROPIC_API_KEY gia'
+// configurata su questo worker. Protetta da RECENSIONI_AI_KEY (secret
+// dedicato, separato da WB_ADMIN_KEY apposta), chiamata da pubblica.js sul
+// Mac dopo ogni scraping, non da nessuna pagina pubblica.
+async function handleRecensioniAnalizza(request, env, url) {
+  const key = url.searchParams.get("key");
+  if (!env.RECENSIONI_AI_KEY || key !== env.RECENSIONI_AI_KEY) return json({ error: "non autorizzato" }, 401);
+  if (!env.ANTHROPIC_API_KEY) return json({ error: "AI non configurata" }, 503);
+
+  let body;
+  try { body = await request.json(); } catch (e) { return json({ error: "JSON non valido" }, 400); }
+  const positivi = Array.isArray(body.positivi) ? body.positivi.filter(Boolean).slice(-200) : [];
+  const negativi = Array.isArray(body.negativi) ? body.negativi.filter(Boolean).slice(-200) : [];
+  if (!positivi.length && !negativi.length) return json({ error: "nessun testo da analizzare" }, 400);
+
+  const testoPositivi = positivi.map((t, i) => (i + 1) + ". " + String(t).slice(0, 300)).join("\n");
+  const testoNegativi = negativi.map((t, i) => (i + 1) + ". " + String(t).slice(0, 300)).join("\n");
+
+  const prompt = "Analizza questi commenti di ospiti di un affittacamere a Roma (Booking.com).\n\n" +
+    "COMMENTI POSITIVI (" + positivi.length + "):\n" + (testoPositivi || "(nessuno)") + "\n\n" +
+    "COMMENTI NEGATIVI (" + negativi.length + "):\n" + (testoNegativi || "(nessuno)") + "\n\n" +
+    "Individua i temi ricorrenti (concetti reali, non singole parole: es. 'vicinanza alla stazione Tiburtina', 'rumore dalla strada', 'check-in autonomo'). " +
+    "Per ciascun tema stima quante recensioni lo toccano (numero approssimativo) e riporta una citazione breve reale come esempio.\n\n" +
+    "Rispondi SOLO con un oggetto JSON, senza testo intorno, in questo formato esatto:\n" +
+    '{"riassunto": "1-2 frasi in italiano sul quadro generale", "temiPositivi": [{"tema": "...", "conteggio": 0, "esempio": "..."}], "temiNegativi": [{"tema": "...", "conteggio": 0, "esempio": "..."}]}' +
+    "\nMassimo 6 temi per lista, ordinati dal piu' frequente.";
+
+  try {
+    const resp = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": env.ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01",
+      },
+      body: JSON.stringify({
+        model: "claude-haiku-4-5",
+        max_tokens: 1500,
+        messages: [{ role: "user", content: prompt }],
+      }),
+    });
+    if (!resp.ok) {
+      const errText = await resp.text();
+      return json({ error: "Errore AI", detail: errText.slice(0, 300) }, 502);
+    }
+    const data = await resp.json();
+    const testo = (data.content || []).filter(b => b.type === "text").map(b => b.text).join("\n").trim();
+    let analisi;
+    try {
+      const m = testo.match(/\{[\s\S]*\}/);
+      analisi = JSON.parse(m ? m[0] : testo);
+    } catch (e) {
+      return json({ error: "Risposta AI non interpretabile", grezzo: testo.slice(0, 500) }, 502);
+    }
+    return json({ ok: true, analisi, generatoIl: new Date().toISOString() });
+  } catch (e) {
+    return json({ error: "Chiamata AI fallita", detail: String(e).slice(0, 200) }, 502);
+  }
+}
+
 export default {
   async fetch(request, env) {
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: CORS });
@@ -775,6 +837,7 @@ export default {
       const slug = parts[1];
       const action = parts[2];
 
+      if (slug === "recensioni" && action === "analizza" && request.method === "POST") return await handleRecensioniAnalizza(request, env, url);
       if (action === "chat" && request.method === "POST") return await handleChat(request, env, slug);
       if (action === "track" && request.method === "POST") return await handleTrack(request, env, slug);
       if (action === "data" && request.method === "GET") return await handleData(request, env, slug, url);
