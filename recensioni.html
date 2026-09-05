@@ -332,6 +332,16 @@
   </section>
 
   <section class="card">
+    <h2>Mese per mese</h2>
+    <div class="sottotitolo" id="mensileSottotitolo">Media di ciascun mese rispetto al punteggio ponderato attuale.</div>
+    <div class="legenda">
+      <span><i style="background:var(--positive)"></i> Sopra la media attuale</span>
+      <span><i style="background:var(--negative)"></i> Sotto la media attuale</span>
+    </div>
+    <div id="graficoMensileWrap"></div>
+  </section>
+
+  <section class="card">
     <h2>Cosa dicono le recensioni</h2>
     <div class="sottotitolo" id="temiSottotitolo">Parole più ricorrenti nei commenti positivi e negativi.</div>
     <p class="riassunto-ai" id="riassuntoAI" hidden></p>
@@ -431,6 +441,7 @@
 
     renderSimulatore(s);
     renderGrafico(s);
+    renderGraficoMensile(s);
     renderTemi(s);
   }
 
@@ -495,6 +506,49 @@
     svg += '<path d="' + linea("mediaPonderata") + '" fill="none" stroke="var(--accent)" stroke-width="2.5"/>';
     var ultimo = serie.length - 1;
     svg += '<circle cx="' + x(ultimo).toFixed(1) + '" cy="' + y(serie[ultimo].mediaPonderata).toFixed(1) + '" r="3.5" fill="var(--accent)"/>';
+    svg += '</svg>';
+    wrap.innerHTML = svg;
+  }
+
+  // ── grafico mensile (barre, rispetto al punteggio attuale) ─────
+  function renderGraficoMensile(s) {
+    var wrap = el("graficoMensileWrap");
+    var mesi = (s.mediaMensile || []).slice(-12); // ultimi 12 mesi: oltre diventa illeggibile
+    if (mesi.length < 2 || s.mediaPonderata === null) { wrap.innerHTML = "<p style=\"color:var(--muted);font-size:13px\">Non ancora abbastanza storico per un grafico.</p>"; return; }
+
+    var riferimento = s.mediaPonderata;
+    var righe = mesi.map(function (m) { return { mese: m.mese, media: m.media, numero: m.numero, delta: m.media - riferimento }; });
+
+    var W = 800, H = 240, ml = 34, mr = 8, mt = 26, mb = 34;
+    var maxAbs = Math.max(0.05, Math.max.apply(null, righe.map(function (r) { return Math.abs(r.delta); })) * 1.25);
+    var zonaH = H - mt - mb;
+    var yZero = mt + zonaH / 2;
+    function y(delta) { return yZero - (delta / maxAbs) * (zonaH / 2); }
+
+    var n = righe.length;
+    var bandaW = (W - ml - mr) / n;
+    var barW = Math.min(30, bandaW * 0.55);
+
+    function meseLabel(meseStr) {
+      var parti = meseStr.split("-");
+      var d = new Date(parseInt(parti[0], 10), parseInt(parti[1], 10) - 1, 1);
+      return d.toLocaleDateString("it-IT", { month: "short", year: "2-digit" });
+    }
+
+    var svg = '<svg class="grafico" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Media mensile rispetto al punteggio ponderato attuale">';
+    svg += '<line x1="' + ml + '" x2="' + (W - mr) + '" y1="' + yZero.toFixed(1) + '" y2="' + yZero.toFixed(1) + '" stroke="var(--border)" stroke-width="1"/>';
+    svg += '<text x="4" y="' + (yZero + 3.5).toFixed(1) + '">' + formattaNumero(riferimento, 2) + '</text>';
+
+    righe.forEach(function (r, i) {
+      var cx = ml + bandaW * i + bandaW / 2;
+      var y0 = y(0), y1 = y(r.delta);
+      var top = Math.min(y0, y1), h = Math.max(1.5, Math.abs(y1 - y0));
+      var colore = r.delta >= 0 ? "var(--positive)" : "var(--negative)";
+      svg += '<rect x="' + (cx - barW / 2).toFixed(1) + '" y="' + top.toFixed(1) + '" width="' + barW.toFixed(1) + '" height="' + h.toFixed(1) + '" rx="3" fill="' + colore + '"/>';
+      var labelY = r.delta >= 0 ? (top - 5) : (top + h + 11);
+      svg += '<text x="' + cx.toFixed(1) + '" y="' + labelY.toFixed(1) + '" text-anchor="middle">' + formattaNumero(r.media, 1) + ' (' + r.numero + ')</text>';
+      svg += '<text x="' + cx.toFixed(1) + '" y="' + (H - 6) + '" text-anchor="middle">' + meseLabel(r.mese) + '</text>';
+    });
     svg += '</svg>';
     wrap.innerHTML = svg;
   }
