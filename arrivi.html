@@ -236,6 +236,17 @@
   #allarme .a-chiudi{font-size:13px;line-height:1;}
   #allarme .a-piu:active,#allarme .a-chiudi:active{opacity:1;}
   #allarme .a-dett{flex-basis:100%;font-weight:400;font-size:11px;margin-top:4px;opacity:.9;}
+  /* Ogni guasto e' una schedina: chi, cosa non e' riuscito, cosa fare. Niente codici
+     interni in vista — quelli stanno sotto "tecnico" (chiesto il 05/09/2026). */
+  #allarme .g-riga{padding:5px 0;border-top:1px solid rgba(0,0,0,.10);}
+  #allarme .g-riga:first-child{border-top:none;padding-top:2px;}
+  #allarme .g-chi{display:block;font-weight:700;font-size:11.5px;}
+  #allarme .g-chi .g-dove{font-weight:400;opacity:.65;font-size:10.5px;margin-left:5px;}
+  #allarme .g-cosa{display:block;margin-top:1px;}
+  #allarme .g-fare{display:block;margin-top:1px;opacity:.85;}
+  #allarme .g-tec{background:none;border:none;padding:0;margin-top:2px;font:inherit;font-size:10px;
+    color:inherit;opacity:.5;text-decoration:underline;cursor:pointer;}
+  #allarme .g-tec-testo{display:block;margin-top:2px;font-size:10px;opacity:.6;word-break:break-word;}
   .msg-riga.wa{border-left:3px solid #25d366;}
   .msg-inviato{background:#eef4ff;border:1px solid #2d6ded;border-radius:8px;padding:8px 10px;margin-bottom:6px;
     font-size:13px;line-height:1.4;}
@@ -1277,6 +1288,8 @@ function render(iso,bookings,isRicerca){
 
     // funzione che genera il testo per una lingua qualsiasi (stessi parametri multi-camera)
     const bookingIdStr=String(b.booking_id);
+    // Serve all'avviso in cima: mostrare "Pasquale Latorraca" invece di "1772339268" (05/09/2026)
+    nomiPerId[bookingIdStr]=(nome+" "+cognome).trim();
     const generaTesto=(L)=>{
       const orarioArrivo = orariMap[bookingIdStr] || "";  // legge sempre l'orario aggiornato
       if(CAMPALDINO[roomName]) return msgCampaldino(nomeMsg,iso,CAMPALDINO[roomName],L,adultiRoom0,camereExtra,orarioArrivo);
@@ -1469,6 +1482,8 @@ function render(iso,bookings,isRicerca){
     }
     list.appendChild(card);
   });
+  // Ora che i nomi sono noti, l'avviso in cima puo' smettere di parlare per numeri.
+  ridisegnaAllarme();
 }
 
 function copia(i,btn){
@@ -2350,6 +2365,100 @@ function sincronizzaIconaGiorno(){
     : "Rilegge messaggi, chat WhatsApp e pagamenti della tassa di questo giorno";
 }
 
+// ====== VOCABOLARIO DEI GUASTI (05/09/2026) ======
+// Un avviso serve solo se si capisce senza tradurlo. Prima mostravamo l'etichetta interna
+// ("solo_tassa", "chat_diversa_dal_numero") e il messaggio d'errore grezzo: illeggibile.
+// Ora ogni esito diventa due frasi: COSA non e' riuscito e COSA FARE. Il codice interno
+// resta, ma nascosto sotto "tecnico", per quando serve a me per capire.
+const GUASTI = {
+  // --- WhatsApp ---
+  chat_non_trovata:          ["Non ho trovato la sua chat su WhatsApp.",
+                              "Se ti ha scritto davvero, aprigli la chat una volta dal telefono."],
+  sessione_assente:          ["WhatsApp Web si è scollegato.",
+                              "Va ricollegato col codice QR: nessuna chat è stata letta stanotte."],
+  chat_diversa_dal_numero:   ["La chat che si è aperta non era la sua, quindi non ho letto niente.",
+                              "Meglio così che leggere i messaggi di un altro ospite."],
+  messaggi_da_sincronizzare: ["WhatsApp non riesce a decifrare i messaggi più recenti.",
+                              "Apri WhatsApp sul telefono per qualche secondo, poi ripremi 🔄."],
+  profilo_occupato:          ["WhatsApp era già impegnato in un'altra lettura.",
+                              "Ripremi 🔄 fra un minuto."],
+  browser_non_avviato:       ["Non sono riuscito ad aprire WhatsApp.",
+                              "Di solito vuol dire che il Mac era spento o addormentato."],
+  senza_telefono:            ["La prenotazione non ha un numero di telefono.",
+                              "Non c'è niente da fare: il canale non l'ha passato."],
+  numero_mancante:           ["La prenotazione non ha un numero di telefono.",
+                              "Non c'è niente da fare: il canale non l'ha passato."],
+  ricerca_bloccata:          ["Un riquadro di WhatsApp copriva la casella di ricerca.",
+                              "Apri WhatsApp sul Mac, chiudi l'avviso che vedi, poi ripremi 🔄."],
+  interrotto:                ["Il giro si è fermato a metà.",
+                              "Le prenotazioni dopo quella non sono state guardate: ripremi 🔄."],
+  // --- Amenitiz: tassa e link di pagamento ---
+  solo_tassa:                ["Non ho creato il link della tassa di soggiorno.",
+                              "Va creato a mano su Amenitiz, oppure ripremi 🔄 sulla riga della data."],
+  tassa_incoerente:          ["Le voci della tassa non tornavano col totale, così non ho creato il link.",
+                              "Guarda il conto su Amenitiz: di solito c'è una voce in più o in meno."],
+  importo_link_diverso:      ["L'importo che Amenitiz proponeva non era quello della tassa.",
+                              "Non ho creato il link per non farti incassare la cifra sbagliata."],
+  voci_non_selezionabili:    ["Non sono riuscito a spuntare le voci della tassa.",
+                              "Il link va creato a mano su Amenitiz."],
+  importi_non_letti:         ["Non sono riuscito a leggere gli importi del conto.",
+                              "Il link va creato a mano su Amenitiz."],
+  link_creato_non_letto:     ["Il link è stato creato, ma non sono riuscito a rileggerlo.",
+                              "Vai su Amenitiz a copiarlo: quasi certamente c'è."],
+  sessione_scaduta:          ["La sessione Amenitiz è scaduta.",
+                              "Serve un accesso a mano dal Mac, poi ripremi 🔄."],
+  errore:                    ["Non sono riuscito a portarla a termine.",
+                              "Va controllata a mano."]
+};
+
+// Da "WhatsApp 1772339268" ricava il canale e il numero di prenotazione, e prova a
+// mettere il nome dell'ospite al posto del numero: un codice a dieci cifre non dice niente.
+function schedaGuasto(e){
+  let id = String(e.bookingId || ""), dove = "tassa di soggiorno";
+  const m = id.match(/^(WhatsApp|Amenitiz)\s+(.*)$/i);
+  if (m){ dove = m[1]; id = m[2]; }
+  const nome = e.nome || nomiPerId[id] || "";
+  // "errore" e' il cassetto in cui finisce tutto quello che il worker non sa classificare.
+  // Chi lo produce puo' mettere il motivo vero in testa al messaggio ("motivo: spiegazione"):
+  // se lo riconosco, mostro la frase giusta invece di quella generica (05/09/2026).
+  const marchio = (String(e.errore || "").match(/^([a-z_]+):/) || [])[1];
+  const v = GUASTI[e.esito] || (marchio && GUASTI[marchio]) || GUASTI.errore;
+  const tec = [e.esito, e.errore].filter(Boolean).join(": ");
+  return `<div class="g-riga">`
+    + `<span class="g-chi">${esc(nome || "Prenotazione " + id)}`
+    + (dove ? `<span class="g-dove">${esc(dove)}</span>` : "")
+    + `</span>`
+    + `<span class="g-cosa">${esc(v[0])}</span>`
+    + `<span class="g-fare">→ ${esc(v[1])}</span>`
+    + (tec ? `<button class="g-tec" onclick="mostraTecnico(this)">tecnico</button>`
+           + `<span class="g-tec-testo" hidden>${esc(tec)}</span>` : "")
+    + `</div>`;
+}
+function mostraTecnico(b){
+  const s = b.parentElement.querySelector(".g-tec-testo");
+  if(!s) return;
+  s.hidden = !s.hidden;
+  b.textContent = s.hidden ? "tecnico" : "nascondi";
+}
+function esc(t){ return String(t==null?"":t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+// Nomi degli ospiti già disegnati, per non mostrare numeri di prenotazione nell'avviso.
+let nomiPerId = {};
+// L'avviso viene disegnato all'apertura, quando le schede non ci sono ancora e i nomi
+// non si conoscono. Appena arrivano, lo si ridisegna al posto dei numeri.
+let ultimoGiro = null;
+function ridisegnaAllarme(){
+  if(!ultimoGiro || ultimoGiro.stato !== "con_errori") return;
+  const box = document.getElementById("allarme");
+  if(!box || box.hidden) return;
+  const d = box.querySelector(".a-dett");
+  const aperto = d && !d.hidden;
+  mostraAllarme(
+    `Stanotte ${ultimoGiro.n_errori===1?"una cosa non è riuscita":ultimoGiro.n_errori+" cose non sono riuscite"}.`,
+    (ultimoGiro.errori||[]).map(schedaGuasto).join(""), true, chiaveAllarme(ultimoGiro));
+  if(aperto){ const b = box.querySelector(".a-piu"); if(b) apriDettagliAllarme(b); }
+}
+
 // ====== CAMPANELLO DEL GIRO NOTTURNO (03/09/2026) ======
 // Cloudflare non avvisa quando si superano i suoi tetti: smette e basta.
 // Quindi controlliamo noi che il lavoro notturno abbia lasciato la sua firma.
@@ -2358,34 +2467,21 @@ async function controllaGiro(tentativo){
   try{
     const r=await fetch(`${WORKER}/?action=statoGiro`);
     const g=await r.json();
+    ultimoGiro=g;
     if(g.stato==="ok"){ box.hidden=true; return; }
     let t="", dett="", avviso=false;
     // Il campanello e' stato installato la sera del 03/09/2026: la prima firma arriva alle 4 del 04/09.
     // Fino ad allora "mai girato" e' la normalita' e non va segnalato. Dopo, invece, e' un guasto vero.
     if(g.stato==="mai_girato"){
       if(new Date() < new Date("2026-09-05T00:00:00")){ box.hidden=true; return; }
-      t="Il lavoro notturno non ha mai lasciato traccia."; dett="Dovrebbe girare ogni notte alle 4: controlla il worker e il Mac."; }
-    else if(g.stato==="archivio_non_leggibile"){ t="Non riesco a leggere l'archivio Cloudflare."; dett="Possibile tetto giornaliero superato: le prenotazioni potrebbero non essere state preparate."; }
-    else if(g.stato==="vecchio"){ t=`Il lavoro notturno non gira da ${g.ore} ore.`; dett="Ultima riuscita: "+(g.ts?new Date(g.ts).toLocaleString("it-IT"):"?")+". Controlla i link della tassa a mano."; }
-    else if(g.stato==="interrotto"){ t="Il lavoro notturno si è interrotto."; dett=(g.guasto||"motivo non registrato")+" — le prenotazioni di oggi vanno controllate a mano."; }
-    else if(g.stato==="con_errori"){ t=`Il lavoro notturno ha lasciato ${g.n_errori} prenotazion${g.n_errori===1?"e":"i"} da controllare.`;
-      // Il motivo e' la parte utile: l'etichetta interna da sola non dice niente
-      // ("solo_tassa" ha fatto giustamente chiedere "che vuol dire?", 04/09/2026).
-      const spiega={
-        messaggi_da_sincronizzare:"WhatsApp Web non riesce a leggere i messaggi piu' recenti: apri WhatsApp sul telefono",
-        solo_tassa:"il link della tassa non e' stato creato",
-        tassa_incoerente:"le voci della tassa non tornano col totale",
-        importo_link_diverso:"l'importo proposto non corrispondeva alla tassa",
-        voci_non_selezionabili:"non sono riuscito a selezionare le voci della tassa",
-        importi_non_letti:"non sono riuscito a leggere gli importi",
-        link_creato_non_letto:"link creato ma non sono riuscito a rileggerlo",
-        sessione_scaduta:"la sessione Amenitiz e' scaduta, serve un accesso a mano",
-        errore:"errore durante la lavorazione"
-      };
-      dett=(g.errori||[]).map(e=>{
-        const cosa=spiega[e.esito]||e.esito||"da controllare";
-        return `${e.bookingId} — ${cosa}${e.errore?": "+e.errore:""}`;
-      }).join("<br>"); avviso=true; }
+      t="Stanotte non è stato preparato niente."; dett=`<div class="g-riga"><span class="g-cosa">Il giro delle 3 e delle 4 non ha lasciato traccia.</span><span class="g-fare">→ Di solito il Mac era spento. Le prenotazioni di oggi vanno controllate a mano.</span></div>`; }
+    else if(g.stato==="archivio_non_leggibile"){ t="Non riesco a leggere l'archivio."; dett=`<div class="g-riga"><span class="g-cosa">Cloudflare non risponde: forse è stato superato il tetto giornaliero.</span><span class="g-fare">→ Riprova fra qualche minuto. Se insiste, gli arrivi di oggi vanno controllati a mano.</span></div>`; }
+    else if(g.stato==="vecchio"){ t=`Sono ${g.ore} ore che non prepara niente.`; dett=`<div class="g-riga"><span class="g-cosa">Ultima volta riuscita: ${g.ts?new Date(g.ts).toLocaleString("it-IT"):"non registrata"}.</span><span class="g-fare">→ Controlla i link della tassa a mano finché non riparte.</span></div>`; }
+    else if(g.stato==="interrotto"){ t="Stanotte si è fermato a metà."; dett=`<div class="g-riga"><span class="g-cosa">Le prenotazioni dopo il punto in cui si è fermato non sono state guardate.</span><span class="g-fare">→ Premi 🔄 sulla riga della data per rifare il giro di oggi.</span>`+(g.guasto?`<button class="g-tec" onclick="mostraTecnico(this)">tecnico</button><span class="g-tec-testo" hidden>${esc(g.guasto)}</span>`:"")+`</div>`; }
+    else if(g.stato==="con_errori"){
+      // Schematico: chi, cosa non e' riuscito, cosa fare. Il codice interno sta sotto "tecnico".
+      t=`Stanotte ${g.n_errori===1?"una cosa non è riuscita":g.n_errori+" cose non sono riuscite"}.`;
+      dett=(g.errori||[]).map(schedaGuasto).join(""); avviso=true; }
     mostraAllarme(t, dett, avviso, chiaveAllarme(g));
   }catch(e){
     // Un buco di rete di un secondo non e' un guasto: riprovo due volte prima di allarmare.
@@ -2393,7 +2489,10 @@ async function controllaGiro(tentativo){
     const n=(tentativo||0)+1;
     if(n<3){ setTimeout(()=>controllaGiro(n), n*2500); return; }
     mostraAllarme("Non riesco a contattare il server.",
-      String(e.message)+" — tre tentativi falliti. Se l'app non carica gli arrivi, riprova fra un minuto.",
+      `<div class="g-riga"><span class="g-cosa">Tre tentativi, nessuna risposta. Quasi sempre è la rete di casa, non l'app.</span>`
+      + `<span class="g-fare">→ Riprova fra un minuto. Se gli arrivi si vedono, va tutto bene lo stesso.</span>`
+      + `<button class="g-tec" onclick="mostraTecnico(this)">tecnico</button>`
+      + `<span class="g-tec-testo" hidden>${esc(e && e.message)}</span></div>`,
       false, "server-irraggiungibile");
   }
 }
@@ -2414,7 +2513,10 @@ function mostraAllarme(titolo, dettagli, soloAvviso, chiave){
   box.innerHTML=`<span class="a-testo">⚠️ ${titolo}</span>`
     +(dettagli?`<button class="a-piu" onclick="apriDettagliAllarme(this)">dettagli</button>`:"")
     +`<button class="a-chiudi" title="Ho verificato, non mostrarlo più" onclick="chiudiAllarme(${JSON.stringify(chiave||"").replace(/"/g,'&quot;')})">✕</button>`
-    +(dettagli?`<div class="a-dett" hidden>${String(dettagli).replace(/</g,"&lt;").replace(/&lt;br&gt;/g,"<br>")}</div>`:"");
+    // I dettagli arrivano gia' come HTML sicuro: chi li costruisce passa dalla esc()
+    // sui pezzi variabili (nomi, messaggi d'errore). Prima qui si sfuggiva tutto,
+    // e le schedine sarebbero uscite come testo con i tag in chiaro.
+    +(dettagli?`<div class="a-dett" hidden>${dettagli}</div>`:"");
   box.hidden=false;
 }
 function apriDettagliAllarme(btn){
