@@ -856,7 +856,7 @@ STILE DI FILIPPO (dalle sue risposte reali):
 - Se la critica non regge (scelta del cliente, colpa di terzi, gia' scritto in descrizione) lo dice chiaramente ma senza aggressivita'.
 - Chiusura minima: "Saluti" o "Saluti Filippo", spesso assente.
 - Frasi brevi, dirette, mai linguaggio da assistenza clienti generico, mai promozionale ("vi aspettiamo!").
-- RISPONDE SEMPRE NELLA STESSA LINGUA della recensione originale.
+- Quando la risposta verra' davvero pubblicata su Booking, sara' nella STESSA LINGUA della recensione originale — ma questo accade in un passaggio SUCCESSIVO, non ora.
 
 RECENSIONI POSITIVE (punteggio alto, nessuna critica): mai risposto finora, ora si vuole rispondere anche a queste con un breve ringraziamento VARIO (mai lo stesso testo). Combina liberamente, cambiando ogni volta:
 Aperture: "La ringraziamo per il suo riscontro." / "Grazie mille per la sua recensione." / "Siamo felici di leggere il suo commento." / "Grazie per il tempo dedicato a questa recensione." / "Un grazie sincero per le sue parole."
@@ -864,7 +864,7 @@ Corpo (aggancia un dettaglio specifico se l'ospite ne ha citato uno: posizione, 
 Chiusure (anche nessuna): "Speriamo di ospitarla di nuovo." / "La aspettiamo per un prossimo soggiorno." / "A presto." / "Un caro saluto."
 1-2 frasi, mai identica alla precedente della stessa serie.
 
-Per ciascuna recensione fornita: 1) rileva la lingua originale, 2) scrivi un riassunto BREVE in italiano (1 frase) di cosa dice la recensione (serve a Filippo per leggerla al volo), 3) scrivi la bozza di risposta IN ITALIANO (la traduzione nella lingua originale avviene dopo, solo per quelle approvate).`;
+Per ciascuna recensione fornita: 1) rileva la lingua originale (campo lingua), 2) scrivi un riassunto BREVE in italiano (1 frase) di cosa dice la recensione (serve a Filippo per leggerla al volo), 3) scrivi la bozza di risposta (campo rispostaProposta) SEMPRE E SOLO IN ITALIANO, qualunque sia la lingua originale della recensione — anche se la recensione e' in ucraino, spagnolo, giapponese o altro, la bozza va scritta in italiano. Filippo la legge, la modifica e la approva in italiano; solo DOPO l'approvazione, in un passaggio successivo che non fai qui, verra' tradotta nella lingua originale per la pubblicazione. NON scrivere mai rispostaProposta in una lingua diversa dall'italiano.`;
 
 async function handleRecensioniRispondi(request, env, url) {
   const key = url.searchParams.get("key");
