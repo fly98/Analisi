@@ -1,5 +1,5 @@
 {
-  "generatoIl": "2026-09-05T16:17:26.229Z",
+  "generatoIl": "2026-09-05T16:33:05.576Z",
   "pesi": {
     "anno1": 0.85,
     "anno2": 0.1,
@@ -3218,69 +3218,69 @@
         "positivi": [
           {
             "parola": "metro",
-            "conteggio": 88
+            "conteggio": 53
           },
           {
             "parola": "posizione",
-            "conteggio": 72
+            "conteggio": 41
           },
           {
             "parola": "tiburtina",
-            "conteggio": 54
-          },
-          {
-            "parola": "station",
-            "conteggio": 48
+            "conteggio": 34
           },
           {
             "parola": "stazione",
-            "conteggio": 43
+            "conteggio": 31
           },
           {
-            "parola": "very",
-            "conteggio": 43
-          },
-          {
-            "parola": "location",
-            "conteggio": 35
+            "parola": "station",
+            "conteggio": 29
           },
           {
             "parola": "para",
-            "conteggio": 34
+            "conteggio": 27
+          },
+          {
+            "parola": "very",
+            "conteggio": 24
+          },
+          {
+            "parola": "ubicacion",
+            "conteggio": 19
           }
         ],
         "negativi": [
           {
-            "parola": "bagno",
-            "conteggio": 16
+            "parola": "room",
+            "conteggio": 14
           },
           {
             "parola": "stanza",
             "conteggio": 14
           },
           {
-            "parola": "room",
-            "conteggio": 14
+            "parola": "bagno",
+            "conteggio": 13
           },
           {
             "parola": "nulla",
-            "conteggio": 11
+            "conteggio": 10
           },
           {
             "parola": "doccia",
-            "conteggio": 11
+            "conteggio": 10
           },
           {
-            "parola": "para",
-            "conteggio": 11
-          },
-          {
-            "parola": "camera",
+            "parola": "pulizia",
             "conteggio": 10
           },
           {
             "parola": "dell",
             "conteggio": 10
+          },
+          {
+            "parola": "camera",
+            "conteggio": 9
           }
         ],
         "analisiAI": null
@@ -6433,35 +6433,35 @@
         "positivi": [
           {
             "parola": "posizione",
-            "conteggio": 83
-          },
-          {
-            "parola": "metro",
             "conteggio": 60
           },
           {
-            "parola": "camera",
-            "conteggio": 35
-          },
-          {
-            "parola": "very",
+            "parola": "metro",
             "conteggio": 35
           },
           {
             "parola": "ottima",
-            "conteggio": 34
+            "conteggio": 26
+          },
+          {
+            "parola": "camera",
+            "conteggio": 24
+          },
+          {
+            "parola": "very",
+            "conteggio": 23
+          },
+          {
+            "parola": "para",
+            "conteggio": 21
           },
           {
             "parola": "struttura",
-            "conteggio": 34
+            "conteggio": 21
           },
           {
             "parola": "pulita",
-            "conteggio": 27
-          },
-          {
-            "parola": "accogliente",
-            "conteggio": 25
+            "conteggio": 18
           }
         ],
         "negativi": [
@@ -6474,11 +6474,11 @@
             "conteggio": 22
           },
           {
-            "parola": "bagno",
+            "parola": "piccola",
             "conteggio": 20
           },
           {
-            "parola": "piccola",
+            "parola": "bagno",
             "conteggio": 20
           },
           {
@@ -6486,11 +6486,11 @@
             "conteggio": 12
           },
           {
-            "parola": "pulizia",
+            "parola": "room",
             "conteggio": 12
           },
           {
-            "parola": "room",
+            "parola": "pulizia",
             "conteggio": 12
           },
           {
