@@ -137,6 +137,16 @@
     white-space: nowrap;
   }
   button.bottone:disabled { opacity: .55; cursor: progress; }
+  button.bottone-testo {
+    font: inherit;
+    font-size: 12px;
+    background: none;
+    border: none;
+    color: var(--muted);
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 4px;
+  }
   button.bottone:focus-visible, .switcher button:focus-visible, input:focus-visible {
     outline: 2px solid var(--accent); outline-offset: 2px;
   }
@@ -281,6 +291,7 @@
     <nav class="switcher" id="switcher" role="tablist" aria-label="Struttura"></nav>
     <div class="azioni-top">
       <div class="aggiorna-stato" id="statoAggiorna">—</div>
+      <button class="bottone-testo" id="btnResetToken" type="button" title="Se hai inserito il codice sbagliato, cliccando qui puoi reinserirlo">codice ↻</button>
       <button class="bottone" id="btnAggiorna" type="button">Aggiorna</button>
     </div>
   </header>
@@ -531,6 +542,11 @@
     if (t) localStorage.setItem(TOKEN_KEY, t);
     return t;
   }
+
+  el("btnResetToken").addEventListener("click", function () {
+    localStorage.removeItem(TOKEN_KEY);
+    el("statoAggiorna").textContent = "Codice dimenticato: al prossimo \"Aggiorna\" te lo richiede.";
+  });
 
   el("btnAggiorna").addEventListener("click", function () {
     var token = chiediToken();
