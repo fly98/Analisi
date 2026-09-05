@@ -1,5 +1,5 @@
 {
-  "generatoIl": "2026-09-05T17:25:22.318Z",
+  "generatoIl": "2026-09-05T17:34:51.500Z",
   "pesi": {
     "anno1": 0.85,
     "anno2": 0.1,
@@ -3309,6 +3309,193 @@
           "mediaFlat": 8.447178002894356
         }
       ],
+      "mediaMensile": [
+        {
+          "mese": "2023-09",
+          "media": 7.944444444444445,
+          "numero": 18
+        },
+        {
+          "mese": "2023-10",
+          "media": 8.38888888888889,
+          "numero": 18
+        },
+        {
+          "mese": "2023-11",
+          "media": 8.533333333333333,
+          "numero": 15
+        },
+        {
+          "mese": "2023-12",
+          "media": 8.461538461538462,
+          "numero": 13
+        },
+        {
+          "mese": "2024-01",
+          "media": 8.142857142857142,
+          "numero": 14
+        },
+        {
+          "mese": "2024-02",
+          "media": 8.588235294117647,
+          "numero": 17
+        },
+        {
+          "mese": "2024-03",
+          "media": 8.80952380952381,
+          "numero": 21
+        },
+        {
+          "mese": "2024-04",
+          "media": 8.1,
+          "numero": 20
+        },
+        {
+          "mese": "2024-05",
+          "media": 8.785714285714286,
+          "numero": 14
+        },
+        {
+          "mese": "2024-06",
+          "media": 8.052631578947368,
+          "numero": 19
+        },
+        {
+          "mese": "2024-07",
+          "media": 7.962962962962963,
+          "numero": 27
+        },
+        {
+          "mese": "2024-08",
+          "media": 8.5,
+          "numero": 16
+        },
+        {
+          "mese": "2024-09",
+          "media": 7.444444444444445,
+          "numero": 18
+        },
+        {
+          "mese": "2024-10",
+          "media": 8.041666666666666,
+          "numero": 24
+        },
+        {
+          "mese": "2024-11",
+          "media": 8.647058823529411,
+          "numero": 17
+        },
+        {
+          "mese": "2024-12",
+          "media": 9,
+          "numero": 10
+        },
+        {
+          "mese": "2025-01",
+          "media": 8.333333333333334,
+          "numero": 18
+        },
+        {
+          "mese": "2025-02",
+          "media": 8.8,
+          "numero": 20
+        },
+        {
+          "mese": "2025-03",
+          "media": 8.4,
+          "numero": 20
+        },
+        {
+          "mese": "2025-04",
+          "media": 8.25,
+          "numero": 20
+        },
+        {
+          "mese": "2025-05",
+          "media": 8.05,
+          "numero": 20
+        },
+        {
+          "mese": "2025-06",
+          "media": 8.517241379310345,
+          "numero": 29
+        },
+        {
+          "mese": "2025-07",
+          "media": 8.533333333333333,
+          "numero": 15
+        },
+        {
+          "mese": "2025-08",
+          "media": 8.633333333333333,
+          "numero": 30
+        },
+        {
+          "mese": "2025-09",
+          "media": 8.16,
+          "numero": 25
+        },
+        {
+          "mese": "2025-10",
+          "media": 8.2,
+          "numero": 20
+        },
+        {
+          "mese": "2025-11",
+          "media": 9.133333333333333,
+          "numero": 15
+        },
+        {
+          "mese": "2025-12",
+          "media": 8.571428571428571,
+          "numero": 21
+        },
+        {
+          "mese": "2026-01",
+          "media": 8.9375,
+          "numero": 16
+        },
+        {
+          "mese": "2026-02",
+          "media": 8.928571428571429,
+          "numero": 14
+        },
+        {
+          "mese": "2026-03",
+          "media": 9,
+          "numero": 23
+        },
+        {
+          "mese": "2026-04",
+          "media": 9,
+          "numero": 26
+        },
+        {
+          "mese": "2026-05",
+          "media": 8,
+          "numero": 15
+        },
+        {
+          "mese": "2026-06",
+          "media": 8.222222222222221,
+          "numero": 18
+        },
+        {
+          "mese": "2026-07",
+          "media": 8.666666666666666,
+          "numero": 21
+        },
+        {
+          "mese": "2026-08",
+          "media": 8.235294117647058,
+          "numero": 17
+        },
+        {
+          "mese": "2026-09",
+          "media": 9.857142857142858,
+          "numero": 7
+        }
+      ],
       "previsione": {
         "fra30giorni": 8.631103911131735,
         "fra60giorni": 8.67162298387102,
@@ -3384,36 +3571,42 @@
           }
         ],
         "analisiAI": {
-          "riassunto": "L'affittacamere gode di una location eccezionale vicino alla stazione Tiburtina con accesso facile a metro, treni e autobus, oltre a pulizia giornaliera e personale cordiale. I principali difetti riguardano le dimensioni molto ridotte delle stanze, scarsa insonorizzazione tra gli appartamenti e alcuni problemi di manutenzione nel bagno.",
+          "riassunto": "I nuovi commenti confermano principalmente la vicinanza alla stazione Tiburtina e i trasporti pubblici come punto di forza principale. Emerge un nuovo tema negativo relativo alla pulizia degli utensili da cucina.",
           "temiPositivi": [
             {
               "tema": "Vicinanza alla stazione Tiburtina e trasporti pubblici",
-              "conteggio": 120,
+              "conteggio": 123,
+              "ultimaData": "2026-09-02",
               "esempio": "La posizione risulta comodissima essendo vicino alla stazione. Metro e stazione ferroviaria vicinissimi"
             },
             {
               "tema": "Pulizia giornaliera della camera e cambio asciugamani",
               "conteggio": 45,
+              "ultimaData": "2026-09-04",
               "esempio": "Room was cleaned every morning. Ogni giorno viene pulita la camera con cambio asciugamani"
             },
             {
+              "tema": "Gentilezza e disponibilità del personale/host",
+              "conteggio": 46,
+              "ultimaData": "2026-09-01",
+              "esempio": "Staff Filippo was so kind and very helpful. Proprietario disponibile e sempre presente"
+            },
+            {
               "tema": "Check-in autonomo facile e veloce",
-              "conteggio": 35,
+              "conteggio": 36,
+              "ultimaData": "2026-09-02",
               "esempio": "Molto comodo l'entrata delle varie porte, corredate da un tutorial semplice e comodo"
             },
             {
               "tema": "Terrazza/balcone privato con sedie e tavolo",
-              "conteggio": 35,
+              "conteggio": 36,
+              "ultimaData": "2026-09-01",
               "esempio": "Meraviglioso terrazzino. Il terrazzo è un altro plus sfruttabile vista la silenziosità"
             },
             {
-              "tema": "Gentilezza e disponibilità del personale/host",
-              "conteggio": 45,
-              "esempio": "Staff Filippo was so kind and very helpful. Proprietario disponibile e sempre presente"
-            },
-            {
               "tema": "Buon rapporto qualità-prezzo e prezzi bassi",
-              "conteggio": 25,
+              "conteggio": 26,
+              "ultimaData": "2026-09-02",
               "esempio": "I prezzi delle stanze sono molto bassi rispetto ad altre strutture che chiedono il doppio"
             }
           ],
@@ -3421,35 +3614,47 @@
             {
               "tema": "Stanze molto piccole e spazi ristretti",
               "conteggio": 65,
+              "ultimaData": "2026-09-04",
               "esempio": "La stanza è veramente troppo piccola. Ambiente piccolissimo, adatto per chi è di passaggio"
             },
             {
               "tema": "Scarsa insonorizzazione e rumore dai vicini",
               "conteggio": 45,
+              "ultimaData": "2026-09-04",
               "esempio": "SI SENTE TUTTO dai vicini....pareti finissimi. Ściany z 'kartonu'. Słychać każde słowo sąsiadów"
             },
             {
               "tema": "Bagno piccolo, datato e manutenzione insufficiente",
               "conteggio": 40,
+              "ultimaData": "2026-09-04",
               "esempio": "Il bagno troppo ristretto. Doccia avrebbe bisogno di una grande revisione. Scarico del water malfunzionante"
             },
             {
               "tema": "Pulizia insufficiente o irregolare della camera",
               "conteggio": 30,
+              "ultimaData": "2026-09-04",
               "esempio": "Non abbiamo trovato una pulizia 'completa' dell'alloggio. Si poteva fare molto di meglio"
-            },
-            {
-              "tema": "Zona circostante poco sicura o carattere notturno spiacevole",
-              "conteggio": 15,
-              "esempio": "Zona un poco oscura si llegas tarde por la noche. Bares mal frequentati con lixo no chão"
             },
             {
               "tema": "Problemi con condizionatore, riscaldamento o ventilazione",
               "conteggio": 15,
+              "ultimaData": "2026-09-04",
               "esempio": "Condizionatore non proprio silenzioso. Lüftung die man nicht abstellen konnte"
+            },
+            {
+              "tema": "Zona circostante poco sicura o carattere notturno spiacevole",
+              "conteggio": 15,
+              "ultimaData": "2026-09-04",
+              "esempio": "Zona un poco oscura si llegas tarde por la noche. Bares mal frequentati con lixo no chão"
+            },
+            {
+              "tema": "Pulizia insufficiente di utensili e menaje di cucina",
+              "conteggio": 1,
+              "ultimaData": "2026-08-29",
+              "esempio": "Algo sucio, los cubiertos y menaje de cocina"
             }
           ],
-          "generatoIl": "2026-09-05T17:25:12.202Z"
+          "generatoIl": "2026-09-05T17:31:51.433Z"
         }
       }
     },
@@ -6591,6 +6796,193 @@
           "mediaFlat": 8.155384615384616
         }
       ],
+      "mediaMensile": [
+        {
+          "mese": "2023-09",
+          "media": 8.6,
+          "numero": 10
+        },
+        {
+          "mese": "2023-10",
+          "media": 7.48,
+          "numero": 25
+        },
+        {
+          "mese": "2023-11",
+          "media": 8.263157894736842,
+          "numero": 19
+        },
+        {
+          "mese": "2023-12",
+          "media": 7.866666666666666,
+          "numero": 15
+        },
+        {
+          "mese": "2024-01",
+          "media": 8.428571428571429,
+          "numero": 21
+        },
+        {
+          "mese": "2024-02",
+          "media": 7.9411764705882355,
+          "numero": 17
+        },
+        {
+          "mese": "2024-03",
+          "media": 8.176470588235293,
+          "numero": 17
+        },
+        {
+          "mese": "2024-04",
+          "media": 8.538461538461538,
+          "numero": 13
+        },
+        {
+          "mese": "2024-05",
+          "media": 7.3125,
+          "numero": 16
+        },
+        {
+          "mese": "2024-06",
+          "media": 7.785714285714286,
+          "numero": 28
+        },
+        {
+          "mese": "2024-07",
+          "media": 8.1,
+          "numero": 20
+        },
+        {
+          "mese": "2024-08",
+          "media": 8.090909090909092,
+          "numero": 22
+        },
+        {
+          "mese": "2024-09",
+          "media": 8.19047619047619,
+          "numero": 21
+        },
+        {
+          "mese": "2024-10",
+          "media": 7.875,
+          "numero": 16
+        },
+        {
+          "mese": "2024-11",
+          "media": 7.6,
+          "numero": 15
+        },
+        {
+          "mese": "2024-12",
+          "media": 6.9,
+          "numero": 10
+        },
+        {
+          "mese": "2025-01",
+          "media": 8.5,
+          "numero": 14
+        },
+        {
+          "mese": "2025-02",
+          "media": 8.384615384615385,
+          "numero": 13
+        },
+        {
+          "mese": "2025-03",
+          "media": 8.222222222222221,
+          "numero": 27
+        },
+        {
+          "mese": "2025-04",
+          "media": 7.833333333333333,
+          "numero": 18
+        },
+        {
+          "mese": "2025-05",
+          "media": 7.666666666666667,
+          "numero": 18
+        },
+        {
+          "mese": "2025-06",
+          "media": 7.6,
+          "numero": 15
+        },
+        {
+          "mese": "2025-07",
+          "media": 8.05,
+          "numero": 20
+        },
+        {
+          "mese": "2025-08",
+          "media": 8.705882352941176,
+          "numero": 17
+        },
+        {
+          "mese": "2025-09",
+          "media": 8.65,
+          "numero": 20
+        },
+        {
+          "mese": "2025-10",
+          "media": 7.238095238095238,
+          "numero": 21
+        },
+        {
+          "mese": "2025-11",
+          "media": 8.521739130434783,
+          "numero": 23
+        },
+        {
+          "mese": "2025-12",
+          "media": 7.809523809523809,
+          "numero": 21
+        },
+        {
+          "mese": "2026-01",
+          "media": 9,
+          "numero": 14
+        },
+        {
+          "mese": "2026-02",
+          "media": 8.625,
+          "numero": 16
+        },
+        {
+          "mese": "2026-03",
+          "media": 8.705882352941176,
+          "numero": 17
+        },
+        {
+          "mese": "2026-04",
+          "media": 8.571428571428571,
+          "numero": 28
+        },
+        {
+          "mese": "2026-05",
+          "media": 8.5,
+          "numero": 20
+        },
+        {
+          "mese": "2026-06",
+          "media": 8.142857142857142,
+          "numero": 14
+        },
+        {
+          "mese": "2026-07",
+          "media": 9.055555555555555,
+          "numero": 18
+        },
+        {
+          "mese": "2026-08",
+          "media": 8.625,
+          "numero": 8
+        },
+        {
+          "mese": "2026-09",
+          "media": 10,
+          "numero": 3
+        }
+      ],
       "previsione": {
         "fra30giorni": 8.362478569679167,
         "fra60giorni": 8.447017161536383,
@@ -6671,64 +7063,76 @@
             {
               "tema": "Posizione strategica vicino a metro, stazione e mezzi pubblici",
               "conteggio": 95,
-              "esempio": "Ottima posizione in quanto a cinque minuti a piedi dalla fermata della metro e dei pullman"
+              "esempio": "Ottima posizione in quanto a cinque minuti a piedi dalla fermata della metro e dei pullman",
+              "ultimaData": "2026-09-05"
             },
             {
               "tema": "Pulizia quotidiana della camera e cambio asciugamani",
               "conteggio": 70,
-              "esempio": "Tutti i giorni ci ha fatto la limpieza de la habitación y cambio de toallas"
+              "esempio": "Tutti i giorni ci ha fatto la limpieza de la habitación y cambio de toallas",
+              "ultimaData": "2026-09-05"
             },
             {
               "tema": "Personale cordiale, disponibile e responsivo",
               "conteggio": 65,
-              "esempio": "Filippo è stato molto disponibile, chiedendo scusa in anticipo se c'era qualcosa che non era in ordine"
+              "esempio": "Filippo è stato molto disponibile, chiedendo scusa in anticipo se c'era qualcosa che non era in ordine",
+              "ultimaData": "2026-09-05"
             },
             {
               "tema": "Buon rapporto qualità-prezzo",
               "conteggio": 35,
-              "esempio": "La posizione il buon rapporto qualità prezzo"
+              "esempio": "La posizione il buon rapporto qualità prezzo",
+              "ultimaData": "2026-09-05"
             },
             {
               "tema": "Check-in autonomo e flessibile",
               "conteggio": 30,
-              "esempio": "Easy check-in, possibilità di fare il self check-in anche fino a tardi con istruzioni chiare"
+              "esempio": "Easy check-in, possibilità di fare il self check-in anche fino a tardi con istruzioni chiare",
+              "ultimaData": "2026-09-05"
             },
             {
               "tema": "Dotazioni aggiuntive come kitchenette, Netflix e idromassaggio",
               "conteggio": 28,
-              "esempio": "Angolo cottura con forno a microonde, Netflix, doccia con idromassaggio"
+              "esempio": "Angolo cottura con forno a microonde, Netflix, doccia con idromassaggio",
+              "ultimaData": "2026-09-05"
             }
           ],
           "temiNegativi": [
             {
               "tema": "Isolamento acustico insufficiente tra le camere",
               "conteggio": 75,
-              "esempio": "Pareti molto sottili, si sentivano le voci dalle stanze confinanti"
+              "esempio": "Pareti molto sottili, si sentivano le voci dalle stanze confinanti",
+              "ultimaData": "2026-09-05"
             },
             {
               "tema": "Camere e bagni molto piccoli e stretti",
               "conteggio": 70,
-              "esempio": "Camera minuscola, bagno piccolo, pareti super sottili per tre persone"
+              "esempio": "Camera minuscola, bagno piccolo, pareti super sottili per tre persone",
+              "ultimaData": "2026-09-05"
             },
             {
               "tema": "Rumore dalla strada e da clienti rumorosi",
               "conteggio": 45,
-              "esempio": "Es imposible dormir de noche debido a las discotecas que hay alrededor"
+              "esempio": "Es imposible dormir de noche debido a las discotecas que hay alrededor",
+              "ultimaData": "2026-09-05"
             },
             {
               "tema": "Pulizia scarsa e presenza di polvere, umidità o muffa",
               "conteggio": 35,
-              "esempio": "Stanza parecchio datata con pulizia da migliorare, puzza di muffa a causa dell'umidità"
+              "esempio": "Stanza parecchio datata con pulizia da migliorare, puzza di muffa a causa dell'umidità",
+              "ultimaData": "2026-09-05"
             },
             {
               "tema": "Arredamento vecchio, rovinato o in cattivo stato",
               "conteggio": 30,
-              "esempio": "Meble già molto danneggiate, struttura datata, mobili vecchi e non in buono stato"
+              "esempio": "Meble già molto danneggiate, struttura datata, mobili vecchi e non in buono stato",
+              "ultimaData": "2026-09-05"
             },
             {
               "tema": "Mancanza di alcuni servizi (colazione, caffè, utensili)",
               "conteggio": 20,
-              "esempio": "La scritta bed&breakfast sull'insegna è fuorviante perché non c'è la colazione"
+              "esempio": "La scritta bed&breakfast sull'insegna è fuorviante perché non c'è la colazione",
+              "ultimaData": "2026-09-05"
             }
           ],
           "generatoIl": "2026-09-05T17:25:22.271Z"
