@@ -777,21 +777,32 @@ async function handleRecensioniAnalizza(request, env, url) {
 
   let body;
   try { body = await request.json(); } catch (e) { return json({ error: "JSON non valido" }, 400); }
-  const positivi = Array.isArray(body.positivi) ? body.positivi.filter(Boolean).slice(-200) : [];
-  const negativi = Array.isArray(body.negativi) ? body.negativi.filter(Boolean).slice(-200) : [];
-  if (!positivi.length && !negativi.length) return json({ error: "nessun testo da analizzare" }, 400);
 
-  const testoPositivi = positivi.map((t, i) => (i + 1) + ". " + String(t).slice(0, 300)).join("\n");
-  const testoNegativi = negativi.map((t, i) => (i + 1) + ". " + String(t).slice(0, 300)).join("\n");
+  // Modalita' incrementale: il chiamante manda i temi gia' noti (elenco
+  // compatto, non i testi vecchi) + solo le recensioni nuove dall'ultima
+  // volta. L'AI aggiorna l'elenco invece di ripartire da zero ogni volta:
+  // molto piu' leggero, e mantiene la data dell'ultima conferma di ogni
+  // tema (chi chiama decide poi se un tema e' ancora attivo guardando
+  // quella data, non serve rifare l'analisi solo per invecchiare un tema).
+  const temiEsistenti = body.temiEsistenti && typeof body.temiEsistenti === "object" ? body.temiEsistenti : { positivi: [], negativi: [] };
+  const nuoviPositivi = Array.isArray(body.nuovi && body.nuovi.positivi) ? body.nuovi.positivi.filter(r => r && r.testo).slice(-150) : [];
+  const nuoviNegativi = Array.isArray(body.nuovi && body.nuovi.negativi) ? body.nuovi.negativi.filter(r => r && r.testo).slice(-150) : [];
+  if (!nuoviPositivi.length && !nuoviNegativi.length) return json({ error: "nessuna recensione nuova da analizzare" }, 400);
 
-  const prompt = "Analizza questi commenti di ospiti di un affittacamere a Roma (Booking.com).\n\n" +
-    "COMMENTI POSITIVI (" + positivi.length + "):\n" + (testoPositivi || "(nessuno)") + "\n\n" +
-    "COMMENTI NEGATIVI (" + negativi.length + "):\n" + (testoNegativi || "(nessuno)") + "\n\n" +
-    "Individua i temi ricorrenti (concetti reali, non singole parole: es. 'vicinanza alla stazione Tiburtina', 'rumore dalla strada', 'check-in autonomo'). " +
-    "Per ciascun tema stima quante recensioni lo toccano (numero approssimativo) e riporta una citazione breve reale come esempio.\n\n" +
+  const fmtEsistenti = (lista) => (lista || []).map(t => "- " + t.tema + " (visto " + (t.conteggio || 0) + " volte, ultima conferma " + (t.ultimaData || "?") + "): \"" + (t.esempio || "") + "\"").join("\n") || "(nessuno)";
+  const fmtNuove = (lista) => lista.map((r, i) => (i + 1) + ". [" + (r.data || "?") + "] " + String(r.testo).slice(0, 300)).join("\n") || "(nessuna)";
+
+  const prompt = "Aggiorna l'elenco dei temi ricorrenti nei commenti di un affittacamere a Roma (Booking.com), con questi nuovi commenti arrivati dall'ultimo aggiornamento.\n\n" +
+    "TEMI POSITIVI GIA' NOTI:\n" + fmtEsistenti(temiEsistenti.positivi) + "\n\n" +
+    "TEMI NEGATIVI GIA' NOTI:\n" + fmtEsistenti(temiEsistenti.negativi) + "\n\n" +
+    "NUOVI COMMENTI POSITIVI (" + nuoviPositivi.length + "):\n" + fmtNuove(nuoviPositivi) + "\n\n" +
+    "NUOVI COMMENTI NEGATIVI (" + nuoviNegativi.length + "):\n" + fmtNuove(nuoviNegativi) + "\n\n" +
+    "Per ogni nuovo commento: se conferma un tema gia' noto, aumenta il suo conteggio di 1 e aggiorna ultimaData alla data di quel commento (solo se piu' recente di quella attuale). " +
+    "Se descrive un tema nuovo (concetto reale, es. 'rumore dalla strada', non una singola parola), aggiungilo con conteggio = quante nuove recensioni lo confermano, ultimaData = la piu' recente fra queste, esempio = una citazione breve reale. " +
+    "I temi noti che NESSUN nuovo commento conferma vanno restituiti IDENTICI (stesso conteggio, stessa ultimaData, stesso esempio): non inventare, non eliminare.\n\n" +
     "Rispondi SOLO con un oggetto JSON, senza testo intorno, in questo formato esatto:\n" +
-    '{"riassunto": "1-2 frasi in italiano sul quadro generale", "temiPositivi": [{"tema": "...", "conteggio": 0, "esempio": "..."}], "temiNegativi": [{"tema": "...", "conteggio": 0, "esempio": "..."}]}' +
-    "\nMassimo 6 temi per lista, ordinati dal piu' frequente.";
+    '{"riassunto": "1-2 frasi in italiano sul quadro generale", "temiPositivi": [{"tema": "...", "conteggio": 0, "ultimaData": "YYYY-MM-DD", "esempio": "..."}], "temiNegativi": [{"tema": "...", "conteggio": 0, "ultimaData": "YYYY-MM-DD", "esempio": "..."}]}' +
+    "\nElenco COMPLETO (esistenti aggiornati o invariati + eventuali nuovi), ordinato per conteggio decrescente.";
 
   try {
     const resp = await fetch("https://api.anthropic.com/v1/messages", {
@@ -803,7 +814,7 @@ async function handleRecensioniAnalizza(request, env, url) {
       },
       body: JSON.stringify({
         model: "claude-haiku-4-5",
-        max_tokens: 1500,
+        max_tokens: 2000,
         messages: [{ role: "user", content: prompt }],
       }),
     });
