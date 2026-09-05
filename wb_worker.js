@@ -837,6 +837,87 @@ async function handleRecensioniAnalizza(request, env, url) {
   }
 }
 
+// ---------------- Bozze di risposta alle recensioni (progetto recensioni Booking) ----------------
+// Non fa parte del welcome book: riusa solo ANTHROPIC_API_KEY gia' configurata
+// su questo worker. Protetta da RECENSIONI_AI_KEY (stesso secret usato per
+// l'analisi dei temi). Chiamata da genera-risposte.js sul Mac, mai da una
+// pagina pubblica.
+//
+// POST /wb/recensioni/rispondi?key=RECENSIONI_AI_KEY
+// body: { recensioni: [{ id, punteggio, positivo, negativo }, ...] }  (max 20 per chiamata)
+// risposta: { ok:true, bozze: [{ id, lingua, riassuntoIT, rispostaProposta }] }
+
+const GUIDA_TONO = `Sei l'assistente che prepara le BOZZE delle risposte di Filippo alle recensioni Booking di un affittacamere a Roma (InternoUno, zona Tiburtina). Le bozze le legge e modifica lui prima di pubblicarle: devono essere un buon punto di partenza nel SUO stile, non testo finale perfetto.
+
+STILE DI FILIPPO (dalle sue risposte reali):
+- Apertura breve: "Salve", "Gentile [se c'e' un nome]", mai formule lunghe.
+- Riconosce il problema in una frase (spesso "mi spiace"), poi passa alla spiegazione. Niente scuse multiple o enfatiche.
+- Spiega i fatti: perche' e' successo, cosa dice la descrizione dell'annuncio, cosa e' stato fatto per risolvere.
+- Se la critica non regge (scelta del cliente, colpa di terzi, gia' scritto in descrizione) lo dice chiaramente ma senza aggressivita'.
+- Chiusura minima: "Saluti" o "Saluti Filippo", spesso assente.
+- Frasi brevi, dirette, mai linguaggio da assistenza clienti generico, mai promozionale ("vi aspettiamo!").
+- RISPONDE SEMPRE NELLA STESSA LINGUA della recensione originale.
+
+RECENSIONI POSITIVE (punteggio alto, nessuna critica): mai risposto finora, ora si vuole rispondere anche a queste con un breve ringraziamento VARIO (mai lo stesso testo). Combina liberamente, cambiando ogni volta:
+Aperture: "La ringraziamo per il suo riscontro." / "Grazie mille per la sua recensione." / "Siamo felici di leggere il suo commento." / "Grazie per il tempo dedicato a questa recensione." / "Un grazie sincero per le sue parole."
+Corpo (aggancia un dettaglio specifico se l'ospite ne ha citato uno: posizione, pulizia, staff, terrazzo...): "Siamo contenti che abbia apprezzato [dettaglio]." / "Ci fa piacere sapere che si e' trovato bene da noi." / "E' una soddisfazione leggere commenti come il suo."
+Chiusure (anche nessuna): "Speriamo di ospitarla di nuovo." / "La aspettiamo per un prossimo soggiorno." / "A presto." / "Un caro saluto."
+1-2 frasi, mai identica alla precedente della stessa serie.
+
+Per ciascuna recensione fornita: 1) rileva la lingua originale, 2) scrivi un riassunto BREVE in italiano (1 frase) di cosa dice la recensione (serve a Filippo per leggerla al volo), 3) scrivi la bozza di risposta IN ITALIANO (la traduzione nella lingua originale avviene dopo, solo per quelle approvate).`;
+
+async function handleRecensioniRispondi(request, env, url) {
+  const key = url.searchParams.get("key");
+  if (!env.RECENSIONI_AI_KEY || key !== env.RECENSIONI_AI_KEY) return json({ error: "non autorizzato" }, 401);
+  if (!env.ANTHROPIC_API_KEY) return json({ error: "AI non configurata" }, 503);
+
+  let body;
+  try { body = await request.json(); } catch (e) { return json({ error: "JSON non valido" }, 400); }
+  const recensioni = Array.isArray(body.recensioni) ? body.recensioni.slice(0, 20) : [];
+  if (!recensioni.length) return json({ error: "nessuna recensione da elaborare" }, 400);
+
+  const elenco = recensioni.map((r, i) =>
+    `### Recensione ${i + 1} (id: ${r.id})\nPunteggio: ${r.punteggio}/10\nPositivo: ${r.positivo || "(nessuno)"}\nNegativo: ${r.negativo || "(nessuno)"}`
+  ).join("\n\n");
+
+  const prompt = GUIDA_TONO + `\n\nEcco ${recensioni.length} recensioni da elaborare:\n\n${elenco}\n\n` +
+    `Rispondi SOLO con un array JSON, senza testo intorno, un oggetto per recensione, in questo formato esatto:\n` +
+    `[{"id": "...", "lingua": "it|en|fr|...", "riassuntoIT": "...", "rispostaProposta": "..."}]`;
+
+  try {
+    const resp = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": env.ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01",
+      },
+      body: JSON.stringify({
+        model: "claude-haiku-4-5",
+        max_tokens: 4000,
+        messages: [{ role: "user", content: prompt }],
+      }),
+    });
+    if (!resp.ok) {
+      const errText = await resp.text();
+      return json({ error: "Errore AI", detail: errText.slice(0, 300) }, 502);
+    }
+    const data = await resp.json();
+    const testo = (data.content || []).filter(b => b.type === "text").map(b => b.text).join("\n").trim();
+    let bozze;
+    try {
+      const m = testo.match(/\[[\s\S]*\]/);
+      bozze = JSON.parse(m ? m[0] : testo);
+    } catch (e) {
+      return json({ error: "Risposta AI non interpretabile", grezzo: testo.slice(0, 500) }, 502);
+    }
+    return json({ ok: true, bozze, generatoIl: new Date().toISOString() });
+  } catch (e) {
+    return json({ error: "Chiamata AI fallita", detail: String(e).slice(0, 200) }, 502);
+  }
+}
+
+
 export default {
   async fetch(request, env) {
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: CORS });
@@ -849,6 +930,7 @@ export default {
       const action = parts[2];
 
       if (slug === "recensioni" && action === "analizza" && request.method === "POST") return await handleRecensioniAnalizza(request, env, url);
+      if (slug === "recensioni" && action === "rispondi" && request.method === "POST") return await handleRecensioniRispondi(request, env, url);
       if (action === "chat" && request.method === "POST") return await handleChat(request, env, slug);
       if (action === "track" && request.method === "POST") return await handleTrack(request, env, slug);
       if (action === "data" && request.method === "GET") return await handleData(request, env, slug, url);
