@@ -267,6 +267,59 @@
   .riassunto-ai { font-size: 14px; margin: 0 0 16px; padding: 12px 14px; background: var(--accent-soft); border-radius: 10px; color: var(--ink); }
   .chip[title] { cursor: help; }
 
+  /* ── risposte da validare ────────────────────────────────────── */
+  .bozza {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    background: var(--surface-2);
+  }
+  .bozza-intestazione {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12.5px;
+    color: var(--muted);
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+  }
+  .bozza-lingua {
+    font-family: "IBM Plex Mono", monospace;
+    text-transform: uppercase;
+    background: var(--accent-soft);
+    color: var(--accent);
+    padding: 2px 7px;
+    border-radius: 5px;
+    font-size: 11px;
+  }
+  .bozza-originale { font-size: 13.5px; color: var(--muted); margin-bottom: 10px; font-style: italic; }
+  .bozza-testo {
+    width: 100%;
+    font: inherit;
+    font-size: 14px;
+    line-height: 1.5;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--ink);
+    resize: vertical;
+    min-height: 4.5em;
+    box-sizing: border-box;
+  }
+  .bozza-piede {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    font-size: 13px;
+  }
+  .bozza-piede input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--accent); }
+  .bozza.approvata { border-color: var(--positive); }
+  .bozza-stato-inviata { color: var(--muted); font-size: 12px; font-style: italic; }
+  .risposte-azioni { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 8px; }
+
   /* ── metodologia ─────────────────────────────────────────────── */
   details.metodo summary {
     cursor: pointer;
@@ -358,6 +411,17 @@
     <div class="nota-v1" id="notaTemi">Analisi automatica per frequenza delle parole (v1) — l'analisi con AI dei temi arriva in una fase successiva.</div>
   </section>
 
+  <section class="card">
+    <h2>Risposte da validare</h2>
+    <div class="sottotitolo">Bozze scritte dall'AI nel tuo tono, sempre in italiano da leggere e modificare qui. L'invio vero a Booking resta un passaggio a parte.</div>
+    <div id="risposteLista"></div>
+    <div class="risposte-azioni">
+      <button class="bottone-testo" id="btnMostraAltreRisposte" type="button" hidden>Mostra altre</button>
+      <button class="bottone" id="btnCaricaApprovate" type="button">Carica le approvate</button>
+      <span class="aggiorna-stato" id="statoRisposte"></span>
+    </div>
+  </section>
+
   <details class="metodo card">
     <summary>Come viene calcolato il punteggio</summary>
     <div class="corpo">
@@ -376,7 +440,10 @@
   var TOKEN_KEY = "recensioni_token";
 
   var dati = null;
+  var datiRisposte = null;
   var proprietaAttiva = null;
+  var risposteMostrate = 20;
+  var PASSO_RISPOSTE = 20;
 
   function el(id) { return document.getElementById(id); }
 
@@ -392,15 +459,17 @@
 
   // ── caricamento dati ──────────────────────────────────────────
   function caricaDati() {
-    return fetch("./recensioni_dati.json", { cache: "no-store" })
-      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
-      .then(function (json) {
-        dati = json;
-        var chiavi = Object.keys(dati.strutture || {});
-        if (!proprietaAttiva || chiavi.indexOf(proprietaAttiva) === -1) proprietaAttiva = chiavi[0];
-        renderSwitcher();
-        renderTutto();
-      });
+    return Promise.all([
+      fetch("./recensioni_dati.json", { cache: "no-store" }).then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); }),
+      fetch("./recensioni_risposte.json", { cache: "no-store" }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }),
+    ]).then(function (risultati) {
+      dati = risultati[0];
+      datiRisposte = risultati[1];
+      var chiavi = Object.keys(dati.strutture || {});
+      if (!proprietaAttiva || chiavi.indexOf(proprietaAttiva) === -1) proprietaAttiva = chiavi[0];
+      renderSwitcher();
+      renderTutto();
+    });
   }
 
   function renderSwitcher() {
@@ -443,6 +512,8 @@
     renderGrafico(s);
     renderGraficoMensile(s);
     renderTemi(s);
+    risposteMostrate = PASSO_RISPOSTE;
+    renderRisposte();
   }
 
   // ── simulatore ────────────────────────────────────────────────
@@ -587,6 +658,72 @@
       lista("temiNegativi", s.temi.negativi, "neg", "parola", null);
     }
   }
+
+  // ── risposte da validare ────────────────────────────────────────
+  function bozzeStruttura() {
+    if (!datiRisposte || !datiRisposte.strutture || !datiRisposte.strutture[proprietaAttiva]) return [];
+    return datiRisposte.strutture[proprietaAttiva].bozze || [];
+  }
+
+  function renderRisposte() {
+    var tutte = bozzeStruttura();
+    var box = el("risposteLista");
+    if (!tutte.length) {
+      box.innerHTML = "<p style=\"color:var(--muted);font-size:13px\">Nessuna bozza pronta per questa struttura.</p>";
+      el("btnMostraAltreRisposte").hidden = true;
+      return;
+    }
+    var daMostrare = tutte.slice(0, risposteMostrate);
+    box.innerHTML = "";
+    daMostrare.forEach(function (b) {
+      var div = document.createElement("div");
+      var approvata = b.stato === "approvata";
+      div.className = "bozza" + (approvata ? " approvata" : "");
+      var originale = (b.negativo ? "− " + b.negativo : "") + (b.negativo && b.positivo ? " · " : "") + (b.positivo ? "+ " + b.positivo : "");
+      var htmlPiede = approvata
+        ? "<span class=\"bozza-stato-inviata\">✓ Approvata — in attesa di invio a Booking (passaggio manuale, per ora)</span>"
+        : "<label><input type=\"checkbox\" data-id=\"" + b.id + "\"> Approvo questo testo per il caricamento</label>";
+      div.innerHTML =
+        "<div class=\"bozza-intestazione\"><span class=\"bozza-lingua\">" + (b.lingua || "?") + "</span>" +
+        "<span>" + formattaData(b.dataRecensione) + "</span><span>· voto " + b.punteggio + "</span></div>" +
+        "<div class=\"bozza-originale\">" + (b.riassuntoIT || originale).replace(/</g, "&lt;") + "</div>" +
+        "<textarea class=\"bozza-testo\" data-id=\"" + b.id + "\"" + (approvata ? " disabled" : "") + ">" + (b.rispostaFinale || b.rispostaProposta || "").replace(/</g, "&lt;") + "</textarea>" +
+        "<div class=\"bozza-piede\">" + htmlPiede + "</div>";
+      box.appendChild(div);
+    });
+    el("btnMostraAltreRisposte").hidden = risposteMostrate >= tutte.length;
+  }
+
+  el("btnMostraAltreRisposte").addEventListener("click", function () {
+    risposteMostrate += PASSO_RISPOSTE;
+    renderRisposte();
+  });
+
+  el("btnCaricaApprovate").addEventListener("click", function () {
+    var checkbox = el("risposteLista").querySelectorAll("input[type=checkbox]:checked");
+    if (!checkbox.length) { el("statoRisposte").textContent = "Nessuna bozza spuntata."; return; }
+    var approvazioni = [];
+    checkbox.forEach(function (c) {
+      var id = c.getAttribute("data-id");
+      var area = el("risposteLista").querySelector("textarea[data-id=\"" + id + "\"]");
+      approvazioni.push({ id: id, rispostaFinale: area ? area.value : "" });
+    });
+    var token = chiediToken();
+    if (!token) return;
+    el("statoRisposte").textContent = "Salvataggio in corso...";
+    fetch("https://recensioni-worker.f-castiglioni.workers.dev/approva", {
+      method: "POST",
+      headers: { "X-Auth": token, "Content-Type": "application/json" },
+      body: JSON.stringify({ property: proprietaAttiva, approvazioni: approvazioni }),
+    })
+      .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+      .then(function (res) {
+        if (!res.ok) { el("statoRisposte").textContent = "Non riuscito: " + (res.j.error || "errore sconosciuto"); return; }
+        el("statoRisposte").textContent = res.j.aggiornate + " bozze salvate. " + (res.j.nota || "");
+        return caricaDati();
+      })
+      .catch(function (e) { el("statoRisposte").textContent = "Mac non raggiungibile (" + e.message + ")."; });
+  });
 
   // ── aggiorna ──────────────────────────────────────────────────
   function chiediToken() {
