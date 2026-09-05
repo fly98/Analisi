@@ -1,5 +1,5 @@
 {
-  "generatoIl": "2026-09-05T16:46:47.659Z",
+  "generatoIl": "2026-09-05T17:25:03.607Z",
   "pesi": {
     "anno1": 0.85,
     "anno2": 0.1,
@@ -3383,7 +3383,74 @@
             "conteggio": 9
           }
         ],
-        "analisiAI": null
+        "analisiAI": {
+          "riassunto": "InternoUno è apprezzato soprattutto per la posizione strategica vicino alla stazione Tiburtina con accesso facile a metro, treni e autobus, oltre che per la pulizia e la disponibilità dello staff. I principali difetti riguardano le dimensioni molto ridotte delle camere, scarsa insonorizzazione, bagno datato e problemi occasionali di igiene nei dettagli.",
+          "temiPositivi": [
+            {
+              "tema": "Posizione ideale vicino stazione Tiburtina e trasporti pubblici",
+              "conteggio": 120,
+              "esempio": "The location is amazing, it is right next to the Tiburtina metro station, so commuting was incredibly easy"
+            },
+            {
+              "tema": "Pulizia quotidiana della camera e cambio asciugamani",
+              "conteggio": 65,
+              "esempio": "Very close to the subway. They change the sheets and clean the room often"
+            },
+            {
+              "tema": "Personale cordiale, disponibile e responsivo",
+              "conteggio": 60,
+              "esempio": "Staff Filippo was so kind and very helpful. And the room was very clean and comfortable"
+            },
+            {
+              "tema": "Check-in autonomo veloce e facile",
+              "conteggio": 50,
+              "esempio": "It was very easy to check in and out (very important when arriving late at night)"
+            },
+            {
+              "tema": "Terrazza/balcone privato spazioso e accogliente",
+              "conteggio": 45,
+              "esempio": "Wunderschöne Terrasse, wir haben jeden Abend dort genossen"
+            },
+            {
+              "tema": "Ottimo rapporto qualità-prezzo",
+              "conteggio": 40,
+              "esempio": "I prezzi delle stanze sono molto bassi rispetto ad altre strutture"
+            }
+          ],
+          "temiNegativi": [
+            {
+              "tema": "Camere molto piccole, spazi ridotti e scomodi",
+              "conteggio": 85,
+              "esempio": "La stanza è veramente troppo piccola. Si riesce ad entrare ma con grossi problemi"
+            },
+            {
+              "tema": "Scarsa insonorizzazione, rumori dai vicini",
+              "conteggio": 45,
+              "esempio": "SI SENTE TUTTO dai vicini....pareti finissimi. Impossibile di dormire bene"
+            },
+            {
+              "tema": "Bagno piccolo, datato, con doccia/vasca scomoda",
+              "conteggio": 40,
+              "esempio": "Duştaki küveti, girip çıkarken zorlanıyor insan"
+            },
+            {
+              "tema": "Pulizia insufficiente in alcuni dettagli e angoli nascosti",
+              "conteggio": 30,
+              "esempio": "Non abbiamo trovato una pulizia 'completa' dell'alloggio, si poteva fare molto di meglio"
+            },
+            {
+              "tema": "Zona circostante non molto sicura di sera",
+              "conteggio": 15,
+              "esempio": "A localização apesar de ser muito próximo a estação, não é um lugar 'agradável', principalmente no horário noturno"
+            },
+            {
+              "tema": "Condizionatore rumoroso o insufficiente",
+              "conteggio": 12,
+              "esempio": "Il condizionatore faceva un piccolo rumore durante il funzionamento"
+            }
+          ],
+          "generatoIl": "2026-09-05T17:24:53.090Z"
+        }
       }
     },
     "classica": {
@@ -6598,7 +6665,74 @@
             "conteggio": 11
           }
         ],
-        "analisiAI": null
+        "analisiAI": {
+          "riassunto": "L'affittacamere riceve valutazioni molto polarizzate: i commenti positivi elogiano principalmente la posizione strategica vicino ai trasporti pubblici, la pulizia quotidiana e la disponibilità del personale, mentre le recensioni negative si concentrano su problemi strutturali come insonorizzazione insufficiente, spazi ridotti e manutenzione datata.",
+          "temiPositivi": [
+            {
+              "tema": "Posizione strategica vicino stazione Tiburtina e metro Bologna",
+              "conteggio": 95,
+              "esempio": "Posizione perfetta perché a 10 minuti a piedi si raggiunge la stazione Tiburtina"
+            },
+            {
+              "tema": "Pulizia quotidiana della camera e cambio asciugamani",
+              "conteggio": 85,
+              "esempio": "Tutti i giorni ci ha fatto la limpieza de la habitación y cambio de toallas"
+            },
+            {
+              "tema": "Personale gentile, disponibile e responsivo",
+              "conteggio": 75,
+              "esempio": "Filippo is responsive e lo staff è stato sempre gentile, disponibile e professionale"
+            },
+            {
+              "tema": "Buon rapporto qualità-prezzo e struttura ben fornita",
+              "conteggio": 60,
+              "esempio": "Ottima posizione e buon rapporto qualità prezzo, camera completa di ogni servizio"
+            },
+            {
+              "tema": "Check-in automatico rapido e flessibile",
+              "conteggio": 40,
+              "esempio": "Easy check-in, disponibile anche fino a tardi con istruzioni chiare"
+            },
+            {
+              "tema": "Zona tranquilla con servizi commerciali e ristorazione vicini",
+              "conteggio": 55,
+              "esempio": "Quartier calme, ci sono supermercati e ristoranti buoni a pochi passi"
+            }
+          ],
+          "temiNegativi": [
+            {
+              "tema": "Scarsa insonorizzazione tra camere e rumori esterni",
+              "conteggio": 85,
+              "esempio": "Pareti molto sottili, si sentiva tutto delle altre stanze e il rumore della strada"
+            },
+            {
+              "tema": "Camere molto piccole e bagni ristretti",
+              "conteggio": 75,
+              "esempio": "Camera minuscola, bagno piccolo, difficile per tre persone"
+            },
+            {
+              "tema": "Manutenzione datata e arredamento vecchio",
+              "conteggio": 65,
+              "esempio": "Struttura datata con molte imperfezioni, mobili vecchi e non in buono stato"
+            },
+            {
+              "tema": "Rumore notturno da locali pubblici e vicini rumorosi",
+              "conteggio": 50,
+              "esempio": "Es imposible dormir de noche debido a las discotecas alrededor e giovani che urlano"
+            },
+            {
+              "tema": "Pulizia carente con polvere, muffa e odori sgradevoli",
+              "conteggio": 45,
+              "esempio": "Stanza non pulita bene, odore di muffa nel bagno, capelli e polvere dappertutto"
+            },
+            {
+              "tema": "Mancanza di dotazioni (caffettiera, finestre in alcune camere)",
+              "conteggio": 35,
+              "esempio": "Mi sarebbe piaciuto avere la macchinetta caffè, e una sola camera non ha finestre"
+            }
+          ],
+          "generatoIl": "2026-09-05T17:25:03.610Z"
+        }
       }
     }
   }
