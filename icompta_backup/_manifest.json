@@ -1,6 +1,6 @@
 {
-  "generato": "2026-08-30T08:42:18.728Z",
-  "chiavi": 927,
+  "generato": "2026-09-06T07:30:31.584Z",
+  "chiavi": 969,
   "skippati_backup": 9,
   "errori": 0,
   "manifest": [
@@ -23,6 +23,10 @@
     {
       "key": "fisco:fatt:FE 1/26",
       "file": "keys/fisco_fatt_FE_1_26.json"
+    },
+    {
+      "key": "fisco:fatt:FE 10/26",
+      "file": "keys/fisco_fatt_FE_10_26.json"
     },
     {
       "key": "fisco:fatt:FE 2/26",
@@ -55,6 +59,10 @@
     {
       "key": "fisco:fatt:FE 9/26",
       "file": "keys/fisco_fatt_FE_9_26.json"
+    },
+    {
+      "key": "fisco:fenum:FE 10/26",
+      "file": "keys/fisco_fenum_FE_10_26.json"
     },
     {
       "key": "fisco:fenum:FE 4/26",
@@ -1101,6 +1109,10 @@
       "file": "keys/fisco_pagamenti.json"
     },
     {
+      "key": "fisco:pub:01134o602c0s4g5k2e",
+      "file": "keys/fisco_pub_01134o602c0s4g5k2e.json"
+    },
+    {
       "key": "fisco:pub:023o2h5o1n6b5r4q1q",
       "file": "keys/fisco_pub_023o2h5o1n6b5r4q1q.json"
     },
@@ -1131,6 +1143,10 @@
     {
       "key": "fisco:pub:0b0r725r1o5m2f6c73",
       "file": "keys/fisco_pub_0b0r725r1o5m2f6c73.json"
+    },
+    {
+      "key": "fisco:pub:0b6q6c5h612y0m500i",
+      "file": "keys/fisco_pub_0b6q6c5h612y0m500i.json"
     },
     {
       "key": "fisco:pub:0c3o2b0p3f4n0s2k14",
@@ -1301,6 +1317,10 @@
       "file": "keys/fisco_pub_1h1s4x2t5w4j043u51.json"
     },
     {
+      "key": "fisco:pub:1h4i1a0d1829314a3f",
+      "file": "keys/fisco_pub_1h4i1a0d1829314a3f.json"
+    },
+    {
       "key": "fisco:pub:1i136y6g2c5a3s4w0v",
       "file": "keys/fisco_pub_1i136y6g2c5a3s4w0v.json"
     },
@@ -1315,6 +1335,10 @@
     {
       "key": "fisco:pub:1l004u5x4j651y015o",
       "file": "keys/fisco_pub_1l004u5x4j651y015o.json"
+    },
+    {
+      "key": "fisco:pub:1l12390y0j2u0v1h3s",
+      "file": "keys/fisco_pub_1l12390y0j2u0v1h3s.json"
     },
     {
       "key": "fisco:pub:1l6g2y3v6n0c3d246a",
@@ -1355,6 +1379,10 @@
     {
       "key": "fisco:pub:205u1x4i4w572o6t1g",
       "file": "keys/fisco_pub_205u1x4i4w572o6t1g.json"
+    },
+    {
+      "key": "fisco:pub:206j1v2m1o435r1m4q",
+      "file": "keys/fisco_pub_206j1v2m1o435r1m4q.json"
     },
     {
       "key": "fisco:pub:2104162x5w042x3t0p",
@@ -1409,6 +1437,10 @@
       "file": "keys/fisco_pub_28271y5p5w5n3z5943.json"
     },
     {
+      "key": "fisco:pub:283h1u521s4g5m2x2s",
+      "file": "keys/fisco_pub_283h1u521s4g5m2x2s.json"
+    },
+    {
       "key": "fisco:pub:28472u4k5z5a1i0s3x",
       "file": "keys/fisco_pub_28472u4k5z5a1i0s3x.json"
     },
@@ -1441,12 +1473,20 @@
       "file": "keys/fisco_pub_2c313r3o003s353m45.json"
     },
     {
+      "key": "fisco:pub:2e503h254i4h4g4k62",
+      "file": "keys/fisco_pub_2e503h254i4h4g4k62.json"
+    },
+    {
       "key": "fisco:pub:2g5j3i1m2a6i0k2l2b",
       "file": "keys/fisco_pub_2g5j3i1m2a6i0k2l2b.json"
     },
     {
       "key": "fisco:pub:2h3q0k5u141c5g1l6n",
       "file": "keys/fisco_pub_2h3q0k5u141c5g1l6n.json"
+    },
+    {
+      "key": "fisco:pub:2h5x6s2j4x3h370i4g",
+      "file": "keys/fisco_pub_2h5x6s2j4x3h370i4g.json"
     },
     {
       "key": "fisco:pub:2h711k3o6p33522e0p",
@@ -1537,6 +1577,10 @@
       "file": "keys/fisco_pub_351g6x1y4v0l3o1z25.json"
     },
     {
+      "key": "fisco:pub:355o2b4o4s102p4o3p",
+      "file": "keys/fisco_pub_355o2b4o4s102p4o3p.json"
+    },
+    {
       "key": "fisco:pub:37666h730d3w3f1u5h",
       "file": "keys/fisco_pub_37666h730d3w3f1u5h.json"
     },
@@ -1559,6 +1603,10 @@
     {
       "key": "fisco:pub:3b516z0k062g5p1z4u",
       "file": "keys/fisco_pub_3b516z0k062g5p1z4u.json"
+    },
+    {
+      "key": "fisco:pub:3c2c404c0s6b6f7367",
+      "file": "keys/fisco_pub_3c2c404c0s6b6f7367.json"
     },
     {
       "key": "fisco:pub:3e2c562s1v5l1d4y5q",
@@ -1599,6 +1647,10 @@
     {
       "key": "fisco:pub:3n4z1f31596d2s6k58",
       "file": "keys/fisco_pub_3n4z1f31596d2s6k58.json"
+    },
+    {
+      "key": "fisco:pub:3r494l3a1b1x3n0128",
+      "file": "keys/fisco_pub_3r494l3a1b1x3n0128.json"
     },
     {
       "key": "fisco:pub:3u3c2g0g2u1p08405v",
@@ -2065,6 +2117,10 @@
       "file": "keys/fisco_pubf_2a5r153k2w1m152o2s.json"
     },
     {
+      "key": "fisco:pubf:2b3i6b5g2o2b5m165p",
+      "file": "keys/fisco_pubf_2b3i6b5g2o2b5m165p.json"
+    },
+    {
       "key": "fisco:pubf:2d3x0i186c0y2e1v3l",
       "file": "keys/fisco_pubf_2d3x0i186c0y2e1v3l.json"
     },
@@ -2181,6 +2237,10 @@
       "file": "keys/fisco_st_1133624848.json"
     },
     {
+      "key": "fisco:st:117223901",
+      "file": "keys/fisco_st_117223901.json"
+    },
+    {
       "key": "fisco:st:1203785639",
       "file": "keys/fisco_st_1203785639.json"
     },
@@ -2223,6 +2283,10 @@
     {
       "key": "fisco:st:1339061633",
       "file": "keys/fisco_st_1339061633.json"
+    },
+    {
+      "key": "fisco:st:1347350761",
+      "file": "keys/fisco_st_1347350761.json"
     },
     {
       "key": "fisco:st:1407265278",
@@ -2333,6 +2397,10 @@
       "file": "keys/fisco_st_2233671386.json"
     },
     {
+      "key": "fisco:st:2248517806",
+      "file": "keys/fisco_st_2248517806.json"
+    },
+    {
       "key": "fisco:st:2251866473",
       "file": "keys/fisco_st_2251866473.json"
     },
@@ -2361,6 +2429,10 @@
       "file": "keys/fisco_st_2495526754.json"
     },
     {
+      "key": "fisco:st:2570912880",
+      "file": "keys/fisco_st_2570912880.json"
+    },
+    {
       "key": "fisco:st:2599391574",
       "file": "keys/fisco_st_2599391574.json"
     },
@@ -2381,6 +2453,10 @@
       "file": "keys/fisco_st_2682231629.json"
     },
     {
+      "key": "fisco:st:2706203587",
+      "file": "keys/fisco_st_2706203587.json"
+    },
+    {
       "key": "fisco:st:2712154803",
       "file": "keys/fisco_st_2712154803.json"
     },
@@ -2395,6 +2471,10 @@
     {
       "key": "fisco:st:2753896612",
       "file": "keys/fisco_st_2753896612.json"
+    },
+    {
+      "key": "fisco:st:2765176785",
+      "file": "keys/fisco_st_2765176785.json"
     },
     {
       "key": "fisco:st:2777821464",
@@ -2661,6 +2741,10 @@
       "file": "keys/fisco_st_4464138053.json"
     },
     {
+      "key": "fisco:st:4472802075",
+      "file": "keys/fisco_st_4472802075.json"
+    },
+    {
       "key": "fisco:st:4568244053",
       "file": "keys/fisco_st_4568244053.json"
     },
@@ -2685,6 +2769,10 @@
       "file": "keys/fisco_st_4732037379.json"
     },
     {
+      "key": "fisco:st:4744341304",
+      "file": "keys/fisco_st_4744341304.json"
+    },
+    {
       "key": "fisco:st:4770455005",
       "file": "keys/fisco_st_4770455005.json"
     },
@@ -2705,6 +2793,10 @@
       "file": "keys/fisco_st_488023897.json"
     },
     {
+      "key": "fisco:st:4894296798",
+      "file": "keys/fisco_st_4894296798.json"
+    },
+    {
       "key": "fisco:st:4964321939",
       "file": "keys/fisco_st_4964321939.json"
     },
@@ -2713,12 +2805,20 @@
       "file": "keys/fisco_st_4979993947.json"
     },
     {
+      "key": "fisco:st:4992350043",
+      "file": "keys/fisco_st_4992350043.json"
+    },
+    {
       "key": "fisco:st:5002870878",
       "file": "keys/fisco_st_5002870878.json"
     },
     {
       "key": "fisco:st:5016183334",
       "file": "keys/fisco_st_5016183334.json"
+    },
+    {
+      "key": "fisco:st:5098407700",
+      "file": "keys/fisco_st_5098407700.json"
     },
     {
       "key": "fisco:st:5173523256",
@@ -2747,6 +2847,14 @@
     {
       "key": "fisco:st:5410826195",
       "file": "keys/fisco_st_5410826195.json"
+    },
+    {
+      "key": "fisco:st:5419355433",
+      "file": "keys/fisco_st_5419355433.json"
+    },
+    {
+      "key": "fisco:st:5531318482",
+      "file": "keys/fisco_st_5531318482.json"
     },
     {
       "key": "fisco:st:559507406",
@@ -2921,6 +3029,14 @@
       "file": "keys/fisco_st_6999591603.json"
     },
     {
+      "key": "fisco:st:7043798745",
+      "file": "keys/fisco_st_7043798745.json"
+    },
+    {
+      "key": "fisco:st:7146089071",
+      "file": "keys/fisco_st_7146089071.json"
+    },
+    {
       "key": "fisco:st:7147841825",
       "file": "keys/fisco_st_7147841825.json"
     },
@@ -2931,6 +3047,10 @@
     {
       "key": "fisco:st:720141240",
       "file": "keys/fisco_st_720141240.json"
+    },
+    {
+      "key": "fisco:st:7222844066",
+      "file": "keys/fisco_st_7222844066.json"
     },
     {
       "key": "fisco:st:7256008641",
@@ -2977,6 +3097,10 @@
       "file": "keys/fisco_st_7435252414.json"
     },
     {
+      "key": "fisco:st:7467821622",
+      "file": "keys/fisco_st_7467821622.json"
+    },
+    {
       "key": "fisco:st:7515113725",
       "file": "keys/fisco_st_7515113725.json"
     },
@@ -2997,6 +3121,10 @@
       "file": "keys/fisco_st_7556778269.json"
     },
     {
+      "key": "fisco:st:7647065396",
+      "file": "keys/fisco_st_7647065396.json"
+    },
+    {
       "key": "fisco:st:7658698762",
       "file": "keys/fisco_st_7658698762.json"
     },
@@ -3015,6 +3143,10 @@
     {
       "key": "fisco:st:7796535343",
       "file": "keys/fisco_st_7796535343.json"
+    },
+    {
+      "key": "fisco:st:7844276222",
+      "file": "keys/fisco_st_7844276222.json"
     },
     {
       "key": "fisco:st:7867176646",
@@ -3115,6 +3247,14 @@
     {
       "key": "fisco:st:8515999585",
       "file": "keys/fisco_st_8515999585.json"
+    },
+    {
+      "key": "fisco:st:852711485",
+      "file": "keys/fisco_st_852711485.json"
+    },
+    {
+      "key": "fisco:st:855909594",
+      "file": "keys/fisco_st_855909594.json"
     },
     {
       "key": "fisco:st:8563949547",
@@ -3253,6 +3393,10 @@
       "file": "keys/fisco_st_9439184955.json"
     },
     {
+      "key": "fisco:st:9489521098",
+      "file": "keys/fisco_st_9489521098.json"
+    },
+    {
       "key": "fisco:st:9532745596",
       "file": "keys/fisco_st_9532745596.json"
     },
@@ -3291,6 +3435,10 @@
     {
       "key": "fisco:st:9745830136",
       "file": "keys/fisco_st_9745830136.json"
+    },
+    {
+      "key": "fisco:st:9763207392",
+      "file": "keys/fisco_st_9763207392.json"
     },
     {
       "key": "fisco:st:9781108832",
@@ -3607,6 +3755,26 @@
     {
       "key": "icompta:snapshot:2026-08-27",
       "file": "keys/icompta_snapshot_2026-08-27.json"
+    },
+    {
+      "key": "icompta:snapshot:2026-08-31",
+      "file": "keys/icompta_snapshot_2026-08-31.json"
+    },
+    {
+      "key": "icompta:snapshot:2026-09-01",
+      "file": "keys/icompta_snapshot_2026-09-01.json"
+    },
+    {
+      "key": "icompta:snapshot:2026-09-02",
+      "file": "keys/icompta_snapshot_2026-09-02.json"
+    },
+    {
+      "key": "icompta:snapshot:2026-09-03",
+      "file": "keys/icompta_snapshot_2026-09-03.json"
+    },
+    {
+      "key": "icompta:snapshot:2026-09-04",
+      "file": "keys/icompta_snapshot_2026-09-04.json"
     },
     {
       "key": "icompta:tx:2001",
