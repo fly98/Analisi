@@ -510,6 +510,7 @@
     <div class="risposte-azioni">
       <button class="bottone-testo" id="btnMostraAltreRisposte" type="button" hidden>Mostra altre</button>
       <button class="bottone" id="btnCaricaApprovate" type="button">Carica le approvate</button>
+      <button class="bottone" id="btnPubblicaBooking" type="button">Pubblica su Booking</button>
       <span class="aggiorna-stato" id="statoRisposte"></span>
     </div>
   </section>
@@ -897,6 +898,39 @@
         return caricaDati();
       })
       .catch(function (e) { el("statoRisposte").textContent = "Mac non raggiungibile (" + e.message + ")."; });
+  });
+
+  el("btnPubblicaBooking").addEventListener("click", function () {
+    var pronte = bozzeStruttura().filter(function (b) { return b.stato === "approvata"; }).length;
+    if (!pronte) { el("statoRisposte").textContent = "Non c'è niente di approvato da pubblicare."; return; }
+    if (!window.confirm("Pubblico su Booking " + pronte + " risposte già approvate. Procedo?")) return;
+    var token = chiediToken();
+    if (!token) return;
+    var btn = el("btnPubblicaBooking");
+    btn.disabled = true;
+    el("statoRisposte").textContent = "Pubblicazione in corso: si apre Chrome sul Mac, può volerci qualche minuto...";
+    fetch("https://recensioni-worker.f-castiglioni.workers.dev/invia?property=" + encodeURIComponent(proprietaAttiva), {
+      method: "POST",
+      headers: { "X-Auth": token },
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        btn.disabled = false;
+        if (j.esito === "serve_te") {
+          el("statoRisposte").textContent = "⚠️ Serve te sul Mac: " + j.messaggio;
+          window.alert("Booking chiede una verifica che devi fare tu.\n\n" + j.messaggio +
+            "\n\nVai alla finestra Chrome aperta sul Mac. Se la risolvi entro pochi minuti, la pubblicazione prosegue da sola.");
+          return;
+        }
+        if (j.error) { el("statoRisposte").textContent = "Non riuscito: " + j.error; return; }
+        el("statoRisposte").textContent = j.inviate + " risposte pubblicate su Booking" +
+          (j.nonTrovate ? " (" + j.nonTrovate + " non trovate nell'elenco)" : "") + ".";
+        return caricaDati();
+      })
+      .catch(function (e) {
+        btn.disabled = false;
+        el("statoRisposte").textContent = "Mac non raggiungibile (" + e.message + ").";
+      });
   });
 
   // ── aggiorna ──────────────────────────────────────────────────
