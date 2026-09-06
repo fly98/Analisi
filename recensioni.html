@@ -82,6 +82,31 @@
     gap: 24px;
   }
 
+  /* ── tab principale (Punteggio / Risposte) ──────────────────────── */
+  .tab-principale {
+    display: flex;
+    gap: 4px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 4px;
+  }
+  .tab-principale button {
+    font: inherit;
+    font-family: "Fraunces", Georgia, serif;
+    font-size: 15px;
+    font-weight: 600;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 8px 4px 10px;
+    color: var(--muted);
+    cursor: pointer;
+    margin-right: 18px;
+  }
+  .tab-principale button[aria-selected="true"] {
+    color: var(--ink);
+    border-bottom-color: var(--accent);
+  }
+
   /* ── barra in alto ───────────────────────────────────────────── */
   .topbar {
     display: flex;
@@ -319,6 +344,26 @@
   .bozza.approvata { border-color: var(--positive); }
   .bozza-stato-inviata { color: var(--muted); font-size: 12px; font-style: italic; }
   .risposte-azioni { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 8px; }
+  .filtro-risposte {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13.5px;
+    color: var(--muted);
+    margin-bottom: 16px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .filtro-risposte select {
+    font: inherit;
+    font-size: 13.5px;
+    padding: 6px 8px;
+    border-radius: 7px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--ink);
+  }
+  .filtro-conteggio { margin-left: auto; }
 
   /* ── metodologia ─────────────────────────────────────────────── */
   details.metodo summary {
@@ -348,6 +393,13 @@
       <button class="bottone" id="btnAggiorna" type="button">Aggiorna</button>
     </div>
   </header>
+
+  <nav class="tab-principale" id="tabPrincipale" role="tablist" aria-label="Sezione">
+    <button type="button" data-tab="punteggio" aria-selected="true">Punteggio</button>
+    <button type="button" data-tab="risposte" aria-selected="false">Risposte</button>
+  </nav>
+
+  <div id="paginaPunteggio">
 
   <section class="hero" id="hero">
     <div class="tile mostrato">
@@ -411,17 +463,6 @@
     <div class="nota-v1" id="notaTemi">Analisi automatica per frequenza delle parole (v1) — l'analisi con AI dei temi arriva in una fase successiva.</div>
   </section>
 
-  <section class="card">
-    <h2>Risposte da validare</h2>
-    <div class="sottotitolo">Bozze scritte dall'AI nel tuo tono, sempre in italiano da leggere e modificare qui. L'invio vero a Booking resta un passaggio a parte.</div>
-    <div id="risposteLista"></div>
-    <div class="risposte-azioni">
-      <button class="bottone-testo" id="btnMostraAltreRisposte" type="button" hidden>Mostra altre</button>
-      <button class="bottone" id="btnCaricaApprovate" type="button">Carica le approvate</button>
-      <span class="aggiorna-stato" id="statoRisposte"></span>
-    </div>
-  </section>
-
   <details class="metodo card">
     <summary>Come viene calcolato il punteggio</summary>
     <div class="corpo">
@@ -430,7 +471,32 @@
     </div>
   </details>
 
-</div>
+  </div>
+
+  <div id="paginaRisposte" hidden>
+
+  <section class="card">
+    <h2>Risposte da validare</h2>
+    <div class="sottotitolo">Bozze scritte dall'AI nel tuo tono, sempre in italiano da leggere e modificare qui. L'invio vero a Booking resta un passaggio a parte.</div>
+    <div class="filtro-risposte">
+      <span>Recensioni di:</span>
+      <select id="filtroPeriodoRisposte">
+        <option value="30">ultimo mese</option>
+        <option value="90">ultimi 3 mesi</option>
+        <option value="180">ultimi 6 mesi</option>
+        <option value="tutte">tutte</option>
+      </select>
+      <span class="filtro-conteggio" id="filtroConteggio"></span>
+    </div>
+    <div id="risposteLista"></div>
+    <div class="risposte-azioni">
+      <button class="bottone-testo" id="btnMostraAltreRisposte" type="button" hidden>Mostra altre</button>
+      <button class="bottone" id="btnCaricaApprovate" type="button">Carica le approvate</button>
+      <span class="aggiorna-stato" id="statoRisposte"></span>
+    </div>
+  </section>
+
+  </div>
 
 <script>
 (function () {
@@ -665,11 +731,31 @@
     return datiRisposte.strutture[proprietaAttiva].bozze || [];
   }
 
-  function renderRisposte() {
+  // Filtro per data: di default solo l'ultimo mese (le bozze sono ordinate
+  // dalla piu' recente), per non dover scorrere tutto ogni volta. "tutte"
+  // toglie il filtro.
+  function bozzeFiltrate() {
     var tutte = bozzeStruttura();
+    var periodo = el("filtroPeriodoRisposte").value;
+    if (periodo === "tutte") return tutte;
+    var giorni = parseInt(periodo, 10);
+    var soglia = new Date();
+    soglia.setDate(soglia.getDate() - giorni);
+    var sogliaISO = soglia.toISOString().slice(0, 10);
+    return tutte.filter(function (b) { return b.dataRecensione >= sogliaISO; });
+  }
+
+  el("filtroPeriodoRisposte").addEventListener("change", function () {
+    risposteMostrate = PASSO_RISPOSTE;
+    renderRisposte();
+  });
+
+  function renderRisposte() {
+    var tutte = bozzeFiltrate();
     var box = el("risposteLista");
+    el("filtroConteggio").textContent = tutte.length + " su " + bozzeStruttura().length + " totali";
     if (!tutte.length) {
-      box.innerHTML = "<p style=\"color:var(--muted);font-size:13px\">Nessuna bozza pronta per questa struttura.</p>";
+      box.innerHTML = "<p style=\"color:var(--muted);font-size:13px\">Nessuna bozza in questo periodo — prova ad allargare il filtro qui sopra.</p>";
       el("btnMostraAltreRisposte").hidden = true;
       return;
     }
@@ -681,7 +767,8 @@
       div.className = "bozza" + (approvata ? " approvata" : "");
       var originale = (b.negativo ? "− " + b.negativo : "") + (b.negativo && b.positivo ? " · " : "") + (b.positivo ? "+ " + b.positivo : "");
       var htmlPiede = approvata
-        ? "<span class=\"bozza-stato-inviata\">✓ Approvata — in attesa di invio a Booking (passaggio manuale, per ora)</span>"
+        ? "<span class=\"bozza-stato-inviata\">✓ Approvata, pronta da incollare su Booking</span>" +
+          "<button type=\"button\" class=\"bottone-testo btn-copia\" data-id=\"" + b.id + "\">copia testo</button>"
         : "<label><input type=\"checkbox\" data-id=\"" + b.id + "\"> Approvo questo testo per il caricamento</label>";
       div.innerHTML =
         "<div class=\"bozza-intestazione\"><span class=\"bozza-lingua\">" + (b.lingua || "?") + "</span>" +
@@ -697,6 +784,18 @@
   el("btnMostraAltreRisposte").addEventListener("click", function () {
     risposteMostrate += PASSO_RISPOSTE;
     renderRisposte();
+  });
+
+  el("risposteLista").addEventListener("click", function (e) {
+    if (!e.target.classList.contains("btn-copia")) return;
+    var id = e.target.getAttribute("data-id");
+    var area = el("risposteLista").querySelector("textarea[data-id=\"" + id + "\"]");
+    if (!area) return;
+    var testoOriginale = e.target.textContent;
+    navigator.clipboard.writeText(area.value).then(function () {
+      e.target.textContent = "copiato ✓";
+      setTimeout(function () { e.target.textContent = testoOriginale; }, 1500);
+    });
   });
 
   el("btnCaricaApprovate").addEventListener("click", function () {
@@ -764,6 +863,16 @@
       })
       .catch(function (e) { stato.textContent = "Mac non raggiungibile (" + e.message + ")."; })
       .then(function () { btn.disabled = false; });
+  });
+
+  // ── tab principale ────────────────────────────────────────────
+  el("tabPrincipale").querySelectorAll("button").forEach(function (b) {
+    b.addEventListener("click", function () {
+      el("tabPrincipale").querySelectorAll("button").forEach(function (x) { x.setAttribute("aria-selected", x === b ? "true" : "false"); });
+      var tab = b.getAttribute("data-tab");
+      el("paginaPunteggio").hidden = tab !== "punteggio";
+      el("paginaRisposte").hidden = tab !== "risposte";
+    });
   });
 
   caricaDati().catch(function (e) {
