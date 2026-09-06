@@ -342,7 +342,16 @@
   }
   .bozza-piede input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--accent); }
   .bozza.approvata { border-color: var(--positive); }
+  .bozza.inviata { opacity: .72; }
   .bozza-stato-inviata { color: var(--muted); font-size: 12px; font-style: italic; }
+  .riepilogo-stati { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+  .riepilogo-stati .pill {
+    font-size: 12px; padding: 4px 10px; border-radius: 999px;
+    border: 1px solid var(--border); color: var(--muted); white-space: nowrap;
+  }
+  .riepilogo-stati .pill-da { border-color: var(--accent); color: var(--accent); }
+  .riepilogo-stati .pill-pronte { border-color: var(--positive); color: var(--positive); }
+  .riepilogo-stati .pill-fatte { border-color: var(--border); }
   .risposte-azioni { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 8px; }
   .filtro-risposte {
     display: flex;
@@ -476,9 +485,18 @@
   <div id="paginaRisposte" hidden>
 
   <section class="card">
-    <h2>Risposte da validare</h2>
-    <div class="sottotitolo">Bozze scritte dall'AI nel tuo tono, sempre in italiano da leggere e modificare qui. L'invio vero a Booking resta un passaggio a parte.</div>
+    <h2>Risposte</h2>
+    <div class="sottotitolo">Bozze scritte dall'AI nel tuo tono, sempre in italiano da leggere e modificare qui. Quando vengono pubblicate su Booking sono tradotte nella lingua in cui l'ospite ha scritto.</div>
+    <div id="riepilogoStati" class="riepilogo-stati"></div>
     <div class="filtro-risposte">
+      <span>Mostra:</span>
+      <select id="filtroStatoRisposte">
+        <option value="da_fare">da scrivere o da inviare</option>
+        <option value="da_validare">solo da validare</option>
+        <option value="approvata">approvate, non ancora inviate</option>
+        <option value="inviata">già pubblicate su Booking</option>
+        <option value="tutte">tutte</option>
+      </select>
       <span>Recensioni di:</span>
       <select id="filtroPeriodoRisposte">
         <option value="30">ultimo mese</option>
@@ -736,6 +754,14 @@
   // toglie il filtro.
   function bozzeFiltrate() {
     var tutte = bozzeStruttura();
+
+    var stato = el("filtroStatoRisposte").value;
+    if (stato === "da_fare") {
+      tutte = tutte.filter(function (b) { return b.stato === "da_validare" || b.stato === "approvata"; });
+    } else if (stato !== "tutte") {
+      tutte = tutte.filter(function (b) { return b.stato === stato; });
+    }
+
     var periodo = el("filtroPeriodoRisposte").value;
     if (periodo === "tutte") return tutte;
     var giorni = parseInt(periodo, 10);
@@ -745,12 +771,29 @@
     return tutte.filter(function (b) { return b.dataRecensione >= sogliaISO; });
   }
 
+  // Riepilogo in cima: a colpo d'occhio quante ne restano da fare e quante
+  // sono gia' pubblicate, senza dover scorrere l'elenco.
+  function renderRiepilogo() {
+    var tutte = bozzeStruttura();
+    var conta = function (s) { return tutte.filter(function (b) { return b.stato === s; }).length; };
+    el("riepilogoStati").innerHTML =
+      "<span class=\"pill pill-da\">" + conta("da_validare") + " da validare</span>" +
+      "<span class=\"pill pill-pronte\">" + conta("approvata") + " approvate, da inviare</span>" +
+      "<span class=\"pill pill-fatte\">" + conta("inviata") + " pubblicate</span>" +
+      (conta("gia_risposta") ? "<span class=\"pill\">" + conta("gia_risposta") + " già risposte a mano</span>" : "");
+  }
+
   el("filtroPeriodoRisposte").addEventListener("change", function () {
+    risposteMostrate = PASSO_RISPOSTE;
+    renderRisposte();
+  });
+  el("filtroStatoRisposte").addEventListener("change", function () {
     risposteMostrate = PASSO_RISPOSTE;
     renderRisposte();
   });
 
   function renderRisposte() {
+    renderRiepilogo();
     var tutte = bozzeFiltrate();
     var box = el("risposteLista");
     el("filtroConteggio").textContent = tutte.length + " su " + bozzeStruttura().length + " totali";
@@ -764,17 +807,31 @@
     daMostrare.forEach(function (b) {
       var div = document.createElement("div");
       var approvata = b.stato === "approvata";
-      div.className = "bozza" + (approvata ? " approvata" : "");
+      var inviata = b.stato === "inviata";
+      var giaRisposta = b.stato === "gia_risposta";
+      var bloccata = approvata || inviata || giaRisposta;
+      div.className = "bozza" + (approvata ? " approvata" : "") + (inviata || giaRisposta ? " inviata" : "");
       var originale = (b.negativo ? "− " + b.negativo : "") + (b.negativo && b.positivo ? " · " : "") + (b.positivo ? "+ " + b.positivo : "");
-      var htmlPiede = approvata
-        ? "<span class=\"bozza-stato-inviata\">✓ Approvata, pronta da incollare su Booking</span>" +
-          "<button type=\"button\" class=\"bottone-testo btn-copia\" data-id=\"" + b.id + "\">copia testo</button>"
-        : "<label><input type=\"checkbox\" data-id=\"" + b.id + "\"> Approvo questo testo per il caricamento</label>";
+
+      var htmlPiede;
+      if (inviata) {
+        htmlPiede = "<span class=\"bozza-stato-inviata\">✓ Pubblicata su Booking" +
+          (b.rispostaTradotta ? " (in " + (b.lingua || "?") + ")" : "") + "</span>";
+      } else if (giaRisposta) {
+        htmlPiede = "<span class=\"bozza-stato-inviata\">Avevi già risposto a mano a questa recensione</span>";
+      } else if (approvata) {
+        htmlPiede = "<span class=\"bozza-stato-inviata\">✓ Approvata, in attesa di essere pubblicata</span>" +
+          "<button type=\"button\" class=\"bottone-testo btn-copia\" data-id=\"" + b.id + "\">copia testo</button>";
+      } else {
+        htmlPiede = "<label><input type=\"checkbox\" data-id=\"" + b.id + "\"> Approvo questo testo per il caricamento</label>";
+      }
+
+      var testo = inviata && b.rispostaTradotta ? b.rispostaTradotta : (b.rispostaFinale || b.rispostaProposta || "");
       div.innerHTML =
         "<div class=\"bozza-intestazione\"><span class=\"bozza-lingua\">" + (b.lingua || "?") + "</span>" +
         "<span>" + formattaData(b.dataRecensione) + "</span><span>· voto " + b.punteggio + "</span></div>" +
         "<div class=\"bozza-originale\">" + (b.riassuntoIT || originale).replace(/</g, "&lt;") + "</div>" +
-        "<textarea class=\"bozza-testo\" data-id=\"" + b.id + "\"" + (approvata ? " disabled" : "") + ">" + (b.rispostaFinale || b.rispostaProposta || "").replace(/</g, "&lt;") + "</textarea>" +
+        "<textarea class=\"bozza-testo\" data-id=\"" + b.id + "\"" + (bloccata ? " disabled" : "") + ">" + testo.replace(/</g, "&lt;") + "</textarea>" +
         "<div class=\"bozza-piede\">" + htmlPiede + "</div>";
       box.appendChild(div);
     });
