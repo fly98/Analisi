@@ -918,6 +918,72 @@ async function handleRecensioniRispondi(request, env, url) {
 }
 
 
+// ---------------- Traduzione delle risposte approvate ----------------
+//
+// Filippo legge e approva SEMPRE in italiano; sul sito la risposta deve
+// uscire nella lingua in cui l'ospite ha scritto. Questo e' il passaggio
+// che mancava per chiudere il cerchio senza interventi a mano.
+//
+// POST /wb/recensioni/traduci?key=RECENSIONI_AI_KEY
+// body: { risposte: [{ id, lingua, testo }, ...] }  (max 20 per chiamata)
+async function handleRecensioniTraduci(request, env, url) {
+  const key = url.searchParams.get("key");
+  if (!env.RECENSIONI_AI_KEY || key !== env.RECENSIONI_AI_KEY) return json({ error: "non autorizzato" }, 401);
+  if (!env.ANTHROPIC_API_KEY) return json({ error: "AI non configurata" }, 503);
+
+  let body;
+  try { body = await request.json(); } catch (e) { return json({ error: "JSON non valido" }, 400); }
+  const risposte = Array.isArray(body.risposte) ? body.risposte.slice(0, 20) : [];
+  if (!risposte.length) return json({ error: "nessuna risposta da tradurre" }, 400);
+
+  const elenco = risposte.map((r, i) =>
+    `### Risposta ${i + 1} (id: ${r.id})\nLingua di destinazione: ${r.lingua}\nTesto italiano: ${r.testo}`
+  ).join("\n\n");
+
+  const prompt =
+    `Sei il traduttore delle risposte che Filippo, affittacamere a Roma, pubblica sotto le recensioni Booking dei suoi ospiti. ` +
+    `Traduci ogni testo dall'italiano nella lingua di destinazione indicata (codice ISO: en=inglese, de=tedesco, ru=russo, uk=ucraino, es=spagnolo, pl=polacco, zh=cinese, sv=svedese, fr=francese, ecc.).\n\n` +
+    `Regole: mantieni il registro cortese ma sobrio, con il "lei" dove la lingua lo prevede; non aggiungere ne' togliere contenuti; ` +
+    `non tradurre il nome della struttura (InternoUno); niente formule pompose o esclamazioni che Filippo non userebbe; ` +
+    `il risultato deve suonare naturale a un madrelingua, non come una traduzione letterale.\n\n` +
+    `Ecco ${risposte.length} risposte da tradurre:\n\n${elenco}\n\n` +
+    `Rispondi SOLO con un array JSON, senza testo intorno, in questo formato esatto:\n` +
+    `[{"id": "...", "tradotta": "..."}]`;
+
+  try {
+    const resp = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": env.ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01",
+      },
+      body: JSON.stringify({
+        model: "claude-sonnet-5",
+        max_tokens: 4000,
+        messages: [{ role: "user", content: prompt }],
+      }),
+    });
+    if (!resp.ok) {
+      const errText = await resp.text();
+      return json({ error: "Errore AI", detail: errText.slice(0, 300) }, 502);
+    }
+    const data = await resp.json();
+    const testo = (data.content || []).filter(b => b.type === "text").map(b => b.text).join("\n").trim();
+    let tradotte;
+    try {
+      const m = testo.match(/\[[\s\S]*\]/);
+      tradotte = JSON.parse(m ? m[0] : testo);
+    } catch (e) {
+      return json({ error: "Risposta AI non interpretabile", grezzo: testo.slice(0, 500) }, 502);
+    }
+    return json({ ok: true, tradotte, generatoIl: new Date().toISOString() });
+  } catch (e) {
+    return json({ error: "Chiamata AI fallita", detail: String(e).slice(0, 200) }, 502);
+  }
+}
+
+
 export default {
   async fetch(request, env) {
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: CORS });
@@ -931,6 +997,7 @@ export default {
 
       if (slug === "recensioni" && action === "analizza" && request.method === "POST") return await handleRecensioniAnalizza(request, env, url);
       if (slug === "recensioni" && action === "rispondi" && request.method === "POST") return await handleRecensioniRispondi(request, env, url);
+      if (slug === "recensioni" && action === "traduci" && request.method === "POST") return await handleRecensioniTraduci(request, env, url);
       if (action === "chat" && request.method === "POST") return await handleChat(request, env, slug);
       if (action === "track" && request.method === "POST") return await handleTrack(request, env, slug);
       if (action === "data" && request.method === "GET") return await handleData(request, env, slug, url);
