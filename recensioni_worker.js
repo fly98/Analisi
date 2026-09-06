@@ -74,6 +74,28 @@ export default {
       }
     }
 
+    // Pubblica davvero su Booking le bozze gia' approvate. Sul Mac si apre
+    // una finestra Chrome: se Booking chiede un CAPTCHA la risposta arriva
+    // subito con esito "serve_te", cosi' la pagina lo puo' dire invece di
+    // restare a girare a vuoto.
+    if (url.pathname === '/invia' && request.method === 'POST') {
+      if (!env.RECENSIONI_TOKEN || request.headers.get('X-Auth') !== env.RECENSIONI_TOKEN) {
+        return json({ error: 'non autorizzato' }, 401);
+      }
+      const property = url.searchParams.get('property') || '';
+      try {
+        const r = await fetch(`http://fly98.duckdns.org:3456/recensioni-invia?property=${encodeURIComponent(property)}`, {
+          method: 'POST',
+          headers: { 'X-Trigger-Key': env.RECENSIONI_TOKEN },
+          signal: AbortSignal.timeout(170000),
+        });
+        const testo = await r.text();
+        return new Response(testo, { status: r.status, headers: { ...CORS, 'Content-Type': 'application/json; charset=utf-8' } });
+      } catch (e) {
+        return json({ error: 'Mac non raggiungibile', dettaglio: e.message }, 502);
+      }
+    }
+
     return json({ error: 'non trovato' }, 404);
   },
 };
