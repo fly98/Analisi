@@ -597,6 +597,7 @@
     renderGraficoMensile(s);
     renderTemi(s);
     risposteMostrate = PASSO_RISPOSTE;
+    allargaPeriodoSeVuoto();
     renderRisposte();
   }
 
@@ -789,8 +790,25 @@
   });
   el("filtroStatoRisposte").addEventListener("change", function () {
     risposteMostrate = PASSO_RISPOSTE;
+    allargaPeriodoSeVuoto();
     renderRisposte();
   });
+
+  // Se nell'ultimo mese non c'e' piu' niente da fare (perche' e' gia' stato
+  // fatto), la lista apparirebbe vuota e sembrerebbe un guasto: si allarga
+  // il periodo da soli fino a trovare qualcosa. Non scatta se e' Filippo a
+  // scegliere il periodo a mano.
+  function allargaPeriodoSeVuoto() {
+    var periodi = ["30", "90", "180", "tutte"];
+    var selettore = el("filtroPeriodoRisposte");
+    var partenza = periodi.indexOf(selettore.value);
+    if (partenza < 0) return;
+    for (var i = partenza; i < periodi.length; i++) {
+      selettore.value = periodi[i];
+      if (bozzeFiltrate().length) return;
+    }
+    selettore.value = periodi[partenza];
+  }
 
   function renderRisposte() {
     renderRiepilogo();
