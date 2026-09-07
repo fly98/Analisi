@@ -1232,6 +1232,24 @@ function domaniRoma() {
   return d.toISOString().slice(0, 10);
 }
 
+function oggiRoma() {
+  const d = new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/Rome" }));
+  return d.toISOString().slice(0, 10);
+}
+
+// Il giro notturno guarda DUE giorni, non uno (07/09/2026, chiesto da Filippo).
+// Oltre agli arrivi di domani rifa' quelli di OGGI, per due motivi diversi:
+//  - le prenotazioni entrate in giornata non sono mai state preparate da nessuno;
+//  - i messaggi di chi arriva oggi cambiano fino all'ultimo momento, ed e' proprio
+//    su quelli che si decide l'orario di arrivo.
+// Oggi viene per primo: quelle persone arrivano fra poche ore, domani no.
+// Sui pagamenti il secondo giro non costa quasi niente: tassaUna controlla l'archivio
+// prima di muovere il Mac, e se il link c'e' gia' non apre nemmeno il browser.
+// Con una data esplicita (richiesta a mano dall'app) si lavora solo quella.
+function giorniDelGiro(date) {
+  return date ? [date] : [oggiRoma(), domaniRoma()];
+}
+
 async function tassaUna(env, b, crea, modo) {
   const id = String(b.booking_id);
   const intero = modo === "intero";
@@ -1660,21 +1678,29 @@ async function firmaGiro(env, dati) {
 }
 
 async function runTassaPrepara(env, date, crea) {
-  const day = date || domaniRoma();
+  const giorni = giorniDelGiro(date);
   const iniziato = new Date().toISOString();
   try {
-    const res = await runTassaPreparaInterno(env, day, crea);
-    const errori = (res.esiti || []).filter(x => x && (x.esito === "errore" || x.esito === "tassa_incoerente" || x.errore))
+    const esiti = [];
+    let guasto = null;
+    for (const day of giorni) {
+      const res = await runTassaPreparaInterno(env, day, crea);
+      // Un giorno che non parte non deve azzerare l'altro: si annota e si tira dritto.
+      if (res.error) { guasto = guasto || (res.error + " " + (res.status || "") + " (" + day + ")"); continue; }
+      for (const x of (res.esiti || [])) esiti.push({ ...x, giorno: day });
+    }
+    const errori = esiti.filter(x => x && (x.esito === "errore" || x.esito === "tassa_incoerente" || x.errore))
       .map(x => ({ bookingId: x.bookingId || "", esito: x.esito || "", errore: (x.errore || "").slice(0, 160) }));
     await firmaGiro(env, {
-      ts: new Date().toISOString(), iniziato, giorno: day, crea: !!crea,
-      completato: !res.error, totale: res.count || 0,
-      errori, n_errori: errori.length, guasto: res.error ? (res.error + " " + (res.status || "")) : ""
+      ts: new Date().toISOString(), iniziato, giorno: giorni[giorni.length - 1], giorni, crea: !!crea,
+      completato: !guasto, totale: esiti.length,
+      errori, n_errori: errori.length, guasto: guasto || ""
     });
-    return res;
+    // `date` e `count` restano nella risposta: l'app li legge gia' cosi'.
+    return { date: giorni[giorni.length - 1], giorni, crea: !!crea, count: esiti.length, esiti, error: guasto || undefined };
   } catch (e) {
     await firmaGiro(env, {
-      ts: new Date().toISOString(), iniziato, giorno: day, crea: !!crea,
+      ts: new Date().toISOString(), iniziato, giorno: giorni[giorni.length - 1], giorni, crea: !!crea,
       completato: false, totale: 0, errori: [], n_errori: 0, guasto: String(e && e.message || e).slice(0, 300)
     });
     throw e;
@@ -1689,13 +1715,12 @@ async function runTassaPrepara(env, date, crea) {
 // Vale per TUTTI i canali, non solo Booking e Airbnb: e' il vantaggio su Amenitiz, che ha
 // la messaggistica solo su quei due. Gira un'ora prima della tassa apposta, perche' se
 // l'ospite scrive che paga in contanti il link non va nemmeno creato (04/09/2026).
-async function runWhatsappPrepara(env, date) {
-  const day = date || domaniRoma();
-  const iniziato = new Date().toISOString();
-  const esiti = [];
-  try {
+// Il lavoro di UN giorno solo. La firma del giro la mette chi lo chiama, perche' il
+// giro notturno ne fa due di seguito e l'avviso in cima all'app deve restare uno.
+async function runWhatsappGiorno(env, day, esiti) {
+  {
     const r = await amenitizGet(`/bookings/checkin?from=${day}&to=${day}&hotel_id=${HOTEL_UUID}`, env);
-    if (!r.ok) throw new Error("API Amenitiz " + r.status);
+    if (!r.ok) throw new Error("API Amenitiz " + r.status + " (" + day + ")");
     const lista = await r.json();
     for (const b of (Array.isArray(lista) ? lista : [])) {
       const st = (b.status || "").toLowerCase();
@@ -1721,19 +1746,37 @@ async function runWhatsappPrepara(env, date) {
         contanti: !!rec.contanti, orario_scritto: !!rec.orario_scritto, nota_scritta: !!rec.nota_scritta
       });
     }
+  }
+  return esiti;
+}
+
+async function runWhatsappPrepara(env, date) {
+  const giorni = giorniDelGiro(date);
+  const iniziato = new Date().toISOString();
+  const esiti = [];
+  let guasto = "";
+  try {
+    for (const day of giorni) {
+      // Un giorno che non parte non deve azzerare l'altro: chi arriva oggi conta
+      // quanto chi arriva domani, e viceversa.
+      const prima = esiti.length;
+      try { await runWhatsappGiorno(env, day, esiti); }
+      catch (e) { guasto = guasto || String(e && e.message || e).slice(0, 200); }
+      for (let i = prima; i < esiti.length; i++) esiti[i].giorno = day;
+    }
     // "messaggi_da_sincronizzare" va segnalato come gli altri: il messaggio c'e' ma WhatsApp
     // Web non riesce a decifrarlo, e proprio quello e' spesso l'aggiornamento last minute.
     const errori = esiti.filter(e => ["errore", "sessione_assente", "chat_diversa_dal_numero", "messaggi_da_sincronizzare"].includes(e.esito));
     await env.ARRIVI_KV.put("giro_whatsapp", JSON.stringify({
-      ts: new Date().toISOString(), iniziato, giorno: day, completato: true,
+      ts: new Date().toISOString(), iniziato, giorno: giorni[giorni.length - 1], giorni, completato: !guasto,
       totale: esiti.length, con_messaggi: esiti.filter(e => e.messaggi).length,
       errori: errori.map(e => ({ bookingId: e.bookingId, esito: e.esito, errore: (e.errore || "").slice(0, 160) })),
-      n_errori: errori.length, guasto: ""
+      n_errori: errori.length, guasto
     })).catch(() => {});
-    return { giorno: day, totale: esiti.length, esiti };
+    return { giorno: giorni[giorni.length - 1], giorni, totale: esiti.length, esiti };
   } catch (e) {
     await env.ARRIVI_KV.put("giro_whatsapp", JSON.stringify({
-      ts: new Date().toISOString(), iniziato, giorno: day, completato: false,
+      ts: new Date().toISOString(), iniziato, giorno: giorni[giorni.length - 1], giorni, completato: false,
       totale: esiti.length, errori: [], n_errori: 0, guasto: String(e && e.message || e).slice(0, 300)
     })).catch(() => {});
     throw e;
