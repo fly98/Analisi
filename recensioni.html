@@ -947,18 +947,16 @@
         });
       })
       .then(function (r) { return r.json(); })
+      .then(function (avvio) {
+        if (avvio.error) throw new Error(avvio.error);
+        return seguiLavoro(token, function (m) { el("statoRisposte").textContent = m; });
+      })
       .then(function (j) {
         btn.disabled = false;
-        if (j.esito === "serve_te") {
-          el("statoRisposte").textContent = "⚠️ Serve te sul Mac: " + j.messaggio;
-          window.alert("Booking chiede una verifica che devi fare tu.\n\n" + j.messaggio +
-            "\n\nVai alla finestra Chrome aperta sul Mac. Se la risolvi entro pochi minuti, la pubblicazione prosegue da sola.\n\n" +
-            "Le tue approvazioni sono già salvate: non si perde niente.");
-          return;
-        }
-        if (j.error) {
-          el("statoRisposte").textContent = "Non riuscito: " + j.error;
-          window.alert("Pubblicazione non riuscita.\n\n" + j.error + "\n\nLe tue approvazioni restano salvate.");
+        if (j.esito === "errore" || j.error) {
+          var perche = j.errore || j.error || "errore sconosciuto";
+          el("statoRisposte").textContent = "Non riuscito: " + perche;
+          window.alert("Pubblicazione non riuscita.\n\n" + perche + "\n\nLe tue approvazioni restano salvate.");
           return;
         }
         var saltate = j.nonTrovate || 0;
@@ -974,6 +972,41 @@
         window.alert("Non riuscito: " + e.message + "\n\nSe avevi spuntato delle bozze, riprova: le correzioni sono ancora a schermo.");
       });
   });
+
+  // Aggiornamento e pubblicazione durano piu' di quanto un browser tenga
+  // aperta una richiesta: il Mac risponde subito "avviato" e qui si segue
+  // l'avanzamento. Ritorna l'esito finale, o "serve_te" se Booking chiede
+  // una verifica.
+  function seguiLavoro(token, alAvanzare) {
+    var scadenza = Date.now() + 12 * 60 * 1000;
+    var avvisatoServeTe = false;
+    return new Promise(function (risolvi, rifiuta) {
+      (function controlla() {
+        if (Date.now() > scadenza) { rifiuta(new Error("ci sta mettendo troppo; controlla il Mac")); return; }
+        fetch("https://recensioni-worker.f-castiglioni.workers.dev/stato", { headers: { "X-Auth": token } })
+          .then(function (r) { return r.json(); })
+          .then(function (s) {
+            if (s.messaggio && !avvisatoServeTe) {
+              avvisatoServeTe = true;
+              alAvanzare("⚠️ Serve te sul Mac: " + s.messaggio);
+              window.alert("Booking chiede una verifica che devi fare tu.\n\n" + s.messaggio +
+                "\n\nVai alla finestra Chrome aperta sul Mac: se la risolvi entro pochi minuti il lavoro prosegue da solo.");
+            }
+            if (s.attivo) {
+              if (!avvisatoServeTe) {
+                alAvanzare(s.tipo === "pubblicazione"
+                  ? "Pubblicazione in corso" + (s.avanzamento ? " (" + s.avanzamento + " finora)" : "") + "..."
+                  : "Aggiornamento in corso: sto scaricando le recensioni dall'extranet...");
+              }
+              setTimeout(controlla, 4000);
+              return;
+            }
+            risolvi(s);
+          })
+          .catch(function () { setTimeout(controlla, 6000); });
+      })();
+    });
+  }
 
   // ── aggiorna ──────────────────────────────────────────────────
   function chiediToken() {
@@ -1002,24 +1035,20 @@
     })
       .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
       .then(function (res) {
-        if (!res.ok || res.j.esito === "errore") {
-          stato.textContent = "Non riuscito: " + (res.j && (res.j.errore || res.j.error) || "errore sconosciuto");
-          if (res.j && (res.j.error === "non autorizzato")) localStorage.removeItem(TOKEN_KEY);
-          return;
+        if (!res.ok) {
+          if (res.j && res.j.error === "non autorizzato") localStorage.removeItem(TOKEN_KEY);
+          throw new Error((res.j && (res.j.errore || res.j.error)) || "errore sconosciuto");
         }
-        // L'aggiornamento ora legge il file ufficiale dall'extranet, quindi
-        // passa dal login: se Booking chiede una verifica va detto, altrimenti
-        // sembrerebbe aggiornato senza esserlo.
-        if (res.j.esito === "serve_te") {
-          stato.textContent = "⚠️ Serve te sul Mac: " + res.j.messaggio;
-          window.alert("Per scaricare le recensioni aggiornate serve una verifica che devi fare tu.\n\n" + res.j.messaggio +
-            "\n\nVai alla finestra Chrome aperta sul Mac. Se la risolvi entro pochi minuti, l'aggiornamento prosegue da solo: ricarica la pagina fra qualche minuto.");
-          return;
-        }
-        stato.textContent = "Aggiornato" + (res.j.dettaglio ? " — " + res.j.dettaglio : "") + ".";
+        return seguiLavoro(token, function (m) { stato.textContent = m; });
+      })
+      .then(function (s) {
+        if (!s) return;
+        if (s.esito === "errore") { stato.textContent = "Non riuscito: " + (s.errore || "errore sconosciuto"); return; }
+        stato.textContent = "Aggiornato" + (s.dettaglio ? " — " + s.dettaglio : "") + ".";
+        window.alert("Recensioni aggiornate dall'extranet." + (s.dettaglio ? "\n\n" + s.dettaglio : ""));
         return caricaDati();
       })
-      .catch(function (e) { stato.textContent = "Mac non raggiungibile (" + e.message + ")."; })
+      .catch(function (e) { stato.textContent = "Non riuscito: " + e.message; })
       .then(function () { btn.disabled = false; });
   });
 
