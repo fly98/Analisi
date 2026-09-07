@@ -419,7 +419,7 @@
     <div class="azioni-top">
       <div class="aggiorna-stato" id="statoAggiorna">—</div>
       <button class="bottone-testo" id="btnResetToken" type="button" title="Se hai inserito il codice sbagliato, cliccando qui puoi reinserirlo">codice ↻</button>
-      <button class="bottone" id="btnAggiorna" type="button">Aggiorna</button>
+      <button class="bottone" id="btnAggiorna" type="button" title="Scarica le recensioni di entrambe le strutture dall'extranet Booking">Aggiorna tutto</button>
     </div>
   </header>
 
@@ -1079,7 +1079,7 @@
               if (!avvisatoServeTe) {
                 alAvanzare(s.tipo === "pubblicazione"
                   ? "Pubblicazione in corso" + (s.avanzamento ? " (" + s.avanzamento + " finora)" : "") + "..."
-                  : "Aggiornamento in corso: sto scaricando le recensioni dall'extranet...");
+                  : "Aggiornamento in corso: scarico dall'extranet le recensioni di entrambe le strutture...");
               }
               setTimeout(controlla, 4000);
               return;
@@ -1129,7 +1129,7 @@
         if (!s) return;
         if (s.esito === "errore") { stato.textContent = "Non riuscito: " + (s.errore || "errore sconosciuto"); return; }
         stato.textContent = "Aggiornato" + (s.dettaglio ? " — " + s.dettaglio : "") + ".";
-        window.alert("Recensioni aggiornate dall'extranet." + (s.dettaglio ? "\n\n" + s.dettaglio : ""));
+        window.alert("Recensioni aggiornate dall'extranet (entrambe le strutture)." + (s.dettaglio ? "\n\n" + s.dettaglio : ""));
         return caricaDati();
       })
       .catch(function (e) { stato.textContent = "Non riuscito: " + e.message; })
