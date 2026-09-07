@@ -34,8 +34,24 @@ che cade all'ora italiana giusta. Senza questo, col cambio dell'ora tutto slitte
 
 | Ora italiana | Cosa succede | Funzione |
 |---|---|---|
-| **03:00** | Legge **tutti i messaggi** degli arrivi di domani: Booking/Airbnb su Amenitiz **e** chat WhatsApp. Ne ricava orario e note. | `runWhatsappPrepara` |
-| **04:00** | Prepara i **pagamenti**: riga tassa per Expedia e link di pagamento. Salta chi ha scritto che paga in contanti. | `runTassaPrepara` |
+| **03:00** | Legge **tutti i messaggi** di **oggi e domani**: Booking/Airbnb su Amenitiz **e** chat WhatsApp. Ne ricava orario e note. | `runWhatsappPrepara` |
+| **04:00** | Prepara i **pagamenti** di **oggi e domani**: riga tassa per Expedia e link di pagamento. Salta chi ha scritto che paga in contanti. | `runTassaPrepara` |
+
+**Perché due giorni e non solo domani** (07/09/2026). Le prenotazioni entrate in giornata
+non le preparerebbe nessuno, e i messaggi di chi arriva *oggi* cambiano fino all'ultimo
+momento — è lì che si decide l'orario di arrivo. Oggi viene per primo: quelle persone
+arrivano fra poche ore.
+
+Il secondo giorno **non raddoppia il lavoro**: `tassaUna` controlla in archivio se il link
+c'è già e in quel caso non apre nemmeno il browser. La rilettura dei messaggi invece è vera,
+ed è il motivo per cui la si fa.
+
+Un giorno che fallisce non azzera l'altro, e l'avviso in cima all'app resta uno solo.
+
+**Attenzione al tetto:** Cloudflare concede 50 chiamate esterne per esecuzione, e ogni
+prenotazione con telefono ne consuma 3. Fino a ~6 arrivi al giorno si sta larghi; oltre gli
+8 il passaggio delle 3 si troncherebbe. Rimedio pronto: separare i due giorni in due
+partenze (3:00 e 3:20), così ognuna ha il suo budget.
 | 10:00 | Messaggi di ringraziamento | `runThankYou` |
 | 17:00 | Riepilogo arrivi | `runArriviTg` |
 
@@ -56,6 +72,17 @@ Tutto sta in Cloudflare KV, spazio `ARRIVI_KV`. Le chiavi che contano:
 | `nota_<data>_<id>` | nota mostrata nella scheda |
 | `giro_ultimo` | firma del passaggio delle 4 — la usa il campanello |
 | `giro_whatsapp` | firma del passaggio delle 3 |
+
+---
+
+## 3-bis. Come si pubblica
+
+- **App** (`arrivi.html`) → basta il push nel deposito: GitHub Pages la serve.
+- **Worker** (`worker.js`, `wrangler.toml`) → **anche qui basta il push**. Nel deposito c'è
+  `.github/workflows/deploy-worker.yml`: a ogni modifica di quei due file lancia
+  `cloudflare/wrangler-action` con i segreti `CF_API_TOKEN` e `CF_ACCOUNT_ID` già impostati
+  su GitHub. Non serve wrangler sul Mac, non serve entrare in Cloudflare.
+  L'esito si controlla nella scheda Actions del deposito.
 
 ---
 
