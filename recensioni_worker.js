@@ -96,6 +96,24 @@ export default {
       }
     }
 
+    // Avanzamento dell'ultimo aggiornamento/invio: la pagina lo chiede ogni
+    // pochi secondi mentre il Mac lavora.
+    if (url.pathname === '/stato' && request.method === 'GET') {
+      if (!env.RECENSIONI_TOKEN || request.headers.get('X-Auth') !== env.RECENSIONI_TOKEN) {
+        return json({ error: 'non autorizzato' }, 401);
+      }
+      try {
+        const r = await fetch('http://fly98.duckdns.org:3456/recensioni-stato', {
+          headers: { 'X-Trigger-Key': env.RECENSIONI_TOKEN },
+          signal: AbortSignal.timeout(20000),
+        });
+        const testo = await r.text();
+        return new Response(testo, { status: r.status, headers: { ...CORS, 'Content-Type': 'application/json; charset=utf-8' } });
+      } catch (e) {
+        return json({ error: 'Mac non raggiungibile', dettaglio: e.message }, 502);
+      }
+    }
+
     return json({ error: 'non trovato' }, 404);
   },
 };
