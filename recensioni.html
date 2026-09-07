@@ -1007,9 +1007,16 @@
           if (res.j && (res.j.error === "non autorizzato")) localStorage.removeItem(TOKEN_KEY);
           return;
         }
-        stato.textContent = res.j.scrapeParziale
-          ? "Aggiornato (Booking ha rallentato la lettura: dati parziali, si completa da solo ai prossimi giri)."
-          : "Aggiornato.";
+        // L'aggiornamento ora legge il file ufficiale dall'extranet, quindi
+        // passa dal login: se Booking chiede una verifica va detto, altrimenti
+        // sembrerebbe aggiornato senza esserlo.
+        if (res.j.esito === "serve_te") {
+          stato.textContent = "⚠️ Serve te sul Mac: " + res.j.messaggio;
+          window.alert("Per scaricare le recensioni aggiornate serve una verifica che devi fare tu.\n\n" + res.j.messaggio +
+            "\n\nVai alla finestra Chrome aperta sul Mac. Se la risolvi entro pochi minuti, l'aggiornamento prosegue da solo: ricarica la pagina fra qualche minuto.");
+          return;
+        }
+        stato.textContent = "Aggiornato" + (res.j.dettaglio ? " — " + res.j.dettaglio : "") + ".";
         return caricaDati();
       })
       .catch(function (e) { stato.textContent = "Mac non raggiungibile (" + e.message + ")."; })
