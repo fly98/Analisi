@@ -352,6 +352,26 @@
   .riepilogo-stati .pill-da { border-color: var(--accent); color: var(--accent); }
   .riepilogo-stati .pill-pronte { border-color: var(--positive); color: var(--positive); }
   .riepilogo-stati .pill-fatte { border-color: var(--border); }
+
+  /* ── telecomando per il CAPTCHA ─────────────────────────────── */
+  #telecomando {
+    border: 2px solid var(--accent);
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 16px;
+    background: var(--accent-soft);
+  }
+  .telecomando-testo { font-size: 13.5px; margin-bottom: 10px; }
+  #telecomandoImmagine {
+    width: 100%;
+    display: block;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    cursor: crosshair;
+    touch-action: manipulation;
+  }
+  .telecomando-piede { font-size: 12px; color: var(--muted); margin-top: 8px; min-height: 1.2em; }
   .risposte-azioni { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 8px; }
   .filtro-risposte {
     display: flex;
@@ -505,6 +525,15 @@
         <option value="tutte">tutte</option>
       </select>
       <span class="filtro-conteggio" id="filtroConteggio"></span>
+    </div>
+    <div id="telecomando" hidden>
+      <div class="telecomando-testo">
+        <strong>Booking chiede una verifica.</strong>
+        Qui sotto vedi la finestra aperta sul Mac: tocca direttamente sull'immagine come faresti lì.
+        Si aggiorna da sola ogni paio di secondi.
+      </div>
+      <img id="telecomandoImmagine" alt="Finestra Chrome sul Mac">
+      <div class="telecomando-piede"><span id="telecomandoStato"></span></div>
     </div>
     <div id="risposteLista"></div>
     <div class="risposte-azioni">
@@ -973,6 +1002,57 @@
       });
   });
 
+  // ── telecomando per il CAPTCHA ────────────────────────────────
+  // La finestra Chrome del Mac viene mostrata qui e i tocchi su questa
+  // immagine diventano click veri laggiu'. A risolvere il CAPTCHA e' sempre
+  // Filippo: cambia solo che puo' farlo da dove si trova.
+  var telecomandoTimer = null;
+  var telecomandoUrl = null;
+
+  function accendiTelecomando(token) {
+    if (telecomandoTimer) return;
+    el("telecomando").hidden = false;
+    var img = el("telecomandoImmagine");
+
+    function prendiFoto() {
+      fetch("https://recensioni-worker.f-castiglioni.workers.dev/schermo", { headers: { "X-Auth": token } })
+        .then(function (r) { return r.ok ? r.blob() : null; })
+        .then(function (b) {
+          if (!b) return;
+          if (telecomandoUrl) URL.revokeObjectURL(telecomandoUrl);
+          telecomandoUrl = URL.createObjectURL(b);
+          img.src = telecomandoUrl;
+        })
+        .catch(function () { /* riprova al giro dopo */ });
+    }
+
+    prendiFoto();
+    telecomandoTimer = setInterval(prendiFoto, 2000);
+
+    img.onclick = function (e) {
+      // dall'immagine ridimensionata a schermo alle coordinate vere della
+      // finestra sul Mac
+      var r = img.getBoundingClientRect();
+      var x = Math.round((e.clientX - r.left) * (img.naturalWidth / r.width));
+      var y = Math.round((e.clientY - r.top) * (img.naturalHeight / r.height));
+      el("telecomandoStato").textContent = "Tocco inviato (" + x + ", " + y + ")...";
+      fetch("https://recensioni-worker.f-castiglioni.workers.dev/click", {
+        method: "POST",
+        headers: { "X-Auth": token, "Content-Type": "application/json" },
+        body: JSON.stringify({ x: x, y: y }),
+      })
+        .then(function () { el("telecomandoStato").textContent = "Tocco inviato. L'immagine si aggiorna fra un istante."; })
+        .catch(function (err) { el("telecomandoStato").textContent = "Tocco non arrivato: " + err.message; });
+    };
+  }
+
+  function spegniTelecomando() {
+    if (telecomandoTimer) { clearInterval(telecomandoTimer); telecomandoTimer = null; }
+    if (telecomandoUrl) { URL.revokeObjectURL(telecomandoUrl); telecomandoUrl = null; }
+    el("telecomando").hidden = true;
+    el("telecomandoStato").textContent = "";
+  }
+
   // Aggiornamento e pubblicazione durano piu' di quanto un browser tenga
   // aperta una richiesta: il Mac risponde subito "avviato" e qui si segue
   // l'avanzamento. Ritorna l'esito finale, o "serve_te" se Booking chiede
@@ -988,9 +1068,12 @@
           .then(function (s) {
             if (s.messaggio && !avvisatoServeTe) {
               avvisatoServeTe = true;
-              alAvanzare("⚠️ Serve te sul Mac: " + s.messaggio);
-              window.alert("Booking chiede una verifica che devi fare tu.\n\n" + s.messaggio +
-                "\n\nVai alla finestra Chrome aperta sul Mac: se la risolvi entro pochi minuti il lavoro prosegue da solo.");
+              alAvanzare("⚠️ " + s.messaggio + " — risolvila qui sotto.");
+              accendiTelecomando(token);
+              // il riquadro compare sotto il tab "Risposte": ci si porta li'
+              var tabRisposte = el("tabPrincipale").querySelector('button[data-tab="risposte"]');
+              if (tabRisposte) tabRisposte.click();
+              el("telecomando").scrollIntoView({ behavior: "smooth", block: "center" });
             }
             if (s.attivo) {
               if (!avvisatoServeTe) {
@@ -1001,6 +1084,7 @@
               setTimeout(controlla, 4000);
               return;
             }
+            spegniTelecomando();
             risolvi(s);
           })
           .catch(function () { setTimeout(controlla, 6000); });
