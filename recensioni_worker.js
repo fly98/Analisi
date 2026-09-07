@@ -114,6 +114,45 @@ export default {
       }
     }
 
+    // Telecomando per il CAPTCHA: l'immagine della finestra Chrome del Mac e
+    // i click che Filippo fa sopra. Risolve lui: questo e' solo il filo.
+    if (url.pathname === '/schermo' && request.method === 'GET') {
+      if (!env.RECENSIONI_TOKEN || request.headers.get('X-Auth') !== env.RECENSIONI_TOKEN) {
+        return json({ error: 'non autorizzato' }, 401);
+      }
+      try {
+        const r = await fetch('http://fly98.duckdns.org:3456/recensioni-schermo', {
+          headers: { 'X-Trigger-Key': env.RECENSIONI_TOKEN },
+          signal: AbortSignal.timeout(20000),
+        });
+        if (!r.ok) return new Response(await r.text(), { status: r.status, headers: { ...CORS, 'Content-Type': 'application/json; charset=utf-8' } });
+        return new Response(await r.arrayBuffer(), {
+          status: 200,
+          headers: { ...CORS, 'Content-Type': 'image/jpeg', 'Cache-Control': 'no-store' },
+        });
+      } catch (e) {
+        return json({ error: 'Mac non raggiungibile', dettaglio: e.message }, 502);
+      }
+    }
+
+    if (url.pathname === '/click' && request.method === 'POST') {
+      if (!env.RECENSIONI_TOKEN || request.headers.get('X-Auth') !== env.RECENSIONI_TOKEN) {
+        return json({ error: 'non autorizzato' }, 401);
+      }
+      try {
+        const corpo = await request.text();
+        const r = await fetch('http://fly98.duckdns.org:3456/recensioni-click', {
+          method: 'POST',
+          headers: { 'X-Trigger-Key': env.RECENSIONI_TOKEN, 'Content-Type': 'application/json' },
+          body: corpo,
+          signal: AbortSignal.timeout(20000),
+        });
+        return new Response(await r.text(), { status: r.status, headers: { ...CORS, 'Content-Type': 'application/json; charset=utf-8' } });
+      } catch (e) {
+        return json({ error: 'Mac non raggiungibile', dettaglio: e.message }, 502);
+      }
+    }
+
     return json({ error: 'non trovato' }, 404);
   },
 };
