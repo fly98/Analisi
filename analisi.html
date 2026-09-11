@@ -172,12 +172,18 @@ main { max-width:900px; margin:0 auto; padding:16px; display:flex;
           <div class="kpi-value neu" id="kpi-vm">—</div></div>
         <div class="kpi"><div class="kpi-label">Valore carico</div>
           <div class="kpi-value" id="kpi-vc">—</div></div>
-        <div class="kpi"><div class="kpi-label">Plus/minus latente</div>
+        <div class="kpi">
+          <div class="kpi-label">Plus/minus latente</div>
           <div class="kpi-value" id="kpi-pm">—</div>
-          <div class="kpi-sub" id="kpi-pm-pct"></div></div>
-        <div class="kpi"><div class="kpi-label">Var. periodo</div>
+          <div class="kpi-sub" id="kpi-pm-pct"></div>
+          <div id="kpi-pm-net" style="font-size:10.5px;color:var(--muted);text-align:right;margin-top:6px"></div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Var. periodo</div>
           <div class="kpi-value" id="kpi-day">—</div>
-          <div class="kpi-sub" id="kpi-day-pct"></div></div>
+          <div class="kpi-sub" id="kpi-day-pct"></div>
+          <div id="kpi-day-net" style="font-size:10.5px;color:var(--muted);text-align:right;margin-top:6px"></div>
+        </div>
         <div class="kpi" id="kpi-semaforo-box" style="cursor:pointer" onclick="toggleSemaforoDettaglio()">
           <div class="kpi-label">Semaforo mercato</div>
           <div class="kpi-value neu" id="kpi-semaforo"><span id="semaforo-dot" style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#8e8e93;margin-right:6px;vertical-align:baseline"></span>—</div>
@@ -546,6 +552,17 @@ function renderKpi() {
   pmEl.className = 'kpi-value ' + (pm >= 0 ? 'pos' : 'neg');
   document.getElementById('kpi-pm-pct').textContent = (pmPct >= 0 ? '+' : '') + pmPct.toFixed(2) + '%';
 
+  // Valore depurato: come la 2a linea del grafico, toglie lo scarto latente
+  // (mercato - carico) delle sole obbligazioni. E' lo stesso pm ma "onesto",
+  // al netto della componente che rientra da sola se i bond si portano a scadenza.
+  var pmNetEl = document.getElementById('kpi-pm-net');
+  if (pmNetEl) {
+    var scartoBondOggi = 0;
+    for (var nmk in _strMap) { var ik = _strMap[nmk]; if (ik && ik.isBond) scartoBondOggi += ((ik.vm||0) - (ik.vc||0)); }
+    var pmNet = pm - scartoBondOggi;
+    pmNetEl.textContent = 'Senza bond: ' + (pmNet>=0?'+':'') + fmt(pmNet);
+  }
+
   // Variazione: vm attuale vs ultimo snapshot precedente a oggi
   var dayEl = document.getElementById('kpi-day');
   var dayPctEl = document.getElementById('kpi-day-pct');
@@ -579,6 +596,25 @@ function renderKpi() {
     dayEl.className = 'kpi-value ' + (delta >= 0 ? 'pos' : 'neg');
     var pp = prevSnap.date.split('-');
     dayPctEl.textContent = (deltaPct >= 0 ? '+' : '') + deltaPct.toFixed(2) + '% vs ' + pp[2]+'/'+pp[1];
+
+    // Stessa variazione, ma con i bond congelati al carico storico (come la 2a
+    // linea del grafico): isola il movimento di azionario/ETF/oro, senza il
+    // rumore delle obbligazioni che oscillano ma poi rientrano a scadenza.
+    var dayNetEl = document.getElementById('kpi-day-net');
+    if (dayNetEl && typeof _bondCarico !== 'undefined') {
+      function _scartoBondAt(snap) {
+        var bd = snap.breakdown || {}, row = _bondCarico[snap.date] || null, s = 0;
+        for (var nm2 in bd) {
+          var info2 = _strMap[nm2];
+          if (!info2 || !info2.isBond) continue;
+          var car2 = row && row[nm2] != null ? row[nm2] : info2.vc;
+          s += (bd[nm2] - car2);
+        }
+        return s;
+      }
+      var deltaNet = delta - (_scartoBondAt(lastSnap) - _scartoBondAt(prevSnap));
+      dayNetEl.textContent = 'Senza bond: ' + (deltaNet>=0?'+':'') + fmt(deltaNet);
+    }
   } else {
     dayEl.textContent = '—';
     dayEl.className = 'kpi-value neu';
