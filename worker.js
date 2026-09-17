@@ -1837,7 +1837,10 @@ export default {
       // richiedono un token (?k= o header X-App-Key). Nel codice c'è solo lo
       // SHA-256 del token: il token vero non è mai nel repo. ======
       const PUBLIC_ACTIONS = new Set(["rooms", "availabilities", "prices"]);
-      if (!PUBLIC_ACTIONS.has(action || "__default__")) {
+      // Il callback OAuth di Google non porta mai ?k= (Google restituisce solo code/state/error):
+      // è già protetto dal one-time authorization code di Google, va escluso come le PUBLIC_ACTIONS.
+      const isOauthCallback = url.pathname.endsWith("/oauth2callback");
+      if (!isOauthCallback && !PUBLIC_ACTIONS.has(action || "__default__")) {
         const k = url.searchParams.get("k") || request.headers.get("X-App-Key") || "";
         const _buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(k));
         const _hex = [..._buf ? new Uint8Array(_buf) : []].map(b => b.toString(16).padStart(2, "0")).join("");
