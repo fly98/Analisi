@@ -1023,7 +1023,10 @@ async function sendGmailHtml(env, to, subject, html) {
   }
   const subjectEnc = "=?UTF-8?B?" + btoa(unescape(encodeURIComponent(subject))) + "?=";
   const mime = [
-    "From: InternoUno <interno1bbroma@gmail.com>",
+    // Niente From esplicito: Gmail lo compila da solo con l'indirizzo autenticato
+    // (oggi interno1bbroma@gmail.com, domani info@interno1.it dopo lo swap del
+    // secret GMAIL_REFRESH_TOKEN) — evita di forzare un mittente disallineato
+    // dall'account autenticato, che Gmail rifiuterebbe come spoofing.
     `To: ${to}`,
     `Subject: ${subjectEnc}`,
     "MIME-Version: 1.0",
