@@ -2398,6 +2398,43 @@ async function searchOneAccount(env, account, q, maxResults) {
         });
       }
 
+      // Ripristina dal cestino (inverso di trashMessages): rimette in Posta in arrivo.
+      // Serve a correggere pulizie fatte con criteri troppo larghi.
+      if (action === "untrashMessages") {
+        if (request.method !== "POST") {
+          return new Response(JSON.stringify({ error: "Usa POST con body JSON" }), {
+            status: 405, headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        }
+        const body = await request.json().catch(() => null);
+        const account = (body && (body.account === "personal" || body.account === "oldbusiness")) ? body.account : "business";
+        const ids = body && Array.isArray(body.ids) ? body.ids : null;
+        if (!ids || !ids.length) {
+          return new Response(JSON.stringify({ error: "Body deve avere ids: [array di message id]" }), {
+            status: 400, headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        }
+        const tok = await getGmailAccessTokenFor(env, account);
+        if (!tok || !tok.access_token) {
+          return new Response(JSON.stringify({ error: "Auth fallita", detail: tok }), {
+            status: 502, headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        }
+        let ok = 0, fail = 0;
+        for (let i = 0; i < ids.length; i += 900) {
+          const chunk = ids.slice(i, i + 900);
+          const r = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/messages/batchModify", {
+            method: "POST",
+            headers: { Authorization: "Bearer " + tok.access_token, "Content-Type": "application/json" },
+            body: JSON.stringify({ ids: chunk, addLabelIds: ["INBOX"], removeLabelIds: ["TRASH"] })
+          });
+          if (r.ok) ok += chunk.length; else fail += chunk.length;
+        }
+        return new Response(JSON.stringify({ account, ripristinati: ok, falliti: fail }), {
+          headers: { ...CORS, "Content-Type": "application/json" }
+        });
+      }
+
       // FILTRI GMAIL — elenco, creazione, eliminazione (per tenere pulita la casella nel tempo).
       if (action === "listFilters") {
         const accParam = url.searchParams.get("account");
