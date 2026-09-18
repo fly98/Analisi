@@ -1832,12 +1832,15 @@ async function runInoltroSingoleFatture(env) {
 }
 
 // Booking.com: una mail sola al mese (il giorno 1), con tutte le fatture del mese appena concluso.
-async function runInoltroBookingMensile(env) {
+// Parametri opzionali per test: meseOffset (0=mese scorso reale, es. -1 per testarne uno precedente),
+// destinatarioTest (manda a un altro indirizzo invece che a Michela, utile per vedere il formato prima).
+async function runInoltroBookingMensile(env, meseOffset, destinatarioTest) {
   const tok = await getGmailAccessTokenFor(env, "business");
   if (!tok || !tok.access_token) return { errore: "auth fallita" };
   const oggi = new Date();
-  const primoMeseCorrente = new Date(Date.UTC(oggi.getUTCFullYear(), oggi.getUTCMonth(), 1));
-  const primoMeseScorso = new Date(Date.UTC(oggi.getUTCFullYear(), oggi.getUTCMonth() - 1, 1));
+  const offset = (typeof meseOffset === "number" && !isNaN(meseOffset)) ? meseOffset : 0;
+  const primoMeseCorrente = new Date(Date.UTC(oggi.getUTCFullYear(), oggi.getUTCMonth() + offset, 1));
+  const primoMeseScorso = new Date(Date.UTC(oggi.getUTCFullYear(), oggi.getUTCMonth() - 1 + offset, 1));
   const dopo = primoMeseScorso.toISOString().slice(0, 10).replace(/-/g, "/");
   const prima = primoMeseCorrente.toISOString().slice(0, 10).replace(/-/g, "/");
   const nomeMese = primoMeseScorso.toLocaleString("it-IT", { month: "long", year: "numeric", timeZone: "UTC" });
@@ -1848,24 +1851,56 @@ async function runInoltroBookingMensile(env) {
   );
   const listJson = await listResp.json();
   const ids = (listJson.messages || []).map(m => m.id);
-  const kvKey = `fatture_booking_mensile_${oggi.getUTCFullYear()}_${oggi.getUTCMonth()}`;
-  if (await env.ARRIVI_KV.get(kvKey)) return { mese: nomeMese, gia_inviato: true };
+  const isTest = !!destinatarioTest;
+  const kvKey = `fatture_booking_mensile_${primoMeseScorso.getUTCFullYear()}_${primoMeseScorso.getUTCMonth()}`;
+  if (!isTest && await env.ARRIVI_KV.get(kvKey)) return { mese: nomeMese, gia_inviato: true };
   if (!ids.length) return { mese: nomeMese, trovate: 0, inviato: false };
   const tuttiAllegati = [];
-  const oggetti = [];
   for (const id of ids) {
-    const { subject, attachments } = await scaricaAllegati(env, "business", tok, id);
-    oggetti.push(subject);
+    const { attachments } = await scaricaAllegati(env, "business", tok, id);
     tuttiAllegati.push(...attachments);
   }
+  const destinatario = destinatarioTest || MICHELA_EMAIL;
   const testo = `Ciao Michela,\n\nTi invio le fatture di Booking del mese di ${nomeMese} (${ids.length} totali).\n\nGrazie, ciao\nFilippo`;
-  const result = await sendGmailConAllegati(env, "business", MICHELA_EMAIL,
-    `Fatture Booking - ${nomeMese} - InternoUno`, testo, tuttiAllegati);
+  const oggettoMail = (isTest ? "[TEST] " : "") + `Fatture Booking - ${nomeMese} - InternoUno`;
+  const result = await sendGmailConAllegati(env, "business", destinatario, oggettoMail, testo, tuttiAllegati);
   if (result.ok) {
-    await env.ARRIVI_KV.put(kvKey, new Date().toISOString());
-    return { mese: nomeMese, trovate: ids.length, inviato: true };
+    if (!isTest) await env.ARRIVI_KV.put(kvKey, new Date().toISOString());
+    return { mese: nomeMese, trovate: ids.length, inviato: true, test: isTest, a: destinatario };
   }
   return { mese: nomeMese, trovate: ids.length, inviato: false, errore: result.error, detail: result.detail };
+}
+
+// Segna come "già inoltrate" senza inviare nulla: serve per le fatture storiche già gestite a mano.
+async function marcaFattureStoricheComeInviate(env) {
+  const regole = [
+    { account: "business", query: "from:amenitiz.io subject:(fattura)" },
+    { account: "personal", query: "from:mail.anthropic.com subject:(receipt)" }
+  ];
+  const risultati = [];
+  for (const regola of regole) {
+    const tok = await getGmailAccessTokenFor(env, regola.account);
+    if (!tok || !tok.access_token) { risultati.push({ account: regola.account, errore: "auth fallita" }); continue; }
+    const listResp = await fetch(
+      "https://gmail.googleapis.com/gmail/v1/users/me/messages?" +
+      new URLSearchParams({ q: regola.query, maxResults: "500" }),
+      { headers: { Authorization: "Bearer " + tok.access_token } }
+    );
+    const listJson = await listResp.json();
+    const ids = (listJson.messages || []).map(m => m.id);
+    for (const id of ids) {
+      await env.ARRIVI_KV.put(`fattura_inoltrata_${regola.account}_${id}`, "storico-gia-gestito-manualmente");
+    }
+    risultati.push({ account: regola.account, marcate: ids.length });
+  }
+  // Segna anche tutti i mesi Booking passati come già inviati (fino a 24 mesi indietro)
+  const oggi = new Date();
+  for (let i = 0; i < 24; i++) {
+    const d = new Date(Date.UTC(oggi.getUTCFullYear(), oggi.getUTCMonth() - i, 1));
+    await env.ARRIVI_KV.put(`fatture_booking_mensile_${d.getUTCFullYear()}_${d.getUTCMonth()}`, "storico-gia-gestito-manualmente");
+  }
+  risultati.push({ booking_mesi_marcati: 24 });
+  return risultati;
 }
 
 async function runTassaPrepara(env, date, crea) {
@@ -2651,7 +2686,14 @@ async function searchOneAccount(env, account, q, maxResults) {
       }
 
       if (action === "runInoltroBookingMensile") {
-        const result = await runInoltroBookingMensile(env);
+        const meseOffset = url.searchParams.get("meseOffset");
+        const destinatarioTest = url.searchParams.get("testTo");
+        const result = await runInoltroBookingMensile(env, meseOffset ? parseInt(meseOffset, 10) : 0, destinatarioTest || null);
+        return new Response(JSON.stringify(result), { headers: { ...CORS, "Content-Type": "application/json" } });
+      }
+
+      if (action === "marcaFattureStoricheComeInviate") {
+        const result = await marcaFattureStoricheComeInviate(env);
         return new Response(JSON.stringify(result), { headers: { ...CORS, "Content-Type": "application/json" } });
       }
 
