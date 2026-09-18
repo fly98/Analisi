@@ -1,6 +1,55 @@
 {
   "sessioni": [
     {
+      "id": 1789740202147,
+      "dataSalvataggio": "2026-09-18T14:03:22.147Z",
+      "txIds": [
+        "3DA57B38-A4E6-47AF-AB70-AE82B865F391",
+        "3941C2C1-78B1-499C-B034-464B5534FD67",
+        "10ABAAEF-B88F-45AA-ADC8-977A3106514F"
+      ],
+      "periodo": "05/09/2026 - 18/09/2026",
+      "periodoWk": "05/09/2026 - 18/09/2026",
+      "cashIds": [
+        "18/09/2026|Fabrizio Stella|10",
+        "16/09/2026|Vincenzo Guadagno|20",
+        "15/09/2026|Clemens Lunkeit|45",
+        "15/09/2026|zhang shihui|10",
+        "15/09/2026|Sandra Ricci|5",
+        "15/09/2026|jinsong dai|50",
+        "15/09/2026|Diana Ovchinnikova|20",
+        "14/09/2026|Monica Maric|10",
+        "14/09/2026|Consuelo Marina Chisari|20",
+        "12/09/2026|Giacomo Campelli|20",
+        "11/09/2026|Massimo Meschini|5",
+        "10/09/2026|Konstantina Karamani|10",
+        "09/09/2026|Luisa Maria Pia Savigni|20",
+        "05/09/2026|Llopis Miguel|20",
+        "05/09/2026|Armani Brito|15"
+      ],
+      "cash": 280,
+      "stripe": 0,
+      "totContanti": 280,
+      "wkTot": 240,
+      "wkN": 4,
+      "wkDateSel": [
+        "05/09/2026",
+        "06/09/2026",
+        "12/09/2026",
+        "13/09/2026"
+      ],
+      "sp": 112,
+      "man": 0,
+      "bab": 0,
+      "ferie": 0,
+      "stip": 0,
+      "spTot": 112,
+      "daMe": 352,
+      "saldo": -72,
+      "ferieDal": null,
+      "ferieAl": null
+    },
+    {
       "id": 1788531867419,
       "dataSalvataggio": "2026-09-04T14:24:27.419Z",
       "txIds": [
@@ -16,7 +65,7 @@
       "periodoWk": "08/08/2026 - 04/09/2026",
       "cashIds": [
         "04/09/2026|Ivana Grimaldi|110",
-        "04/09/2026|Giovanni D’Anna|90",
+        "04/09/2026|Giovanni DâAnna|90",
         "03/09/2026|Antonio Schifano|80",
         "01/09/2026|Passante .|120",
         "30/08/2026|Nataliia Lozova|15",
@@ -74,7 +123,7 @@
         "05/08/2026|Parisi Natale|15",
         "04/08/2026|Natalia Prus|20",
         "02/08/2026|Jules Anseaume|-30",
-        "01/08/2026|Mateusz Åubkowski|40",
+        "01/08/2026|Mateusz ÃÂubkowski|40",
         "01/08/2026|Passante .|160"
       ],
       "cash": 205,
@@ -127,7 +176,7 @@
         "18/07/2026|Claudio Ballatore|60",
         "18/07/2026|Claudio Ballatore|120",
         "18/07/2026|Claudio Ballatore|60",
-        "17/07/2026|Giovanni DÃ¢ÂÂAnna|80",
+        "17/07/2026|Giovanni DÃÂ¢ÃÂÃÂAnna|80",
         "16/07/2026|Veronika Saratova|50",
         "15/07/2026|Antonio Schifano|80",
         "13/07/2026|Alisher Rasulov|40"
