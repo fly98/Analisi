@@ -150,6 +150,25 @@ async function getGmailAccessTokenFor(env, account) {
   return tokenResp.json();
 }
 
+// Token per Google Drive (info@interno1.it) — stesso client OAuth di Gmail, scope separato
+// (GMAIL_DRIVE_REFRESH_TOKEN, generato con action=authStart&scope=drive).
+async function getDriveAccessToken(env) {
+  if (!env.GMAIL_DRIVE_REFRESH_TOKEN) {
+    return { error: "Nessun refresh token Drive configurato (GMAIL_DRIVE_REFRESH_TOKEN mancante)" };
+  }
+  const tokenResp = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      client_id: env.GMAIL_CLIENT_ID,
+      client_secret: env.GMAIL_CLIENT_SECRET,
+      refresh_token: env.GMAIL_DRIVE_REFRESH_TOKEN,
+      grant_type: "refresh_token"
+    })
+  });
+  return tokenResp.json();
+}
+
 // Decodifica base64url Gmail -> stringa UTF-8 corretta (evita mojibake su accenti/€)
 function b64UrlToUtf8(data) {
   const std = (data || "").replace(/-/g, "+").replace(/_/g, "/");
@@ -1890,12 +1909,15 @@ export default {
       // account=business (default, mailbox InternoUno) oppure account=personal (Gmail personale)
       if (action === "authStart") {
         const accParam = url.searchParams.get("account");
-        const account = (accParam === "personal" || accParam === "oldbusiness") ? accParam : "business";
+        const wantsDrive = url.searchParams.get("scope") === "drive";
+        const account = wantsDrive ? "drive" : (accParam === "personal" || accParam === "oldbusiness") ? accParam : "business";
         const p = new URLSearchParams({
           client_id: env.GMAIL_CLIENT_ID,
           redirect_uri: REDIRECT_URI,
           response_type: "code",
-          scope: "https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send",
+          scope: wantsDrive
+            ? "https://www.googleapis.com/auth/drive.readonly"
+            : "https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send",
           access_type: "offline",
           prompt: "consent",
           state: account
@@ -1908,7 +1930,7 @@ export default {
         const code = url.searchParams.get("code");
         const oauthErr = url.searchParams.get("error");
         const stateParam = url.searchParams.get("state");
-        const account = (stateParam === "personal" || stateParam === "oldbusiness") ? stateParam : "business";
+        const account = (stateParam === "personal" || stateParam === "oldbusiness" || stateParam === "drive") ? stateParam : "business";
         if (oauthErr) return htmlPage("Errore da Google: " + oauthErr);
         if (!code) return htmlPage("Nessun codice ricevuto da Google.");
         const tokResp = await fetch("https://oauth2.googleapis.com/token", {
@@ -1929,6 +1951,7 @@ export default {
         }
         const secretName = account === "personal" ? "GMAIL_PERSONAL_REFRESH_TOKEN"
           : account === "oldbusiness" ? "GMAIL_OLDBUSINESS_REFRESH_TOKEN"
+          : account === "drive" ? "GMAIL_DRIVE_REFRESH_TOKEN"
           : "GMAIL_REFRESH_TOKEN";
         return htmlPage("<b>Nuovo refresh token generato (lettura + invio) per account: " + account + ".</b><br><br>" +
           "Copialo e incollalo nel secret <code>" + secretName + "</code> del worker:<br>" +
@@ -2110,6 +2133,42 @@ async function searchOneAccount(env, account, q, maxResults) {
   }
   return { results };
 }
+
+      // Ricerca file su Google Drive (info@interno1.it). q = testo libero, cercato nel nome file.
+      if (action === "driveSearch") {
+        const q = url.searchParams.get("q") || "";
+        const maxResults = Math.min(parseInt(url.searchParams.get("max") || "10", 10) || 10, 25);
+        if (!q) {
+          return new Response(JSON.stringify({ error: "Parametro q mancante" }), {
+            status: 400, headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        }
+        const tok = await getDriveAccessToken(env);
+        if (!tok || !tok.access_token) {
+          return new Response(JSON.stringify({ error: "Auth Drive fallita", detail: tok }), {
+            status: 502, headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        }
+        const driveQuery = "name contains '" + q.replace(/'/g, "\\'") + "' and trashed = false";
+        const listResp = await fetch(
+          "https://www.googleapis.com/drive/v3/files?" +
+          new URLSearchParams({
+            q: driveQuery,
+            pageSize: String(maxResults),
+            fields: "files(id,name,mimeType,webViewLink,modifiedTime,owners(displayName),parents)"
+          }),
+          { headers: { Authorization: "Bearer " + tok.access_token } }
+        );
+        const listJson = await listResp.json();
+        if (!listResp.ok) {
+          return new Response(JSON.stringify({ error: "Ricerca Drive fallita", detail: listJson }), {
+            status: listResp.status, headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        }
+        return new Response(JSON.stringify({ query: q, count: (listJson.files || []).length, results: listJson.files || [] }), {
+          headers: { ...CORS, "Content-Type": "application/json" }
+        });
+      }
 
       // Conteggio totale (stima Gmail) di quante mail matchano una query su un account —
       // utile per confrontare vecchia gemella vs Workspace durante la migrazione.
