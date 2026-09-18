@@ -2111,6 +2111,29 @@ async function searchOneAccount(env, account, q, maxResults) {
   return { results };
 }
 
+      // Conteggio totale (stima Gmail) di quante mail matchano una query su un account —
+      // utile per confrontare vecchia gemella vs Workspace durante la migrazione.
+      if (action === "mailCount") {
+        const accParam = url.searchParams.get("account");
+        const account = (accParam === "personal" || accParam === "oldbusiness") ? accParam : "business";
+        const q = url.searchParams.get("q") || "in:anywhere";
+        const tok = await getGmailAccessTokenFor(env, account);
+        if (!tok || !tok.access_token) {
+          return new Response(JSON.stringify({ error: "Auth fallita", detail: tok }), {
+            status: 502, headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        }
+        const listResp = await fetch(
+          "https://gmail.googleapis.com/gmail/v1/users/me/messages?" +
+          new URLSearchParams({ q, maxResults: "1" }),
+          { headers: { Authorization: "Bearer " + tok.access_token } }
+        );
+        const listJson = await listResp.json();
+        return new Response(JSON.stringify({ account, query: q, resultSizeEstimate: listJson.resultSizeEstimate ?? null }), {
+          headers: { ...CORS, "Content-Type": "application/json" }
+        });
+      }
+
       // Invio generico multi-account: account="business" (default, InternoUno) o "personal" (Gmail personale Filippo)
       if (action === "searchMail") {
         const accParam = url.searchParams.get("account");
