@@ -1735,6 +1735,139 @@ async function runCleanupNotificheAccesso(env) {
   console.log("Cleanup notifiche accesso: cestinate " + total);
 }
 
+// ====== INOLTRO FATTURE ESTERE A MICHELA (STUDIO GRANATA) ======
+// Amenitiz e Anthropic/Claude: inviate singolarmente, man mano che arrivano.
+// Booking.com: raggruppate in UN'UNICA email mensile (arrivano ~2 a struttura, ~4/mese totali),
+// inviata il giorno 1 di ogni mese con tutte le fatture del mese appena concluso.
+const MICHELA_EMAIL = "micaela@studiogranata.it";
+
+async function scaricaAllegati(env, account, tok, id) {
+  const mResp = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${id}?format=full`,
+    { headers: { Authorization: "Bearer " + tok.access_token } });
+  const mJson = await mResp.json();
+  const headers = (mJson.payload && mJson.payload.headers) || [];
+  const subject = (headers.find(h => h.name === "Subject") || {}).value || "(senza oggetto)";
+  const dateHeader = (headers.find(h => h.name === "Date") || {}).value || "";
+  const parts = (mJson.payload && mJson.payload.parts) || [];
+  const attachments = [];
+  for (const p of parts) {
+    if (p.filename && p.body && p.body.attachmentId) {
+      const aResp = await fetch(
+        `https://gmail.googleapis.com/gmail/v1/users/me/messages/${id}/attachments/${p.body.attachmentId}`,
+        { headers: { Authorization: "Bearer " + tok.access_token } });
+      const aJson = await aResp.json();
+      if (aJson.data) {
+        attachments.push({
+          filename: p.filename, mimeType: p.mimeType,
+          base64data: aJson.data.replace(/-/g, "+").replace(/_/g, "/")
+        });
+      }
+    }
+  }
+  return { subject, dateHeader, attachments };
+}
+
+async function sendGmailConAllegati(env, account, to, subject, bodyText, attachments) {
+  const tokenData = await getGmailAccessTokenFor(env, account);
+  if (!tokenData.access_token) return { ok: false, error: "Token Gmail non ottenuto", detail: tokenData };
+  const boundary = "----inoltro" + Date.now().toString(36);
+  const subjectEnc = "=?UTF-8?B?" + btoa(unescape(encodeURIComponent(subject))) + "?=";
+  const lines = [];
+  if (account !== "personal") lines.push(`From: InternoUno <info@interno1.it>`);
+  lines.push(`To: ${to}`, `Subject: ${subjectEnc}`, "MIME-Version: 1.0",
+    `Content-Type: multipart/mixed; boundary="${boundary}"`, "", `--${boundary}`,
+    "Content-Type: text/plain; charset=UTF-8", "Content-Transfer-Encoding: 8bit", "", bodyText, "");
+  for (const att of attachments || []) {
+    lines.push(`--${boundary}`,
+      `Content-Type: ${att.mimeType || "application/octet-stream"}; name="${att.filename}"`,
+      "Content-Transfer-Encoding: base64",
+      `Content-Disposition: attachment; filename="${att.filename}"`, "",
+      att.base64data.replace(/(.{76})/g, "$1\n"), "");
+  }
+  lines.push(`--${boundary}--`);
+  const raw = b64urlEncode(lines.join("\r\n"));
+  const sendResp = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/messages/send", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${tokenData.access_token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ raw })
+  });
+  if (!sendResp.ok) {
+    const errText = await sendResp.text();
+    return { ok: false, error: "Invio fallito", status: sendResp.status, detail: errText.slice(0, 500) };
+  }
+  return { ok: true };
+}
+
+// Amenitiz + Anthropic: una mail per fattura, appena trovata e non ancora inoltrata.
+async function runInoltroSingoleFatture(env) {
+  const regole = [
+    { account: "business", query: "from:amenitiz.io subject:(fattura)", origine: "Amenitiz" },
+    { account: "personal", query: "from:mail.anthropic.com subject:(receipt)", origine: "Anthropic (Claude)" }
+  ];
+  const risultati = [];
+  for (const regola of regole) {
+    const tok = await getGmailAccessTokenFor(env, regola.account);
+    if (!tok || !tok.access_token) { risultati.push({ origine: regola.origine, errore: "auth fallita" }); continue; }
+    const listResp = await fetch(
+      "https://gmail.googleapis.com/gmail/v1/users/me/messages?" +
+      new URLSearchParams({ q: regola.query, maxResults: "20" }),
+      { headers: { Authorization: "Bearer " + tok.access_token } }
+    );
+    const listJson = await listResp.json();
+    const ids = (listJson.messages || []).map(m => m.id);
+    let inoltrate = 0, saltate = 0;
+    for (const id of ids) {
+      const kvKey = `fattura_inoltrata_${regola.account}_${id}`;
+      if (await env.ARRIVI_KV.get(kvKey)) { saltate++; continue; }
+      const { subject, attachments } = await scaricaAllegati(env, regola.account, tok, id);
+      const testo = `Ciao Michela,\n\nIn allegato una fattura ${regola.origine} (${subject}).\n\nGrazie, ciao\nFilippo`;
+      const result = await sendGmailConAllegati(env, "business", MICHELA_EMAIL,
+        `Fattura ${regola.origine} - InternoUno`, testo, attachments);
+      if (result.ok) { await env.ARRIVI_KV.put(kvKey, new Date().toISOString()); inoltrate++; }
+      else risultati.push({ origine: regola.origine, id, errore: result.error, detail: result.detail });
+    }
+    risultati.push({ origine: regola.origine, trovate: ids.length, inoltrate, saltate_gia_fatte: saltate });
+  }
+  return risultati;
+}
+
+// Booking.com: una mail sola al mese (il giorno 1), con tutte le fatture del mese appena concluso.
+async function runInoltroBookingMensile(env) {
+  const tok = await getGmailAccessTokenFor(env, "business");
+  if (!tok || !tok.access_token) return { errore: "auth fallita" };
+  const oggi = new Date();
+  const primoMeseCorrente = new Date(Date.UTC(oggi.getUTCFullYear(), oggi.getUTCMonth(), 1));
+  const primoMeseScorso = new Date(Date.UTC(oggi.getUTCFullYear(), oggi.getUTCMonth() - 1, 1));
+  const dopo = primoMeseScorso.toISOString().slice(0, 10).replace(/-/g, "/");
+  const prima = primoMeseCorrente.toISOString().slice(0, 10).replace(/-/g, "/");
+  const nomeMese = primoMeseScorso.toLocaleString("it-IT", { month: "long", year: "numeric", timeZone: "UTC" });
+  const q = `from:booking.com subject:(Invoice) after:${dopo} before:${prima}`;
+  const listResp = await fetch(
+    "https://gmail.googleapis.com/gmail/v1/users/me/messages?" + new URLSearchParams({ q, maxResults: "20" }),
+    { headers: { Authorization: "Bearer " + tok.access_token } }
+  );
+  const listJson = await listResp.json();
+  const ids = (listJson.messages || []).map(m => m.id);
+  const kvKey = `fatture_booking_mensile_${oggi.getUTCFullYear()}_${oggi.getUTCMonth()}`;
+  if (await env.ARRIVI_KV.get(kvKey)) return { mese: nomeMese, gia_inviato: true };
+  if (!ids.length) return { mese: nomeMese, trovate: 0, inviato: false };
+  const tuttiAllegati = [];
+  const oggetti = [];
+  for (const id of ids) {
+    const { subject, attachments } = await scaricaAllegati(env, "business", tok, id);
+    oggetti.push(subject);
+    tuttiAllegati.push(...attachments);
+  }
+  const testo = `Ciao Michela,\n\nTi invio le fatture di Booking del mese di ${nomeMese} (${ids.length} totali).\n\nGrazie, ciao\nFilippo`;
+  const result = await sendGmailConAllegati(env, "business", MICHELA_EMAIL,
+    `Fatture Booking - ${nomeMese} - InternoUno`, testo, tuttiAllegati);
+  if (result.ok) {
+    await env.ARRIVI_KV.put(kvKey, new Date().toISOString());
+    return { mese: nomeMese, trovate: ids.length, inviato: true };
+  }
+  return { mese: nomeMese, trovate: ids.length, inviato: false, errore: result.error, detail: result.detail };
+}
+
 async function runTassaPrepara(env, date, crea) {
   const giorni = giorniDelGiro(date);
   const iniziato = new Date().toISOString();
@@ -2510,6 +2643,16 @@ async function searchOneAccount(env, account, q, maxResults) {
         return new Response(JSON.stringify({ ok: r.ok, status: r.status }), {
           headers: { ...CORS, "Content-Type": "application/json" }
         });
+      }
+
+      if (action === "runInoltroSingoleFatture") {
+        const result = await runInoltroSingoleFatture(env);
+        return new Response(JSON.stringify(result), { headers: { ...CORS, "Content-Type": "application/json" } });
+      }
+
+      if (action === "runInoltroBookingMensile") {
+        const result = await runInoltroBookingMensile(env);
+        return new Response(JSON.stringify(result), { headers: { ...CORS, "Content-Type": "application/json" } });
       }
 
       if (action === "mailCount") {
@@ -3568,6 +3711,11 @@ async function searchOneAccount(env, account, q, maxResults) {
       ctx.waitUntil(runAutoSend(env, false));
     } else if (hourUTC === 5) {
       ctx.waitUntil(runCleanupNotificheAccesso(env));
+    } else if (hourUTC === 6) {
+      // Fatture estere a Michela: singole (Amenitiz/Anthropic) ogni giorno,
+      // digest Booking una volta al mese (la funzione stessa controlla se è già stato inviato).
+      ctx.waitUntil(runInoltroSingoleFatture(env));
+      ctx.waitUntil(runInoltroBookingMensile(env));
     } else if (hourUTC === 10) {
       ctx.waitUntil(runThankYou(env, false));
     } else if (hourUTC === 15 || hourUTC === 16) {

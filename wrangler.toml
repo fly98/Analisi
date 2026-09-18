@@ -13,5 +13,6 @@ binding = "TG"
 service = "tg-worker"
 
 [triggers]
-crons = ["0 1,2,3,4,5,10,15,16 * * *"]   # 2 e 3 UTC = tassa di soggiorno: parte solo quello che cade alle 4 italiane
+crons = ["0 1,2,3,4,5,6,10,15,16 * * *"]   # 2 e 3 UTC = tassa di soggiorno: parte solo quello che cade alle 4 italiane
 # 5 UTC (6/7 italiane) = pulizia automatica avvisi accesso/login su Gmail personale (older_than:7d)
+# 6 UTC (7/8 italiane) = fatture estere a Michela: singole Amenitiz/Anthropic + digest Booking mensile
