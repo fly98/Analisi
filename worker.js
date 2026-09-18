@@ -1835,8 +1835,6 @@ async function runInoltroSingoleFatture(env) {
 // Parametri opzionali per test: meseOffset (0=mese scorso reale, es. -1 per testarne uno precedente),
 // destinatarioTest (manda a un altro indirizzo invece che a Michela, utile per vedere il formato prima).
 async function runInoltroBookingMensile(env, meseOffset, destinatarioTest) {
-  const tok = await getGmailAccessTokenFor(env, "business");
-  if (!tok || !tok.access_token) return { errore: "auth fallita" };
   const oggi = new Date();
   const offset = (typeof meseOffset === "number" && !isNaN(meseOffset)) ? meseOffset : 0;
   const primoMeseCorrente = new Date(Date.UTC(oggi.getUTCFullYear(), oggi.getUTCMonth() + offset, 1));
@@ -1845,30 +1843,37 @@ async function runInoltroBookingMensile(env, meseOffset, destinatarioTest) {
   const prima = primoMeseCorrente.toISOString().slice(0, 10).replace(/-/g, "/");
   const nomeMese = primoMeseScorso.toLocaleString("it-IT", { month: "long", year: "numeric", timeZone: "UTC" });
   const q = `from:booking.com subject:(Invoice) after:${dopo} before:${prima}`;
-  const listResp = await fetch(
-    "https://gmail.googleapis.com/gmail/v1/users/me/messages?" + new URLSearchParams({ q, maxResults: "20" }),
-    { headers: { Authorization: "Bearer " + tok.access_token } }
-  );
-  const listJson = await listResp.json();
-  const ids = (listJson.messages || []).map(m => m.id);
+  // Durante la migrazione Aruba->Workspace lo storico recente potrebbe essere ancora solo sulla
+  // gemella (oldbusiness): cerca su entrambe e unisce i risultati, dedup su subject.
+  const trovati = new Map();
+  for (const account of ["business", "oldbusiness"]) {
+    const tok = await getGmailAccessTokenFor(env, account);
+    if (!tok || !tok.access_token) continue;
+    const listResp = await fetch(
+      "https://gmail.googleapis.com/gmail/v1/users/me/messages?" + new URLSearchParams({ q, maxResults: "20" }),
+      { headers: { Authorization: "Bearer " + tok.access_token } }
+    );
+    const listJson = await listResp.json();
+    for (const m of (listJson.messages || [])) {
+      const { subject, attachments } = await scaricaAllegati(env, account, tok, m.id);
+      if (!trovati.has(subject)) trovati.set(subject, { account, id: m.id, attachments });
+    }
+  }
   const isTest = !!destinatarioTest;
   const kvKey = `fatture_booking_mensile_${primoMeseScorso.getUTCFullYear()}_${primoMeseScorso.getUTCMonth()}`;
   if (!isTest && await env.ARRIVI_KV.get(kvKey)) return { mese: nomeMese, gia_inviato: true };
-  if (!ids.length) return { mese: nomeMese, trovate: 0, inviato: false };
+  if (!trovati.size) return { mese: nomeMese, trovate: 0, inviato: false };
   const tuttiAllegati = [];
-  for (const id of ids) {
-    const { attachments } = await scaricaAllegati(env, "business", tok, id);
-    tuttiAllegati.push(...attachments);
-  }
+  for (const { attachments } of trovati.values()) tuttiAllegati.push(...attachments);
   const destinatario = destinatarioTest || MICHELA_EMAIL;
-  const testo = `Ciao Michela,\n\nTi invio le fatture di Booking del mese di ${nomeMese} (${ids.length} totali).\n\nGrazie, ciao\nFilippo`;
+  const testo = `Ciao Michela,\n\nTi invio le fatture di Booking del mese di ${nomeMese} (${trovati.size} totali).\n\nGrazie, ciao\nFilippo`;
   const oggettoMail = (isTest ? "[TEST] " : "") + `Fatture Booking - ${nomeMese} - InternoUno`;
   const result = await sendGmailConAllegati(env, "business", destinatario, oggettoMail, testo, tuttiAllegati);
   if (result.ok) {
     if (!isTest) await env.ARRIVI_KV.put(kvKey, new Date().toISOString());
-    return { mese: nomeMese, trovate: ids.length, inviato: true, test: isTest, a: destinatario };
+    return { mese: nomeMese, trovate: trovati.size, inviato: true, test: isTest, a: destinatario };
   }
-  return { mese: nomeMese, trovate: ids.length, inviato: false, errore: result.error, detail: result.detail };
+  return { mese: nomeMese, trovate: trovati.size, inviato: false, errore: result.error, detail: result.detail };
 }
 
 // Segna come "già inoltrate" senza inviare nulla: serve per le fatture storiche già gestite a mano.
