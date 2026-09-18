@@ -1701,6 +1701,40 @@ async function firmaGiro(env, dati) {
   catch (e) { return false; }
 }
 
+// Cestina in automatico, una volta al giorno, gli avvisi di accesso/login (Samsung, Aruba,
+// Netatmo, banche varie, auto connesse...) ma SOLO se hanno più di 7 giorni: restano visibili
+// in arrivo per una settimana (utile per accorgersi di un accesso sospetto vero), poi si puliscono
+// da sole. Percio' NON e' un filtro Gmail istantaneo (rimosso apposta il 18/09/2026 su richiesta
+// di Filippo), ma questo cron giornaliero con soglia di eta'.
+async function runCleanupNotificheAccesso(env) {
+  const account = "personal";
+  const tok = await getGmailAccessTokenFor(env, account);
+  if (!tok || !tok.access_token) {
+    console.log("Cleanup notifiche accesso: auth fallita", tok);
+    return;
+  }
+  const q = "(subject:(nuovo accesso) OR subject:(accesso effettuato) OR subject:(new sign-in) OR " +
+    "subject:(nuovo dispositivo) OR subject:(nuovo login) OR subject:(login alert)) older_than:7d";
+  let total = 0;
+  for (let page = 0; page < 5; page++) {
+    const listResp = await fetch(
+      "https://gmail.googleapis.com/gmail/v1/users/me/messages?" + new URLSearchParams({ q, maxResults: "500" }),
+      { headers: { Authorization: "Bearer " + tok.access_token } }
+    );
+    const listJson = await listResp.json();
+    const ids = (listJson.messages || []).map(m => m.id);
+    if (!ids.length) break;
+    const r = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/messages/batchModify", {
+      method: "POST",
+      headers: { Authorization: "Bearer " + tok.access_token, "Content-Type": "application/json" },
+      body: JSON.stringify({ ids, addLabelIds: ["TRASH"], removeLabelIds: ["INBOX"] })
+    });
+    if (r.ok) total += ids.length;
+    if (ids.length < 500) break;
+  }
+  console.log("Cleanup notifiche accesso: cestinate " + total);
+}
+
 async function runTassaPrepara(env, date, crea) {
   const giorni = giorniDelGiro(date);
   const iniziato = new Date().toISOString();
@@ -3495,6 +3529,8 @@ async function searchOneAccount(env, account, q, maxResults) {
       }
     } else if (hourUTC === 4) {
       ctx.waitUntil(runAutoSend(env, false));
+    } else if (hourUTC === 5) {
+      ctx.waitUntil(runCleanupNotificheAccesso(env));
     } else if (hourUTC === 10) {
       ctx.waitUntil(runThankYou(env, false));
     } else if (hourUTC === 15 || hourUTC === 16) {
