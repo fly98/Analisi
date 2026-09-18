@@ -1916,7 +1916,7 @@ export default {
           redirect_uri: REDIRECT_URI,
           response_type: "code",
           scope: wantsDrive
-            ? "https://www.googleapis.com/auth/drive.readonly"
+            ? "https://www.googleapis.com/auth/drive"
             : "https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send",
           access_type: "offline",
           prompt: "consent",
@@ -2166,6 +2166,107 @@ async function searchOneAccount(env, account, q, maxResults) {
           });
         }
         return new Response(JSON.stringify({ query: q, count: (listJson.files || []).length, results: listJson.files || [] }), {
+          headers: { ...CORS, "Content-Type": "application/json" }
+        });
+      }
+
+      // Scarica il contenuto di un file Drive (testo/base64) dato l'id. Per Google Docs/Sheets
+      // nativi usa "exportMime" (es. text/plain, text/csv) per convertirli durante il download.
+      if (action === "driveDownload") {
+        const id = url.searchParams.get("id");
+        const exportMime = url.searchParams.get("exportMime");
+        if (!id) {
+          return new Response(JSON.stringify({ error: "Parametro id mancante" }), {
+            status: 400, headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        }
+        const tok = await getDriveAccessToken(env);
+        if (!tok || !tok.access_token) {
+          return new Response(JSON.stringify({ error: "Auth Drive fallita", detail: tok }), {
+            status: 502, headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        }
+        const dlUrl = exportMime
+          ? `https://www.googleapis.com/drive/v3/files/${id}/export?mimeType=${encodeURIComponent(exportMime)}`
+          : `https://www.googleapis.com/drive/v3/files/${id}?alt=media`;
+        const dlResp = await fetch(dlUrl, { headers: { Authorization: "Bearer " + tok.access_token } });
+        if (!dlResp.ok) {
+          const errJson = await dlResp.json().catch(() => ({}));
+          return new Response(JSON.stringify({ error: "Download Drive fallito", detail: errJson }), {
+            status: dlResp.status, headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        }
+        const contentType = dlResp.headers.get("Content-Type") || "application/octet-stream";
+        const buf = await dlResp.arrayBuffer();
+        const isText = contentType.startsWith("text/") || contentType.includes("json") || contentType.includes("csv");
+        if (isText) {
+          return new Response(JSON.stringify({ id, contentType, text: new TextDecoder().decode(buf) }), {
+            headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        }
+        // Binario: restituisco base64 dentro JSON per restare coerenti col resto delle action.
+        let binary = "";
+        const bytes = new Uint8Array(buf);
+        for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+        return new Response(JSON.stringify({ id, contentType, base64: btoa(binary) }), {
+          headers: { ...CORS, "Content-Type": "application/json" }
+        });
+      }
+
+      // Carica un file su Drive (info@interno1.it). Body JSON: {name, mimeType, text} per file
+      // testuali, oppure {name, mimeType, base64} per binari. folderId opzionale (default: root).
+      if (action === "driveUpload") {
+        if (request.method !== "POST") {
+          return new Response(JSON.stringify({ error: "Usa POST con body JSON" }), {
+            status: 405, headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        }
+        const body = await request.json().catch(() => null);
+        if (!body || !body.name || !body.mimeType || (body.text === undefined && body.base64 === undefined)) {
+          return new Response(JSON.stringify({ error: "Body deve avere name, mimeType e text oppure base64" }), {
+            status: 400, headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        }
+        const tok = await getDriveAccessToken(env);
+        if (!tok || !tok.access_token) {
+          return new Response(JSON.stringify({ error: "Auth Drive fallita", detail: tok }), {
+            status: 502, headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        }
+        const metadata = { name: body.name, mimeType: body.mimeType };
+        if (body.folderId) metadata.parents = [body.folderId];
+        const bytes = body.base64
+          ? Uint8Array.from(atob(body.base64), c => c.charCodeAt(0))
+          : new TextEncoder().encode(body.text);
+        const boundary = "flyWorkerBoundary" + Date.now();
+        const parts = [
+          `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n`,
+          `--${boundary}\r\nContent-Type: ${body.mimeType}\r\n\r\n`
+        ];
+        const head = new TextEncoder().encode(parts.join(""));
+        const tail = new TextEncoder().encode(`\r\n--${boundary}--`);
+        const multipartBody = new Uint8Array(head.length + bytes.length + tail.length);
+        multipartBody.set(head, 0);
+        multipartBody.set(bytes, head.length);
+        multipartBody.set(tail, head.length + bytes.length);
+        const upResp = await fetch(
+          "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,webViewLink",
+          {
+            method: "POST",
+            headers: {
+              Authorization: "Bearer " + tok.access_token,
+              "Content-Type": `multipart/related; boundary=${boundary}`
+            },
+            body: multipartBody
+          }
+        );
+        const upJson = await upResp.json();
+        if (!upResp.ok) {
+          return new Response(JSON.stringify({ error: "Upload Drive fallito", detail: upJson }), {
+            status: upResp.status, headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        }
+        return new Response(JSON.stringify(upJson), {
           headers: { ...CORS, "Content-Type": "application/json" }
         });
       }
