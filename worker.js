@@ -2082,6 +2082,35 @@ export default {
         });
       }
 
+// Cerca su un singolo account Gmail e ritorna i risultati (usata da searchMail, anche per il merge temporaneo).
+async function searchOneAccount(env, account, q, maxResults) {
+  const tok = await getGmailAccessTokenFor(env, account);
+  if (!tok || !tok.access_token) return { error: "Auth fallita", detail: tok };
+  const listResp = await fetch(
+    "https://gmail.googleapis.com/gmail/v1/users/me/messages?" +
+    new URLSearchParams({ q, maxResults: String(maxResults) }),
+    { headers: { Authorization: "Bearer " + tok.access_token } }
+  );
+  const listJson = await listResp.json();
+  if (!listResp.ok) return { error: "Ricerca fallita", detail: listJson };
+  const ids = (listJson.messages || []).map(m => m.id);
+  const results = [];
+  for (const id of ids) {
+    const mResp = await fetch(
+      `https://gmail.googleapis.com/gmail/v1/users/me/messages/${id}?format=metadata&metadataHeaders=From&metadataHeaders=Subject&metadataHeaders=Date`,
+      { headers: { Authorization: "Bearer " + tok.access_token } }
+    );
+    const mJson = await mResp.json();
+    const headers = (mJson.payload && mJson.payload.headers) || [];
+    const get = (name) => (headers.find(h => h.name === name) || {}).value || "";
+    results.push({
+      id, threadId: mJson.threadId, from: get("From"), subject: get("Subject"),
+      date: get("Date"), snippet: mJson.snippet || "", _account: account
+    });
+  }
+  return { results };
+}
+
       // Invio generico multi-account: account="business" (default, InternoUno) o "personal" (Gmail personale Filippo)
       if (action === "searchMail") {
         const accParam = url.searchParams.get("account");
@@ -2093,43 +2122,44 @@ export default {
             status: 400, headers: { ...CORS, "Content-Type": "application/json" }
           });
         }
-        const tok = await getGmailAccessTokenFor(env, account);
-        if (!tok || !tok.access_token) {
-          return new Response(JSON.stringify({ error: "Auth fallita", detail: tok }), {
+        // MIGRAZIONE TEMPORANEA (togliere quando Aruba->Workspace è allineata al 100%):
+        // per account="business" interroghiamo ANCHE la vecchia gemella (oldbusiness, se
+        // configurata) e uniamo i risultati, cosi ogni processo che cerca su "business"
+        // (Amex OTP, Leo, report pagamenti/prenotazioni, ricerche in chat) vede entrambe
+        // le caselle senza dover essere modificato uno per uno.
+        if (account === "business" && env.GMAIL_OLDBUSINESS_REFRESH_TOKEN) {
+          const [r1, r2] = await Promise.all([
+            searchOneAccount(env, "business", q, maxResults),
+            searchOneAccount(env, "oldbusiness", q, maxResults)
+          ]);
+          if (r1.error && r2.error) {
+            return new Response(JSON.stringify({ error: "Ricerca fallita su entrambe le caselle", detail: { business: r1, oldbusiness: r2 } }), {
+              status: 502, headers: { ...CORS, "Content-Type": "application/json" }
+            });
+          }
+          const merged = [...(r1.results || []), ...(r2.results || [])];
+          // Dedup: stessa email arrivata su entrambe (subject+data uguali) -> tieni una sola copia (business ha priorita).
+          const seen = new Set();
+          const dedup = [];
+          for (const m of merged) {
+            const key = (m.subject || "") + "|" + (m.date || "");
+            if (seen.has(key)) continue;
+            seen.add(key);
+            dedup.push(m);
+          }
+          dedup.sort((a, b) => new Date(b.date) - new Date(a.date));
+          const trimmed = dedup.slice(0, maxResults);
+          return new Response(JSON.stringify({ account, query: q, count: trimmed.length, results: trimmed, _mergedWithOldMailbox: true }), {
+            headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        }
+        const single = await searchOneAccount(env, account, q, maxResults);
+        if (single.error) {
+          return new Response(JSON.stringify(single), {
             status: 502, headers: { ...CORS, "Content-Type": "application/json" }
           });
         }
-        const listResp = await fetch(
-          "https://gmail.googleapis.com/gmail/v1/users/me/messages?" +
-          new URLSearchParams({ q, maxResults: String(maxResults) }),
-          { headers: { Authorization: "Bearer " + tok.access_token } }
-        );
-        const listJson = await listResp.json();
-        if (!listResp.ok) {
-          return new Response(JSON.stringify({ error: "Ricerca fallita", detail: listJson }), {
-            status: listResp.status, headers: { ...CORS, "Content-Type": "application/json" }
-          });
-        }
-        const ids = (listJson.messages || []).map(m => m.id);
-        const results = [];
-        for (const id of ids) {
-          const mResp = await fetch(
-            `https://gmail.googleapis.com/gmail/v1/users/me/messages/${id}?format=metadata&metadataHeaders=From&metadataHeaders=Subject&metadataHeaders=Date`,
-            { headers: { Authorization: "Bearer " + tok.access_token } }
-          );
-          const mJson = await mResp.json();
-          const headers = (mJson.payload && mJson.payload.headers) || [];
-          const get = (name) => (headers.find(h => h.name === name) || {}).value || "";
-          results.push({
-            id,
-            threadId: mJson.threadId,
-            from: get("From"),
-            subject: get("Subject"),
-            date: get("Date"),
-            snippet: mJson.snippet || ""
-          });
-        }
-        return new Response(JSON.stringify({ account, query: q, count: results.length, results }), {
+        return new Response(JSON.stringify({ account, query: q, count: single.results.length, results: single.results }), {
           headers: { ...CORS, "Content-Type": "application/json" }
         });
       }
