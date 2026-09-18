@@ -1920,7 +1920,7 @@ export default {
           scope: wantsDrive
             ? "https://www.googleapis.com/auth/drive"
             : wantsFull
-            ? "https://mail.google.com/"
+            ? "https://mail.google.com/ https://www.googleapis.com/auth/gmail.settings.basic"
             : "https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send",
           access_type: "offline",
           prompt: "consent",
