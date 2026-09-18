@@ -1909,7 +1909,9 @@ export default {
       // account=business (default, mailbox InternoUno) oppure account=personal (Gmail personale)
       if (action === "authStart") {
         const accParam = url.searchParams.get("account");
-        const wantsDrive = url.searchParams.get("scope") === "drive";
+        const scopeParam = url.searchParams.get("scope");
+        const wantsDrive = scopeParam === "drive";
+        const wantsFull = scopeParam === "full";
         const account = wantsDrive ? "drive" : (accParam === "personal" || accParam === "oldbusiness") ? accParam : "business";
         const p = new URLSearchParams({
           client_id: env.GMAIL_CLIENT_ID,
@@ -1917,6 +1919,8 @@ export default {
           response_type: "code",
           scope: wantsDrive
             ? "https://www.googleapis.com/auth/drive"
+            : wantsFull
+            ? "https://mail.google.com/"
             : "https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send",
           access_type: "offline",
           prompt: "consent",
@@ -2273,6 +2277,170 @@ async function searchOneAccount(env, account, q, maxResults) {
 
       // Conteggio totale (stima Gmail) di quante mail matchano una query su un account —
       // utile per confrontare vecchia gemella vs Workspace durante la migrazione.
+      // PULIZIA CASELLA — richiede scope=full (mail.google.com), non gmail.readonly+send.
+      // Anteprima: quante mail matchano una query, con un piccolo campione (subject+from), senza toccarle.
+      if (action === "previewCleanup") {
+        const accParam = url.searchParams.get("account");
+        const account = (accParam === "personal" || accParam === "oldbusiness") ? accParam : "business";
+        const q = url.searchParams.get("q") || "";
+        if (!q) {
+          return new Response(JSON.stringify({ error: "Parametro q mancante" }), {
+            status: 400, headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        }
+        const tok = await getGmailAccessTokenFor(env, account);
+        if (!tok || !tok.access_token) {
+          return new Response(JSON.stringify({ error: "Auth fallita", detail: tok }), {
+            status: 502, headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        }
+        const listResp = await fetch(
+          "https://gmail.googleapis.com/gmail/v1/users/me/messages?" +
+          new URLSearchParams({ q, maxResults: "500" }),
+          { headers: { Authorization: "Bearer " + tok.access_token } }
+        );
+        const listJson = await listResp.json();
+        if (!listResp.ok) {
+          return new Response(JSON.stringify({ error: "Ricerca fallita", detail: listJson }), {
+            status: listResp.status, headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        }
+        const ids = (listJson.messages || []).map(m => m.id);
+        const sample = [];
+        for (const id of ids.slice(0, 5)) {
+          const mResp = await fetch(
+            `https://gmail.googleapis.com/gmail/v1/users/me/messages/${id}?format=metadata&metadataHeaders=From&metadataHeaders=Subject&metadataHeaders=Date`,
+            { headers: { Authorization: "Bearer " + tok.access_token } }
+          );
+          const mJson = await mResp.json();
+          const headers = (mJson.payload && mJson.payload.headers) || [];
+          const get = (name) => (headers.find(h => h.name === name) || {}).value || "";
+          sample.push({ from: get("From"), subject: get("Subject"), date: get("Date") });
+        }
+        return new Response(JSON.stringify({
+          account, query: q,
+          totaleStimato: ids.length,
+          nota: ids.length === 500 ? "500+ (limite pagina singola, ce ne sono probabilmente di più)" : String(ids.length),
+          campione: sample,
+          ids_per_conferma: ids
+        }), { headers: { ...CORS, "Content-Type": "application/json" } });
+      }
+
+      // Cestina in blocco (recuperabile 30gg, NON cancellazione permanente) gli id passati.
+      // Pensato per essere usato SOLO dopo previewCleanup + conferma esplicita di Filippo.
+      if (action === "trashMessages") {
+        if (request.method !== "POST") {
+          return new Response(JSON.stringify({ error: "Usa POST con body JSON" }), {
+            status: 405, headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        }
+        const body = await request.json().catch(() => null);
+        const account = (body && (body.account === "personal" || body.account === "oldbusiness")) ? body.account : "business";
+        const ids = body && Array.isArray(body.ids) ? body.ids : null;
+        if (!ids || !ids.length) {
+          return new Response(JSON.stringify({ error: "Body deve avere ids: [array di message id]" }), {
+            status: 400, headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        }
+        const tok = await getGmailAccessTokenFor(env, account);
+        if (!tok || !tok.access_token) {
+          return new Response(JSON.stringify({ error: "Auth fallita", detail: tok }), {
+            status: 502, headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        }
+        let ok = 0, fail = 0;
+        // batchModify accetta max 1000 id per chiamata; chunk a 900 per prudenza.
+        for (let i = 0; i < ids.length; i += 900) {
+          const chunk = ids.slice(i, i + 900);
+          const r = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/messages/batchModify", {
+            method: "POST",
+            headers: { Authorization: "Bearer " + tok.access_token, "Content-Type": "application/json" },
+            body: JSON.stringify({ ids: chunk, addLabelIds: ["TRASH"], removeLabelIds: ["INBOX"] })
+          });
+          if (r.ok) ok += chunk.length; else fail += chunk.length;
+        }
+        return new Response(JSON.stringify({ account, cestinati: ok, falliti: fail }), {
+          headers: { ...CORS, "Content-Type": "application/json" }
+        });
+      }
+
+      // FILTRI GMAIL — elenco, creazione, eliminazione (per tenere pulita la casella nel tempo).
+      if (action === "listFilters") {
+        const accParam = url.searchParams.get("account");
+        const account = (accParam === "personal" || accParam === "oldbusiness") ? accParam : "business";
+        const tok = await getGmailAccessTokenFor(env, account);
+        if (!tok || !tok.access_token) {
+          return new Response(JSON.stringify({ error: "Auth fallita", detail: tok }), {
+            status: 502, headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        }
+        const r = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/settings/filters", {
+          headers: { Authorization: "Bearer " + tok.access_token }
+        });
+        const j = await r.json();
+        return new Response(JSON.stringify(j), { headers: { ...CORS, "Content-Type": "application/json" } });
+      }
+
+      // POST body JSON: {account, criteria:{from,to,subject,query,...}, action:{addLabelIds,removeLabelIds,...}}
+      // Esempio pulizia automatica: criteria:{from:"noreply@booking.com", subject:"messaggi in attesa"},
+      // action:{removeLabelIds:["INBOX"]} -> archivia automaticamente in arrivo, senza cestinare.
+      if (action === "createFilter") {
+        if (request.method !== "POST") {
+          return new Response(JSON.stringify({ error: "Usa POST con body JSON" }), {
+            status: 405, headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        }
+        const body = await request.json().catch(() => null);
+        const account = (body && (body.account === "personal" || body.account === "oldbusiness")) ? body.account : "business";
+        if (!body || !body.criteria || !body.action) {
+          return new Response(JSON.stringify({ error: "Body deve avere criteria e action" }), {
+            status: 400, headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        }
+        const tok = await getGmailAccessTokenFor(env, account);
+        if (!tok || !tok.access_token) {
+          return new Response(JSON.stringify({ error: "Auth fallita", detail: tok }), {
+            status: 502, headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        }
+        const r = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/settings/filters", {
+          method: "POST",
+          headers: { Authorization: "Bearer " + tok.access_token, "Content-Type": "application/json" },
+          body: JSON.stringify({ criteria: body.criteria, action: body.action })
+        });
+        const j = await r.json();
+        if (!r.ok) {
+          return new Response(JSON.stringify({ error: "Creazione filtro fallita", detail: j }), {
+            status: r.status, headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        }
+        return new Response(JSON.stringify(j), { headers: { ...CORS, "Content-Type": "application/json" } });
+      }
+
+      if (action === "deleteFilter") {
+        const accParam = url.searchParams.get("account");
+        const account = (accParam === "personal" || accParam === "oldbusiness") ? accParam : "business";
+        const id = url.searchParams.get("id");
+        if (!id) {
+          return new Response(JSON.stringify({ error: "Parametro id mancante" }), {
+            status: 400, headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        }
+        const tok = await getGmailAccessTokenFor(env, account);
+        if (!tok || !tok.access_token) {
+          return new Response(JSON.stringify({ error: "Auth fallita", detail: tok }), {
+            status: 502, headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        }
+        const r = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/settings/filters/${id}`, {
+          method: "DELETE",
+          headers: { Authorization: "Bearer " + tok.access_token }
+        });
+        return new Response(JSON.stringify({ ok: r.ok, status: r.status }), {
+          headers: { ...CORS, "Content-Type": "application/json" }
+        });
+      }
+
       if (action === "mailCount") {
         const accParam = url.searchParams.get("account");
         const account = (accParam === "personal" || accParam === "oldbusiness") ? accParam : "business";
