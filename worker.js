@@ -131,7 +131,9 @@ async function getGmailAccessToken(env) {
 // Same OAuth client (GMAIL_CLIENT_ID/SECRET) is reused across accounts; only the refresh
 // token differs, since each Google account grants its own consent/token.
 async function getGmailAccessTokenFor(env, account) {
-  const refreshToken = account === "personal" ? env.GMAIL_PERSONAL_REFRESH_TOKEN : env.GMAIL_REFRESH_TOKEN;
+  const refreshToken = account === "personal" ? env.GMAIL_PERSONAL_REFRESH_TOKEN
+    : account === "oldbusiness" ? env.GMAIL_OLDBUSINESS_REFRESH_TOKEN
+    : env.GMAIL_REFRESH_TOKEN;
   if (!refreshToken) {
     return { error: `Nessun refresh token configurato per account "${account}"` };
   }
@@ -1887,7 +1889,8 @@ export default {
       // Avvio re-autorizzazione Gmail: apri questo URL nel browser una sola volta
       // account=business (default, mailbox InternoUno) oppure account=personal (Gmail personale)
       if (action === "authStart") {
-        const account = url.searchParams.get("account") === "personal" ? "personal" : "business";
+        const accParam = url.searchParams.get("account");
+        const account = (accParam === "personal" || accParam === "oldbusiness") ? accParam : "business";
         const p = new URLSearchParams({
           client_id: env.GMAIL_CLIENT_ID,
           redirect_uri: REDIRECT_URI,
@@ -1904,7 +1907,8 @@ export default {
       if (url.pathname.endsWith("/oauth2callback")) {
         const code = url.searchParams.get("code");
         const oauthErr = url.searchParams.get("error");
-        const account = url.searchParams.get("state") === "personal" ? "personal" : "business";
+        const stateParam = url.searchParams.get("state");
+        const account = (stateParam === "personal" || stateParam === "oldbusiness") ? stateParam : "business";
         if (oauthErr) return htmlPage("Errore da Google: " + oauthErr);
         if (!code) return htmlPage("Nessun codice ricevuto da Google.");
         const tokResp = await fetch("https://oauth2.googleapis.com/token", {
@@ -1923,11 +1927,13 @@ export default {
           return htmlPage("Scambio completato ma Google NON ha restituito un refresh_token.<br><br>" +
             "Di solito succede se l'app era gia autorizzata: vai su <a href='https://myaccount.google.com/permissions'>myaccount.google.com/permissions</a>, rimuovi l'accesso a questa app e riprova.<br><br>Risposta: <code>" + JSON.stringify(td) + "</code>");
         }
-        const secretName = account === "personal" ? "GMAIL_PERSONAL_REFRESH_TOKEN" : "GMAIL_REFRESH_TOKEN";
+        const secretName = account === "personal" ? "GMAIL_PERSONAL_REFRESH_TOKEN"
+          : account === "oldbusiness" ? "GMAIL_OLDBUSINESS_REFRESH_TOKEN"
+          : "GMAIL_REFRESH_TOKEN";
         return htmlPage("<b>Nuovo refresh token generato (lettura + invio) per account: " + account + ".</b><br><br>" +
           "Copialo e incollalo nel secret <code>" + secretName + "</code> del worker:<br>" +
           "Cloudflare dashboard &rarr; Workers &amp; Pages &rarr; <b>little-shadow-145e</b> &rarr; Settings &rarr; Variables and Secrets &rarr; " +
-          (account === "personal" ? "aggiungi nuovo secret <code>" + secretName + "</code>" : "modifica <code>" + secretName + "</code>") + ".<br><br>" +
+          (account === "business" ? "modifica <code>" + secretName + "</code>" : "aggiungi nuovo secret <code>" + secretName + "</code>") + ".<br><br>" +
           "<textarea readonly style='width:100%;height:90px' onclick='this.select()'>" + td.refresh_token + "</textarea>");
       }
 
@@ -2078,7 +2084,8 @@ export default {
 
       // Invio generico multi-account: account="business" (default, InternoUno) o "personal" (Gmail personale Filippo)
       if (action === "searchMail") {
-        const account = url.searchParams.get("account") === "personal" ? "personal" : "business";
+        const accParam = url.searchParams.get("account");
+        const account = (accParam === "personal" || accParam === "oldbusiness") ? accParam : "business";
         const q = url.searchParams.get("q") || "";
         const maxResults = Math.min(parseInt(url.searchParams.get("max") || "10", 10) || 10, 25);
         if (!q) {
