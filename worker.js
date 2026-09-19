@@ -1767,15 +1767,15 @@ async function runCleanupBookingMessaggiAttesa(env) {
 
 // Amazon (business): spedito/in consegna/consegnato restano visibili 7 giorni poi si cestinano
 // da soli. Le mail "Ordinato" (conferma ordine) NON sono toccate, restano per sempre.
-async function runCleanupAmazonSpedizioni(env) {
-  const account = "business";
+async function runCleanupAmazonSpedizioni(env, account) {
+  account = account || "business";
   const tok = await getGmailAccessTokenFor(env, account);
   if (!tok || !tok.access_token) {
-    console.log("Cleanup Amazon spedizioni: auth fallita", tok);
+    console.log("Cleanup Amazon spedizioni: auth fallita", account, tok);
     return;
   }
   const q = "(from:amazon.it OR from:amazon.com) " +
-    "(subject:(Spedito) OR subject:(In consegna) OR subject:(Consegnato)) older_than:7d";
+    "(subject:(Spedito) OR subject:(In consegna) OR subject:(Consegnato) OR subject:(In transito)) older_than:7d";
   let total = 0;
   for (let page = 0; page < 5; page++) {
     const listResp = await fetch(
@@ -1793,7 +1793,7 @@ async function runCleanupAmazonSpedizioni(env) {
     if (r.ok) total += ids.length;
     if (ids.length < 500) break;
   }
-  console.log("Cleanup Amazon spedizioni: cestinate " + total);
+  console.log("Cleanup Amazon spedizioni (" + account + "): cestinate " + total);
 }
 
 // ====== INOLTRO FATTURE ESTERE A MICHELA (STUDIO GRANATA) ======
@@ -2769,7 +2769,8 @@ async function searchOneAccount(env, account, q, maxResults) {
       }
 
       if (action === "runCleanupAmazonSpedizioni") {
-        await runCleanupAmazonSpedizioni(env);
+        const accParam = url.searchParams.get("account");
+        await runCleanupAmazonSpedizioni(env, accParam || "business");
         return new Response(JSON.stringify({ ok: true }), { headers: { ...CORS, "Content-Type": "application/json" } });
       }
 
@@ -3830,7 +3831,8 @@ async function searchOneAccount(env, account, q, maxResults) {
     } else if (hourUTC === 5) {
       ctx.waitUntil(runCleanupNotificheAccesso(env));
       ctx.waitUntil(runCleanupBookingMessaggiAttesa(env));
-      ctx.waitUntil(runCleanupAmazonSpedizioni(env));
+      ctx.waitUntil(runCleanupAmazonSpedizioni(env, "business"));
+      ctx.waitUntil(runCleanupAmazonSpedizioni(env, "personal"));
     } else if (hourUTC === 6) {
       // Fatture estere a Michela: singole (Amenitiz/Anthropic) ogni giorno,
       // digest Booking una volta al mese (la funzione stessa controlla se è già stato inviato).
