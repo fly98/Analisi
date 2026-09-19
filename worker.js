@@ -1979,10 +1979,11 @@ async function sendGmailConAllegati(env, account, to, subject, bodyText, attachm
 }
 
 // Amenitiz + Anthropic: una mail per fattura, appena trovata e non ancora inoltrata.
-async function runInoltroSingoleFatture(env) {
+async function runInoltroSingoleFatture(env, destinatarioTest, meseFiltro) {
+  const isTest = !!destinatarioTest;
   const regole = [
-    { account: "business", query: "from:amenitiz.io subject:(fattura)", origine: "Amenitiz" },
-    { account: "personal", query: "from:mail.anthropic.com subject:(receipt)", origine: "Anthropic (Claude)" }
+    { account: "business", query: "from:amenitiz.io subject:(fattura)" + (meseFiltro ? ` ${meseFiltro}` : ""), origine: "Amenitiz" },
+    { account: "personal", query: "from:mail.anthropic.com subject:(receipt)" + (meseFiltro ? ` ${meseFiltro}` : ""), origine: "Anthropic (Claude)" }
   ];
   const risultati = [];
   for (const regola of regole) {
@@ -1998,13 +1999,16 @@ async function runInoltroSingoleFatture(env) {
     let inoltrate = 0, saltate = 0;
     for (const id of ids) {
       const kvKey = `fattura_inoltrata_${regola.account}_${id}`;
-      if (await env.ARRIVI_KV.get(kvKey)) { saltate++; continue; }
+      if (!isTest && await env.ARRIVI_KV.get(kvKey)) { saltate++; continue; }
       const { subject, attachments } = await scaricaAllegati(env, regola.account, tok, id);
       const testo = `Ciao Michela,\n\nIn allegato una fattura ${regola.origine} (${subject}).\n\nGrazie, ciao\nFilippo`;
-      const result = await sendGmailConAllegati(env, "business", MICHELA_EMAIL,
-        `Fattura ${regola.origine} - InternoUno`, testo, attachments);
-      if (result.ok) { await env.ARRIVI_KV.put(kvKey, new Date().toISOString()); inoltrate++; }
-      else risultati.push({ origine: regola.origine, id, errore: result.error, detail: result.detail });
+      const destinatario = destinatarioTest || MICHELA_EMAIL;
+      const oggettoMail = (isTest ? "[TEST] " : "") + `Fattura ${regola.origine} - InternoUno`;
+      const result = await sendGmailConAllegati(env, "business", destinatario, oggettoMail, testo, attachments);
+      if (result.ok) {
+        if (!isTest) await env.ARRIVI_KV.put(kvKey, new Date().toISOString());
+        inoltrate++;
+      } else risultati.push({ origine: regola.origine, id, errore: result.error, detail: result.detail });
     }
     risultati.push({ origine: regola.origine, trovate: ids.length, inoltrate, saltate_gia_fatte: saltate });
   }
@@ -2866,7 +2870,9 @@ async function searchOneAccount(env, account, q, maxResults) {
       }
 
       if (action === "runInoltroSingoleFatture") {
-        const result = await runInoltroSingoleFatture(env);
+        const destinatarioTest = url.searchParams.get("testTo");
+        const meseFiltro = url.searchParams.get("mese");
+        const result = await runInoltroSingoleFatture(env, destinatarioTest || null, meseFiltro || null);
         return new Response(JSON.stringify(result), { headers: { ...CORS, "Content-Type": "application/json" } });
       }
 
