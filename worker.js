@@ -2001,7 +2001,7 @@ async function runInoltroSingoleFatture(env, destinatarioTest, meseFiltro) {
       const kvKey = `fattura_inoltrata_${regola.account}_${id}`;
       if (!isTest && await env.ARRIVI_KV.get(kvKey)) { saltate++; continue; }
       const { subject, attachments } = await scaricaAllegati(env, regola.account, tok, id);
-      const testo = `Ciao Michela,\n\nIn allegato una fattura ${regola.origine} (${subject}).\n\nGrazie, ciao\nFilippo`;
+      const testo = `Ciao Micaela,\n\nIn allegato una fattura ${regola.origine} (${subject}).\n\nGrazie, ciao\nFilippo`;
       const destinatario = destinatarioTest || MICHELA_EMAIL;
       const oggettoMail = (isTest ? "[TEST] " : "") + `Fattura ${regola.origine} - InternoUno`;
       const result = await sendGmailConAllegati(env, "business", destinatario, oggettoMail, testo, attachments);
@@ -2050,7 +2050,7 @@ async function runInoltroBookingMensile(env, meseOffset, destinatarioTest) {
   const tuttiAllegati = [];
   for (const { attachments } of trovati.values()) tuttiAllegati.push(...attachments);
   const destinatario = destinatarioTest || MICHELA_EMAIL;
-  const testo = `Ciao Michela,\n\nTi invio le fatture di Booking del mese di ${nomeMese} (${trovati.size} totali).\n\nGrazie, ciao\nFilippo`;
+  const testo = `Ciao Micaela,\n\nTi invio le fatture di Booking del mese di ${nomeMese} (${trovati.size} totali).\n\nGrazie, ciao\nFilippo`;
   const oggettoMail = (isTest ? "[TEST] " : "") + `Fatture Booking - ${nomeMese} - InternoUno`;
   const result = await sendGmailConAllegati(env, "business", destinatario, oggettoMail, testo, tuttiAllegati);
   if (result.ok) {
