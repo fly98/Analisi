@@ -1794,6 +1794,7 @@ async function runCleanupAmazonSpedizioni(env) {
     if (ids.length < 500) break;
   }
   console.log("Cleanup Amazon spedizioni: cestinate " + total);
+}
 
 // ====== INOLTRO FATTURE ESTERE A MICHELA (STUDIO GRANATA) ======
 // Amenitiz e Anthropic/Claude: inviate singolarmente, man mano che arrivano.
