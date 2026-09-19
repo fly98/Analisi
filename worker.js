@@ -1826,6 +1826,36 @@ async function runCleanupCassaRicevute(env) {
   console.log("Cleanup Cassa ricevute: cestinate " + total);
 }
 
+// Amenitiz "Codice di autenticazione a due fattori" (business): restano visibili 7 giorni
+// (servono davvero quando arrivano) poi si cestinano da soli, essendo codici monouso.
+async function runCleanupAmenitiz2FA(env) {
+  const account = "business";
+  const tok = await getGmailAccessTokenFor(env, account);
+  if (!tok || !tok.access_token) {
+    console.log("Cleanup Amenitiz 2FA: auth fallita", tok);
+    return;
+  }
+  const q = "from:amenitiz.io subject:(Codice di autenticazione a due fattori) older_than:7d";
+  let total = 0;
+  for (let page = 0; page < 5; page++) {
+    const listResp = await fetch(
+      "https://gmail.googleapis.com/gmail/v1/users/me/messages?" + new URLSearchParams({ q, maxResults: "500" }),
+      { headers: { Authorization: "Bearer " + tok.access_token } }
+    );
+    const listJson = await listResp.json();
+    const ids = (listJson.messages || []).map(m => m.id);
+    if (!ids.length) break;
+    const r = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/messages/batchModify", {
+      method: "POST",
+      headers: { Authorization: "Bearer " + tok.access_token, "Content-Type": "application/json" },
+      body: JSON.stringify({ ids, addLabelIds: ["TRASH"], removeLabelIds: ["INBOX"] })
+    });
+    if (r.ok) total += ids.length;
+    if (ids.length < 500) break;
+  }
+  console.log("Cleanup Amenitiz 2FA: cestinate " + total);
+}
+
 async function runCleanupAmazonSpedizioni(env, account) {
   account = account || "business";
   const tok = await getGmailAccessTokenFor(env, account);
@@ -2840,6 +2870,11 @@ async function searchOneAccount(env, account, q, maxResults) {
 
       if (action === "runCleanupCassaRicevute") {
         await runCleanupCassaRicevute(env);
+        return new Response(JSON.stringify({ ok: true }), { headers: { ...CORS, "Content-Type": "application/json" } });
+      }
+
+      if (action === "runCleanupAmenitiz2FA") {
+        await runCleanupAmenitiz2FA(env);
         return new Response(JSON.stringify({ ok: true }), { headers: { ...CORS, "Content-Type": "application/json" } });
       }
 
@@ -3904,6 +3939,7 @@ async function searchOneAccount(env, account, q, maxResults) {
       ctx.waitUntil(runCleanupAmazonSpedizioni(env, "personal"));
       ctx.waitUntil(runCleanupGoogleSecurityBusiness(env));
       ctx.waitUntil(runCleanupCassaRicevute(env));
+      ctx.waitUntil(runCleanupAmenitiz2FA(env));
     } else if (hourUTC === 6) {
       // Fatture estere a Michela: singole (Amenitiz/Anthropic) ogni giorno,
       // digest Booking una volta al mese (la funzione stessa controlla se è già stato inviato).
