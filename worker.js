@@ -1735,6 +1735,36 @@ async function runCleanupNotificheAccesso(env) {
   console.log("Cleanup notifiche accesso: cestinate " + total);
 }
 
+// Booking "messaggi degli ospiti in attesa" (business): Filippo vuole continuare a riceverle
+// (sono un promemoria utile), ma sparire da sole dopo 7 giorni invece di restare per sempre.
+async function runCleanupBookingMessaggiAttesa(env) {
+  const account = "business";
+  const tok = await getGmailAccessTokenFor(env, account);
+  if (!tok || !tok.access_token) {
+    console.log("Cleanup Booking messaggi in attesa: auth fallita", tok);
+    return;
+  }
+  const q = "from:booking.com subject:(attesa) older_than:7d";
+  let total = 0;
+  for (let page = 0; page < 5; page++) {
+    const listResp = await fetch(
+      "https://gmail.googleapis.com/gmail/v1/users/me/messages?" + new URLSearchParams({ q, maxResults: "500" }),
+      { headers: { Authorization: "Bearer " + tok.access_token } }
+    );
+    const listJson = await listResp.json();
+    const ids = (listJson.messages || []).map(m => m.id);
+    if (!ids.length) break;
+    const r = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/messages/batchModify", {
+      method: "POST",
+      headers: { Authorization: "Bearer " + tok.access_token, "Content-Type": "application/json" },
+      body: JSON.stringify({ ids, addLabelIds: ["TRASH"], removeLabelIds: ["INBOX"] })
+    });
+    if (r.ok) total += ids.length;
+    if (ids.length < 500) break;
+  }
+  console.log("Cleanup Booking messaggi in attesa: cestinate " + total);
+}
+
 // ====== INOLTRO FATTURE ESTERE A MICHELA (STUDIO GRANATA) ======
 // Amenitiz e Anthropic/Claude: inviate singolarmente, man mano che arrivano.
 // Booking.com: raggruppate in UN'UNICA email mensile (arrivano ~2 a struttura, ~4/mese totali),
@@ -2700,6 +2730,11 @@ async function searchOneAccount(env, account, q, maxResults) {
       if (action === "marcaFattureStoricheComeInviate") {
         const result = await marcaFattureStoricheComeInviate(env);
         return new Response(JSON.stringify(result), { headers: { ...CORS, "Content-Type": "application/json" } });
+      }
+
+      if (action === "runCleanupBookingMessaggiAttesa") {
+        await runCleanupBookingMessaggiAttesa(env);
+        return new Response(JSON.stringify({ ok: true }), { headers: { ...CORS, "Content-Type": "application/json" } });
       }
 
       if (action === "mailCount") {
@@ -3758,6 +3793,7 @@ async function searchOneAccount(env, account, q, maxResults) {
       ctx.waitUntil(runAutoSend(env, false));
     } else if (hourUTC === 5) {
       ctx.waitUntil(runCleanupNotificheAccesso(env));
+      ctx.waitUntil(runCleanupBookingMessaggiAttesa(env));
     } else if (hourUTC === 6) {
       // Fatture estere a Michela: singole (Amenitiz/Anthropic) ogni giorno,
       // digest Booking una volta al mese (la funzione stessa controlla se è già stato inviato).
