@@ -2004,7 +2004,7 @@ async function runInoltroSingoleFatture(env, destinatarioTest, meseFiltro) {
       const testo = `Ciao Micaela,\n\nIn allegato una fattura ${regola.origine} (${subject}).\n\nGrazie, ciao\nFilippo`;
       const destinatario = destinatarioTest || MICHELA_EMAIL;
       const oggettoMail = (isTest ? "[TEST] " : "") + `Fattura ${regola.origine} - InternoUno`;
-      const result = await sendGmailConAllegati(env, "business", destinatario, oggettoMail, testo, attachments);
+      const result = await sendGmailConAllegati(env, "personal", destinatario, oggettoMail, testo, attachments);
       if (result.ok) {
         if (!isTest) await env.ARRIVI_KV.put(kvKey, new Date().toISOString());
         inoltrate++;
@@ -2052,7 +2052,7 @@ async function runInoltroBookingMensile(env, meseOffset, destinatarioTest) {
   const destinatario = destinatarioTest || MICHELA_EMAIL;
   const testo = `Ciao Micaela,\n\nTi invio le fatture di Booking del mese di ${nomeMese} (${trovati.size} totali).\n\nGrazie, ciao\nFilippo`;
   const oggettoMail = (isTest ? "[TEST] " : "") + `Fatture Booking - ${nomeMese} - InternoUno`;
-  const result = await sendGmailConAllegati(env, "business", destinatario, oggettoMail, testo, tuttiAllegati);
+  const result = await sendGmailConAllegati(env, "personal", destinatario, oggettoMail, testo, tuttiAllegati);
   if (result.ok) {
     if (!isTest) await env.ARRIVI_KV.put(kvKey, new Date().toISOString());
     return { mese: nomeMese, trovate: trovati.size, inviato: true, test: isTest, a: destinatario };
