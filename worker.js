@@ -2910,6 +2910,21 @@ async function searchOneAccount(env, account, q, maxResults) {
         return new Response(JSON.stringify(result), { headers: { ...CORS, "Content-Type": "application/json" } });
       }
 
+      // Rimuove il marcatore "già inoltrata" da una singola fattura Booking (per correggere
+      // marcature sbagliate, es. quando marcaFattureStoricheComeInviate marca anche quelle
+      // del mese corrente che invece vanno ancora inviate per davvero).
+      if (action === "sbloccaBooking") {
+        const account = url.searchParams.get("account") || "business";
+        const id = url.searchParams.get("id");
+        if (!id) {
+          return new Response(JSON.stringify({ error: "Parametro id mancante" }), {
+            status: 400, headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        }
+        await env.ARRIVI_KV.delete(`fattura_inoltrata_booking_${account}_${id}`);
+        return new Response(JSON.stringify({ ok: true, sbloccata: id }), { headers: { ...CORS, "Content-Type": "application/json" } });
+      }
+
       if (action === "runCleanupBookingMessaggiAttesa") {
         await runCleanupBookingMessaggiAttesa(env);
         return new Response(JSON.stringify({ ok: true }), { headers: { ...CORS, "Content-Type": "application/json" } });
