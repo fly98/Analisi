@@ -2032,8 +2032,9 @@ async function runInoltroBookingMensile(env, meseOffset, destinatarioTest) {
   const nomeMese = primoMeseCorrente.toLocaleString("it-IT", { month: "long", year: "numeric", timeZone: "UTC" });
   const q = `from:booking.com subject:(Invoice) after:${dopo} before:${prima}`;
   // Durante la migrazione Aruba->Workspace lo storico recente potrebbe essere ancora solo sulla
-  // gemella (oldbusiness): cerca su entrambe e unisce i risultati, dedup su subject.
-  const trovati = new Map();
+  // gemella (oldbusiness): cerca su entrambe. Dedup su SUBJECT (non sull'id, che è diverso
+  // tra le due caselle per la stessa email) - altrimenti la stessa fattura conta doppio.
+  const perSubject = new Map(); // subject -> [{account,id}, ...]
   for (const account of ["business", "oldbusiness"]) {
     const tok = await getGmailAccessTokenFor(env, account);
     if (!tok || !tok.access_token) continue;
@@ -2043,19 +2044,25 @@ async function runInoltroBookingMensile(env, meseOffset, destinatarioTest) {
     );
     const listJson = await listResp.json();
     for (const m of (listJson.messages || [])) {
-      if (!trovati.has(m.id)) trovati.set(m.id, { account, id: m.id });
+      const { subject } = await scaricaAllegati(env, account, tok, m.id);
+      if (!perSubject.has(subject)) perSubject.set(subject, []);
+      perSubject.get(subject).push({ account, id: m.id });
     }
   }
   const isTest = !!destinatarioTest;
-  const nuovi = [];
-  for (const { account, id } of trovati.values()) {
-    const kvKey = `fattura_inoltrata_booking_${account}_${id}`;
-    if (!isTest && await env.ARRIVI_KV.get(kvKey)) continue;
-    nuovi.push({ account, id, kvKey });
+  const nuovi = []; // { subject, copie: [{account,id}], kvKeys: [...] }
+  for (const [subject, copie] of perSubject.entries()) {
+    const kvKeys = copie.map(c => `fattura_inoltrata_booking_${c.account}_${c.id}`);
+    if (!isTest) {
+      const giaInviata = await Promise.all(kvKeys.map(k => env.ARRIVI_KV.get(k)));
+      if (giaInviata.some(v => v)) continue; // già inviata da almeno una copia
+    }
+    nuovi.push({ subject, copie, kvKeys });
   }
   if (!nuovi.length) return { mese: nomeMese, trovate: 0, inviato: false };
   const tuttiAllegati = [];
-  for (const { account, id } of nuovi) {
+  for (const { copie } of nuovi) {
+    const { account, id } = copie[0]; // basta una copia, sono la stessa fattura
     const tok = await getGmailAccessTokenFor(env, account);
     const { attachments } = await scaricaAllegati(env, account, tok, id);
     tuttiAllegati.push(...attachments);
@@ -2065,11 +2072,12 @@ async function runInoltroBookingMensile(env, meseOffset, destinatarioTest) {
   const oggettoMail = (isTest ? "[TEST] " : "") + `Fatture Booking - ${nomeMese} - InternoUno`;
   const result = await sendGmailConAllegati(env, "personal", destinatario, oggettoMail, testo, tuttiAllegati);
   if (result.ok) {
-    if (!isTest) for (const { kvKey } of nuovi) await env.ARRIVI_KV.put(kvKey, new Date().toISOString());
+    if (!isTest) for (const { kvKeys } of nuovi) for (const k of kvKeys) await env.ARRIVI_KV.put(k, new Date().toISOString());
     return { mese: nomeMese, trovate: nuovi.length, inviato: true, test: isTest, a: destinatario };
   }
   return { mese: nomeMese, trovate: nuovi.length, inviato: false, errore: result.error, detail: result.detail };
 }
+
 
 // Segna come "già inoltrate" senza inviare nulla: serve per le fatture storiche già gestite a mano.
 async function marcaFattureStoricheComeInviate(env) {
