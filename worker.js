@@ -2018,14 +2018,18 @@ async function runInoltroSingoleFatture(env, destinatarioTest, meseFiltro) {
 // Booking.com: una mail sola al mese (il giorno 1), con tutte le fatture del mese appena concluso.
 // Parametri opzionali per test: meseOffset (0=mese scorso reale, es. -1 per testarne uno precedente),
 // destinatarioTest (manda a un altro indirizzo invece che a Michela, utile per vedere il formato prima).
+// Controlla ogni giorno se ci sono fatture Booking del MESE CORRENTE non ancora inviate:
+// appena ne trova (anche una sola), le manda subito raggruppate in un'unica email — non
+// aspetta la fine del mese. Il controllo è per singola fattura (come Amenitiz/Anthropic),
+// non per mese intero, cosi' se arrivano in giorni diversi non si perde nessuna.
 async function runInoltroBookingMensile(env, meseOffset, destinatarioTest) {
   const oggi = new Date();
   const offset = (typeof meseOffset === "number" && !isNaN(meseOffset)) ? meseOffset : 0;
   const primoMeseCorrente = new Date(Date.UTC(oggi.getUTCFullYear(), oggi.getUTCMonth() + offset, 1));
-  const primoMeseScorso = new Date(Date.UTC(oggi.getUTCFullYear(), oggi.getUTCMonth() - 1 + offset, 1));
-  const dopo = primoMeseScorso.toISOString().slice(0, 10).replace(/-/g, "/");
-  const prima = primoMeseCorrente.toISOString().slice(0, 10).replace(/-/g, "/");
-  const nomeMese = primoMeseScorso.toLocaleString("it-IT", { month: "long", year: "numeric", timeZone: "UTC" });
+  const primoMeseProssimo = new Date(Date.UTC(oggi.getUTCFullYear(), oggi.getUTCMonth() + 1 + offset, 1));
+  const dopo = primoMeseCorrente.toISOString().slice(0, 10).replace(/-/g, "/");
+  const prima = primoMeseProssimo.toISOString().slice(0, 10).replace(/-/g, "/");
+  const nomeMese = primoMeseCorrente.toLocaleString("it-IT", { month: "long", year: "numeric", timeZone: "UTC" });
   const q = `from:booking.com subject:(Invoice) after:${dopo} before:${prima}`;
   // Durante la migrazione Aruba->Workspace lo storico recente potrebbe essere ancora solo sulla
   // gemella (oldbusiness): cerca su entrambe e unisce i risultati, dedup su subject.
@@ -2039,25 +2043,32 @@ async function runInoltroBookingMensile(env, meseOffset, destinatarioTest) {
     );
     const listJson = await listResp.json();
     for (const m of (listJson.messages || [])) {
-      const { subject, attachments } = await scaricaAllegati(env, account, tok, m.id);
-      if (!trovati.has(subject)) trovati.set(subject, { account, id: m.id, attachments });
+      if (!trovati.has(m.id)) trovati.set(m.id, { account, id: m.id });
     }
   }
   const isTest = !!destinatarioTest;
-  const kvKey = `fatture_booking_mensile_${primoMeseScorso.getUTCFullYear()}_${primoMeseScorso.getUTCMonth()}`;
-  if (!isTest && await env.ARRIVI_KV.get(kvKey)) return { mese: nomeMese, gia_inviato: true };
-  if (!trovati.size) return { mese: nomeMese, trovate: 0, inviato: false };
+  const nuovi = [];
+  for (const { account, id } of trovati.values()) {
+    const kvKey = `fattura_inoltrata_booking_${account}_${id}`;
+    if (!isTest && await env.ARRIVI_KV.get(kvKey)) continue;
+    nuovi.push({ account, id, kvKey });
+  }
+  if (!nuovi.length) return { mese: nomeMese, trovate: 0, inviato: false };
   const tuttiAllegati = [];
-  for (const { attachments } of trovati.values()) tuttiAllegati.push(...attachments);
+  for (const { account, id } of nuovi) {
+    const tok = await getGmailAccessTokenFor(env, account);
+    const { attachments } = await scaricaAllegati(env, account, tok, id);
+    tuttiAllegati.push(...attachments);
+  }
   const destinatario = destinatarioTest || MICHELA_EMAIL;
-  const testo = `Ciao Micaela,\n\nTi invio le fatture di Booking del mese di ${nomeMese} (${trovati.size} totali).\n\nGrazie, ciao\nFilippo`;
+  const testo = `Ciao Micaela,\n\nTi invio ${nuovi.length === 1 ? "una nuova fattura" : nuovi.length + " nuove fatture"} di Booking (${nomeMese}).\n\nGrazie, ciao\nFilippo`;
   const oggettoMail = (isTest ? "[TEST] " : "") + `Fatture Booking - ${nomeMese} - InternoUno`;
   const result = await sendGmailConAllegati(env, "personal", destinatario, oggettoMail, testo, tuttiAllegati);
   if (result.ok) {
-    if (!isTest) await env.ARRIVI_KV.put(kvKey, new Date().toISOString());
-    return { mese: nomeMese, trovate: trovati.size, inviato: true, test: isTest, a: destinatario };
+    if (!isTest) for (const { kvKey } of nuovi) await env.ARRIVI_KV.put(kvKey, new Date().toISOString());
+    return { mese: nomeMese, trovate: nuovi.length, inviato: true, test: isTest, a: destinatario };
   }
-  return { mese: nomeMese, trovate: trovati.size, inviato: false, errore: result.error, detail: result.detail };
+  return { mese: nomeMese, trovate: nuovi.length, inviato: false, errore: result.error, detail: result.detail };
 }
 
 // Segna come "già inoltrate" senza inviare nulla: serve per le fatture storiche già gestite a mano.
@@ -2082,13 +2093,24 @@ async function marcaFattureStoricheComeInviate(env) {
     }
     risultati.push({ account: regola.account, marcate: ids.length });
   }
-  // Segna anche tutti i mesi Booking passati come già inviati (fino a 24 mesi indietro)
-  const oggi = new Date();
-  for (let i = 0; i < 24; i++) {
-    const d = new Date(Date.UTC(oggi.getUTCFullYear(), oggi.getUTCMonth() - i, 1));
-    await env.ARRIVI_KV.put(`fatture_booking_mensile_${d.getUTCFullYear()}_${d.getUTCMonth()}`, "storico-gia-gestito-manualmente");
+  // Booking: marca per singola fattura (nuovo schema), su business + oldbusiness.
+  let bookingMarcate = 0;
+  for (const account of ["business", "oldbusiness"]) {
+    const tok = await getGmailAccessTokenFor(env, account);
+    if (!tok || !tok.access_token) continue;
+    const listResp = await fetch(
+      "https://gmail.googleapis.com/gmail/v1/users/me/messages?" +
+      new URLSearchParams({ q: "from:booking.com subject:(Invoice)", maxResults: "500" }),
+      { headers: { Authorization: "Bearer " + tok.access_token } }
+    );
+    const listJson = await listResp.json();
+    const ids = (listJson.messages || []).map(m => m.id);
+    for (const id of ids) {
+      await env.ARRIVI_KV.put(`fattura_inoltrata_booking_${account}_${id}`, "storico-gia-gestito-manualmente");
+    }
+    bookingMarcate += ids.length;
   }
-  risultati.push({ booking_mesi_marcati: 24 });
+  risultati.push({ booking_fatture_marcate: bookingMarcate });
   return risultati;
 }
 
