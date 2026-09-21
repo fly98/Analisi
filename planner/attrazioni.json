@@ -15,7 +15,10 @@
   "durata": 75,
   "desc": "Oltre 70 illusioni ottiche e stanze interattive: divertente per tutte le età.",
   "verifica": true,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "cappuccini",
@@ -33,7 +36,10 @@
   "durata": 45,
   "desc": "Cappelle decorate con le ossa di migliaia di frati: macabra e unica al mondo.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "montemartini",
@@ -52,7 +58,10 @@
   "durata": 75,
   "desc": "Statue romane esposte tra le turbine di una vecchia centrale elettrica.",
   "verifica": true,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "serra_moresca",
@@ -70,7 +79,10 @@
   "durata": 45,
   "desc": "Serra ottocentesca in stile Alhambra, con vetrate colorate.",
   "verifica": true,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "museo_luce",
@@ -88,7 +100,10 @@
   "durata": 60,
   "desc": "Fisica della luce raccontata con installazioni da toccare.",
   "verifica": true,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "welcome_rome",
@@ -106,7 +121,10 @@
   "durata": 60,
   "desc": "Viaggio multimediale nei 2700 anni della città, ottimo come introduzione.",
   "verifica": true,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "barracco",
@@ -124,7 +142,10 @@
   "durata": 45,
   "desc": "Piccola collezione di sculture egizie, assire, greche e romane.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "museo_mura",
@@ -142,7 +163,10 @@
   "durata": 45,
   "desc": "Si cammina dentro Porta San Sebastiano e lungo le Mura Aureliane.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "lab_mente",
@@ -160,7 +184,10 @@
   "durata": 75,
   "desc": "Nell'ex manicomio di Santa Maria della Pietà: toccante e poco conosciuto.",
   "verifica": true,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "anime_purgatorio",
@@ -178,7 +205,10 @@
   "durata": 20,
   "desc": "Minuscola raccolta di \"impronte dall'aldilà\" dentro una chiesa neogotica.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "buco_serratura",
@@ -196,7 +226,10 @@
   "durata": 20,
   "desc": "San Pietro incorniciato nella serratura dei Cavalieri di Malta.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "coppede",
@@ -214,7 +247,10 @@
   "durata": 40,
   "desc": "Architettura fiabesca tra liberty, gotico e medievale.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "palazzo_valentini",
@@ -232,7 +268,10 @@
   "durata": 75,
   "desc": "Case romane sotto un palazzo, rianimate da proiezioni multimediali.",
   "verifica": true,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "case_celio",
@@ -250,7 +289,10 @@
   "durata": 60,
   "desc": "Abitazioni romane affrescate sotto una basilica.",
   "verifica": true,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "galleria_spada",
@@ -268,7 +310,10 @@
   "durata": 45,
   "desc": "Famosa per la finta prospettiva di Borromini: 9 metri che sembrano 35.",
   "verifica": true,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "galleria_sciarra",
@@ -285,7 +330,10 @@
   "durata": 15,
   "desc": "Cortile liberty affrescato, nascosto a due passi da via del Corso.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "maxxi",
@@ -302,7 +350,10 @@
   "durata": 90,
   "desc": "Arte contemporanea nell'edificio progettato da Zaha Hadid.",
   "verifica": true,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "dreamers",
@@ -320,7 +371,10 @@
   "durata": 60,
   "desc": "Stanze immersive e colorate, pensate per le foto.",
   "verifica": true,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "ikono",
@@ -338,7 +392,10 @@
   "durata": 60,
   "desc": "Esperienza sensoriale a stanze tematiche.",
   "verifica": true,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "time_elevator",
@@ -356,7 +413,10 @@
   "durata": 45,
   "desc": "Cinema 5D con sedili mobili sulla storia di Roma, adatto ai bambini.",
   "verifica": true,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "colosseo",
@@ -373,7 +433,10 @@
   "durata": 180,
   "desc": "Il simbolo di Roma e il cuore della città antica, con un unico biglietto.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "mattina"
+  ]
  },
  {
   "id": "pantheon",
@@ -391,7 +454,10 @@
   "durata": 45,
   "desc": "Il tempio romano meglio conservato, con la cupola più grande in calcestruzzo mai costruita.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "mattina"
+  ]
  },
  {
   "id": "trevi",
@@ -409,7 +475,10 @@
   "durata": 20,
   "desc": "La fontana più famosa del mondo. Vista libera dalla piazza, 2€ per scendere vicino all'acqua.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "sera"
+  ]
  },
  {
   "id": "navona",
@@ -427,7 +496,10 @@
   "durata": 30,
   "desc": "Piazza barocca con la Fontana dei Quattro Fiumi di Bernini.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "sera"
+  ]
  },
  {
   "id": "spagna",
@@ -444,7 +516,10 @@
   "durata": 30,
   "desc": "La scalinata più famosa di Roma, con la Barcaccia ai suoi piedi.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "sera"
+  ]
  },
  {
   "id": "capitolini",
@@ -462,7 +537,10 @@
   "durata": 120,
   "desc": "Il museo pubblico più antico del mondo, nella piazza disegnata da Michelangelo.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "castel_santangelo",
@@ -480,7 +558,10 @@
   "durata": 90,
   "desc": "Da mausoleo di Adriano a fortezza dei papi, con terrazza panoramica.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "vittoriano",
@@ -498,7 +579,10 @@
   "durata": 60,
   "desc": "Monumento imponente a ingresso libero; la terrazza panoramica costa 18€.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "fori_imperiali",
@@ -516,7 +600,10 @@
   "durata": 30,
   "desc": "Passeggiata tra i fori di Cesare, Augusto e Traiano, visibili dalla strada.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "sera"
+  ]
  },
  {
   "id": "ghetto",
@@ -533,7 +620,10 @@
   "durata": 45,
   "desc": "Il quartiere ebraico più antico d'Europa, tra rovine romane e carciofi alla giudia.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "sera"
+  ]
  },
  {
   "id": "popolo",
@@ -550,7 +640,10 @@
   "durata": 20,
   "desc": "Grande piazza neoclassica con l'obelisco e le chiese gemelle.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "campo_fiori",
@@ -568,7 +661,11 @@
   "durata": 20,
   "desc": "Mercato la mattina, vita notturna la sera, con la statua di Giordano Bruno.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "mattina",
+   "sera"
+  ]
  },
  {
   "id": "bocca_verita",
@@ -585,7 +682,10 @@
   "durata": 20,
   "desc": "La leggendaria maschera che morde la mano dei bugiardi.",
   "verifica": true,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "torre_argentina",
@@ -602,7 +702,10 @@
   "durata": 15,
   "desc": "Area sacra dove fu ucciso Cesare, oggi anche colonia felina.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "teatro_marcello",
@@ -619,7 +722,10 @@
   "durata": 15,
   "desc": "Teatro romano su cui è stato costruito un palazzo abitato.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "isola_tiberina",
@@ -636,7 +742,10 @@
   "durata": 20,
   "desc": "L'unica isola del Tevere, collegata dal ponte romano più antico ancora in uso.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "sera"
+  ]
  },
  {
   "id": "circo_massimo",
@@ -654,7 +763,10 @@
   "durata": 20,
   "desc": "Il più grande stadio dell'antichità, oggi un grande prato.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "ara_pacis",
@@ -672,7 +784,10 @@
   "durata": 45,
   "desc": "Altare di Augusto nella teca di Richard Meier.",
   "verifica": true,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "musei_vaticani",
@@ -689,7 +804,10 @@
   "durata": 210,
   "desc": "Una delle collezioni più grandi al mondo, fino al Giudizio di Michelangelo. Online con salta fila 25€.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "mattina"
+  ]
  },
  {
   "id": "san_pietro",
@@ -706,7 +824,10 @@
   "durata": 60,
   "desc": "La chiesa più grande della cristianità, con la Pietà di Michelangelo.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "mattina"
+  ]
  },
  {
   "id": "piazza_san_pietro",
@@ -723,7 +844,10 @@
   "durata": 20,
   "desc": "Il colonnato di Bernini abbraccia i fedeli.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "cupola",
@@ -741,7 +865,10 @@
   "durata": 60,
   "desc": "Oltre 500 gradini fino alla vista più famosa di Roma.",
   "verifica": true,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "mattina"
+  ]
  },
  {
   "id": "grotte_vaticane",
@@ -758,7 +885,10 @@
   "durata": 30,
   "desc": "Le tombe dei papi sotto la basilica.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "necropoli",
@@ -776,7 +906,10 @@
   "durata": 90,
   "desc": "Visita guidata alla tomba di San Pietro: prenotazione con largo anticipo.",
   "verifica": true,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "giardini_vaticani",
@@ -793,7 +926,10 @@
   "durata": 120,
   "desc": "Visita guidata ai giardini dei papi, solo su prenotazione.",
   "verifica": true,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "ponte_santangelo",
@@ -810,7 +946,10 @@
   "durata": 15,
   "desc": "Il ponte degli angeli di Bernini, davanti al castello.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "sera"
+  ]
  },
  {
   "id": "borgo_pio",
@@ -827,7 +966,10 @@
   "durata": 30,
   "desc": "Viuzze sotto il corridoio segreto che portava i papi al castello.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "prati",
@@ -845,7 +987,10 @@
   "durata": 45,
   "desc": "Quartiere elegante umbertino, ottimo per shopping.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "palazzaccio",
@@ -862,7 +1007,10 @@
   "durata": 10,
   "desc": "Il \"Palazzaccio\", monumentale e controverso.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "laterano",
@@ -879,7 +1027,10 @@
   "durata": 60,
   "desc": "La cattedrale di Roma, madre di tutte le chiese del mondo.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "santa_maria_maggiore",
@@ -896,7 +1047,10 @@
   "durata": 60,
   "desc": "Mosaici del V secolo e soffitto dorato con il primo oro delle Americhe.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "san_paolo",
@@ -913,7 +1067,10 @@
   "durata": 60,
   "desc": "Basilica immensa con i ritratti di tutti i papi e un chiostro splendido.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "vincoli",
@@ -930,7 +1087,10 @@
   "durata": 20,
   "desc": "Il Mosè di Michelangelo e le catene di San Pietro.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "san_clemente",
@@ -949,7 +1109,10 @@
   "durata": 90,
   "desc": "Tre livelli sovrapposti: chiesa medievale, basilica del IV secolo e tempio di Mitra. Scavi su prenotazione.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "santa_maria_trastevere",
@@ -966,7 +1129,10 @@
   "durata": 20,
   "desc": "Una delle chiese più antiche di Roma, con mosaici d'oro in facciata e abside.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "san_luigi",
@@ -984,7 +1150,10 @@
   "durata": 20,
   "desc": "Tre capolavori di Caravaggio sulla vita di San Matteo, gratis.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "sant_ignazio",
@@ -1002,7 +1171,10 @@
   "durata": 20,
   "desc": "La finta cupola dipinta di Andrea Pozzo: uno specchio al centro svela l'inganno.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "santa_maria_popolo",
@@ -1020,7 +1192,10 @@
   "durata": 20,
   "desc": "Due Caravaggio e la Cappella Chigi di Raffaello e Bernini.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "gesu",
@@ -1037,7 +1212,10 @@
   "durata": 20,
   "desc": "Capolavoro barocco dei gesuiti; ogni giorno alle 17:30 la \"macchina\" dell'altare di Sant'Ignazio.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "pomeriggio"
+  ]
  },
  {
   "id": "minerva",
@@ -1054,7 +1232,10 @@
   "durata": 20,
   "desc": "L'unica chiesa gotica di Roma, con davanti l'elefantino di Bernini.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "scala_santa",
@@ -1072,7 +1253,10 @@
   "durata": 30,
   "desc": "La scala che Gesù avrebbe salito da Pilato: i fedeli la salgono in ginocchio.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "vittoria",
@@ -1090,7 +1274,10 @@
   "durata": 15,
   "desc": "L'Estasi di Santa Teresa, capolavoro di Bernini.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "sant_agostino",
@@ -1108,7 +1295,10 @@
   "durata": 15,
   "desc": "La Madonna dei Pellegrini di Caravaggio.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "aracoeli",
@@ -1126,7 +1316,10 @@
   "durata": 30,
   "desc": "Si arriva salendo 124 gradini; dentro affreschi del Pinturicchio.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "santa_cecilia",
@@ -1143,7 +1336,10 @@
   "durata": 30,
   "desc": "La statua della santa scolpita come fu ritrovata e un raro affresco di Cavallini.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "santa_prassede",
@@ -1161,7 +1357,10 @@
   "durata": 20,
   "desc": "La cappella di San Zenone, interamente coperta di mosaici d'oro.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "quattro_fontane",
@@ -1179,7 +1378,10 @@
   "durata": 20,
   "desc": "Il capolavoro di Borromini: una cupola ovale grande quanto un pilastro di San Pietro.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "sant_andrea_quirinale",
@@ -1197,7 +1399,10 @@
   "durata": 15,
   "desc": "La \"perla\" di Bernini, a cento metri dalla rivale di Borromini.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "santo_stefano_rotondo",
@@ -1215,7 +1420,10 @@
   "durata": 30,
   "desc": "Chiesa circolare del V secolo, con crudi affreschi di martiri.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "quattro_coronati",
@@ -1233,7 +1441,10 @@
   "durata": 40,
   "desc": "Monastero fortificato con la cappella di San Silvestro e un chiostro nascosto.",
   "verifica": true,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "santa_sabina",
@@ -1250,7 +1461,10 @@
   "durata": 20,
   "desc": "Basilica del V secolo con porta in legno originale e giardino degli aranci accanto.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "tempietto_bramante",
@@ -1268,7 +1482,10 @@
   "durata": 20,
   "desc": "Il gioiello del Rinascimento, dove secondo la tradizione fu crocifisso Pietro.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "santa_maria_angeli",
@@ -1286,7 +1503,10 @@
   "durata": 30,
   "desc": "Michelangelo trasformò le Terme di Diocleziano in chiesa; sul pavimento una meridiana.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "sant_ivo",
@@ -1304,7 +1524,10 @@
   "durata": 15,
   "desc": "La cupola a spirale di Borromini; aperta di solito solo la domenica mattina.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "san_lorenzo",
@@ -1321,7 +1544,10 @@
   "durata": 30,
   "desc": "Basilica medievale col chiostro, accanto al cimitero del Verano.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "santa_costanza",
@@ -1339,7 +1565,10 @@
   "durata": 30,
   "desc": "Mausoleo del IV secolo con mosaici di vendemmia ancora pagani.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "chiostro_bramante",
@@ -1357,7 +1586,10 @@
   "durata": 60,
   "desc": "Chiostro rinascimentale che ospita mostre temporanee, con caffetteria affacciata sulla Pace.",
   "verifica": true,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "cosma_damiano",
@@ -1375,7 +1607,10 @@
   "durata": 20,
   "desc": "Mosaico absidale del VI secolo e un grande presepe napoletano del Settecento.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "galleria_borghese",
@@ -1393,7 +1628,10 @@
   "durata": 120,
   "desc": "Bernini e Caravaggio in una villa barocca. Prenotazione obbligatoria, turni da 2 ore.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "villa_borghese",
@@ -1410,7 +1648,10 @@
   "durata": 90,
   "desc": "Il parco più famoso di Roma: viali, laghetto con barchette, noleggio bici e risciò.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "pincio",
@@ -1428,7 +1669,10 @@
   "durata": 20,
   "desc": "Vista su Piazza del Popolo e sulle cupole, splendida al tramonto.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "tramonto"
+  ]
  },
  {
   "id": "giardino_aranci",
@@ -1446,7 +1690,10 @@
   "durata": 20,
   "desc": "Il tramonto più romantico di Roma, tra gli aranci sopra il Tevere.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "tramonto"
+  ]
  },
  {
   "id": "gianicolo",
@@ -1464,7 +1711,10 @@
   "durata": 45,
   "desc": "La terrazza più ampia sulla città; a mezzogiorno spara un colpo di cannone.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "tramonto"
+  ]
  },
  {
   "id": "fontanone",
@@ -1482,7 +1732,10 @@
   "durata": 15,
   "desc": "La mostra dell'Acqua Paola, con vista su Trastevere.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "tramonto"
+  ]
  },
  {
   "id": "terrazza_caffarelli",
@@ -1499,7 +1752,10 @@
   "durata": 20,
   "desc": "Terrazza sul Campidoglio con vista sui tetti e sul Vittoriano.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "tramonto"
+  ]
  },
  {
   "id": "parco_acquedotti",
@@ -1517,7 +1773,10 @@
   "durata": 90,
   "desc": "Archi di acquedotti romani in mezzo ai prati: la Roma della \"Grande Bellezza\".",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "mattina"
+  ]
  },
  {
   "id": "appia_antica",
@@ -1536,7 +1795,10 @@
   "durata": 180,
   "desc": "La \"regina delle strade\": basoli romani, tombe e campagna, da fare a piedi o in bici.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "mattina"
+  ]
  },
  {
   "id": "villa_doria_pamphilj",
@@ -1553,7 +1815,10 @@
   "durata": 90,
   "desc": "Il parco più grande di Roma, amato dai romani per correre e fare picnic.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "villa_torlonia",
@@ -1571,7 +1836,10 @@
   "durata": 60,
   "desc": "La villa di Mussolini con la Casina delle Civette in stile liberty.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "roseto",
@@ -1588,7 +1856,10 @@
   "durata": 30,
   "desc": "Oltre mille varietà di rose, aperto solo in primavera.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "villa_celimontana",
@@ -1605,7 +1876,10 @@
   "durata": 40,
   "desc": "Parco tranquillo a due passi dal Colosseo, con un obelisco egizio.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "villa_sciarra",
@@ -1623,7 +1897,10 @@
   "durata": 40,
   "desc": "Piccolo giardino romantico con fontane e statue, quasi sconosciuto ai turisti.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "villa_ada",
@@ -1640,7 +1917,10 @@
   "durata": 90,
   "desc": "Grande parco naturale con laghetto, ex residenza reale.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "caffarella",
@@ -1657,7 +1937,10 @@
   "durata": 90,
   "desc": "Campagna romana in città: fattorie, ninfei e ruderi.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "orto_botanico",
@@ -1674,7 +1957,10 @@
   "durata": 60,
   "desc": "Giardino botanico ai piedi del Gianicolo, con serre e bambù.",
   "verifica": true,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "bioparco",
@@ -1692,7 +1978,10 @@
   "durata": 150,
   "desc": "Lo zoo di Roma, ideale per chi viaggia con bambini.",
   "verifica": true,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "villa_medici",
@@ -1710,7 +1999,10 @@
   "durata": 60,
   "desc": "Sede dell'Accademia di Francia: giardini rinascimentali con visita guidata.",
   "verifica": true,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  },
  {
   "id": "zodiaco",
@@ -1727,6 +2019,9 @@
   "durata": 20,
   "desc": "Il punto più alto di Roma, lontano dal centro: si raggiunge in bus o taxi.",
   "verifica": false,
-  "temp": null
+  "temp": null,
+  "momento": [
+   "tramonto"
+  ]
  }
 ]
