@@ -169,7 +169,7 @@ CAMERE — INTERNOUNO DELUXE (Via Lorenzo il Magnifico 158). Camere numerate da 
 - Camera 5 — Matrimoniale Economy, 2 persone, 9 m² (molto compatta): letto matrimoniale da 140 cm, bagno con doccia (niente vasca) e bidet integrato nel WC, piccolo angolo cottura, TV 32" con Netflix. Chi preferisce più spazio può chiedere un upgrade.
 DOTAZIONI DI TUTTE LE CAMERE: bagno privato, aria condizionata, WiFi, TV con Netflix incluso, asciugacapelli, appendiabiti, angolo cottura con la dotazione essenziale (piatti, pentole, bicchieri, posate) per preparazioni semplici. Non ci sono tablet o computer in camera.
 QUALE CAMERA SCEGLIERE: 1-2 persone: qualsiasi camera. 3 persone: Tripla Standard (Marrone, Campaldino) oppure Superior con 3° letto aggiunto (Lorenzo). 4 persone: Appartamento Gialla (Campaldino). 5 persone: Appartamento Gialla con letto aggiuntivo.
-LETTO AGGIUNTIVO E CULLA: letto aggiuntivo 20€ a notte, culla per neonati 15€, su richiesta e in base alla disponibilità (scrivere su WhatsApp o email).
+LETTO AGGIUNTIVO E CULLA: letto aggiuntivo 20€ a notte, culla per neonati 15€ a notte, su richiesta e in base alla disponibilità (scrivere su WhatsApp o email).
 COMPUTER: alla reception c'è un computer senza password, sempre utilizzabile dagli ospiti.
 ARRIVO PRESTO: prima delle 8:00 non c'è personale in struttura e non è possibile lasciare i bagagli; dalle 8:00 in poi sì (valido per entrambe le strutture). A chi arriva prima delle 8:00 dillo chiaramente e, per esigenze particolari, invitalo a scrivere su WhatsApp.
 CHECK-IN ONLINE: la registrazione degli ospiti (obbligatoria per legge) si fa online con il link Chekin che inviamo due giorni prima dell'arrivo. Se non è arrivato, controllare anche lo spam o scrivere su WhatsApp.
