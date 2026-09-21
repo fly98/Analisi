@@ -557,13 +557,14 @@ async function handleStats2(request, env, slug, url) {
   const s = slug === 'all' ? 'all' : slug;
   const F = `day BETWEEN ?1 AND ?2 AND (?3 = 'all' OR slug = ?3) AND ${VALIDO}`;
   const q = (sql) => env.DB.prepare(sql).bind(from, to, s);
-  const [kpi, torna, soloApertura, perSlug, perGiorno, eventi, lingue, ore, scartati, primo, esclusi] = await env.DB.batch([
+  const [kpi, torna, soloApertura, perSlug, perGiorno, eventi, eventiTot, lingue, ore, scartati, primo, esclusi] = await env.DB.batch([
     q(`SELECT COUNT(*) AS eventi, COUNT(DISTINCT sid) AS dispositivi, COUNT(DISTINCT sid || day) AS visite FROM ev WHERE ${F}`),
     q(`SELECT COUNT(*) AS n FROM (SELECT sid FROM ev WHERE ${F} GROUP BY sid HAVING COUNT(DISTINCT day) > 1)`),
     q(`SELECT COUNT(*) AS n FROM (SELECT sid FROM ev WHERE ${F} GROUP BY sid HAVING SUM(event NOT IN ('view','lang')) = 0)`),
     q(`SELECT slug, COUNT(DISTINCT sid) AS dispositivi, COUNT(*) AS eventi FROM ev WHERE ${F} GROUP BY slug`),
     q(`SELECT day, slug, COUNT(DISTINCT sid) AS dispositivi, COUNT(*) AS eventi FROM ev WHERE ${F} GROUP BY day, slug ORDER BY day`),
     q(`SELECT event, section, COUNT(*) AS n, COUNT(DISTINCT sid) AS dispositivi FROM ev WHERE ${F} GROUP BY event, section`),
+    q(`SELECT event, COUNT(*) AS n, COUNT(DISTINCT sid) AS dispositivi FROM ev WHERE ${F} GROUP BY event`),
     q(`SELECT lang, COUNT(DISTINCT sid) AS dispositivi FROM ev WHERE ${F} AND lang <> '' GROUP BY lang ORDER BY dispositivi DESC`),
     q(`SELECT hour, COUNT(DISTINCT sid || day) AS visite, COUNT(*) AS eventi FROM ev WHERE ${F} GROUP BY hour ORDER BY hour`),
     q(`SELECT CASE WHEN bot = 1 THEN 'browser automatici' WHEN NOT ${HOST_OK} THEN 'fuori da interno1.it' ELSE 'dispositivi esclusi' END AS motivo,
@@ -576,7 +577,7 @@ async function handleStats2(request, env, slug, url) {
   return json({
     from, to, slug: s, primoGiorno: (r(primo)[0] || {}).primo || null,
     kpi: Object.assign({}, r(kpi)[0] || {}, { tornati: (r(torna)[0] || {}).n || 0, soloApertura: (r(soloApertura)[0] || {}).n || 0 }),
-    perSlug: r(perSlug), perGiorno: r(perGiorno), eventi: r(eventi), lingue: r(lingue), ore: r(ore),
+    perSlug: r(perSlug), perGiorno: r(perGiorno), eventi: r(eventi), eventiTot: r(eventiTot), lingue: r(lingue), ore: r(ore),
     scartati: r(scartati), esclusi: r(esclusi),
   });
 }
