@@ -123,6 +123,13 @@ window.VR_ILL = (function () {
   .vr-seg button.on{background:var(--orange);border-color:var(--orange);color:#fff}
   .vr-step{display:flex;align-items:center;gap:14px}.vr-step button{width:42px;height:42px;border-radius:50%;border:1px solid var(--border-s);background:var(--surface);font-size:1.3rem;cursor:pointer}
   .vr-step b{font-size:1.4rem;min-width:28px;text-align:center}
+  .vr-row{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin-top:16px}
+  .vr-lbl{font-size:.8rem;font-weight:700;margin-bottom:6px}
+  .vr-gt.off{opacity:.35;pointer-events:none}
+  .vr-step.sm{gap:10px}.vr-step.sm button{width:36px;height:36px;font-size:1.1rem}.vr-step.sm b{font-size:1.2rem;min-width:22px}
+  .vr-toggle{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:12px;border:1px solid var(--border);background:var(--surface);font:inherit;font-size:.82rem;font-weight:700;color:var(--muted);cursor:pointer;white-space:nowrap}
+  .vr-toggle .ck{width:20px;height:20px;border-radius:6px;border:2px solid var(--border-s);display:flex;align-items:center;justify-content:center;color:transparent;font-size:.75rem}
+  .vr-toggle.on{border-color:var(--orange);background:var(--orange-bg);color:var(--orange)}.vr-toggle.on .ck{background:var(--orange);border-color:var(--orange);color:#fff}
   .vr-chips{display:flex;flex-wrap:wrap;gap:6px}.vr-chips .chip{flex-shrink:1}
   .vr-range{width:100%;accent-color:var(--orange)}
   .vr-input{width:100%;padding:11px 12px;border-radius:12px;border:1px solid var(--border-s);font:inherit;font-size:.95rem;background:var(--surface)}
@@ -260,10 +267,12 @@ window.VR_ILL = (function () {
       <button class="vr-back" data-back>${TX.indietro}</button>
       <div class="vr-h">${TX.ritmo}</div>
       <div class="vr-seg" data-seg="ritmo">${[['rilassato', TX.r_rilassato], ['medio', TX.r_medio], ['intenso', TX.r_intenso]].map(([k, l]) => `<button data-v="${k}" class="${ritmoScelto === k ? 'on' : ''}">${l}</button>`).join('')}</div>
-      <div class="vr-cat ${unGiorno ? 'on' : ''}" id="vrUnGiorno" style="margin-top:14px"><span class="ck">✓</span><span><b>${TX.un_giorno}</b><div class="m">${TX.un_giorno_d}</div></span></div>
-      <div id="vrGTBox" style="${unGiorno ? 'display:none' : ''}">
-        <div class="vr-h">${TX.giorni_target}</div>
-        <div class="vr-step"><button data-g="-1">−</button><b id="vrGT">${giorniTarget || '–'}</b><button data-g="1">+</button></div>
+      <div class="vr-row">
+        <div class="vr-gt ${unGiorno ? 'off' : ''}" id="vrGTBox">
+          <div class="vr-lbl">${TX.giorni_target}</div>
+          <div class="vr-step sm"><button data-g="-1">−</button><b id="vrGT">${giorniTarget || '–'}</b><button data-g="1">+</button></div>
+        </div>
+        <button class="vr-toggle ${unGiorno ? 'on' : ''}" id="vrUnGiorno"><span class="ck">✓</span><span>${TX.un_giorno_breve}</span></button>
       </div>
       <div class="vr-h" style="margin-top:20px"><input class="vr-input" id="vrCerca" placeholder="${TX.cerca}" value="${esc(filtroTesto)}"></div>
       <div class="vr-h" style="margin:12px 0 2px">${TX.importanza}</div><p class="vr-sub" style="margin:0 0 6px">${TX.importanza_d}</p>
@@ -279,7 +288,7 @@ window.VR_ILL = (function () {
     const r = root();
     r.querySelector('[data-back]').onclick = vistaHome;
     r.querySelector('[data-seg]').querySelectorAll('button').forEach(b => b.onclick = () => { r.querySelectorAll('[data-seg] button').forEach(x => x.classList.remove('on')); b.classList.add('on'); ritmoScelto = b.dataset.v; });
-    r.querySelectorAll('[data-g]').forEach(b => b.onclick = () => { giorniTarget = Math.min(7, Math.max(0, giorniTarget + +b.dataset.g)); $('#vrGT').textContent = giorniTarget || '–'; });
+    r.querySelectorAll('[data-g]').forEach(b => b.onclick = () => { if (unGiorno) return; giorniTarget = Math.min(7, Math.max(0, giorniTarget + +b.dataset.g)); $('#vrGT').textContent = giorniTarget || '–'; });
     // filtri a selezione multipla: si sommano dentro lo stesso gruppo, "Tutte" azzera
     r.querySelectorAll('[data-grp]').forEach(riga => {
       const set = riga.dataset.grp === 'fi' ? filtroImp : riga.dataset.grp === 'fz' ? filtroZona : filtroCat;
@@ -290,7 +299,7 @@ window.VR_ILL = (function () {
         lista();
       });
     });
-    $('#vrUnGiorno').onclick = () => { unGiorno = !unGiorno; $('#vrUnGiorno').classList.toggle('on', unGiorno); $('#vrGTBox').style.display = unGiorno ? 'none' : ''; };
+    $('#vrUnGiorno').onclick = () => { unGiorno = !unGiorno; $('#vrUnGiorno').classList.toggle('on', unGiorno); $('#vrGTBox').classList.toggle('off', unGiorno); };
     $('#vrCerca').oninput = e => { filtroTesto = e.target.value; lista(); };
     $('#vrOrg').onclick = () => {
       if (!stato.selezione.size) { alert(TX.nessuna); return; }
