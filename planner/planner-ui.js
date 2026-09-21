@@ -111,12 +111,12 @@ window.VR_ILL = (function () {
   .vr-tabs{display:flex;gap:8px;padding:2px 16px 14px}
   .vr-tab{flex:1;padding:10px;border-radius:12px;border:1px solid var(--border);background:var(--surface);font:inherit;font-size:.85rem;font-weight:700;color:var(--muted);cursor:pointer}
   .vr-tab.on{background:var(--orange);border-color:var(--orange);color:#fff}
-  .vr-panel{display:none}.vr-panel.on{display:block}
-  .vr-mode{display:flex;gap:14px;align-items:center;width:100%;text-align:left;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:10px;cursor:pointer;font:inherit;color:var(--text)}
-  .vr-mode .ico{font-size:1.7rem;width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:var(--orange-bg);flex-shrink:0}
-  .vr-mode .ico.ill{width:60px;height:60px;border-radius:14px;overflow:hidden;background:none;box-shadow:0 2px 6px rgba(0,0,0,.12)}
+  .vr-panel{display:none}.vr-panel.on{display:block;min-height:100vh} /* altezza minima: la vista puo' sempre partire pulita sotto l'intestazione */
+  .vr-mode{display:flex;gap:12px;align-items:center;width:100%;text-align:left;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:10px 12px;margin-bottom:8px;cursor:pointer;font:inherit;color:var(--text)}
+  .vr-mode .ico{font-size:1.4rem;width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:var(--orange-bg);flex-shrink:0}
+  .vr-mode .ico.ill{width:52px;height:52px;border-radius:14px;overflow:hidden;background:none;box-shadow:0 2px 6px rgba(0,0,0,.12)}
   .vr-mode .ico.ill svg{width:100%;height:100%;display:block}
-  .vr-mode h3{font-size:1rem;margin:0 0 2px}.vr-mode p{font-size:.82rem;color:var(--muted);margin:0}
+  .vr-mode h3{font-size:.95rem;margin:0 0 1px}.vr-mode p{font-size:.76rem;color:var(--muted);margin:0;line-height:1.3}
   .vr-mode.main{background:linear-gradient(135deg,#2a2622,#4a3a2e);color:#fff;border:none}
   .vr-mode.main p{color:rgba(255,255,255,.75)}.vr-mode.main .ico{background:rgba(255,102,40,.25)}
   .vr-h{font-size:.95rem;font-weight:700;margin:18px 0 8px}.vr-sub{font-size:.78rem;color:var(--muted);margin:-4px 0 8px}
@@ -194,7 +194,14 @@ window.VR_ILL = (function () {
   const form = { giorni: 2, eta: 35, gratis: false, budget: 30, ritmo: 'medio', categorie: new Set(), gite: new Set() };
 
   function root() { return $('#planner'); }
-  function mostra(html) { root().innerHTML = html; window.scrollTo(0, $('#scr-tour').offsetTop - 60); }
+  // dopo ogni cambio di vista la pagina riparte dalle schede Itinerari/Audioguide (appena sotto l'intestazione fissa)
+  function vaiSchede() {
+    const tabs = document.querySelector('.vr-tabs'), hdr = document.querySelector('header');
+    if (!tabs || !tabs.offsetParent) return;
+    const hh = hdr ? Math.max(hdr.offsetHeight, hdr.scrollHeight, ...[...hdr.children].map(c => c.getBoundingClientRect().bottom - hdr.getBoundingClientRect().top)) : 0; // altezza reale, anche se il nome va su due righe
+    window.scrollTo(0, Math.max(0, tabs.getBoundingClientRect().top + window.scrollY - hh - 8));
+  }
+  function mostra(html) { root().innerHTML = html; vaiSchede(); }
 
   // ---------------- vista: home ----------------
   function vistaHome() {
@@ -471,7 +478,7 @@ window.VR_ILL = (function () {
   function apriVisitaRoma(tab) {
     document.querySelectorAll('#tabbar button').forEach(x => x.classList.toggle('on', x.dataset.scr === 'tour'));
     document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === 'scr-tour'));
-    scegliTab(tab || 'itinerari'); window.scrollTo(0, 0);
+    scegliTab(tab || 'itinerari'); vaiSchede();
   }
   function scegliTab(t) {
     document.querySelectorAll('.vr-tab').forEach(b => b.classList.toggle('on', b.dataset.vr === t));
@@ -480,6 +487,9 @@ window.VR_ILL = (function () {
   function init() {
     const st = document.createElement('style'); st.textContent = CSS; document.head.appendChild(st);
     document.querySelectorAll('.vr-tab').forEach(b => b.onclick = () => { scegliTab(b.dataset.vr); track('visita_tab', b.dataset.vr); });
+    // anche aprendo "Visita Roma" dalla barra in basso: dopo lo scroll della pagina, posiziona sulle schede
+    const tabTour = document.querySelector('#tabbar button[data-scr="tour"]');
+    if (tabTour) tabTour.addEventListener('click', () => setTimeout(vaiSchede, 0));
     const badge = $('#vrBadge'); if (badge) badge.onclick = () => { apriVisitaRoma('itinerari'); track('badge', 'itinerario'); };
     fetch(DB_URL, { cache: 'no-store' }).then(r => r.json()).then(d => { DB = d; stato.vista = 'home'; return lingua(typeof lang !== 'undefined' ? lang : 'it'); })
       .catch(() => { root().innerHTML = `<p class="vr-sub">${TX.errore}</p>`; });
