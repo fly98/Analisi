@@ -2023,5 +2023,443 @@
   "momento": [
    "tramonto"
   ]
+ },
+ {
+  "id": "domus_aurea",
+  "nome": "Domus Aurea",
+  "cat": [
+   "archeologia",
+   "insolito"
+  ],
+  "zona": "Colle Oppio",
+  "lat": 41.8913,
+  "lon": 12.4955,
+  "prezzo": 18,
+  "imp": 4,
+  "fatica": 2,
+  "durata": 90,
+  "desc": "Il palazzo sepolto di Nerone, con visore VR che mostra le sale com'erano. Piccoli gruppi, prenotare presto.",
+  "verifica": false,
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
+ },
+ {
+  "id": "colosseo_sotterranei",
+  "nome": "Colosseo: arena e sotterranei",
+  "cat": [
+   "archeologia",
+   "insolito"
+  ],
+  "zona": "Colosseo",
+  "lat": 41.8902,
+  "lon": 12.4922,
+  "prezzo": null,
+  "imp": 3,
+  "fatica": 2,
+  "durata": 90,
+  "desc": "Visita speciale dove passavano gladiatori e belve, con accesso all'arena.",
+  "verifica": true,
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
+ },
+ {
+  "id": "caracalla",
+  "nome": "Terme di Caracalla",
+  "cat": [
+   "archeologia"
+  ],
+  "zona": "Aventino",
+  "lat": 41.879,
+  "lon": 12.4924,
+  "prezzo": null,
+  "imp": 4,
+  "fatica": 2,
+  "durata": 90,
+  "desc": "Le terme più imponenti dell'antichità, meno affollate del Foro. In estate ospitano l'opera.",
+  "verifica": true,
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
+ },
+ {
+  "id": "ostia_antica",
+  "nome": "Ostia Antica",
+  "cat": [
+   "archeologia"
+  ],
+  "zona": "Fuori Roma",
+  "lat": 41.7556,
+  "lon": 12.2923,
+  "prezzo": null,
+  "imp": 4,
+  "fatica": 3,
+  "durata": 240,
+  "desc": "Una Pompei a 30 minuti di treno: strade, taverne, teatro e case intatte.",
+  "verifica": true,
+  "temp": null,
+  "momento": [
+   "mattina"
+  ]
+ },
+ {
+  "id": "palazzo_massimo",
+  "nome": "Museo Nazionale Romano – Palazzo Massimo",
+  "cat": [
+   "museo",
+   "archeologia"
+  ],
+  "zona": "Termini",
+  "lat": 41.9013,
+  "lon": 12.4984,
+  "prezzo": null,
+  "imp": 4,
+  "fatica": 2,
+  "durata": 90,
+  "desc": "Affreschi della villa di Livia, il Pugile in riposo e mosaici straordinari.",
+  "verifica": true,
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
+ },
+ {
+  "id": "terme_diocleziano",
+  "nome": "Terme di Diocleziano",
+  "cat": [
+   "archeologia",
+   "museo"
+  ],
+  "zona": "Termini",
+  "lat": 41.9029,
+  "lon": 12.4983,
+  "prezzo": null,
+  "imp": 3,
+  "fatica": 1,
+  "durata": 60,
+  "desc": "Enormi terme romane con un chiostro di Michelangelo.",
+  "verifica": true,
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
+ },
+ {
+  "id": "palazzo_altemps",
+  "nome": "Palazzo Altemps",
+  "cat": [
+   "museo",
+   "arte"
+  ],
+  "zona": "Navona",
+  "lat": 41.9014,
+  "lon": 12.4726,
+  "prezzo": null,
+  "imp": 3,
+  "fatica": 1,
+  "durata": 60,
+  "desc": "Sculture antiche in un palazzo rinascimentale, tra cui il Trono Ludovisi.",
+  "verifica": true,
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
+ },
+ {
+  "id": "crypta_balbi",
+  "nome": "Crypta Balbi",
+  "cat": [
+   "archeologia",
+   "museo"
+  ],
+  "zona": "Ghetto",
+  "lat": 41.895,
+  "lon": 12.4787,
+  "prezzo": null,
+  "imp": 2,
+  "fatica": 1,
+  "durata": 45,
+  "desc": "Come Roma si è trasformata dall'antichità al Medioevo, strato dopo strato.",
+  "verifica": true,
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
+ },
+ {
+  "id": "mercati_traiano",
+  "nome": "Mercati di Traiano",
+  "cat": [
+   "archeologia",
+   "museo",
+   "panorama"
+  ],
+  "zona": "Fori",
+  "lat": 41.8958,
+  "lon": 12.4866,
+  "prezzo": null,
+  "imp": 3,
+  "fatica": 2,
+  "durata": 75,
+  "desc": "Il \"centro commerciale\" di Roma antica, con vista dall'alto sui Fori.",
+  "verifica": true,
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
+ },
+ {
+  "id": "carcere_mamertino",
+  "nome": "Carcere Mamertino",
+  "cat": [
+   "archeologia",
+   "insolito"
+  ],
+  "zona": "Fori",
+  "lat": 41.8932,
+  "lon": 12.4843,
+  "prezzo": null,
+  "imp": 3,
+  "fatica": 1,
+  "durata": 40,
+  "desc": "La prigione dove secondo la tradizione fu rinchiuso San Pietro.",
+  "verifica": true,
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
+ },
+ {
+  "id": "stadio_domiziano",
+  "nome": "Stadio di Domiziano",
+  "cat": [
+   "archeologia",
+   "insolito"
+  ],
+  "zona": "Navona",
+  "lat": 41.9004,
+  "lon": 12.4725,
+  "prezzo": null,
+  "imp": 3,
+  "fatica": 1,
+  "durata": 45,
+  "desc": "Lo stadio romano nascosto sotto Piazza Navona, che ne spiega la forma.",
+  "verifica": true,
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
+ },
+ {
+  "id": "vicus_caprarius",
+  "nome": "Vicus Caprarius – Città dell'Acqua",
+  "cat": [
+   "archeologia",
+   "insolito"
+  ],
+  "zona": "Trevi",
+  "lat": 41.9005,
+  "lon": 12.483,
+  "prezzo": null,
+  "imp": 3,
+  "fatica": 1,
+  "durata": 40,
+  "desc": "Sotto Trevi, un'antica casa romana attraversata dall'acqua che alimenta la fontana.",
+  "verifica": true,
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
+ },
+ {
+  "id": "mausoleo_augusto",
+  "nome": "Mausoleo di Augusto",
+  "cat": [
+   "archeologia"
+  ],
+  "zona": "Flaminio",
+  "lat": 41.906,
+  "lon": 12.4764,
+  "prezzo": null,
+  "imp": 3,
+  "fatica": 1,
+  "durata": 45,
+  "desc": "La tomba circolare del primo imperatore, riaperta dopo decenni di restauri.",
+  "verifica": true,
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
+ },
+ {
+  "id": "san_callisto",
+  "nome": "Catacombe di San Callisto",
+  "cat": [
+   "archeologia",
+   "chiesa"
+  ],
+  "zona": "Appia",
+  "lat": 41.8588,
+  "lon": 12.5108,
+  "prezzo": null,
+  "imp": 4,
+  "fatica": 2,
+  "durata": 60,
+  "desc": "Le catacombe più grandi e famose, con la cripta dei papi. Visita guidata inclusa.",
+  "verifica": true,
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
+ },
+ {
+  "id": "domitilla",
+  "nome": "Catacombe di Domitilla",
+  "cat": [
+   "archeologia",
+   "chiesa"
+  ],
+  "zona": "Appia",
+  "lat": 41.8574,
+  "lon": 12.5054,
+  "prezzo": 10,
+  "imp": 3,
+  "fatica": 2,
+  "durata": 60,
+  "desc": "Catacombe con una basilica sotterranea e affreschi paleocristiani. Visita guidata inclusa.",
+  "verifica": false,
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
+ },
+ {
+  "id": "san_sebastiano",
+  "nome": "Catacombe di San Sebastiano",
+  "cat": [
+   "archeologia",
+   "chiesa"
+  ],
+  "zona": "Appia",
+  "lat": 41.8554,
+  "lon": 12.5157,
+  "prezzo": null,
+  "imp": 3,
+  "fatica": 2,
+  "durata": 60,
+  "desc": "Catacombe con mausolei romani perfettamente conservati.",
+  "verifica": true,
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
+ },
+ {
+  "id": "priscilla",
+  "nome": "Catacombe di Priscilla",
+  "cat": [
+   "archeologia",
+   "chiesa"
+  ],
+  "zona": "Salario",
+  "lat": 41.9303,
+  "lon": 12.507,
+  "prezzo": null,
+  "imp": 3,
+  "fatica": 2,
+  "durata": 60,
+  "desc": "La più antica raffigurazione conosciuta della Madonna. Vicina alle nostre strutture.",
+  "verifica": true,
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
+ },
+ {
+  "id": "cecilia_metella",
+  "nome": "Tomba di Cecilia Metella",
+  "cat": [
+   "archeologia"
+  ],
+  "zona": "Appia",
+  "lat": 41.8519,
+  "lon": 12.5199,
+  "prezzo": null,
+  "imp": 3,
+  "fatica": 2,
+  "durata": 45,
+  "desc": "Il mausoleo-fortezza simbolo dell'Appia Antica.",
+  "verifica": true,
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
+ },
+ {
+  "id": "villa_quintili",
+  "nome": "Villa dei Quintili",
+  "cat": [
+   "archeologia",
+   "insolito"
+  ],
+  "zona": "Appia",
+  "lat": 41.8318,
+  "lon": 12.547,
+  "prezzo": null,
+  "imp": 2,
+  "fatica": 2,
+  "durata": 75,
+  "desc": "Villa imperiale enorme e quasi deserta, fuori dai circuiti turistici.",
+  "verifica": true,
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
+ },
+ {
+  "id": "cimitero_acattolico",
+  "nome": "Cimitero Acattolico e Piramide Cestia",
+  "cat": [
+   "insolito",
+   "archeologia"
+  ],
+  "zona": "Testaccio",
+  "lat": 41.8762,
+  "lon": 12.48,
+  "prezzo": 0,
+  "imp": 3,
+  "fatica": 1,
+  "durata": 45,
+  "desc": "Il cimitero romantico di Keats e Shelley, all'ombra di una piramide romana.",
+  "verifica": false,
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
+ },
+ {
+  "id": "monte_testaccio",
+  "nome": "Monte dei Cocci",
+  "cat": [
+   "archeologia",
+   "insolito"
+  ],
+  "zona": "Testaccio",
+  "lat": 41.8757,
+  "lon": 12.4755,
+  "prezzo": null,
+  "imp": 2,
+  "fatica": 1,
+  "durata": 45,
+  "desc": "Una collina fatta interamente di anfore rotte: la discarica di Roma antica.",
+  "verifica": true,
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  }
 ]
