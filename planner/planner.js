@@ -140,7 +140,7 @@
       costo += prezzo;
       pos = a;
       righe.push({ id: a.id, nome: a.nome, arrivo, durata: a.durata, tratta: tr, prezzo, indicativo: !!a.indicativo, zona: a.zona, fuori: !!a.fuori });
-      if (!pranzo && t >= PRANZO_DA) { pranzo = true; righe.push({ pranzo: true, zona: a.zona }); t += PRANZO_MIN; }
+      if (!pranzo && !p.noPranzo && t >= PRANZO_DA) { pranzo = true; righe.push({ pranzo: true, zona: a.zona }); t += PRANZO_MIN; }
     });
     const minuti = t - INIZIO_GIORNATA - (pranzo ? PRANZO_MIN : 0);
     return { righe, minuti, visite: mVisite, spostamenti: mSpost, fine: t, fatica: Math.round(fatica * 10) / 10, costo, ultima: tappe[tappe.length - 1] || null };
@@ -269,10 +269,17 @@
       return db.attrazioni.find(a => a.id === id);
     }).filter(Boolean).filter(a => !a.chiuso);
     const gite = (opz.gite || []).map(id => db.gite.find(g => g.id === id)).filter(Boolean);
+    const lista0 = scelte.slice();
     const lista = scelte.sort((a, b) => P(b) - P(a));
     // quanti giorni servono? si prova da 1 in su finche' non resta fuori niente
     let n = 1, r;
     const senzaBudget = Object.assign({}, opz, { budgetGiorno: null, soloGratis: false });
+    if (opz.ordineFisso) {
+      // ordine deciso da noi; se "serale": niente pranzo e niente blocco serata (aperitivo e cena sono tappe)
+      const p = Object.assign(paramGiorno(senzaBudget), { noPranzo: !!opz.serale });
+      const out = componi({ giorni: [lista0], escluse: [], p }, gite, partenza, Object.assign({}, senzaBudget, { serata: !opz.serale }), avvisi, db);
+      out.giorniNecessari = null; return out;
+    }
     if (opz.unGiorno) {
       // tutto in un unico percorso, senza limiti di tempo o fatica
       r = { giorni: [ordinaGiorno(lista, partenza)], escluse: [], p: paramGiorno(senzaBudget) };
@@ -321,7 +328,7 @@
       const v = valutaGiorno(g, partenza, r.p, pagati);
       g.forEach(a => { if (a.gruppo) pagati.add(a.gruppo); });
       const giorno = Object.assign({ tipo: 'roma', n: i + 1 }, v);
-      if (db && (opz.serata !== false)) {
+      if (db && opz.serata !== false) {
         const sr = scegliSerata(db, v.ultima || partenza, usati, r.p, new Set(g.map(a => a.id)));
         if (sr) {
           giorno.serata = { id: sr.zona.id, nome: sr.zona.nome, desc: sr.zona.desc, tipo: sr.zona.tipo, tratta: sr.tratta, casa: !!sr.zona.casa };
