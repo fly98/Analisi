@@ -361,6 +361,23 @@ sera('ponte_milvio','Ponte Milvio',41.9355,12.4675,5,['aperitivo','serata'],
 sera('piazza_bologna','Zona Piazza Bologna (vicino casa)',41.9130,12.5210,5,['cena'],
      'Per una serata tranquilla vicino alle nostre strutture: trovi i locali consigliati nella sezione Mangiare.',casa=True)
 
+# ---------- MACRO-ZONE (per il filtro "Zone") ----------
+AREE = {
+ 'centro':    ['Navona', 'Centro Storico', "Campo de' Fiori", 'Pantheon', 'Ghetto'],
+ 'tridente':  ['Trevi', 'Spagna', 'Quirinale', 'Via Veneto'],
+ 'colosseo':  ['Colosseo', 'Fori', 'Campidoglio', 'Piazza Venezia', 'Colle Oppio', 'Celio', 'Foro Boario', 'Monti'],
+ 'vaticano':  ['Vaticano', 'Borgo', 'Prati', 'Monte Mario'],
+ 'trastevere':['Trastevere', 'Gianicolo', 'Monteverde'],
+ 'aventino':  ['Aventino', 'Testaccio', 'Ostiense', 'Garbatella'],
+ 'termini':   ['Termini', 'Esquilino', 'Repubblica', 'San Giovanni', 'San Lorenzo', 'Pigneto'],
+ 'nord':      ['Villa Borghese', 'Flaminio', 'Salario', 'Trieste', 'Nomentano'],
+ 'sud':       ['Appia', 'Appia Antica', 'EUR', 'Quadraro', 'Cinecittà', 'Fuori Roma'],
+}
+Z2A = {z: k for k, zs in AREE.items() for z in zs}
+for a in A:
+    a['area'] = Z2A.get(a['zona'])
+    assert a['area'], 'zona senza macro-zona: ' + a['zona']
+
 # ---------- GRADUATORIA (posizione unica) e voti rivisti ----------
 TOP = [  # (id, voto) in ordine di graduatoria
  ('colosseo',10),('musei_vaticani',10),('san_pietro',10),('pantheon',10),('trevi',10),('navona',10),('piazza_san_pietro',10),('spagna',10),('fori_imperiali',10),
