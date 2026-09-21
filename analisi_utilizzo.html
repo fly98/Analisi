@@ -1,380 +1,267 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<title>InternoUno · Analisi utilizzo</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>InternoUno · Utilizzo pagine ospiti</title>
 <style>
-  :root{
-    --ink:#1d1d1f; --paper:#f5f5f7; --card:#ffffff; --line:#e3e3e6;
-    --terra:#c45a3a; --sage:#5c6b52; --gold:#b8893a; --muted:#86868b;
-    --sysfont:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue',Helvetica,Arial,sans-serif;
-  }
-  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-  html,body{margin:0;padding:0;background:var(--paper);color:var(--ink);font-family:var(--sysfont);}
-  body{padding:0 0 60px;-webkit-font-smoothing:antialiased;}
-  header{padding:22px 18px 14px;background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:10;}
-  .eyebrow{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--terra);margin-bottom:2px;}
-  h1{font-size:22px;font-weight:700;letter-spacing:-0.01em;margin:0;}
-  .subtitle{font-size:13px;color:var(--muted);margin-top:2px;}
-
-  .setup{margin:16px;padding:16px;background:#fff8f0;border:1.5px solid var(--gold);border-radius:14px;}
-  .setup h3{margin:0 0 6px;font-size:15px;}
-  .setup p{margin:0 0 10px;font-size:13px;color:#5a5a5a;line-height:1.5;}
-  .setup input{width:100%;font-family:var(--sysfont);font-size:15px;padding:11px 12px;border:1.5px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);margin-bottom:10px;}
-  .setup button{width:100%;padding:12px;border:none;border-radius:10px;background:var(--terra);color:#fff;font-weight:700;font-size:15px;font-family:var(--sysfont);cursor:pointer;}
-
-  .tabs{display:flex;gap:6px;padding:14px 16px 0;overflow-x:auto;}
-  .tab-btn{flex-shrink:0;padding:9px 16px;border-radius:20px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);font-size:14px;font-weight:600;font-family:var(--sysfont);cursor:pointer;white-space:nowrap;}
-  .tab-btn.active{background:var(--ink);color:#fff;border-color:var(--ink);}
-
-  .range-row{display:flex;gap:6px;padding:12px 16px 0;flex-wrap:wrap;}
-  .range-btn{padding:6px 12px;border-radius:14px;border:1.5px solid var(--line);background:var(--card);color:var(--muted);font-size:12.5px;font-weight:600;font-family:var(--sysfont);cursor:pointer;}
-  .range-btn.active{background:var(--sage);color:#fff;border-color:var(--sage);}
-
-  .content{padding:16px;max-width:640px;margin:0 auto;}
-  .status{text-align:center;color:var(--muted);padding:40px 20px;font-size:14px;}
-
-  .kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
-  .kpi-card{background:var(--card);border-radius:14px;padding:14px 16px;border:1px solid var(--line);}
-  .kpi-val{font-size:26px;font-weight:800;letter-spacing:-0.02em;color:var(--ink);}
-  .kpi-label{font-size:11.5px;color:var(--muted);margin-top:2px;font-weight:600;}
-
-  .card{background:var(--card);border-radius:16px;padding:16px;margin-bottom:14px;border:1px solid var(--line);}
-  .card h3{margin:0 0 12px;font-size:14px;font-weight:700;color:var(--ink);display:flex;align-items:center;gap:6px;}
-  .card .hint{font-size:11.5px;color:var(--muted);font-weight:400;margin-left:auto;}
-
-  .bar-chart{display:flex;align-items:flex-end;gap:3px;height:110px;padding-top:6px;}
-  .bar-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;position:relative;}
-  .bar{width:100%;max-width:22px;background:var(--terra);border-radius:4px 4px 0 0;min-height:2px;transition:height .3s;}
-  .bar.zero{background:var(--line);}
-  .bar-day-label{font-size:9px;color:var(--muted);margin-top:4px;white-space:nowrap;}
-  .bar-val{font-size:9.5px;font-weight:700;color:var(--ink);margin-bottom:3px;line-height:1;}
-  .bar-val.zero{color:var(--muted);font-weight:500;}
-
-  .dayt{width:100%;border-collapse:collapse;font-size:13px;}
-  .dayt th{font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:700;text-align:right;padding:0 0 8px;}
-  .dayt th:first-child{text-align:left;}
-  .dayt td{padding:9px 0;border-top:1px solid var(--line);text-align:right;}
-  .dayt td:first-child{text-align:left;color:var(--ink);font-weight:500;}
-  .dayrow{cursor:pointer;}
-  .dayrow.vuoto td{color:var(--muted);font-weight:400;}
-  .dayrow .num{font-weight:700;font-variant-numeric:tabular-nums;}
-  .dayrow .num.sec{font-weight:500;color:var(--muted);}
-  .dayrow .chev{width:16px;color:var(--muted);font-size:11px;}
-  .dayrow.oggi td:first-child::after{content:'oggi';font-size:9.5px;color:var(--terra);font-weight:700;margin-left:6px;text-transform:uppercase;letter-spacing:.04em;}
-  .daydet td{background:var(--paper);border-top:none;padding:10px 12px;text-align:left;border-radius:0 0 10px 10px;}
-  .det-line{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;padding:3px 0;color:#4a4a4a;}
-  .det-line b{font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums;}
-  .det-title{font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:700;margin:6px 0 2px;}
-  .det-title:first-child{margin-top:0;}
-  .scroll-y{max-height:420px;overflow-y:auto;-webkit-overflow-scrolling:touch;}
-
-  .hbar-row{display:flex;align-items:center;gap:10px;margin-bottom:9px;}
-  .hbar-label{font-size:13px;min-width:92px;flex-shrink:0;color:var(--ink);font-weight:500;}
-  .hbar-track{flex:1;height:9px;background:var(--paper);border-radius:5px;overflow:hidden;}
-  .hbar-fill{height:100%;border-radius:5px;background:var(--sage);}
-  .hbar-val{font-size:12.5px;color:var(--muted);min-width:28px;text-align:right;font-weight:600;}
-
-  .q-item{padding:10px 0;border-bottom:1px solid var(--line);}
-  .q-item:last-child{border-bottom:none;}
-  .q-text{font-size:13.5px;line-height:1.4;color:var(--ink);}
-  .q-meta{font-size:11px;color:var(--muted);margin-top:3px;}
-
-  .empty-note{text-align:center;color:var(--muted);font-size:13px;padding:24px 10px;}
-  .refresh-btn{position:fixed;bottom:20px;right:20px;width:48px;height:48px;border-radius:24px;background:var(--ink);color:#fff;border:none;font-size:20px;box-shadow:0 4px 14px rgba(0,0,0,.2);cursor:pointer;}
+  :root{--paper:#f5f4f0;--card:#fff;--ink:#23201c;--muted:#6f6a62;--faint:#a39d93;--line:#e6e2da;--orange:#FF6628;--orange-bg:#fff1ea;
+    --camp:#FF6628;--lor:#2f6f9f;--ok:#3f8f5a;--warn:#c9831a;--bad:#c8433a;--sysfont:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sysfont);-webkit-text-size-adjust:100%}
+  body{padding:env(safe-area-inset-top) 0 calc(40px + env(safe-area-inset-bottom))}
+  .wrap{max-width:860px;margin:0 auto;padding:0 14px}
+  header{position:sticky;top:0;z-index:10;background:rgba(245,244,240,.96);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:12px 0 10px}
+  h1{font-size:19px;margin:0 0 2px}.sub{font-size:12.5px;color:var(--muted)}
+  .row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:8px}
+  .chip{padding:7px 12px;border-radius:16px;border:1.5px solid var(--line);background:var(--card);font:600 13px var(--sysfont);color:var(--muted);cursor:pointer}
+  .chip.on{background:var(--ink);border-color:var(--ink);color:#fff}
+  .date{font:14px var(--sysfont);padding:6px 8px;border:1.5px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin:14px 0}
+  .card h2{font-size:16px;margin:0 0 3px}.card .hint{font-size:12.5px;color:var(--muted);margin:0 0 12px;line-height:1.4}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px}
+  .kpi b{display:block;font-size:26px;line-height:1.1}.kpi span{font-size:12.5px;color:var(--muted)}.kpi small{display:block;font-size:11.5px;color:var(--faint);margin-top:3px}
+  .bars .r{display:grid;grid-template-columns:130px 1fr 74px;gap:8px;align-items:center;margin:6px 0;font-size:13.5px}
+  .bars .t{height:12px;background:#f0ede7;border-radius:6px;overflow:hidden;display:flex}
+  .bars .t i{display:block;height:100%}
+  .bars .v{text-align:right;font-variant-numeric:tabular-nums;color:var(--muted);font-size:12.5px}
+  .bars .v b{color:var(--ink);font-size:13.5px}
+  .legend{display:flex;gap:14px;font-size:12px;color:var(--muted);margin:4px 0 8px}.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+  svg text{font-family:var(--sysfont)}
+  .funnel .f{margin:8px 0}.funnel .f .top{display:flex;justify-content:space-between;font-size:13.5px}.funnel .f .top span{color:var(--muted);font-size:12.5px}
+  .funnel .f .t{height:22px;background:#f0ede7;border-radius:8px;overflow:hidden;margin-top:4px}.funnel .f .t i{display:block;height:100%;background:var(--orange);border-radius:8px}
+  table{width:100%;border-collapse:collapse;font-size:12.5px}th{text-align:left;color:var(--muted);font-weight:600;padding:6px 4px;border-bottom:1px solid var(--line)}
+  td{padding:7px 4px;border-bottom:1px solid #f1eee8;vertical-align:top}
+  .tag{display:inline-block;font-size:10.5px;font-weight:700;border-radius:6px;padding:1px 6px;margin:1px 2px 1px 0}
+  .tag.bad{background:#fbe5e3;color:var(--bad)}.tag.warn{background:#fdf1dc;color:var(--warn)}.tag.grey{background:#eee;color:#666}
+  .btn{padding:6px 10px;border-radius:9px;border:1.5px solid var(--line);background:#fff;font:600 12px var(--sysfont);cursor:pointer;color:var(--ink)}
+  .btn.red{border-color:#f0c9c5;color:var(--bad)}
+  .scroll{overflow-x:auto}
+  .q{padding:8px 0;border-bottom:1px solid #f1eee8;font-size:13.5px}.q small{color:var(--faint)}
+  .note{background:var(--orange-bg);border-radius:12px;padding:10px 12px;font-size:12.5px;line-height:1.45;margin:10px 0}
+  .setup{max-width:420px;margin:60px auto;padding:0 20px}.setup input{width:100%;font-size:15px;padding:11px 12px;border:1.5px solid var(--line);border-radius:10px;margin:10px 0}
+  .setup button{width:100%;padding:12px;border:none;border-radius:10px;background:var(--orange);color:#fff;font-weight:700;font-size:15px}
+  .muted{color:var(--muted)}.err{color:var(--bad);font-size:13px}
+  details summary{cursor:pointer;font-weight:600;font-size:14px}
+  @media (max-width:520px){.bars .r{grid-template-columns:104px 1fr 64px}}
 </style>
 </head>
 <body>
-
-<header>
-  <div class="eyebrow">InternoUno</div>
-  <h1>Analisi utilizzo</h1>
-  <div class="subtitle" id="subtitle">Utilizzatori e attività, giorno per giorno</div>
-</header>
-
-<div class="setup" id="setupBox" style="display:none">
-  <h3>Configurazione iniziale</h3>
-  <p>Inserisci la chiave admin del worker (va impostata una sola volta come secret <code>WB_ADMIN_KEY</code> su Cloudflare → wb-worker → Settings → Variables and Secrets).</p>
-  <input type="text" id="adminKeyInput" placeholder="Chiave admin">
-  <button onclick="salvaChiave()">Salva e continua</button>
-</div>
-
-<div class="tabs" id="tabsRow" style="display:none">
-  <button class="tab-btn active" data-app="experience" onclick="cambiaApp('experience')">📱 InternoUno Experience</button>
-  <button class="tab-btn" data-app="flytour" onclick="cambiaApp('flytour')">🎧 FlyTour</button>
-</div>
-
-<div class="range-row" id="rangeRow" style="display:none">
-  <button class="range-btn" data-days="7" onclick="cambiaRange(7)">7 giorni</button>
-  <button class="range-btn active" data-days="14" onclick="cambiaRange(14)">14 giorni</button>
-  <button class="range-btn" data-days="30" onclick="cambiaRange(30)">30 giorni</button>
-  <button class="range-btn" data-days="90" onclick="cambiaRange(90)">90 giorni</button>
-</div>
-
-<div class="content" id="content">
-  <div class="status">Caricamento…</div>
-</div>
-
-<button class="refresh-btn" onclick="carica()" title="Aggiorna">↻</button>
-
+<div id="app"></div>
 <script>
-const WORKER = "https://wb-worker.f-castiglioni.workers.dev";
-const PROPRIETA = { experience: ["campaldino","lorenzo"], flytour: ["flytour"] };
-const NOMI_PROPRIETA = { campaldino:"Via Campaldino", lorenzo:"Lorenzo il Magnifico" };
-const NOMI_LINGUA = { it:"Italiano", en:"Inglese", es:"Spagnolo", fr:"Francese", de:"Tedesco", pt:"Portoghese", zh:"Cinese" };
-const BANDIERE = { it:"🇮🇹", en:"🇬🇧", es:"🇪🇸", fr:"🇫🇷", de:"🇩🇪", pt:"🇵🇹", zh:"🇨🇳" };
-const NOMI_EVENTO = { view:"Aperture pagina", tab:"Cambi sezione", subtab:"Sotto-sezioni", wifi_open:"WiFi consultato", chat_msg:"Messaggi al concierge", lang:"Cambi lingua testo", tour_open:"Tour aperti", tour_view:"Tour aperti", stop_view:"Tappe visualizzate", audio_play:"Audio riprodotti", stop_play_manual:"Audio avviati a mano", stop_play_auto:"Audio partiti da soli", audio_lang:"Cambi lingua audio", home_view:"Aperture elenco tour", tour_click:"Tour scelti dall'elenco" };
-const NOMI_TOUR = { roma:"Roma in un Giorno", vaticano:"Musei Vaticani", trastevere:"Trastevere Nascosta", sanpietro:"San Pietro e Borgo Pio", "ghetto-testaccio":"Dal Ghetto al Mattatoio", esoterica:"Roma Esoterica", perugia:"Perugia", evora:"Évora", milfontes:"Milfontes", sagres:"Sagres", alfama:"Alfama e Graça", baixa:"Baixa Pombalina", belem:"Belém", tram28:"Tram 28", home:"Elenco tour" };
+const WORKER = 'https://wb-worker.f-castiglioni.workers.dev';
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let KEY = localStorage.getItem('wb_admin_key') || '';
+const S = { slug: 'all', from: null, to: null, preset: '30' };
 
-if (new URLSearchParams(location.search).get('reset') === '1') {
-  localStorage.removeItem('wb_admin_key');
-}
-let adminKey = localStorage.getItem('wb_admin_key') || '';
-let appAttiva = 'experience';
-let rangeGiorni = 14;
-let datiCorrenti = null;
+// ---------- nomi leggibili ----------
+const SEZ = { casa:'🏠 Casa', mappa:'🗺️ Mappa', food:'🍝 Mangiare', eventi:'🎭 Eventi', chat:'💬 Chiedi', tour:'🧭 Visita Roma' };
+const LINGUE = { it:'🇮🇹 Italiano', en:'🇬🇧 Inglese', es:'🇪🇸 Spagnolo', fr:'🇫🇷 Francese', de:'🇩🇪 Tedesco', pt:'🇵🇹 Portoghese', zh:'🇨🇳 Cinese' };
+const TEMI = { n1:'Roma in 1 giorno', n2:'Roma in 2 giorni', n3:'Roma in 3 giorni', sera:'🌙 Roma di sera', antica:'🏛️ Roma antica', arte:'🎨 Caravaggio e Bernini',
+  sotto:'🕳️ Roma sotterranea', bambini:'👨‍👩‍👧 Roma con bambini', verde:'🌳 Roma verde', alternativa:'🖌️ Roma alternativa',
+  rilassato:'Su misura · rilassato', medio:'Su misura · medio', intenso:'Su misura · intenso', scegli:'Scelto tappa per tappa' };
+const STR = { campaldino:'Campaldino', lorenzo:'Lorenzo' };
 
-function salvaChiave(){
-  const v = document.getElementById('adminKeyInput').value.trim();
-  if(!v) return;
-  localStorage.setItem('wb_admin_key', v);
-  adminKey = v;
-  document.getElementById('setupBox').style.display = 'none';
-  document.getElementById('tabsRow').style.display = 'flex';
-  document.getElementById('rangeRow').style.display = 'flex';
-  carica();
+// ---------- date ----------
+const iso = d => d.toISOString().slice(0, 10);
+const oggi = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return iso(d); };
+function preset(p) {
+  const t = new Date(oggi() + 'T12:00:00Z'); let f = new Date(t);
+  if (p === '7') f.setUTCDate(t.getUTCDate() - 6);
+  else if (p === '30') f.setUTCDate(t.getUTCDate() - 29);
+  else if (p === 'mese') f = new Date(Date.UTC(t.getUTCFullYear(), t.getUTCMonth(), 1, 12));
+  else if (p === 'mesePrec') { const a = new Date(Date.UTC(t.getUTCFullYear(), t.getUTCMonth() - 1, 1, 12)); const b = new Date(Date.UTC(t.getUTCFullYear(), t.getUTCMonth(), 0, 12)); return [iso(a), iso(b)]; }
+  else if (p === 'anno') f = new Date(Date.UTC(t.getUTCFullYear(), 0, 1, 12));
+  else if (p === 'tutto') return ['2026-01-01', iso(t)];
+  return [iso(f), iso(t)];
 }
+const fmtD = s => { const [y, m, d] = s.split('-'); return `${d}/${m}`; };
+const giorniTra = (a, b) => { const out = []; const d = new Date(a + 'T12:00:00Z'), e = new Date(b + 'T12:00:00Z'); while (d <= e) { out.push(iso(d)); d.setUTCDate(d.getUTCDate() + 1); } return out; };
+const pct = (a, b) => b ? Math.round(a / b * 100) : 0;
 
-function cambiaApp(app){
-  appAttiva = app;
-  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.app===app));
-  carica();
-}
-function cambiaRange(giorni){
-  rangeGiorni = giorni;
-  document.querySelectorAll('.range-btn').forEach(b=>b.classList.toggle('active', parseInt(b.dataset.days)===giorni));
-  carica();
-}
-
-async function fetchStats(slug, days){
-  const r = await fetch(`${WORKER}/wb/${slug}/stats?key=${encodeURIComponent(adminKey)}&days=${days}`);
-  if(!r.ok) throw new Error('HTTP '+r.status);
-  const d = await r.json();
-  if(d.error) throw new Error(d.error);
-  return d;
+// ---------- accesso ----------
+function setup(msg) {
+  $('#app').innerHTML = `<div class="setup"><h1>Utilizzo pagine ospiti</h1><p class="muted">Inserisci la chiave di amministrazione (WB_ADMIN_KEY).</p>
+    <input id="k" type="password" placeholder="Chiave" autocomplete="off"><button id="ok">Entra</button>${msg ? `<p class="err">${esc(msg)}</p>` : ''}</div>`;
+  $('#ok').onclick = () => { KEY = $('#k').value.trim(); localStorage.setItem('wb_admin_key', KEY); avvia(); };
 }
 
-function sommaStats(lista){
-  const out = { byDay:{}, uniqueByDay:{}, uniqueVisitorsTotal:0, sections:{}, sectionsByDay:{}, langs:{}, events:{}, recentQuestions:[] };
-  for(const s of lista){
-    for(const [day,val] of Object.entries(s.byDay||{})) out.byDay[day] = (out.byDay[day]||0) + val;
-    for(const [day,val] of Object.entries(s.uniqueByDay||{})) out.uniqueByDay[day] = (out.uniqueByDay[day]||0) + val;
-    for(const [day,secs] of Object.entries(s.sectionsByDay||{})){
-      out.sectionsByDay[day] = out.sectionsByDay[day] || {};
-      for(const [k,val] of Object.entries(secs||{})) out.sectionsByDay[day][k] = (out.sectionsByDay[day][k]||0) + val;
-    }
-    out.uniqueVisitorsTotal += s.uniqueVisitorsTotal || 0;
-    for(const [k,val] of Object.entries(s.sections||{})) out.sections[k] = (out.sections[k]||0) + val;
-    for(const [k,val] of Object.entries(s.langs||{})) out.langs[k] = (out.langs[k]||0) + val;
-    for(const [k,val] of Object.entries(s.events||{})) out.events[k] = (out.events[k]||0) + val;
-    if(s.recentQuestions) out.recentQuestions.push(...s.recentQuestions);
-  }
-  return out;
+// ---------- intestazione e comandi ----------
+function scheletro() {
+  $('#app').innerHTML = `
+  <header><div class="wrap">
+    <h1>Utilizzo pagine ospiti</h1><div class="sub">Solo ospiti reali: esclusi test, bot, copie di prova e i tuoi dispositivi</div>
+    <div class="row">${[['all','Entrambe'],['campaldino','Campaldino'],['lorenzo','Lorenzo']].map(([k,l]) => `<button class="chip" data-s="${k}">${l}</button>`).join('')}</div>
+    <div class="row">${[['7','7 giorni'],['30','30 giorni'],['mese','Questo mese'],['mesePrec','Mese scorso'],['anno',"Quest'anno"],['tutto','Tutto']].map(([k,l]) => `<button class="chip" data-p="${k}">${l}</button>`).join('')}</div>
+    <div class="row"><span class="muted" style="font-size:12.5px">Dal</span><input type="date" class="date" id="dF"><span class="muted" style="font-size:12.5px">al</span><input type="date" class="date" id="dT"><button class="chip" id="vai">Mostra</button></div>
+  </div></header>
+  <div class="wrap" id="corpo"><p class="muted" style="margin-top:20px">Carico…</p></div>`;
+  document.querySelectorAll('[data-s]').forEach(b => b.onclick = () => { S.slug = b.dataset.s; carica(); });
+  document.querySelectorAll('[data-p]').forEach(b => b.onclick = () => { S.preset = b.dataset.p; [S.from, S.to] = preset(S.preset); carica(); });
+  $('#vai').onclick = () => { if ($('#dF').value && $('#dT').value) { S.preset = ''; S.from = $('#dF').value; S.to = $('#dT').value; if (S.from > S.to) [S.from, S.to] = [S.to, S.from]; carica(); } };
+}
+function aggiornaComandi() {
+  document.querySelectorAll('[data-s]').forEach(b => b.classList.toggle('on', b.dataset.s === S.slug));
+  document.querySelectorAll('[data-p]').forEach(b => b.classList.toggle('on', b.dataset.p === S.preset));
+  $('#dF').value = S.from; $('#dT').value = S.to;
 }
 
-function elencoGiorni(days){
-  const oggi = new Date();
-  const giorni = [];
-  for(let i=days-1;i>=0;i--){
-    const d = new Date(oggi); d.setUTCDate(d.getUTCDate()-i);
-    giorni.push(d.toISOString().slice(0,10));
-  }
-  return giorni;
+async function api(path) {
+  const r = await fetch(`${WORKER}${path}${path.includes('?') ? '&' : '?'}key=${encodeURIComponent(KEY)}`);
+  if (r.status === 401) throw new Error('chiave');
+  return r.json();
 }
 
-function etichettaGiorno(g){
-  const d = new Date(g+'T12:00:00Z');
-  return d.toLocaleDateString('it-IT', { weekday:'short', day:'numeric', month:'short', timeZone:'UTC' });
-}
-
-function renderBarChart(perGiorno, days){
-  const giorni = elencoGiorni(days);
-  const max = Math.max(1, ...giorni.map(g=>perGiorno[g]||0));
-  const mostraEtichette = days<=14;
-  const mostraNumeri = days<=30;
-  return `<div class="bar-chart">${giorni.map(g=>{
-    const v = perGiorno[g]||0;
-    const h = Math.max(2, Math.round((v/max)*72));
-    const [,m,dd] = g.split('-');
-    return `<div class="bar-col" title="${etichettaGiorno(g)}: ${v}">
-      ${mostraNumeri?`<div class="bar-val${v?'':' zero'}">${v}</div>`:''}
-      <div class="bar${v?'':' zero'}" style="height:${h}px"></div>
-      ${mostraEtichette?`<div class="bar-day-label">${dd}/${m}</div>`:''}
-    </div>`;
-  }).join('')}</div>`;
-}
-
-function renderTabellaGiorni(s, days){
-  const giorni = elencoGiorni(days).slice().reverse();
-  const oggi = new Date().toISOString().slice(0,10);
-  const righe = giorni.map(g=>{
-    const u = s.uniqueByDay[g]||0;
-    const a = s.byDay[g]||0;
-    const vuoto = (u===0 && a===0);
-    return `<tr class="dayrow${vuoto?' vuoto':''}${g===oggi?' oggi':''}" onclick="apriDettaglio('${g}')">
-        <td>${etichettaGiorno(g)}</td>
-        <td class="num">${u}</td>
-        <td class="num sec">${a}</td>
-        <td class="chev">${vuoto?'':'›'}</td>
-      </tr>
-      <tr class="daydet" id="det-${g}" style="display:none"><td colspan="4">${dettaglioGiorno(g)}</td></tr>`;
-  }).join('');
-  return `<div class="scroll-y"><table class="dayt">
-    <thead><tr><th>Giorno</th><th>Utilizzatori</th><th>Azioni</th><th></th></tr></thead>
-    <tbody>${righe}</tbody></table></div>`;
-}
-
-function dettaglioGiorno(g){
-  if(!datiCorrenti) return '';
-  const { slugs, validi, somma } = datiCorrenti;
-  let html = '';
-  if(slugs.length>1){
-    html += `<div class="det-title">Per struttura</div>`;
-    validi.forEach((v,i)=>{
-      const nome = NOMI_PROPRIETA[slugs[i]] || slugs[i];
-      html += `<div class="det-line"><span>${nome}</span><span><b>${(v.uniqueByDay||{})[g]||0}</b> utilizzatori · ${(v.byDay||{})[g]||0} azioni</span></div>`;
-    });
-  }
-  const secs = (somma.sectionsByDay||{})[g] || {};
-  const entries = Object.entries(secs).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
-  if(entries.length){
-    const mappa = appAttiva==='flytour' ? NOMI_TOUR : null;
-    html += `<div class="det-title">${appAttiva==='flytour' ? 'Attività per tour' : 'Sezioni aperte'}</div>`;
-    html += entries.map(([k,v])=>`<div class="det-line"><span>${(mappa&&mappa[k])||k}</span><b>${v}</b></div>`).join('');
-  }
-  if(!html) html = `<div class="det-line"><span>Nessuna attività registrata</span></div>`;
-  return html;
-}
-
-function apriDettaglio(g){
-  const el = document.getElementById('det-'+g);
-  if(!el) return;
-  const aperto = el.style.display !== 'none';
-  document.querySelectorAll('.daydet').forEach(r=>r.style.display='none');
-  el.style.display = aperto ? 'none' : 'table-row';
-}
-
-function renderHBars(obj, nomiMap, colore){
-  const entries = Object.entries(obj).sort((a,b)=>b[1]-a[1]).slice(0,8);
-  if(!entries.length) return `<div class="empty-note">Nessun dato ancora</div>`;
-  const max = Math.max(...entries.map(e=>e[1]));
-  return entries.map(([k,v])=>{
-    const label = (nomiMap && nomiMap[k]) || k;
-    const pct = Math.round((v/max)*100);
-    return `<div class="hbar-row">
-      <div class="hbar-label">${label}</div>
-      <div class="hbar-track"><div class="hbar-fill" style="width:${pct}%;${colore?`background:${colore}`:''}"></div></div>
-      <div class="hbar-val">${v}</div>
-    </div>`;
-  }).join('');
-}
-
-async function carica(){
-  const content = document.getElementById('content');
-  content.innerHTML = '<div class="status">Caricamento…</div>';
-  const slugs = PROPRIETA[appAttiva];
-  try{
-    const risultati = await Promise.all(slugs.map(s=>fetchStats(s, rangeGiorni).catch(()=>null)));
-    const validi = risultati.filter(Boolean);
-    if(!validi.length){
-      content.innerHTML = `<div class="card"><div class="empty-note">Nessun dato disponibile per questo periodo.</div></div>`;
-      datiCorrenti = null;
-      return;
-    }
-    const s = sommaStats(validi);
-    datiCorrenti = { slugs, validi, somma: s };
-
-    const totaleVisite = Object.values(s.byDay).reduce((a,b)=>a+b,0);
-    const totaleUtentiGiorni = Object.values(s.uniqueByDay).reduce((a,b)=>a+b,0);
-    const mediaUtenti = rangeGiorni>0 ? (totaleUtentiGiorni/rangeGiorni).toFixed(1) : '0';
-    const giorniAttivi = Object.values(s.uniqueByDay).filter(v=>v>0).length;
-    const linguaTop = Object.entries(s.langs).sort((a,b)=>b[1]-a[1])[0];
-    const domande = s.events.chat_msg || 0;
-    const tourAperti = (s.events.tour_view || 0) + (s.events.tour_open || 0);
-
-    let propBreakdown = '';
-    if(slugs.length>1){
-      const perProp = {};
-      validi.forEach((v,i)=>{ perProp[slugs[i]] = v.uniqueVisitorsTotal || 0; });
-      propBreakdown = `<div class="card"><h3>🏠 Utilizzatori per struttura <span class="hint">${rangeGiorni} giorni</span></h3>${renderHBars(perProp, NOMI_PROPRIETA, 'var(--terra)')}</div>`;
-    }
-
-    content.innerHTML = `
-      <div class="kpi-grid">
-        <div class="kpi-card"><div class="kpi-val">${s.uniqueVisitorsTotal}</div><div class="kpi-label">Utilizzatori diversi (${rangeGiorni}gg)</div></div>
-        <div class="kpi-card"><div class="kpi-val">${mediaUtenti}</div><div class="kpi-label">Media utilizzatori al giorno</div></div>
-        <div class="kpi-card"><div class="kpi-val">${giorniAttivi}<span style="font-size:15px;color:var(--muted)">/${rangeGiorni}</span></div><div class="kpi-label">Giorni con utilizzo</div></div>
-        <div class="kpi-card"><div class="kpi-val">${totaleVisite}</div><div class="kpi-label">Azioni totali</div></div>
-        <div class="kpi-card"><div class="kpi-val">${linguaTop ? (BANDIERE[linguaTop[0]]||'') + ' ' + (NOMI_LINGUA[linguaTop[0]]||linguaTop[0]) : '—'}</div><div class="kpi-label">Lingua più usata</div></div>
-        <div class="kpi-card"><div class="kpi-val">${appAttiva==='flytour' ? tourAperti : domande}</div><div class="kpi-label">${appAttiva==='flytour' ? 'Tour aperti' : 'Domande al concierge'}</div></div>
-      </div>
-
-      <div class="card">
-        <h3>👥 Utilizzatori per giorno <span class="hint">${rangeGiorni} giorni</span></h3>
-        ${renderBarChart(s.uniqueByDay, rangeGiorni)}
-      </div>
-
-      <div class="card">
-        <h3>📅 Dettaglio giorno per giorno <span class="hint">tocca una riga</span></h3>
-        ${renderTabellaGiorni(s, rangeGiorni)}
-      </div>
-
-      ${propBreakdown}
-
-      <div class="card">
-        <h3>🧭 Come la usano <span class="hint">tipo di azione</span></h3>
-        ${renderHBars(s.events, NOMI_EVENTO, 'var(--sage)')}
-      </div>
-
-      <div class="card">
-        <h3>${appAttiva==='flytour' ? '🗺️ Tour più usati' : '📍 Sezioni più visitate'}</h3>
-        ${renderHBars(s.sections, appAttiva==='flytour' ? NOMI_TOUR : null, 'var(--gold)')}
-      </div>
-
-      <div class="card">
-        <h3>🌍 Lingue</h3>
-        ${renderHBars(s.langs, NOMI_LINGUA, 'var(--terra)')}
-      </div>
-
-      ${appAttiva==='experience' ? `
-      <div class="card">
-        <h3>💬 Ultime domande al concierge</h3>
-        ${s.recentQuestions.length ? s.recentQuestions.slice(0,15).map(q=>`
-          <div class="q-item">
-            <div class="q-text">${BANDIERE[q.lang]||''} ${(q.q||'').replace(/</g,'&lt;')}</div>
-          </div>
-        `).join('') : '<div class="empty-note">Nessuna domanda registrata in questo periodo</div>'}
-      </div>` : ''}
-    `;
-  }catch(e){
-    content.innerHTML = `<div class="card"><div class="empty-note">Errore nel caricamento: ${e.message}<br><br>Se la chiave admin non è corretta, <a href="#" onclick="resetChiave();return false">tocca qui per reinserirla</a>.</div></div>`;
+async function carica() {
+  aggiornaComandi();
+  $('#corpo').innerHTML = '<p class="muted" style="margin-top:20px">Carico…</p>';
+  try {
+    const q = `from=${S.from}&to=${S.to}`;
+    const [st, dv, vecchio] = await Promise.all([
+      api(`/wb/${S.slug}/stats2?${q}`), api(`/wb/${S.slug}/dispositivi?${q}`),
+      Promise.all((S.slug === 'all' ? ['campaldino', 'lorenzo'] : [S.slug]).map(s => api(`/wb/${s}/stats?days=90`).catch(() => null))),
+    ]);
+    if (st.error) throw new Error(st.error);
+    disegna(st, dv, vecchio.filter(Boolean));
+  } catch (e) {
+    if (e.message === 'chiave') { localStorage.removeItem('wb_admin_key'); return setup('Chiave non valida.'); }
+    $('#corpo').innerHTML = `<p class="err" style="margin-top:20px">Errore nel caricamento: ${esc(e.message)}</p>`;
   }
 }
 
-function resetChiave(){
-  localStorage.removeItem('wb_admin_key');
-  location.reload();
+// ---------- componenti grafici ----------
+function barre(righe, max, fmtV) {
+  max = max || Math.max(1, ...righe.map(r => r.v));
+  return `<div class="bars">${righe.map(r => `<div class="r"><span>${r.l}</span><span class="t"><i style="width:${Math.min(100, r.v / max * 100)}%;background:${r.c || 'var(--orange)'}"></i></span><span class="v">${fmtV ? fmtV(r) : `<b>${r.v}</b>`}</span></div>`).join('')}</div>`;
+}
+function grafico(giorni, serie) {  // barre impilate per giorno (o per settimana se il periodo e' lungo)
+  const W = 820, H = 190, pad = 26, n = giorni.length || 1;
+  const tot = giorni.map(g => serie.reduce((s, x) => s + (x.v[g.k] || 0), 0));
+  const max = Math.max(1, ...tot), bw = (W - pad) / n;
+  let svg = `<svg viewBox="0 0 ${W} ${H + 22}" width="100%" style="display:block">`;
+  [0, .5, 1].forEach(f => { const y = H - f * (H - 12); svg += `<line x1="${pad}" x2="${W}" y1="${y}" y2="${y}" stroke="#eee"/><text x="0" y="${y + 4}" font-size="11" fill="#999">${Math.round(max * f)}</text>`; });
+  giorni.forEach((g, i) => {
+    let y = H; serie.forEach(s => { const v = s.v[g.k] || 0, h = v / max * (H - 12); if (h > 0) svg += `<rect x="${pad + i * bw + bw * .15}" y="${y - h}" width="${bw * .7}" height="${h}" rx="2" fill="${s.c}"><title>${g.l}: ${v} ${s.n}</title></rect>`; y -= h; });
+    if (i % Math.ceil(n / 10) === 0) svg += `<text x="${pad + i * bw + bw / 2}" y="${H + 16}" font-size="11" fill="#999" text-anchor="middle">${g.l}</text>`;
+  });
+  return svg + '</svg>';
 }
 
-// ====== AVVIO ======
-if(!adminKey){
-  document.getElementById('setupBox').style.display = 'block';
-}else{
-  document.getElementById('tabsRow').style.display = 'flex';
-  document.getElementById('rangeRow').style.display = 'flex';
-  carica();
+// ---------- contenuto ----------
+function disegna(st, dv, vecchio) {
+  const k = st.kpi || {}; const disp = k.dispositivi || 0;
+  const ev = st.eventi || [];
+  // ospiti distinti: per evento complessivo (eventiTot, esatto) o per evento+sezione
+  const devDi = (e, s) => s == null ? (((st.eventiTot || []).find(r => r.event === e) || {}).dispositivi || 0)
+    : ((ev.find(r => r.event === e && r.section === s) || {}).dispositivi || 0);
+  const nDi = (e, s) => ev.filter(r => r.event === e && (s == null || r.section === s)).reduce((a, r) => a + r.n, 0);
+  let h = '';
+
+  if (st.primoGiorno && S.from < st.primoGiorno) h += `<div class="note">📌 La raccolta dettagliata è attiva dal <b>${fmtD(st.primoGiorno)}/${st.primoGiorno.slice(0, 4)}</b>: per i giorni precedenti c'è solo lo <a href="#storico">storico semplificato</a> in fondo alla pagina.</div>`;
+
+  // numeri principali
+  const perS = Object.fromEntries((st.perSlug || []).map(r => [r.slug, r]));
+  h += `<div class="kpis" style="margin-top:14px">
+    <div class="kpi"><span>Ospiti (dispositivi)</span><b>${disp}</b><small>${S.slug === 'all' ? `Campaldino ${(perS.campaldino || {}).dispositivi || 0} · Lorenzo ${(perS.lorenzo || {}).dispositivi || 0}` : 'persone diverse che hanno aperto la pagina'}</small></div>
+    <div class="kpi"><span>Visite</span><b>${k.visite || 0}</b><small>un ospite conta una volta al giorno</small></div>
+    <div class="kpi"><span>Tornati più giorni</span><b>${pct(k.tornati, disp)}%</b><small>${k.tornati || 0} ospiti l'hanno usata in giorni diversi</small></div>
+    <div class="kpi"><span>Hanno solo aperto</span><b>${pct(k.soloApertura, disp)}%</b><small>${k.soloApertura || 0} ospiti senza nessun altro tocco</small></div>
+  </div>`;
+
+  // andamento
+  const gg = giorniTra(st.from, st.to);
+  const perGiorno = {}; (st.perGiorno || []).forEach(r => { (perGiorno[r.slug] = perGiorno[r.slug] || {})[r.day] = r.dispositivi; });
+  let bucket = gg.map(d => ({ k: d, l: fmtD(d), days: [d] }));
+  if (gg.length > 70) { bucket = []; for (let i = 0; i < gg.length; i += 7) bucket.push({ k: gg[i], l: fmtD(gg[i]), days: gg.slice(i, i + 7) }); }
+  const serie = (S.slug === 'all' ? ['campaldino', 'lorenzo'] : [S.slug]).map(s => {
+    const v = {}; bucket.forEach(b => v[b.k] = b.days.reduce((a, d) => a + ((perGiorno[s] || {})[d] || 0), 0));
+    return { n: 'ospiti ' + STR[s], c: s === 'campaldino' ? 'var(--camp)' : 'var(--lor)', v };
+  });
+  h += `<div class="card"><h2>Andamento</h2><p class="hint">Ospiti per ${gg.length > 70 ? 'settimana (somma dei giorni)' : 'giorno'}.</p>
+    ${S.slug === 'all' ? `<div class="legend"><span><i style="background:var(--camp)"></i>Campaldino</span><span><i style="background:var(--lor)"></i>Lorenzo</span></div>` : ''}
+    ${grafico(bucket, serie)}</div>`;
+
+  // sezioni
+  const tabDev = s => s === 'casa' ? Math.max(devDi('view', 'casa'), devDi('tab', 'casa')) : devDi('tab', s);
+  const sez = Object.keys(SEZ).map(s => ({ l: SEZ[s], v: tabDev(s) })).sort((a, b) => b.v - a.v);
+  h += `<div class="card"><h2>Cosa guardano</h2><p class="hint">Quanti ospiti hanno aperto ogni sezione almeno una volta, e la percentuale sul totale.</p>
+    ${barre(sez, disp, r => `<b>${r.v}</b> · ${pct(r.v, disp)}%`)}</div>`;
+
+  // funzioni usate
+  const azioni = [
+    { l: '💬 WhatsApp', v: devDi('whatsapp'), n: nDi('whatsapp') },
+    { l: '🧭 Naviga / Maps', v: devDi('naviga'), n: nDi('naviga') },
+    { l: '📶 WiFi', v: devDi('wifi_open'), n: nDi('wifi_open') },
+    { l: '🤖 Concierge', v: devDi('chat_msg'), n: nDi('chat_msg') },
+    { l: '🎧 Audioguide', v: Math.max(devDi('audioguida'), devDi('visita_tab', 'audio')), n: nDi('audioguida') + nDi('visita_tab', 'audio') },
+    { l: '📞 Telefono', v: devDi('telefono'), n: nDi('telefono') },
+  ].sort((a, b) => b.v - a.v);
+  const navSez = ev.filter(r => r.event === 'naviga').sort((a, b) => b.n - a.n).map(r => `${SEZ[r.section] || r.section}: ${r.n}`).join(' · ');
+  h += `<div class="card"><h2>Cosa fanno</h2><p class="hint">Ospiti che hanno usato ogni funzione, e quante volte in totale.</p>
+    ${barre(azioni, disp, r => `<b>${r.v}</b> · ${r.n}×`)}${navSez ? `<p class="hint" style="margin:8px 0 0">Navigazioni per sezione: ${esc(navSez)}</p>` : ''}</div>`;
+
+  // Visita Roma
+  const vrAperto = Math.max(tabDev('tour'), devDi('badge', 'itinerario'));
+  const modi = ['auto', 'scegli', 'nostri', 'vicino'].map(m => ({ m, v: devDi('planner', m) }));
+  const usato = Math.max(...modi.map(x => x.v), 0);
+  const generati = devDi('planner_genera'), salvati = devDi('planner_salva');
+  const f = (l, v, base) => `<div class="f"><div class="top"><b>${l}</b><span>${v} ospiti${base ? ` · ${pct(v, base)}%` : ''}</span></div><div class="t"><i style="width:${base ? Math.max(2, Math.min(100, v / base * 100)) : 100}%"></i></div></div>`;
+  const temi = ev.filter(r => r.event === 'planner_genera').sort((a, b) => b.n - a.n).map(r => ({ l: esc(TEMI[r.section] || r.section), v: r.n }));
+  h += `<div class="card"><h2>🧭 Visita Roma</h2><p class="hint">Dall'apertura della sezione fino all'itinerario salvato (percentuali su chi ha aperto Visita Roma).</p>
+    <div class="funnel">${f('Hanno aperto Visita Roma', vrAperto, disp)}${f('Hanno scelto una modalità', usato, vrAperto)}${f('Hanno ottenuto un itinerario', generati, vrAperto)}${f('Lo hanno salvato', salvati, vrAperto)}</div>
+    <p class="hint" style="margin:10px 0 6px">Dal badge in home: <b>${devDi('badge', 'itinerario')}</b> ospiti · Modalità: ${modi.map(x => `${({ auto: 'su misura', scegli: 'scegli tu', nostri: 'nostri itinerari', vicino: 'intorno a me' })[x.m]} <b>${x.v}</b>`).join(' · ')} · posizione trovata in "Intorno a me": <b>${devDi('planner_vicino', 'ok')}</b></p>
+    ${temi.length ? `<h2 style="font-size:14px;margin:12px 0 4px">Itinerari creati</h2>${barre(temi, null, r => `<b>${r.v}</b>`)}` : ''}</div>`;
+
+  // lingue e orari
+  const lin = (st.lingue || []).map(r => ({ l: LINGUE[r.lang] || r.lang, v: r.dispositivi }));
+  h += `<div class="card"><h2>Lingue</h2><p class="hint">Lingua in cui gli ospiti usano la pagina.</p>${lin.length ? barre(lin, disp, r => `<b>${r.v}</b> · ${pct(r.v, disp)}%`) : '<p class="muted">Nessun dato.</p>'}</div>`;
+  const ore = Array.from({ length: 24 }, (_, i) => ({ k: i, l: String(i), v: ((st.ore || []).find(r => r.hour === i) || {}).visite || 0 }));
+  h += `<div class="card"><h2>Orari</h2><p class="hint">Visite per ora del giorno (ora di Roma).</p>${grafico(ore, [{ n: 'visite', c: 'var(--orange)', v: Object.fromEntries(ore.map(o => [o.k, o.v])) }])}</div>`;
+
+  // domande al concierge
+  const domande = vecchio.flatMap(v => (v.recentQuestions || []).map(q => Object.assign({ s: v.slug }, q))).slice(0, 30);
+  h += `<div class="card"><h2>🤖 Ultime domande al concierge</h2><p class="hint">Le domande più recenti fatte dagli ospiti.</p>
+    ${domande.length ? domande.map(q => `<div class="q">${esc(q.q)} <small>· ${esc(STR[q.s] || q.s)}${q.lang ? ' · ' + esc(q.lang) : ''}</small></div>`).join('') : '<p class="muted">Nessuna domanda.</p>'}</div>`;
+
+  // pulizia dei dati
+  const scart = st.scartati || [];
+  const anomalo = d => d.bot || d.fuori > 0 || d.maxOra >= 40 || d.eventi >= 150;
+  const lista = (dv.dispositivi || []).filter(d => d.escluso || anomalo(d) || d.eventi >= 20).slice(0, 60);
+  h += `<div class="card"><h2>🧹 Pulizia dei dati</h2>
+    <p class="hint">Traffico scartato automaticamente in questo periodo: ${scart.length ? scart.map(s => `<b>${s.eventi}</b> eventi da <b>${s.dispositivi}</b> (${esc(s.motivo)})`).join(' · ') : 'nessuno'}.</p>
+    <div class="note">📱 <b>Per escludere un tuo telefono o computer</b>, anche dal passato: aprilo una volta su <b>interno1.it/lorenzo/?notrack=1</b> (vale per entrambe le strutture). Per riattivarlo: <b>?notrack=0</b>.</div>
+    <p class="hint">Dispositivi più attivi o sospetti (codici anonimi). Quelli segnati hanno un comportamento da test: escludili con un tocco e spariscono da tutte le statistiche.</p>
+    <div class="scroll"><table><tr><th>Dispositivo</th><th>Eventi</th><th>Giorni</th><th>Picco/ora</th><th>Dove</th><th></th></tr>
+    ${lista.map(d => `<tr><td><code>${esc(d.sid.slice(0, 8))}</code><br>${d.bot ? '<span class="tag bad">automatico</span>' : ''}${d.fuori ? '<span class="tag bad">fuori sito</span>' : ''}${!d.bot && !d.fuori && anomalo(d) ? '<span class="tag warn">anomalo</span>' : ''}${d.escluso ? `<span class="tag grey">escluso: ${esc(d.escluso)}</span>` : ''}</td>
+      <td>${d.eventi}</td><td>${d.giorni}</td><td>${d.maxOra}</td><td>${esc((d.strutture || '').replace('campaldino', 'C').replace('lorenzo', 'L'))} ${esc(d.lingue || '')}</td>
+      <td>${d.bot || d.fuori ? '' : d.escluso ? `<button class="btn" data-sid="${esc(d.sid)}" data-on="0">Riammetti</button>` : `<button class="btn red" data-sid="${esc(d.sid)}" data-on="1">Escludi</button>`}</td></tr>`).join('') || '<tr><td colspan="6" class="muted">Nessun dispositivo da segnalare.</td></tr>'}
+    </table></div>
+    ${(st.esclusi || []).length ? `<details style="margin-top:10px"><summary>Dispositivi esclusi (${st.esclusi.length})</summary>${st.esclusi.map(x => `<div class="q"><code>${esc(x.sid.slice(0, 8))}</code> · ${esc(x.note)} <small>· dal ${new Date(x.ts).toLocaleDateString('it-IT')}</small> <button class="btn" data-sid="${esc(x.sid)}" data-on="0">Riammetti</button></div>`).join('')}</details>` : ''}
+  </div>`;
+
+  // storico del vecchio sistema
+  const tot = {}; vecchio.forEach(v => Object.entries(v.uniqueByDay || {}).forEach(([d, n]) => tot[d] = (tot[d] || 0) + n));
+  const dStor = Object.keys(tot).sort().filter(d => !st.primoGiorno || d < st.primoGiorno);
+  h += `<div class="card" id="storico"><details><summary>📦 Storico semplificato (prima della raccolta dettagliata)</summary>
+    <p class="hint" style="margin-top:8px">Dati del vecchio sistema (ultimi 90 giorni disponibili), non ripulibili dai test: da leggere con cautela.</p>
+    ${dStor.length ? grafico(dStor.map(d => ({ k: d, l: fmtD(d) })), [{ n: 'dispositivi', c: '#b9b2a6', v: tot }]) : '<p class="muted">Nessun dato.</p>'}</details></div>`;
+
+  $('#corpo').innerHTML = h;
+  document.querySelectorAll('[data-sid]').forEach(b => b.onclick = async () => {
+    b.disabled = true;
+    await fetch(`${WORKER}/wb/all/escludi?key=${encodeURIComponent(KEY)}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sid: b.dataset.sid, on: b.dataset.on === '1', note: 'escluso da analisi' }) });
+    carica();
+  });
 }
+
+function avvia() {
+  if (!KEY) return setup();
+  [S.from, S.to] = preset(S.preset);
+  scheletro(); carica();
+}
+avvia();
 </script>
 </body>
 </html>
