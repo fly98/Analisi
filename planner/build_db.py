@@ -2,8 +2,8 @@ import json
 # campi: id, nome, cat, zona, lat, lon, prezzo (intero adulto, None=gratis? no: 0=gratis, None=da verificare),
 # imp 1-5, fatica 1-3, durata (min), desc, verifica (True se prezzo da confermare), temp (data fine o None)
 A=[]
-def add(id,nome,cat,zona,lat,lon,prezzo,imp,fat,dur,desc,verifica=False,temp=None):
-    A.append(dict(id=id,nome=nome,cat=cat,zona=zona,lat=lat,lon=lon,prezzo=prezzo,imp=imp,fatica=fat,durata=dur,desc=desc,verifica=verifica,temp=temp))
+def add(id,nome,cat,zona,lat,lon,prezzo,imp,fat,dur,desc,verifica=False,temp=None,momento=None):
+    A.append(dict(id=id,nome=nome,cat=cat,zona=zona,lat=lat,lon=lon,prezzo=prezzo,imp=imp,fatica=fat,durata=dur,desc=desc,verifica=verifica,temp=temp,momento=momento or ['qualsiasi']))
 
 # ---------- BLOCCO 1: insolite / musei particolari ----------
 add('illusioni','Museo delle Illusioni',['insolito','museo'],'Monti',41.8946,12.5025,22,3,1,75,'Oltre 70 illusioni ottiche e stanze interattive: divertente per tutte le età.',True)
@@ -112,6 +112,18 @@ add('orto_botanico','Orto Botanico',['parco'],'Trastevere',41.8927,12.4686,None,
 add('bioparco','Bioparco',['parco','famiglia'],'Villa Borghese',41.9168,12.4832,None,2,2,150,'Lo zoo di Roma, ideale per chi viaggia con bambini.',True)
 add('villa_medici','Villa Medici',['arte','parco'],'Spagna',41.9087,12.4796,None,2,1,60,'Sede dell\'Accademia di Francia: giardini rinascimentali con visita guidata.',True)
 add('zodiaco','Belvedere dello Zodiaco',['panorama'],'Monte Mario',41.9290,12.4440,0,2,1,20,'Il punto più alto di Roma, lontano dal centro: si raggiunge in bus o taxi.')
+
+# ---------- MOMENTO IDEALE ----------
+# mattina = presto per caldo/folla; sera = dopo cena/illuminato; tramonto = ultima tappa del giorno
+MOMENTO = {
+ 'tramonto': ['pincio','giardino_aranci','gianicolo','zodiaco','terrazza_caffarelli','fontanone'],
+ 'mattina':  ['colosseo','musei_vaticani','cupola','appia_antica','parco_acquedotti','campo_fiori','san_pietro','pantheon'],
+ 'sera':     ['trevi','navona','ghetto','isola_tiberina','spagna','campo_fiori','ponte_santangelo','fori_imperiali'],
+ 'pomeriggio':['gesu'],
+}
+for a in A:
+    m=[k for k,ids in MOMENTO.items() if a['id'] in ids]
+    if m: a['momento']=m
 
 json.dump(A,open('attrazioni.json','w',encoding='utf-8'),ensure_ascii=False,indent=1)
 ver=sum(1 for a in A if a['verifica'])
