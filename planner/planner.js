@@ -264,6 +264,15 @@
     // quanti giorni servono? si prova da 1 in su finche' non resta fuori niente
     let n = 1, r;
     const senzaBudget = Object.assign({}, opz, { budgetGiorno: null, soloGratis: false });
+    if (opz.unGiorno) {
+      // tutto in un unico percorso, senza limiti di tempo o fatica
+      r = { giorni: [ordinaGiorno(lista, partenza)], escluse: [], p: paramGiorno(senzaBudget) };
+      const out = componi(r, gite, partenza, senzaBudget, avvisi, db);
+      const g = out.giorni[0], ore = (g.visite + g.spostamenti) / 60, cap = r.p.minuti / 60;
+      if (ore > cap) out.avvisi.push(`Giornata molto impegnativa: circa ${Math.round(ore * 10) / 10} ore tra visite e spostamenti, oltre le ${Math.round(cap * 10) / 10} consigliate per il ritmo scelto.`);
+      out.giorniNecessari = null;
+      return out;
+    }
     do { r = costruisciGiorni(lista, n, partenza, senzaBudget); n++; } while (r.escluse.length && n <= 14);
     const giorniNecessari = r.giorni.length + gite.length;
     const out = componi(r, gite, partenza, senzaBudget, avvisi, db);
