@@ -136,6 +136,44 @@ add('villa_quintili','Villa dei Quintili',['archeologia','insolito'],'Appia',41.
 add('cimitero_acattolico','Cimitero Acattolico e Piramide Cestia',['insolito','archeologia'],'Testaccio',41.8762,12.4800,0,3,1,45,'Il cimitero romantico di Keats e Shelley, all\'ombra di una piramide romana.')
 add('monte_testaccio','Monte dei Cocci',['archeologia','insolito'],'Testaccio',41.8757,12.4755,None,2,1,45,'Una collina fatta interamente di anfore rotte: la discarica di Roma antica.',True)
 
+# ---------- IMPORTANZA 1-10 ----------
+# conversione dalla vecchia scala 1-5 (5->9, 4->7, 3->5, 2->3), poi ritocchi manuali
+IMP10 = {
+ # 10: i simboli assoluti di Roma
+ 'colosseo':10,'musei_vaticani':10,'san_pietro':10,'pantheon':10,'trevi':10,
+ # 9
+ 'navona':9,'galleria_borghese':9,'piazza_san_pietro':9,
+ # 8
+ 'spagna':8,'laterano':8,'santa_maria_maggiore':8,'castel_santangelo':8,'capitolini':8,'fori_imperiali':8,'cupola':8,
+ # 7
+ 'vittoriano':7,'ghetto':7,'popolo':7,'villa_borghese':7,'pincio':7,'giardino_aranci':7,'gianicolo':7,'buco_serratura':7,
+ 'domus_aurea':7,'caracalla':7,'ostia_antica':7,'appia_antica':7,'san_paolo':7,'vincoli':7,'santa_maria_trastevere':7,
+ 'san_luigi':7,'san_clemente':7,'san_callisto':7,'campo_fiori':6,
+ # 6
+ 'parco_acquedotti':6,'sant_ignazio':6,'santa_maria_popolo':6,'gesu':6,'palazzo_valentini':6,'palazzo_massimo':6,
+ 'cappuccini':6,'isola_tiberina':6,'coppede':6,'bocca_verita':6,'mercati_traiano':6,
+ # 5
+ 'illusioni':5,'torre_argentina':5,'circo_massimo':5,'montemartini':5,'welcome_rome':5,'galleria_spada':5,'maxxi':5,
+ 'minerva':5,'vittoria':5,'quattro_fontane':5,'cimitero_acattolico':5,'vicus_caprarius':5,'stadio_domiziano':5,
+ 'carcere_mamertino':5,'mausoleo_augusto':5,'ara_pacis':5,'teatro_marcello':5,'scala_santa':5,'tempietto_bramante':5,
+ 'fontanone':5,'terrazza_caffarelli':5,'villa_doria_pamphilj':5,'villa_torlonia':5,'aracoeli':5,'santa_prassede':5,
+ 'domitilla':5,'priscilla':5,'san_sebastiano':5,'terme_diocleziano':5,'palazzo_altemps':5,'grotte_vaticane':5,
+ 'ponte_santangelo':5,'necropoli':5,'colosseo_sotterranei':5,
+ # 4
+ 'case_celio':4,'sant_agostino':4,'sant_andrea_quirinale':4,'santo_stefano_rotondo':4,'quattro_coronati':4,
+ 'santa_sabina':4,'santa_maria_angeli':4,'santa_cecilia':4,'giardini_vaticani':4,'cecilia_metella':4,
+ 'santa_costanza':4,'borgo_pio':4,'museo_luce':4,'barracco':4,'galleria_sciarra':4,'anime_purgatorio':4,
+ 'museo_mura':4,'monte_testaccio':4,'crypta_balbi':4,'villa_celimontana':4,'villa_sciarra':4,'roseto':4,
+ # 3
+ 'serra_moresca':3,'lab_mente':3,'dreamers':3,'ikono':3,'time_elevator':3,'prati':3,'orto_botanico':3,
+ 'bioparco':3,'villa_medici':3,'villa_ada':3,'caffarella':3,'sant_ivo':3,'chiostro_bramante':3,'cosma_damiano':3,
+ 'villa_quintili':3,'san_lorenzo':3,
+ # 2
+ 'palazzaccio':2,'zodiaco':2,
+}
+for a in A:
+    a['imp'] = IMP10.get(a['id'], a['imp']*2-1)
+
 # ---------- MOMENTO IDEALE ----------
 # mattina = presto per caldo/folla; sera = dopo cena/illuminato; tramonto = ultima tappa del giorno
 MOMENTO = {
