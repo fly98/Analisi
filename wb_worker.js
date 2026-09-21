@@ -521,7 +521,8 @@ async function assicuraColonne(env) {
   colonneOk = true;
 }
 // Traffico valido: sito ospiti reale (interno1.it), niente browser automatici, niente dispositivi esclusi.
-const HOST_OK = "(host = 'interno1.it' OR host = 'www.interno1.it')";
+// siti buoni: le pagine ospiti su interno1.it; FlyTour vive su fly98.github.io
+const HOST_OK = "(host IN ('interno1.it', 'www.interno1.it') OR (slug = 'flytour' AND host = 'fly98.github.io'))";
 const VALIDO = `bot = 0 AND ${HOST_OK} AND sid NOT IN (SELECT sid FROM excluded)`;
 
 function periodo(url) {
@@ -563,7 +564,7 @@ async function handleStats2(request, env, slug, url) {
   if (!env.DB) return json({ error: 'db non disponibile' }, 503);
   const { from, to } = periodo(url);
   const s = slug === 'all' ? 'all' : slug;
-  const F = `day BETWEEN ?1 AND ?2 AND (?3 = 'all' OR slug = ?3) AND ${VALIDO}`;
+  const F = `day BETWEEN ?1 AND ?2 AND ((?3 = 'all' AND slug IN ('campaldino', 'lorenzo')) OR slug = ?3) AND ${VALIDO}`;
   const q = (sql) => env.DB.prepare(sql).bind(from, to, s);
   const [kpi, torna, soloApertura, perSlug, perGiorno, eventi, eventiTot, lingue, ore, scartati, primo, esclusi] = await env.DB.batch([
     q(`SELECT COUNT(*) AS eventi, COUNT(DISTINCT sid) AS dispositivi, COUNT(DISTINCT sid || day) AS visite FROM ev WHERE ${F}`),
@@ -577,7 +578,7 @@ async function handleStats2(request, env, slug, url) {
     q(`SELECT hour, COUNT(DISTINCT sid || day) AS visite, COUNT(*) AS eventi FROM ev WHERE ${F} GROUP BY hour ORDER BY hour`),
     q(`SELECT CASE WHEN bot = 1 THEN 'browser automatici' WHEN NOT ${HOST_OK} THEN 'fuori da interno1.it' ELSE 'dispositivi esclusi' END AS motivo,
          COUNT(*) AS eventi, COUNT(DISTINCT sid) AS dispositivi
-       FROM ev WHERE day BETWEEN ?1 AND ?2 AND (?3 = 'all' OR slug = ?3) AND NOT (${VALIDO}) GROUP BY motivo`),
+       FROM ev WHERE day BETWEEN ?1 AND ?2 AND ((?3 = 'all' AND slug IN ('campaldino', 'lorenzo')) OR slug = ?3) AND NOT (${VALIDO}) GROUP BY motivo`),
     env.DB.prepare('SELECT MIN(day) AS primo FROM ev'),
     env.DB.prepare('SELECT sid, note, ts FROM excluded ORDER BY ts DESC'),
   ]);
@@ -605,7 +606,7 @@ async function handleDispositivi(request, env, slug, url) {
            (SELECT MAX(c) FROM (SELECT COUNT(*) AS c FROM ev x WHERE x.sid = e.sid AND x.day BETWEEN ?1 AND ?2 GROUP BY x.day, x.hour)) AS maxOra,
            (SELECT note FROM excluded z WHERE z.sid = e.sid) AS escluso,
            MAX(e.dev) AS dev
-    FROM ev e WHERE e.day BETWEEN ?1 AND ?2 AND (?3 = 'all' OR e.slug = ?3)
+    FROM ev e WHERE e.day BETWEEN ?1 AND ?2 AND ((?3 = 'all' AND e.slug IN ('campaldino', 'lorenzo')) OR e.slug = ?3)
     GROUP BY e.sid ORDER BY ${ordine} LIMIT 200`).bind(from, to, s).all();
   return json({ from, to, dispositivi: res.results || [] });
 }
