@@ -97,7 +97,7 @@
 
   // ---------------- utilità ----------------
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  const dur = m => { m = Math.round(m); return m >= 60 ? `${Math.floor(m / 60)}h${m % 60 ? String(m % 60).padStart(2, '0') : ''}` : `${m} min`; };
+  const dur = m => { m = Math.round(m); return m >= 60 ? `${Math.floor(m / 60)}h${m % 60 ? String(m % 60).padStart(2, '0') : ''}` : `${m} ${(typeof TX !== 'undefined' && TX.min) || 'min'}`; };
   const euro = v => (Math.round(v * 100) / 100).toString().replace('.', ',') + '€';
   const track = (e, s) => { try { if (typeof trackEvent === 'function') trackEvent(e, s); } catch (x) {} };
   const partenza = () => ({ lat: CFG.lat, lon: CFG.lon });
@@ -278,7 +278,7 @@
   function tratta(tr) {
     if (!tr) return '';
     if (tr.modo === 'vicino') return `📍 ${TX.accanto}`;
-    return tr.modo === 'mezzi' ? `🚇 ${tr.minuti} min ${TX.mezzi}` : `🚶 ${tr.minuti} min ${TX.piedi}`;
+    return tr.modo === 'mezzi' ? `🚇 ${tr.minuti} ${TX.min} ${TX.mezzi}` : `🚶 ${tr.minuti} ${TX.min} ${TX.piedi}`;
   }
   function vistaRisultato(daSalvati) {
     stato.vista = 'risultato'; daSalvatiCorrente = !!daSalvati;
