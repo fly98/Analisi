@@ -1,0 +1,867 @@
+[
+ {
+  "id": "illusioni",
+  "nome": "Museo delle Illusioni",
+  "cat": [
+   "insolito",
+   "museo"
+  ],
+  "zona": "Monti",
+  "lat": 41.8946,
+  "lon": 12.5025,
+  "prezzo": 22,
+  "imp": 3,
+  "fatica": 1,
+  "durata": 75,
+  "desc": "Oltre 70 illusioni ottiche e stanze interattive: divertente per tutte le età.",
+  "verifica": true,
+  "temp": null
+ },
+ {
+  "id": "cappuccini",
+  "nome": "Cripta dei Cappuccini",
+  "cat": [
+   "insolito",
+   "chiesa"
+  ],
+  "zona": "Via Veneto",
+  "lat": 41.9044,
+  "lon": 12.4886,
+  "prezzo": 10,
+  "imp": 3,
+  "fatica": 1,
+  "durata": 45,
+  "desc": "Cappelle decorate con le ossa di migliaia di frati: macabra e unica al mondo.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "montemartini",
+  "nome": "Centrale Montemartini",
+  "cat": [
+   "insolito",
+   "museo",
+   "archeologia"
+  ],
+  "zona": "Ostiense",
+  "lat": 41.8665,
+  "lon": 12.4777,
+  "prezzo": null,
+  "imp": 3,
+  "fatica": 1,
+  "durata": 75,
+  "desc": "Statue romane esposte tra le turbine di una vecchia centrale elettrica.",
+  "verifica": true,
+  "temp": null
+ },
+ {
+  "id": "serra_moresca",
+  "nome": "Serra Moresca di Villa Torlonia",
+  "cat": [
+   "insolito",
+   "parco"
+  ],
+  "zona": "Nomentano",
+  "lat": 41.9155,
+  "lon": 12.5125,
+  "prezzo": null,
+  "imp": 2,
+  "fatica": 1,
+  "durata": 45,
+  "desc": "Serra ottocentesca in stile Alhambra, con vetrate colorate.",
+  "verifica": true,
+  "temp": null
+ },
+ {
+  "id": "museo_luce",
+  "nome": "Museo della Luce",
+  "cat": [
+   "insolito",
+   "museo"
+  ],
+  "zona": "Campidoglio",
+  "lat": 41.895,
+  "lon": 12.48,
+  "prezzo": null,
+  "imp": 2,
+  "fatica": 1,
+  "durata": 60,
+  "desc": "Fisica della luce raccontata con installazioni da toccare.",
+  "verifica": true,
+  "temp": null
+ },
+ {
+  "id": "welcome_rome",
+  "nome": "Welcome to Rome",
+  "cat": [
+   "insolito",
+   "museo"
+  ],
+  "zona": "Centro Storico",
+  "lat": 41.899,
+  "lon": 12.47,
+  "prezzo": null,
+  "imp": 3,
+  "fatica": 1,
+  "durata": 60,
+  "desc": "Viaggio multimediale nei 2700 anni della città, ottimo come introduzione.",
+  "verifica": true,
+  "temp": null
+ },
+ {
+  "id": "barracco",
+  "nome": "Museo Barracco",
+  "cat": [
+   "museo",
+   "archeologia"
+  ],
+  "zona": "Centro Storico",
+  "lat": 41.8967,
+  "lon": 12.4727,
+  "prezzo": 0,
+  "imp": 2,
+  "fatica": 1,
+  "durata": 45,
+  "desc": "Piccola collezione di sculture egizie, assire, greche e romane.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "museo_mura",
+  "nome": "Museo delle Mura",
+  "cat": [
+   "insolito",
+   "archeologia"
+  ],
+  "zona": "Appia Antica",
+  "lat": 41.8733,
+  "lon": 12.5014,
+  "prezzo": 0,
+  "imp": 2,
+  "fatica": 2,
+  "durata": 45,
+  "desc": "Si cammina dentro Porta San Sebastiano e lungo le Mura Aureliane.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "lab_mente",
+  "nome": "Museo Laboratorio della Mente",
+  "cat": [
+   "insolito",
+   "museo"
+  ],
+  "zona": "Monte Mario",
+  "lat": 41.9536,
+  "lon": 12.43,
+  "prezzo": null,
+  "imp": 2,
+  "fatica": 1,
+  "durata": 75,
+  "desc": "Nell'ex manicomio di Santa Maria della Pietà: toccante e poco conosciuto.",
+  "verifica": true,
+  "temp": null
+ },
+ {
+  "id": "anime_purgatorio",
+  "nome": "Museo delle Anime del Purgatorio",
+  "cat": [
+   "insolito",
+   "chiesa"
+  ],
+  "zona": "Prati",
+  "lat": 41.9036,
+  "lon": 12.4737,
+  "prezzo": 0,
+  "imp": 2,
+  "fatica": 1,
+  "durata": 20,
+  "desc": "Minuscola raccolta di \"impronte dall'aldilà\" dentro una chiesa neogotica.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "buco_serratura",
+  "nome": "Buco della Serratura dell'Aventino",
+  "cat": [
+   "insolito",
+   "panorama"
+  ],
+  "zona": "Aventino",
+  "lat": 41.8834,
+  "lon": 12.4787,
+  "prezzo": 0,
+  "imp": 4,
+  "fatica": 1,
+  "durata": 20,
+  "desc": "San Pietro incorniciato nella serratura dei Cavalieri di Malta.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "coppede",
+  "nome": "Quartiere Coppedè",
+  "cat": [
+   "insolito",
+   "quartiere"
+  ],
+  "zona": "Trieste",
+  "lat": 41.9178,
+  "lon": 12.5028,
+  "prezzo": 0,
+  "imp": 3,
+  "fatica": 1,
+  "durata": 40,
+  "desc": "Architettura fiabesca tra liberty, gotico e medievale.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "palazzo_valentini",
+  "nome": "Domus Romane di Palazzo Valentini",
+  "cat": [
+   "insolito",
+   "archeologia"
+  ],
+  "zona": "Piazza Venezia",
+  "lat": 41.8963,
+  "lon": 12.4834,
+  "prezzo": null,
+  "imp": 4,
+  "fatica": 1,
+  "durata": 75,
+  "desc": "Case romane sotto un palazzo, rianimate da proiezioni multimediali.",
+  "verifica": true,
+  "temp": null
+ },
+ {
+  "id": "case_celio",
+  "nome": "Case Romane del Celio",
+  "cat": [
+   "insolito",
+   "archeologia"
+  ],
+  "zona": "Celio",
+  "lat": 41.8871,
+  "lon": 12.4924,
+  "prezzo": null,
+  "imp": 3,
+  "fatica": 1,
+  "durata": 60,
+  "desc": "Abitazioni romane affrescate sotto una basilica.",
+  "verifica": true,
+  "temp": null
+ },
+ {
+  "id": "galleria_spada",
+  "nome": "Galleria Spada",
+  "cat": [
+   "museo",
+   "insolito"
+  ],
+  "zona": "Campo de' Fiori",
+  "lat": 41.894,
+  "lon": 12.4715,
+  "prezzo": null,
+  "imp": 3,
+  "fatica": 1,
+  "durata": 45,
+  "desc": "Famosa per la finta prospettiva di Borromini: 9 metri che sembrano 35.",
+  "verifica": true,
+  "temp": null
+ },
+ {
+  "id": "galleria_sciarra",
+  "nome": "Galleria Sciarra",
+  "cat": [
+   "insolito"
+  ],
+  "zona": "Trevi",
+  "lat": 41.8998,
+  "lon": 12.4818,
+  "prezzo": 0,
+  "imp": 2,
+  "fatica": 1,
+  "durata": 15,
+  "desc": "Cortile liberty affrescato, nascosto a due passi da via del Corso.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "maxxi",
+  "nome": "MAXXI",
+  "cat": [
+   "museo"
+  ],
+  "zona": "Flaminio",
+  "lat": 41.9286,
+  "lon": 12.4666,
+  "prezzo": null,
+  "imp": 3,
+  "fatica": 1,
+  "durata": 90,
+  "desc": "Arte contemporanea nell'edificio progettato da Zaha Hadid.",
+  "verifica": true,
+  "temp": null
+ },
+ {
+  "id": "dreamers",
+  "nome": "Museum of Dreamers",
+  "cat": [
+   "insolito",
+   "museo"
+  ],
+  "zona": "Prati",
+  "lat": 41.916,
+  "lon": 12.46,
+  "prezzo": null,
+  "imp": 2,
+  "fatica": 1,
+  "durata": 60,
+  "desc": "Stanze immersive e colorate, pensate per le foto.",
+  "verifica": true,
+  "temp": null
+ },
+ {
+  "id": "ikono",
+  "nome": "Ikono",
+  "cat": [
+   "insolito",
+   "museo"
+  ],
+  "zona": "Pantheon",
+  "lat": 41.8991,
+  "lon": 12.4781,
+  "prezzo": null,
+  "imp": 2,
+  "fatica": 1,
+  "durata": 60,
+  "desc": "Esperienza sensoriale a stanze tematiche.",
+  "verifica": true,
+  "temp": null
+ },
+ {
+  "id": "time_elevator",
+  "nome": "Time Elevator",
+  "cat": [
+   "insolito",
+   "museo"
+  ],
+  "zona": "Trevi",
+  "lat": 41.8981,
+  "lon": 12.483,
+  "prezzo": null,
+  "imp": 2,
+  "fatica": 1,
+  "durata": 45,
+  "desc": "Cinema 5D con sedili mobili sulla storia di Roma, adatto ai bambini.",
+  "verifica": true,
+  "temp": null
+ },
+ {
+  "id": "colosseo",
+  "nome": "Colosseo, Foro Romano e Palatino",
+  "cat": [
+   "archeologia"
+  ],
+  "zona": "Colosseo",
+  "lat": 41.8902,
+  "lon": 12.4922,
+  "prezzo": 18,
+  "imp": 5,
+  "fatica": 3,
+  "durata": 180,
+  "desc": "Il simbolo di Roma e il cuore della città antica, con un unico biglietto.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "pantheon",
+  "nome": "Pantheon",
+  "cat": [
+   "archeologia",
+   "chiesa"
+  ],
+  "zona": "Pantheon",
+  "lat": 41.8986,
+  "lon": 12.4769,
+  "prezzo": 7,
+  "imp": 5,
+  "fatica": 1,
+  "durata": 45,
+  "desc": "Il tempio romano meglio conservato, con la cupola più grande in calcestruzzo mai costruita.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "trevi",
+  "nome": "Fontana di Trevi",
+  "cat": [
+   "piazza",
+   "fontana"
+  ],
+  "zona": "Trevi",
+  "lat": 41.9009,
+  "lon": 12.4833,
+  "prezzo": 0,
+  "imp": 5,
+  "fatica": 1,
+  "durata": 20,
+  "desc": "La fontana più famosa del mondo. Vista libera dalla piazza, 2€ per scendere vicino all'acqua.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "navona",
+  "nome": "Piazza Navona",
+  "cat": [
+   "piazza",
+   "fontana"
+  ],
+  "zona": "Navona",
+  "lat": 41.8992,
+  "lon": 12.4731,
+  "prezzo": 0,
+  "imp": 5,
+  "fatica": 1,
+  "durata": 30,
+  "desc": "Piazza barocca con la Fontana dei Quattro Fiumi di Bernini.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "spagna",
+  "nome": "Piazza di Spagna e Trinità dei Monti",
+  "cat": [
+   "piazza"
+  ],
+  "zona": "Spagna",
+  "lat": 41.9058,
+  "lon": 12.4823,
+  "prezzo": 0,
+  "imp": 5,
+  "fatica": 1,
+  "durata": 30,
+  "desc": "La scalinata più famosa di Roma, con la Barcaccia ai suoi piedi.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "capitolini",
+  "nome": "Musei Capitolini e Piazza del Campidoglio",
+  "cat": [
+   "museo",
+   "archeologia"
+  ],
+  "zona": "Campidoglio",
+  "lat": 41.8933,
+  "lon": 12.4828,
+  "prezzo": 17,
+  "imp": 4,
+  "fatica": 2,
+  "durata": 120,
+  "desc": "Il museo pubblico più antico del mondo, nella piazza disegnata da Michelangelo.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "castel_santangelo",
+  "nome": "Castel Sant'Angelo",
+  "cat": [
+   "museo",
+   "panorama"
+  ],
+  "zona": "Borgo",
+  "lat": 41.9031,
+  "lon": 12.4663,
+  "prezzo": 18,
+  "imp": 4,
+  "fatica": 2,
+  "durata": 90,
+  "desc": "Da mausoleo di Adriano a fortezza dei papi, con terrazza panoramica.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "vittoriano",
+  "nome": "Vittoriano",
+  "cat": [
+   "panorama",
+   "museo"
+  ],
+  "zona": "Piazza Venezia",
+  "lat": 41.8946,
+  "lon": 12.4831,
+  "prezzo": 0,
+  "imp": 4,
+  "fatica": 1,
+  "durata": 60,
+  "desc": "Monumento imponente a ingresso libero; la terrazza panoramica costa 18€.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "fori_imperiali",
+  "nome": "Via dei Fori Imperiali",
+  "cat": [
+   "archeologia",
+   "passeggiata"
+  ],
+  "zona": "Colosseo",
+  "lat": 41.8925,
+  "lon": 12.4876,
+  "prezzo": 0,
+  "imp": 4,
+  "fatica": 1,
+  "durata": 30,
+  "desc": "Passeggiata tra i fori di Cesare, Augusto e Traiano, visibili dalla strada.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "ghetto",
+  "nome": "Ghetto ebraico e Portico d'Ottavia",
+  "cat": [
+   "quartiere"
+  ],
+  "zona": "Ghetto",
+  "lat": 41.8925,
+  "lon": 12.4775,
+  "prezzo": 0,
+  "imp": 4,
+  "fatica": 1,
+  "durata": 45,
+  "desc": "Il quartiere ebraico più antico d'Europa, tra rovine romane e carciofi alla giudia.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "popolo",
+  "nome": "Piazza del Popolo",
+  "cat": [
+   "piazza"
+  ],
+  "zona": "Flaminio",
+  "lat": 41.9107,
+  "lon": 12.4763,
+  "prezzo": 0,
+  "imp": 4,
+  "fatica": 1,
+  "durata": 20,
+  "desc": "Grande piazza neoclassica con l'obelisco e le chiese gemelle.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "campo_fiori",
+  "nome": "Campo de' Fiori",
+  "cat": [
+   "piazza",
+   "mercato"
+  ],
+  "zona": "Campo de' Fiori",
+  "lat": 41.8956,
+  "lon": 12.4722,
+  "prezzo": 0,
+  "imp": 3,
+  "fatica": 1,
+  "durata": 20,
+  "desc": "Mercato la mattina, vita notturna la sera, con la statua di Giordano Bruno.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "bocca_verita",
+  "nome": "Bocca della Verità",
+  "cat": [
+   "insolito"
+  ],
+  "zona": "Foro Boario",
+  "lat": 41.8881,
+  "lon": 12.4814,
+  "prezzo": null,
+  "imp": 3,
+  "fatica": 1,
+  "durata": 20,
+  "desc": "La leggendaria maschera che morde la mano dei bugiardi.",
+  "verifica": true,
+  "temp": null
+ },
+ {
+  "id": "torre_argentina",
+  "nome": "Largo di Torre Argentina",
+  "cat": [
+   "archeologia"
+  ],
+  "zona": "Centro Storico",
+  "lat": 41.8955,
+  "lon": 12.4768,
+  "prezzo": 0,
+  "imp": 3,
+  "fatica": 1,
+  "durata": 15,
+  "desc": "Area sacra dove fu ucciso Cesare, oggi anche colonia felina.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "teatro_marcello",
+  "nome": "Teatro di Marcello",
+  "cat": [
+   "archeologia"
+  ],
+  "zona": "Ghetto",
+  "lat": 41.8918,
+  "lon": 12.4798,
+  "prezzo": 0,
+  "imp": 3,
+  "fatica": 1,
+  "durata": 15,
+  "desc": "Teatro romano su cui è stato costruito un palazzo abitato.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "isola_tiberina",
+  "nome": "Isola Tiberina",
+  "cat": [
+   "passeggiata"
+  ],
+  "zona": "Trastevere",
+  "lat": 41.8906,
+  "lon": 12.4775,
+  "prezzo": 0,
+  "imp": 3,
+  "fatica": 1,
+  "durata": 20,
+  "desc": "L'unica isola del Tevere, collegata dal ponte romano più antico ancora in uso.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "circo_massimo",
+  "nome": "Circo Massimo",
+  "cat": [
+   "archeologia",
+   "parco"
+  ],
+  "zona": "Aventino",
+  "lat": 41.8861,
+  "lon": 12.4851,
+  "prezzo": 0,
+  "imp": 3,
+  "fatica": 1,
+  "durata": 20,
+  "desc": "Il più grande stadio dell'antichità, oggi un grande prato.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "ara_pacis",
+  "nome": "Ara Pacis",
+  "cat": [
+   "museo",
+   "archeologia"
+  ],
+  "zona": "Flaminio",
+  "lat": 41.9063,
+  "lon": 12.4755,
+  "prezzo": null,
+  "imp": 3,
+  "fatica": 1,
+  "durata": 45,
+  "desc": "Altare di Augusto nella teca di Richard Meier.",
+  "verifica": true,
+  "temp": null
+ },
+ {
+  "id": "musei_vaticani",
+  "nome": "Musei Vaticani e Cappella Sistina",
+  "cat": [
+   "museo"
+  ],
+  "zona": "Vaticano",
+  "lat": 41.9065,
+  "lon": 12.4536,
+  "prezzo": 20,
+  "imp": 5,
+  "fatica": 3,
+  "durata": 210,
+  "desc": "Una delle collezioni più grandi al mondo, fino al Giudizio di Michelangelo. Online con salta fila 25€.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "san_pietro",
+  "nome": "Basilica di San Pietro",
+  "cat": [
+   "chiesa"
+  ],
+  "zona": "Vaticano",
+  "lat": 41.9022,
+  "lon": 12.4539,
+  "prezzo": 0,
+  "imp": 5,
+  "fatica": 2,
+  "durata": 60,
+  "desc": "La chiesa più grande della cristianità, con la Pietà di Michelangelo.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "piazza_san_pietro",
+  "nome": "Piazza San Pietro",
+  "cat": [
+   "piazza"
+  ],
+  "zona": "Vaticano",
+  "lat": 41.9022,
+  "lon": 12.4568,
+  "prezzo": 0,
+  "imp": 5,
+  "fatica": 1,
+  "durata": 20,
+  "desc": "Il colonnato di Bernini abbraccia i fedeli.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "cupola",
+  "nome": "Cupola di San Pietro",
+  "cat": [
+   "panorama",
+   "chiesa"
+  ],
+  "zona": "Vaticano",
+  "lat": 41.9021,
+  "lon": 12.4533,
+  "prezzo": 17,
+  "imp": 4,
+  "fatica": 3,
+  "durata": 60,
+  "desc": "Oltre 500 gradini fino alla vista più famosa di Roma.",
+  "verifica": true,
+  "temp": null
+ },
+ {
+  "id": "grotte_vaticane",
+  "nome": "Grotte Vaticane",
+  "cat": [
+   "chiesa"
+  ],
+  "zona": "Vaticano",
+  "lat": 41.9022,
+  "lon": 12.4539,
+  "prezzo": 0,
+  "imp": 3,
+  "fatica": 1,
+  "durata": 30,
+  "desc": "Le tombe dei papi sotto la basilica.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "necropoli",
+  "nome": "Necropoli Vaticana (Scavi)",
+  "cat": [
+   "archeologia",
+   "insolito"
+  ],
+  "zona": "Vaticano",
+  "lat": 41.902,
+  "lon": 12.453,
+  "prezzo": 13,
+  "imp": 3,
+  "fatica": 2,
+  "durata": 90,
+  "desc": "Visita guidata alla tomba di San Pietro: prenotazione con largo anticipo.",
+  "verifica": true,
+  "temp": null
+ },
+ {
+  "id": "giardini_vaticani",
+  "nome": "Giardini Vaticani",
+  "cat": [
+   "parco"
+  ],
+  "zona": "Vaticano",
+  "lat": 41.904,
+  "lon": 12.45,
+  "prezzo": null,
+  "imp": 3,
+  "fatica": 2,
+  "durata": 120,
+  "desc": "Visita guidata ai giardini dei papi, solo su prenotazione.",
+  "verifica": true,
+  "temp": null
+ },
+ {
+  "id": "ponte_santangelo",
+  "nome": "Ponte Sant'Angelo",
+  "cat": [
+   "passeggiata"
+  ],
+  "zona": "Borgo",
+  "lat": 41.9014,
+  "lon": 12.4664,
+  "prezzo": 0,
+  "imp": 3,
+  "fatica": 1,
+  "durata": 15,
+  "desc": "Il ponte degli angeli di Bernini, davanti al castello.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "borgo_pio",
+  "nome": "Borgo Pio e Passetto di Borgo",
+  "cat": [
+   "quartiere"
+  ],
+  "zona": "Borgo",
+  "lat": 41.904,
+  "lon": 12.461,
+  "prezzo": 0,
+  "imp": 2,
+  "fatica": 1,
+  "durata": 30,
+  "desc": "Viuzze sotto il corridoio segreto che portava i papi al castello.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "prati",
+  "nome": "Prati e Via Cola di Rienzo",
+  "cat": [
+   "quartiere",
+   "shopping"
+  ],
+  "zona": "Prati",
+  "lat": 41.908,
+  "lon": 12.464,
+  "prezzo": 0,
+  "imp": 2,
+  "fatica": 1,
+  "durata": 45,
+  "desc": "Quartiere elegante umbertino, ottimo per shopping.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "palazzaccio",
+  "nome": "Palazzo di Giustizia",
+  "cat": [
+   "architettura"
+  ],
+  "zona": "Prati",
+  "lat": 41.903,
+  "lon": 12.47,
+  "prezzo": 0,
+  "imp": 2,
+  "fatica": 1,
+  "durata": 10,
+  "desc": "Il \"Palazzaccio\", monumentale e controverso.",
+  "verifica": false,
+  "temp": null
+ }
+]
