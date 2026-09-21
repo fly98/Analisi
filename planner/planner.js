@@ -237,12 +237,12 @@
     const gite = (opz.gite || []).map(id => db.gite.find(g => g.id === id)).filter(Boolean);
     let giorniRoma = opz.giorni - gite.length;
     if (giorniRoma < 0) {
-      avvisi.push(`Hai scelto ${gite.length} gite ma solo ${opz.giorni} giorni: ne teniamo ${opz.giorni}.`);
+      avvisi.push({ k: 'troppe_gite', a: gite.length, b: opz.giorni });
       gite.length = opz.giorni; giorniRoma = 0;
     }
-    if (opz.ritmo === 'rilassato') gite.filter(g => g.fatica >= 3).forEach(g => avvisi.push(`${g.nome} è una giornata lunga e faticosa: con ritmo rilassato valuta un'altra gita.`));
+    if (opz.ritmo === 'rilassato') gite.filter(g => g.fatica >= 3).forEach(g => avvisi.push({ k: 'gita_faticosa', id: g.id }));
 
-    if (opz.soloGratis) gite.filter(g => (g.costo_viaggio || 0) + (g.biglietti || 0) > 0).forEach(g => avvisi.push(`${g.nome} ha dei costi (treno e ingressi, circa ${(g.costo_viaggio || 0) + (g.biglietti || 0)}€ a persona).`));
+    if (opz.soloGratis) gite.filter(g => (g.costo_viaggio || 0) + (g.biglietti || 0) > 0).forEach(g => avvisi.push({ k: 'gita_costi', id: g.id, v: (g.costo_viaggio || 0) + (g.biglietti || 0) }));
     let risultato = { giorni: [], escluse: [] , p: paramGiorno(opz) };
     if (giorniRoma > 0) {
       const lista = candidati(db, opz).sort((a, b) => P(b) - P(a) || a.fatica - b.fatica);
@@ -269,7 +269,7 @@
       r = { giorni: [ordinaGiorno(lista, partenza)], escluse: [], p: paramGiorno(senzaBudget) };
       const out = componi(r, gite, partenza, senzaBudget, avvisi, db);
       const g = out.giorni[0], ore = (g.visite + g.spostamenti) / 60, cap = r.p.minuti / 60;
-      if (ore > cap) out.avvisi.push(`Giornata molto impegnativa: circa ${Math.round(ore * 10) / 10} ore tra visite e spostamenti, oltre le ${Math.round(cap * 10) / 10} consigliate per il ritmo scelto.`);
+      if (ore > cap) out.avvisi.push({ k: 'giornata_lunga', a: Math.round(ore * 10) / 10, b: Math.round(cap * 10) / 10 });
       out.giorniNecessari = null;
       return out;
     }
@@ -281,13 +281,13 @@
     if (opz.giorni) {
       if (giorniNecessari > opz.giorni) {
         const target = costruisciGiorni(lista, Math.max(opz.giorni - gite.length, 1), partenza, senzaBudget);
-        out.daTogliere = target.escluse.map(a => a.nome);
+        out.daTogliere = target.escluse.map(a => a.id);
       } else if (giorniNecessari <= opz.giorni) {
         const presi = new Set(ids.map(id => id.replace(/_fuori$/, '')));
         const vicine = candidati(db, opz).filter(a => !presi.has(a.id))
           .map(a => ({ a, d: Math.min(...scelte.map(s => metri(s, a))) }))
           .filter(x => x.d < 800).sort((x, y) => y.a.imp - x.a.imp).slice(0, 5);
-        out.suggerite = vicine.map(x => x.a.nome);
+        out.suggerite = vicine.map(x => x.a.id);
       }
     }
     return out;
@@ -321,7 +321,7 @@
       return giorno;
     });
     gite.forEach(g => giorni.push({
-      tipo: 'gita', n: giorni.length + 1, nome: g.nome, tappe: g.tappe, mezzo: g.mezzo,
+      tipo: 'gita', n: giorni.length + 1, id: g.id, nome: g.nome, tappe: g.tappe, mezzo: g.mezzo,
       viaggio: g.viaggio, costo: (g.costo_viaggio || 0) + (g.biglietti || 0), desc: g.desc, note: g.note,
     }));
     const totale = giorni.reduce((s, d) => s + (d.costo || 0), 0);
