@@ -62,7 +62,10 @@ const LINGUE = { it:'🇮🇹 Italiano', en:'🇬🇧 Inglese', es:'🇪🇸 Spa
 const TEMI = { n1:'Roma in 1 giorno', n2:'Roma in 2 giorni', n3:'Roma in 3 giorni', sera:'🌙 Roma di sera', antica:'🏛️ Roma antica', arte:'🎨 Caravaggio e Bernini',
   sotto:'🕳️ Roma sotterranea', bambini:'👨‍👩‍👧 Roma con bambini', verde:'🌳 Roma verde', alternativa:'🖌️ Roma alternativa',
   rilassato:'Su misura · rilassato', medio:'Su misura · medio', intenso:'Su misura · intenso', scegli:'Scelto tappa per tappa' };
-const STR = { campaldino:'Campaldino', lorenzo:'Lorenzo' };
+const STR = { campaldino:'Campaldino', lorenzo:'Lorenzo', flytour:'FlyTour' };
+const NOMI_TOUR = { roma:'Roma in un Giorno', vaticano:'Musei Vaticani', trastevere:'Trastevere Nascosta', sanpietro:'San Pietro e Borgo Pio', 'ghetto-testaccio':'Dal Ghetto al Mattatoio',
+  esoterica:'Roma Esoterica', romacapitale:'Roma Capitale', perugia:'Perugia', evora:'Évora', milfontes:'Milfontes', sagres:'Sagres', alfama:'Alfama e Graça', baixa:'Baixa Pombalina', belem:'Belém', tram28:'Tram 28', home:'Elenco tour' };
+const MIO_SID = localStorage.getItem('wb_sid'); // stesso sito di FlyTour: e' il codice FlyTour di questo dispositivo
 
 // ---------- date ----------
 const iso = d => d.toISOString().slice(0, 10);
@@ -93,7 +96,7 @@ function scheletro() {
   $('#app').innerHTML = `
   <header><div class="wrap">
     <h1>Utilizzo pagine ospiti</h1><div class="sub">Solo ospiti reali: esclusi test, bot, copie di prova e i tuoi dispositivi</div>
-    <div class="row">${[['all','Entrambe'],['campaldino','Campaldino'],['lorenzo','Lorenzo']].map(([k,l]) => `<button class="chip" data-s="${k}">${l}</button>`).join('')}</div>
+    <div class="row">${[['all','Entrambe'],['campaldino','Campaldino'],['lorenzo','Lorenzo'],['flytour','🎧 FlyTour']].map(([k,l]) => `<button class="chip" data-s="${k}">${l}</button>`).join('')}</div>
     <div class="row">${[['7','7 giorni'],['30','30 giorni'],['mese','Questo mese'],['mesePrec','Mese scorso'],['anno',"Quest'anno"],['tutto','Tutto']].map(([k,l]) => `<button class="chip" data-p="${k}">${l}</button>`).join('')}</div>
     <div class="row"><span class="muted" style="font-size:12.5px">Dal</span><input type="date" class="date" id="dF"><span class="muted" style="font-size:12.5px">al</span><input type="date" class="date" id="dT"><button class="chip" id="vai">Mostra</button></div>
   </div></header>
@@ -121,7 +124,7 @@ async function carica() {
     const q = `from=${S.from}&to=${S.to}`;
     const [st, dv, rec, vecchio] = await Promise.all([
       api(`/wb/${S.slug}/stats2?${q}`), api(`/wb/${S.slug}/dispositivi?${q}`), api(`/wb/${S.slug}/dispositivi?${q}&ord=recenti`),
-      Promise.all((S.slug === 'all' ? ['campaldino', 'lorenzo'] : [S.slug]).map(s => api(`/wb/${s}/stats?days=1`).catch(() => null))), // solo per le domande: veloce
+      Promise.all((S.slug === 'all' ? ['campaldino', 'lorenzo'] : S.slug === 'flytour' ? [] : [S.slug]).map(s => api(`/wb/${s}/stats?days=1`).catch(() => null))), // solo per le domande: veloce
     ]);
     if (st.error) throw new Error(st.error);
     disegna(st, dv, vecchio.filter(Boolean), rec);
@@ -162,6 +165,38 @@ function disegna(st, dv, vecchio, rec) {
   if (st.primoGiorno && S.from < st.primoGiorno) h += `<div class="note">📌 La raccolta dettagliata è attiva dal <b>${fmtD(st.primoGiorno)}/${st.primoGiorno.slice(0, 4)}</b>: per i giorni precedenti c'è solo lo <a href="#storico">storico semplificato</a> in fondo alla pagina.</div>`;
 
   h += `<p style="margin:12px 0 0;font-size:13px"><a href="#recenti" style="color:var(--orange);font-weight:700">📱 Escludi i miei dispositivi ↓</a></p>`;
+  if (S.slug === 'flytour') {
+    const tv = ev.filter(r => r.event === 'tour_view' || r.event === 'tour_open');
+    const perTour = {}; tv.forEach(r => { const t = perTour[r.section] = perTour[r.section] || { dev: 0, n: 0 }; t.dev = Math.max(t.dev, r.dispositivi); t.n += r.n; });
+    const audio = ev.filter(r => r.event === 'stop_play_auto' || r.event === 'stop_play_manual' || r.event === 'audio_play');
+    const perAudio = {}; audio.forEach(r => { perAudio[r.section] = (perAudio[r.section] || 0) + r.n; });
+    const nAuto = nDi('stop_play_auto'), nMan = nDi('stop_play_manual') + nDi('audio_play');
+    const tourDev = devDi('tour_view') || devDi('tour_open');
+    h += `<div class="kpis" style="margin-top:14px">
+      <div class="kpi"><span>Ospiti (dispositivi)</span><b>${disp}</b><small>persone diverse che hanno usato FlyTour</small></div>
+      <div class="kpi"><span>Hanno aperto un tour</span><b>${tourDev}</b><small>${pct(tourDev, disp)}% degli ospiti di FlyTour</small></div>
+      <div class="kpi"><span>Audio ascoltati</span><b>${nAuto + nMan}</b><small>${devDi('stop_play_auto') || devDi('stop_play_manual') ? `da ${Math.max(devDi('stop_play_auto'), devDi('stop_play_manual'))}+ ospiti` : 'tappe raccontate'}</small></div>
+      <div class="kpi"><span>Tornati più giorni</span><b>${pct(k.tornati, disp)}%</b><small>${k.tornati || 0} ${k.tornati === 1 ? 'ospite' : 'ospiti'}</small></div>
+    </div>`;
+    const gg = giorniTra(st.from, st.to); const pg = {}; (st.perGiorno || []).forEach(r => pg[r.day] = r.dispositivi);
+    let bucket = gg.map(d => ({ k: d, l: fmtD(d), days: [d] }));
+    if (gg.length > 70) { bucket = []; for (let i = 0; i < gg.length; i += 7) bucket.push({ k: gg[i], l: fmtD(gg[i]), days: gg.slice(i, i + 7) }); }
+    const v = {}; bucket.forEach(b => v[b.k] = b.days.reduce((a, d) => a + (pg[d] || 0), 0));
+    h += `<div class="card"><h2>Andamento</h2><p class="hint">Ospiti di FlyTour per ${gg.length > 70 ? 'settimana' : 'giorno'}.</p>${grafico(bucket, [{ n: 'ospiti', c: '#b8862b', v }])}</div>`;
+    const tours = Object.entries(perTour).filter(([s]) => s !== 'home').map(([s, t]) => ({ l: esc(NOMI_TOUR[s] || s), v: t.dev, n: t.n })).sort((a, b) => b.v - a.v);
+    h += `<div class="card"><h2>🗺️ Tour più aperti</h2><p class="hint">Ospiti che hanno aperto ogni tour (e aperture totali).</p>${tours.length ? barre(tours, null, r => `<b>${r.v}</b> · ${r.n}×`) : '<p class="muted">Nessun tour aperto nel periodo.</p>'}</div>`;
+    const au = Object.entries(perAudio).map(([s, n]) => ({ l: esc(NOMI_TOUR[s] || s), v: n, c: '#b8862b' })).sort((a, b) => b.v - a.v);
+    h += `<div class="card"><h2>🎧 Audio ascoltati</h2><p class="hint">Tappe raccontate per tour. <b>${nAuto}</b> partite da sole col GPS arrivando sul posto, <b>${nMan}</b> avviate a mano.</p>
+      ${au.length ? barre(au, null, r => `<b>${r.v}</b>`) : '<p class="muted">Nessun audio nel periodo.</p>'}</div>`;
+    h += `<div class="card"><h2>Dall'elenco al tour</h2><p class="hint">Chi apre la pagina con l'elenco dei tour e poi ne sceglie uno.</p>
+      <div class="funnel">${[['Hanno aperto l\'elenco dei tour', devDi('home_view')], ['Hanno scelto un tour', devDi('tour_click')], ['Hanno aperto un tour', tourDev]]
+        .map(([l, v], i, arr) => `<div class="f"><div class="top"><b>${l}</b><span>${v} ${v === 1 ? 'ospite' : 'ospiti'}</span></div><div class="t"><i style="width:${Math.max(2, Math.min(100, v / Math.max(1, arr[0][1], tourDev) * 100))}%;background:#b8862b"></i></div></div>`).join('')}</div>
+      <p class="hint" style="margin:8px 0 0">Chi arriva direttamente a un tour (link dalle pagine ospiti o QR) non passa dall'elenco.</p></div>`;
+    const lin = (st.lingue || []).map(r => ({ l: LINGUE[r.lang] || r.lang, v: r.dispositivi, c: '#b8862b' }));
+    h += `<div class="card"><h2>Lingue</h2><p class="hint">Lingua usata nei tour.</p>${lin.length ? barre(lin, disp, r => `<b>${r.v}</b> · ${pct(r.v, disp)}%`) : '<p class="muted">Nessun dato.</p>'}</div>`;
+    const ore = Array.from({ length: 24 }, (_, i) => ({ k: i, l: String(i), v: ((st.ore || []).find(r => r.hour === i) || {}).visite || 0 }));
+    h += `<div class="card"><h2>Orari</h2><p class="hint">Quando vengono usati i tour (ora di Roma).</p>${grafico(ore, [{ n: 'visite', c: '#b8862b', v: Object.fromEntries(ore.map(o => [o.k, o.v])) }])}</div>`;
+  } else {
   // numeri principali
   const perS = Object.fromEntries((st.perSlug || []).map(r => [r.slug, r]));
   h += `<div class="kpis" style="margin-top:14px">
@@ -226,14 +261,16 @@ function disegna(st, dv, vecchio, rec) {
   h += `<div class="card"><h2>🤖 Ultime domande al concierge</h2><p class="hint">Le domande più recenti fatte dagli ospiti.</p>
     ${domande.length ? domande.map(q => `<div class="q">${esc(q.q)} <small>· ${esc(STR[q.s] || q.s)}${q.lang ? ' · ' + esc(q.lang) : ''}</small></div>`).join('') : '<p class="muted">Nessuna domanda.</p>'}</div>`;
 
+  }
+
   // dispositivi recenti (ordine cronologico): per riconoscere ed escludere i propri
   const quando = ts => { const t = new Date(ts), o = new Date(), ieri = new Date(Date.now() - 864e5);
     const ora = t.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Rome' });
     const g = x => x.toLocaleDateString('it-IT', { timeZone: 'Europe/Rome' });
     return g(t) === g(o) ? `oggi ${ora}` : g(t) === g(ieri) ? `ieri ${ora}` : `${t.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', timeZone: 'Europe/Rome' })} ${ora}`; };
   const recenti = (rec && rec.dispositivi || []);
-  const rigaRec = d => `<tr${d.escluso ? ' style="opacity:.55"' : ''}><td><b>${quando(d.ultimo)}</b><br><small class="muted">${esc(d.dev || 'dispositivo non indicato')}</small></td>
-      <td>${esc((d.strutture || '').replace('campaldino', 'Campaldino').replace('lorenzo', 'Lorenzo').replace(',', ' + '))}<br><small class="muted">${esc(d.lingue || '')} · ${d.eventi} tocchi</small></td>
+  const rigaRec = d => `<tr${d.escluso ? ' style="opacity:.55"' : ''}><td><b>${quando(d.ultimo)}</b>${d.sid === MIO_SID ? ' <span class="tag warn">questo dispositivo</span>' : ''}<br><small class="muted">${esc(d.dev || 'dispositivo non indicato')}</small></td>
+      <td>${esc((d.strutture || '').replace('campaldino', 'Campaldino').replace('lorenzo', 'Lorenzo').replace('flytour', 'FlyTour').replace(',', ' + '))}<br><small class="muted">${esc(d.lingue || '')} · ${d.eventi} tocchi</small></td>
       <td style="text-align:right">${d.bot ? '<span class="tag bad">test automatico</span>' : d.fuori ? '<span class="tag bad">fuori sito</span>'
         : d.escluso ? `<span class="tag grey">escluso</span><br><button class="btn" data-sid="${esc(d.sid)}" data-on="0">Riammetti</button>`
         : `<button class="btn red" data-sid="${esc(d.sid)}" data-on="1">Escludi</button>`}</td></tr>`;
