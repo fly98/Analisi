@@ -42,7 +42,7 @@
   }
 
   // una tappa breve pesa meno di una lunga a parita' di livello
-  const faticaTappa = a => a.fatica * (0.5 + a.durata / 120);
+  const faticaTappa = a => a.fatica * (0.5 + Math.min(a.durata, 120) / 120);
 
   // versione gratuita "da fuori" di una tappa a pagamento
   function daFuori(a) {
@@ -203,6 +203,30 @@
       }
       escluse.push(a);
     });
+
+    // ribilanciamento: per ogni esclusa, libera posto spostando una tappa "di confine" in un giorno vicino con spazio
+    const vicina = (g, a) => g.length === 0 || Math.min(...g.map(x => metri(x, a))) <= 1200;
+    const entra = (g, a) => vicina(g, a) && sta(valutaGiorno(ordinaGiorno(g.concat(a), partenza), partenza, p, new Set()), p, budget);
+    for (let giro = 0; giro < 3; giro++) {
+      let cambiato = false;
+      for (const x of escluse.slice().sort((a, b) => P(b) - P(a))) {
+        let fatto = false;
+        const ordine = giorni.map((g, i) => ({ i, d: g.length ? Math.min(...g.map(y => metri(y, x))) : Infinity })).filter(o => o.d <= 1200).sort((a, b) => a.d - b.d);
+        for (const { i } of ordine) {
+          for (const y of giorni[i].slice().sort((a, b) => P(a) - P(b))) {
+            const resto = giorni[i].filter(z => z !== y);
+            if (!entra(resto, x)) continue;
+            const dest = giorni.findIndex((g, j) => j !== i && entra(g, y));
+            if (dest < 0) continue;
+            giorni[i] = ordinaGiorno(resto.concat(x), partenza);
+            giorni[dest] = ordinaGiorno(giorni[dest].concat(y), partenza);
+            escluse.splice(escluse.indexOf(x), 1); fatto = cambiato = true; break;
+          }
+          if (fatto) break;
+        }
+      }
+      if (!cambiato) break;
+    }
     return { giorni, escluse, p };
   }
 
@@ -231,7 +255,10 @@
   function daSelezione(db, ids, opz) {
     const avvisi = [];
     const partenza = opz.partenza || { lat: 41.9085842, lon: 12.5216869 };
-    const scelte = ids.map(id => db.attrazioni.find(a => a.id === id)).filter(Boolean).filter(a => !a.chiuso);
+    const scelte = ids.map(id => {
+      if (id.endsWith('_fuori')) { const o = db.attrazioni.find(a => a.id === id.slice(0, -6)); return o && daFuori(o); }
+      return db.attrazioni.find(a => a.id === id);
+    }).filter(Boolean).filter(a => !a.chiuso);
     const gite = (opz.gite || []).map(id => db.gite.find(g => g.id === id)).filter(Boolean);
     const lista = scelte.sort((a, b) => b.imp - a.imp);
     // quanti giorni servono? si prova da 1 in su finche' non resta fuori niente
@@ -247,7 +274,7 @@
         const target = costruisciGiorni(lista, Math.max(opz.giorni - gite.length, 1), partenza, senzaBudget);
         out.daTogliere = target.escluse.map(a => a.nome);
       } else if (giorniNecessari <= opz.giorni) {
-        const presi = new Set(ids);
+        const presi = new Set(ids.map(id => id.replace(/_fuori$/, '')));
         const vicine = candidati(db, opz).filter(a => !presi.has(a.id))
           .map(a => ({ a, d: Math.min(...scelte.map(s => metri(s, a))) }))
           .filter(x => x.d < 800).sort((x, y) => y.a.imp - x.a.imp).slice(0, 5);
