@@ -192,7 +192,7 @@
   }
 
   // ---------------- vista: scegli tu ----------------
-  let filtroCat = '', filtroTesto = '', giorniTarget = 0, ritmoScelto = 'medio', filtroImp = '', unGiorno = false;
+  const filtroCat = new Set(), filtroImp = new Set(); let filtroTesto = '', giorniTarget = 0, ritmoScelto = 'medio', unGiorno = false;
   const FASCE = [['9', '⭐ Imperdibili (9-10)', 9, 10], ['7', 'Da vedere (7-8)', 7, 8], ['5', 'Interessanti (5-6)', 5, 6], ['1', 'Chicche e curiosità (1-4)', 1, 4]];
   function vistaScegli() {
     stato.vista = 'scegli'; track('planner', 'scegli');
@@ -207,8 +207,8 @@
       </div>
       <div class="vr-h" style="margin-top:20px"><input class="vr-input" id="vrCerca" placeholder="${TX.cerca}" value="${esc(filtroTesto)}"></div>
       <div class="vr-h" style="margin:12px 0 2px">${TX.importanza}</div><p class="vr-sub" style="margin:0 0 6px">${TX.importanza_d}</p>
-      <div class="filter-row"><button class="chip ${filtroImp ? '' : 'on'}" data-fi="">${TX.tutte}</button>${FASCE.map(([k, l]) => `<button class="chip ${filtroImp === k ? 'on' : ''}" data-fi="${k}">${l}</button>`).join('')}</div>
-      <div class="filter-row"><button class="chip ${filtroCat ? '' : 'on'}" data-fc="">${TX.tutte}</button>${CAT.map(([k, l]) => `<button class="chip ${filtroCat === k ? 'on' : ''}" data-fc="${k}">${l}</button>`).join('')}</div>
+      <div class="filter-row" data-grp="fi"><button class="chip ${filtroImp.size ? '' : 'on'}" data-v="">${TX.tutte}</button>${FASCE.map(([k, l]) => `<button class="chip ${filtroImp.has(k) ? 'on' : ''}" data-v="${k}">${l}</button>`).join('')}</div>
+      <div class="filter-row" data-grp="fc"><button class="chip ${filtroCat.size ? '' : 'on'}" data-v="">${TX.tutte}</button>${CAT.map(([k, l]) => `<button class="chip ${filtroCat.has(k) ? 'on' : ''}" data-v="${k}">${l}</button>`).join('')}</div>
       <div id="vrLista"></div>
       <div class="vr-bar"><button class="btn" id="vrOrg"></button></div>
     `);
@@ -216,8 +216,16 @@
     r.querySelector('[data-back]').onclick = vistaHome;
     r.querySelector('[data-seg]').querySelectorAll('button').forEach(b => b.onclick = () => { r.querySelectorAll('[data-seg] button').forEach(x => x.classList.remove('on')); b.classList.add('on'); ritmoScelto = b.dataset.v; });
     r.querySelectorAll('[data-g]').forEach(b => b.onclick = () => { giorniTarget = Math.min(7, Math.max(0, giorniTarget + +b.dataset.g)); $('#vrGT').textContent = giorniTarget || '–'; });
-    r.querySelectorAll('[data-fc]').forEach(b => b.onclick = () => { filtroCat = b.dataset.fc; r.querySelectorAll('[data-fc]').forEach(x => x.classList.toggle('on', x === b)); lista(); });
-    r.querySelectorAll('[data-fi]').forEach(b => b.onclick = () => { filtroImp = b.dataset.fi; r.querySelectorAll('[data-fi]').forEach(x => x.classList.toggle('on', x === b)); lista(); });
+    // filtri a selezione multipla: si sommano dentro lo stesso gruppo, "Tutte" azzera
+    r.querySelectorAll('[data-grp]').forEach(riga => {
+      const set = riga.dataset.grp === 'fi' ? filtroImp : filtroCat;
+      riga.querySelectorAll('[data-v]').forEach(b => b.onclick = () => {
+        const v = b.dataset.v;
+        if (!v) set.clear(); else set.has(v) ? set.delete(v) : set.add(v);
+        riga.querySelectorAll('[data-v]').forEach(x => x.classList.toggle('on', x.dataset.v ? set.has(x.dataset.v) : set.size === 0));
+        lista();
+      });
+    });
     $('#vrUnGiorno').onclick = () => { unGiorno = !unGiorno; $('#vrUnGiorno').classList.toggle('on', unGiorno); $('#vrGTBox').style.display = unGiorno ? 'none' : ''; };
     $('#vrCerca').oninput = e => { filtroTesto = e.target.value; lista(); };
     $('#vrOrg').onclick = () => {
@@ -230,11 +238,11 @@
     lista();
   }
   function lista() {
-    const tags = filtroCat ? new Set(Planner.MACRO[filtroCat]) : null;
+    const tags = filtroCat.size ? new Set([...filtroCat].flatMap(k => Planner.MACRO[k] || [])) : null;
     const q = filtroTesto.trim().toLowerCase();
-    const fascia = FASCE.find(f => f[0] === filtroImp);
+    const fasce = FASCE.filter(f => filtroImp.has(f[0]));
     const el = DB.attrazioni.filter(a => !a.chiuso && (!tags || a.cat.some(t => tags.has(t))) && (!q || (a.nome + ' ' + a.zona).toLowerCase().includes(q))
-        && (!fascia || (a.imp >= fascia[2] && a.imp <= fascia[3])))
+        && (!fasce.length || fasce.some(f => a.imp >= f[2] && a.imp <= f[3])))
       .sort((a, b) => b.imp - a.imp);
     $('#vrLista').innerHTML = el.map(a => `<div class="vr-cat ${stato.selezione.has(a.id) ? 'on' : ''}" data-id="${a.id}"><span class="ck">✓</span><span style="flex:1"><b>${esc(a.nome)}</b> <span class="vr-voto v${a.imp >= 9 ? 'top' : a.imp >= 7 ? 'hi' : 'mid'}">${a.imp}/10</span>
       <div class="m">${esc(a.zona)} · ${dur(a.durata)} · ${a.prezzo ? (a.indicativo ? TX.circa + ' ' : '') + euro(a.prezzo) : TX.gratis}</div>
