@@ -22,7 +22,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": true
+   "indicativo": true,
+   "esterno": null
   },
   {
    "id": "cappuccini",
@@ -46,7 +47,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "montemartini",
@@ -71,7 +73,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "serra_moresca",
@@ -95,7 +98,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "museo_luce",
@@ -119,7 +123,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": true
+   "indicativo": true,
+   "esterno": null
   },
   {
    "id": "welcome_rome",
@@ -143,7 +148,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": true
+   "indicativo": true,
+   "esterno": null
   },
   {
    "id": "barracco",
@@ -167,7 +173,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "museo_mura",
@@ -191,7 +198,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "lab_mente",
@@ -215,7 +223,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": true
+   "indicativo": true,
+   "esterno": null
   },
   {
    "id": "anime_purgatorio",
@@ -239,7 +248,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "buco_serratura",
@@ -263,7 +273,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "coppede",
@@ -287,7 +298,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "palazzo_valentini",
@@ -311,7 +323,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "case_celio",
@@ -335,7 +348,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "galleria_spada",
@@ -359,7 +373,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "galleria_sciarra",
@@ -382,7 +397,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "maxxi",
@@ -405,7 +421,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "dreamers",
@@ -429,7 +446,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": true
+   "indicativo": true,
+   "esterno": null
   },
   {
    "id": "ikono",
@@ -453,7 +471,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": true
+   "indicativo": true,
+   "esterno": null
   },
   {
    "id": "time_elevator",
@@ -477,7 +496,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": true
+   "indicativo": true,
+   "esterno": null
   },
   {
    "id": "colosseo",
@@ -500,7 +520,13 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": {
+    "imp": 9,
+    "durata": 30,
+    "desc": "Il Colosseo da fuori, con l'Arco di Costantino e la vista sul Foro. Ingresso non incluso.",
+    "nome": null
+   }
   },
   {
    "id": "pantheon",
@@ -524,7 +550,13 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": {
+    "imp": 7,
+    "durata": 15,
+    "desc": "La facciata del Pantheon e Piazza della Rotonda con la fontana. Ingresso non incluso.",
+    "nome": null
+   }
   },
   {
    "id": "trevi",
@@ -548,7 +580,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "navona",
@@ -572,7 +605,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "spagna",
@@ -595,7 +629,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "capitolini",
@@ -619,7 +654,13 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": {
+    "imp": 7,
+    "durata": 25,
+    "desc": "Piazza del Campidoglio di Michelangelo e la terrazza gratuita sul Foro Romano.",
+    "nome": "Piazza del Campidoglio e terrazza sul Foro"
+   }
   },
   {
    "id": "castel_santangelo",
@@ -643,7 +684,13 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": {
+    "imp": 6,
+    "durata": 20,
+    "desc": "Il castello visto dal Ponte degli Angeli e dal lungotevere. Ingresso non incluso.",
+    "nome": null
+   }
   },
   {
    "id": "vittoriano",
@@ -667,7 +714,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "fori_imperiali",
@@ -691,7 +739,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "ghetto",
@@ -714,7 +763,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "popolo",
@@ -737,7 +787,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "campo_fiori",
@@ -762,7 +813,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "bocca_verita",
@@ -785,7 +837,13 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": true
+   "indicativo": true,
+   "esterno": {
+    "imp": 5,
+    "durata": 10,
+    "desc": "La Bocca della Verità si vede dal cancello del portico, anche senza entrare.",
+    "nome": "Bocca della Verità (dal portico)"
+   }
   },
   {
    "id": "torre_argentina",
@@ -808,7 +866,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "teatro_marcello",
@@ -831,7 +890,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "isola_tiberina",
@@ -854,7 +914,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "circo_massimo",
@@ -878,7 +939,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "ara_pacis",
@@ -902,7 +964,13 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": {
+    "imp": 3,
+    "durata": 10,
+    "desc": "L'altare di Augusto visto attraverso la teca di vetro di Richard Meier.",
+    "nome": null
+   }
   },
   {
    "id": "musei_vaticani",
@@ -925,7 +993,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "san_pietro",
@@ -948,7 +1017,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "piazza_san_pietro",
@@ -971,7 +1041,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "cupola",
@@ -995,7 +1066,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "grotte_vaticane",
@@ -1018,7 +1090,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "necropoli",
@@ -1042,7 +1115,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": true
+   "indicativo": true,
+   "esterno": null
   },
   {
    "id": "giardini_vaticani",
@@ -1065,7 +1139,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "ponte_santangelo",
@@ -1088,7 +1163,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "borgo_pio",
@@ -1111,7 +1187,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "prati",
@@ -1135,7 +1212,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "palazzaccio",
@@ -1158,7 +1236,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "laterano",
@@ -1181,7 +1260,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "santa_maria_maggiore",
@@ -1204,7 +1284,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "san_paolo",
@@ -1227,7 +1308,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "vincoli",
@@ -1250,7 +1332,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "san_clemente",
@@ -1275,7 +1358,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "santa_maria_trastevere",
@@ -1298,7 +1382,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "san_luigi",
@@ -1322,7 +1407,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "sant_ignazio",
@@ -1346,7 +1432,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "santa_maria_popolo",
@@ -1370,7 +1457,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "gesu",
@@ -1393,7 +1481,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "minerva",
@@ -1416,7 +1505,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "scala_santa",
@@ -1440,7 +1530,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "vittoria",
@@ -1464,7 +1555,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "sant_agostino",
@@ -1488,7 +1580,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "aracoeli",
@@ -1512,7 +1605,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "santa_cecilia",
@@ -1535,7 +1629,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "santa_prassede",
@@ -1559,7 +1654,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "quattro_fontane",
@@ -1583,7 +1679,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "sant_andrea_quirinale",
@@ -1607,7 +1704,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "santo_stefano_rotondo",
@@ -1631,7 +1729,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "quattro_coronati",
@@ -1655,7 +1754,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": true
+   "indicativo": true,
+   "esterno": null
   },
   {
    "id": "santa_sabina",
@@ -1678,7 +1778,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "tempietto_bramante",
@@ -1702,7 +1803,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "santa_maria_angeli",
@@ -1726,7 +1828,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "sant_ivo",
@@ -1750,7 +1853,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "san_lorenzo",
@@ -1773,7 +1877,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "santa_costanza",
@@ -1797,7 +1902,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "chiostro_bramante",
@@ -1821,7 +1927,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": true
+   "indicativo": true,
+   "esterno": null
   },
   {
    "id": "cosma_damiano",
@@ -1845,7 +1952,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "galleria_borghese",
@@ -1869,7 +1977,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "villa_borghese",
@@ -1892,7 +2001,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "pincio",
@@ -1916,7 +2026,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "giardino_aranci",
@@ -1940,7 +2051,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "gianicolo",
@@ -1964,7 +2076,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "fontanone",
@@ -1988,7 +2101,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "terrazza_caffarelli",
@@ -2011,7 +2125,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "parco_acquedotti",
@@ -2035,7 +2150,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "appia_antica",
@@ -2060,7 +2176,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "villa_doria_pamphilj",
@@ -2083,7 +2200,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "villa_torlonia",
@@ -2107,7 +2225,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "roseto",
@@ -2130,7 +2249,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "villa_celimontana",
@@ -2153,7 +2273,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "villa_sciarra",
@@ -2177,7 +2298,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "villa_ada",
@@ -2200,7 +2322,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "caffarella",
@@ -2223,7 +2346,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "orto_botanico",
@@ -2246,7 +2370,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": true
+   "indicativo": true,
+   "esterno": null
   },
   {
    "id": "bioparco",
@@ -2270,7 +2395,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "villa_medici",
@@ -2294,7 +2420,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "zodiaco",
@@ -2317,7 +2444,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "domus_aurea",
@@ -2341,7 +2469,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "colosseo_sotterranei",
@@ -2365,7 +2494,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "caracalla",
@@ -2388,7 +2518,13 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": {
+    "imp": 4,
+    "durata": 15,
+    "desc": "Le rovine imponenti delle terme viste dal viale. Ingresso non incluso.",
+    "nome": null
+   }
   },
   {
    "id": "ostia_antica",
@@ -2411,7 +2547,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "palazzo_massimo",
@@ -2435,7 +2572,8 @@
    ],
    "gruppo": "mnr",
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "terme_diocleziano",
@@ -2459,7 +2597,8 @@
    ],
    "gruppo": "mnr",
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "palazzo_altemps",
@@ -2483,7 +2622,8 @@
    ],
    "gruppo": "mnr",
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "crypta_balbi",
@@ -2507,7 +2647,8 @@
    ],
    "gruppo": null,
    "chiuso": true,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "mercati_traiano",
@@ -2532,7 +2673,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "carcere_mamertino",
@@ -2556,7 +2698,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "stadio_domiziano",
@@ -2580,7 +2723,8 @@
    ],
    "gruppo": null,
    "chiuso": true,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "vicus_caprarius",
@@ -2604,7 +2748,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "mausoleo_augusto",
@@ -2627,7 +2772,13 @@
    ],
    "gruppo": null,
    "chiuso": true,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": {
+    "imp": 3,
+    "durata": 10,
+    "desc": "La tomba circolare di Augusto vista dalla piazza.",
+    "nome": null
+   }
   },
   {
    "id": "san_callisto",
@@ -2651,7 +2802,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "domitilla",
@@ -2675,7 +2827,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "san_sebastiano",
@@ -2699,7 +2852,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "priscilla",
@@ -2723,7 +2877,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "cecilia_metella",
@@ -2746,7 +2901,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "villa_quintili",
@@ -2770,7 +2926,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "cimitero_acattolico",
@@ -2794,7 +2951,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "monte_testaccio",
@@ -2818,7 +2976,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": true
+   "indicativo": true,
+   "esterno": null
   },
   {
    "id": "trastevere",
@@ -2841,7 +3000,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "monti",
@@ -2864,7 +3024,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "testaccio",
@@ -2888,7 +3049,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "via_margutta",
@@ -2912,7 +3074,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "piazza_mattei",
@@ -2936,7 +3099,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "garbatella",
@@ -2960,7 +3124,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "pigneto",
@@ -2984,7 +3149,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "via_giulia",
@@ -3007,7 +3173,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "piazza_farnese",
@@ -3030,7 +3197,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "via_coronari",
@@ -3054,7 +3222,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "san_lorenzo_quartiere",
@@ -3078,7 +3247,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "eur",
@@ -3102,7 +3272,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "ostiense_street_art",
@@ -3126,7 +3297,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "tor_marancia",
@@ -3150,7 +3322,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "governo_vecchio",
@@ -3174,7 +3347,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "quadraro",
@@ -3198,7 +3372,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "porta_portese",
@@ -3222,7 +3397,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "mercato_centrale",
@@ -3246,7 +3422,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "mercato_trionfale",
@@ -3270,7 +3447,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "campagna_amica",
@@ -3294,7 +3472,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "cooking_class",
@@ -3318,7 +3497,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": true
+   "indicativo": true,
+   "esterno": null
   },
   {
    "id": "food_tour",
@@ -3342,7 +3522,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": true
+   "indicativo": true,
+   "esterno": null
   },
   {
    "id": "vespa_tour",
@@ -3366,7 +3547,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": true
+   "indicativo": true,
+   "esterno": null
   },
   {
    "id": "golf_cart",
@@ -3389,7 +3571,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": true
+   "indicativo": true,
+   "esterno": null
   },
   {
    "id": "bici_appia",
@@ -3414,7 +3597,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": true
+   "indicativo": true,
+   "esterno": null
   },
   {
    "id": "crociera_tevere",
@@ -3437,7 +3621,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": true
+   "indicativo": true,
+   "esterno": null
   },
   {
    "id": "cinecitta",
@@ -3461,7 +3646,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": false
+   "indicativo": false,
+   "esterno": null
   },
   {
    "id": "explora",
@@ -3485,7 +3671,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": true
+   "indicativo": true,
+   "esterno": null
   },
   {
    "id": "opera_caracalla",
@@ -3509,7 +3696,8 @@
    ],
    "gruppo": null,
    "chiuso": false,
-   "indicativo": true
+   "indicativo": true,
+   "esterno": null
   }
  ],
  "gite": [
