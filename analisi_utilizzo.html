@@ -162,7 +162,7 @@ function disegna(st, dv, vecchio, rec) {
   const nDi = (e, s) => ev.filter(r => r.event === e && (s == null || r.section === s)).reduce((a, r) => a + r.n, 0);
   let h = '';
 
-  if (st.primoGiorno && S.from < st.primoGiorno) h += `<div class="note">📌 La raccolta dettagliata è attiva dal <b>${fmtD(st.primoGiorno)}/${st.primoGiorno.slice(0, 4)}</b>: per i giorni precedenti c'è solo lo <a href="#storico">storico semplificato</a> in fondo alla pagina.</div>`;
+  if (st.primoGiorno && S.from < st.primoGiorno) h += `<div class="note">📌 La raccolta dettagliata è attiva dal <b>${fmtD(st.primoGiorno)}/${st.primoGiorno.slice(0, 4)}</b>: per i giorni precedenti c'è la <a href="#storico">vecchia pagina di analisi</a> (collegamento in fondo).</div>`;
 
   h += `<p style="margin:12px 0 0;font-size:13px"><a href="#recenti" style="color:var(--orange);font-weight:700">📱 Escludi i miei dispositivi ↓</a></p>`;
   if (S.slug === 'flytour') {
@@ -297,19 +297,11 @@ function disegna(st, dv, vecchio, rec) {
   </div>`;
 
   // storico del vecchio sistema
-  h += `<div class="card" id="storico"><details id="dStorico"><summary>📦 Storico semplificato (prima della raccolta dettagliata)</summary>
-    <p class="hint" style="margin-top:8px">Dati del vecchio sistema (ultimi 90 giorni disponibili), non ripulibili dai test: da leggere con cautela.</p>
-    <div id="storicoCorpo"><p class="muted">Carico lo storico… (può richiedere fino a un minuto)</p></div></details></div>`;
+  h += `<div class="card" id="storico"><h2>📦 Dati del vecchio sistema</h2>
+    <p class="hint">Prima del 22/09/2026 i dati erano raccolti in modo semplificato (non ripulibili dai test). Puoi consultarli nella pagina di analisi com'era prima.</p>
+    <a class="btn" style="display:inline-block;text-decoration:none;padding:9px 14px" href="analisi_utilizzo_vecchia.html" target="_blank" rel="noopener">Apri la vecchia pagina di analisi ↗</a></div>`;
 
   $('#corpo').innerHTML = h;
-  // storico vecchio: si carica solo quando lo apri (e' lento)
-  $('#dStorico').addEventListener('toggle', async function () {
-    if (!this.open || this.dataset.ok) return; this.dataset.ok = 1;
-    const vv = (await Promise.all((S.slug === 'all' ? ['campaldino', 'lorenzo'] : [S.slug]).map(s => api(`/wb/${s}/stats?days=90`).catch(() => null)))).filter(Boolean);
-    const tot = {}; vv.forEach(v => Object.entries(v.uniqueByDay || {}).forEach(([d, n]) => tot[d] = (tot[d] || 0) + n));
-    const dStor = Object.keys(tot).sort().filter(d => !st.primoGiorno || d < st.primoGiorno);
-    $('#storicoCorpo').innerHTML = dStor.length ? grafico(dStor.map(d => ({ k: d, l: fmtD(d) })), [{ n: 'dispositivi', c: '#b9b2a6', v: tot }]) : '<p class="muted">Nessun dato.</p>';
-  });
   document.querySelectorAll('[data-sid]').forEach(b => b.onclick = async () => {
     b.disabled = true;
     await fetch(`${WORKER}/wb/all/escludi?key=${encodeURIComponent(KEY)}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sid: b.dataset.sid, on: b.dataset.on === '1', note: 'escluso da analisi' }) });
