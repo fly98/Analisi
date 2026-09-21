@@ -37,7 +37,8 @@
     nessuna: 'Scegli almeno una tappa.',
     un_giorno: 'Tutto in un unico itinerario', un_giorno_d: 'Non dividere in giorni: un solo percorso con tutte le tappe scelte.',
     importanza: 'Importanza', importanza_d: 'Voto da 1 a 10: 10 sono le attrazioni da non perdere assolutamente, poi a scendere fino alle chicche per chi ha più tempo.',
-    tutte: 'Tutte', voto: 'voto',
+    tutte: 'Tutte', voto: 'voto', risultati: 'attrazioni', risultato1: 'attrazione', filtri_attivi: 'Filtri attivi', azzera: 'Azzera filtri',
+    nessun_risultato: 'Nessuna attrazione trovata.', nessun_con_filtri: 'Nessuna attrazione trovata con i filtri attivi.',
     note_prezzi: 'Prezzi dei biglietti interi aggiornati al 2026. Molti siti statali sono gratuiti la prima domenica del mese.',
   };
   const CAT = [
@@ -209,6 +210,7 @@
       <div class="vr-h" style="margin:12px 0 2px">${TX.importanza}</div><p class="vr-sub" style="margin:0 0 6px">${TX.importanza_d}</p>
       <div class="filter-row" data-grp="fi"><button class="chip ${filtroImp.size ? '' : 'on'}" data-v="">${TX.tutte}</button>${FASCE.map(([k, l]) => `<button class="chip ${filtroImp.has(k) ? 'on' : ''}" data-v="${k}">${l}</button>`).join('')}</div>
       <div class="filter-row" data-grp="fc"><button class="chip ${filtroCat.size ? '' : 'on'}" data-v="">${TX.tutte}</button>${CAT.map(([k, l]) => `<button class="chip ${filtroCat.has(k) ? 'on' : ''}" data-v="${k}">${l}</button>`).join('')}</div>
+      <div id="vrInfo" class="vr-sub" style="margin:4px 2px 8px"></div>
       <div id="vrLista"></div>
       <div class="vr-bar"><button class="btn" id="vrOrg"></button></div>
     `);
@@ -247,6 +249,15 @@
     $('#vrLista').innerHTML = el.map(a => `<div class="vr-cat ${stato.selezione.has(a.id) ? 'on' : ''}" data-id="${a.id}"><span class="ck">✓</span><span style="flex:1"><b>${esc(a.nome)}</b> <span class="vr-voto v${a.imp >= 9 ? 'top' : a.imp >= 7 ? 'hi' : 'mid'}">${a.imp}/10</span>
       <div class="m">${esc(a.zona)} · ${dur(a.durata)} · ${a.prezzo ? (a.indicativo ? TX.circa + ' ' : '') + euro(a.prezzo) : TX.gratis}</div>
       <div class="m">${esc(a.desc)}</div></span></div>`).join('');
+    const nf = filtroImp.size + filtroCat.size;
+    const nomi = [...FASCE.filter(f => filtroImp.has(f[0])).map(f => f[1].replace('⭐ ', '')), ...CAT.filter(c => filtroCat.has(c[0])).map(c => c[1])];
+    $('#vrInfo').innerHTML = (el.length ? `<b>${el.length}</b> ${el.length === 1 ? TX.risultato1 : TX.risultati}` : (nf ? TX.nessun_con_filtri : TX.nessun_risultato))
+      + (nf ? ` · ${TX.filtri_attivi}: ${nomi.map(esc).join(', ')} · <a href="#" id="vrAzzera" style="color:var(--orange);font-weight:700">${TX.azzera}</a>` : '');
+    const az = $('#vrAzzera');
+    if (az) az.onclick = e => {
+      e.preventDefault(); filtroImp.clear(); filtroCat.clear();
+      root().querySelectorAll('[data-grp] [data-v]').forEach(x => x.classList.toggle('on', !x.dataset.v)); lista();
+    };
     $('#vrLista').querySelectorAll('[data-id]').forEach(d => d.onclick = () => { const id = d.dataset.id; stato.selezione.has(id) ? stato.selezione.delete(id) : stato.selezione.add(id); d.classList.toggle('on'); barra(); });
     barra();
   }
