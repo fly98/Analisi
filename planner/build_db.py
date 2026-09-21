@@ -113,6 +113,29 @@ add('bioparco','Bioparco',['parco','famiglia'],'Villa Borghese',41.9168,12.4832,
 add('villa_medici','Villa Medici',['arte','parco'],'Spagna',41.9087,12.4796,None,2,1,60,'Sede dell\'Accademia di Francia: giardini rinascimentali con visita guidata.',True)
 add('zodiaco','Belvedere dello Zodiaco',['panorama'],'Monte Mario',41.9290,12.4440,0,2,1,20,'Il punto più alto di Roma, lontano dal centro: si raggiunge in bus o taxi.')
 
+# ---------- BLOCCO 6: Roma sotterranea e archeologia ----------
+add('domus_aurea','Domus Aurea',['archeologia','insolito'],'Colle Oppio',41.8913,12.4955,18,4,2,90,'Il palazzo sepolto di Nerone, con visore VR che mostra le sale com\'erano. Piccoli gruppi, prenotare presto.')
+add('colosseo_sotterranei','Colosseo: arena e sotterranei',['archeologia','insolito'],'Colosseo',41.8902,12.4922,None,3,2,90,'Visita speciale dove passavano gladiatori e belve, con accesso all\'arena.',True)
+add('caracalla','Terme di Caracalla',['archeologia'],'Aventino',41.8790,12.4924,None,4,2,90,'Le terme più imponenti dell\'antichità, meno affollate del Foro. In estate ospitano l\'opera.',True)
+add('ostia_antica','Ostia Antica',['archeologia'],'Fuori Roma',41.7556,12.2923,None,4,3,240,'Una Pompei a 30 minuti di treno: strade, taverne, teatro e case intatte.',True,momento=['mattina'])
+add('palazzo_massimo','Museo Nazionale Romano – Palazzo Massimo',['museo','archeologia'],'Termini',41.9013,12.4984,None,4,2,90,'Affreschi della villa di Livia, il Pugile in riposo e mosaici straordinari.',True)
+add('terme_diocleziano','Terme di Diocleziano',['archeologia','museo'],'Termini',41.9029,12.4983,None,3,1,60,'Enormi terme romane con un chiostro di Michelangelo.',True)
+add('palazzo_altemps','Palazzo Altemps',['museo','arte'],'Navona',41.9014,12.4726,None,3,1,60,'Sculture antiche in un palazzo rinascimentale, tra cui il Trono Ludovisi.',True)
+add('crypta_balbi','Crypta Balbi',['archeologia','museo'],'Ghetto',41.8950,12.4787,None,2,1,45,'Come Roma si è trasformata dall\'antichità al Medioevo, strato dopo strato.',True)
+add('mercati_traiano','Mercati di Traiano',['archeologia','museo','panorama'],'Fori',41.8958,12.4866,None,3,2,75,'Il "centro commerciale" di Roma antica, con vista dall\'alto sui Fori.',True)
+add('carcere_mamertino','Carcere Mamertino',['archeologia','insolito'],'Fori',41.8932,12.4843,None,3,1,40,'La prigione dove secondo la tradizione fu rinchiuso San Pietro.',True)
+add('stadio_domiziano','Stadio di Domiziano',['archeologia','insolito'],'Navona',41.9004,12.4725,None,3,1,45,'Lo stadio romano nascosto sotto Piazza Navona, che ne spiega la forma.',True)
+add('vicus_caprarius','Vicus Caprarius – Città dell\'Acqua',['archeologia','insolito'],'Trevi',41.9005,12.4830,None,3,1,40,'Sotto Trevi, un\'antica casa romana attraversata dall\'acqua che alimenta la fontana.',True)
+add('mausoleo_augusto','Mausoleo di Augusto',['archeologia'],'Flaminio',41.9060,12.4764,None,3,1,45,'La tomba circolare del primo imperatore, riaperta dopo decenni di restauri.',True)
+add('san_callisto','Catacombe di San Callisto',['archeologia','chiesa'],'Appia',41.8588,12.5108,None,4,2,60,'Le catacombe più grandi e famose, con la cripta dei papi. Visita guidata inclusa.',True)
+add('domitilla','Catacombe di Domitilla',['archeologia','chiesa'],'Appia',41.8574,12.5054,10,3,2,60,'Catacombe con una basilica sotterranea e affreschi paleocristiani. Visita guidata inclusa.')
+add('san_sebastiano','Catacombe di San Sebastiano',['archeologia','chiesa'],'Appia',41.8554,12.5157,None,3,2,60,'Catacombe con mausolei romani perfettamente conservati.',True)
+add('priscilla','Catacombe di Priscilla',['archeologia','chiesa'],'Salario',41.9303,12.5070,None,3,2,60,'La più antica raffigurazione conosciuta della Madonna. Vicina alle nostre strutture.',True)
+add('cecilia_metella','Tomba di Cecilia Metella',['archeologia'],'Appia',41.8519,12.5199,None,3,2,45,'Il mausoleo-fortezza simbolo dell\'Appia Antica.',True)
+add('villa_quintili','Villa dei Quintili',['archeologia','insolito'],'Appia',41.8318,12.5470,None,2,2,75,'Villa imperiale enorme e quasi deserta, fuori dai circuiti turistici.',True)
+add('cimitero_acattolico','Cimitero Acattolico e Piramide Cestia',['insolito','archeologia'],'Testaccio',41.8762,12.4800,0,3,1,45,'Il cimitero romantico di Keats e Shelley, all\'ombra di una piramide romana.')
+add('monte_testaccio','Monte dei Cocci',['archeologia','insolito'],'Testaccio',41.8757,12.4755,None,2,1,45,'Una collina fatta interamente di anfore rotte: la discarica di Roma antica.',True)
+
 # ---------- MOMENTO IDEALE ----------
 # mattina = presto per caldo/folla; sera = dopo cena/illuminato; tramonto = ultima tappa del giorno
 MOMENTO = {
