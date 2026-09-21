@@ -253,8 +253,10 @@ async function handleTrack(request, env, slug) {
       if (!host) { try { host = new URL(request.headers.get('Origin') || request.headers.get('Referer') || '').hostname; } catch (e) { host = ''; } }
       const ua = request.headers.get('User-Agent') || '';
       const bot = (body.wd === true || /headless|bot|crawl|spider|playwright|puppeteer|lighthouse|preview/i.test(ua)) ? 1 : 0;
-      await env.DB.prepare('INSERT INTO ev (ts, day, hour, slug, sid, event, section, lang, host, bot) VALUES (?,?,?,?,?,?,?,?,?,?)')
-        .bind(now.getTime(), dayR, hourR, slug, sid, event, section, lang, host, bot).run();
+      await assicuraColonne(env);
+      const dev = String(body.dv || '').replace(/[^\w ·àèéìòù-]/g, '').slice(0, 40); // es. "iPhone · app Home"
+      await env.DB.prepare('INSERT INTO ev (ts, day, hour, slug, sid, event, section, lang, host, bot, dev) VALUES (?,?,?,?,?,?,?,?,?,?,?)')
+        .bind(now.getTime(), dayR, hourR, slug, sid, event, section, lang, host, bot, dev).run();
       return json({ ok: true });
     } catch (e) { /* se D1 non risponde si ripiega sul vecchio sistema qui sotto */ }
   }
@@ -512,6 +514,12 @@ async function handleRefreshConcerti(request, env, slug, url) {
 
 
 // ================= STATISTICHE v2 (D1) =================
+let colonneOk = false;
+async function assicuraColonne(env) {
+  if (colonneOk) return;
+  try { await env.DB.prepare('ALTER TABLE ev ADD COLUMN dev TEXT').run(); } catch (e) { /* esiste gia' */ }
+  colonneOk = true;
+}
 // Traffico valido: sito ospiti reale (interno1.it), niente browser automatici, niente dispositivi esclusi.
 const HOST_OK = "(host = 'interno1.it' OR host = 'www.interno1.it')";
 const VALIDO = `bot = 0 AND ${HOST_OK} AND sid NOT IN (SELECT sid FROM excluded)`;
@@ -588,14 +596,17 @@ async function handleDispositivi(request, env, slug, url) {
   if (!env.DB) return json({ error: 'db non disponibile' }, 503);
   const { from, to } = periodo(url);
   const s = slug === 'all' ? 'all' : slug;
+  await assicuraColonne(env);
+  const ordine = url.searchParams.get('ord') === 'recenti' ? 'ultimo DESC' : 'eventi DESC';
   const res = await env.DB.prepare(`
     SELECT e.sid, COUNT(*) AS eventi, COUNT(DISTINCT e.day) AS giorni, MIN(e.ts) AS primo, MAX(e.ts) AS ultimo,
            GROUP_CONCAT(DISTINCT e.slug) AS strutture, GROUP_CONCAT(DISTINCT e.lang) AS lingue,
            MAX(e.bot) AS bot, SUM(CASE WHEN ${HOST_OK} THEN 0 ELSE 1 END) AS fuori,
            (SELECT MAX(c) FROM (SELECT COUNT(*) AS c FROM ev x WHERE x.sid = e.sid AND x.day BETWEEN ?1 AND ?2 GROUP BY x.day, x.hour)) AS maxOra,
-           (SELECT note FROM excluded z WHERE z.sid = e.sid) AS escluso
+           (SELECT note FROM excluded z WHERE z.sid = e.sid) AS escluso,
+           MAX(e.dev) AS dev
     FROM ev e WHERE e.day BETWEEN ?1 AND ?2 AND (?3 = 'all' OR e.slug = ?3)
-    GROUP BY e.sid ORDER BY eventi DESC LIMIT 200`).bind(from, to, s).all();
+    GROUP BY e.sid ORDER BY ${ordine} LIMIT 200`).bind(from, to, s).all();
   return json({ from, to, dispositivi: res.results || [] });
 }
 
