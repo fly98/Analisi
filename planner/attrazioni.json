@@ -3845,5 +3845,164 @@
    "verifica": false,
    "note": null
   }
+ ],
+ "serata": [
+  {
+   "id": "trastevere",
+   "nome": "Trastevere",
+   "lat": 41.8894,
+   "lon": 12.47,
+   "imp": 10,
+   "tipo": [
+    "aperitivo",
+    "cena",
+    "serata"
+   ],
+   "desc": "Il cuore della sera romana: aperitivo in Piazza San Calisto, cena in trattoria, poi i gradini di Piazza Trilussa.",
+   "casa": false
+  },
+  {
+   "id": "monti",
+   "nome": "Rione Monti",
+   "lat": 41.895,
+   "lon": 12.493,
+   "imp": 9,
+   "tipo": [
+    "aperitivo",
+    "cena"
+   ],
+   "desc": "Aperitivo in Piazza Madonna dei Monti tra romani e turisti, poi cena nei locali di Via Panisperna e dintorni.",
+   "casa": false
+  },
+  {
+   "id": "campo_navona",
+   "nome": "Campo de' Fiori e Navona",
+   "lat": 41.897,
+   "lon": 12.4715,
+   "imp": 8,
+   "tipo": [
+    "aperitivo",
+    "cena",
+    "serata"
+   ],
+   "desc": "Wine bar in Via del Governo Vecchio e Piazza del Fico, cena vicino a Navona, serata a Campo de' Fiori.",
+   "casa": false
+  },
+  {
+   "id": "ghetto",
+   "nome": "Ghetto ebraico",
+   "lat": 41.8925,
+   "lon": 12.4775,
+   "imp": 7,
+   "tipo": [
+    "cena"
+   ],
+   "desc": "Cena giudaico-romana: carciofi alla giudia e filetti di baccalà tra Portico d'Ottavia e Via del Portico.",
+   "casa": false
+  },
+  {
+   "id": "testaccio",
+   "nome": "Testaccio",
+   "lat": 41.8775,
+   "lon": 12.4765,
+   "imp": 7,
+   "tipo": [
+    "cena",
+    "serata"
+   ],
+   "desc": "La cucina romana più verace, dalla coda alla vaccinara alla cacio e pepe; poi locali fino a tardi.",
+   "casa": false
+  },
+  {
+   "id": "pigneto",
+   "nome": "Pigneto",
+   "lat": 41.889,
+   "lon": 12.528,
+   "imp": 7,
+   "tipo": [
+    "aperitivo",
+    "cena",
+    "serata"
+   ],
+   "desc": "Isola pedonale alternativa, vini naturali e birre artigianali. Vicino alle nostre strutture.",
+   "casa": true
+  },
+  {
+   "id": "tridente",
+   "nome": "Piazza di Spagna e Piazza del Popolo",
+   "lat": 41.907,
+   "lon": 12.479,
+   "imp": 6,
+   "tipo": [
+    "aperitivo"
+   ],
+   "desc": "Aperitivo elegante e terrazze con vista tra Via Margutta e Piazza del Popolo.",
+   "casa": false
+  },
+  {
+   "id": "prati",
+   "nome": "Prati",
+   "lat": 41.908,
+   "lon": 12.464,
+   "imp": 6,
+   "tipo": [
+    "aperitivo",
+    "cena"
+   ],
+   "desc": "Aperitivi raffinati e ristoranti tranquilli, perfetti dopo una giornata in Vaticano.",
+   "casa": false
+  },
+  {
+   "id": "san_lorenzo",
+   "nome": "San Lorenzo",
+   "lat": 41.898,
+   "lon": 12.515,
+   "imp": 6,
+   "tipo": [
+    "aperitivo",
+    "cena",
+    "serata"
+   ],
+   "desc": "Il quartiere universitario: economico, vivace, pieno di trattorie e pub. A due passi da casa.",
+   "casa": true
+  },
+  {
+   "id": "ostiense",
+   "nome": "Ostiense",
+   "lat": 41.868,
+   "lon": 12.48,
+   "imp": 5,
+   "tipo": [
+    "cena",
+    "serata"
+   ],
+   "desc": "Ex zona industriale con locali, ristoranti e club; Eataly per chi vuole tutto in un posto.",
+   "casa": false
+  },
+  {
+   "id": "ponte_milvio",
+   "nome": "Ponte Milvio",
+   "lat": 41.9355,
+   "lon": 12.4675,
+   "imp": 5,
+   "tipo": [
+    "aperitivo",
+    "serata"
+   ],
+   "desc": "L'aperitivo dei giovani romani, con il ponte dei lucchetti.",
+   "casa": false
+  },
+  {
+   "id": "piazza_bologna",
+   "nome": "Zona Piazza Bologna (vicino casa)",
+   "lat": 41.913,
+   "lon": 12.521,
+   "imp": 5,
+   "tipo": [
+    "cena"
+   ],
+   "desc": "Per una serata tranquilla vicino alle nostre strutture: trovi i locali consigliati nella sezione Mangiare.",
+   "casa": true
+  }
  ]
 }
