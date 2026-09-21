@@ -1376,5 +1376,357 @@
   "desc": "Mosaico absidale del VI secolo e un grande presepe napoletano del Settecento.",
   "verifica": false,
   "temp": null
+ },
+ {
+  "id": "galleria_borghese",
+  "nome": "Galleria Borghese",
+  "cat": [
+   "museo",
+   "arte"
+  ],
+  "zona": "Villa Borghese",
+  "lat": 41.9142,
+  "lon": 12.4921,
+  "prezzo": 18,
+  "imp": 5,
+  "fatica": 2,
+  "durata": 120,
+  "desc": "Bernini e Caravaggio in una villa barocca. Prenotazione obbligatoria, turni da 2 ore.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "villa_borghese",
+  "nome": "Villa Borghese",
+  "cat": [
+   "parco"
+  ],
+  "zona": "Villa Borghese",
+  "lat": 41.913,
+  "lon": 12.485,
+  "prezzo": 0,
+  "imp": 4,
+  "fatica": 2,
+  "durata": 90,
+  "desc": "Il parco più famoso di Roma: viali, laghetto con barchette, noleggio bici e risciò.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "pincio",
+  "nome": "Terrazza del Pincio",
+  "cat": [
+   "panorama",
+   "parco"
+  ],
+  "zona": "Villa Borghese",
+  "lat": 41.9115,
+  "lon": 12.48,
+  "prezzo": 0,
+  "imp": 4,
+  "fatica": 1,
+  "durata": 20,
+  "desc": "Vista su Piazza del Popolo e sulle cupole, splendida al tramonto.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "giardino_aranci",
+  "nome": "Giardino degli Aranci",
+  "cat": [
+   "panorama",
+   "parco"
+  ],
+  "zona": "Aventino",
+  "lat": 41.8849,
+  "lon": 12.4796,
+  "prezzo": 0,
+  "imp": 4,
+  "fatica": 1,
+  "durata": 20,
+  "desc": "Il tramonto più romantico di Roma, tra gli aranci sopra il Tevere.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "gianicolo",
+  "nome": "Belvedere del Gianicolo",
+  "cat": [
+   "panorama",
+   "parco"
+  ],
+  "zona": "Gianicolo",
+  "lat": 41.8918,
+  "lon": 12.4612,
+  "prezzo": 0,
+  "imp": 4,
+  "fatica": 2,
+  "durata": 45,
+  "desc": "La terrazza più ampia sulla città; a mezzogiorno spara un colpo di cannone.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "fontanone",
+  "nome": "Fontanone del Gianicolo",
+  "cat": [
+   "fontana",
+   "panorama"
+  ],
+  "zona": "Gianicolo",
+  "lat": 41.8888,
+  "lon": 12.4659,
+  "prezzo": 0,
+  "imp": 3,
+  "fatica": 1,
+  "durata": 15,
+  "desc": "La mostra dell'Acqua Paola, con vista su Trastevere.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "terrazza_caffarelli",
+  "nome": "Terrazza Caffarelli",
+  "cat": [
+   "panorama"
+  ],
+  "zona": "Campidoglio",
+  "lat": 41.8928,
+  "lon": 12.4815,
+  "prezzo": 0,
+  "imp": 3,
+  "fatica": 1,
+  "durata": 20,
+  "desc": "Terrazza sul Campidoglio con vista sui tetti e sul Vittoriano.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "parco_acquedotti",
+  "nome": "Parco degli Acquedotti",
+  "cat": [
+   "parco",
+   "archeologia"
+  ],
+  "zona": "Appia",
+  "lat": 41.8528,
+  "lon": 12.558,
+  "prezzo": 0,
+  "imp": 4,
+  "fatica": 2,
+  "durata": 90,
+  "desc": "Archi di acquedotti romani in mezzo ai prati: la Roma della \"Grande Bellezza\".",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "appia_antica",
+  "nome": "Via Appia Antica",
+  "cat": [
+   "archeologia",
+   "parco",
+   "passeggiata"
+  ],
+  "zona": "Appia",
+  "lat": 41.859,
+  "lon": 12.52,
+  "prezzo": 0,
+  "imp": 4,
+  "fatica": 3,
+  "durata": 180,
+  "desc": "La \"regina delle strade\": basoli romani, tombe e campagna, da fare a piedi o in bici.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "villa_doria_pamphilj",
+  "nome": "Villa Doria Pamphilj",
+  "cat": [
+   "parco"
+  ],
+  "zona": "Monteverde",
+  "lat": 41.8862,
+  "lon": 12.4467,
+  "prezzo": 0,
+  "imp": 3,
+  "fatica": 2,
+  "durata": 90,
+  "desc": "Il parco più grande di Roma, amato dai romani per correre e fare picnic.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "villa_torlonia",
+  "nome": "Villa Torlonia",
+  "cat": [
+   "parco",
+   "museo"
+  ],
+  "zona": "Nomentano",
+  "lat": 41.9142,
+  "lon": 12.5118,
+  "prezzo": 0,
+  "imp": 3,
+  "fatica": 1,
+  "durata": 60,
+  "desc": "La villa di Mussolini con la Casina delle Civette in stile liberty.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "roseto",
+  "nome": "Roseto Comunale",
+  "cat": [
+   "parco"
+  ],
+  "zona": "Aventino",
+  "lat": 41.8843,
+  "lon": 12.4833,
+  "prezzo": 0,
+  "imp": 2,
+  "fatica": 1,
+  "durata": 30,
+  "desc": "Oltre mille varietà di rose, aperto solo in primavera.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "villa_celimontana",
+  "nome": "Villa Celimontana",
+  "cat": [
+   "parco"
+  ],
+  "zona": "Celio",
+  "lat": 41.8845,
+  "lon": 12.493,
+  "prezzo": 0,
+  "imp": 2,
+  "fatica": 1,
+  "durata": 40,
+  "desc": "Parco tranquillo a due passi dal Colosseo, con un obelisco egizio.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "villa_sciarra",
+  "nome": "Villa Sciarra",
+  "cat": [
+   "parco",
+   "insolito"
+  ],
+  "zona": "Monteverde",
+  "lat": 41.8834,
+  "lon": 12.466,
+  "prezzo": 0,
+  "imp": 2,
+  "fatica": 1,
+  "durata": 40,
+  "desc": "Piccolo giardino romantico con fontane e statue, quasi sconosciuto ai turisti.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "villa_ada",
+  "nome": "Villa Ada",
+  "cat": [
+   "parco"
+  ],
+  "zona": "Salario",
+  "lat": 41.933,
+  "lon": 12.499,
+  "prezzo": 0,
+  "imp": 2,
+  "fatica": 2,
+  "durata": 90,
+  "desc": "Grande parco naturale con laghetto, ex residenza reale.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "caffarella",
+  "nome": "Parco della Caffarella",
+  "cat": [
+   "parco"
+  ],
+  "zona": "Appia",
+  "lat": 41.865,
+  "lon": 12.518,
+  "prezzo": 0,
+  "imp": 2,
+  "fatica": 2,
+  "durata": 90,
+  "desc": "Campagna romana in città: fattorie, ninfei e ruderi.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "orto_botanico",
+  "nome": "Orto Botanico",
+  "cat": [
+   "parco"
+  ],
+  "zona": "Trastevere",
+  "lat": 41.8927,
+  "lon": 12.4686,
+  "prezzo": null,
+  "imp": 2,
+  "fatica": 1,
+  "durata": 60,
+  "desc": "Giardino botanico ai piedi del Gianicolo, con serre e bambù.",
+  "verifica": true,
+  "temp": null
+ },
+ {
+  "id": "bioparco",
+  "nome": "Bioparco",
+  "cat": [
+   "parco",
+   "famiglia"
+  ],
+  "zona": "Villa Borghese",
+  "lat": 41.9168,
+  "lon": 12.4832,
+  "prezzo": null,
+  "imp": 2,
+  "fatica": 2,
+  "durata": 150,
+  "desc": "Lo zoo di Roma, ideale per chi viaggia con bambini.",
+  "verifica": true,
+  "temp": null
+ },
+ {
+  "id": "villa_medici",
+  "nome": "Villa Medici",
+  "cat": [
+   "arte",
+   "parco"
+  ],
+  "zona": "Spagna",
+  "lat": 41.9087,
+  "lon": 12.4796,
+  "prezzo": null,
+  "imp": 2,
+  "fatica": 1,
+  "durata": 60,
+  "desc": "Sede dell'Accademia di Francia: giardini rinascimentali con visita guidata.",
+  "verifica": true,
+  "temp": null
+ },
+ {
+  "id": "zodiaco",
+  "nome": "Belvedere dello Zodiaco",
+  "cat": [
+   "panorama"
+  ],
+  "zona": "Monte Mario",
+  "lat": 41.929,
+  "lon": 12.444,
+  "prezzo": 0,
+  "imp": 2,
+  "fatica": 1,
+  "durata": 20,
+  "desc": "Il punto più alto di Roma, lontano dal centro: si raggiunge in bus o taxi.",
+  "verifica": false,
+  "temp": null
  }
 ]
