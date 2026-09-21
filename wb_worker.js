@@ -222,7 +222,7 @@ async function handleChat(request, env, slug) {
       const lastQ = apiMessages.filter(m => m.role === "user").pop();
       if (lastQ) {
         const qKey = `wb:${slug}:q:${todayStr()}:${Date.now()}:${Math.random().toString(36).slice(2, 7)}`;
-        await env.WB_KV.put(qKey, JSON.stringify({ q: lastQ.content.slice(0, 300), lang }), { expirationTtl: 60 * 60 * 24 * 90 });
+        await env.WB_KV.put(qKey, JSON.stringify({ q: lastQ.content.slice(0, 300), a: reply.slice(0, 600), lang }), { expirationTtl: 60 * 60 * 24 * 365 }); // domanda + risposta, conservate 1 anno
       }
     } catch (logErr) { /* logging non riuscito: non deve mai far perdere la risposta all'ospite */ }
 
@@ -609,6 +609,27 @@ async function handleDispositivi(request, env, slug, url) {
     FROM ev e WHERE e.day BETWEEN ?1 AND ?2 AND ((?3 = 'all' AND e.slug IN ('campaldino', 'lorenzo')) OR e.slug = ?3)
     GROUP BY e.sid ORDER BY ${ordine} LIMIT 200`).bind(from, to, s).all();
   return json({ from, to, dispositivi: res.results || [] });
+}
+
+
+// Tutte le domande al concierge (con risposta, se salvata), dalla piu' recente
+async function handleDomande(request, env, slug, url) {
+  if (!admin(env, url)) return json({ error: 'non autorizzato' }, 401);
+  const slugs = slug === 'all' ? ['campaldino', 'lorenzo'] : [slug];
+  const out = [];
+  for (const s of slugs) {
+    let cursor;
+    do {
+      const l = await env.WB_KV.list({ prefix: `wb:${s}:q:`, cursor, limit: 1000 });
+      for (const k of l.keys) {
+        const v = await env.WB_KV.get(k.name);
+        if (v) { try { const q = JSON.parse(v); q.ts = parseInt(k.name.split(':')[4], 10) || null; q.s = s; out.push(q); } catch (e) {} }
+      }
+      cursor = l.list_complete ? null : l.cursor;
+    } while (cursor);
+  }
+  out.sort((a, b) => (b.ts || 0) - (a.ts || 0));
+  return json({ totale: out.length, domande: out });
 }
 
 // ---------------- Stats (admin) ----------------
@@ -1124,6 +1145,7 @@ export default {
       if (action === "track" && request.method === "POST") return await handleTrack(request, env, slug);
       if (action === "data" && request.method === "GET") return await handleData(request, env, slug, url);
       if (action === "stats" && request.method === "GET") return await handleStats(request, env, slug, url);
+      if (action === "domande" && request.method === "GET") return await handleDomande(request, env, slug, url);
       if (action === "stats2" && request.method === "GET") return await handleStats2(request, env, slug, url);
       if (action === "dispositivi" && request.method === "GET") return await handleDispositivi(request, env, slug, url);
       if (action === "escludimi" && request.method === "POST") return await handleEscludimi(request, env, slug);
