@@ -48,7 +48,7 @@
   function daFuori(a) {
     if (!a.esterno) return null;
     return Object.assign({}, a, { id: a.id + '_fuori', nome: a.esterno.nome || (a.nome.split(',')[0].split(' e ')[0] + ' (da fuori)'), prezzo: 0, gruppo: null,
-      durata: a.esterno.durata, fatica: 1, imp: a.esterno.imp, desc: a.esterno.desc, fuori: true, chiuso: false, esterno: null });
+      durata: a.esterno.durata, fatica: 1, imp: Math.max(a.esterno.imp, a.imp >= 10 ? 10 : 0), desc: a.esterno.desc, fuori: true, chiuso: false, esterno: null });
   }
 
   // ---------- Filtri ----------
@@ -70,7 +70,8 @@
     });
     const troppoCara = a => (opz.soloGratis && a.prezzo > 0) || (!opz.soloGratis && opz.budgetGiorno != null && a.prezzo > opz.budgetGiorno);
     const base = db.attrazioni.map(a => (a.chiuso || troppoCara(a)) ? daFuori(a) || a : a);
-    return base.map(a => Object.assign({}, a, { prio: a.imp + bonus(a) + (garantite.has(a.id) ? 3 : 0) })).filter(a => {
+    const simbolo = a => (opz.imperdibiliSempre !== false && a.imp >= 10 && !a.fuori) || (opz.imperdibiliSempre !== false && a.fuori && db.attrazioni.find(x => x.id + '_fuori' === a.id && x.imp >= 10)) ? 2.5 : 0;
+    return base.map(a => Object.assign({}, a, { prio: a.imp + bonus(a) + simbolo(a) + (garantite.has(a.id) ? 3 : 0) })).filter(a => {
       if (a.chiuso) return false;
       if (troppoCara(a)) return false;
       if (opz.eta >= 70 && a.fatica >= 3 && a.imp < 9) return false; // tappe pesanti solo se imperdibili
@@ -118,22 +119,22 @@
   // ---------- Calcolo tempi, fatica e costi di una giornata ----------
   const PRANZO_DA = 12 * 60 + 30, PRANZO_MIN = 60;
   function valutaGiorno(tappe, partenza, p, biglietti) {
-    let t = INIZIO_GIORNATA, fatica = 0, costo = 0, pos = partenza, pranzo = null;
+    let t = INIZIO_GIORNATA, fatica = 0, costo = 0, pos = partenza, pranzo = null, mVisite = 0, mSpost = 0;
     const righe = [];
     tappe.forEach(a => {
       const tr = tratta(pos, a, p.piedi);
-      t += tr.minuti; fatica += tr.fatica;
+      t += tr.minuti; fatica += tr.fatica; mSpost += tr.minuti;
       const arrivo = t;
-      t += a.durata; fatica += faticaTappa(a);
+      t += a.durata; fatica += faticaTappa(a); mVisite += a.durata;
       let prezzo = a.prezzo || 0;
       if (a.gruppo && biglietti.has(a.gruppo)) prezzo = 0; // biglietto condiviso gia' pagato
       costo += prezzo;
       pos = a;
       righe.push({ id: a.id, nome: a.nome, arrivo, durata: a.durata, tratta: tr, prezzo, indicativo: !!a.indicativo, zona: a.zona, fuori: !!a.fuori });
-      if (!pranzo && t >= PRANZO_DA) { pranzo = { ora: t, vicino: a.zona || a.nome }; righe.push({ pranzo: true, ora: t, zona: a.zona }); t += PRANZO_MIN; }
+      if (!pranzo && t >= PRANZO_DA) { pranzo = true; righe.push({ pranzo: true, zona: a.zona }); t += PRANZO_MIN; }
     });
     const minuti = t - INIZIO_GIORNATA - (pranzo ? PRANZO_MIN : 0);
-    return { righe, minuti, fine: t, fatica: Math.round(fatica * 10) / 10, costo, ultima: tappe[tappe.length - 1] || null };
+    return { righe, minuti, visite: mVisite, spostamenti: mSpost, fine: t, fatica: Math.round(fatica * 10) / 10, costo, ultima: tappe[tappe.length - 1] || null };
   }
 
   function sta(val, p, budget) {
@@ -278,9 +279,7 @@
       if (db && (opz.serata !== false)) {
         const sr = scegliSerata(db, v.ultima || partenza, usati, r.p, new Set(g.map(a => a.id)));
         if (sr) {
-          const aperitivo = Math.max(v.fine + sr.tratta.minuti, 18 * 60 + 30);
-          giorno.serata = { id: sr.zona.id, nome: sr.zona.nome, desc: sr.zona.desc, tipo: sr.zona.tipo, tratta: sr.tratta,
-                            aperitivo, cena: Math.max(aperitivo + 90, 20 * 60), casa: !!sr.zona.casa };
+          giorno.serata = { id: sr.zona.id, nome: sr.zona.nome, desc: sr.zona.desc, tipo: sr.zona.tipo, tratta: sr.tratta, casa: !!sr.zona.casa };
         }
       }
       return giorno;
