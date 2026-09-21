@@ -23,3 +23,8 @@ console.log('\n\n######## 1 GIORNO, 40 anni, 25€, tutte le categorie, medio');
 stampa(P.genera(db,{giorni:1, eta:40, budgetGiorno:25, ritmo:'medio', categorie:[]}));
 console.log('\n\n######## 3 GIORNI con TIVOLI, 35 anni, solo gratis, rilassato, quartieri+panorami+insolito');
 stampa(P.genera(db,{giorni:3, eta:35, soloGratis:true, ritmo:'rilassato', categorie:['quartieri','panorami','insolito'], gite:['tivoli']}));
+
+console.log('\n\n######## 1 GIORNO SOLO GRATIS, 40 anni, medio, tutte le categorie');
+stampa(P.genera(db,{giorni:1, eta:40, soloGratis:true, ritmo:'medio', categorie:[]}));
+console.log('\n\n######## 2 GIORNI, 15€ al giorno, medio');
+stampa(P.genera(db,{giorni:2, eta:40, budgetGiorno:15, ritmo:'medio', categorie:[]}));
