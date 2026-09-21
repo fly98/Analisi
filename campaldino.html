@@ -334,6 +334,7 @@ footer b{color:var(--text)}
       <span data-i="q_wifi"></span>
     </button>
   </div>
+  <button class="vr-badge" id="vrBadge"><span class="spk">✨</span><span><b>Organizza il tuo itinerario</b><small>Su misura per te, in pochi secondi</small></span></button>
   <div class="targa"><h2 data-i="t_casa"></h2><p data-i="t_casa_sub"></p></div>
   <div id="accordions"></div>
   <details class="acc"><summary><span class="i">☎️</span><span data-i="t_numeri"></span></summary><div class="body" id="numeri"></div></details>
@@ -387,7 +388,9 @@ footer b{color:var(--text)}
 <!-- ============ TOUR ============ -->
 <section class="screen" id="scr-tour">
   <div class="targa"><h2 data-i="t_tour"></h2><p data-i="t_tour_sub"></p></div>
-  <div class="wrap" id="tours"></div>
+  <div class="vr-tabs"><button class="vr-tab on" data-vr="itinerari">✨ Itinerari</button><button class="vr-tab" data-vr="audio">🎧 Audioguide</button></div>
+  <div class="vr-panel on" id="vr-itinerari"><div class="wrap" id="planner"></div></div>
+  <div class="vr-panel" id="vr-audio"><div class="wrap" id="tours"></div></div>
 </section>
 
 <!-- ============ CHIEDI ============ -->
@@ -463,9 +466,9 @@ it:{
   t_concerti:'Concerti', t_concerti_sub:'I prossimi live in città, con biglietti',
   eventi_soon:'📅 Il calendario eventi si aggiorna automaticamente ogni giorno.', eventi_info:'Info e biglietti →',
   concerti_soon:'🎵 Il calendario concerti si aggiorna automaticamente ogni giorno.',
-  t_tour:'Tour Audio Gratuiti', t_tour_sub:'Un regalo della casa: passeggiate con audioguida GPS',
+  t_tour:'Visita Roma', t_tour_sub:'Itinerari su misura e audioguide gratuite: un regalo della casa',
   t_chat:'Chiedi a InternoUno', t_chat_sub:'Risposte immediate, in ogni lingua, 24/7',
-  tab_casa:'Casa', tab_mappa:'Mappa', tab_food:'Mangiare', tab_chat:'Chiedi', tab_eventi:'Eventi', tab_concerti:'Concerti', tab_tour:'Tour',
+  tab_casa:'Casa', tab_mappa:'Mappa', tab_food:'Mangiare', tab_chat:'Chiedi', tab_eventi:'Eventi', tab_concerti:'Concerti', tab_tour:'Visita Roma',
   chat_hello:'Ciao! Sono l\u2019assistente di InternoUno. Chiedimi qualsiasi cosa sul soggiorno: orari, WiFi, trasporti, consigli in zona.',
   chat_ph:'Scrivi una domanda…',
   chat_err:'Il concierge digitale non è ancora attivo. Nel frattempo scrivici su WhatsApp: rispondiamo velocemente!',
@@ -549,9 +552,9 @@ en:{
   t_concerti:'Concerts', t_concerti_sub:'Upcoming live shows in the city, with tickets',
   eventi_soon:'📅 The events calendar updates automatically every day.', eventi_info:'Info and tickets →',
   concerti_soon:'🎵 The concerts calendar updates automatically every day.',
-  t_tour:'Free Audio Tours', t_tour_sub:'A gift from the house: GPS-guided walks',
+  t_tour:'Visit Rome', t_tour_sub:'Tailor-made itineraries and free audio guides: a gift from the house',
   t_chat:'Ask InternoUno', t_chat_sub:'Instant answers, in any language, 24/7',
-  tab_casa:'Home', tab_mappa:'Map', tab_food:'Eat', tab_chat:'Ask', tab_eventi:'Events', tab_concerti:'Concerts', tab_tour:'Tours',
+  tab_casa:'Home', tab_mappa:'Map', tab_food:'Eat', tab_chat:'Ask', tab_eventi:'Events', tab_concerti:'Concerts', tab_tour:'Visit Rome',
   chat_hello:'Hi! I\u2019m the InternoUno assistant. Ask me anything about your stay: times, WiFi, transport, local tips.',
   chat_ph:'Type a question…',
   chat_err:'The digital concierge is not active yet. Meanwhile, message us on WhatsApp — we reply fast!',
@@ -635,9 +638,9 @@ es:{
   t_concerti:'Conciertos', t_concerti_sub:'Los próximos conciertos en la ciudad, con entradas',
   eventi_soon:'📅 El calendario de eventos se actualiza automáticamente cada día.', eventi_info:'Info y entradas →',
   concerti_soon:'🎵 El calendario de conciertos se actualiza automáticamente cada día.',
-  t_tour:'Tours de Audio Gratis', t_tour_sub:'Un regalo de la casa: paseos con audioguía GPS',
+  t_tour:'Visita Roma', t_tour_sub:'Itinerarios a medida y audioguías gratuitas: un regalo de la casa',
   t_chat:'Pregunta a InternoUno', t_chat_sub:'Respuestas al instante, en cualquier idioma, 24/7',
-  tab_casa:'Casa', tab_mappa:'Mapa', tab_food:'Comer', tab_chat:'Pregunta', tab_eventi:'Eventos', tab_concerti:'Conciertos', tab_tour:'Tours',
+  tab_casa:'Casa', tab_mappa:'Mapa', tab_food:'Comer', tab_chat:'Pregunta', tab_eventi:'Eventos', tab_concerti:'Conciertos', tab_tour:'Visita Roma',
   chat_hello:'¡Hola! Soy el asistente de InternoUno. Pregúntame lo que quieras sobre tu estancia: horarios, WiFi, transporte, consejos de la zona.',
   chat_ph:'Escribe una pregunta…',
   chat_err:'El conserje digital aún no está activo. Mientras tanto, escríbenos por WhatsApp: ¡respondemos rápido!',
@@ -721,9 +724,9 @@ fr:{
   t_concerti:'Concerts', t_concerti_sub:'Les prochains concerts en ville, avec billets',
   eventi_soon:'📅 Le calendrier des événements se met à jour automatiquement chaque jour.', eventi_info:'Infos et billets →',
   concerti_soon:'🎵 Le calendrier des concerts se met à jour automatiquement chaque jour.',
-  t_tour:'Visites Audio Gratuites', t_tour_sub:'Un cadeau de la maison : des balades avec audioguide GPS',
+  t_tour:'Visiter Rome', t_tour_sub:'Itinéraires sur mesure et audioguides gratuits : un cadeau de la maison',
   t_chat:'Demandez à InternoUno', t_chat_sub:'Réponses immédiates, dans toutes les langues, 24/7',
-  tab_casa:'Maison', tab_mappa:'Carte', tab_food:'Manger', tab_chat:'Demander', tab_eventi:'Événements', tab_concerti:'Concerts', tab_tour:'Visites',
+  tab_casa:'Maison', tab_mappa:'Carte', tab_food:'Manger', tab_chat:'Demander', tab_eventi:'Événements', tab_concerti:'Concerts', tab_tour:'Visiter Rome',
   chat_hello:'Bonjour ! Je suis l\u2019assistant InternoUno. Posez-moi vos questions sur votre séjour : horaires, WiFi, transports, conseils locaux.',
   chat_ph:'Écrivez une question…',
   chat_err:'Le concierge numérique n\u2019est pas encore actif. En attendant, écrivez-nous sur WhatsApp : nous répondons vite !',
@@ -807,9 +810,9 @@ de:{
   t_concerti:'Konzerte', t_concerti_sub:'Die nächsten Live-Konzerte in der Stadt, mit Tickets',
   eventi_soon:'📅 Der Veranstaltungskalender aktualisiert sich automatisch jeden Tag.', eventi_info:'Infos und Tickets →',
   concerti_soon:'🎵 Der Konzertkalender aktualisiert sich automatisch jeden Tag.',
-  t_tour:'Kostenlose Audio-Touren', t_tour_sub:'Ein Geschenk des Hauses: Spaziergänge mit GPS-Audioguide',
+  t_tour:'Rom entdecken', t_tour_sub:'Maßgeschneiderte Routen und kostenlose Audioguides: ein Geschenk des Hauses',
   t_chat:'Frag InternoUno', t_chat_sub:'Sofortige Antworten, in jeder Sprache, rund um die Uhr',
-  tab_casa:'Haus', tab_mappa:'Karte', tab_food:'Essen', tab_chat:'Fragen', tab_eventi:'Events', tab_concerti:'Konzerte', tab_tour:'Touren',
+  tab_casa:'Haus', tab_mappa:'Karte', tab_food:'Essen', tab_chat:'Fragen', tab_eventi:'Events', tab_concerti:'Konzerte', tab_tour:'Rom',
   chat_hello:'Hallo! Ich bin der InternoUno-Assistent. Fragen Sie mich alles zu Ihrem Aufenthalt: Zeiten, WLAN, Verkehrsmittel, Tipps vor Ort.',
   chat_ph:'Frage eingeben…',
   chat_err:'Der digitale Concierge ist noch nicht aktiv. Schreiben Sie uns in der Zwischenzeit auf WhatsApp — wir antworten schnell!',
@@ -893,9 +896,9 @@ pt:{
   t_concerti:'Concertos', t_concerti_sub:'Os próximos concertos na cidade, com bilhetes',
   eventi_soon:'📅 O calendário de eventos atualiza-se automaticamente todos os dias.', eventi_info:'Info e bilhetes →',
   concerti_soon:'🎵 O calendário de concertos atualiza-se automaticamente todos os dias.',
-  t_tour:'Tours Áudio Gratuitos', t_tour_sub:'Uma oferta da casa: passeios com áudioguia GPS',
+  t_tour:'Visitar Roma', t_tour_sub:'Roteiros à medida e audioguias gratuitos: uma oferta da casa',
   t_chat:'Pergunte à InternoUno', t_chat_sub:'Respostas imediatas, em qualquer idioma, 24 horas por dia',
-  tab_casa:'Casa', tab_mappa:'Mapa', tab_food:'Comer', tab_chat:'Perguntar', tab_eventi:'Eventos', tab_concerti:'Concertos', tab_tour:'Tours',
+  tab_casa:'Casa', tab_mappa:'Mapa', tab_food:'Comer', tab_chat:'Perguntar', tab_eventi:'Eventos', tab_concerti:'Concertos', tab_tour:'Visitar Roma',
   chat_hello:'Olá! Sou o assistente da InternoUno. Pergunte-me qualquer coisa sobre a sua estadia: horários, WiFi, transportes, dicas locais.',
   chat_ph:'Escreva uma pergunta…',
   chat_err:'O concierge digital ainda não está ativo. Entretanto, escreva-nos no WhatsApp — respondemos rapidamente!',
@@ -979,9 +982,9 @@ zh:{
   t_concerti:'演唱会', t_concerti_sub:'城市近期演出,可购票',
   eventi_soon:'📅 活动日历每天自动更新。', eventi_info:'详情及购票 →',
   concerti_soon:'🎵 演唱会日历每天自动更新。',
-  t_tour:'免费语音导览', t_tour_sub:'民宿赠送:GPS语音导览漫步之旅',
+  t_tour:'游览罗马', t_tour_sub:'定制行程和免费语音导览：民宿赠送',
   t_chat:'咨询 InternoUno', t_chat_sub:'全天候即时回复,支持任何语言',
-  tab_casa:'住宿', tab_mappa:'地图', tab_food:'美食', tab_chat:'咨询', tab_eventi:'活动', tab_concerti:'演唱会', tab_tour:'导览',
+  tab_casa:'住宿', tab_mappa:'地图', tab_food:'美食', tab_chat:'咨询', tab_eventi:'活动', tab_concerti:'演唱会', tab_tour:'游览罗马',
   chat_hello:'您好!我是 InternoUno 的智能助理。关于入住的任何问题都可以问我:时间、WiFi、交通、周边推荐等。',
   chat_ph:'请输入您的问题…',
   chat_err:'智能礼宾服务暂未开通。请先通过 WhatsApp 联系我们,我们会尽快回复!',
@@ -1087,6 +1090,7 @@ function renderLangUI(){
 
 function render(){
   document.documentElement.lang = lang;
+  if(window.VisitaRoma) VisitaRoma.lingua(lang);
   renderLangUI();
   $$('[data-i]').forEach(el => { const v = T()[el.dataset.i]; if(v !== undefined) el.innerHTML = v; });
 
@@ -1461,5 +1465,8 @@ caricaFlytourTours();
 trackEvent('view', 'casa');
 </script>
 
+<script src="planner/ui_i18n.js?v=202609211548"></script>
+<script src="planner/planner.js?v=202609211548"></script>
+<script src="planner/planner-ui.js?v=202609211548"></script>
 </body>
 </html>
