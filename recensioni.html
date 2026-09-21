@@ -425,7 +425,7 @@
 
   <nav class="tab-principale" id="tabPrincipale" role="tablist" aria-label="Sezione">
     <button type="button" data-tab="punteggio" aria-selected="true">Punteggio</button>
-    <button type="button" data-tab="risposte" aria-selected="false">Risposte</button>
+    <button type="button" data-tab="risposte" aria-selected="false">Recensioni</button>
   </nav>
 
   <div id="paginaPunteggio">
@@ -505,16 +505,18 @@
   <div id="paginaRisposte" hidden>
 
   <section class="card">
-    <h2>Risposte</h2>
-    <div class="sottotitolo">Bozze scritte dall'AI nel tuo tono, sempre in italiano da leggere e modificare qui. Quando vengono pubblicate su Booking sono tradotte nella lingua in cui l'ospite ha scritto.</div>
+    <h2>Recensioni</h2>
+    <div class="sottotitolo">Tutte le recensioni delle due strutture. Quelle con un commento hanno una bozza di risposta scritta dall'AI nel tuo tono, sempre in italiano da leggere e modificare qui; quando viene pubblicata su Booking è tradotta nella lingua in cui l'ospite ha scritto. I voti senza commento restano in elenco solo per tenerne traccia: non c'è niente a cui rispondere.</div>
     <div id="riepilogoStati" class="riepilogo-stati"></div>
     <div class="filtro-risposte">
       <span>Mostra:</span>
       <select id="filtroStatoRisposte">
-        <option value="da_fare">da scrivere o da inviare</option>
+        <option value="da_fare">da validare o da inviare</option>
         <option value="da_validare">solo da validare</option>
         <option value="approvata">approvate, non ancora inviate</option>
         <option value="inviata">già pubblicate su Booking</option>
+        <option value="da_scrivere">in attesa di bozza</option>
+        <option value="senza_testo">senza commento (solo memoria)</option>
         <option value="tutte">tutte</option>
       </select>
       <span>Recensioni di:</span>
@@ -815,7 +817,9 @@
       "<span class=\"pill pill-da\">" + conta("da_validare") + " da validare</span>" +
       "<span class=\"pill pill-pronte\">" + conta("approvata") + " approvate, da inviare</span>" +
       "<span class=\"pill pill-fatte\">" + conta("inviata") + " pubblicate</span>" +
-      (conta("gia_risposta") ? "<span class=\"pill\">" + conta("gia_risposta") + " già risposte a mano</span>" : "");
+      (conta("gia_risposta") ? "<span class=\"pill\">" + conta("gia_risposta") + " già risposte a mano</span>" : "") +
+      (conta("da_scrivere") ? "<span class=\"pill\">" + conta("da_scrivere") + " in attesa di bozza</span>" : "") +
+      (conta("senza_testo") ? "<span class=\"pill\">" + conta("senza_testo") + " senza commento</span>" : "");
   }
 
   el("filtroPeriodoRisposte").addEventListener("change", function () {
@@ -850,7 +854,7 @@
     var box = el("risposteLista");
     el("filtroConteggio").textContent = tutte.length + " su " + bozzeStruttura().length + " totali";
     if (!tutte.length) {
-      box.innerHTML = "<p style=\"color:var(--muted);font-size:13px\">Nessuna bozza in questo periodo — prova ad allargare il filtro qui sopra.</p>";
+      box.innerHTML = "<p style=\"color:var(--muted);font-size:13px\">Nessuna recensione in questo periodo — prova ad allargare il filtro qui sopra.</p>";
       el("btnMostraAltreRisposte").hidden = true;
       return;
     }
@@ -861,9 +865,26 @@
       var approvata = b.stato === "approvata";
       var inviata = b.stato === "inviata";
       var giaRisposta = b.stato === "gia_risposta";
+      var senzaTesto = b.stato === "senza_testo";
+      var daScrivere = b.stato === "da_scrivere";
       var bloccata = approvata || inviata || giaRisposta;
       div.className = "bozza" + (approvata ? " approvata" : "") + (inviata || giaRisposta ? " inviata" : "");
       var originale = (b.negativo ? "− " + b.negativo : "") + (b.negativo && b.positivo ? " · " : "") + (b.positivo ? "+ " + b.positivo : "");
+
+      // Voto senza commento e bozza non ancora scritta: niente riquadro di
+      // risposta, la riga serve solo a tenere il conto.
+      if (senzaTesto || daScrivere) {
+        div.className = "bozza inviata";
+        div.innerHTML =
+          "<div class=\"bozza-intestazione\"><span>" + formattaData(b.dataRecensione) + "</span>" +
+          "<span>· voto " + b.punteggio + "</span></div>" +
+          (senzaTesto
+            ? "<div class=\"bozza-originale\">Voto senza commento — niente a cui rispondere.</div>"
+            : "<div class=\"bozza-originale\">" + originale.replace(/</g, "&lt;") + "</div>" +
+              "<div class=\"bozza-piede\"><span class=\"bozza-stato-inviata\">Bozza non ancora scritta — la prepara il prossimo «Aggiorna tutto»</span></div>");
+        box.appendChild(div);
+        return;
+      }
 
       var htmlPiede;
       if (inviata) {
