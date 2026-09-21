@@ -659,7 +659,7 @@ async function handleStats(request, env, slug, url) {
   out.recentQuestions = [];
   for (const k of sorted) {
     const val = await env.WB_KV.get(k.name);
-    if (val) { try { out.recentQuestions.push(JSON.parse(val)); } catch (e) {} }
+    if (val) { try { const q = JSON.parse(val); q.ts = parseInt(k.name.split(':')[4], 10) || null; out.recentQuestions.push(q); } catch (e) {} } // ts: data e ora della domanda
   }
 
   return json(out);
