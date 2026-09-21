@@ -517,7 +517,7 @@ const HOST_OK = "(host = 'interno1.it' OR host = 'www.interno1.it')";
 const VALIDO = `bot = 0 AND ${HOST_OK} AND sid NOT IN (SELECT sid FROM excluded)`;
 
 function periodo(url) {
-  const oggi = new Date().toISOString().slice(0, 10);
+  const oggi = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Rome' }); // data di Roma, non UTC
   const re = /^\d{4}-\d{2}-\d{2}$/;
   let to = url.searchParams.get('to'); if (!re.test(to || '')) to = oggi;
   let from = url.searchParams.get('from');
