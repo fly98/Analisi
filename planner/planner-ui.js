@@ -202,11 +202,12 @@ window.VR_ILL = (function () {
       <button class="vr-mode main" data-go="auto"><span class="ico">✨</span><span><h3>${TX.m_auto_t}</h3><p>${TX.m_auto_d}</p></span></button>
       <button class="vr-mode" data-go="scegli"><span class="ico">🗺️</span><span><h3>${TX.m_scegli_t}</h3><p>${TX.m_scegli_d}</p></span></button>
       <button class="vr-mode" data-go="nostri"><span class="ico">⭐</span><span><h3>${TX.m_nostri_t}</h3><p>${TX.m_nostri_d}</p></span></button>
+      <button class="vr-mode" data-go="vicino"><span class="ico">📍</span><span><h3>${TX.m_vicino_t}</h3><p>${TX.m_vicino_d}</p></span></button>
       <div class="vr-h">${TX.salvati_t}</div>
       ${salvati.length ? salvati.map((s, i) => `<div class="vr-saved"><div class="t" data-apri="${i}"><b>${esc(s.titolo)}</b><div class="m">${esc(s.sotto)}</div></div><button data-del="${i}" aria-label="${TX.elimina}">✕</button></div>`).join('')
         : `<p class="vr-sub">${TX.salvati_vuoto}</p>`}
     `);
-    root().querySelectorAll('[data-go]').forEach(b => b.onclick = () => ({ auto: vistaAuto, scegli: vistaScegli, nostri: vistaNostri })[b.dataset.go]());
+    root().querySelectorAll('[data-go]').forEach(b => b.onclick = () => ({ auto: vistaAuto, scegli: vistaScegli, nostri: vistaNostri, vicino: vistaVicino })[b.dataset.go]());
     root().querySelectorAll('[data-apri]').forEach(b => b.onclick = () => { const s = leggiSalvati()[+b.dataset.apri]; stato.risultato = s.risultato; stato.meta = Object.assign({}, s, { chiave: null }); vistaRisultato(true); });
     root().querySelectorAll('[data-del]').forEach(b => b.onclick = () => { const l = leggiSalvati(); l.splice(+b.dataset.del, 1); scriviSalvati(l); vistaHome(); });
   }
@@ -356,6 +357,44 @@ window.VR_ILL = (function () {
     });
   }
 
+  // ---------------- vista: intorno a me ----------------
+  let miaPos = null;
+  function vistaVicino(soloRidisegna) {
+    stato.vista = 'vicino'; if (!soloRidisegna) track('planner', 'vicino');
+    const disegna = () => {
+      let html = `<button class="vr-back" data-back>${TX.indietro}</button>
+        <div class="vr-h" style="font-size:1.15rem;margin-top:6px">${TX.vic_titolo}</div>
+        <button class="btn alt" id="vrAggiorna" style="margin:6px 0 12px">${TX.vic_aggiorna}</button>`;
+      if (miaPos === 'errore') html += `<div class="vr-warn">📍 ${TX.vic_errore}</div>`;
+      else if (!miaPos) html += `<p class="vr-sub">${TX.vic_cerca}</p>`;
+      else {
+        const el = DB.attrazioni.filter(a => !a.chiuso).map(a => ({ a, m: Planner.metri(miaPos, a) })).sort((x, y) => x.m - y.m).slice(0, 40);
+        html += el.map(({ a, m }) => {
+          const piedi = m <= 2500, min = piedi ? Math.max(1, Math.round(m / 1000 * 13)) : Math.round(15 + m / 1000 * 3);
+          const dist = m < 1000 ? `${Math.round(m / 10) * 10} m` : `${(m / 1000).toFixed(1).replace('.', LINGUA === 'en' || LINGUA === 'zh' ? '.' : ',')} km`;
+          const url = `https://www.google.com/maps/dir/?api=1&origin=${miaPos.lat},${miaPos.lon}&destination=${a.lat},${a.lon}&travelmode=${piedi ? 'walking' : 'transit'}`;
+          return `<div class="vr-cat" style="cursor:default">${mini(a)}<span style="flex:1"><b>${esc(nomeA(a))}</b> <span class="vr-voto v${a.imp >= 9 ? 'top' : a.imp >= 7 ? 'hi' : 'mid'}">${a.imp}/10</span>
+            <div class="m" style="color:var(--orange);font-weight:700">${piedi ? '🚶' : '🚇'} ${dist} · ${min} ${TX.min} ${piedi ? TX.piedi : TX.mezzi}</div>
+            <div class="m">${dur(a.durata)} · ${a.prezzo ? (a.indicativo ? TX.circa + ' ' : '') + euro(a.prezzo) : TX.gratis}</div>
+            <div class="m">${esc(descA(a))}</div>
+            <a class="btn alt" style="margin-top:6px;padding:7px 10px;font-size:.8rem;display:inline-block;width:auto" href="${url}" target="_blank" rel="noopener">${TX.vic_portami}</a></span></div>`;
+        }).join('');
+      }
+      mostra(html);
+      root().querySelector('[data-back]').onclick = vistaHome;
+      $('#vrAggiorna').onclick = () => { miaPos = null; disegna(); localizza(); };
+    };
+    const localizza = () => {
+      if (!navigator.geolocation) { miaPos = 'errore'; disegna(); return; }
+      navigator.geolocation.getCurrentPosition(
+        p => { miaPos = { lat: p.coords.latitude, lon: p.coords.longitude }; if (stato.vista === 'vicino') disegna(); track('planner_vicino', 'ok'); },
+        () => { miaPos = 'errore'; if (stato.vista === 'vicino') disegna(); },
+        { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 });
+    };
+    disegna();
+    if (!soloRidisegna || !miaPos) localizza();
+  }
+
   // ---------------- vista: risultato ----------------
   function linkMappa(g) {
     const pts = g.righe.filter(x => !x.pranzo).map(x => trova(x.id)).filter(Boolean);
@@ -449,7 +488,7 @@ window.VR_ILL = (function () {
     TX = Object.assign({}, window.VR_I18N.it, window.VR_I18N[LINGUA]);
     document.querySelectorAll('.vr-tab').forEach(b => b.textContent = b.dataset.vr === 'audio' ? TX.tab_audio : TX.tab_itin);
     const bt = $('#vrBadge b'), bs = $('#vrBadge small'); if (bt) bt.textContent = TX.badge_t; if (bs) bs.textContent = TX.badge_d;
-    const ridisegna = () => { if (!DB) return; ({ home: vistaHome, auto: vistaAuto, scegli: vistaScegli, nostri: vistaNostri, risultato: () => vistaRisultato(daSalvatiCorrente) })[stato.vista || 'home'](); };
+    const ridisegna = () => { if (!DB) return; ({ home: vistaHome, auto: vistaAuto, scegli: vistaScegli, nostri: vistaNostri, vicino: () => vistaVicino(true), risultato: () => vistaRisultato(daSalvatiCorrente) })[stato.vista || 'home'](); };
     if (LINGUA === 'it') { TR = { a: {}, g: {}, s: {} }; ridisegna(); return Promise.resolve(); }
     return fetch(`planner/tr/${LINGUA}.json?v=${document.querySelector('script[src*="planner-ui.js"]').src.split('v=')[1] || ''}`).then(r => r.ok ? r.json() : null).then(d => { TR = d || { a: {}, g: {}, s: {} }; ridisegna(); }).catch(() => ridisegna());
   }
