@@ -119,12 +119,12 @@ async function carica() {
   $('#corpo').innerHTML = '<p class="muted" style="margin-top:20px">Carico…</p>';
   try {
     const q = `from=${S.from}&to=${S.to}`;
-    const [st, dv, vecchio] = await Promise.all([
-      api(`/wb/${S.slug}/stats2?${q}`), api(`/wb/${S.slug}/dispositivi?${q}`),
+    const [st, dv, rec, vecchio] = await Promise.all([
+      api(`/wb/${S.slug}/stats2?${q}`), api(`/wb/${S.slug}/dispositivi?${q}`), api(`/wb/${S.slug}/dispositivi?${q}&ord=recenti`),
       Promise.all((S.slug === 'all' ? ['campaldino', 'lorenzo'] : [S.slug]).map(s => api(`/wb/${s}/stats?days=1`).catch(() => null))), // solo per le domande: veloce
     ]);
     if (st.error) throw new Error(st.error);
-    disegna(st, dv, vecchio.filter(Boolean));
+    disegna(st, dv, vecchio.filter(Boolean), rec);
   } catch (e) {
     if (e.message === 'chiave') { localStorage.removeItem('wb_admin_key'); return setup('Chiave non valida.'); }
     $('#corpo').innerHTML = `<p class="err" style="margin-top:20px">Errore nel caricamento: ${esc(e.message)}</p>`;
@@ -150,7 +150,7 @@ function grafico(giorni, serie) {  // barre impilate per giorno (o per settimana
 }
 
 // ---------- contenuto ----------
-function disegna(st, dv, vecchio) {
+function disegna(st, dv, vecchio, rec) {
   const k = st.kpi || {}; const disp = k.dispositivi || 0;
   const ev = st.eventi || [];
   // ospiti distinti: per evento complessivo (eventiTot, esatto) o per evento+sezione
@@ -161,6 +161,7 @@ function disegna(st, dv, vecchio) {
 
   if (st.primoGiorno && S.from < st.primoGiorno) h += `<div class="note">📌 La raccolta dettagliata è attiva dal <b>${fmtD(st.primoGiorno)}/${st.primoGiorno.slice(0, 4)}</b>: per i giorni precedenti c'è solo lo <a href="#storico">storico semplificato</a> in fondo alla pagina.</div>`;
 
+  h += `<p style="margin:12px 0 0;font-size:13px"><a href="#recenti" style="color:var(--orange);font-weight:700">📱 Escludi i miei dispositivi ↓</a></p>`;
   // numeri principali
   const perS = Object.fromEntries((st.perSlug || []).map(r => [r.slug, r]));
   h += `<div class="kpis" style="margin-top:14px">
@@ -224,6 +225,23 @@ function disegna(st, dv, vecchio) {
   const domande = vecchio.flatMap(v => (v.recentQuestions || []).map(q => Object.assign({ s: v.slug }, q))).slice(0, 30);
   h += `<div class="card"><h2>🤖 Ultime domande al concierge</h2><p class="hint">Le domande più recenti fatte dagli ospiti.</p>
     ${domande.length ? domande.map(q => `<div class="q">${esc(q.q)} <small>· ${esc(STR[q.s] || q.s)}${q.lang ? ' · ' + esc(q.lang) : ''}</small></div>`).join('') : '<p class="muted">Nessuna domanda.</p>'}</div>`;
+
+  // dispositivi recenti (ordine cronologico): per riconoscere ed escludere i propri
+  const quando = ts => { const t = new Date(ts), o = new Date(), ieri = new Date(Date.now() - 864e5);
+    const ora = t.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Rome' });
+    const g = x => x.toLocaleDateString('it-IT', { timeZone: 'Europe/Rome' });
+    return g(t) === g(o) ? `oggi ${ora}` : g(t) === g(ieri) ? `ieri ${ora}` : `${t.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', timeZone: 'Europe/Rome' })} ${ora}`; };
+  const recenti = (rec && rec.dispositivi || []);
+  const rigaRec = d => `<tr${d.escluso ? ' style="opacity:.55"' : ''}><td><b>${quando(d.ultimo)}</b><br><small class="muted">${esc(d.dev || 'dispositivo non indicato')}</small></td>
+      <td>${esc((d.strutture || '').replace('campaldino', 'Campaldino').replace('lorenzo', 'Lorenzo').replace(',', ' + '))}<br><small class="muted">${esc(d.lingue || '')} · ${d.eventi} tocchi</small></td>
+      <td style="text-align:right">${d.bot ? '<span class="tag bad">test automatico</span>' : d.fuori ? '<span class="tag bad">fuori sito</span>'
+        : d.escluso ? `<span class="tag grey">escluso</span><br><button class="btn" data-sid="${esc(d.sid)}" data-on="0">Riammetti</button>`
+        : `<button class="btn red" data-sid="${esc(d.sid)}" data-on="1">Escludi</button>`}</td></tr>`;
+  h += `<div class="card" id="recenti"><h2>📱 Dispositivi recenti</h2>
+    <p class="hint">Dal più recente. Per riconoscere un tuo dispositivo: aprilo sulla pagina ospiti (anche dall'app sulla Home), torna qui e sarà il primo in alto. Escludendolo spariscono anche tutte le sue visite passate.</p>
+    <div class="scroll"><table>${recenti.slice(0, 20).map(rigaRec).join('') || '<tr><td class="muted">Nessun dispositivo nel periodo.</td></tr>'}</table></div>
+    ${recenti.length > 20 ? `<details style="margin-top:8px"><summary>Mostra altri ${recenti.length - 20}</summary><div class="scroll"><table>${recenti.slice(20).map(rigaRec).join('')}</table></div></details>` : ''}
+  </div>`;
 
   // pulizia dei dati
   const scart = st.scartati || [];
