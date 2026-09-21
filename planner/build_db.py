@@ -9,7 +9,7 @@ def add(id,nome,cat,zona,lat,lon,prezzo,imp,fat,dur,desc,verifica=False,temp=Non
 add('illusioni','Museo delle Illusioni',['insolito','museo'],'Monti',41.8946,12.5025,22,3,1,75,'Oltre 70 illusioni ottiche e stanze interattive: divertente per tutte le età.',True)
 add('cappuccini','Cripta dei Cappuccini',['insolito','chiesa'],'Via Veneto',41.9044,12.4886,10,3,1,45,'Cappelle decorate con le ossa di migliaia di frati: macabra e unica al mondo.')
 add('montemartini','Centrale Montemartini',['insolito','museo','archeologia'],'Ostiense',41.8665,12.4777,None,3,1,75,'Statue romane esposte tra le turbine di una vecchia centrale elettrica.',True)
-add('serra_moresca','Serra Moresca di Villa Torlonia',['insolito','parco'],'Nomentano',41.9155,12.5125,None,2,1,45,'Serra ottocentesca in stile Alhambra, con vetrate colorate.',True)
+add('serra_moresca','Serra Moresca di Villa Torlonia',['insolito','parco'],'Nomentano',41.9155,12.5125,None,2,1,45,'Serra ottocentesca in stile Alhambra, con vetrate colorate. Chiusa a luglio e agosto.',True)
 add('museo_luce','Museo della Luce',['insolito','museo'],'Campidoglio',41.8950,12.4800,None,2,1,60,'Fisica della luce raccontata con installazioni da toccare.',True)
 add('welcome_rome','Welcome to Rome',['insolito','museo'],'Centro Storico',41.8990,12.4700,None,3,1,60,'Viaggio multimediale nei 2700 anni della città, ottimo come introduzione.',True)
 add('barracco','Museo Barracco',['museo','archeologia'],'Centro Storico',41.8967,12.4727,0,2,1,45,'Piccola collezione di sculture egizie, assire, greche e romane.')
@@ -102,7 +102,7 @@ add('terrazza_caffarelli','Terrazza Caffarelli',['panorama'],'Campidoglio',41.89
 add('parco_acquedotti','Parco degli Acquedotti',['parco','archeologia'],'Appia',41.8528,12.5580,0,4,2,90,'Archi di acquedotti romani in mezzo ai prati: la Roma della "Grande Bellezza".')
 add('appia_antica','Via Appia Antica',['archeologia','parco','passeggiata'],'Appia',41.8590,12.5200,0,4,3,180,'La "regina delle strade": basoli romani, tombe e campagna, da fare a piedi o in bici.')
 add('villa_doria_pamphilj','Villa Doria Pamphilj',['parco'],'Monteverde',41.8862,12.4467,0,3,2,90,'Il parco più grande di Roma, amato dai romani per correre e fare picnic.')
-add('villa_torlonia','Villa Torlonia',['parco','museo'],'Nomentano',41.9142,12.5118,0,3,1,60,'La villa di Mussolini con la Casina delle Civette in stile liberty.')
+add('villa_torlonia','Villa Torlonia',['parco','museo'],'Nomentano',41.9142,12.5118,0,3,1,60,'La villa di Mussolini: parco gratuito, Casina delle Civette in stile liberty a 10,50€.')
 add('roseto','Roseto Comunale',['parco'],'Aventino',41.8843,12.4833,0,2,1,30,'Oltre mille varietà di rose, aperto solo in primavera.')
 add('villa_celimontana','Villa Celimontana',['parco'],'Celio',41.8845,12.4930,0,2,1,40,'Parco tranquillo a due passi dal Colosseo, con un obelisco egizio.')
 add('villa_sciarra','Villa Sciarra',['parco','insolito'],'Monteverde',41.8834,12.4660,0,2,1,40,'Piccolo giardino romantico con fontane e statue, quasi sconosciuto ai turisti.')
@@ -227,6 +227,8 @@ PREZZI = {
  'cecilia_metella':(8,None),'villa_quintili':(8,None),
  'san_callisto':(10,None),'san_sebastiano':(10,None),
  'caracalla':(8,None),'ostia_antica':(18,None),
+ 'capitolini':(15,None),'montemartini':(11,None),'mercati_traiano':(15,None),'ara_pacis':(14,None),
+ 'barracco':(7.5,None),'serra_moresca':(8,None),
 }
 CHIUSI = {'crypta_balbi'}   # chiusi temporaneamente: il motore li esclude
 for a in A:
