@@ -1,6 +1,7 @@
 /* Visita Roma — testi dell'interfaccia in 7 lingue. {a},{b},{n},{v} sono segnaposti. */
 window.VR_I18N = {
 it: {
+  un_giorno_breve: "Itinerario unico",
   zone: "Zone",
   z_centro: "Centro storico",
   z_tridente: "Trevi e Spagna",
@@ -45,7 +46,7 @@ it: {
   gite: 'Gite fuori porta', gite_d: 'Ognuna occupa un giorno intero.',
   crea: '✨ Crea il mio itinerario', indietro: '← Indietro',
   cerca: "Cerca un'attrazione…", organizza: 'Organizza', tappe_sel: 'tappe scelte',
-  giorni_target: 'Giorni a disposizione (facoltativo)',
+  giorni_target: "Giorni a disposizione",
   giorno: 'Giorno', impegno: 'Impegno', visite: 'visite', spostamenti: 'spostamenti', biglietti: 'biglietti',
   gratis: 'gratis', da_fuori: 'da fuori', circa: 'circa', piedi: 'a piedi', mezzi: 'con i mezzi', accanto: 'accanto',
   pranzo: 'Pausa pranzo in zona', serata: 'Aperitivo e cena a',
@@ -77,6 +78,7 @@ it: {
   av_giornata_lunga: 'Giornata molto impegnativa: circa {a} ore tra visite e spostamenti, oltre le {b} consigliate per il ritmo scelto.',
 },
 en: {
+  un_giorno_breve: "Single itinerary",
   zone: "Areas",
   z_centro: "Historic centre",
   z_tridente: "Trevi and Spanish Steps",
@@ -120,7 +122,7 @@ en: {
   gite: 'Day trips', gite_d: 'Each one takes a full day.',
   crea: '✨ Create my itinerary', indietro: '← Back',
   cerca: 'Search an attraction…', organizza: 'Plan it', tappe_sel: 'stops selected',
-  giorni_target: 'Days available (optional)',
+  giorni_target: "Days available",
   giorno: 'Day', impegno: 'Total time', visite: 'visits', spostamenti: 'getting around', biglietti: 'tickets',
   gratis: 'free', da_fuori: 'from outside', circa: 'about', piedi: 'on foot', mezzi: 'by public transport', accanto: 'right next door',
   pranzo: 'Lunch break around', serata: 'Aperitivo and dinner in',
@@ -152,6 +154,7 @@ en: {
   av_giornata_lunga: 'A very demanding day: about {a} hours of visits and getting around, more than the {b} recommended for your pace.',
 },
 es: {
+  un_giorno_breve: "Itinerario único",
   zone: "Zonas",
   z_centro: "Centro histórico",
   z_tridente: "Trevi y Plaza de España",
@@ -195,7 +198,7 @@ es: {
   gite: 'Excursiones', gite_d: 'Cada una ocupa un día entero.',
   crea: '✨ Crear mi itinerario', indietro: '← Atrás',
   cerca: 'Busca una atracción…', organizza: 'Organizar', tappe_sel: 'paradas elegidas',
-  giorni_target: 'Días disponibles (opcional)',
+  giorni_target: "Días disponibles",
   giorno: 'Día', impegno: 'Tiempo total', visite: 'visitas', spostamenti: 'desplazamientos', biglietti: 'entradas',
   gratis: 'gratis', da_fuori: 'desde fuera', circa: 'aprox.', piedi: 'a pie', mezzi: 'en transporte público', accanto: 'justo al lado',
   pranzo: 'Pausa para comer por la zona de', serata: 'Aperitivo y cena en',
@@ -227,6 +230,7 @@ es: {
   av_giornata_lunga: 'Día muy exigente: unas {a} horas entre visitas y desplazamientos, más de las {b} recomendadas para tu ritmo.',
 },
 fr: {
+  un_giorno_breve: "Itinéraire unique",
   zone: "Quartiers",
   z_centro: "Centre historique",
   z_tridente: "Trevi et place d'Espagne",
@@ -270,7 +274,7 @@ fr: {
   gite: 'Excursions', gite_d: 'Chacune occupe une journée entière.',
   crea: '✨ Créer mon itinéraire', indietro: '← Retour',
   cerca: 'Rechercher un site…', organizza: 'Organiser', tappe_sel: 'étapes choisies',
-  giorni_target: 'Jours disponibles (facultatif)',
+  giorni_target: "Jours disponibles",
   giorno: 'Jour', impegno: 'Durée totale', visite: 'visites', spostamenti: 'trajets', biglietti: 'billets',
   gratis: 'gratuit', da_fuori: "de l'extérieur", circa: 'environ', piedi: 'à pied', mezzi: 'en transports', accanto: 'juste à côté',
   pranzo: 'Pause déjeuner du côté de', serata: 'Apéritif et dîner à',
@@ -302,6 +306,7 @@ fr: {
   av_giornata_lunga: 'Journée très chargée : environ {a} heures de visites et de trajets, au-delà des {b} conseillées pour votre rythme.',
 },
 de: {
+  un_giorno_breve: "Eine Route",
   zone: "Gegenden",
   z_centro: "Altstadt",
   z_tridente: "Trevi und Spanische Treppe",
@@ -345,7 +350,7 @@ de: {
   gite: 'Tagesausflüge', gite_d: 'Jeder dauert einen ganzen Tag.',
   crea: '✨ Meine Route erstellen', indietro: '← Zurück',
   cerca: 'Sehenswürdigkeit suchen…', organizza: 'Planen', tappe_sel: 'Stationen gewählt',
-  giorni_target: 'Verfügbare Tage (optional)',
+  giorni_target: "Verfügbare Tage",
   giorno: 'Tag', impegno: 'Gesamtzeit', visite: 'Besichtigungen', spostamenti: 'Wege', biglietti: 'Eintritt',
   gratis: 'kostenlos', da_fuori: 'von außen', circa: 'ca.', piedi: 'zu Fuß', mezzi: 'mit Öffis', accanto: 'direkt nebenan',
   pranzo: 'Mittagspause in der Gegend', serata: 'Aperitivo und Abendessen in',
@@ -377,6 +382,7 @@ de: {
   av_giornata_lunga: 'Sehr anstrengender Tag: ca. {a} Stunden für Besichtigungen und Wege, mehr als die {b} empfohlenen für dein Tempo.',
 },
 pt: {
+  un_giorno_breve: "Roteiro único",
   zone: "Zonas",
   z_centro: "Centro histórico",
   z_tridente: "Trevi e Praça de Espanha",
@@ -420,7 +426,7 @@ pt: {
   gite: 'Excursões', gite_d: 'Cada uma ocupa um dia inteiro.',
   crea: '✨ Criar o meu roteiro', indietro: '← Voltar',
   cerca: 'Procurar uma atração…', organizza: 'Organizar', tappe_sel: 'paragens escolhidas',
-  giorni_target: 'Dias disponíveis (opcional)',
+  giorni_target: "Dias disponíveis",
   giorno: 'Dia', impegno: 'Tempo total', visite: 'visitas', spostamenti: 'deslocações', biglietti: 'bilhetes',
   gratis: 'grátis', da_fuori: 'por fora', circa: 'cerca de', piedi: 'a pé', mezzi: 'de transportes', accanto: 'mesmo ao lado',
   pranzo: 'Pausa para almoço na zona de', serata: 'Aperitivo e jantar em',
@@ -452,6 +458,7 @@ pt: {
   av_giornata_lunga: 'Dia muito exigente: cerca de {a} horas entre visitas e deslocações, mais do que as {b} recomendadas para o seu ritmo.',
 },
 zh: {
+  un_giorno_breve: "单一行程",
   zone: "区域",
   z_centro: "历史中心",
   z_tridente: "特雷维和西班牙阶梯",
@@ -496,7 +503,7 @@ zh: {
   gite: '一日游', gite_d: '每个一日游占用一整天。',
   crea: '✨ 生成我的行程', indietro: '← 返回',
   cerca: '搜索景点…', organizza: '安排行程', tappe_sel: '个已选景点',
-  giorni_target: '可用天数（可选）',
+  giorni_target: "可用天数",
   giorno: '第', impegno: '总时长', visite: '参观', spostamenti: '交通', biglietti: '门票',
   gratis: '免费', da_fuori: '外观', circa: '约', piedi: '步行', mezzi: '公共交通', accanto: '就在旁边',
   pranzo: '午餐休息，地点', serata: '开胃酒和晚餐：',
