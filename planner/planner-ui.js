@@ -233,7 +233,7 @@
     const fasce = FASCE.filter(f => filtroImp.has(f[0])).map(f => [f[0], '', f[1], f[2]]);
     const el = DB.attrazioni.filter(a => !a.chiuso && (!tags || a.cat.some(t => tags.has(t))) && (!q || (a.nome + ' ' + nomeA(a) + ' ' + a.zona).toLowerCase().includes(q))
         && (!fasce.length || fasce.some(f => a.imp >= f[2] && a.imp <= f[3])))
-      .sort((a, b) => b.imp - a.imp);
+      .sort((a, b) => (a.rank || 999) - (b.rank || 999));
     $('#vrLista').innerHTML = el.map(a => `<div class="vr-cat ${stato.selezione.has(a.id) ? 'on' : ''}" data-id="${a.id}"><span class="ck">✓</span>${mini(a)}<span style="flex:1"><b>${esc(nomeA(a))}</b> <span class="vr-voto v${a.imp >= 9 ? 'top' : a.imp >= 7 ? 'hi' : 'mid'}">${a.imp}/10</span>
       <div class="m">${esc(a.zona)} · ${dur(a.durata)} · ${a.prezzo ? (a.indicativo ? TX.circa + ' ' : '') + euro(a.prezzo) : TX.gratis}</div>
       <div class="m">${esc(descA(a))}</div></span></div>`).join('');
