@@ -287,12 +287,12 @@
    "zona": "Piazza Venezia",
    "lat": 41.8963,
    "lon": 12.4834,
-   "prezzo": null,
+   "prezzo": 15,
    "imp": 6,
    "fatica": 1,
    "durata": 75,
    "desc": "Case romane sotto un palazzo, rianimate da proiezioni multimediali.",
-   "verifica": true,
+   "verifica": false,
    "temp": null,
    "momento": [
     "qualsiasi"
@@ -310,12 +310,12 @@
    "zona": "Celio",
    "lat": 41.8871,
    "lon": 12.4924,
-   "prezzo": null,
+   "prezzo": 8,
    "imp": 4,
    "fatica": 1,
    "durata": 60,
    "desc": "Abitazioni romane affrescate sotto una basilica.",
-   "verifica": true,
+   "verifica": false,
    "temp": null,
    "momento": [
     "qualsiasi"
@@ -333,12 +333,12 @@
    "zona": "Campo de' Fiori",
    "lat": 41.894,
    "lon": 12.4715,
-   "prezzo": null,
+   "prezzo": 6,
    "imp": 5,
    "fatica": 1,
    "durata": 45,
    "desc": "Famosa per la finta prospettiva di Borromini: 9 metri che sembrano 35.",
-   "verifica": true,
+   "verifica": false,
    "temp": null,
    "momento": [
     "qualsiasi"
@@ -377,12 +377,12 @@
    "zona": "Flaminio",
    "lat": 41.9286,
    "lon": 12.4666,
-   "prezzo": null,
+   "prezzo": 15,
    "imp": 5,
    "fatica": 1,
    "durata": 90,
    "desc": "Arte contemporanea nell'edificio progettato da Zaha Hadid.",
-   "verifica": true,
+   "verifica": false,
    "temp": null,
    "momento": [
     "qualsiasi"
@@ -942,12 +942,12 @@
    "zona": "Vaticano",
    "lat": 41.9021,
    "lon": 12.4533,
-   "prezzo": 17,
+   "prezzo": 10,
    "imp": 8,
    "fatica": 3,
    "durata": 60,
-   "desc": "Oltre 500 gradini fino alla vista più famosa di Roma.",
-   "verifica": true,
+   "desc": "Ascensore più 320 gradini (10€) o 551 gradini a piedi (8€) fino alla vista più famosa di Roma.",
+   "verifica": false,
    "temp": null,
    "momento": [
     "mattina"
@@ -1009,12 +1009,12 @@
    "zona": "Vaticano",
    "lat": 41.904,
    "lon": 12.45,
-   "prezzo": null,
+   "prezzo": 20,
    "imp": 4,
    "fatica": 2,
    "durata": 120,
-   "desc": "Visita guidata ai giardini dei papi, solo su prenotazione.",
-   "verifica": true,
+   "desc": "Visita guidata ai giardini dei papi, solo su prenotazione. Da 20€, 40€ con il bus panoramico.",
+   "verifica": false,
    "temp": null,
    "momento": [
     "qualsiasi"
@@ -2163,12 +2163,12 @@
    "zona": "Villa Borghese",
    "lat": 41.9168,
    "lon": 12.4832,
-   "prezzo": null,
+   "prezzo": 19,
    "imp": 3,
    "fatica": 2,
    "durata": 150,
    "desc": "Lo zoo di Roma, ideale per chi viaggia con bambini.",
-   "verifica": true,
+   "verifica": false,
    "temp": null,
    "momento": [
     "qualsiasi"
@@ -2186,12 +2186,12 @@
    "zona": "Spagna",
    "lat": 41.9087,
    "lon": 12.4796,
-   "prezzo": null,
+   "prezzo": 14,
    "imp": 3,
    "fatica": 1,
    "durata": 60,
    "desc": "Sede dell'Accademia di Francia: giardini rinascimentali con visita guidata.",
-   "verifica": true,
+   "verifica": false,
    "temp": null,
    "momento": [
     "qualsiasi"
@@ -2254,12 +2254,12 @@
    "zona": "Colosseo",
    "lat": 41.8902,
    "lon": 12.4922,
-   "prezzo": null,
+   "prezzo": 24,
    "imp": 5,
    "fatica": 2,
    "durata": 90,
    "desc": "Visita speciale dove passavano gladiatori e belve, con accesso all'arena.",
-   "verifica": true,
+   "verifica": false,
    "temp": null,
    "momento": [
     "qualsiasi"
@@ -2437,12 +2437,12 @@
    "zona": "Fori",
    "lat": 41.8932,
    "lon": 12.4843,
-   "prezzo": null,
+   "prezzo": 10,
    "imp": 5,
    "fatica": 1,
    "durata": 40,
    "desc": "La prigione dove secondo la tradizione fu rinchiuso San Pietro.",
-   "verifica": true,
+   "verifica": false,
    "temp": null,
    "momento": [
     "qualsiasi"
@@ -2471,7 +2471,7 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": true
   },
   {
    "id": "vicus_caprarius",
@@ -2597,12 +2597,12 @@
    "zona": "Salario",
    "lat": 41.9303,
    "lon": 12.507,
-   "prezzo": null,
+   "prezzo": 12,
    "imp": 5,
    "fatica": 2,
    "durata": 60,
    "desc": "La più antica raffigurazione conosciuta della Madonna. Vicina alle nostre strutture.",
-   "verifica": true,
+   "verifica": false,
    "temp": null,
    "momento": [
     "qualsiasi"
@@ -3304,12 +3304,12 @@
    "zona": "Cinecittà",
    "lat": 41.852,
    "lon": 12.575,
-   "prezzo": null,
+   "prezzo": 10,
    "imp": 4,
    "fatica": 2,
    "durata": 150,
    "desc": "Visita agli studi di Fellini e ai set della Roma antica.",
-   "verifica": true,
+   "verifica": false,
    "temp": null,
    "momento": [
     "qualsiasi"
