@@ -162,7 +162,6 @@ function disegna(st, dv, vecchio, rec) {
   const nDi = (e, s) => ev.filter(r => r.event === e && (s == null || r.section === s)).reduce((a, r) => a + r.n, 0);
   let h = '';
 
-  if (st.primoGiorno && S.from < st.primoGiorno) h += `<div class="note">📌 La raccolta dettagliata è attiva dal <b>${fmtD(st.primoGiorno)}/${st.primoGiorno.slice(0, 4)}</b>: per i giorni precedenti c'è la <a href="#storico">vecchia pagina di analisi</a> (collegamento in fondo).</div>`;
 
   h += `<p style="margin:12px 0 0;font-size:13px"><a href="#recenti" style="color:var(--orange);font-weight:700">📱 Escludi i miei dispositivi ↓</a></p>`;
   if (S.slug === 'flytour') {
