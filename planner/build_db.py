@@ -157,6 +157,29 @@ add10('tor_marancia','Tor Marancia – Big City Life',['street_art','insolito'],
 add10('governo_vecchio','Via del Governo Vecchio',['quartiere','shopping'],'Navona',41.8985,12.4705,0,3,1,20,'Negozi vintage e botteghe tra Navona e Chiesa Nuova.')
 add10('quadraro','Quadraro e il MURo',['street_art','insolito'],'Quadraro',41.8570,12.5580,0,3,2,75,'Museo di urban art a cielo aperto in un quartiere popolare della Resistenza.')
 
+# ---------- BLOCCO 8: esperienze, mercati, fuori porta (importanza 1-10) ----------
+add10('porta_portese','Mercato di Porta Portese',['mercato','insolito'],'Trastevere',41.8820,12.4740,0,5,2,120,'Il mercato delle pulci più famoso di Roma: solo la domenica mattina.',momento=['mattina'])
+add10('mercato_centrale','Mercato Centrale Termini',['mercato','cibo'],'Termini',41.9008,12.5009,0,4,1,60,'Food hall con i migliori artigiani del gusto sotto lo stesso tetto.')
+add10('mercato_trionfale','Mercato Trionfale',['mercato','cibo'],'Prati',41.9090,12.4490,0,3,1,45,'Il mercato coperto dei romani, a due passi dai Musei Vaticani.',momento=['mattina'])
+add10('campagna_amica','Mercato Campagna Amica al Circo Massimo',['mercato','cibo'],'Aventino',41.8878,12.4830,0,3,1,45,'Prodotti dei contadini del Lazio, il sabato e la domenica.',momento=['mattina'])
+add10('cooking_class','Lezione di cucina romana',['esperienza','cibo'],'Centro Storico',41.8960,12.4750,None,6,1,180,'Impari a fare pasta fresca, tiramisù o pizza, poi mangi quello che hai cucinato.',True)
+add10('food_tour','Food tour a Trastevere o Testaccio',['esperienza','cibo'],'Trastevere',41.8890,12.4700,None,6,2,180,'Degustazioni guidate tra supplì, pizza al taglio, formaggi e gelato.',True,momento=['sera'])
+add10('vespa_tour','Tour in Vespa o in Fiat 500 d\'epoca',['esperienza','insolito'],'Centro Storico',41.9000,12.4800,None,5,1,180,'Roma come in "Vacanze romane", con autista o alla guida.',True)
+add10('golf_cart','Tour in golf cart',['esperienza'],'Centro Storico',41.9000,12.4800,None,5,1,180,'Il centro storico senza fatica: ideale per chi cammina poco.',True)
+add10('bici_appia','Appia Antica in bicicletta',['esperienza','parco','archeologia'],'Appia',41.8680,12.5100,None,5,3,180,'Noleggio bici all\'Appia Info Point e via tra tombe e basoli romani.',True,momento=['mattina'])
+add10('crociera_tevere','Battello sul Tevere',['esperienza'],'Borgo',41.9010,12.4660,None,3,1,60,'Roma vista dal fiume, anche con cena a bordo.',True)
+add10('cinecitta','Cinecittà si Mostra',['museo','esperienza'],'Cinecittà',41.8520,12.5750,None,4,2,150,'Visita agli studi di Fellini e ai set della Roma antica.',True)
+add10('explora','Explora – Museo dei Bambini',['museo','famiglia'],'Flaminio',41.9147,12.4747,None,3,1,120,'Museo interattivo dove i bambini fanno tutto da soli.',True)
+add10('opera_caracalla','Opera alle Terme di Caracalla',['spettacolo','esperienza'],'Aventino',41.8790,12.4924,None,5,1,180,'Opera e balletto all\'aperto tra le rovine delle terme. Solo in estate.',True,momento=['sera'])
+add10('villa_deste','Villa d\'Este a Tivoli',['fuori_porta','parco'],'Tivoli',41.9627,12.7964,None,6,2,150,'Giardino rinascimentale con centinaia di fontane: a un\'ora da Roma in treno.',True)
+add10('villa_adriana','Villa Adriana a Tivoli',['fuori_porta','archeologia'],'Tivoli',41.9427,12.7735,15,6,3,180,'L\'immensa villa dell\'imperatore Adriano. Si abbina a Villa d\'Este nella stessa giornata.')
+add10('castelli_romani','Castelli Romani',['fuori_porta','cibo'],'Castelli',41.8080,12.6800,0,5,2,300,'Frascati, Castel Gandolfo e Ariccia: vino, porchetta e laghi vulcanici.')
+add10('castel_gandolfo','Palazzo Papale di Castel Gandolfo',['fuori_porta','museo'],'Castelli',41.7470,12.6500,None,4,2,120,'La residenza estiva dei papi affacciata sul lago di Albano.',True)
+add10('ostia_mare','Mare a Ostia',['fuori_porta','mare'],'Ostia',41.7290,12.2780,0,3,1,240,'La spiaggia dei romani, raggiungibile in treno con il biglietto urbano.')
+add10('bracciano','Castello di Bracciano',['fuori_porta','museo'],'Bracciano',42.1030,12.1750,None,3,2,240,'Castello medievale sul lago, a un\'ora di treno.',True)
+add10('bomarzo','Parco dei Mostri di Bomarzo',['fuori_porta','insolito'],'Viterbo',42.4920,12.2480,None,4,2,480,'Giardino rinascimentale di sculture mostruose, unico al mondo. Serve l\'auto.',True)
+add10('civita_bagnoregio','Civita di Bagnoregio',['fuori_porta','insolito'],'Viterbo',42.6275,12.0925,None,4,3,480,'"La città che muore", su uno sperone di tufo. Giornata intera, serve l\'auto.',True)
+
 # ---------- IMPORTANZA 1-10 ----------
 # conversione dalla vecchia scala 1-5 (5->9, 4->7, 3->5, 2->3), poi ritocchi manuali
 IMP10 = {
