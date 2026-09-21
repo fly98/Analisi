@@ -64,7 +64,9 @@ window.VR_ILL = (function () {
 (function () {
   'use strict';
   const $ = s => document.querySelector(s);
-  const DB_URL = 'planner/attrazioni.json';
+  // i dati stanno accanto a questo file, ovunque sia caricato (Analisi o interno1.it)
+  const BASE = (document.currentScript && document.currentScript.src) ? document.currentScript.src.split('?')[0].replace(/[^/]*$/, '') : 'planner/';
+  const DB_URL = BASE + 'attrazioni.json';
   const KEY_SALVATI = 'ie_itinerari';
   let DB = null;
   let stato = { vista: 'home', risultato: null, meta: null, selezione: new Set() };
@@ -490,7 +492,7 @@ window.VR_ILL = (function () {
     const bt = $('#vrBadge b'), bs = $('#vrBadge small'); if (bt) bt.textContent = TX.badge_t; if (bs) bs.textContent = TX.badge_d;
     const ridisegna = () => { if (!DB) return; ({ home: vistaHome, auto: vistaAuto, scegli: vistaScegli, nostri: vistaNostri, vicino: () => vistaVicino(true), risultato: () => vistaRisultato(daSalvatiCorrente) })[stato.vista || 'home'](); };
     if (LINGUA === 'it') { TR = { a: {}, g: {}, s: {} }; ridisegna(); return Promise.resolve(); }
-    return fetch(`planner/tr/${LINGUA}.json?v=${document.querySelector('script[src*="planner-ui.js"]').src.split('v=')[1] || ''}`).then(r => r.ok ? r.json() : null).then(d => { TR = d || { a: {}, g: {}, s: {} }; ridisegna(); }).catch(() => ridisegna());
+    return fetch(`${BASE}tr/${LINGUA}.json?v=${document.querySelector('script[src*="planner-ui.js"]').src.split('v=')[1] || ''}`).then(r => r.ok ? r.json() : null).then(d => { TR = d || { a: {}, g: {}, s: {} }; ridisegna(); }).catch(() => ridisegna());
   }
   window.VisitaRoma = { apri: apriVisitaRoma, lingua };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
