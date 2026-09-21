@@ -15,13 +15,14 @@
    "fatica": 1,
    "durata": 75,
    "desc": "Oltre 70 illusioni ottiche e stanze interattive: divertente per tutte le età.",
-   "verifica": true,
+   "verifica": false,
    "temp": null,
    "momento": [
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": true
   },
   {
    "id": "cappuccini",
@@ -44,7 +45,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "montemartini",
@@ -68,7 +70,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "serra_moresca",
@@ -91,7 +94,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "museo_luce",
@@ -103,18 +107,19 @@
    "zona": "Campidoglio",
    "lat": 41.895,
    "lon": 12.48,
-   "prezzo": null,
+   "prezzo": 12,
    "imp": 4,
    "fatica": 1,
    "durata": 60,
    "desc": "Fisica della luce raccontata con installazioni da toccare.",
-   "verifica": true,
+   "verifica": false,
    "temp": null,
    "momento": [
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": true
   },
   {
    "id": "welcome_rome",
@@ -126,18 +131,19 @@
    "zona": "Centro Storico",
    "lat": 41.899,
    "lon": 12.47,
-   "prezzo": null,
+   "prezzo": 15,
    "imp": 5,
    "fatica": 1,
    "durata": 60,
    "desc": "Viaggio multimediale nei 2700 anni della città, ottimo come introduzione.",
-   "verifica": true,
+   "verifica": false,
    "temp": null,
    "momento": [
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": true
   },
   {
    "id": "barracco",
@@ -160,7 +166,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "museo_mura",
@@ -183,7 +190,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "lab_mente",
@@ -195,18 +203,19 @@
    "zona": "Monte Mario",
    "lat": 41.9536,
    "lon": 12.43,
-   "prezzo": null,
+   "prezzo": 5,
    "imp": 3,
    "fatica": 1,
    "durata": 75,
    "desc": "Nell'ex manicomio di Santa Maria della Pietà: toccante e poco conosciuto.",
-   "verifica": true,
+   "verifica": false,
    "temp": null,
    "momento": [
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": true
   },
   {
    "id": "anime_purgatorio",
@@ -229,7 +238,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "buco_serratura",
@@ -252,7 +262,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "coppede",
@@ -275,7 +286,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "palazzo_valentini",
@@ -298,7 +310,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "case_celio",
@@ -321,7 +334,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "galleria_spada",
@@ -344,7 +358,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "galleria_sciarra",
@@ -366,7 +381,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "maxxi",
@@ -388,7 +404,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "dreamers",
@@ -400,18 +417,19 @@
    "zona": "Prati",
    "lat": 41.916,
    "lon": 12.46,
-   "prezzo": null,
+   "prezzo": 20,
    "imp": 3,
    "fatica": 1,
    "durata": 60,
    "desc": "Stanze immersive e colorate, pensate per le foto.",
-   "verifica": true,
+   "verifica": false,
    "temp": null,
    "momento": [
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": true
   },
   {
    "id": "ikono",
@@ -423,18 +441,19 @@
    "zona": "Pantheon",
    "lat": 41.8991,
    "lon": 12.4781,
-   "prezzo": null,
+   "prezzo": 19,
    "imp": 3,
    "fatica": 1,
    "durata": 60,
    "desc": "Esperienza sensoriale a stanze tematiche.",
-   "verifica": true,
+   "verifica": false,
    "temp": null,
    "momento": [
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": true
   },
   {
    "id": "time_elevator",
@@ -446,18 +465,19 @@
    "zona": "Trevi",
    "lat": 41.8981,
    "lon": 12.483,
-   "prezzo": null,
+   "prezzo": 15,
    "imp": 3,
    "fatica": 1,
    "durata": 45,
    "desc": "Cinema 5D con sedili mobili sulla storia di Roma, adatto ai bambini.",
-   "verifica": true,
+   "verifica": false,
    "temp": null,
    "momento": [
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": true
   },
   {
    "id": "colosseo",
@@ -479,7 +499,8 @@
     "mattina"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "pantheon",
@@ -502,7 +523,8 @@
     "mattina"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "trevi",
@@ -525,7 +547,8 @@
     "sera"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "navona",
@@ -548,7 +571,8 @@
     "sera"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "spagna",
@@ -570,7 +594,8 @@
     "sera"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "capitolini",
@@ -593,7 +618,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "castel_santangelo",
@@ -616,7 +642,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "vittoriano",
@@ -639,7 +666,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "fori_imperiali",
@@ -662,7 +690,8 @@
     "sera"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "ghetto",
@@ -684,7 +713,8 @@
     "sera"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "popolo",
@@ -706,7 +736,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "campo_fiori",
@@ -730,7 +761,8 @@
     "sera"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "bocca_verita",
@@ -741,18 +773,19 @@
    "zona": "Foro Boario",
    "lat": 41.8881,
    "lon": 12.4814,
-   "prezzo": null,
+   "prezzo": 2,
    "imp": 6,
    "fatica": 1,
    "durata": 20,
    "desc": "La leggendaria maschera che morde la mano dei bugiardi.",
-   "verifica": true,
+   "verifica": false,
    "temp": null,
    "momento": [
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": true
   },
   {
    "id": "torre_argentina",
@@ -774,7 +807,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "teatro_marcello",
@@ -796,7 +830,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "isola_tiberina",
@@ -818,7 +853,8 @@
     "sera"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "circo_massimo",
@@ -841,7 +877,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "ara_pacis",
@@ -864,7 +901,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "musei_vaticani",
@@ -886,7 +924,8 @@
     "mattina"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "san_pietro",
@@ -908,7 +947,8 @@
     "mattina"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "piazza_san_pietro",
@@ -930,7 +970,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "cupola",
@@ -953,7 +994,8 @@
     "mattina"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "grotte_vaticane",
@@ -975,7 +1017,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "necropoli",
@@ -992,13 +1035,14 @@
    "fatica": 2,
    "durata": 90,
    "desc": "Visita guidata alla tomba di San Pietro: prenotazione con largo anticipo.",
-   "verifica": true,
+   "verifica": false,
    "temp": null,
    "momento": [
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": true
   },
   {
    "id": "giardini_vaticani",
@@ -1020,7 +1064,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "ponte_santangelo",
@@ -1042,7 +1087,8 @@
     "sera"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "borgo_pio",
@@ -1064,7 +1110,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "prati",
@@ -1087,7 +1134,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "palazzaccio",
@@ -1109,7 +1157,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "laterano",
@@ -1131,7 +1180,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "santa_maria_maggiore",
@@ -1153,7 +1203,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "san_paolo",
@@ -1175,7 +1226,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "vincoli",
@@ -1197,7 +1249,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "san_clemente",
@@ -1221,7 +1274,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "santa_maria_trastevere",
@@ -1243,7 +1297,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "san_luigi",
@@ -1266,7 +1321,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "sant_ignazio",
@@ -1289,7 +1345,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "santa_maria_popolo",
@@ -1312,7 +1369,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "gesu",
@@ -1334,7 +1392,8 @@
     "pomeriggio"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "minerva",
@@ -1356,7 +1415,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "scala_santa",
@@ -1379,7 +1439,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "vittoria",
@@ -1402,7 +1463,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "sant_agostino",
@@ -1425,7 +1487,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "aracoeli",
@@ -1448,7 +1511,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "santa_cecilia",
@@ -1470,7 +1534,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "santa_prassede",
@@ -1493,7 +1558,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "quattro_fontane",
@@ -1516,7 +1582,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "sant_andrea_quirinale",
@@ -1539,7 +1606,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "santo_stefano_rotondo",
@@ -1562,7 +1630,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "quattro_coronati",
@@ -1574,18 +1643,19 @@
    "zona": "Celio",
    "lat": 41.8881,
    "lon": 12.5003,
-   "prezzo": null,
+   "prezzo": 2,
    "imp": 4,
    "fatica": 1,
    "durata": 40,
    "desc": "Monastero fortificato con la cappella di San Silvestro e un chiostro nascosto.",
-   "verifica": true,
+   "verifica": false,
    "temp": null,
    "momento": [
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": true
   },
   {
    "id": "santa_sabina",
@@ -1607,7 +1677,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "tempietto_bramante",
@@ -1630,7 +1701,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "santa_maria_angeli",
@@ -1653,7 +1725,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "sant_ivo",
@@ -1676,7 +1749,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "san_lorenzo",
@@ -1698,7 +1772,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "santa_costanza",
@@ -1721,7 +1796,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "chiostro_bramante",
@@ -1733,18 +1809,19 @@
    "zona": "Navona",
    "lat": 41.8997,
    "lon": 12.4715,
-   "prezzo": null,
+   "prezzo": 15,
    "imp": 3,
    "fatica": 1,
    "durata": 60,
    "desc": "Chiostro rinascimentale che ospita mostre temporanee, con caffetteria affacciata sulla Pace.",
-   "verifica": true,
+   "verifica": false,
    "temp": null,
    "momento": [
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": true
   },
   {
    "id": "cosma_damiano",
@@ -1767,7 +1844,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "galleria_borghese",
@@ -1790,7 +1868,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "villa_borghese",
@@ -1812,7 +1891,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "pincio",
@@ -1835,7 +1915,8 @@
     "tramonto"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "giardino_aranci",
@@ -1858,7 +1939,8 @@
     "tramonto"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "gianicolo",
@@ -1881,7 +1963,8 @@
     "tramonto"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "fontanone",
@@ -1904,7 +1987,8 @@
     "tramonto"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "terrazza_caffarelli",
@@ -1926,7 +2010,8 @@
     "tramonto"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "parco_acquedotti",
@@ -1949,7 +2034,8 @@
     "mattina"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "appia_antica",
@@ -1973,7 +2059,8 @@
     "mattina"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "villa_doria_pamphilj",
@@ -1995,7 +2082,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "villa_torlonia",
@@ -2018,7 +2106,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "roseto",
@@ -2040,7 +2129,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "villa_celimontana",
@@ -2062,7 +2152,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "villa_sciarra",
@@ -2085,7 +2176,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "villa_ada",
@@ -2107,7 +2199,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "caffarella",
@@ -2129,7 +2222,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "orto_botanico",
@@ -2140,18 +2234,19 @@
    "zona": "Trastevere",
    "lat": 41.8927,
    "lon": 12.4686,
-   "prezzo": null,
+   "prezzo": 16,
    "imp": 3,
    "fatica": 1,
    "durata": 60,
    "desc": "Giardino botanico ai piedi del Gianicolo, con serre e bambù.",
-   "verifica": true,
+   "verifica": false,
    "temp": null,
    "momento": [
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": true
   },
   {
    "id": "bioparco",
@@ -2174,7 +2269,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "villa_medici",
@@ -2197,7 +2293,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "zodiaco",
@@ -2219,7 +2316,8 @@
     "tramonto"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "domus_aurea",
@@ -2242,7 +2340,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "colosseo_sotterranei",
@@ -2265,7 +2364,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "caracalla",
@@ -2287,7 +2387,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "ostia_antica",
@@ -2309,7 +2410,8 @@
     "mattina"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "palazzo_massimo",
@@ -2332,7 +2434,8 @@
     "qualsiasi"
    ],
    "gruppo": "mnr",
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "terme_diocleziano",
@@ -2355,7 +2458,8 @@
     "qualsiasi"
    ],
    "gruppo": "mnr",
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "palazzo_altemps",
@@ -2378,7 +2482,8 @@
     "qualsiasi"
    ],
    "gruppo": "mnr",
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "crypta_balbi",
@@ -2395,13 +2500,14 @@
    "fatica": 1,
    "durata": 45,
    "desc": "Come Roma si è trasformata dall'antichità al Medioevo, strato dopo strato.",
-   "verifica": true,
+   "verifica": false,
    "temp": null,
    "momento": [
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": true
+   "chiuso": true,
+   "indicativo": false
   },
   {
    "id": "mercati_traiano",
@@ -2425,7 +2531,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "carcere_mamertino",
@@ -2448,7 +2555,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "stadio_domiziano",
@@ -2465,13 +2573,14 @@
    "fatica": 1,
    "durata": 45,
    "desc": "Lo stadio romano nascosto sotto Piazza Navona, che ne spiega la forma.",
-   "verifica": true,
+   "verifica": false,
    "temp": null,
    "momento": [
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": true
+   "chiuso": true,
+   "indicativo": false
   },
   {
    "id": "vicus_caprarius",
@@ -2483,18 +2592,19 @@
    "zona": "Trevi",
    "lat": 41.9005,
    "lon": 12.483,
-   "prezzo": null,
+   "prezzo": 4,
    "imp": 5,
    "fatica": 1,
    "durata": 40,
    "desc": "Sotto Trevi, un'antica casa romana attraversata dall'acqua che alimenta la fontana.",
-   "verifica": true,
+   "verifica": false,
    "temp": null,
    "momento": [
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "mausoleo_augusto",
@@ -2510,13 +2620,14 @@
    "fatica": 1,
    "durata": 45,
    "desc": "La tomba circolare del primo imperatore, riaperta dopo decenni di restauri.",
-   "verifica": true,
+   "verifica": false,
    "temp": null,
    "momento": [
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": true,
+   "indicativo": false
   },
   {
    "id": "san_callisto",
@@ -2539,7 +2650,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "domitilla",
@@ -2562,7 +2674,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "san_sebastiano",
@@ -2585,7 +2698,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "priscilla",
@@ -2608,7 +2722,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "cecilia_metella",
@@ -2630,7 +2745,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "villa_quintili",
@@ -2653,7 +2769,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "cimitero_acattolico",
@@ -2676,7 +2793,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "monte_testaccio",
@@ -2688,18 +2806,19 @@
    "zona": "Testaccio",
    "lat": 41.8757,
    "lon": 12.4755,
-   "prezzo": null,
+   "prezzo": 10,
    "imp": 4,
    "fatica": 1,
    "durata": 45,
-   "desc": "Una collina fatta interamente di anfore rotte: la discarica di Roma antica.",
-   "verifica": true,
+   "desc": "Una collina fatta interamente di anfore rotte: la discarica di Roma antica. Solo con visite guidate occasionali.",
+   "verifica": false,
    "temp": null,
    "momento": [
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": true
   },
   {
    "id": "trastevere",
@@ -2721,7 +2840,8 @@
     "sera"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "monti",
@@ -2743,7 +2863,8 @@
     "sera"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "testaccio",
@@ -2766,7 +2887,8 @@
     "mattina"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "via_margutta",
@@ -2789,7 +2911,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "piazza_mattei",
@@ -2812,7 +2935,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "garbatella",
@@ -2835,7 +2959,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "pigneto",
@@ -2858,7 +2983,8 @@
     "sera"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "via_giulia",
@@ -2880,7 +3006,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "piazza_farnese",
@@ -2902,7 +3029,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "via_coronari",
@@ -2925,7 +3053,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "san_lorenzo_quartiere",
@@ -2948,7 +3077,8 @@
     "sera"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "eur",
@@ -2971,7 +3101,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "ostiense_street_art",
@@ -2994,7 +3125,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "tor_marancia",
@@ -3017,7 +3149,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "governo_vecchio",
@@ -3040,7 +3173,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "quadraro",
@@ -3063,7 +3197,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "porta_portese",
@@ -3086,7 +3221,8 @@
     "mattina"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "mercato_centrale",
@@ -3109,7 +3245,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "mercato_trionfale",
@@ -3132,7 +3269,8 @@
     "mattina"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "campagna_amica",
@@ -3155,7 +3293,8 @@
     "mattina"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "cooking_class",
@@ -3167,18 +3306,19 @@
    "zona": "Centro Storico",
    "lat": 41.896,
    "lon": 12.475,
-   "prezzo": null,
+   "prezzo": 70,
    "imp": 6,
    "fatica": 1,
    "durata": 180,
-   "desc": "Impari a fare pasta fresca, tiramisù o pizza, poi mangi quello che hai cucinato.",
-   "verifica": true,
+   "desc": "Impari a fare pasta fresca, tiramisù o pizza, poi mangi quello che hai cucinato. Di solito 60-90€.",
+   "verifica": false,
    "temp": null,
    "momento": [
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": true
   },
   {
    "id": "food_tour",
@@ -3190,18 +3330,19 @@
    "zona": "Trastevere",
    "lat": 41.889,
    "lon": 12.47,
-   "prezzo": null,
+   "prezzo": 75,
    "imp": 6,
    "fatica": 2,
    "durata": 180,
-   "desc": "Degustazioni guidate tra supplì, pizza al taglio, formaggi e gelato.",
-   "verifica": true,
+   "desc": "Degustazioni guidate tra supplì, pizza al taglio, formaggi e gelato. Di solito 60-90€.",
+   "verifica": false,
    "temp": null,
    "momento": [
     "sera"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": true
   },
   {
    "id": "vespa_tour",
@@ -3213,18 +3354,19 @@
    "zona": "Centro Storico",
    "lat": 41.9,
    "lon": 12.48,
-   "prezzo": null,
+   "prezzo": 90,
    "imp": 5,
    "fatica": 1,
    "durata": 180,
-   "desc": "Roma come in \"Vacanze romane\", con autista o alla guida.",
-   "verifica": true,
+   "desc": "Roma come in \"Vacanze romane\", con autista o alla guida. Di solito 80-150€.",
+   "verifica": false,
    "temp": null,
    "momento": [
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": true
   },
   {
    "id": "golf_cart",
@@ -3235,18 +3377,19 @@
    "zona": "Centro Storico",
    "lat": 41.9,
    "lon": 12.48,
-   "prezzo": null,
+   "prezzo": 60,
    "imp": 5,
    "fatica": 1,
    "durata": 180,
    "desc": "Il centro storico senza fatica: ideale per chi cammina poco.",
-   "verifica": true,
+   "verifica": false,
    "temp": null,
    "momento": [
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": true
   },
   {
    "id": "bici_appia",
@@ -3259,18 +3402,19 @@
    "zona": "Appia",
    "lat": 41.868,
    "lon": 12.51,
-   "prezzo": null,
+   "prezzo": 15,
    "imp": 5,
    "fatica": 3,
    "durata": 180,
    "desc": "Noleggio bici all'Appia Info Point e via tra tombe e basoli romani.",
-   "verifica": true,
+   "verifica": false,
    "temp": null,
    "momento": [
     "mattina"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": true
   },
   {
    "id": "crociera_tevere",
@@ -3281,18 +3425,19 @@
    "zona": "Borgo",
    "lat": 41.901,
    "lon": 12.466,
-   "prezzo": null,
+   "prezzo": 18,
    "imp": 3,
    "fatica": 1,
    "durata": 60,
    "desc": "Roma vista dal fiume, anche con cena a bordo.",
-   "verifica": true,
+   "verifica": false,
    "temp": null,
    "momento": [
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": true
   },
   {
    "id": "cinecitta",
@@ -3315,7 +3460,8 @@
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": false
   },
   {
    "id": "explora",
@@ -3327,18 +3473,19 @@
    "zona": "Flaminio",
    "lat": 41.9147,
    "lon": 12.4747,
-   "prezzo": null,
+   "prezzo": 10,
    "imp": 3,
    "fatica": 1,
    "durata": 120,
    "desc": "Museo interattivo dove i bambini fanno tutto da soli.",
-   "verifica": true,
+   "verifica": false,
    "temp": null,
    "momento": [
     "qualsiasi"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": true
   },
   {
    "id": "opera_caracalla",
@@ -3350,18 +3497,19 @@
    "zona": "Aventino",
    "lat": 41.879,
    "lon": 12.4924,
-   "prezzo": null,
+   "prezzo": 40,
    "imp": 5,
    "fatica": 1,
    "durata": 180,
    "desc": "Opera e balletto all'aperto tra le rovine delle terme. Solo in estate.",
-   "verifica": true,
+   "verifica": false,
    "temp": null,
    "momento": [
     "sera"
    ],
    "gruppo": null,
-   "chiuso": false
+   "chiuso": false,
+   "indicativo": true
   }
  ],
  "gite": [
