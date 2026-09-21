@@ -2793,5 +2793,445 @@
   "momento": [
    "qualsiasi"
   ]
+ },
+ {
+  "id": "porta_portese",
+  "nome": "Mercato di Porta Portese",
+  "cat": [
+   "mercato",
+   "insolito"
+  ],
+  "zona": "Trastevere",
+  "lat": 41.882,
+  "lon": 12.474,
+  "prezzo": 0,
+  "imp": 5,
+  "fatica": 2,
+  "durata": 120,
+  "desc": "Il mercato delle pulci più famoso di Roma: solo la domenica mattina.",
+  "verifica": false,
+  "temp": null,
+  "momento": [
+   "mattina"
+  ]
+ },
+ {
+  "id": "mercato_centrale",
+  "nome": "Mercato Centrale Termini",
+  "cat": [
+   "mercato",
+   "cibo"
+  ],
+  "zona": "Termini",
+  "lat": 41.9008,
+  "lon": 12.5009,
+  "prezzo": 0,
+  "imp": 4,
+  "fatica": 1,
+  "durata": 60,
+  "desc": "Food hall con i migliori artigiani del gusto sotto lo stesso tetto.",
+  "verifica": false,
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
+ },
+ {
+  "id": "mercato_trionfale",
+  "nome": "Mercato Trionfale",
+  "cat": [
+   "mercato",
+   "cibo"
+  ],
+  "zona": "Prati",
+  "lat": 41.909,
+  "lon": 12.449,
+  "prezzo": 0,
+  "imp": 3,
+  "fatica": 1,
+  "durata": 45,
+  "desc": "Il mercato coperto dei romani, a due passi dai Musei Vaticani.",
+  "verifica": false,
+  "temp": null,
+  "momento": [
+   "mattina"
+  ]
+ },
+ {
+  "id": "campagna_amica",
+  "nome": "Mercato Campagna Amica al Circo Massimo",
+  "cat": [
+   "mercato",
+   "cibo"
+  ],
+  "zona": "Aventino",
+  "lat": 41.8878,
+  "lon": 12.483,
+  "prezzo": 0,
+  "imp": 3,
+  "fatica": 1,
+  "durata": 45,
+  "desc": "Prodotti dei contadini del Lazio, il sabato e la domenica.",
+  "verifica": false,
+  "temp": null,
+  "momento": [
+   "mattina"
+  ]
+ },
+ {
+  "id": "cooking_class",
+  "nome": "Lezione di cucina romana",
+  "cat": [
+   "esperienza",
+   "cibo"
+  ],
+  "zona": "Centro Storico",
+  "lat": 41.896,
+  "lon": 12.475,
+  "prezzo": null,
+  "imp": 6,
+  "fatica": 1,
+  "durata": 180,
+  "desc": "Impari a fare pasta fresca, tiramisù o pizza, poi mangi quello che hai cucinato.",
+  "verifica": true,
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
+ },
+ {
+  "id": "food_tour",
+  "nome": "Food tour a Trastevere o Testaccio",
+  "cat": [
+   "esperienza",
+   "cibo"
+  ],
+  "zona": "Trastevere",
+  "lat": 41.889,
+  "lon": 12.47,
+  "prezzo": null,
+  "imp": 6,
+  "fatica": 2,
+  "durata": 180,
+  "desc": "Degustazioni guidate tra supplì, pizza al taglio, formaggi e gelato.",
+  "verifica": true,
+  "temp": null,
+  "momento": [
+   "sera"
+  ]
+ },
+ {
+  "id": "vespa_tour",
+  "nome": "Tour in Vespa o in Fiat 500 d'epoca",
+  "cat": [
+   "esperienza",
+   "insolito"
+  ],
+  "zona": "Centro Storico",
+  "lat": 41.9,
+  "lon": 12.48,
+  "prezzo": null,
+  "imp": 5,
+  "fatica": 1,
+  "durata": 180,
+  "desc": "Roma come in \"Vacanze romane\", con autista o alla guida.",
+  "verifica": true,
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
+ },
+ {
+  "id": "golf_cart",
+  "nome": "Tour in golf cart",
+  "cat": [
+   "esperienza"
+  ],
+  "zona": "Centro Storico",
+  "lat": 41.9,
+  "lon": 12.48,
+  "prezzo": null,
+  "imp": 5,
+  "fatica": 1,
+  "durata": 180,
+  "desc": "Il centro storico senza fatica: ideale per chi cammina poco.",
+  "verifica": true,
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
+ },
+ {
+  "id": "bici_appia",
+  "nome": "Appia Antica in bicicletta",
+  "cat": [
+   "esperienza",
+   "parco",
+   "archeologia"
+  ],
+  "zona": "Appia",
+  "lat": 41.868,
+  "lon": 12.51,
+  "prezzo": null,
+  "imp": 5,
+  "fatica": 3,
+  "durata": 180,
+  "desc": "Noleggio bici all'Appia Info Point e via tra tombe e basoli romani.",
+  "verifica": true,
+  "temp": null,
+  "momento": [
+   "mattina"
+  ]
+ },
+ {
+  "id": "crociera_tevere",
+  "nome": "Battello sul Tevere",
+  "cat": [
+   "esperienza"
+  ],
+  "zona": "Borgo",
+  "lat": 41.901,
+  "lon": 12.466,
+  "prezzo": null,
+  "imp": 3,
+  "fatica": 1,
+  "durata": 60,
+  "desc": "Roma vista dal fiume, anche con cena a bordo.",
+  "verifica": true,
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
+ },
+ {
+  "id": "cinecitta",
+  "nome": "Cinecittà si Mostra",
+  "cat": [
+   "museo",
+   "esperienza"
+  ],
+  "zona": "Cinecittà",
+  "lat": 41.852,
+  "lon": 12.575,
+  "prezzo": null,
+  "imp": 4,
+  "fatica": 2,
+  "durata": 150,
+  "desc": "Visita agli studi di Fellini e ai set della Roma antica.",
+  "verifica": true,
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
+ },
+ {
+  "id": "explora",
+  "nome": "Explora – Museo dei Bambini",
+  "cat": [
+   "museo",
+   "famiglia"
+  ],
+  "zona": "Flaminio",
+  "lat": 41.9147,
+  "lon": 12.4747,
+  "prezzo": null,
+  "imp": 3,
+  "fatica": 1,
+  "durata": 120,
+  "desc": "Museo interattivo dove i bambini fanno tutto da soli.",
+  "verifica": true,
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
+ },
+ {
+  "id": "opera_caracalla",
+  "nome": "Opera alle Terme di Caracalla",
+  "cat": [
+   "spettacolo",
+   "esperienza"
+  ],
+  "zona": "Aventino",
+  "lat": 41.879,
+  "lon": 12.4924,
+  "prezzo": null,
+  "imp": 5,
+  "fatica": 1,
+  "durata": 180,
+  "desc": "Opera e balletto all'aperto tra le rovine delle terme. Solo in estate.",
+  "verifica": true,
+  "temp": null,
+  "momento": [
+   "sera"
+  ]
+ },
+ {
+  "id": "villa_deste",
+  "nome": "Villa d'Este a Tivoli",
+  "cat": [
+   "fuori_porta",
+   "parco"
+  ],
+  "zona": "Tivoli",
+  "lat": 41.9627,
+  "lon": 12.7964,
+  "prezzo": null,
+  "imp": 6,
+  "fatica": 2,
+  "durata": 150,
+  "desc": "Giardino rinascimentale con centinaia di fontane: a un'ora da Roma in treno.",
+  "verifica": true,
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
+ },
+ {
+  "id": "villa_adriana",
+  "nome": "Villa Adriana a Tivoli",
+  "cat": [
+   "fuori_porta",
+   "archeologia"
+  ],
+  "zona": "Tivoli",
+  "lat": 41.9427,
+  "lon": 12.7735,
+  "prezzo": 15,
+  "imp": 6,
+  "fatica": 3,
+  "durata": 180,
+  "desc": "L'immensa villa dell'imperatore Adriano. Si abbina a Villa d'Este nella stessa giornata.",
+  "verifica": false,
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
+ },
+ {
+  "id": "castelli_romani",
+  "nome": "Castelli Romani",
+  "cat": [
+   "fuori_porta",
+   "cibo"
+  ],
+  "zona": "Castelli",
+  "lat": 41.808,
+  "lon": 12.68,
+  "prezzo": 0,
+  "imp": 5,
+  "fatica": 2,
+  "durata": 300,
+  "desc": "Frascati, Castel Gandolfo e Ariccia: vino, porchetta e laghi vulcanici.",
+  "verifica": false,
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
+ },
+ {
+  "id": "castel_gandolfo",
+  "nome": "Palazzo Papale di Castel Gandolfo",
+  "cat": [
+   "fuori_porta",
+   "museo"
+  ],
+  "zona": "Castelli",
+  "lat": 41.747,
+  "lon": 12.65,
+  "prezzo": null,
+  "imp": 4,
+  "fatica": 2,
+  "durata": 120,
+  "desc": "La residenza estiva dei papi affacciata sul lago di Albano.",
+  "verifica": true,
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
+ },
+ {
+  "id": "ostia_mare",
+  "nome": "Mare a Ostia",
+  "cat": [
+   "fuori_porta",
+   "mare"
+  ],
+  "zona": "Ostia",
+  "lat": 41.729,
+  "lon": 12.278,
+  "prezzo": 0,
+  "imp": 3,
+  "fatica": 1,
+  "durata": 240,
+  "desc": "La spiaggia dei romani, raggiungibile in treno con il biglietto urbano.",
+  "verifica": false,
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
+ },
+ {
+  "id": "bracciano",
+  "nome": "Castello di Bracciano",
+  "cat": [
+   "fuori_porta",
+   "museo"
+  ],
+  "zona": "Bracciano",
+  "lat": 42.103,
+  "lon": 12.175,
+  "prezzo": null,
+  "imp": 3,
+  "fatica": 2,
+  "durata": 240,
+  "desc": "Castello medievale sul lago, a un'ora di treno.",
+  "verifica": true,
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
+ },
+ {
+  "id": "bomarzo",
+  "nome": "Parco dei Mostri di Bomarzo",
+  "cat": [
+   "fuori_porta",
+   "insolito"
+  ],
+  "zona": "Viterbo",
+  "lat": 42.492,
+  "lon": 12.248,
+  "prezzo": null,
+  "imp": 4,
+  "fatica": 2,
+  "durata": 480,
+  "desc": "Giardino rinascimentale di sculture mostruose, unico al mondo. Serve l'auto.",
+  "verifica": true,
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
+ },
+ {
+  "id": "civita_bagnoregio",
+  "nome": "Civita di Bagnoregio",
+  "cat": [
+   "fuori_porta",
+   "insolito"
+  ],
+  "zona": "Viterbo",
+  "lat": 42.6275,
+  "lon": 12.0925,
+  "prezzo": null,
+  "imp": 4,
+  "fatica": 3,
+  "durata": 480,
+  "desc": "\"La città che muore\", su uno sperone di tufo. Giornata intera, serve l'auto.",
+  "verifica": true,
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  }
 ]
