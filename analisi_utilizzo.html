@@ -262,7 +262,7 @@ function disegna(st, dv, vecchio, rec) {
   // domande al concierge
   const domande = vecchio.flatMap(v => (v.recentQuestions || []).map(q => Object.assign({ s: v.slug }, q))).sort((a, b) => (b.ts || 0) - (a.ts || 0)).slice(0, 30); // dalla piu' recente
   h += `<div class="card"><h2>🤖 Ultime domande al concierge</h2><p class="hint">Le domande più recenti fatte dagli ospiti.</p>
-    ${domande.length ? domande.map(q => `<div class="q">${q.ts ? `<small style="color:var(--muted);font-weight:600">${quando(q.ts)}</small><br>` : ''}${esc(q.q)} <small>· ${esc(STR[q.s] || q.s)}${q.lang ? ' · ' + esc(q.lang) : ''}</small></div>`).join('') : '<p class="muted">Nessuna domanda.</p>'}</div>`;
+    ${domande.length ? domande.map(q => `<div class="q">${q.ts ? `<small style="color:var(--muted);font-weight:600">${quando(q.ts)}</small><br>` : ''}${esc(q.q)} <small>· ${esc(STR[q.s] || q.s)}${q.lang ? ' · ' + esc(q.lang) : ''}</small>${q.a ? `<details style="margin-top:4px"><summary style="font-size:12px;font-weight:600;color:var(--muted)">Risposta del concierge</summary><div style="font-size:12.5px;color:var(--muted);white-space:pre-line;margin-top:4px">${esc(q.a)}</div></details>` : ''}</div>`).join('') : '<p class="muted">Nessuna domanda.</p>'}</div>`;
 
   }
 
