@@ -134,7 +134,7 @@ add('priscilla','Catacombe di Priscilla',['archeologia','chiesa'],'Salario',41.9
 add('cecilia_metella','Tomba di Cecilia Metella',['archeologia'],'Appia',41.8519,12.5199,None,3,2,45,'Il mausoleo-fortezza simbolo dell\'Appia Antica.',True)
 add('villa_quintili','Villa dei Quintili',['archeologia','insolito'],'Appia',41.8318,12.5470,None,2,2,75,'Villa imperiale enorme e quasi deserta, fuori dai circuiti turistici.',True)
 add('cimitero_acattolico','Cimitero Acattolico e Piramide Cestia',['insolito','archeologia'],'Testaccio',41.8762,12.4800,0,3,1,45,'Il cimitero romantico di Keats e Shelley, all\'ombra di una piramide romana.')
-add('monte_testaccio','Monte dei Cocci',['archeologia','insolito'],'Testaccio',41.8757,12.4755,None,2,1,45,'Una collina fatta interamente di anfore rotte: la discarica di Roma antica.',True)
+add('monte_testaccio','Monte dei Cocci',['archeologia','insolito'],'Testaccio',41.8757,12.4755,None,2,1,45,'Una collina fatta interamente di anfore rotte: la discarica di Roma antica. Solo con visite guidate occasionali.',True)
 
 # ---------- BLOCCO 7: quartieri da girare (importanza gia' in scala 1-10) ----------
 def add10(*args, **kw):
@@ -162,9 +162,9 @@ add10('porta_portese','Mercato di Porta Portese',['mercato','insolito'],'Trastev
 add10('mercato_centrale','Mercato Centrale Termini',['mercato','cibo'],'Termini',41.9008,12.5009,0,4,1,60,'Food hall con i migliori artigiani del gusto sotto lo stesso tetto.')
 add10('mercato_trionfale','Mercato Trionfale',['mercato','cibo'],'Prati',41.9090,12.4490,0,3,1,45,'Il mercato coperto dei romani, a due passi dai Musei Vaticani.',momento=['mattina'])
 add10('campagna_amica','Mercato Campagna Amica al Circo Massimo',['mercato','cibo'],'Aventino',41.8878,12.4830,0,3,1,45,'Prodotti dei contadini del Lazio, il sabato e la domenica.',momento=['mattina'])
-add10('cooking_class','Lezione di cucina romana',['esperienza','cibo'],'Centro Storico',41.8960,12.4750,None,6,1,180,'Impari a fare pasta fresca, tiramisù o pizza, poi mangi quello che hai cucinato.',True)
-add10('food_tour','Food tour a Trastevere o Testaccio',['esperienza','cibo'],'Trastevere',41.8890,12.4700,None,6,2,180,'Degustazioni guidate tra supplì, pizza al taglio, formaggi e gelato.',True,momento=['sera'])
-add10('vespa_tour','Tour in Vespa o in Fiat 500 d\'epoca',['esperienza','insolito'],'Centro Storico',41.9000,12.4800,None,5,1,180,'Roma come in "Vacanze romane", con autista o alla guida.',True)
+add10('cooking_class','Lezione di cucina romana',['esperienza','cibo'],'Centro Storico',41.8960,12.4750,None,6,1,180,'Impari a fare pasta fresca, tiramisù o pizza, poi mangi quello che hai cucinato. Di solito 60-90€.',True)
+add10('food_tour','Food tour a Trastevere o Testaccio',['esperienza','cibo'],'Trastevere',41.8890,12.4700,None,6,2,180,'Degustazioni guidate tra supplì, pizza al taglio, formaggi e gelato. Di solito 60-90€.',True,momento=['sera'])
+add10('vespa_tour','Tour in Vespa o in Fiat 500 d\'epoca',['esperienza','insolito'],'Centro Storico',41.9000,12.4800,None,5,1,180,'Roma come in "Vacanze romane", con autista o alla guida. Di solito 80-150€.',True)
 add10('golf_cart','Tour in golf cart',['esperienza'],'Centro Storico',41.9000,12.4800,None,5,1,180,'Il centro storico senza fatica: ideale per chi cammina poco.',True)
 add10('bici_appia','Appia Antica in bicicletta',['esperienza','parco','archeologia'],'Appia',41.8680,12.5100,None,5,3,180,'Noleggio bici all\'Appia Info Point e via tra tombe e basoli romani.',True,momento=['mattina'])
 add10('crociera_tevere','Battello sul Tevere',['esperienza'],'Borgo',41.9010,12.4660,None,3,1,60,'Roma vista dal fiume, anche con cena a bordo.',True)
@@ -232,6 +232,7 @@ PREZZI = {
  'carcere_mamertino':(10,None),'palazzo_valentini':(15,None),'galleria_spada':(6,None),'maxxi':(15,None),
  'case_celio':(8,None),'giardini_vaticani':(20,None),'bioparco':(19,None),'priscilla':(12,None),
  'cinecitta':(10,None),'colosseo_sotterranei':(24,None),'villa_medici':(14,None),'cupola':(10,None),
+ 'vicus_caprarius':(4,None),
 }
 CHIUSI = {'crypta_balbi','stadio_domiziano'}   # chiusi temporaneamente: il motore li esclude
 for a in A:
@@ -239,6 +240,21 @@ for a in A:
     if a['id'] in PREZZI:
         a['prezzo'], a['gruppo'] = PREZZI[a['id']]; a['verifica'] = False
     if a['id'] in CHIUSI: a['chiuso'] = True
+
+# prezzi INDICATIVI (privati ed esperienze: variano o dipendono dall'operatore) -> il motore mostra "circa"
+INDICATIVI = {
+ 'illusioni':22,'museo_luce':12,'welcome_rome':15,'lab_mente':5,'dreamers':20,'ikono':19,'time_elevator':15,
+ 'bocca_verita':2,'necropoli':13,'quattro_coronati':2,'chiostro_bramante':15,'orto_botanico':16,
+ 'monte_testaccio':10,'explora':10,
+ 'cooking_class':70,'food_tour':75,'vespa_tour':90,'golf_cart':60,'bici_appia':15,'crociera_tevere':18,'opera_caracalla':40,
+}
+CHIUSI |= {'mausoleo_augusto'}   # riapertura non confermata: escluso finche' non verificato
+for a in A:
+    a.setdefault('indicativo', False)
+    if a['id'] in INDICATIVI:
+        a['prezzo']=INDICATIVI[a['id']]; a['indicativo']=True; a['verifica']=False
+    if a['id'] in CHIUSI:
+        a['chiuso']=True; a['verifica']=False
 
 # ---------- MOMENTO IDEALE ----------
 # mattina = presto per caldo/folla; sera = dopo cena/illuminato; tramonto = ultima tappa del giorno
