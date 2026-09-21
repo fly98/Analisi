@@ -232,6 +232,51 @@ for a in A:
     m=[k for k,ids in MOMENTO.items() if a['id'] in ids]
     if m: a['momento']=m
 
-json.dump(A,open('attrazioni.json','w',encoding='utf-8'),ensure_ascii=False,indent=1)
+# ---------- GITE FUORI PORTA (ognuna occupa un giorno intero) ----------
+# viaggio = minuti solo andata; costo_viaggio = A/R indicativo a persona; biglietti = ingressi principali a persona
+G=[]
+def gita(id,nome,tappe,mezzo,viaggio,costo_viaggio,biglietti,imp,fat,desc,lat,lon,verifica=True,note=None):
+    G.append(dict(id=id,nome=nome,tappe=tappe,mezzo=mezzo,viaggio=viaggio,costo_viaggio=costo_viaggio,biglietti=biglietti,
+                  imp=imp,fatica=fat,desc=desc,lat=lat,lon=lon,verifica=verifica,note=note))
+gita('tivoli','Tivoli: Villa d\'Este e Villa Adriana',['Villa Adriana','Villa d\'Este','centro di Tivoli'],'treno',50,12,27,9,3,
+     'Due siti UNESCO in un giorno: la villa dell\'imperatore Adriano e il giardino delle cento fontane.',41.9627,12.7964,note='Chiusa il lunedì mattina')
+gita('pompei','Pompei',['Scavi di Pompei'],'treno veloce',110,60,18,9,3,
+     'La città sepolta dal Vesuvio. Frecciarossa fino a Napoli poi Circumvesuviana: giornata lunga ma indimenticabile.',40.7489,14.4849)
+gita('firenze','Firenze in giornata',['Duomo','Ponte Vecchio','Piazza della Signoria','Uffizi (facoltativo)'],'treno veloce',95,70,None,9,3,
+     'In Frecciarossa si arriva in un\'ora e mezza: il meglio del Rinascimento in un giorno.',43.7731,11.2560)
+gita('orvieto','Orvieto',['Duomo','Pozzo di San Patrizio','Orvieto sotterranea'],'treno',70,20,None,8,2,
+     'Città etrusca su una rupe di tufo, con uno dei duomi gotici più belli d\'Italia e un labirinto di grotte.',42.7185,12.1107)
+gita('napoli','Napoli in giornata',['centro storico','Cristo Velato','lungomare','pizza'],'treno veloce',70,50,None,8,3,
+     'Un\'ora e dieci di Frecciarossa per la città più viva d\'Italia, e la sua pizza.',40.8518,14.2681)
+gita('castelli','Castelli Romani',['Frascati','Castel Gandolfo','Ariccia','Nemi'],'treno',30,5,None,7,2,
+     'Borghi sui colli vulcanici: vino di Frascati, porchetta di Ariccia, fragoline di Nemi e il palazzo dei papi.',41.8080,12.6800,note='Il Palazzo Papale di Castel Gandolfo è a pagamento')
+gita('tuscia','Civita di Bagnoregio e Parco dei Mostri',['Civita di Bagnoregio','Sacro Bosco di Bomarzo'],'auto',90,None,20,7,2,
+     '"La città che muore" sul suo sperone di tufo e il giardino di sculture mostruose che incantò Dalí. Serve l\'auto.',42.6275,12.0925)
+gita('assisi','Assisi',['Basilica di San Francesco','centro storico'],'treno',130,30,0,7,2,
+     'La città di San Francesco, con la basilica affrescata da Giotto.',43.0707,12.6196)
+gita('cerveteri','Cerveteri: necropoli etrusca',['Necropoli della Banditaccia','Museo Cerite'],'treno',45,8,None,6,2,
+     'Una città dei morti etrusca patrimonio UNESCO, con tombe a forma di casa. Vicino c\'è il mare di Ladispoli.',42.0070,12.1070)
+gita('tarquinia','Tarquinia: tombe dipinte',['Necropoli dei Monterozzi','Museo Nazionale Tarquiniense'],'treno',75,12,None,6,2,
+     'Le tombe etrusche affrescate più belle al mondo, con colori ancora vivi dopo 2500 anni.',42.2485,11.7650)
+gita('ninfa','Giardino di Ninfa e Sermoneta',['Giardino di Ninfa','borgo di Sermoneta'],'auto',70,None,None,6,2,
+     'Il "giardino più romantico del mondo" tra le rovine di una città medievale. Aperto solo alcuni giorni, su prenotazione.',41.5881,12.9540,note='Apertura stagionale, da aprile a novembre')
+gita('sperlonga','Sperlonga',['borgo bianco','spiaggia','Grotta di Tiberio'],'treno',90,20,None,6,1,
+     'Borgo bianco a picco sul mare e spiagge tra le più belle del Lazio. Ideale d\'estate.',41.2590,13.4270,note='Consigliata da giugno a settembre')
+gita('viterbo','Viterbo',['Palazzo dei Papi','quartiere San Pellegrino','Viterbo sotterranea','terme'],'treno',120,15,None,5,2,
+     'La città dei papi medievale, con quartieri intatti e terme libere dove fare il bagno.',42.4168,12.1050)
+gita('bracciano','Lago e Castello di Bracciano',['Castello Orsini-Odescalchi','lungolago'],'treno',65,8,None,5,2,
+     'Castello medievale sul lago vulcanico, con passeggiata e pranzo a base di pesce di lago.',42.1030,12.1750)
+gita('subiaco','Subiaco: monasteri di San Benedetto',['Sacro Speco','Monastero di Santa Scolastica'],'auto',75,None,0,5,2,
+     'Monasteri aggrappati alla roccia dove San Benedetto fondò il suo ordine.',41.9250,13.0930)
+gita('montecassino','Abbazia di Montecassino',['Abbazia','cimitero di guerra polacco'],'auto',90,None,0,5,2,
+     'L\'abbazia di San Benedetto, distrutta e ricostruita dopo la battaglia del 1944.',41.4900,13.8140)
+gita('mare_ostia','Mare a Ostia',['spiaggia'],'treno',40,3,0,3,1,
+     'La spiaggia dei romani, raggiungibile col biglietto urbano. Solo d\'estate.',41.7290,12.2780,verifica=False)
+
+# tolgo dalle attrazioni di Roma le mete ora gestite come gite
+FUORI = {'villa_deste','villa_adriana','castelli_romani','castel_gandolfo','ostia_mare','bracciano','bomarzo','civita_bagnoregio'}
+A[:] = [a for a in A if a['id'] not in FUORI]
+
+json.dump({'attrazioni':A,'gite':G},open('attrazioni.json','w',encoding='utf-8'),ensure_ascii=False,indent=1)
 ver=sum(1 for a in A if a['verifica'])
-print(len(A),'attrazioni |',ver,'con prezzo da verificare')
+print(len(A),'attrazioni |',ver,'con prezzo da verificare |',len(G),'gite')
