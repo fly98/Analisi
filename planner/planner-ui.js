@@ -39,7 +39,7 @@
     importanza: 'Importanza', importanza_d: 'Voto da 1 a 10: 10 sono le attrazioni da non perdere assolutamente, poi a scendere fino alle chicche per chi ha più tempo.',
     tutte: 'Tutte', voto: 'voto', risultati: 'attrazioni', risultato1: 'attrazione', filtri_attivi: 'Filtri attivi', azzera: 'Azzera filtri',
     nessun_risultato: 'Nessuna attrazione trovata.', nessun_con_filtri: 'Nessuna attrazione trovata con i filtri attivi.',
-    note_prezzi: 'Prezzi dei biglietti interi aggiornati al 2026. Molti siti statali sono gratuiti la prima domenica del mese.',
+    note_prezzi: 'Prezzi dei biglietti interi aggiornati al 2026. Molti siti statali sono gratuiti la prima domenica del mese. Foto: Wikimedia Commons (licenze libere).',
   };
   const CAT = [
     ['musei', '🏛️ Musei'], ['chiese', '⛪ Chiese'], ['archeologia', '🏺 Archeologia'], ['parchi', '🌳 Parchi'],
@@ -96,6 +96,10 @@
   .vr-cat .ck{width:22px;height:22px;border-radius:6px;border:2px solid var(--border-s);flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.8rem;margin-top:1px}
   .vr-cat.on .ck{background:var(--orange);border-color:var(--orange)}
   .vr-cat b{font-size:.9rem}.vr-cat .m{font-size:.74rem;color:var(--muted)}
+  .vr-img{width:64px;height:64px;border-radius:12px;object-fit:cover;flex-shrink:0;background:#eee}
+  .vr-ico{width:64px;height:64px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.7rem;background:var(--orange-bg)}
+  .vr-stop .vr-img,.vr-stop .vr-ico{width:56px;height:56px}
+  .vr-gita-img{width:100%;height:130px;object-fit:cover;border-radius:12px;margin:4px 0 6px}
   .vr-voto{display:inline-block;font-size:.66rem;font-weight:800;border-radius:6px;padding:1px 6px;margin-left:4px;vertical-align:1px;background:#eee;color:#555}
   .vr-voto.vtop{background:var(--orange);color:#fff}.vr-voto.vhi{background:var(--orange-bg);color:var(--orange)}
   .vr-bar{position:sticky;bottom:calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 6px);z-index:5;margin-top:10px}
@@ -123,6 +127,12 @@
   const leggiSalvati = () => { try { return JSON.parse(localStorage.getItem(KEY_SALVATI) || '[]'); } catch (e) { return []; } };
   const scriviSalvati = l => { try { localStorage.setItem(KEY_SALVATI, JSON.stringify(l)); } catch (e) {} };
   const trova = id => DB.attrazioni.find(a => a.id === id || a.id + '_fuori' === id);
+
+  const ICONE = { chiesa: '⛪', museo: '🏛️', archeologia: '🏺', parco: '🌳', piazza: '⛲', fontana: '⛲', panorama: '🌅', quartiere: '🏘️',
+    street_art: '🎨', insolito: '🔮', esperienza: '✨', cibo: '🍝', mercato: '🧺', famiglia: '👨‍👩‍👧', spettacolo: '🎭' };
+  const mini = a => a && a.foto
+    ? `<img class="vr-img" src="${esc(a.foto)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.outerHTML='<span class=&quot;vr-ico&quot;>📍</span>'">`
+    : `<span class="vr-ico">${(a && ICONE[(a.cat || [])[0]]) || '📍'}</span>`;
 
   // ---------------- form: stato ----------------
   const form = { giorni: 2, eta: 35, gratis: false, budget: 30, ritmo: 'medio', categorie: new Set(), gite: new Set() };
@@ -246,7 +256,7 @@
     const el = DB.attrazioni.filter(a => !a.chiuso && (!tags || a.cat.some(t => tags.has(t))) && (!q || (a.nome + ' ' + a.zona).toLowerCase().includes(q))
         && (!fasce.length || fasce.some(f => a.imp >= f[2] && a.imp <= f[3])))
       .sort((a, b) => b.imp - a.imp);
-    $('#vrLista').innerHTML = el.map(a => `<div class="vr-cat ${stato.selezione.has(a.id) ? 'on' : ''}" data-id="${a.id}"><span class="ck">✓</span><span style="flex:1"><b>${esc(a.nome)}</b> <span class="vr-voto v${a.imp >= 9 ? 'top' : a.imp >= 7 ? 'hi' : 'mid'}">${a.imp}/10</span>
+    $('#vrLista').innerHTML = el.map(a => `<div class="vr-cat ${stato.selezione.has(a.id) ? 'on' : ''}" data-id="${a.id}"><span class="ck">✓</span>${mini(a)}<span style="flex:1"><b>${esc(a.nome)}</b> <span class="vr-voto v${a.imp >= 9 ? 'top' : a.imp >= 7 ? 'hi' : 'mid'}">${a.imp}/10</span>
       <div class="m">${esc(a.zona)} · ${dur(a.durata)} · ${a.prezzo ? (a.indicativo ? TX.circa + ' ' : '') + euro(a.prezzo) : TX.gratis}</div>
       <div class="m">${esc(a.desc)}</div></span></div>`).join('');
     const nf = filtroImp.size + filtroCat.size;
@@ -304,7 +314,8 @@
     r.giorni.forEach(g => {
       if (g.tipo === 'gita') {
         const mezzo = { treno: TX.in_treno, auto: TX.in_auto, 'treno veloce': TX.treno_veloce }[g.mezzo] || g.mezzo;
-        html += `<div class="vr-day"><h3>${TX.giorno} ${g.n} · ${TX.gita}</h3><div class="sum">${esc(g.nome)}</div>
+        const gg = DB.gite.find(x => x.nome === g.nome);
+        html += `<div class="vr-day"><h3>${TX.giorno} ${g.n} · ${TX.gita}</h3><div class="sum">${esc(g.nome)}</div>${gg && gg.foto ? `<img class="vr-gita-img" src="${esc(gg.foto.replace('/240px-', '/480px-'))}" alt="" loading="lazy" referrerpolicy="no-referrer">` : ''}
           <div class="vr-extra"><span class="ico">🚆</span><span>${dur(g.viaggio)} ${mezzo} ${TX.a_tratta} · ${TX.costo_gita} ${euro(g.costo)} ${TX.a_persona}</span></div>
           <div class="vr-extra"><span class="ico">📍</span><span>${g.tappe.map(esc).join(' · ')}</span></div>
           <div class="vr-extra"><span class="ico">ℹ️</span><span>${esc(g.desc)}${g.note ? '<br><small>' + esc(g.note) + '</small>' : ''}</span></div></div>`;
@@ -318,7 +329,7 @@
         const a = trova(x.id) || {};
         const desc = x.fuori && a.esterno ? a.esterno.desc : a.desc;
         html += `<div class="vr-move">${tratta(x.tratta)}</div>
-          <div class="vr-stop" style="border-top:none"><span class="n">${++n}</span><div class="t"><b>${esc(x.nome)}</b>${x.fuori ? `<span class="vr-tag">${TX.da_fuori}</span>` : ''}
+          <div class="vr-stop" style="border-top:none"><span class="n">${++n}</span>${mini(a)}<div class="t"><b>${esc(x.nome)}</b>${x.fuori ? `<span class="vr-tag">${TX.da_fuori}</span>` : ''}
           <div class="m">${dur(x.durata)} · ${x.prezzo ? (x.indicativo ? TX.circa + ' ' : '') + euro(x.prezzo) : TX.gratis}</div><div class="d">${esc(desc)}</div></div></div>`;
       });
       if (g.serata) html += `<div class="vr-extra sera"><span class="ico">🍹</span><span><b>${TX.serata} ${esc(g.serata.nome)}</b> <small>(${tratta(g.serata.tratta)})</small><br><span style="color:var(--muted);font-size:.8rem">${esc(g.serata.desc)}</span></span></div>`;
