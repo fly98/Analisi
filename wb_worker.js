@@ -4,7 +4,11 @@
 //   POST /wb/:slug/chat                    -> { messages:[{role,content}], lang } => { reply }
 //   POST /wb/:slug/track                   -> { event, section?, lang? }          => { ok:true }
 //   GET  /wb/:slug/data?lang=xx            -> { food?, eventi? }  (letti da KV, popolati da cron futuri)
-//   GET  /wb/:slug/stats?key=ADMIN_KEY&days=14  -> aggregato visite/sezioni/lingue/domande frequenti
+//   GET  /wb/:slug/stats?key=ADMIN_KEY&days=14  -> (vecchio) aggregato KV visite/sezioni/lingue/domande
+//   GET  /wb/:slug/stats2?key=..&from=YYYY-MM-DD&to=YYYY-MM-DD  -> statistiche D1 (slug 'all' = entrambe)
+//   GET  /wb/:slug/dispositivi?key=..&from&to  -> dispositivi anonimi del periodo, con anomalie
+//   POST /wb/:slug/escludimi {sid, on?}      -> il dispositivo esclude se stesso (?notrack=1 sulla pagina)
+//   POST /wb/:slug/escludi?key=.. {sid, on?} -> esclusione/riammissione dalla pagina di analisi
 
 var CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -237,6 +241,23 @@ async function handleTrack(request, env, slug) {
   const lang = (body.lang || "").slice(0, 5);
   const sid = (body.sid || "").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 40);
   if (!event) return json({ error: "event mancante" }, 400);
+
+  // ---- nuova raccolta: una riga per evento su D1 (filtrabile a posteriori) ----
+  if (env.DB) {
+    try {
+      const now = new Date();
+      const roma = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Rome', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', hour12: false }).formatToParts(now);
+      const pp = t => (roma.find(x => x.type === t) || {}).value;
+      const dayR = `${pp('year')}-${pp('month')}-${pp('day')}`, hourR = parseInt(pp('hour'), 10) % 24;
+      let host = String(body.h || '').toLowerCase().slice(0, 60);
+      if (!host) { try { host = new URL(request.headers.get('Origin') || request.headers.get('Referer') || '').hostname; } catch (e) { host = ''; } }
+      const ua = request.headers.get('User-Agent') || '';
+      const bot = (body.wd === true || /headless|bot|crawl|spider|playwright|puppeteer|lighthouse|preview/i.test(ua)) ? 1 : 0;
+      await env.DB.prepare('INSERT INTO ev (ts, day, hour, slug, sid, event, section, lang, host, bot) VALUES (?,?,?,?,?,?,?,?,?,?)')
+        .bind(now.getTime(), dayR, hourR, slug, sid, event, section, lang, host, bot).run();
+      return json({ ok: true });
+    } catch (e) { /* se D1 non risponde si ripiega sul vecchio sistema qui sotto */ }
+  }
 
   const day = todayStr();
   const incr = async (key) => {
@@ -487,6 +508,94 @@ async function handleRefreshConcerti(request, env, slug, url) {
   const city = url.searchParams.get("city") || "Roma";
   const result = await refreshConcerti(env, slug, city);
   return json(result, result.ok ? 200 : 502);
+}
+
+
+// ================= STATISTICHE v2 (D1) =================
+// Traffico valido: sito ospiti reale (interno1.it), niente browser automatici, niente dispositivi esclusi.
+const HOST_OK = "(host = 'interno1.it' OR host = 'www.interno1.it')";
+const VALIDO = `bot = 0 AND ${HOST_OK} AND sid NOT IN (SELECT sid FROM excluded)`;
+
+function periodo(url) {
+  const oggi = new Date().toISOString().slice(0, 10);
+  const re = /^\d{4}-\d{2}-\d{2}$/;
+  let to = url.searchParams.get('to'); if (!re.test(to || '')) to = oggi;
+  let from = url.searchParams.get('from');
+  if (!re.test(from || '')) { const d = new Date(to + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() - 29); from = d.toISOString().slice(0, 10); }
+  return { from, to };
+}
+function admin(env, url) { return env.WB_ADMIN_KEY && url.searchParams.get('key') === env.WB_ADMIN_KEY; }
+
+// "Questo è un mio dispositivo": la pagina ospiti con ?notrack=1 manda il proprio codice anonimo.
+// Chiunque può escludere solo se stesso: non serve chiave.
+async function handleEscludimi(request, env, slug) {
+  if (!env.DB) return json({ ok: false, error: 'db non disponibile' }, 503);
+  let body = {}; try { body = await request.json(); } catch (e) {}
+  const sid = String(body.sid || '').replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 40);
+  if (!sid) return json({ error: 'sid mancante' }, 400);
+  const on = body.on !== false;
+  if (on) await env.DB.prepare('INSERT OR REPLACE INTO excluded (sid, note, ts) VALUES (?,?,?)').bind(sid, String(body.note || 'mio dispositivo (' + slug + ')').slice(0, 80), Date.now()).run();
+  else await env.DB.prepare('DELETE FROM excluded WHERE sid = ?').bind(sid).run();
+  return json({ ok: true, sid, escluso: on });
+}
+
+// Esclusione/riammissione dalla pagina di analisi (serve la chiave admin)
+async function handleEscludi(request, env, url) {
+  if (!admin(env, url)) return json({ error: 'non autorizzato' }, 401);
+  let body = {}; try { body = await request.json(); } catch (e) {}
+  const sid = String(body.sid || '').replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 40);
+  if (!sid) return json({ error: 'sid mancante' }, 400);
+  if (body.on === false) await env.DB.prepare('DELETE FROM excluded WHERE sid = ?').bind(sid).run();
+  else await env.DB.prepare('INSERT OR REPLACE INTO excluded (sid, note, ts) VALUES (?,?,?)').bind(sid, String(body.note || 'escluso da analisi').slice(0, 80), Date.now()).run();
+  return json({ ok: true });
+}
+
+async function handleStats2(request, env, slug, url) {
+  if (!admin(env, url)) return json({ error: 'non autorizzato' }, 401);
+  if (!env.DB) return json({ error: 'db non disponibile' }, 503);
+  const { from, to } = periodo(url);
+  const s = slug === 'all' ? 'all' : slug;
+  const F = `day BETWEEN ?1 AND ?2 AND (?3 = 'all' OR slug = ?3) AND ${VALIDO}`;
+  const q = (sql) => env.DB.prepare(sql).bind(from, to, s);
+  const [kpi, torna, soloApertura, perSlug, perGiorno, eventi, lingue, ore, scartati, primo, esclusi] = await env.DB.batch([
+    q(`SELECT COUNT(*) AS eventi, COUNT(DISTINCT sid) AS dispositivi, COUNT(DISTINCT sid || day) AS visite FROM ev WHERE ${F}`),
+    q(`SELECT COUNT(*) AS n FROM (SELECT sid FROM ev WHERE ${F} GROUP BY sid HAVING COUNT(DISTINCT day) > 1)`),
+    q(`SELECT COUNT(*) AS n FROM (SELECT sid FROM ev WHERE ${F} GROUP BY sid HAVING SUM(event NOT IN ('view','lang')) = 0)`),
+    q(`SELECT slug, COUNT(DISTINCT sid) AS dispositivi, COUNT(*) AS eventi FROM ev WHERE ${F} GROUP BY slug`),
+    q(`SELECT day, slug, COUNT(DISTINCT sid) AS dispositivi, COUNT(*) AS eventi FROM ev WHERE ${F} GROUP BY day, slug ORDER BY day`),
+    q(`SELECT event, section, COUNT(*) AS n, COUNT(DISTINCT sid) AS dispositivi FROM ev WHERE ${F} GROUP BY event, section`),
+    q(`SELECT lang, COUNT(DISTINCT sid) AS dispositivi FROM ev WHERE ${F} AND lang <> '' GROUP BY lang ORDER BY dispositivi DESC`),
+    q(`SELECT hour, COUNT(DISTINCT sid || day) AS visite, COUNT(*) AS eventi FROM ev WHERE ${F} GROUP BY hour ORDER BY hour`),
+    q(`SELECT CASE WHEN bot = 1 THEN 'browser automatici' WHEN NOT ${HOST_OK} THEN 'fuori da interno1.it' ELSE 'dispositivi esclusi' END AS motivo,
+         COUNT(*) AS eventi, COUNT(DISTINCT sid) AS dispositivi
+       FROM ev WHERE day BETWEEN ?1 AND ?2 AND (?3 = 'all' OR slug = ?3) AND NOT (${VALIDO}) GROUP BY motivo`),
+    env.DB.prepare('SELECT MIN(day) AS primo FROM ev'),
+    env.DB.prepare('SELECT sid, note, ts FROM excluded ORDER BY ts DESC'),
+  ]);
+  const r = x => x.results || [];
+  return json({
+    from, to, slug: s, primoGiorno: (r(primo)[0] || {}).primo || null,
+    kpi: Object.assign({}, r(kpi)[0] || {}, { tornati: (r(torna)[0] || {}).n || 0, soloApertura: (r(soloApertura)[0] || {}).n || 0 }),
+    perSlug: r(perSlug), perGiorno: r(perGiorno), eventi: r(eventi), lingue: r(lingue), ore: r(ore),
+    scartati: r(scartati), esclusi: r(esclusi),
+  });
+}
+
+// Elenco dei dispositivi (anonimi) del periodo, con segnalazione di quelli anomali
+async function handleDispositivi(request, env, slug, url) {
+  if (!admin(env, url)) return json({ error: 'non autorizzato' }, 401);
+  if (!env.DB) return json({ error: 'db non disponibile' }, 503);
+  const { from, to } = periodo(url);
+  const s = slug === 'all' ? 'all' : slug;
+  const res = await env.DB.prepare(`
+    SELECT e.sid, COUNT(*) AS eventi, COUNT(DISTINCT e.day) AS giorni, MIN(e.ts) AS primo, MAX(e.ts) AS ultimo,
+           GROUP_CONCAT(DISTINCT e.slug) AS strutture, GROUP_CONCAT(DISTINCT e.lang) AS lingue,
+           MAX(e.bot) AS bot, SUM(CASE WHEN ${HOST_OK} THEN 0 ELSE 1 END) AS fuori,
+           (SELECT MAX(c) FROM (SELECT COUNT(*) AS c FROM ev x WHERE x.sid = e.sid AND x.day BETWEEN ?1 AND ?2 GROUP BY x.day, x.hour)) AS maxOra,
+           (SELECT note FROM excluded z WHERE z.sid = e.sid) AS escluso
+    FROM ev e WHERE e.day BETWEEN ?1 AND ?2 AND (?3 = 'all' OR e.slug = ?3)
+    GROUP BY e.sid ORDER BY eventi DESC LIMIT 200`).bind(from, to, s).all();
+  return json({ from, to, dispositivi: res.results || [] });
 }
 
 // ---------------- Stats (admin) ----------------
@@ -1002,6 +1111,10 @@ export default {
       if (action === "track" && request.method === "POST") return await handleTrack(request, env, slug);
       if (action === "data" && request.method === "GET") return await handleData(request, env, slug, url);
       if (action === "stats" && request.method === "GET") return await handleStats(request, env, slug, url);
+      if (action === "stats2" && request.method === "GET") return await handleStats2(request, env, slug, url);
+      if (action === "dispositivi" && request.method === "GET") return await handleDispositivi(request, env, slug, url);
+      if (action === "escludimi" && request.method === "POST") return await handleEscludimi(request, env, slug);
+      if (action === "escludi" && request.method === "POST") return await handleEscludi(request, env, url);
       if (action === "refresh-eventi" && request.method === "GET") return await handleRefreshEventi(request, env, slug, url);
       if (action === "refresh-concerti" && request.method === "GET") return await handleRefreshConcerti(request, env, slug, url);
 
