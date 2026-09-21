@@ -51,10 +51,10 @@ add('ara_pacis','Ara Pacis',['museo','archeologia'],'Flaminio',41.9063,12.4755,N
 add('musei_vaticani','Musei Vaticani e Cappella Sistina',['museo'],'Vaticano',41.9065,12.4536,20,5,3,210,'Una delle collezioni più grandi al mondo, fino al Giudizio di Michelangelo. Online con salta fila 25€.')
 add('san_pietro','Basilica di San Pietro',['chiesa'],'Vaticano',41.9022,12.4539,0,5,2,60,'La chiesa più grande della cristianità, con la Pietà di Michelangelo.')
 add('piazza_san_pietro','Piazza San Pietro',['piazza'],'Vaticano',41.9022,12.4568,0,5,1,20,'Il colonnato di Bernini abbraccia i fedeli.')
-add('cupola','Cupola di San Pietro',['panorama','chiesa'],'Vaticano',41.9021,12.4533,17,4,3,60,'Oltre 500 gradini fino alla vista più famosa di Roma.',True)
+add('cupola','Cupola di San Pietro',['panorama','chiesa'],'Vaticano',41.9021,12.4533,17,4,3,60,'Ascensore più 320 gradini (10€) o 551 gradini a piedi (8€) fino alla vista più famosa di Roma.',True)
 add('grotte_vaticane','Grotte Vaticane',['chiesa'],'Vaticano',41.9022,12.4539,0,3,1,30,'Le tombe dei papi sotto la basilica.')
 add('necropoli','Necropoli Vaticana (Scavi)',['archeologia','insolito'],'Vaticano',41.9020,12.4530,13,3,2,90,'Visita guidata alla tomba di San Pietro: prenotazione con largo anticipo.',True)
-add('giardini_vaticani','Giardini Vaticani',['parco'],'Vaticano',41.9040,12.4500,None,3,2,120,'Visita guidata ai giardini dei papi, solo su prenotazione.',True)
+add('giardini_vaticani','Giardini Vaticani',['parco'],'Vaticano',41.9040,12.4500,None,3,2,120,'Visita guidata ai giardini dei papi, solo su prenotazione. Da 20€, 40€ con il bus panoramico.',True)
 add('ponte_santangelo','Ponte Sant\'Angelo',['passeggiata'],'Borgo',41.9014,12.4664,0,3,1,15,'Il ponte degli angeli di Bernini, davanti al castello.')
 add('borgo_pio','Borgo Pio e Passetto di Borgo',['quartiere'],'Borgo',41.9040,12.4610,0,2,1,30,'Viuzze sotto il corridoio segreto che portava i papi al castello.')
 add('prati','Prati e Via Cola di Rienzo',['quartiere','shopping'],'Prati',41.9080,12.4640,0,2,1,45,'Quartiere elegante umbertino, ottimo per shopping.')
@@ -229,8 +229,11 @@ PREZZI = {
  'caracalla':(8,None),'ostia_antica':(18,None),
  'capitolini':(15,None),'montemartini':(11,None),'mercati_traiano':(15,None),'ara_pacis':(14,None),
  'barracco':(7.5,None),'serra_moresca':(8,None),
+ 'carcere_mamertino':(10,None),'palazzo_valentini':(15,None),'galleria_spada':(6,None),'maxxi':(15,None),
+ 'case_celio':(8,None),'giardini_vaticani':(20,None),'bioparco':(19,None),'priscilla':(12,None),
+ 'cinecitta':(10,None),'colosseo_sotterranei':(24,None),'villa_medici':(14,None),'cupola':(10,None),
 }
-CHIUSI = {'crypta_balbi'}   # chiusi temporaneamente: il motore li esclude
+CHIUSI = {'crypta_balbi','stadio_domiziano'}   # chiusi temporaneamente: il motore li esclude
 for a in A:
     a.setdefault('gruppo', None); a.setdefault('chiuso', False)
     if a['id'] in PREZZI:
