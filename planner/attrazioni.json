@@ -2461,5 +2461,337 @@
   "momento": [
    "qualsiasi"
   ]
+ },
+ {
+  "id": "trastevere",
+  "nome": "Trastevere",
+  "cat": [
+   "quartiere"
+  ],
+  "zona": "Trastevere",
+  "lat": 41.889,
+  "lon": 12.47,
+  "prezzo": 0,
+  "imp": 8,
+  "fatica": 2,
+  "durata": 120,
+  "desc": "Vicoli di sanpietrini, edera e trattorie: il quartiere più romano di Roma, al meglio la sera.",
+  "verifica": false,
+  "temp": null,
+  "momento": [
+   "sera"
+  ]
+ },
+ {
+  "id": "monti",
+  "nome": "Rione Monti",
+  "cat": [
+   "quartiere"
+  ],
+  "zona": "Monti",
+  "lat": 41.895,
+  "lon": 12.493,
+  "prezzo": 0,
+  "imp": 7,
+  "fatica": 2,
+  "durata": 90,
+  "desc": "Il rione più antico, oggi pieno di botteghe vintage, artigiani e piazzette.",
+  "verifica": false,
+  "temp": null,
+  "momento": [
+   "sera"
+  ]
+ },
+ {
+  "id": "testaccio",
+  "nome": "Testaccio e il suo mercato",
+  "cat": [
+   "quartiere",
+   "mercato"
+  ],
+  "zona": "Testaccio",
+  "lat": 41.8775,
+  "lon": 12.4765,
+  "prezzo": 0,
+  "imp": 6,
+  "fatica": 2,
+  "durata": 90,
+  "desc": "Il quartiere della cucina romana verace, col mercato coperto e lo street food.",
+  "verifica": false,
+  "temp": null,
+  "momento": [
+   "mattina"
+  ]
+ },
+ {
+  "id": "via_margutta",
+  "nome": "Via Margutta",
+  "cat": [
+   "quartiere",
+   "insolito"
+  ],
+  "zona": "Spagna",
+  "lat": 41.907,
+  "lon": 12.479,
+  "prezzo": 0,
+  "imp": 5,
+  "fatica": 1,
+  "durata": 20,
+  "desc": "La via degli artisti e di \"Vacanze romane\", con botteghe e gallerie.",
+  "verifica": false,
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
+ },
+ {
+  "id": "piazza_mattei",
+  "nome": "Fontana delle Tartarughe",
+  "cat": [
+   "fontana",
+   "insolito"
+  ],
+  "zona": "Ghetto",
+  "lat": 41.8938,
+  "lon": 12.4776,
+  "prezzo": 0,
+  "imp": 5,
+  "fatica": 1,
+  "durata": 10,
+  "desc": "Piccola fontana rinascimentale in una piazzetta nascosta del Ghetto.",
+  "verifica": false,
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
+ },
+ {
+  "id": "garbatella",
+  "nome": "Garbatella",
+  "cat": [
+   "quartiere",
+   "insolito"
+  ],
+  "zona": "Garbatella",
+  "lat": 41.862,
+  "lon": 12.487,
+  "prezzo": 0,
+  "imp": 5,
+  "fatica": 2,
+  "durata": 90,
+  "desc": "Città giardino degli anni '20: villini, cortili e lotti popolari da cartolina.",
+  "verifica": false,
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
+ },
+ {
+  "id": "pigneto",
+  "nome": "Pigneto",
+  "cat": [
+   "quartiere",
+   "street_art"
+  ],
+  "zona": "Pigneto",
+  "lat": 41.889,
+  "lon": 12.528,
+  "prezzo": 0,
+  "imp": 5,
+  "fatica": 2,
+  "durata": 75,
+  "desc": "Il quartiere di Pasolini, oggi murales, locali e vita notturna alternativa.",
+  "verifica": false,
+  "temp": null,
+  "momento": [
+   "sera"
+  ]
+ },
+ {
+  "id": "via_giulia",
+  "nome": "Via Giulia",
+  "cat": [
+   "quartiere"
+  ],
+  "zona": "Campo de' Fiori",
+  "lat": 41.896,
+  "lon": 12.469,
+  "prezzo": 0,
+  "imp": 4,
+  "fatica": 1,
+  "durata": 30,
+  "desc": "Strada rinascimentale dritta come un fuso, con palazzi nobiliari e l'arco Farnese.",
+  "verifica": false,
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
+ },
+ {
+  "id": "piazza_farnese",
+  "nome": "Piazza Farnese",
+  "cat": [
+   "piazza"
+  ],
+  "zona": "Campo de' Fiori",
+  "lat": 41.8948,
+  "lon": 12.471,
+  "prezzo": 0,
+  "imp": 4,
+  "fatica": 1,
+  "durata": 15,
+  "desc": "Piazza elegante col palazzo di Michelangelo, oggi ambasciata di Francia.",
+  "verifica": false,
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
+ },
+ {
+  "id": "via_coronari",
+  "nome": "Via dei Coronari",
+  "cat": [
+   "quartiere",
+   "shopping"
+  ],
+  "zona": "Navona",
+  "lat": 41.9005,
+  "lon": 12.4705,
+  "prezzo": 0,
+  "imp": 4,
+  "fatica": 1,
+  "durata": 30,
+  "desc": "La via degli antiquari, a due passi da Piazza Navona.",
+  "verifica": false,
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
+ },
+ {
+  "id": "san_lorenzo_quartiere",
+  "nome": "San Lorenzo",
+  "cat": [
+   "quartiere",
+   "street_art"
+  ],
+  "zona": "San Lorenzo",
+  "lat": 41.898,
+  "lon": 12.515,
+  "prezzo": 0,
+  "imp": 4,
+  "fatica": 2,
+  "durata": 60,
+  "desc": "Il quartiere universitario, murales e locali. A pochi passi dalle nostre strutture.",
+  "verifica": false,
+  "temp": null,
+  "momento": [
+   "sera"
+  ]
+ },
+ {
+  "id": "eur",
+  "nome": "EUR",
+  "cat": [
+   "quartiere",
+   "architettura"
+  ],
+  "zona": "EUR",
+  "lat": 41.836,
+  "lon": 12.469,
+  "prezzo": 0,
+  "imp": 4,
+  "fatica": 2,
+  "durata": 120,
+  "desc": "La città razionalista voluta per l'Esposizione del 1942, col \"Colosseo quadrato\".",
+  "verifica": false,
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
+ },
+ {
+  "id": "ostiense_street_art",
+  "nome": "Ostiense e Gazometro",
+  "cat": [
+   "street_art",
+   "insolito"
+  ],
+  "zona": "Ostiense",
+  "lat": 41.87,
+  "lon": 12.479,
+  "prezzo": 0,
+  "imp": 4,
+  "fatica": 2,
+  "durata": 60,
+  "desc": "Archeologia industriale e grandi murales, dal Gazometro all'ex Mercati Generali.",
+  "verifica": false,
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
+ },
+ {
+  "id": "tor_marancia",
+  "nome": "Tor Marancia – Big City Life",
+  "cat": [
+   "street_art",
+   "insolito"
+  ],
+  "zona": "Garbatella",
+  "lat": 41.856,
+  "lon": 12.493,
+  "prezzo": 0,
+  "imp": 4,
+  "fatica": 1,
+  "durata": 45,
+  "desc": "Ventidue palazzine popolari dipinte da street artist internazionali.",
+  "verifica": false,
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
+ },
+ {
+  "id": "governo_vecchio",
+  "nome": "Via del Governo Vecchio",
+  "cat": [
+   "quartiere",
+   "shopping"
+  ],
+  "zona": "Navona",
+  "lat": 41.8985,
+  "lon": 12.4705,
+  "prezzo": 0,
+  "imp": 3,
+  "fatica": 1,
+  "durata": 20,
+  "desc": "Negozi vintage e botteghe tra Navona e Chiesa Nuova.",
+  "verifica": false,
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
+ },
+ {
+  "id": "quadraro",
+  "nome": "Quadraro e il MURo",
+  "cat": [
+   "street_art",
+   "insolito"
+  ],
+  "zona": "Quadraro",
+  "lat": 41.857,
+  "lon": 12.558,
+  "prezzo": 0,
+  "imp": 3,
+  "fatica": 2,
+  "durata": 75,
+  "desc": "Museo di urban art a cielo aperto in un quartiere popolare della Resistenza.",
+  "verifica": false,
+  "temp": null,
+  "momento": [
+   "qualsiasi"
+  ]
  }
 ]
