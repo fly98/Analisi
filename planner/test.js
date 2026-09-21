@@ -1,21 +1,20 @@
 const P = require('./planner.js');
 const db = require('./attrazioni.json');
 const hhmm = m => `${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`;
+const dur = m => m>=60 ? `${Math.floor(m/60)}h${m%60?String(m%60).padStart(2,'0'):''}` : `${m} min`;
 function stampa(r){
   r.avvisi.forEach(a=>console.log('⚠️ ',a));
   r.giorni.forEach(g=>{
-    if(g.tipo==='gita'){ console.log(`\n=== GIORNO ${g.n}: GITA ${g.nome} (${g.mezzo}, ${g.viaggio} min, ~${g.costo}€)`); return; }
-    console.log(`\n=== GIORNO ${g.n} — ${Math.round(g.minuti/60*10)/10}h, fatica ${g.fatica}, biglietti ${g.costo}€`);
+    if(g.tipo==='gita'){ console.log(`\n=== GIORNO ${g.n}: GITA ${g.nome} (${g.mezzo}, ${g.viaggio} min a tratta, ~${g.costo}€)`); return; }
+    console.log(`\n=== GIORNO ${g.n} — impegno totale ${dur(g.visite+g.spostamenti)} (visite ${dur(g.visite)} + spostamenti ${dur(g.spostamenti)}) · biglietti ${g.costo}€`);
     g.righe.forEach(x=>{
-      if(x.pranzo){ console.log(`  ${hhmm(x.ora)} 🍝 Pausa pranzo (zona ${x.zona})`); return; }
-      const tr = x.tratta.modo==='mezzi' ? `🚇 ${x.tratta.minuti}'` : x.tratta.modo==='piedi' ? `🚶 ${x.tratta.metri}m` : '';
-      console.log(`  ${hhmm(x.arrivo)} ${x.nome} (${x.durata}') ${x.prezzo? x.prezzo+'€':'gratis'}  ${tr}`);
+      if(x.pranzo){ console.log(`     🍝 pausa pranzo in zona ${x.zona}`); return; }
+      const tr = x.tratta.modo==='mezzi' ? `🚇 ${x.tratta.minuti} min` : x.tratta.modo==='piedi' ? `🚶 ${x.tratta.minuti} min` : '📍 accanto';
+      console.log(`     ${tr.padEnd(12)} → ${x.nome} · ${dur(x.durata)} · ${x.prezzo? x.prezzo+'€':'gratis'}`);
     });
-    console.log(`  ${hhmm(g.fine)} fine visite`);
-    if(g.serata){ const s=g.serata; console.log(`  ${hhmm(s.aperitivo)} 🍹 Aperitivo e ${hhmm(s.cena)} 🍽️ cena a ${s.nome} (${s.tratta.modo==='mezzi'?'🚇 '+s.tratta.minuti+"'":'🚶 '+s.tratta.metri+'m'})`); }
+    if(g.serata){ const s=g.serata; console.log(`     🍹🍽️ aperitivo e cena a ${s.nome} (${s.tratta.modo==='mezzi'?'🚇 '+s.tratta.minuti+' min':'🚶 '+s.tratta.minuti+' min'})`); }
   });
   console.log('\nTotale biglietti:', r.costoTotale+'€');
-  console.log('Rimaste fuori (per tempo/fatica/budget):', r.escluse.length);
 }
 console.log('######## ESEMPIO FILIPPO: 50 anni, 2 giorni, 30€/giorno, parchi+chiese+musei, intenso');
 stampa(P.genera(db,{giorni:2, eta:50, budgetGiorno:30, ritmo:'intenso', categorie:['parchi','chiese','musei']}));
