@@ -256,6 +256,24 @@ for a in A:
     if a['id'] in CHIUSI:
         a['chiuso']=True; a['verifica']=False
 
+NOMI_FUORI = {'capitolini':'Piazza del Campidoglio e terrazza sul Foro','bocca_verita':'Bocca della Verità (dal portico)'}
+# ---------- VISITA DA FUORI (gratis) per le tappe a pagamento che meritano anche dall'esterno ----------
+ESTERNO = {
+ 'colosseo':        (9, 30, 'Il Colosseo da fuori, con l\'Arco di Costantino e la vista sul Foro. Ingresso non incluso.'),
+ 'pantheon':        (7, 15, 'La facciata del Pantheon e Piazza della Rotonda con la fontana. Ingresso non incluso.'),
+ 'castel_santangelo':(6, 20,'Il castello visto dal Ponte degli Angeli e dal lungotevere. Ingresso non incluso.'),
+ 'capitolini':      (7, 25, 'Piazza del Campidoglio di Michelangelo e la terrazza gratuita sul Foro Romano.'),
+ 'caracalla':       (4, 15, 'Le rovine imponenti delle terme viste dal viale. Ingresso non incluso.'),
+ 'bocca_verita':    (5, 10, 'La Bocca della Verità si vede dal cancello del portico, anche senza entrare.'),
+ 'ara_pacis':       (3, 10, 'L\'altare di Augusto visto attraverso la teca di vetro di Richard Meier.'),
+ 'mausoleo_augusto':(3, 10, 'La tomba circolare di Augusto vista dalla piazza.'),
+}
+for a in A:
+    a['esterno'] = None
+    if a['id'] in ESTERNO:
+        imp, dur, desc = ESTERNO[a['id']]
+        a['esterno'] = {'imp': imp, 'durata': dur, 'desc': desc, 'nome': NOMI_FUORI.get(a['id'])}
+
 # ---------- MOMENTO IDEALE ----------
 # mattina = presto per caldo/folla; sera = dopo cena/illuminato; tramonto = ultima tappa del giorno
 MOMENTO = {
