@@ -44,6 +44,13 @@
   // una tappa breve pesa meno di una lunga a parita' di livello
   const faticaTappa = a => a.fatica * (0.5 + a.durata / 120);
 
+  // versione gratuita "da fuori" di una tappa a pagamento
+  function daFuori(a) {
+    if (!a.esterno) return null;
+    return Object.assign({}, a, { id: a.id + '_fuori', nome: a.esterno.nome || (a.nome.split(',')[0].split(' e ')[0] + ' (da fuori)'), prezzo: 0, gruppo: null,
+      durata: a.esterno.durata, fatica: 1, imp: a.esterno.imp, desc: a.esterno.desc, fuori: true, chiuso: false, esterno: null });
+  }
+
   // ---------- Filtri ----------
   function tagDaMacro(macro) {
     const s = new Set();
@@ -61,10 +68,11 @@
         .sort((a, b) => b.imp - a.imp || ((MACRO[m] || []).includes(b.cat[0]) ? 1 : 0) - ((MACRO[m] || []).includes(a.cat[0]) ? 1 : 0))[0];
       if (best) garantite.add(best.id);
     });
-    return db.attrazioni.map(a => Object.assign({}, a, { prio: a.imp + bonus(a) + (garantite.has(a.id) ? 3 : 0) })).filter(a => {
+    const troppoCara = a => (opz.soloGratis && a.prezzo > 0) || (!opz.soloGratis && opz.budgetGiorno != null && a.prezzo > opz.budgetGiorno);
+    const base = db.attrazioni.map(a => (a.chiuso || troppoCara(a)) ? daFuori(a) || a : a);
+    return base.map(a => Object.assign({}, a, { prio: a.imp + bonus(a) + (garantite.has(a.id) ? 3 : 0) })).filter(a => {
       if (a.chiuso) return false;
-      if (opz.soloGratis && a.prezzo > 0) return false;
-      if (!opz.soloGratis && opz.budgetGiorno != null && a.prezzo > opz.budgetGiorno) return false;
+      if (troppoCara(a)) return false;
       if (opz.eta >= 70 && a.fatica >= 3 && a.imp < 9) return false; // tappe pesanti solo se imperdibili
       const inCat = tutteCat || a.cat.some(t => tags.has(t));
       const imperdibile = opz.imperdibiliSempre !== false && a.imp >= 9;
@@ -121,7 +129,7 @@
       if (a.gruppo && biglietti.has(a.gruppo)) prezzo = 0; // biglietto condiviso gia' pagato
       costo += prezzo;
       pos = a;
-      righe.push({ id: a.id, nome: a.nome, arrivo, durata: a.durata, tratta: tr, prezzo, indicativo: !!a.indicativo, zona: a.zona });
+      righe.push({ id: a.id, nome: a.nome, arrivo, durata: a.durata, tratta: tr, prezzo, indicativo: !!a.indicativo, zona: a.zona, fuori: !!a.fuori });
       if (!pranzo && t >= PRANZO_DA) { pranzo = { ora: t, vicino: a.zona || a.nome }; righe.push({ pranzo: true, ora: t, zona: a.zona }); t += PRANZO_MIN; }
     });
     const minuti = t - INIZIO_GIORNATA - (pranzo ? PRANZO_MIN : 0);
@@ -171,6 +179,12 @@
     const giorni = gruppi.map(g => {
       let t = ordinaGiorno(g.sort((a, b) => P(b) - P(a)), partenza);
       while (t.length && !sta(valutaGiorno(t, partenza, p, new Set()), p, budget)) {
+        const v = valutaGiorno(t, partenza, p, new Set());
+        if (budget != null && v.costo > budget) {
+          const pagata = t.filter(a => a.prezzo > 0).sort((a, b) => P(a) - P(b))[0];
+          const f = pagata && daFuori(pagata);
+          if (f) { f.prio = (pagata.prio || pagata.imp) - (pagata.imp - f.imp); t = ordinaGiorno(t.map(a => a === pagata ? f : a), partenza); continue; }
+        }
         const via = t.slice().sort((a, b) => P(a) - P(b) || b.durata - a.durata)[0]; // si toglie sempre la meno importante
         fuori.push(via); t = ordinaGiorno(t.filter(a => a !== via), partenza);
       }
