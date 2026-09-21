@@ -57,7 +57,8 @@
     (macro || []).forEach(k => (MACRO[k] || []).forEach(t => s.add(t)));
     return s;
   }
-  const P = a => (a.prio != null ? a.prio : a.imp);
+  // punteggio: voto (+ bonus categorie) e, a parita', la graduatoria (vale al massimo 0,05: non scavalca mai un voto intero)
+  const P = a => (a.prio != null ? a.prio : a.imp) + (a.rank ? (200 - a.rank) / 4000 : 0);
   function candidati(db, opz) {
     const tags = tagDaMacro(opz.categorie);
     const tutteCat = !opz.categorie || opz.categorie.length === 0;
@@ -112,6 +113,14 @@
       for (let i = da; i < arr.length - 1; i++) for (let j = i + 1; j < arr.length; j++) {
         const prima = lung(); const seg = arr.slice(i, j + 1).reverse(); arr.splice(i, seg.length, ...seg);
         if (lung() + 1 < prima) meglio = true; else { const back = arr.slice(i, j + 1).reverse(); arr.splice(i, back.length, ...back); }
+      }
+      // sposta una singola tappa nel punto del percorso dove allunga meno
+      for (let i = da; i < arr.length; i++) {
+        const prima = lung(), x = arr.splice(i, 1)[0];
+        let bestK = i, bestL = Infinity;
+        for (let k = da; k <= arr.length; k++) { arr.splice(k, 0, x); const l = lung(); if (l < bestL) { bestL = l; bestK = k; } arr.splice(k, 1); }
+        arr.splice(bestK, 0, x);
+        if (bestL + 1 < prima) meglio = true;
       }
     }
   }
@@ -197,7 +206,7 @@
     fuori.concat(riserva).sort((a, b) => P(b) - P(a)).forEach(a => {
       const ordine = giorni.map((g, i) => ({ i, d: g.length ? Math.min(...g.map(x => metri(x, a))) : metri(partenza, a) })).sort((x, y) => x.d - y.d);
       for (const { i, d } of ordine) {
-        if (giorni[i].length && d > 1200) continue; // troppo lontana da questa giornata
+        if (nGiorni > 1 && giorni[i].length && d > 1200) continue; // con piu' giorni: niente tappe lontane dalla zona del giorno
         const prova = ordinaGiorno(giorni[i].concat(a), partenza);
         if (sta(valutaGiorno(prova, partenza, p, new Set()), p, budget)) { giorni[i] = prova; return; }
       }
@@ -260,7 +269,7 @@
       return db.attrazioni.find(a => a.id === id);
     }).filter(Boolean).filter(a => !a.chiuso);
     const gite = (opz.gite || []).map(id => db.gite.find(g => g.id === id)).filter(Boolean);
-    const lista = scelte.sort((a, b) => b.imp - a.imp);
+    const lista = scelte.sort((a, b) => P(b) - P(a));
     // quanti giorni servono? si prova da 1 in su finche' non resta fuori niente
     let n = 1, r;
     const senzaBudget = Object.assign({}, opz, { budgetGiorno: null, soloGratis: false });
