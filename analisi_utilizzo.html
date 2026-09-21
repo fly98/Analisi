@@ -154,6 +154,10 @@ function grafico(giorni, serie) {  // barre impilate per giorno (o per settimana
 
 // ---------- contenuto ----------
 function disegna(st, dv, vecchio, rec) {
+  const quando = ts => { const t = new Date(ts), o = new Date(), ieri = new Date(Date.now() - 864e5);
+    const ora = t.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Rome' });
+    const g = x => x.toLocaleDateString('it-IT', { timeZone: 'Europe/Rome' });
+    return g(t) === g(o) ? `oggi ${ora}` : g(t) === g(ieri) ? `ieri ${ora}` : `${t.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', timeZone: 'Europe/Rome' })} ${ora}`; };
   const k = st.kpi || {}; const disp = k.dispositivi || 0;
   const ev = st.eventi || [];
   // ospiti distinti: per evento complessivo (eventiTot, esatto) o per evento+sezione
@@ -256,17 +260,14 @@ function disegna(st, dv, vecchio, rec) {
   h += `<div class="card"><h2>Orari</h2><p class="hint">Visite per ora del giorno (ora di Roma).</p>${grafico(ore, [{ n: 'visite', c: 'var(--orange)', v: Object.fromEntries(ore.map(o => [o.k, o.v])) }])}</div>`;
 
   // domande al concierge
-  const domande = vecchio.flatMap(v => (v.recentQuestions || []).map(q => Object.assign({ s: v.slug }, q))).slice(0, 30);
+  const domande = vecchio.flatMap(v => (v.recentQuestions || []).map(q => Object.assign({ s: v.slug }, q))).sort((a, b) => (b.ts || 0) - (a.ts || 0)).slice(0, 30); // dalla piu' recente
   h += `<div class="card"><h2>🤖 Ultime domande al concierge</h2><p class="hint">Le domande più recenti fatte dagli ospiti.</p>
-    ${domande.length ? domande.map(q => `<div class="q">${esc(q.q)} <small>· ${esc(STR[q.s] || q.s)}${q.lang ? ' · ' + esc(q.lang) : ''}</small></div>`).join('') : '<p class="muted">Nessuna domanda.</p>'}</div>`;
+    ${domande.length ? domande.map(q => `<div class="q">${q.ts ? `<small style="color:var(--muted);font-weight:600">${quando(q.ts)}</small><br>` : ''}${esc(q.q)} <small>· ${esc(STR[q.s] || q.s)}${q.lang ? ' · ' + esc(q.lang) : ''}</small></div>`).join('') : '<p class="muted">Nessuna domanda.</p>'}</div>`;
 
   }
 
   // dispositivi recenti (ordine cronologico): per riconoscere ed escludere i propri
-  const quando = ts => { const t = new Date(ts), o = new Date(), ieri = new Date(Date.now() - 864e5);
-    const ora = t.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Rome' });
-    const g = x => x.toLocaleDateString('it-IT', { timeZone: 'Europe/Rome' });
-    return g(t) === g(o) ? `oggi ${ora}` : g(t) === g(ieri) ? `ieri ${ora}` : `${t.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', timeZone: 'Europe/Rome' })} ${ora}`; };
+
   const recenti = (rec && rec.dispositivi || []);
   const rigaRec = d => `<tr${d.escluso ? ' style="opacity:.55"' : ''}><td><b>${quando(d.ultimo)}</b>${d.sid === MIO_SID ? ' <span class="tag warn">questo dispositivo</span>' : ''}<br><small class="muted">${esc(d.dev || 'dispositivo non indicato')}</small></td>
       <td>${esc((d.strutture || '').replace('campaldino', 'Campaldino').replace('lorenzo', 'Lorenzo').replace('flytour', 'FlyTour').replace(',', ' + '))}<br><small class="muted">${esc(d.lingue || '')} · ${d.eventi} tocchi</small></td>
