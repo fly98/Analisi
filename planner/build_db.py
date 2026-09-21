@@ -361,6 +361,10 @@ sera('ponte_milvio','Ponte Milvio',41.9355,12.4675,5,['aperitivo','serata'],
 sera('piazza_bologna','Zona Piazza Bologna (vicino casa)',41.9130,12.5210,5,['cena'],
      'Per una serata tranquilla vicino alle nostre strutture: trovi i locali consigliati nella sezione Mangiare.',casa=True)
 
+# ---------- FOTO (miniature Wikimedia Commons, verificate a mano) ----------
+FOTO = {k: v['img'] for k, v in json.load(open('foto_final.json', encoding='utf-8')).items()}
+for x in A + G: x['foto'] = FOTO.get(x['id'])
+
 json.dump({'attrazioni':A,'gite':G,'serata':S},open('attrazioni.json','w',encoding='utf-8'),ensure_ascii=False,indent=1)
 ver=sum(1 for a in A if a['verifica'])
 print(len(A),'attrazioni |',ver,'con prezzo da verificare |',len(G),'gite')
