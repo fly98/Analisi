@@ -155,16 +155,45 @@ CONTATTO DIRETTO: WhatsApp +39 392 299 9914 per qualsiasi domanda non coperta da
 `.trim()
 };
 
+
+// ---------------- Conoscenze comuni alle due strutture (camere, regole, prenotazioni) ----------------
+// Fonte: sito interno1.it (pagine camere) + risposte di Filippo (settembre 2026).
+const COMUNE = `
+CAMERE — INTERNOUNO (Via Campaldino 6). Le camere hanno il nome di un colore e sulla porta c'è la lettera iniziale: G = Gialla, M = Marrone, R = Rossa, V = Verde, A = Azzurra.
+- Gialla — Appartamento Bilocale fino a 4 persone, 18 m²: due ambienti separati. Nella camera un letto matrimoniale da 160 cm; nella seconda stanza un divano letto (può diventare anche due letti singoli) e l'angolo cottura (2 fuochi, frigorifero, microonde). Bagno con vasca idromassaggio con doccia, bidet. Aria condizionata in entrambe le stanze, TV 43" con Netflix. 5° letto su richiesta.
+- Marrone — Tripla Standard, 3 persone, 14 m²: un letto matrimoniale + un letto singolo a scomparsa. Bagno privato con doccia, angolo cottura con piastra a induzione, TV 43" con Netflix.
+- Rossa, Verde e Azzurra — Matrimoniale Standard, 2 persone, 13 m²: un letto matrimoniale. Bagno privato con doccia, angolo cottura, TV 43" con Netflix. Una di queste tre camere non ha la piastra a induzione: chi ne ha bisogno lo scriva al momento della prenotazione.
+CAMERE — INTERNOUNO DELUXE (Via Lorenzo il Magnifico 158). Camere numerate da 1 a 5: la 1 e la 2 subito a destra entrando; nel corridoio a sinistra la 5 è la prima, la 4 la seconda, la 3 la terza.
+- Camere 1 e 2 — Matrimoniale Superior con Terrazza, 2 persone, 15 m²: UN letto matrimoniale (non due letti singoli). Terrazza privata con tavolo e sedie, bagno con vasca idromassaggio, angolo cottura, TV 50" con Netflix. Si può aggiungere un 3° letto singolo su richiesta, a pagamento.
+- Camere 3 e 4 — Matrimoniale con Terrazza, 2 persone, 12 m²: un letto matrimoniale, terrazza privata, bagno con vasca idromassaggio, angolo cottura, TV 32" con Netflix.
+- Camera 5 — Matrimoniale Economy, 2 persone, 9 m² (molto compatta): letto matrimoniale da 140 cm, bagno con bidet integrato nel WC, piccolo angolo cottura, TV 32" con Netflix. Chi preferisce più spazio può chiedere un upgrade.
+DOTAZIONI DI TUTTE LE CAMERE: bagno privato, aria condizionata, WiFi, TV con Netflix incluso, asciugacapelli, appendiabiti, angolo cottura con la dotazione essenziale (piatti, pentole, bicchieri, posate) per preparazioni semplici. Non ci sono tablet o computer in camera.
+QUALE CAMERA SCEGLIERE: 1-2 persone: qualsiasi camera. 3 persone: Tripla Standard (Marrone, Campaldino) oppure Superior con 3° letto aggiunto (Lorenzo). 4 persone: Appartamento Gialla (Campaldino). 5 persone: Appartamento Gialla con letto aggiuntivo.
+LETTO AGGIUNTIVO E CULLA: letto aggiuntivo 20€, culla per neonati 15€, su richiesta e in base alla disponibilità (scrivere su WhatsApp o email).
+COMPUTER: alla reception c'è un computer senza password, sempre utilizzabile dagli ospiti.
+CHECK-IN ONLINE: la registrazione degli ospiti (obbligatoria per legge) si fa online con il link Chekin che inviamo due giorni prima dell'arrivo. Se non è arrivato, controllare anche lo spam o scrivere su WhatsApp.
+CHECK-OUT POSTICIPATO: non è possibile lasciare la camera dopo le 10:00. Siamo una piccola struttura e le pulizie si fanno solo al mattino: le camere vanno preparate in quel momento per poterle consegnare agli ospiti in arrivo. I bagagli si possono lasciare gratuitamente in deposito.
+PAGAMENTI: la camera si paga tramite Booking o il sito, secondo la prenotazione. In struttura si paga solo la tassa di soggiorno (5€ a persona a notte, massimo 10 notti): inviamo un link per pagarla online, oppure si può pagare al mattino allo staff con carta o contanti. Per condizioni particolari scrivere su WhatsApp.
+UPGRADE: su richiesta via WhatsApp o email, in base alla disponibilità e con un costo aggiuntivo.
+CAMBIO DATE, ALLUNGARE IL SOGGIORNO O MODIFICHE ALLA PRENOTAZIONE: sempre tramite WhatsApp (+39 392 299 9914) o email (info@interno1.it).
+PROPRIETARIO: la struttura è gestita da Filippo.
+PRENOTARE: si prenota direttamente su www.interno1.it/prenota, senza commissioni e con la tariffa migliore rispetto agli altri canali. Il concierge non vede la disponibilità in tempo reale: per date e prezzi rimandare sempre al sito. Se l'ospite ha difficoltà con la prenotazione sul sito (non riesce ad andare avanti, dubbi su cosa inserire), invitarlo a scrivere su WhatsApp +39 392 299 9914 o a info@interno1.it indicando date e numero di persone: lo aiutiamo noi.
+`;
+
 function systemPrompt(slug, lang) {
   const kb = KNOWLEDGE[slug] || KNOWLEDGE.campaldino;
   return `Sei il concierge digitale di InternoUno, un affittacamere a Roma. Rispondi SEMPRE nella lingua dell'ospite (rilevala dal messaggio; se incerto usa "${lang}"). Sii breve, cordiale, concreto: 2-4 frasi, no premesse.
 Usa SOLO le informazioni qui sotto per rispondere su casa, orari, trasporti, servizi e ristoranti. Se la domanda esula da questi temi o non trovi la risposta nelle informazioni fornite, invita gentilmente a scrivere su WhatsApp al numero indicato, senza inventare nulla.
 Se l'ospite chiede prezzi o disponibilità delle camere, informazioni su prenotazioni future, o vuole allungare/estendere il soggiorno in corso: NON inventare mai prezzi o disponibilità (cambiano di continuo). Invita a consultare www.interno1.it, il sito ufficiale, sempre aggiornato con tariffe e disponibilità reali; specifica che prenotando direttamente lì si ottiene la tariffa più bassa rispetto agli altri canali.
+Quando l'ospite vuole prenotare o chiede una camera per certe date o persone: suggerisci la camera adatta al numero di persone e dai il link www.interno1.it/prenota; in caso di difficoltà offri WhatsApp o email. Se chiede di una camera, rispondi con tipo di letto, dimensioni e dotazioni.
 Non dare mai consigli medici, legali o di sicurezza oltre ai numeri di emergenza forniti.
 Per i ristoranti: consiglia in base a ciò che chiede l'ospite (tipo di cucina, budget, occasione). I locali "IN ZONA" sono raggiungibili a piedi; le "PERLE DI ROMA" sono nel centro storico, da raggiungere spostandosi. Cita sempre il prezzo medio a persona e, se rilevante, il piatto tipico. Per lo stellato Orma Roma avvisa chiaramente che è alta cucina da occasione speciale (~150€+ a persona, prenotazione obbligatoria). Non inventare ristoranti diversi da quelli elencati.
 
 INFORMAZIONI STRUTTURA:
-${kb}`;
+${kb}
+
+CAMERE, REGOLE E PRENOTAZIONI (valgono per entrambe le strutture):
+${COMUNE}`;
 }
 
 // ---------------- Chat ----------------
@@ -176,9 +205,10 @@ async function handleChat(request, env, slug) {
   if (!messages.length) return json({ error: "messages mancante" }, 400);
 
   // rate limit soft: max 300 domande/giorno per struttura, protegge il budget
+  const isTest = !!(env.WB_ADMIN_KEY && body.test === env.WB_ADMIN_KEY); // prove: non contano nel limite e non finiscono tra le domande
   const limitKey = `wb:${slug}:chatcount:${todayStr()}`;
   const count = parseInt((await env.WB_KV.get(limitKey)) || "0", 10);
-  if (count > 300) {
+  if (!isTest && count > 300) {
     return json({ reply: "Il concierge ha raggiunto il limite giornaliero di richieste. Scrivici su WhatsApp, rispondiamo subito!" });
   }
 
@@ -217,7 +247,7 @@ async function handleChat(request, env, slug) {
     // contatori: uso globale + log domanda per l'analisi "domande frequenti"
     // avvolti in try/catch separato: se KV fallisce (es. limite giornaliero raggiunto),
     // l'ospite riceve comunque la risposta corretta invece di un errore
-    try {
+    if (!isTest) try {
       await env.WB_KV.put(limitKey, String(count + 1), { expirationTtl: 60 * 60 * 24 * 3 });
       const lastQ = apiMessages.filter(m => m.role === "user").pop();
       if (lastQ) {
