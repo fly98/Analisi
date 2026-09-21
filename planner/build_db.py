@@ -361,6 +361,20 @@ sera('ponte_milvio','Ponte Milvio',41.9355,12.4675,5,['aperitivo','serata'],
 sera('piazza_bologna','Zona Piazza Bologna (vicino casa)',41.9130,12.5210,5,['cena'],
      'Per una serata tranquilla vicino alle nostre strutture: trovi i locali consigliati nella sezione Mangiare.',casa=True)
 
+# ---------- GRADUATORIA (posizione unica) e voti rivisti ----------
+TOP = [  # (id, voto) in ordine di graduatoria
+ ('colosseo',10),('musei_vaticani',10),('san_pietro',10),('pantheon',10),('trevi',10),('navona',10),('piazza_san_pietro',10),('spagna',10),('fori_imperiali',10),
+ ('trastevere',9),('campo_fiori',9),('capitolini',9),('castel_santangelo',9),('galleria_borghese',9),('pincio',9),('popolo',9),('ghetto',9),('vittoriano',9),('cupola',9),('giardino_aranci',9),('buco_serratura',9),
+ ('monti',8),('santa_maria_maggiore',8),('laterano',8),('gianicolo',8),('bocca_verita',8),('isola_tiberina',8),('villa_borghese',8),('vincoli',8),('san_luigi',8),('santa_maria_trastevere',8),('caracalla',8),('circo_massimo',8),('domus_aurea',8),('appia_antica',8),('ostia_antica',8),
+]
+pos = {k: i for i, (k, v) in enumerate(TOP)}
+for k, v in TOP:
+    x = next(a for a in A if a['id'] == k); x['imp'] = v
+# tutte le altre: dopo le prime, in ordine di voto (a parita', l'ordine del database)
+resto = sorted([a for a in A if a['id'] not in pos], key=lambda a: (-a['imp'], A.index(a)))
+for i, a in enumerate(resto): pos[a['id']] = len(TOP) + i
+for a in A: a['rank'] = pos[a['id']] + 1
+
 # ---------- FOTO (miniature Wikimedia Commons, verificate a mano) ----------
 FOTO = {k: v['img'] for k, v in json.load(open('foto_final.json', encoding='utf-8')).items()}
 for x in A + G: x['foto'] = FOTO.get(x['id'])
