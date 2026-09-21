@@ -25,15 +25,22 @@
   const catLbl = k => TX['c_' + k] || k;
   // Itinerari preparati da noi (tappe; il motore le divide nei giorni e calcola i percorsi)
   const NOSTRI = [
-    { id: 'n1', giorni: 1, titolo: 'Roma in un giorno', desc: 'I simboli della città in una giornata piena, con cena a Monti.',
-      tappe: ['colosseo', 'fori_imperiali', 'capitolini_fuori', 'pantheon', 'navona', 'trevi', 'spagna'] },
-    { id: 'n2', giorni: 2, titolo: 'Roma in due giorni', desc: 'Un giorno per la Roma antica e il centro, uno per il Vaticano.',
-      tappe: ['colosseo', 'fori_imperiali', 'capitolini_fuori', 'pantheon', 'navona', 'trevi', 'spagna',
+    { id: 'n1', giorni: 1, ico: '1', tappe: ['colosseo', 'fori_imperiali', 'capitolini_fuori', 'pantheon', 'navona', 'trevi', 'spagna'] },
+    { id: 'n2', giorni: 2, ico: '2', tappe: ['colosseo', 'fori_imperiali', 'capitolini_fuori', 'pantheon', 'navona', 'trevi', 'spagna',
         'musei_vaticani', 'san_pietro', 'piazza_san_pietro', 'castel_santangelo_fuori'] },
-    { id: 'n3', giorni: 3, titolo: 'Roma in tre giorni', desc: 'Aggiunge il Ghetto, l\'Isola Tiberina, la Galleria Borghese e il tramonto al Pincio.',
-      tappe: ['colosseo', 'fori_imperiali', 'capitolini_fuori', 'ghetto', 'isola_tiberina', 'santa_maria_trastevere',
-        'musei_vaticani', 'san_pietro', 'piazza_san_pietro', 'castel_santangelo_fuori',
-        'galleria_borghese', 'pincio', 'spagna', 'trevi', 'pantheon', 'navona'] },
+    { id: 'n3', giorni: 3, ico: '3', tappe: ['colosseo', 'fori_imperiali', 'capitolini_fuori', 'ghetto', 'isola_tiberina', 'santa_maria_trastevere',
+        'musei_vaticani', 'san_pietro', 'piazza_san_pietro', 'castel_santangelo_fuori', 'galleria_borghese', 'pincio', 'spagna', 'trevi', 'pantheon', 'navona'] },
+  ];
+  // itinerari a tema: ordine fisso deciso da noi; "serale" = niente pranzo, aperitivo e cena come tappe
+  const TEMI = [
+    { id: 'sera', ico: '🌙', fisso: true, serale: true, tappe: ['pincio', 'popolo', 'spagna', 'trevi', 'pantheon_fuori', 'navona', 'campo_fiori', 'santa_maria_trastevere', 'trastevere'],
+      tag: { pincio: 'tag_tramonto', campo_fiori: 'tag_aperitivo', trastevere: 'tag_cena' } },
+    { id: 'antica', ico: '🏛️', fisso: true, tappe: ['colosseo', 'fori_imperiali', 'capitolini_fuori', 'bocca_verita_fuori', 'circo_massimo', 'caracalla'] },
+    { id: 'arte', ico: '🎨', tappe: ['santa_maria_popolo', 'sant_agostino', 'san_luigi', 'navona', 'minerva', 'sant_ignazio', 'trevi', 'sant_andrea_quirinale', 'quattro_fontane', 'vittoria'] },
+    { id: 'sotto', ico: '🕳️', fisso: true, tappe: ['vicus_caprarius', 'palazzo_valentini', 'carcere_mamertino', 'domus_aurea', 'san_clemente', 'case_celio'] },
+    { id: 'bambini', ico: '👨‍👩‍👧', tappe: ['bioparco', 'villa_borghese', 'pincio', 'spagna', 'trevi', 'time_elevator'] },
+    { id: 'verde', ico: '🌳', fisso: true, tappe: ['villa_borghese', 'pincio', 'circo_massimo', 'giardino_aranci', 'buco_serratura', 'fontanone', 'gianicolo'] },
+    { id: 'alternativa', ico: '🖌️', tappe: ['testaccio', 'cimitero_acattolico', 'ostiense_street_art', 'garbatella', 'tor_marancia'] },
   ];
 
   // ---------------- stile ----------------
@@ -130,7 +137,7 @@
         : `<p class="vr-sub">${TX.salvati_vuoto}</p>`}
     `);
     root().querySelectorAll('[data-go]').forEach(b => b.onclick = () => ({ auto: vistaAuto, scegli: vistaScegli, nostri: vistaNostri })[b.dataset.go]());
-    root().querySelectorAll('[data-apri]').forEach(b => b.onclick = () => { const s = leggiSalvati()[+b.dataset.apri]; stato.risultato = s.risultato; stato.meta = s; vistaRisultato(true); });
+    root().querySelectorAll('[data-apri]').forEach(b => b.onclick = () => { const s = leggiSalvati()[+b.dataset.apri]; stato.risultato = s.risultato; stato.meta = Object.assign({}, s, { chiave: null }); vistaRisultato(true); });
     root().querySelectorAll('[data-del]').forEach(b => b.onclick = () => { const l = leggiSalvati(); l.splice(+b.dataset.del, 1); scriviSalvati(l); vistaHome(); });
   }
 
@@ -254,15 +261,22 @@
   // ---------------- vista: i nostri itinerari ----------------
   function vistaNostri() {
     stato.vista = 'nostri'; track('planner', 'nostri');
-    mostra(`<button class="vr-back" data-back>${TX.indietro}</button>` + NOSTRI.map(n =>
-      `<button class="vr-mode" data-n="${n.id}"><span class="ico">${n.giorni}</span><span><h3>${TX[n.id + '_t']}</h3><p>${TX[n.id + '_d']}</p></span></button>`).join(''));
+    const card = (id, ico, t, d) => `<button class="vr-mode" data-n="${id}"><span class="ico">${ico}</span><span><h3>${esc(t)}</h3><p>${esc(d)}</p></span></button>`;
+    mostra(`<button class="vr-back" data-back>${TX.indietro}</button>
+      <div class="vr-h">${TX.g_durata}</div>${NOSTRI.map(n => card(n.id, n.ico, TX[n.id + '_t'], TX[n.id + '_d'])).join('')}
+      <div class="vr-h">${TX.g_tema}</div>${TEMI.map(n => card(n.id, n.ico, TX['t_' + n.id], TX['d_' + n.id])).join('')}`);
     root().querySelector('[data-back]').onclick = vistaHome;
     root().querySelectorAll('[data-n]').forEach(b => b.onclick = () => {
-      const n = NOSTRI.find(x => x.id === b.dataset.n);
-      stato.risultato = Planner.daSelezione(DB, n.tappe, { ritmo: 'medio', giorni: n.giorni, partenza: partenza(), eta: 35 });
+      const n = NOSTRI.find(x => x.id === b.dataset.n), tm = TEMI.find(x => x.id === b.dataset.n);
+      if (n) {
+        stato.risultato = Planner.daSelezione(DB, n.tappe, { ritmo: 'medio', giorni: n.giorni, partenza: partenza(), eta: 35 });
+        stato.meta = { titolo: TX[n.id + '_t'], sotto: TX[n.id + '_d'], chiave: n.id };
+      } else {
+        stato.risultato = Planner.daSelezione(DB, tm.tappe, { ritmo: 'medio', giorni: 1, partenza: partenza(), eta: 35, ordineFisso: !!tm.fisso, serale: !!tm.serale });
+        stato.meta = { titolo: TX['t_' + tm.id], sotto: TX['d_' + tm.id], chiave: tm.id, tag: tm.tag || null };
+      }
       delete stato.risultato.giorniNecessari; delete stato.risultato.suggerite; delete stato.risultato.daTogliere; // programma gia' pronto
-      stato.meta = { titolo: TX[n.id + '_t'], sotto: TX[n.id + '_d'] };
-      track('planner_genera', n.id); vistaRisultato();
+      track('planner_genera', b.dataset.n); vistaRisultato();
     });
   }
 
@@ -283,8 +297,9 @@
   function vistaRisultato(daSalvati) {
     stato.vista = 'risultato'; daSalvatiCorrente = !!daSalvati;
     const r = stato.risultato;
+    const k = stato.meta.chiave, tit = k ? (TX[k + '_t'] || TX['t_' + k] || stato.meta.titolo) : stato.meta.titolo, sot = k ? (TX[k + '_d'] || TX['d_' + k] || stato.meta.sotto) : stato.meta.sotto;
     let html = `<button class="vr-back" data-back>${TX.indietro}</button>
-      <div class="vr-h" style="font-size:1.15rem;margin-top:6px">${esc(stato.meta.titolo)}</div><p class="vr-sub">${esc(stato.meta.sotto)}</p>`;
+      <div class="vr-h" style="font-size:1.15rem;margin-top:6px">${esc(tit)}</div><p class="vr-sub">${esc(sot)}</p>`;
     (r.avvisi || []).forEach(a => {
       const txt = typeof a === 'string' ? a : fmt(TX['av_' + a.k], Object.assign({}, a, a.id ? { n: nomeG(DB.gite.find(g => g.id === a.id) || { nome: a.id }) } : {}));
       html += `<div class="vr-warn">⚠️ ${esc(txt)}</div>`;
@@ -312,7 +327,7 @@
         const desc = x.fuori ? descFuori(a) : descA(a);
         const nome = a.id ? (x.fuori ? nomeFuori(a) : nomeA(a)) : x.nome;
         html += `<div class="vr-move">${tratta(x.tratta)}</div>
-          <div class="vr-stop" style="border-top:none"><span class="n">${++n}</span>${mini(a)}<div class="t"><b>${esc(nome)}</b>${x.fuori ? `<span class="vr-tag">${TX.da_fuori}</span>` : ''}
+          <div class="vr-stop" style="border-top:none"><span class="n">${++n}</span>${mini(a)}<div class="t">${stato.meta && stato.meta.tag && stato.meta.tag[a.id] ? `<div class="vr-tag" style="display:table;margin:0 0 3px;background:var(--orange-bg);color:var(--orange)">${TX[stato.meta.tag[a.id]]}</div>` : ''}<b>${esc(nome)}</b>${x.fuori ? `<span class="vr-tag">${TX.da_fuori}</span>` : ''}
           <div class="m">${dur(x.durata)} · ${x.prezzo ? (x.indicativo ? TX.circa + ' ' : '') + euro(x.prezzo) : TX.gratis}</div><div class="d">${esc(desc)}</div></div></div>`;
       });
       if (g.serata) html += `<div class="vr-extra sera"><span class="ico">🍹</span><span><b>${TX.serata} ${esc(nomeS(g.serata))}</b> <small>(${tratta(g.serata.tratta)})</small><br><span style="color:var(--muted);font-size:.8rem">${esc(descS(g.serata))}</span></span></div>`;
@@ -330,7 +345,7 @@
     const s = $('#vrSalva');
     if (s) s.onclick = () => {
       const l = leggiSalvati();
-      l.unshift({ titolo: stato.meta.titolo, sotto: stato.meta.sotto + ' · ' + new Date().toLocaleDateString(LINGUA), risultato: stato.risultato });
+      l.unshift({ titolo: stato.meta.titolo, sotto: stato.meta.sotto + ' · ' + new Date().toLocaleDateString(LINGUA), risultato: stato.risultato, chiave: stato.meta.chiave, tag: stato.meta.tag });
       scriviSalvati(l.slice(0, 20)); s.textContent = TX.salvato; s.disabled = true; track('planner_salva', stato.vista);
     };
   }
