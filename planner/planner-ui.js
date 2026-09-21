@@ -8,44 +8,21 @@
   let DB = null;
   let stato = { vista: 'home', risultato: null, meta: null, selezione: new Set() };
 
-  // ---------------- testi (IT; le altre lingue arriveranno dopo) ----------------
-  const TX = {
-    m_auto_t: 'Itinerario su misura', m_auto_d: 'Dicci giorni, budget e interessi: organizziamo noi le giornate.',
-    m_scegli_t: 'Scegli tu le tappe', m_scegli_d: 'Sfoglia oltre 140 attrazioni e ti diciamo quanti giorni servono.',
-    m_nostri_t: 'I nostri itinerari', m_nostri_d: 'Programmi da 1, 2 e 3 giorni preparati da noi.',
-    salvati_t: 'I miei itinerari', salvati_vuoto: 'Qui ritroverai gli itinerari che salvi.',
-    giorni: 'Quanti giorni hai a Roma?', eta: 'La tua età', budget: 'Biglietti d\'ingresso',
-    solo_gratis: 'Solo gratis', con_budget: 'Con budget', budget_lbl: 'Massimo a persona al giorno',
-    ritmo: 'Che ritmo preferisci?', r_rilassato: 'Rilassato', r_medio: 'Medio', r_intenso: 'Intenso',
-    r_rilassato_d: 'Poche tappe, tempo libero', r_medio_d: 'Giornate piene ma godibili', r_intenso_d: 'Vedere il più possibile',
-    interessi: 'Cosa ti interessa?', interessi_d: 'Se non scegli niente, ti proponiamo un po\' di tutto.',
-    gite: 'Gite fuori porta', gite_d: 'Ognuna occupa un giorno intero.',
-    crea: '✨ Crea il mio itinerario', indietro: '← Indietro',
-    cerca: 'Cerca un\'attrazione…', organizza: 'Organizza', tappe_sel: 'tappe scelte',
-    giorni_target: 'Giorni a disposizione (facoltativo)',
-    giorno: 'Giorno', impegno: 'Impegno', visite: 'visite', spostamenti: 'spostamenti', biglietti: 'biglietti',
-    gratis: 'gratis', da_fuori: 'da fuori', circa: 'circa', piedi: 'a piedi', mezzi: 'con i mezzi', accanto: 'accanto',
-    pranzo: 'Pausa pranzo in zona', serata: 'Aperitivo e cena a', vicino_casa: 'vicino casa',
-    mappa_giorno: '📍 Apri il percorso su Google Maps',
-    salva: '💾 Salva itinerario', salvato: '✓ Salvato', nuovo: 'Nuovo itinerario', elimina: 'Elimina',
-    totale: 'Totale biglietti', a_persona: 'a persona',
-    gita: 'Gita fuori porta', in_treno: 'in treno', in_auto: 'in auto', treno_veloce: 'in treno veloce',
-    a_tratta: 'a tratta', costo_gita: 'viaggio e ingressi circa',
-    servono: 'Per vedere tutto con questo ritmo servono', giorni_n: 'giorni',
-    da_togliere: 'Per starci nei tuoi giorni potresti togliere', suggerite: 'Ti avanza tempo: qui vicino ci sono anche',
-    rimaste: 'altre attrazioni non ci stavano: prova ad aggiungere un giorno o un ritmo più intenso.',
-    nessuna: 'Scegli almeno una tappa.',
-    un_giorno: 'Tutto in un unico itinerario', un_giorno_d: 'Non dividere in giorni: un solo percorso con tutte le tappe scelte.',
-    importanza: 'Importanza', importanza_d: 'Voto da 1 a 10: 10 sono le attrazioni da non perdere assolutamente, poi a scendere fino alle chicche per chi ha più tempo.',
-    tutte: 'Tutte', voto: 'voto', risultati: 'attrazioni', risultato1: 'attrazione', filtri_attivi: 'Filtri attivi', azzera: 'Azzera filtri',
-    nessun_risultato: 'Nessuna attrazione trovata.', nessun_con_filtri: 'Nessuna attrazione trovata con i filtri attivi.',
-    note_prezzi: 'Prezzi dei biglietti interi aggiornati al 2026. Molti siti statali sono gratuiti la prima domenica del mese. Foto: Wikimedia Commons (licenze libere).',
-  };
-  const CAT = [
-    ['musei', '🏛️ Musei'], ['chiese', '⛪ Chiese'], ['archeologia', '🏺 Archeologia'], ['parchi', '🌳 Parchi'],
-    ['piazze', '⛲ Piazze e fontane'], ['panorami', '🌅 Panorami'], ['quartieri', '🏘️ Quartieri'],
-    ['streetart', '🎨 Street art'], ['insolito', '🔮 Insolito'], ['esperienze', '🍝 Esperienze e cibo'], ['famiglia', '👨‍👩‍👧 Famiglia'],
-  ];
+  // ---------------- testi: ui_i18n.js (interfaccia) + planner/tr/<lingua>.json (dati) ----------------
+  let LINGUA = 'it', TX = Object.assign({}, window.VR_I18N.it), TR = { a: {}, g: {}, s: {} };
+  const fmt = (s, v) => String(s || '').replace(/\{(\w+)\}/g, (m, k) => v[k] != null ? v[k] : m);
+  const nomeA = a => (TR.a[a.id] && TR.a[a.id].n) || a.nome;
+  const descA = a => (TR.a[a.id] && TR.a[a.id].d) || a.desc;
+  const nomeFuori = a => (TR.a[a.id] && TR.a[a.id].fn) || (LINGUA === 'it' && a.esterno && a.esterno.nome) || `${nomeA(a).split(',')[0]} (${TX.da_fuori})`;
+  const descFuori = a => (TR.a[a.id] && TR.a[a.id].e) || (a.esterno && a.esterno.desc) || descA(a);
+  const nomeG = g => (TR.g[g.id] && TR.g[g.id].n) || g.nome;
+  const descG = g => (TR.g[g.id] && TR.g[g.id].d) || g.desc;
+  const tappeG = g => (TR.g[g.id] && TR.g[g.id].t) || g.tappe;
+  const noteG = g => (TR.g[g.id] && TR.g[g.id].no) || g.note;
+  const nomeS = s => (TR.s[s.id] && TR.s[s.id].n) || s.nome;
+  const descS = s => (TR.s[s.id] && TR.s[s.id].d) || s.desc;
+  const CAT_K = ['musei', 'chiese', 'archeologia', 'parchi', 'piazze', 'panorami', 'quartieri', 'streetart', 'insolito', 'esperienze', 'famiglia'];
+  const catLbl = k => TX['c_' + k] || k;
   // Itinerari preparati da noi (tappe; il motore le divide nei giorni e calcola i percorsi)
   const NOSTRI = [
     { id: 'n1', giorni: 1, titolo: 'Roma in un giorno', desc: 'I simboli della città in una giornata piena, con cena a Monti.',
@@ -176,7 +153,7 @@
       <div class="vr-h">${TX.ritmo}</div>
       ${seg('ritmo', [['rilassato', TX.r_rilassato, TX.r_rilassato_d], ['medio', TX.r_medio, TX.r_medio_d], ['intenso', TX.r_intenso, TX.r_intenso_d]], form.ritmo)}
       <div class="vr-h">${TX.interessi}</div><p class="vr-sub">${TX.interessi_d}</p>
-      <div class="vr-chips">${CAT.map(([k, l]) => `<button class="chip ${form.categorie.has(k) ? 'on' : ''}" data-cat="${k}">${l}</button>`).join('')}</div>
+      <div class="vr-chips">${CAT_K.map(k => `<button class="chip ${form.categorie.has(k) ? 'on' : ''}" data-cat="${k}">${catLbl(k)}</button>`).join('')}</div>
       <div class="vr-h">${TX.gite}</div><p class="vr-sub">${TX.gite_d}</p>
       <div class="vr-chips">${DB.gite.slice().sort((a, b) => b.imp - a.imp).map(g => `<button class="chip ${form.gite.has(g.id) ? 'on' : ''}" data-gita="${g.id}">${esc(g.nome.split(':')[0])}${g.mezzo === 'auto' ? ' 🚗' : ''}</button>`).join('')}</div>
       <div class="vr-bar"><button class="btn" id="vrCrea">${TX.crea}</button></div>
@@ -197,14 +174,15 @@
       const opz = { giorni: form.giorni, eta: form.eta, soloGratis: form.gratis, budgetGiorno: form.gratis ? 0 : form.budget,
         ritmo: form.ritmo, categorie: [...form.categorie], gite: [...form.gite], partenza: partenza() };
       stato.risultato = Planner.genera(DB, opz);
-      stato.meta = { titolo: `Roma in ${form.giorni} ${form.giorni > 1 ? 'giorni' : 'giorno'}`, sotto: `${TX['r_' + form.ritmo]} · ${form.gratis ? TX.solo_gratis : 'max ' + form.budget + '€/giorno'}${form.categorie.size ? ' · ' + [...form.categorie].map(k => CAT.find(c => c[0] === k)[1].split(' ').slice(1).join(' ')).join(', ') : ''}` };
+      stato.meta = { titolo: form.giorni > 1 ? fmt(TX.titolo_giorni, { n: form.giorni }) : TX.titolo_giorno1, sotto: `${TX['r_' + form.ritmo]} · ${form.gratis ? TX.solo_gratis : fmt(TX.max_giorno, { v: form.budget })}${form.categorie.size ? ' · ' + [...form.categorie].map(k => catLbl(k).split(' ').slice(1).join(' ')).join(', ') : ''}` };
       track('planner_genera', form.ritmo); vistaRisultato();
     };
   }
 
   // ---------------- vista: scegli tu ----------------
   const filtroCat = new Set(), filtroImp = new Set(); let filtroTesto = '', giorniTarget = 0, ritmoScelto = 'medio', unGiorno = false;
-  const FASCE = [['9', '⭐ Imperdibili (9-10)', 9, 10], ['7', 'Da vedere (7-8)', 7, 8], ['5', 'Interessanti (5-6)', 5, 6], ['1', 'Chicche e curiosità (1-4)', 1, 4]];
+  const FASCE = [['9', 9, 10], ['7', 7, 8], ['5', 5, 6], ['1', 1, 4]];
+  const fasciaLbl = f => TX['f' + f[0]];
   function vistaScegli() {
     stato.vista = 'scegli'; track('planner', 'scegli');
     mostra(`
@@ -218,8 +196,8 @@
       </div>
       <div class="vr-h" style="margin-top:20px"><input class="vr-input" id="vrCerca" placeholder="${TX.cerca}" value="${esc(filtroTesto)}"></div>
       <div class="vr-h" style="margin:12px 0 2px">${TX.importanza}</div><p class="vr-sub" style="margin:0 0 6px">${TX.importanza_d}</p>
-      <div class="filter-row" data-grp="fi"><button class="chip ${filtroImp.size ? '' : 'on'}" data-v="">${TX.tutte}</button>${FASCE.map(([k, l]) => `<button class="chip ${filtroImp.has(k) ? 'on' : ''}" data-v="${k}">${l}</button>`).join('')}</div>
-      <div class="filter-row" data-grp="fc"><button class="chip ${filtroCat.size ? '' : 'on'}" data-v="">${TX.tutte}</button>${CAT.map(([k, l]) => `<button class="chip ${filtroCat.has(k) ? 'on' : ''}" data-v="${k}">${l}</button>`).join('')}</div>
+      <div class="filter-row" data-grp="fi"><button class="chip ${filtroImp.size ? '' : 'on'}" data-v="">${TX.tutte}</button>${FASCE.map(f => `<button class="chip ${filtroImp.has(f[0]) ? 'on' : ''}" data-v="${f[0]}">${fasciaLbl(f)}</button>`).join('')}</div>
+      <div class="filter-row" data-grp="fc"><button class="chip ${filtroCat.size ? '' : 'on'}" data-v="">${TX.tutte}</button>${CAT_K.map(k => `<button class="chip ${filtroCat.has(k) ? 'on' : ''}" data-v="${k}">${catLbl(k)}</button>`).join('')}</div>
       <div id="vrInfo" class="vr-sub" style="margin:4px 2px 8px"></div>
       <div id="vrLista"></div>
       <div class="vr-bar"><button class="btn" id="vrOrg"></button></div>
@@ -244,7 +222,7 @@
       if (!stato.selezione.size) { alert(TX.nessuna); return; }
       const opz = { ritmo: ritmoScelto, giorni: unGiorno ? null : (giorniTarget || null), partenza: partenza(), eta: 35, unGiorno };
       stato.risultato = Planner.daSelezione(DB, [...stato.selezione], opz);
-      stato.meta = { titolo: `${stato.selezione.size} tappe scelte da te`, sotto: unGiorno ? TX.un_giorno : `${TX['r_' + ritmoScelto]} · ${stato.risultato.giorniNecessari} ${TX.giorni_n}` };
+      stato.meta = { titolo: fmt(TX.titolo_scelte, { n: stato.selezione.size }), sotto: unGiorno ? TX.un_giorno : `${TX['r_' + ritmoScelto]} · ${stato.risultato.giorniNecessari} ${TX.giorni_n}` };
       track('planner_genera', 'scegli'); vistaRisultato();
     };
     lista();
@@ -252,15 +230,15 @@
   function lista() {
     const tags = filtroCat.size ? new Set([...filtroCat].flatMap(k => Planner.MACRO[k] || [])) : null;
     const q = filtroTesto.trim().toLowerCase();
-    const fasce = FASCE.filter(f => filtroImp.has(f[0]));
-    const el = DB.attrazioni.filter(a => !a.chiuso && (!tags || a.cat.some(t => tags.has(t))) && (!q || (a.nome + ' ' + a.zona).toLowerCase().includes(q))
+    const fasce = FASCE.filter(f => filtroImp.has(f[0])).map(f => [f[0], '', f[1], f[2]]);
+    const el = DB.attrazioni.filter(a => !a.chiuso && (!tags || a.cat.some(t => tags.has(t))) && (!q || (a.nome + ' ' + nomeA(a) + ' ' + a.zona).toLowerCase().includes(q))
         && (!fasce.length || fasce.some(f => a.imp >= f[2] && a.imp <= f[3])))
       .sort((a, b) => b.imp - a.imp);
-    $('#vrLista').innerHTML = el.map(a => `<div class="vr-cat ${stato.selezione.has(a.id) ? 'on' : ''}" data-id="${a.id}"><span class="ck">✓</span>${mini(a)}<span style="flex:1"><b>${esc(a.nome)}</b> <span class="vr-voto v${a.imp >= 9 ? 'top' : a.imp >= 7 ? 'hi' : 'mid'}">${a.imp}/10</span>
+    $('#vrLista').innerHTML = el.map(a => `<div class="vr-cat ${stato.selezione.has(a.id) ? 'on' : ''}" data-id="${a.id}"><span class="ck">✓</span>${mini(a)}<span style="flex:1"><b>${esc(nomeA(a))}</b> <span class="vr-voto v${a.imp >= 9 ? 'top' : a.imp >= 7 ? 'hi' : 'mid'}">${a.imp}/10</span>
       <div class="m">${esc(a.zona)} · ${dur(a.durata)} · ${a.prezzo ? (a.indicativo ? TX.circa + ' ' : '') + euro(a.prezzo) : TX.gratis}</div>
-      <div class="m">${esc(a.desc)}</div></span></div>`).join('');
+      <div class="m">${esc(descA(a))}</div></span></div>`).join('');
     const nf = filtroImp.size + filtroCat.size;
-    const nomi = [...FASCE.filter(f => filtroImp.has(f[0])).map(f => f[1].replace('⭐ ', '')), ...CAT.filter(c => filtroCat.has(c[0])).map(c => c[1])];
+    const nomi = [...FASCE.filter(f => filtroImp.has(f[0])).map(f => fasciaLbl(f).replace('⭐ ', '')), ...CAT_K.filter(k => filtroCat.has(k)).map(catLbl)];
     $('#vrInfo').innerHTML = (el.length ? `<b>${el.length}</b> ${el.length === 1 ? TX.risultato1 : TX.risultati}` : (nf ? TX.nessun_con_filtri : TX.nessun_risultato))
       + (nf ? ` · ${TX.filtri_attivi}: ${nomi.map(esc).join(', ')} · <a href="#" id="vrAzzera" style="color:var(--orange);font-weight:700">${TX.azzera}</a>` : '');
     const az = $('#vrAzzera');
@@ -277,13 +255,13 @@
   function vistaNostri() {
     stato.vista = 'nostri'; track('planner', 'nostri');
     mostra(`<button class="vr-back" data-back>${TX.indietro}</button>` + NOSTRI.map(n =>
-      `<button class="vr-mode" data-n="${n.id}"><span class="ico">${n.giorni}</span><span><h3>${n.titolo}</h3><p>${n.desc}</p></span></button>`).join(''));
+      `<button class="vr-mode" data-n="${n.id}"><span class="ico">${n.giorni}</span><span><h3>${TX[n.id + '_t']}</h3><p>${TX[n.id + '_d']}</p></span></button>`).join(''));
     root().querySelector('[data-back]').onclick = vistaHome;
     root().querySelectorAll('[data-n]').forEach(b => b.onclick = () => {
       const n = NOSTRI.find(x => x.id === b.dataset.n);
       stato.risultato = Planner.daSelezione(DB, n.tappe, { ritmo: 'medio', giorni: n.giorni, partenza: partenza(), eta: 35 });
       delete stato.risultato.giorniNecessari; delete stato.risultato.suggerite; delete stato.risultato.daTogliere; // programma gia' pronto
-      stato.meta = { titolo: n.titolo, sotto: n.desc };
+      stato.meta = { titolo: TX[n.id + '_t'], sotto: TX[n.id + '_d'] };
       track('planner_genera', n.id); vistaRisultato();
     });
   }
@@ -303,36 +281,41 @@
     return tr.modo === 'mezzi' ? `🚇 ${tr.minuti} min ${TX.mezzi}` : `🚶 ${tr.minuti} min ${TX.piedi}`;
   }
   function vistaRisultato(daSalvati) {
-    stato.vista = 'risultato';
+    stato.vista = 'risultato'; daSalvatiCorrente = !!daSalvati;
     const r = stato.risultato;
     let html = `<button class="vr-back" data-back>${TX.indietro}</button>
       <div class="vr-h" style="font-size:1.15rem;margin-top:6px">${esc(stato.meta.titolo)}</div><p class="vr-sub">${esc(stato.meta.sotto)}</p>`;
-    (r.avvisi || []).forEach(a => html += `<div class="vr-warn">⚠️ ${esc(a)}</div>`);
+    (r.avvisi || []).forEach(a => {
+      const txt = typeof a === 'string' ? a : fmt(TX['av_' + a.k], Object.assign({}, a, a.id ? { n: nomeG(DB.gite.find(g => g.id === a.id) || { nome: a.id }) } : {}));
+      html += `<div class="vr-warn">⚠️ ${esc(txt)}</div>`;
+    });
     if (r.giorniNecessari) html += `<div class="vr-warn">🗓️ ${TX.servono} <b>${r.giorniNecessari} ${TX.giorni_n}</b>.</div>`;
-    if (r.daTogliere && r.daTogliere.length) html += `<div class="vr-warn">✂️ ${TX.da_togliere}: ${r.daTogliere.map(esc).join(', ')}.</div>`;
-    if (r.suggerite && r.suggerite.length) html += `<div class="vr-warn">➕ ${TX.suggerite}: ${r.suggerite.map(esc).join(', ')}.</div>`;
+    const nomeId = id => { const a = trova(id); return a ? nomeA(a) : id; };
+    if (r.daTogliere && r.daTogliere.length) html += `<div class="vr-warn">✂️ ${TX.da_togliere}: ${r.daTogliere.map(id => esc(nomeId(id))).join(', ')}.</div>`;
+    if (r.suggerite && r.suggerite.length) html += `<div class="vr-warn">➕ ${TX.suggerite}: ${r.suggerite.map(id => esc(nomeId(id))).join(', ')}.</div>`;
     r.giorni.forEach(g => {
       if (g.tipo === 'gita') {
         const mezzo = { treno: TX.in_treno, auto: TX.in_auto, 'treno veloce': TX.treno_veloce }[g.mezzo] || g.mezzo;
-        const gg = DB.gite.find(x => x.nome === g.nome);
-        html += `<div class="vr-day"><h3>${TX.giorno} ${g.n} · ${TX.gita}</h3><div class="sum">${esc(g.nome)}</div>${gg && gg.foto ? `<img class="vr-gita-img" src="${esc(gg.foto.replace('/240px-', '/480px-'))}" alt="" loading="lazy" referrerpolicy="no-referrer">` : ''}
+        const gg = DB.gite.find(x => x.id === g.id || x.nome === g.nome) || g;
+        html += `<div class="vr-day"><h3>${fmt(TX.giorno_fmt, { n: g.n })} · ${TX.gita}</h3><div class="sum">${esc(nomeG(gg))}</div>${gg && gg.foto ? `<img class="vr-gita-img" src="${esc(gg.foto.replace('/240px-', '/480px-'))}" alt="" loading="lazy" referrerpolicy="no-referrer">` : ''}
           <div class="vr-extra"><span class="ico">🚆</span><span>${dur(g.viaggio)} ${mezzo} ${TX.a_tratta} · ${TX.costo_gita} ${euro(g.costo)} ${TX.a_persona}</span></div>
-          <div class="vr-extra"><span class="ico">📍</span><span>${g.tappe.map(esc).join(' · ')}</span></div>
-          <div class="vr-extra"><span class="ico">ℹ️</span><span>${esc(g.desc)}${g.note ? '<br><small>' + esc(g.note) + '</small>' : ''}</span></div></div>`;
+          <div class="vr-extra"><span class="ico">📍</span><span>${tappeG(gg).map(esc).join(' · ')}</span></div>
+          <div class="vr-extra"><span class="ico">ℹ️</span><span>${esc(descG(gg))}${noteG(gg) ? '<br><small>' + esc(noteG(gg)) + '</small>' : ''}</span></div></div>`;
         return;
       }
       let n = 0;
-      html += `<div class="vr-day"><h3>${TX.giorno} ${g.n}</h3>
+      html += `<div class="vr-day"><h3>${fmt(TX.giorno_fmt, { n: g.n })}</h3>
         <div class="sum">${TX.impegno} ${dur(g.visite + g.spostamenti)} · ${TX.visite} ${dur(g.visite)} + ${TX.spostamenti} ${dur(g.spostamenti)} · ${TX.biglietti} ${g.costo ? euro(g.costo) : TX.gratis}</div>`;
       g.righe.forEach(x => {
         if (x.pranzo) { html += `<div class="vr-extra"><span class="ico">🍝</span><span>${TX.pranzo} ${esc(x.zona)}</span></div>`; return; }
         const a = trova(x.id) || {};
-        const desc = x.fuori && a.esterno ? a.esterno.desc : a.desc;
+        const desc = x.fuori ? descFuori(a) : descA(a);
+        const nome = a.id ? (x.fuori ? nomeFuori(a) : nomeA(a)) : x.nome;
         html += `<div class="vr-move">${tratta(x.tratta)}</div>
-          <div class="vr-stop" style="border-top:none"><span class="n">${++n}</span>${mini(a)}<div class="t"><b>${esc(x.nome)}</b>${x.fuori ? `<span class="vr-tag">${TX.da_fuori}</span>` : ''}
+          <div class="vr-stop" style="border-top:none"><span class="n">${++n}</span>${mini(a)}<div class="t"><b>${esc(nome)}</b>${x.fuori ? `<span class="vr-tag">${TX.da_fuori}</span>` : ''}
           <div class="m">${dur(x.durata)} · ${x.prezzo ? (x.indicativo ? TX.circa + ' ' : '') + euro(x.prezzo) : TX.gratis}</div><div class="d">${esc(desc)}</div></div></div>`;
       });
-      if (g.serata) html += `<div class="vr-extra sera"><span class="ico">🍹</span><span><b>${TX.serata} ${esc(g.serata.nome)}</b> <small>(${tratta(g.serata.tratta)})</small><br><span style="color:var(--muted);font-size:.8rem">${esc(g.serata.desc)}</span></span></div>`;
+      if (g.serata) html += `<div class="vr-extra sera"><span class="ico">🍹</span><span><b>${TX.serata} ${esc(nomeS(g.serata))}</b> <small>(${tratta(g.serata.tratta)})</small><br><span style="color:var(--muted);font-size:.8rem">${esc(descS(g.serata))}</span></span></div>`;
       const url = linkMappa(g);
       if (url) html += `<a class="btn alt" style="margin-top:10px" href="${url}" target="_blank" rel="noopener">${TX.mappa_giorno}</a>`;
       html += `</div>`;
@@ -347,7 +330,7 @@
     const s = $('#vrSalva');
     if (s) s.onclick = () => {
       const l = leggiSalvati();
-      l.unshift({ titolo: stato.meta.titolo, sotto: stato.meta.sotto + ' · ' + new Date().toLocaleDateString('it-IT'), risultato: stato.risultato });
+      l.unshift({ titolo: stato.meta.titolo, sotto: stato.meta.sotto + ' · ' + new Date().toLocaleDateString(LINGUA), risultato: stato.risultato });
       scriviSalvati(l.slice(0, 20)); s.textContent = TX.salvato; s.disabled = true; track('planner_salva', stato.vista);
     };
   }
@@ -366,9 +349,19 @@
     const st = document.createElement('style'); st.textContent = CSS; document.head.appendChild(st);
     document.querySelectorAll('.vr-tab').forEach(b => b.onclick = () => { scegliTab(b.dataset.vr); track('visita_tab', b.dataset.vr); });
     const badge = $('#vrBadge'); if (badge) badge.onclick = () => { apriVisitaRoma('itinerari'); track('badge', 'itinerario'); };
-    fetch(DB_URL, { cache: 'no-store' }).then(r => r.json()).then(d => { DB = d; vistaHome(); })
-      .catch(() => { root().innerHTML = '<p class="vr-sub">Impossibile caricare le attrazioni. Riprova più tardi.</p>'; });
+    fetch(DB_URL, { cache: 'no-store' }).then(r => r.json()).then(d => { DB = d; stato.vista = 'home'; return lingua(typeof lang !== 'undefined' ? lang : 'it'); })
+      .catch(() => { root().innerHTML = `<p class="vr-sub">${TX.errore}</p>`; });
   }
-  window.VisitaRoma = { apri: apriVisitaRoma };
+  let daSalvatiCorrente = false;
+  function lingua(l) {
+    LINGUA = window.VR_I18N[l] ? l : 'en';
+    TX = Object.assign({}, window.VR_I18N.it, window.VR_I18N[LINGUA]);
+    document.querySelectorAll('.vr-tab').forEach(b => b.textContent = b.dataset.vr === 'audio' ? TX.tab_audio : TX.tab_itin);
+    const bt = $('#vrBadge b'), bs = $('#vrBadge small'); if (bt) bt.textContent = TX.badge_t; if (bs) bs.textContent = TX.badge_d;
+    const ridisegna = () => { if (!DB) return; ({ home: vistaHome, auto: vistaAuto, scegli: vistaScegli, nostri: vistaNostri, risultato: () => vistaRisultato(daSalvatiCorrente) })[stato.vista || 'home'](); };
+    if (LINGUA === 'it') { TR = { a: {}, g: {}, s: {} }; ridisegna(); return Promise.resolve(); }
+    return fetch(`planner/tr/${LINGUA}.json?v=${document.querySelector('script[src*="planner-ui.js"]').src.split('v=')[1] || ''}`).then(r => r.ok ? r.json() : null).then(d => { TR = d || { a: {}, g: {}, s: {} }; ridisegna(); }).catch(() => ridisegna());
+  }
+  window.VisitaRoma = { apri: apriVisitaRoma, lingua };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();
