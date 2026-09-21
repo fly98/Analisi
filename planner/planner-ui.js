@@ -250,7 +250,8 @@ window.VR_ILL = (function () {
   }
 
   // ---------------- vista: scegli tu ----------------
-  const filtroCat = new Set(), filtroImp = new Set(); let filtroTesto = '', giorniTarget = 0, ritmoScelto = 'medio', unGiorno = false;
+  const filtroCat = new Set(), filtroImp = new Set(), filtroZona = new Set();
+  const ZONE_K = ['centro', 'tridente', 'colosseo', 'vaticano', 'trastevere', 'aventino', 'termini', 'nord', 'sud']; let filtroTesto = '', giorniTarget = 0, ritmoScelto = 'medio', unGiorno = false;
   const FASCE = [['9', 9, 10], ['7', 7, 8], ['5', 5, 6], ['1', 1, 4]];
   const fasciaLbl = f => TX['f' + f[0]];
   function vistaScegli() {
@@ -267,6 +268,9 @@ window.VR_ILL = (function () {
       <div class="vr-h" style="margin-top:20px"><input class="vr-input" id="vrCerca" placeholder="${TX.cerca}" value="${esc(filtroTesto)}"></div>
       <div class="vr-h" style="margin:12px 0 2px">${TX.importanza}</div><p class="vr-sub" style="margin:0 0 6px">${TX.importanza_d}</p>
       <div class="filter-row" data-grp="fi"><button class="chip ${filtroImp.size ? '' : 'on'}" data-v="">${TX.tutte}</button>${FASCE.map(f => `<button class="chip ${filtroImp.has(f[0]) ? 'on' : ''}" data-v="${f[0]}">${fasciaLbl(f)}</button>`).join('')}</div>
+      <div class="vr-h" style="margin:10px 0 4px">${TX.zone}</div>
+      <div class="filter-row" data-grp="fz"><button class="chip ${filtroZona.size ? '' : 'on'}" data-v="">${TX.tutte}</button>${ZONE_K.map(k => `<button class="chip ${filtroZona.has(k) ? 'on' : ''}" data-v="${k}">📍 ${TX['z_' + k]}</button>`).join('')}</div>
+      <div class="vr-h" style="margin:10px 0 4px">${TX.interessi.replace('?', '').replace('？', '')}</div>
       <div class="filter-row" data-grp="fc"><button class="chip ${filtroCat.size ? '' : 'on'}" data-v="">${TX.tutte}</button>${CAT_K.map(k => `<button class="chip ${filtroCat.has(k) ? 'on' : ''}" data-v="${k}">${catLbl(k)}</button>`).join('')}</div>
       <div id="vrInfo" class="vr-sub" style="margin:4px 2px 8px"></div>
       <div id="vrLista"></div>
@@ -278,7 +282,7 @@ window.VR_ILL = (function () {
     r.querySelectorAll('[data-g]').forEach(b => b.onclick = () => { giorniTarget = Math.min(7, Math.max(0, giorniTarget + +b.dataset.g)); $('#vrGT').textContent = giorniTarget || '–'; });
     // filtri a selezione multipla: si sommano dentro lo stesso gruppo, "Tutte" azzera
     r.querySelectorAll('[data-grp]').forEach(riga => {
-      const set = riga.dataset.grp === 'fi' ? filtroImp : filtroCat;
+      const set = riga.dataset.grp === 'fi' ? filtroImp : riga.dataset.grp === 'fz' ? filtroZona : filtroCat;
       riga.querySelectorAll('[data-v]').forEach(b => b.onclick = () => {
         const v = b.dataset.v;
         if (!v) set.clear(); else set.has(v) ? set.delete(v) : set.add(v);
@@ -302,18 +306,18 @@ window.VR_ILL = (function () {
     const q = filtroTesto.trim().toLowerCase();
     const fasce = FASCE.filter(f => filtroImp.has(f[0])).map(f => [f[0], '', f[1], f[2]]);
     const el = DB.attrazioni.filter(a => !a.chiuso && (!tags || a.cat.some(t => tags.has(t))) && (!q || (a.nome + ' ' + nomeA(a) + ' ' + a.zona).toLowerCase().includes(q))
-        && (!fasce.length || fasce.some(f => a.imp >= f[2] && a.imp <= f[3])))
+        && (!fasce.length || fasce.some(f => a.imp >= f[2] && a.imp <= f[3])) && (!filtroZona.size || filtroZona.has(a.area)))
       .sort((a, b) => (a.rank || 999) - (b.rank || 999));
     $('#vrLista').innerHTML = el.map(a => `<div class="vr-cat ${stato.selezione.has(a.id) ? 'on' : ''}" data-id="${a.id}"><span class="ck">✓</span>${mini(a)}<span style="flex:1"><b>${esc(nomeA(a))}</b> <span class="vr-voto v${a.imp >= 9 ? 'top' : a.imp >= 7 ? 'hi' : 'mid'}">${a.imp}/10</span>
       <div class="m">${esc(a.zona)} · ${dur(a.durata)} · ${a.prezzo ? (a.indicativo ? TX.circa + ' ' : '') + euro(a.prezzo) : TX.gratis}</div>
       <div class="m">${esc(descA(a))}</div></span></div>`).join('');
-    const nf = filtroImp.size + filtroCat.size;
-    const nomi = [...FASCE.filter(f => filtroImp.has(f[0])).map(f => fasciaLbl(f).replace('⭐ ', '')), ...CAT_K.filter(k => filtroCat.has(k)).map(catLbl)];
+    const nf = filtroImp.size + filtroCat.size + filtroZona.size;
+    const nomi = [...FASCE.filter(f => filtroImp.has(f[0])).map(f => fasciaLbl(f).replace('⭐ ', '')), ...CAT_K.filter(k => filtroCat.has(k)).map(catLbl), ...ZONE_K.filter(k => filtroZona.has(k)).map(k => TX['z_' + k])];
     $('#vrInfo').innerHTML = (el.length ? `<b>${el.length}</b> ${el.length === 1 ? TX.risultato1 : TX.risultati}` : (nf ? TX.nessun_con_filtri : TX.nessun_risultato))
       + (nf ? ` · ${TX.filtri_attivi}: ${nomi.map(esc).join(', ')} · <a href="#" id="vrAzzera" style="color:var(--orange);font-weight:700">${TX.azzera}</a>` : '');
     const az = $('#vrAzzera');
     if (az) az.onclick = e => {
-      e.preventDefault(); filtroImp.clear(); filtroCat.clear();
+      e.preventDefault(); filtroImp.clear(); filtroCat.clear(); filtroZona.clear();
       root().querySelectorAll('[data-grp] [data-v]').forEach(x => x.classList.toggle('on', !x.dataset.v)); lista();
     };
     $('#vrLista').querySelectorAll('[data-id]').forEach(d => d.onclick = () => { const id = d.dataset.id; stato.selezione.has(id) ? stato.selezione.delete(id) : stato.selezione.add(id); d.classList.toggle('on'); barra(); });
