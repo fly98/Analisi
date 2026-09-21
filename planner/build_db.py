@@ -220,6 +220,21 @@ for a in A:
         a['imp'] = IMP10.get(a['id'], a['imp']*2-1)
     a.pop('_imp10', None)
 
+# ---------- PREZZI VERIFICATI (giro di verifica) ----------
+# gruppo = biglietto condiviso: il motore lo conta una sola volta
+PREZZI = {
+ 'palazzo_massimo':(15,'mnr'),'palazzo_altemps':(15,'mnr'),'terme_diocleziano':(15,'mnr'),
+ 'cecilia_metella':(8,None),'villa_quintili':(8,None),
+ 'san_callisto':(10,None),'san_sebastiano':(10,None),
+ 'caracalla':(8,None),'ostia_antica':(18,None),
+}
+CHIUSI = {'crypta_balbi'}   # chiusi temporaneamente: il motore li esclude
+for a in A:
+    a.setdefault('gruppo', None); a.setdefault('chiuso', False)
+    if a['id'] in PREZZI:
+        a['prezzo'], a['gruppo'] = PREZZI[a['id']]; a['verifica'] = False
+    if a['id'] in CHIUSI: a['chiuso'] = True
+
 # ---------- MOMENTO IDEALE ----------
 # mattina = presto per caldo/folla; sera = dopo cena/illuminato; tramonto = ultima tappa del giorno
 MOMENTO = {
