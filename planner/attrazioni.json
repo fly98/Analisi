@@ -863,5 +863,518 @@
   "desc": "Il \"Palazzaccio\", monumentale e controverso.",
   "verifica": false,
   "temp": null
+ },
+ {
+  "id": "laterano",
+  "nome": "San Giovanni in Laterano",
+  "cat": [
+   "chiesa"
+  ],
+  "zona": "San Giovanni",
+  "lat": 41.8859,
+  "lon": 12.5057,
+  "prezzo": 0,
+  "imp": 5,
+  "fatica": 2,
+  "durata": 60,
+  "desc": "La cattedrale di Roma, madre di tutte le chiese del mondo.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "santa_maria_maggiore",
+  "nome": "Santa Maria Maggiore",
+  "cat": [
+   "chiesa"
+  ],
+  "zona": "Esquilino",
+  "lat": 41.8976,
+  "lon": 12.4984,
+  "prezzo": 0,
+  "imp": 5,
+  "fatica": 2,
+  "durata": 60,
+  "desc": "Mosaici del V secolo e soffitto dorato con il primo oro delle Americhe.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "san_paolo",
+  "nome": "San Paolo fuori le Mura",
+  "cat": [
+   "chiesa"
+  ],
+  "zona": "Ostiense",
+  "lat": 41.8587,
+  "lon": 12.4768,
+  "prezzo": 0,
+  "imp": 4,
+  "fatica": 2,
+  "durata": 60,
+  "desc": "Basilica immensa con i ritratti di tutti i papi e un chiostro splendido.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "vincoli",
+  "nome": "San Pietro in Vincoli",
+  "cat": [
+   "chiesa"
+  ],
+  "zona": "Monti",
+  "lat": 41.8938,
+  "lon": 12.493,
+  "prezzo": 0,
+  "imp": 4,
+  "fatica": 1,
+  "durata": 20,
+  "desc": "Il Mosè di Michelangelo e le catene di San Pietro.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "san_clemente",
+  "nome": "San Clemente e i suoi sotterranei",
+  "cat": [
+   "chiesa",
+   "archeologia",
+   "insolito"
+  ],
+  "zona": "Colosseo",
+  "lat": 41.8894,
+  "lon": 12.4975,
+  "prezzo": 10,
+  "imp": 4,
+  "fatica": 2,
+  "durata": 90,
+  "desc": "Tre livelli sovrapposti: chiesa medievale, basilica del IV secolo e tempio di Mitra. Scavi su prenotazione.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "santa_maria_trastevere",
+  "nome": "Santa Maria in Trastevere",
+  "cat": [
+   "chiesa"
+  ],
+  "zona": "Trastevere",
+  "lat": 41.8894,
+  "lon": 12.47,
+  "prezzo": 0,
+  "imp": 4,
+  "fatica": 1,
+  "durata": 20,
+  "desc": "Una delle chiese più antiche di Roma, con mosaici d'oro in facciata e abside.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "san_luigi",
+  "nome": "San Luigi dei Francesi",
+  "cat": [
+   "chiesa",
+   "arte"
+  ],
+  "zona": "Navona",
+  "lat": 41.8997,
+  "lon": 12.4745,
+  "prezzo": 0,
+  "imp": 4,
+  "fatica": 1,
+  "durata": 20,
+  "desc": "Tre capolavori di Caravaggio sulla vita di San Matteo, gratis.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "sant_ignazio",
+  "nome": "Sant'Ignazio",
+  "cat": [
+   "chiesa",
+   "insolito"
+  ],
+  "zona": "Pantheon",
+  "lat": 41.899,
+  "lon": 12.4797,
+  "prezzo": 0,
+  "imp": 4,
+  "fatica": 1,
+  "durata": 20,
+  "desc": "La finta cupola dipinta di Andrea Pozzo: uno specchio al centro svela l'inganno.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "santa_maria_popolo",
+  "nome": "Santa Maria del Popolo",
+  "cat": [
+   "chiesa",
+   "arte"
+  ],
+  "zona": "Flaminio",
+  "lat": 41.9115,
+  "lon": 12.4765,
+  "prezzo": 0,
+  "imp": 4,
+  "fatica": 1,
+  "durata": 20,
+  "desc": "Due Caravaggio e la Cappella Chigi di Raffaello e Bernini.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "gesu",
+  "nome": "Chiesa del Gesù",
+  "cat": [
+   "chiesa"
+  ],
+  "zona": "Centro Storico",
+  "lat": 41.8959,
+  "lon": 12.4798,
+  "prezzo": 0,
+  "imp": 4,
+  "fatica": 1,
+  "durata": 20,
+  "desc": "Capolavoro barocco dei gesuiti; ogni giorno alle 17:30 la \"macchina\" dell'altare di Sant'Ignazio.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "minerva",
+  "nome": "Santa Maria sopra Minerva",
+  "cat": [
+   "chiesa"
+  ],
+  "zona": "Pantheon",
+  "lat": 41.898,
+  "lon": 12.4776,
+  "prezzo": 0,
+  "imp": 3,
+  "fatica": 1,
+  "durata": 20,
+  "desc": "L'unica chiesa gotica di Roma, con davanti l'elefantino di Bernini.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "scala_santa",
+  "nome": "Scala Santa",
+  "cat": [
+   "chiesa",
+   "insolito"
+  ],
+  "zona": "San Giovanni",
+  "lat": 41.8876,
+  "lon": 12.5063,
+  "prezzo": 0,
+  "imp": 3,
+  "fatica": 2,
+  "durata": 30,
+  "desc": "La scala che Gesù avrebbe salito da Pilato: i fedeli la salgono in ginocchio.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "vittoria",
+  "nome": "Santa Maria della Vittoria",
+  "cat": [
+   "chiesa",
+   "arte"
+  ],
+  "zona": "Repubblica",
+  "lat": 41.9046,
+  "lon": 12.4943,
+  "prezzo": 0,
+  "imp": 3,
+  "fatica": 1,
+  "durata": 15,
+  "desc": "L'Estasi di Santa Teresa, capolavoro di Bernini.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "sant_agostino",
+  "nome": "Sant'Agostino",
+  "cat": [
+   "chiesa",
+   "arte"
+  ],
+  "zona": "Navona",
+  "lat": 41.9007,
+  "lon": 12.4742,
+  "prezzo": 0,
+  "imp": 3,
+  "fatica": 1,
+  "durata": 15,
+  "desc": "La Madonna dei Pellegrini di Caravaggio.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "aracoeli",
+  "nome": "Santa Maria in Aracoeli",
+  "cat": [
+   "chiesa",
+   "panorama"
+  ],
+  "zona": "Campidoglio",
+  "lat": 41.894,
+  "lon": 12.483,
+  "prezzo": 0,
+  "imp": 3,
+  "fatica": 2,
+  "durata": 30,
+  "desc": "Si arriva salendo 124 gradini; dentro affreschi del Pinturicchio.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "santa_cecilia",
+  "nome": "Santa Cecilia in Trastevere",
+  "cat": [
+   "chiesa"
+  ],
+  "zona": "Trastevere",
+  "lat": 41.8876,
+  "lon": 12.476,
+  "prezzo": 0,
+  "imp": 3,
+  "fatica": 1,
+  "durata": 30,
+  "desc": "La statua della santa scolpita come fu ritrovata e un raro affresco di Cavallini.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "santa_prassede",
+  "nome": "Santa Prassede",
+  "cat": [
+   "chiesa",
+   "arte"
+  ],
+  "zona": "Esquilino",
+  "lat": 41.896,
+  "lon": 12.4985,
+  "prezzo": 0,
+  "imp": 3,
+  "fatica": 1,
+  "durata": 20,
+  "desc": "La cappella di San Zenone, interamente coperta di mosaici d'oro.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "quattro_fontane",
+  "nome": "San Carlo alle Quattro Fontane",
+  "cat": [
+   "chiesa",
+   "architettura"
+  ],
+  "zona": "Quirinale",
+  "lat": 41.9017,
+  "lon": 12.491,
+  "prezzo": 0,
+  "imp": 3,
+  "fatica": 1,
+  "durata": 20,
+  "desc": "Il capolavoro di Borromini: una cupola ovale grande quanto un pilastro di San Pietro.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "sant_andrea_quirinale",
+  "nome": "Sant'Andrea al Quirinale",
+  "cat": [
+   "chiesa",
+   "architettura"
+  ],
+  "zona": "Quirinale",
+  "lat": 41.9006,
+  "lon": 12.4889,
+  "prezzo": 0,
+  "imp": 3,
+  "fatica": 1,
+  "durata": 15,
+  "desc": "La \"perla\" di Bernini, a cento metri dalla rivale di Borromini.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "santo_stefano_rotondo",
+  "nome": "Santo Stefano Rotondo",
+  "cat": [
+   "chiesa",
+   "insolito"
+  ],
+  "zona": "Celio",
+  "lat": 41.8847,
+  "lon": 12.4968,
+  "prezzo": 0,
+  "imp": 3,
+  "fatica": 1,
+  "durata": 30,
+  "desc": "Chiesa circolare del V secolo, con crudi affreschi di martiri.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "quattro_coronati",
+  "nome": "Santi Quattro Coronati",
+  "cat": [
+   "chiesa",
+   "insolito"
+  ],
+  "zona": "Celio",
+  "lat": 41.8881,
+  "lon": 12.5003,
+  "prezzo": null,
+  "imp": 3,
+  "fatica": 1,
+  "durata": 40,
+  "desc": "Monastero fortificato con la cappella di San Silvestro e un chiostro nascosto.",
+  "verifica": true,
+  "temp": null
+ },
+ {
+  "id": "santa_sabina",
+  "nome": "Santa Sabina",
+  "cat": [
+   "chiesa"
+  ],
+  "zona": "Aventino",
+  "lat": 41.8843,
+  "lon": 12.4795,
+  "prezzo": 0,
+  "imp": 3,
+  "fatica": 1,
+  "durata": 20,
+  "desc": "Basilica del V secolo con porta in legno originale e giardino degli aranci accanto.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "tempietto_bramante",
+  "nome": "Tempietto del Bramante",
+  "cat": [
+   "chiesa",
+   "architettura"
+  ],
+  "zona": "Trastevere",
+  "lat": 41.8886,
+  "lon": 12.4668,
+  "prezzo": 0,
+  "imp": 3,
+  "fatica": 2,
+  "durata": 20,
+  "desc": "Il gioiello del Rinascimento, dove secondo la tradizione fu crocifisso Pietro.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "santa_maria_angeli",
+  "nome": "Santa Maria degli Angeli",
+  "cat": [
+   "chiesa",
+   "insolito"
+  ],
+  "zona": "Repubblica",
+  "lat": 41.903,
+  "lon": 12.4965,
+  "prezzo": 0,
+  "imp": 3,
+  "fatica": 1,
+  "durata": 30,
+  "desc": "Michelangelo trasformò le Terme di Diocleziano in chiesa; sul pavimento una meridiana.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "sant_ivo",
+  "nome": "Sant'Ivo alla Sapienza",
+  "cat": [
+   "chiesa",
+   "architettura"
+  ],
+  "zona": "Navona",
+  "lat": 41.8986,
+  "lon": 12.4747,
+  "prezzo": 0,
+  "imp": 2,
+  "fatica": 1,
+  "durata": 15,
+  "desc": "La cupola a spirale di Borromini; aperta di solito solo la domenica mattina.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "san_lorenzo",
+  "nome": "San Lorenzo fuori le Mura",
+  "cat": [
+   "chiesa"
+  ],
+  "zona": "San Lorenzo",
+  "lat": 41.9024,
+  "lon": 12.5213,
+  "prezzo": 0,
+  "imp": 2,
+  "fatica": 1,
+  "durata": 30,
+  "desc": "Basilica medievale col chiostro, accanto al cimitero del Verano.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "santa_costanza",
+  "nome": "Mausoleo di Santa Costanza",
+  "cat": [
+   "chiesa",
+   "insolito"
+  ],
+  "zona": "Nomentano",
+  "lat": 41.9225,
+  "lon": 12.518,
+  "prezzo": 0,
+  "imp": 3,
+  "fatica": 1,
+  "durata": 30,
+  "desc": "Mausoleo del IV secolo con mosaici di vendemmia ancora pagani.",
+  "verifica": false,
+  "temp": null
+ },
+ {
+  "id": "chiostro_bramante",
+  "nome": "Chiostro del Bramante",
+  "cat": [
+   "architettura",
+   "museo"
+  ],
+  "zona": "Navona",
+  "lat": 41.8997,
+  "lon": 12.4715,
+  "prezzo": null,
+  "imp": 2,
+  "fatica": 1,
+  "durata": 60,
+  "desc": "Chiostro rinascimentale che ospita mostre temporanee, con caffetteria affacciata sulla Pace.",
+  "verifica": true,
+  "temp": null
+ },
+ {
+  "id": "cosma_damiano",
+  "nome": "Santi Cosma e Damiano",
+  "cat": [
+   "chiesa",
+   "insolito"
+  ],
+  "zona": "Fori",
+  "lat": 41.8923,
+  "lon": 12.488,
+  "prezzo": 0,
+  "imp": 2,
+  "fatica": 1,
+  "durata": 20,
+  "desc": "Mosaico absidale del VI secolo e un grande presepe napoletano del Settecento.",
+  "verifica": false,
+  "temp": null
  }
 ]
