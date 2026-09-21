@@ -1067,7 +1067,13 @@
     el("telecomando").hidden = false;
     var img = el("telecomandoImmagine");
 
+    // Una richiesta alla volta: su una rete lenta, chiedendo una foto ogni
+    // 700 ms senza aspettare la precedente si accodano e arrivano fuori
+    // ordine, facendo "saltare" l'immagine avanti e indietro.
+    var fotoInCorso = false;
     function prendiFoto() {
+      if (fotoInCorso) return;
+      fotoInCorso = true;
       fetch("https://recensioni-worker.f-castiglioni.workers.dev/schermo", { headers: { "X-Auth": token } })
         .then(function (r) { return r.ok ? r.blob() : null; })
         .then(function (b) {
@@ -1076,11 +1082,15 @@
           telecomandoUrl = URL.createObjectURL(b);
           img.src = telecomandoUrl;
         })
-        .catch(function () { /* riprova al giro dopo */ });
+        .catch(function () { /* riprova al giro dopo */ })
+        .then(function () { fotoInCorso = false; });
     }
 
+    // Ogni 700 ms: la foto e' leggera (JPEG di bassa qualita', basta per
+    // capire cosa c'e' nei riquadri) e cosi' dopo un tocco si vede subito
+    // se ha preso. Ogni due secondi sembrava che non funzionasse.
     prendiFoto();
-    telecomandoTimer = setInterval(prendiFoto, 2000);
+    telecomandoTimer = setInterval(prendiFoto, 700);
 
     img.onclick = function (e) {
       // dall'immagine ridimensionata a schermo alle coordinate vere della
@@ -1113,12 +1123,24 @@
   function seguiLavoro(token, alAvanzare) {
     var scadenza = Date.now() + 12 * 60 * 1000;
     var avvisatoServeTe = false;
+    var verificheViste = 0;
+    var mostraEsitoFino = 0;
     return new Promise(function (risolvi, rifiuta) {
       (function controlla() {
         if (Date.now() > scadenza) { rifiuta(new Error("ci sta mettendo troppo; controlla il Mac")); return; }
         fetch("https://recensioni-worker.f-castiglioni.workers.dev/stato", { headers: { "X-Auth": token } })
           .then(function (r) { return r.json(); })
           .then(function (s) {
+            // Verifica superata: va detto, altrimenti la riga resta ferma
+            // sull'avviso e non si capisce se il CAPTCHA e' andato bene.
+            if (s.verificaRisolta && s.verificaRisolta > verificheViste) {
+              verificheViste = s.verificaRisolta;
+              avvisatoServeTe = false;
+              mostraEsitoFino = Date.now() + 20000;
+              el("telecomandoStato").textContent = "✅ Verifica superata: il Mac è entrato e va avanti da solo.";
+              alAvanzare("✅ Verifica superata, il Mac è entrato. Proseguo...");
+              window.setTimeout(spegniTelecomando, 3000);
+            }
             if (s.messaggio && !avvisatoServeTe) {
               avvisatoServeTe = true;
               alAvanzare("⚠️ " + s.messaggio + " — risolvila qui sotto.");
@@ -1135,11 +1157,16 @@
                   bozze: "Aggiornamento in corso: scrivo le bozze di risposta per le recensioni nuove...",
                   pubblicazione: "Aggiornamento in corso: aggiorno la pagina...",
                 };
-                alAvanzare(s.tipo === "pubblicazione"
+                var avanzamento = s.tipo === "pubblicazione"
                   ? "Pubblicazione in corso" + (s.avanzamento ? " (" + s.avanzamento + " finora)" : "") + "..."
-                  : (passiAggiornamento[s.passo] || passiAggiornamento.scarico));
+                  : (passiAggiornamento[s.passo] || passiAggiornamento.scarico);
+                // Per un po' la conferma resta accanto all'avanzamento: se
+                // sparisse subito non si farebbe in tempo a leggerla.
+                alAvanzare(Date.now() < mostraEsitoFino ? "✅ Verifica superata. " + avanzamento : avanzamento);
               }
-              setTimeout(controlla, 4000);
+              // Mentre si aspetta che risolva la verifica si guarda piu'
+              // spesso, cosi' la conferma arriva quasi subito.
+              setTimeout(controlla, avvisatoServeTe ? 1500 : 4000);
               return;
             }
             spegniTelecomando();
