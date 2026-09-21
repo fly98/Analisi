@@ -1,6 +1,7 @@
 /* Visita Roma — testi dell'interfaccia in 7 lingue. {a},{b},{n},{v} sono segnaposti. */
 window.VR_I18N = {
 it: {
+  min: 'min',
   giorno_fmt: 'Giorno {n}',
   tab_itin: '✨ Itinerari', tab_audio: '🎧 Audioguide', badge_t: 'Organizza il tuo itinerario', badge_d: 'Su misura per te, in pochi secondi',
   m_auto_t: 'Itinerario su misura', m_auto_d: 'Dicci giorni, budget e interessi: organizziamo noi le giornate.',
@@ -277,6 +278,7 @@ pt: {
   av_giornata_lunga: 'Dia muito exigente: cerca de {a} horas entre visitas e deslocações, mais do que as {b} recomendadas para o seu ritmo.',
 },
 zh: {
+  min: '分钟',
   giorno_fmt: '第{n}天',
   tab_itin: '✨ 行程', tab_audio: '🎧 语音导览', badge_t: '规划你的行程', badge_d: '为你量身定制，几秒即可',
   m_auto_t: '定制行程', m_auto_d: '告诉我们天数、预算和兴趣：我们为你安排每一天。',
