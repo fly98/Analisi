@@ -11,7 +11,7 @@
   html,body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sysfont);-webkit-text-size-adjust:100%}
   body{padding:env(safe-area-inset-top) 0 calc(40px + env(safe-area-inset-bottom))}
   .wrap{max-width:860px;margin:0 auto;padding:0 14px}
-  header{position:sticky;top:0;z-index:10;background:rgba(245,244,240,.96);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:12px 0 10px}
+  header{border-bottom:1px solid var(--line);padding:12px 0 10px}
   h1{font-size:19px;margin:0 0 2px}.sub{font-size:12.5px;color:var(--muted)}
   .row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:8px}
   .chip{padding:7px 12px;border-radius:16px;border:1.5px solid var(--line);background:var(--card);font:600 13px var(--sysfont);color:var(--muted);cursor:pointer}
@@ -137,14 +137,14 @@ function barre(righe, max, fmtV) {
   return `<div class="bars">${righe.map(r => `<div class="r"><span>${r.l}</span><span class="t"><i style="width:${Math.min(100, r.v / max * 100)}%;background:${r.c || 'var(--orange)'}"></i></span><span class="v">${fmtV ? fmtV(r) : `<b>${r.v}</b>`}</span></div>`).join('')}</div>`;
 }
 function grafico(giorni, serie) {  // barre impilate per giorno (o per settimana se il periodo e' lungo)
-  const W = 820, H = 190, pad = 26, n = giorni.length || 1;
+  const W = 400, H = 150, pad = 24, n = giorni.length || 1; // proporzioni da telefono: le scritte restano leggibili
   const tot = giorni.map(g => serie.reduce((s, x) => s + (x.v[g.k] || 0), 0));
   const max = Math.max(1, ...tot), bw = (W - pad) / n;
   let svg = `<svg viewBox="0 0 ${W} ${H + 22}" width="100%" style="display:block">`;
   [0, .5, 1].forEach(f => { const y = H - f * (H - 12); svg += `<line x1="${pad}" x2="${W}" y1="${y}" y2="${y}" stroke="#eee"/><text x="0" y="${y + 4}" font-size="11" fill="#999">${Math.round(max * f)}</text>`; });
   giorni.forEach((g, i) => {
     let y = H; serie.forEach(s => { const v = s.v[g.k] || 0, h = v / max * (H - 12); if (h > 0) svg += `<rect x="${pad + i * bw + bw * .15}" y="${y - h}" width="${bw * .7}" height="${h}" rx="2" fill="${s.c}"><title>${g.l}: ${v} ${s.n}</title></rect>`; y -= h; });
-    if (i % Math.ceil(n / 10) === 0) svg += `<text x="${pad + i * bw + bw / 2}" y="${H + 16}" font-size="11" fill="#999" text-anchor="middle">${g.l}</text>`;
+    if (i % Math.ceil(n / 6) === 0) svg += `<text x="${pad + i * bw + bw / 2}" y="${H + 16}" font-size="11" fill="#999" text-anchor="middle">${g.l}</text>`;
   });
   return svg + '</svg>';
 }
@@ -166,8 +166,8 @@ function disegna(st, dv, vecchio) {
   h += `<div class="kpis" style="margin-top:14px">
     <div class="kpi"><span>Ospiti (dispositivi)</span><b>${disp}</b><small>${S.slug === 'all' ? `Campaldino ${(perS.campaldino || {}).dispositivi || 0} · Lorenzo ${(perS.lorenzo || {}).dispositivi || 0}` : 'persone diverse che hanno aperto la pagina'}</small></div>
     <div class="kpi"><span>Visite</span><b>${k.visite || 0}</b><small>un ospite conta una volta al giorno</small></div>
-    <div class="kpi"><span>Tornati più giorni</span><b>${pct(k.tornati, disp)}%</b><small>${k.tornati || 0} ospiti l'hanno usata in giorni diversi</small></div>
-    <div class="kpi"><span>Hanno solo aperto</span><b>${pct(k.soloApertura, disp)}%</b><small>${k.soloApertura || 0} ospiti senza nessun altro tocco</small></div>
+    <div class="kpi"><span>Tornati più giorni</span><b>${pct(k.tornati, disp)}%</b><small>${k.tornati || 0} ${k.tornati === 1 ? 'ospite' : 'ospiti'} l'hanno usata in giorni diversi</small></div>
+    <div class="kpi"><span>Hanno solo aperto</span><b>${pct(k.soloApertura, disp)}%</b><small>${k.soloApertura || 0} ${k.soloApertura === 1 ? 'ospite' : 'ospiti'} senza nessun altro tocco</small></div>
   </div>`;
 
   // andamento
@@ -207,7 +207,7 @@ function disegna(st, dv, vecchio) {
   const modi = ['auto', 'scegli', 'nostri', 'vicino'].map(m => ({ m, v: devDi('planner', m) }));
   const usato = Math.max(...modi.map(x => x.v), 0);
   const generati = devDi('planner_genera'), salvati = devDi('planner_salva');
-  const f = (l, v, base) => `<div class="f"><div class="top"><b>${l}</b><span>${v} ospiti${base ? ` · ${pct(v, base)}%` : ''}</span></div><div class="t"><i style="width:${base ? Math.max(2, Math.min(100, v / base * 100)) : 100}%"></i></div></div>`;
+  const f = (l, v, base) => `<div class="f"><div class="top"><b>${l}</b><span>${v} ${v === 1 ? 'ospite' : 'ospiti'}${base ? ` · ${pct(v, base)}%` : ''}</span></div><div class="t"><i style="width:${base ? Math.max(2, Math.min(100, v / base * 100)) : 100}%"></i></div></div>`;
   const temi = ev.filter(r => r.event === 'planner_genera').sort((a, b) => b.n - a.n).map(r => ({ l: esc(TEMI[r.section] || r.section), v: r.n }));
   h += `<div class="card"><h2>🧭 Visita Roma</h2><p class="hint">Dall'apertura della sezione fino all'itinerario salvato (percentuali su chi ha aperto Visita Roma).</p>
     <div class="funnel">${f('Hanno aperto Visita Roma', vrAperto, disp)}${f('Hanno scelto una modalità', usato, vrAperto)}${f('Hanno ottenuto un itinerario', generati, vrAperto)}${f('Lo hanno salvato', salvati, vrAperto)}</div>
