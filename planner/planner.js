@@ -20,9 +20,9 @@
 
   // ---------- Ritmo: tetto di fatica, minuti disponibili, soglia per camminare ----------
   const RITMO = {
-    rilassato: { fatica: 7.5, minuti: 330, piedi: 800 },
-    medio:     { fatica: 10,  minuti: 450, piedi: 1500 },
-    intenso:   { fatica: 14,  minuti: 570, piedi: 2000 },
+    rilassato: { fatica: 8,  minuti: 330, piedi: 800 },
+    medio:     { fatica: 12, minuti: 450, piedi: 1500 },
+    intenso:   { fatica: 16, minuti: 570, piedi: 2000 },
   };
   const INIZIO_GIORNATA = 9 * 60; // 9:00
 
@@ -40,6 +40,9 @@
     if (m <= soglia) return { modo: 'piedi', metri: Math.round(m), minuti: Math.round(m / 1000 * 13), fatica: m / 1000 * 0.6 };
     return { modo: 'mezzi', metri: Math.round(m), minuti: Math.round(15 + m / 1000 * 3), fatica: 0.4 };
   }
+
+  // una tappa breve pesa meno di una lunga a parita' di livello
+  const faticaTappa = a => a.fatica * (0.5 + a.durata / 120);
 
   // ---------- Filtri ----------
   function tagDaMacro(macro) {
@@ -105,20 +108,24 @@
   }
 
   // ---------- Calcolo tempi, fatica e costi di una giornata ----------
+  const PRANZO_DA = 12 * 60 + 30, PRANZO_MIN = 60;
   function valutaGiorno(tappe, partenza, p, biglietti) {
-    let t = INIZIO_GIORNATA, fatica = 0, costo = 0, pos = partenza;
-    const righe = tappe.map(a => {
+    let t = INIZIO_GIORNATA, fatica = 0, costo = 0, pos = partenza, pranzo = null;
+    const righe = [];
+    tappe.forEach(a => {
       const tr = tratta(pos, a, p.piedi);
       t += tr.minuti; fatica += tr.fatica;
       const arrivo = t;
-      t += a.durata; fatica += a.fatica;
+      t += a.durata; fatica += faticaTappa(a);
       let prezzo = a.prezzo || 0;
       if (a.gruppo && biglietti.has(a.gruppo)) prezzo = 0; // biglietto condiviso gia' pagato
       costo += prezzo;
       pos = a;
-      return { id: a.id, nome: a.nome, arrivo, durata: a.durata, tratta: tr, prezzo, indicativo: !!a.indicativo };
+      righe.push({ id: a.id, nome: a.nome, arrivo, durata: a.durata, tratta: tr, prezzo, indicativo: !!a.indicativo, zona: a.zona });
+      if (!pranzo && t >= PRANZO_DA) { pranzo = { ora: t, vicino: a.zona || a.nome }; righe.push({ pranzo: true, ora: t, zona: a.zona }); t += PRANZO_MIN; }
     });
-    return { righe, minuti: t - INIZIO_GIORNATA, fatica: Math.round(fatica * 10) / 10, costo };
+    const minuti = t - INIZIO_GIORNATA - (pranzo ? PRANZO_MIN : 0);
+    return { righe, minuti, fine: t, fatica: Math.round(fatica * 10) / 10, costo, ultima: tappe[tappe.length - 1] || null };
   }
 
   function sta(val, p, budget) {
@@ -137,7 +144,7 @@
     const scelte = [], riserva = [];
     let min = 0, fat = 0;
     lista.forEach(a => {
-      const dm = a.durata + 15, df = a.fatica + 0.6;
+      const dm = a.durata + 15, df = faticaTappa(a) + 0.6;
       if (min + dm <= cap.min && fat + df <= cap.fat) { scelte.push(a); min += dm; fat += df; }
       else riserva.push(a);
     });
@@ -202,7 +209,7 @@
       const lista = candidati(db, opz).sort((a, b) => P(b) - P(a) || a.fatica - b.fatica);
       risultato = costruisciGiorni(lista, giorniRoma, partenza, opz);
     }
-    return componi(risultato, gite, partenza, opz, avvisi);
+    return componi(risultato, gite, partenza, opz, avvisi, db);
   }
 
   // ---------- Modalita' "scelgo io" ----------
@@ -217,7 +224,7 @@
     const senzaBudget = Object.assign({}, opz, { budgetGiorno: null, soloGratis: false });
     do { r = costruisciGiorni(lista, n, partenza, senzaBudget); n++; } while (r.escluse.length && n <= 14);
     const giorniNecessari = r.giorni.length + gite.length;
-    const out = componi(r, gite, partenza, senzaBudget, avvisi);
+    const out = componi(r, gite, partenza, senzaBudget, avvisi, db);
     out.giorniNecessari = giorniNecessari;
     // se l'ospite ha indicato un numero di giorni, suggerisci cosa togliere o aggiungere
     if (opz.giorni) {
@@ -236,12 +243,33 @@
   }
 
   // ---------- Output finale ----------
-  function componi(r, gite, partenza, opz, avvisi) {
-    const pagati = new Set();
+  // quartiere per aperitivo e cena: importante e vicino a dove finisce il giro, senza ripetersi
+  function scegliSerata(db, da, usati, p, visitati) {
+    const zone = (db.serata || []).map(z => {
+      const km = metri(da, z) / 1000;
+      const giaVisto = visitati.has(z.id) ? 3 : 0; // quartiere gia' girato di giorno
+      return { z, km, punti: z.imp - 1.5 * km + (z.casa ? 0.3 : 0) - (usati.has(z.id) ? 4 : 0) - giaVisto };
+    }).sort((a, b) => b.punti - a.punti);
+    if (!zone.length) return null;
+    const best = zone[0].z; usati.add(best.id);
+    return { zona: best, tratta: tratta(da, best, p.piedi) };
+  }
+
+  function componi(r, gite, partenza, opz, avvisi, db) {
+    const pagati = new Set(), usati = new Set();
     const giorni = r.giorni.map((g, i) => {
       const v = valutaGiorno(g, partenza, r.p, pagati);
       g.forEach(a => { if (a.gruppo) pagati.add(a.gruppo); });
-      return Object.assign({ tipo: 'roma', n: i + 1 }, v);
+      const giorno = Object.assign({ tipo: 'roma', n: i + 1 }, v);
+      if (db && (opz.serata !== false)) {
+        const sr = scegliSerata(db, v.ultima || partenza, usati, r.p, new Set(g.map(a => a.id)));
+        if (sr) {
+          const aperitivo = Math.max(v.fine + sr.tratta.minuti, 18 * 60 + 30);
+          giorno.serata = { id: sr.zona.id, nome: sr.zona.nome, desc: sr.zona.desc, tipo: sr.zona.tipo, tratta: sr.tratta,
+                            aperitivo, cena: Math.max(aperitivo + 90, 20 * 60), casa: !!sr.zona.casa };
+        }
+      }
+      return giorno;
     });
     gite.forEach(g => giorni.push({
       tipo: 'gita', n: giorni.length + 1, nome: g.nome, tappe: g.tappe, mezzo: g.mezzo,
