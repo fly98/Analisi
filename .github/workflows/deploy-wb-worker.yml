@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - 'wb_worker.js'
+      - 'wb_stats_schema.sql'
     branches:
       - main
   workflow_dispatch:
@@ -35,6 +36,21 @@ jobs:
           [triggers]
           crons = ["0 5 * * *"]
           EOF
+
+      - name: Database statistiche (D1) - crea se manca, aggiunge il collegamento e le tabelle
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+        run: |
+          npm install -g wrangler@3
+          trova() { wrangler d1 list --json | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{try{const a=JSON.parse(s);const x=a.find(d=>d.name==='wb-stats');console.log(x?(x.uuid||x.id||''):'')}catch(e){console.log('')}})"; }
+          ID=$(trova)
+          if [ -z "$ID" ]; then wrangler d1 create wb-stats; ID=$(trova); fi
+          echo "ID database: $ID"
+          if [ -z "$ID" ]; then echo "::error::Database D1 non creato: controllare i permessi D1 del token Cloudflare"; exit 1; fi
+          printf '\n[[d1_databases]]\nbinding = "DB"\ndatabase_name = "wb-stats"\ndatabase_id = "%s"\n' "$ID" >> wrangler_wb_deploy.toml
+          cat wrangler_wb_deploy.toml
+          wrangler d1 execute wb-stats --remote --config wrangler_wb_deploy.toml --file wb_stats_schema.sql
 
       - name: Deploy with Wrangler
         uses: cloudflare/wrangler-action@v3
