@@ -1068,8 +1068,8 @@
     var img = el("telecomandoImmagine");
 
     // Una richiesta alla volta: su una rete lenta, chiedendo una foto ogni
-    // 700 ms senza aspettare la precedente si accodano e arrivano fuori
-    // ordine, facendo "saltare" l'immagine avanti e indietro.
+    // mezzo secondo senza aspettare la precedente si accodano e arrivano
+    // fuori ordine, facendo "saltare" l'immagine avanti e indietro.
     var fotoInCorso = false;
     function prendiFoto() {
       if (fotoInCorso) return;
@@ -1078,19 +1078,29 @@
         .then(function (r) { return r.ok ? r.blob() : null; })
         .then(function (b) {
           if (!b) return;
-          if (telecomandoUrl) URL.revokeObjectURL(telecomandoUrl);
-          telecomandoUrl = URL.createObjectURL(b);
-          img.src = telecomandoUrl;
+          // Si mette a schermo solo quando e' gia' decodificata: scambiare
+          // l'immagine "a freddo" la fa sfarfallare, e su un CAPTCHA a
+          // riquadri il lampeggio fa sbagliare il dito.
+          var nuovoUrl = URL.createObjectURL(b);
+          var prova = new Image();
+          prova.onload = function () {
+            if (telecomandoUrl) URL.revokeObjectURL(telecomandoUrl);
+            telecomandoUrl = nuovoUrl;
+            img.src = nuovoUrl;
+          };
+          prova.onerror = function () { URL.revokeObjectURL(nuovoUrl); };
+          prova.src = nuovoUrl;
         })
         .catch(function () { /* riprova al giro dopo */ })
         .then(function () { fotoInCorso = false; });
     }
 
-    // Ogni 700 ms: la foto e' leggera (JPEG di bassa qualita', basta per
-    // capire cosa c'e' nei riquadri) e cosi' dopo un tocco si vede subito
-    // se ha preso. Ogni due secondi sembrava che non funzionasse.
+    // Ogni 450 ms: la foto e' leggera (JPEG di bassa qualita', basta per
+    // capire cosa c'e' nei riquadri) e cosi' scegliendo le immagini del
+    // CAPTCHA si vede subito quali si sono gia' prese. Con due secondi era
+    // praticamente impossibile.
     prendiFoto();
-    telecomandoTimer = setInterval(prendiFoto, 700);
+    telecomandoTimer = setInterval(prendiFoto, 450);
 
     img.onclick = function (e) {
       // dall'immagine ridimensionata a schermo alle coordinate vere della
@@ -1104,7 +1114,15 @@
         headers: { "X-Auth": token, "Content-Type": "application/json" },
         body: JSON.stringify({ x: x, y: y }),
       })
-        .then(function () { el("telecomandoStato").textContent = "Tocco inviato. L'immagine si aggiorna fra un istante."; })
+        .then(function () {
+          el("telecomandoStato").textContent = "Tocco inviato.";
+          // Foto subito, senza aspettare il giro: e' il momento in cui
+          // serve vedere se il riquadro si e' selezionato davvero. Il Mac
+          // applica il click al suo prossimo controllo, quindi si guarda
+          // anche poco dopo.
+          window.setTimeout(prendiFoto, 250);
+          window.setTimeout(prendiFoto, 700);
+        })
         .catch(function (err) { el("telecomandoStato").textContent = "Tocco non arrivato: " + err.message; });
     };
   }
