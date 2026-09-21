@@ -136,6 +136,27 @@ add('villa_quintili','Villa dei Quintili',['archeologia','insolito'],'Appia',41.
 add('cimitero_acattolico','Cimitero Acattolico e Piramide Cestia',['insolito','archeologia'],'Testaccio',41.8762,12.4800,0,3,1,45,'Il cimitero romantico di Keats e Shelley, all\'ombra di una piramide romana.')
 add('monte_testaccio','Monte dei Cocci',['archeologia','insolito'],'Testaccio',41.8757,12.4755,None,2,1,45,'Una collina fatta interamente di anfore rotte: la discarica di Roma antica.',True)
 
+# ---------- BLOCCO 7: quartieri da girare (importanza gia' in scala 1-10) ----------
+def add10(*args, **kw):
+    add(*args, **kw)
+    A[-1]['_imp10'] = True
+add10('trastevere','Trastevere',['quartiere'],'Trastevere',41.8890,12.4700,0,8,2,120,'Vicoli di sanpietrini, edera e trattorie: il quartiere più romano di Roma, al meglio la sera.',momento=['sera'])
+add10('monti','Rione Monti',['quartiere'],'Monti',41.8950,12.4930,0,7,2,90,'Il rione più antico, oggi pieno di botteghe vintage, artigiani e piazzette.',momento=['sera'])
+add10('testaccio','Testaccio e il suo mercato',['quartiere','mercato'],'Testaccio',41.8775,12.4765,0,6,2,90,'Il quartiere della cucina romana verace, col mercato coperto e lo street food.',momento=['mattina'])
+add10('via_margutta','Via Margutta',['quartiere','insolito'],'Spagna',41.9070,12.4790,0,5,1,20,'La via degli artisti e di "Vacanze romane", con botteghe e gallerie.')
+add10('piazza_mattei','Fontana delle Tartarughe',['fontana','insolito'],'Ghetto',41.8938,12.4776,0,5,1,10,'Piccola fontana rinascimentale in una piazzetta nascosta del Ghetto.')
+add10('garbatella','Garbatella',['quartiere','insolito'],'Garbatella',41.8620,12.4870,0,5,2,90,'Città giardino degli anni \'20: villini, cortili e lotti popolari da cartolina.')
+add10('pigneto','Pigneto',['quartiere','street_art'],'Pigneto',41.8890,12.5280,0,5,2,75,'Il quartiere di Pasolini, oggi murales, locali e vita notturna alternativa.',momento=['sera'])
+add10('via_giulia','Via Giulia',['quartiere'],'Campo de\' Fiori',41.8960,12.4690,0,4,1,30,'Strada rinascimentale dritta come un fuso, con palazzi nobiliari e l\'arco Farnese.')
+add10('piazza_farnese','Piazza Farnese',['piazza'],'Campo de\' Fiori',41.8948,12.4710,0,4,1,15,'Piazza elegante col palazzo di Michelangelo, oggi ambasciata di Francia.')
+add10('via_coronari','Via dei Coronari',['quartiere','shopping'],'Navona',41.9005,12.4705,0,4,1,30,'La via degli antiquari, a due passi da Piazza Navona.')
+add10('san_lorenzo_quartiere','San Lorenzo',['quartiere','street_art'],'San Lorenzo',41.8980,12.5150,0,4,2,60,'Il quartiere universitario, murales e locali. A pochi passi dalle nostre strutture.',momento=['sera'])
+add10('eur','EUR',['quartiere','architettura'],'EUR',41.8360,12.4690,0,4,2,120,'La città razionalista voluta per l\'Esposizione del 1942, col "Colosseo quadrato".')
+add10('ostiense_street_art','Ostiense e Gazometro',['street_art','insolito'],'Ostiense',41.8700,12.4790,0,4,2,60,'Archeologia industriale e grandi murales, dal Gazometro all\'ex Mercati Generali.')
+add10('tor_marancia','Tor Marancia – Big City Life',['street_art','insolito'],'Garbatella',41.8560,12.4930,0,4,1,45,'Ventidue palazzine popolari dipinte da street artist internazionali.')
+add10('governo_vecchio','Via del Governo Vecchio',['quartiere','shopping'],'Navona',41.8985,12.4705,0,3,1,20,'Negozi vintage e botteghe tra Navona e Chiesa Nuova.')
+add10('quadraro','Quadraro e il MURo',['street_art','insolito'],'Quadraro',41.8570,12.5580,0,3,2,75,'Museo di urban art a cielo aperto in un quartiere popolare della Resistenza.')
+
 # ---------- IMPORTANZA 1-10 ----------
 # conversione dalla vecchia scala 1-5 (5->9, 4->7, 3->5, 2->3), poi ritocchi manuali
 IMP10 = {
@@ -172,7 +193,9 @@ IMP10 = {
  'palazzaccio':2,'zodiaco':2,
 }
 for a in A:
-    a['imp'] = IMP10.get(a['id'], a['imp']*2-1)
+    if not a.get('_imp10'):
+        a['imp'] = IMP10.get(a['id'], a['imp']*2-1)
+    a.pop('_imp10', None)
 
 # ---------- MOMENTO IDEALE ----------
 # mattina = presto per caldo/folla; sera = dopo cena/illuminato; tramonto = ultima tappa del giorno
