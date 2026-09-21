@@ -373,6 +373,9 @@
   }
   .telecomando-piede { font-size: 12px; color: var(--muted); margin-top: 8px; min-height: 1.2em; }
   .risposte-azioni { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 8px; }
+  button.bottone.secondario { background: transparent; color: var(--accent); border: 1px solid var(--border); }
+  .nota-azioni { font-size: 12.5px; color: var(--muted); line-height: 1.5; margin: 12px 0 0; }
+  .nota-azioni strong { color: var(--ink); font-weight: 600; }
   .filtro-risposte {
     display: flex;
     align-items: center;
@@ -540,10 +543,14 @@
     <div id="risposteLista"></div>
     <div class="risposte-azioni">
       <button class="bottone-testo" id="btnMostraAltreRisposte" type="button" hidden>Mostra altre</button>
-      <button class="bottone" id="btnCaricaApprovate" type="button">Carica le approvate</button>
-      <button class="bottone" id="btnPubblicaBooking" type="button">Pubblica su Booking</button>
+      <button class="bottone secondario" id="btnCaricaApprovate" type="button" title="Mette da parte le bozze che hai spuntato, con le tue correzioni. Su Booking non va ancora niente.">Salva, senza pubblicare</button>
+      <button class="bottone" id="btnPubblicaBooking" type="button" title="Manda su Booking le bozze spuntate ora più tutte quelle già approvate in precedenza">Pubblica su Booking</button>
       <span class="aggiorna-stato" id="statoRisposte"></span>
     </div>
+    <p class="nota-azioni">
+      <strong>Salva, senza pubblicare</strong> mette da parte le bozze spuntate con le tue correzioni: le ritrovi come «approvate» anche se chiudi la pagina, ma su Booking non è andato niente.
+      <strong>Pubblica su Booking</strong> le manda davvero: prende quelle spuntate adesso <em>più</em> tutte quelle approvate prima. Se hai spuntato tutto quello che vuoi mandare, ti basta questo secondo tasto.
+    </p>
   </section>
 
   </div>
@@ -951,16 +958,33 @@
       .then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || "errore sconosciuto"); return j; }); });
   }
 
+  // Dopo un salvataggio NON si rilegge il file remoto: GitHub Pages ci mette
+  // un minuto buono a servire la versione nuova, quindi tornerebbero indietro
+  // i vecchi stati e "Pubblica su Booking" direbbe che non c'e' niente da
+  // pubblicare (successo davvero, segnalato da Filippo il 21/09/2026). Il Mac
+  // dice quali bozze ha approvato e la pagina se le segna da sola.
+  function segnaApprovate(idApprovati, approvazioni) {
+    if (!idApprovati || !idApprovati.length) return;
+    var testi = {};
+    approvazioni.forEach(function (a) { testi[a.id] = a.rispostaFinale; });
+    bozzeStruttura().forEach(function (b) {
+      if (idApprovati.indexOf(b.id) < 0) return;
+      b.stato = "approvata";
+      if (testi[b.id]) b.rispostaFinale = testi[b.id];
+    });
+    renderRisposte();
+  }
+
   el("btnCaricaApprovate").addEventListener("click", function () {
     var approvazioni = spuntateInPagina();
-    if (!approvazioni.length) { el("statoRisposte").textContent = "Nessuna bozza spuntata."; return; }
+    if (!approvazioni.length) { el("statoRisposte").textContent = "Non hai spuntato nessuna bozza."; return; }
     var token = chiediToken();
     if (!token) return;
     el("statoRisposte").textContent = "Salvataggio in corso...";
     salvaSpuntate(token, approvazioni)
       .then(function (j) {
-        el("statoRisposte").textContent = j.aggiornate + " bozze salvate. " + (j.nota || "");
-        return caricaDati();
+        segnaApprovate(j.idApprovati, approvazioni);
+        el("statoRisposte").textContent = "✅ " + j.aggiornate + " approvate e salvate. Su Booking non è ancora andato niente: per farlo premi «Pubblica su Booking».";
       })
       .catch(function (e) { el("statoRisposte").textContent = "Non riuscito: " + e.message; });
   });
@@ -989,7 +1013,8 @@
       : Promise.resolve(null);
 
     preparazione
-      .then(function () {
+      .then(function (j) {
+        if (j) segnaApprovate(j.idApprovati, daSalvare);
         el("statoRisposte").textContent = "Pubblicazione in corso: si apre Chrome sul Mac, può volerci qualche minuto...";
         return fetch("https://recensioni-worker.f-castiglioni.workers.dev/invia?property=" + encodeURIComponent(proprietaAttiva), {
           method: "POST",
@@ -1013,8 +1038,15 @@
         var esito = j.inviate + (j.inviate === 1 ? " risposta pubblicata" : " risposte pubblicate") + " su Booking." +
           (saltate ? "\n\n" + saltate + " non sono state trovate nell'elenco: di solito significa che erano già state risposte." : "");
         el("statoRisposte").textContent = "✅ " + j.inviate + " pubblicate" + (saltate ? ", " + saltate + " saltate" : "") + ".";
+        // Stessa ragione del salvataggio: il file remoto arriva con un
+        // minuto di ritardo, quindi si segnano qui quelle appena partite.
+        if (j.idInviati && j.idInviati.length) {
+          bozzeStruttura().forEach(function (b) {
+            if (j.idInviati.indexOf(b.id) >= 0) b.stato = "inviata";
+          });
+          renderRisposte();
+        }
         window.alert(esito);
-        return caricaDati();
       })
       .catch(function (e) {
         btn.disabled = false;
