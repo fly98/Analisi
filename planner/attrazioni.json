@@ -23,7 +23,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": true,
-   "esterno": null
+   "esterno": null,
+   "foto": null
   },
   {
    "id": "cappuccini",
@@ -48,7 +49,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0d/Rom%2C_die_Kirche_Convento_dei_Cappuccini.JPG/250px-Rom%2C_die_Kirche_Convento_dei_Cappuccini.JPG?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "montemartini",
@@ -74,7 +76,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/9e/Le_mus%C3%A9e_de_la_centrale_Montemartini_%28Rome%29_%2834321364485%29.jpg/250px-Le_mus%C3%A9e_de_la_centrale_Montemartini_%28Rome%29_%2834321364485%29.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "serra_moresca",
@@ -99,7 +102,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/04/Villa_Torlonia_01304.JPG/250px-Villa_Torlonia_01304.JPG?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "museo_luce",
@@ -124,7 +128,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": true,
-   "esterno": null
+   "esterno": null,
+   "foto": null
   },
   {
    "id": "welcome_rome",
@@ -149,7 +154,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": true,
-   "esterno": null
+   "esterno": null,
+   "foto": null
   },
   {
    "id": "barracco",
@@ -174,7 +180,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/cc/Palazzetto_Le_Roy_Rome.jpg/250px-Palazzetto_Le_Roy_Rome.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "museo_mura",
@@ -199,7 +206,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5d/Celio_-_Porta_san_Sebastiano_-_museo_-_torre_al_piano_1_1984st.JPG/250px-Celio_-_Porta_san_Sebastiano_-_museo_-_torre_al_piano_1_1984st.JPG?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "lab_mente",
@@ -224,7 +232,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": true,
-   "esterno": null
+   "esterno": null,
+   "foto": null
   },
   {
    "id": "anime_purgatorio",
@@ -249,7 +258,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/60/Rome_%2829312046%29.jpg/250px-Rome_%2829312046%29.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "buco_serratura",
@@ -274,7 +284,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/39/Aventino_s_Maria_del_Priorato_villa_dal_giardino_1050419.JPG/250px-Aventino_s_Maria_del_Priorato_villa_dal_giardino_1050419.JPG?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "coppede",
@@ -299,7 +310,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a2/Quartiere_Copped%C3%A9_09.jpg/250px-Quartiere_Copped%C3%A9_09.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "palazzo_valentini",
@@ -324,7 +336,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0d/Palazzo_Valentini_in_Rome.jpg/250px-Palazzo_Valentini_in_Rome.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "case_celio",
@@ -349,7 +362,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/ef/Celio_-_Clivo_di_Scauro_-_la_casa_romana_ingresso_1765.JPG/250px-Celio_-_Clivo_di_Scauro_-_la_casa_romana_ingresso_1765.JPG?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "galleria_spada",
@@ -374,7 +388,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/03/Borromini_spada.jpg/250px-Borromini_spada.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "galleria_sciarra",
@@ -398,7 +413,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/27/Galleria_Sciarra.jpg/250px-Galleria_Sciarra.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "maxxi",
@@ -422,7 +438,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2b/MAXXI_Museum_interior_05.JPG/250px-MAXXI_Museum_interior_05.JPG?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "dreamers",
@@ -447,7 +464,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": true,
-   "esterno": null
+   "esterno": null,
+   "foto": null
   },
   {
    "id": "ikono",
@@ -472,7 +490,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": true,
-   "esterno": null
+   "esterno": null,
+   "foto": null
   },
   {
    "id": "time_elevator",
@@ -497,7 +516,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": true,
-   "esterno": null
+   "esterno": null,
+   "foto": null
   },
   {
    "id": "colosseo",
@@ -526,7 +546,8 @@
     "durata": 30,
     "desc": "Il Colosseo da fuori, con l'Arco di Costantino e la vista sul Foro. Ingresso non incluso.",
     "nome": null
-   }
+   },
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/de/Colosseo_2020.jpg/250px-Colosseo_2020.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "pantheon",
@@ -556,7 +577,8 @@
     "durata": 15,
     "desc": "La facciata del Pantheon e Piazza della Rotonda con la fontana. Ingresso non incluso.",
     "nome": null
-   }
+   },
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/7b/Pantheon_%28Rome%29_-_Right_side_and_front.jpg/250px-Pantheon_%28Rome%29_-_Right_side_and_front.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "trevi",
@@ -581,7 +603,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c7/Trevi_Fountain_-_Roma.jpg/250px-Trevi_Fountain_-_Roma.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "navona",
@@ -606,7 +629,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/18/Paolo_Monti_-_Servizio_fotografico_%28Roma%2C_1966%29_-_BEIC_6329173.jpg/250px-Paolo_Monti_-_Servizio_fotografico_%28Roma%2C_1966%29_-_BEIC_6329173.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "spagna",
@@ -630,7 +654,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/29/Piazza_di_Spagna_2018.jpg/250px-Piazza_di_Spagna_2018.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "capitolini",
@@ -660,7 +685,8 @@
     "durata": 25,
     "desc": "Piazza del Campidoglio di Michelangelo e la terrazza gratuita sul Foro Romano.",
     "nome": "Piazza del Campidoglio e terrazza sul Foro"
-   }
+   },
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0a/Capitolio9.jpg/250px-Capitolio9.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "castel_santangelo",
@@ -690,7 +716,8 @@
     "durata": 20,
     "desc": "Il castello visto dal Ponte degli Angeli e dal lungotevere. Ingresso non incluso.",
     "nome": null
-   }
+   },
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/57/Castel_Sant%27Angelo_at_Night.jpg/250px-Castel_Sant%27Angelo_at_Night.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "vittoriano",
@@ -715,7 +742,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/03/Altare_della_Patria_%28Roma%29.jpg/250px-Altare_della_Patria_%28Roma%29.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "fori_imperiali",
@@ -740,7 +768,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d6/063ViaForiImperiali.jpg/250px-063ViaForiImperiali.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "ghetto",
@@ -764,7 +793,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/7e/Roma_Rione_Sant_Angelo_Sinagoga_vista_dal_teatro_Marcello.jpg/250px-Roma_Rione_Sant_Angelo_Sinagoga_vista_dal_teatro_Marcello.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "popolo",
@@ -788,7 +818,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6c/Piazza_del_Popolo%2C_Roma_%28Rome%29.jpg/250px-Piazza_del_Popolo%2C_Roma_%28Rome%29.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "campo_fiori",
@@ -814,7 +845,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/1f/Il_Valle_delle_Rose_....JPG/250px-Il_Valle_delle_Rose_....JPG?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "bocca_verita",
@@ -843,7 +875,8 @@
     "durata": 10,
     "desc": "La Bocca della Verità si vede dal cancello del portico, anche senza entrare.",
     "nome": "Bocca della Verità (dal portico)"
-   }
+   },
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/7b/Et%C3%A0_imperiale%2C_chiusino_a_forma_di_mascherone_di_divinit%C3%A0_fluviale%2C_detta_bocca_della_verit%C3%A0%2C_collocata_qui_nel_1632.jpg/250px-Et%C3%A0_imperiale%2C_chiusino_a_forma_di_mascherone_di_divinit%C3%A0_fluviale%2C_detta_bocca_della_verit%C3%A0%2C_collocata_qui_nel_1632.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "torre_argentina",
@@ -867,7 +900,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4b/Area_sacra_Torre_Argentina_2006.jpg/250px-Area_sacra_Torre_Argentina_2006.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "teatro_marcello",
@@ -891,7 +925,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a2/Teatro_di_Marcello_intero.jpg/250px-Teatro_di_Marcello_intero.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "isola_tiberina",
@@ -915,7 +950,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/02/Isola_Tiberina_2014.JPG/250px-Isola_Tiberina_2014.JPG?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "circo_massimo",
@@ -940,7 +976,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2c/Circus_Maximus_%E2%80%A2_Circo_Massimo_%2846813512141%29.jpg/250px-Circus_Maximus_%E2%80%A2_Circo_Massimo_%2846813512141%29.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "ara_pacis",
@@ -970,7 +1007,8 @@
     "durata": 10,
     "desc": "L'altare di Augusto visto attraverso la teca di vetro di Richard Meier.",
     "nome": null
-   }
+   },
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3c/Ara_Pacis_%28SW%29.jpg/250px-Ara_Pacis_%28SW%29.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "musei_vaticani",
@@ -994,7 +1032,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/82/Sistina-interno.jpg/250px-Sistina-interno.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "san_pietro",
@@ -1018,7 +1057,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f5/Basilica_di_San_Pietro_in_Vaticano_September_2015-1a.jpg/250px-Basilica_di_San_Pietro_in_Vaticano_September_2015-1a.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "piazza_san_pietro",
@@ -1042,7 +1082,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/74/Rome%2C_Vatican%2C_Italy%2C_Saint_Peter%27s_Square_as_seen_from_Michelangelo_dome.jpg/250px-Rome%2C_Vatican%2C_Italy%2C_Saint_Peter%27s_Square_as_seen_from_Michelangelo_dome.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "cupola",
@@ -1067,7 +1108,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e3/Dome_of_S.Peter_in_night.jpg/250px-Dome_of_S.Peter_in_night.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "grotte_vaticane",
@@ -1091,7 +1133,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": null
   },
   {
    "id": "necropoli",
@@ -1116,7 +1159,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": true,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d7/Vatican_Necropolis_01.jpg/250px-Vatican_Necropolis_01.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "giardini_vaticani",
@@ -1140,7 +1184,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/23/Vatikanische_Gaerten_Museen_Rom.jpg/250px-Vatikanische_Gaerten_Museen_Rom.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "ponte_santangelo",
@@ -1164,7 +1209,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/88/Roma_-_Ponte_s._Angelo.jpg/250px-Roma_-_Ponte_s._Angelo.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "borgo_pio",
@@ -1188,7 +1234,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6f/Passetto_di_Borgo_from_Castel_Sant%27Angelo_01.jpg/250px-Passetto_di_Borgo_from_Castel_Sant%27Angelo_01.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "prati",
@@ -1213,7 +1260,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/ed/Mercato_dell%27_Unit%C3%A0_-_Via_Cola_di_Rienzo_-_Roma.jpg/250px-Mercato_dell%27_Unit%C3%A0_-_Via_Cola_di_Rienzo_-_Roma.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
   },
   {
    "id": "palazzaccio",
@@ -1237,7 +1285,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a0/Roma_2011_08_07_Palazzo_di_Giustizia.jpg/250px-Roma_2011_08_07_Palazzo_di_Giustizia.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "laterano",
@@ -1261,7 +1310,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5f/San_Giovanni_in_Laterano_2021.jpg/250px-San_Giovanni_in_Laterano_2021.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "santa_maria_maggiore",
@@ -1285,7 +1335,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/84/Basilica_di_Santa_Maria_Maggiore_-_Roma.jpg/250px-Basilica_di_Santa_Maria_Maggiore_-_Roma.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "san_paolo",
@@ -1309,7 +1360,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c0/StPaul.jpg/250px-StPaul.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "vincoli",
@@ -1333,7 +1385,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/74/San_Pietro_in_Vincoli_-_esterno.jpg/250px-San_Pietro_in_Vincoli_-_esterno.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "san_clemente",
@@ -1359,7 +1412,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/cb/Basilica_di_San_Clemente_al_Laterano_-_esterno.jpg/250px-Basilica_di_San_Clemente_al_Laterano_-_esterno.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "santa_maria_trastevere",
@@ -1383,7 +1437,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/63/01_Santa_Maria_in_Trastevere_Facade.jpg/250px-01_Santa_Maria_in_Trastevere_Facade.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "san_luigi",
@@ -1408,7 +1463,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/66/San_Luigi_dei_Francesi_-_facciata.jpg/250px-San_Luigi_dei_Francesi_-_facciata.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "sant_ignazio",
@@ -1433,7 +1489,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/76/Church_of_Sant%27Ignazio_di_Loyola.jpg/250px-Church_of_Sant%27Ignazio_di_Loyola.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "santa_maria_popolo",
@@ -1458,7 +1515,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2e/Roma%2C_basilica_di_Santa_Maria_del_Popolo_-_Esterno.jpg/250px-Roma%2C_basilica_di_Santa_Maria_del_Popolo_-_Esterno.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "gesu",
@@ -1482,7 +1540,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a6/Jesus_Church.jpg/250px-Jesus_Church.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "minerva",
@@ -1506,7 +1565,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6c/Santa_Maria_sopra_Minerva.jpg/250px-Santa_Maria_sopra_Minerva.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "scala_santa",
@@ -1531,7 +1591,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/8f/Rom%2C_die_Heilige_Treppe.JPG/250px-Rom%2C_die_Heilige_Treppe.JPG?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "vittoria",
@@ -1556,7 +1617,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/9a/Santa_Maria_della_Vittoria_in_Rome_-_Front.jpg/250px-Santa_Maria_della_Vittoria_in_Rome_-_Front.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "sant_agostino",
@@ -1581,7 +1643,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/28/Sant%27_Agostino_-_esterno.jpg/250px-Sant%27_Agostino_-_esterno.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "aracoeli",
@@ -1606,7 +1669,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3c/Santa_Maria_in_Aracoeli_%28Rome%29_-_Facade.jpg/250px-Santa_Maria_in_Aracoeli_%28Rome%29_-_Facade.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "santa_cecilia",
@@ -1630,7 +1694,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/01/Santa_Cecilia_in_Trastevere_Facade.jpg/250px-Santa_Cecilia_in_Trastevere_Facade.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "santa_prassede",
@@ -1655,7 +1720,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6c/Santa_Prassede_Fa%C3%A7ade.jpg/250px-Santa_Prassede_Fa%C3%A7ade.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "quattro_fontane",
@@ -1680,7 +1746,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/80/San_Carlo_alle_Quattro_Fontane_-_Front.jpg/250px-San_Carlo_alle_Quattro_Fontane_-_Front.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "sant_andrea_quirinale",
@@ -1705,7 +1772,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/15/Sant%27Andrea_al_Quirinale.jpg/250px-Sant%27Andrea_al_Quirinale.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "santo_stefano_rotondo",
@@ -1730,7 +1798,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/87/Santo_Stefano_Rotondo_-_esterno.jpg/250px-Santo_Stefano_Rotondo_-_esterno.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "quattro_coronati",
@@ -1755,7 +1824,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": true,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e0/FirenzeOrsanmichele03.jpg/250px-FirenzeOrsanmichele03.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "santa_sabina",
@@ -1779,7 +1849,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/80/Santa_Sabina_%28Rome%29_-_Esterno.jpg/250px-Santa_Sabina_%28Rome%29_-_Esterno.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "tempietto_bramante",
@@ -1804,7 +1875,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/01/Tempietto_di_San_Pietro_in_Montorio.jpg/250px-Tempietto_di_San_Pietro_in_Montorio.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "santa_maria_angeli",
@@ -1829,7 +1901,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/16/Santa_Maria_degli_Angeli_%28Rome%29_-_Facade.jpg/250px-Santa_Maria_degli_Angeli_%28Rome%29_-_Facade.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "sant_ivo",
@@ -1854,7 +1927,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/44/Sant%27Ivo_alla_Sapienza_-Rome.jpg/250px-Sant%27Ivo_alla_Sapienza_-Rome.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "san_lorenzo",
@@ -1878,7 +1952,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c9/Basilica_of_Saint_Lawrence_outside_the_Walls.jpg/250px-Basilica_of_Saint_Lawrence_outside_the_Walls.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "santa_costanza",
@@ -1903,7 +1978,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/94/Mausoleo_di_Santa_Costanza_-_esterno.jpg/250px-Mausoleo_di_Santa_Costanza_-_esterno.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "chiostro_bramante",
@@ -1928,7 +2004,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": true,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/ea/Santa_maria_della_pace%2C_chiostro_del_bramante_04.JPG/250px-Santa_maria_della_pace%2C_chiostro_del_bramante_04.JPG?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "cosma_damiano",
@@ -1953,7 +2030,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d4/DSC06842-Saints_Cosmas_and_Damian_inside.jpg/250px-DSC06842-Saints_Cosmas_and_Damian_inside.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "galleria_borghese",
@@ -1978,7 +2056,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5d/Galleria_borghese_facade.jpg/250px-Galleria_borghese_facade.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
   },
   {
    "id": "villa_borghese",
@@ -2002,7 +2081,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f9/Ingresso_monumentale_di_Villa_Borghese_a_Roma_su_piazzale_Flaminio_2018-02.jpg/250px-Ingresso_monumentale_di_Villa_Borghese_a_Roma_su_piazzale_Flaminio_2018-02.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "pincio",
@@ -2027,7 +2107,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/7c/Arcata_terrazza_del_pincio.JPG/250px-Arcata_terrazza_del_pincio.JPG?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "giardino_aranci",
@@ -2052,7 +2133,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/ce/Giardino_degli_Aranci.JPG/250px-Giardino_degli_Aranci.JPG?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "gianicolo",
@@ -2077,7 +2159,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/66/Janiculum.jpg/250px-Janiculum.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "fontanone",
@@ -2102,7 +2185,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2c/Fontanone_dell%27Acqua_Paola.jpg/250px-Fontanone_dell%27Acqua_Paola.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "terrazza_caffarelli",
@@ -2126,7 +2210,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2d/Palazzo_Caffarelli_-_22-11-2019.jpg/250px-Palazzo_Caffarelli_-_22-11-2019.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "parco_acquedotti",
@@ -2151,7 +2236,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/da/The_park_of_the_aqueducts.jpg/250px-The_park_of_the_aqueducts.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "appia_antica",
@@ -2177,7 +2263,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/cd/Appian_Way.jpg/250px-Appian_Way.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "villa_doria_pamphilj",
@@ -2201,7 +2288,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b3/Villa_Doria_Pamphilj_in_Rom.jpg/250px-Villa_Doria_Pamphilj_in_Rom.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "villa_torlonia",
@@ -2226,7 +2314,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/04/Villa_Torlonia_01304.JPG/250px-Villa_Torlonia_01304.JPG?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "roseto",
@@ -2250,7 +2339,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d6/RomaRosetoComunale01.JPG/250px-RomaRosetoComunale01.JPG?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "villa_celimontana",
@@ -2274,7 +2364,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/12/Villa_Celimontana_142.jpg/250px-Villa_Celimontana_142.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "villa_sciarra",
@@ -2299,7 +2390,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/22/VillaSciarraFountain.JPG/250px-VillaSciarraFountain.JPG?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "villa_ada",
@@ -2323,7 +2415,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/1e/Villa_Ada_%28Roma%29.JPG/250px-Villa_Ada_%28Roma%29.JPG?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "caffarella",
@@ -2347,7 +2440,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f0/CAFFARELLA163861.jpg/250px-CAFFARELLA163861.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "orto_botanico",
@@ -2371,7 +2465,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": true,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/28/Orto_botanico_-_ingresso_2704.JPG/250px-Orto_botanico_-_ingresso_2704.JPG?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "bioparco",
@@ -2396,7 +2491,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f8/Ingresso_bioparco_2.JPG/250px-Ingresso_bioparco_2.JPG?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "villa_medici",
@@ -2421,7 +2517,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/1b/Villa_Medici_-_fronte.jpg/250px-Villa_Medici_-_fronte.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "zodiaco",
@@ -2445,7 +2542,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6f/Roma-monte_mario.jpg/250px-Roma-monte_mario.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "domus_aurea",
@@ -2470,7 +2568,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/13/Oculus_of_Octagonal_Room%2C_Domus_Aurea_%2843004369972%29.jpg/250px-Oculus_of_Octagonal_Room%2C_Domus_Aurea_%2843004369972%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
   },
   {
    "id": "colosseo_sotterranei",
@@ -2495,7 +2594,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/de/Colosseo_2020.jpg/250px-Colosseo_2020.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "caracalla",
@@ -2524,7 +2624,8 @@
     "durata": 15,
     "desc": "Le rovine imponenti delle terme viste dal viale. Ingresso non incluso.",
     "nome": null
-   }
+   },
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/53/Baths_of_Caracalla%2C_facing_Caldarium.jpg/250px-Baths_of_Caracalla%2C_facing_Caldarium.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "ostia_antica",
@@ -2548,7 +2649,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2c/La_place_des_corporations_%28Ostia_Antica%29_%285900530118%29.jpg/250px-La_place_des_corporations_%28Ostia_Antica%29_%285900530118%29.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "palazzo_massimo",
@@ -2573,7 +2675,8 @@
    "gruppo": "mnr",
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6f/Palais_Massimo_Thermes_-_Rome_%28IT62%29_-_2021-08-25_-_1.jpg/250px-Palais_Massimo_Thermes_-_Rome_%28IT62%29_-_2021-08-25_-_1.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "terme_diocleziano",
@@ -2598,7 +2701,8 @@
    "gruppo": "mnr",
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/1d/Baths_of_Diocletian-Antmoose1.jpg/250px-Baths_of_Diocletian-Antmoose1.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "palazzo_altemps",
@@ -2623,7 +2727,8 @@
    "gruppo": "mnr",
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/73/Roma_2011_08_07_Palazzo_Altemps.jpg/250px-Roma_2011_08_07_Palazzo_Altemps.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "crypta_balbi",
@@ -2648,7 +2753,8 @@
    "gruppo": null,
    "chiuso": true,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/72/Pigna-s_Angelo_-_via_delle_Botteghe_oscure_-_crypta_Balbi_00738.JPG/250px-Pigna-s_Angelo_-_via_delle_Botteghe_oscure_-_crypta_Balbi_00738.JPG?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "mercati_traiano",
@@ -2674,7 +2780,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/98/Mercati_di_Traiano_-_Roma.jpg/250px-Mercati_di_Traiano_-_Roma.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "carcere_mamertino",
@@ -2699,7 +2806,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/95/San_Giuseppe_dei_Falegnami_%28Roma%29_-_Facciata_%28Mamertinum%29.jpg/250px-San_Giuseppe_dei_Falegnami_%28Roma%29_-_Facciata_%28Mamertinum%29.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "stadio_domiziano",
@@ -2724,7 +2832,8 @@
    "gruppo": null,
    "chiuso": true,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/26/Parione_-_Stadio_di_Domiziano_1120143.JPG/250px-Parione_-_Stadio_di_Domiziano_1120143.JPG?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "vicus_caprarius",
@@ -2749,7 +2858,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": null
   },
   {
    "id": "mausoleo_augusto",
@@ -2778,7 +2888,8 @@
     "durata": 10,
     "desc": "La tomba circolare di Augusto vista dalla piazza.",
     "nome": null
-   }
+   },
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/cf/Photographs_of_the_Mausoleum_of_Augustus_14_%28cropped%29.jpg/250px-Photographs_of_the_Mausoleum_of_Augustus_14_%28cropped%29.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "san_callisto",
@@ -2803,7 +2914,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/08/Catacombe.jpg/250px-Catacombe.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "domitilla",
@@ -2828,7 +2940,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/55/Catacombs_of_Domitila_-_Rome_2016.jpg/250px-Catacombs_of_Domitila_-_Rome_2016.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "san_sebastiano",
@@ -2853,7 +2966,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3c/Catacombs_S._Sebastiano_Rome1.jpg/250px-Catacombs_S._Sebastiano_Rome1.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "priscilla",
@@ -2878,7 +2992,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c6/Good_shepherd_01_small.jpg/250px-Good_shepherd_01_small.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "cecilia_metella",
@@ -2902,7 +3017,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/84/Cecilia_metella_e_castrum.JPG/250px-Cecilia_metella_e_castrum.JPG?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "villa_quintili",
@@ -2927,7 +3043,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/ae/Villa_dei_Quintili_panoramica.jpg/250px-Villa_dei_Quintili_panoramica.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "cimitero_acattolico",
@@ -2952,7 +3069,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/9e/Piramide_Cestia.jpg/250px-Piramide_Cestia.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "monte_testaccio",
@@ -2977,7 +3095,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": true,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2c/Testaccio_monte_dei_cocci_051204-12-13.JPG/250px-Testaccio_monte_dei_cocci_051204-12-13.JPG?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "trastevere",
@@ -3001,7 +3120,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a2/Piazza_di_Santa_Maria_in_Trastevere_2_%2815172097993%29.jpg/250px-Piazza_di_Santa_Maria_in_Trastevere_2_%2815172097993%29.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "monti",
@@ -3025,7 +3145,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c7/Piazza_Madonna_dei_Monti_-_La_fontana.JPG/250px-Piazza_Madonna_dei_Monti_-_La_fontana.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
   },
   {
    "id": "testaccio",
@@ -3050,7 +3171,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/8a/Porta_San_Paolo_-_Piramid_Cestius.JPG/250px-Porta_San_Paolo_-_Piramid_Cestius.JPG?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "via_margutta",
@@ -3075,7 +3197,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/ca/03_Margutta.JPG/250px-03_Margutta.JPG?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "piazza_mattei",
@@ -3100,7 +3223,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/12/The_Turtle_Fountain.jpg/250px-The_Turtle_Fountain.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "garbatella",
@@ -3125,7 +3249,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/92/Roma_Garbatella_teatro_Palladium.jpg/250px-Roma_Garbatella_teatro_Palladium.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "pigneto",
@@ -3150,7 +3275,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/82/Q19_-_s_Elena_fuori_porta_Prenestina_1000932.JPG/250px-Q19_-_s_Elena_fuori_porta_Prenestina_1000932.JPG?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "via_giulia",
@@ -3174,7 +3300,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/8f/Farnese_Arch_Rome.jpg/250px-Farnese_Arch_Rome.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "piazza_farnese",
@@ -3198,7 +3325,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/ca/Piazza_Farnese_Rome.jpg/250px-Piazza_Farnese_Rome.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "via_coronari",
@@ -3223,7 +3351,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/43/Via_dei_Coronari_da_Piazza_San_Simeone.jpg/250px-Via_dei_Coronari_da_Piazza_San_Simeone.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "san_lorenzo_quartiere",
@@ -3248,7 +3377,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/52/Rom_2011-08-by-RaBoe-22.jpg/250px-Rom_2011-08-by-RaBoe-22.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "eur",
@@ -3273,7 +3403,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/88/PALACIVILTA888.jpg/250px-PALACIVILTA888.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "ostiense_street_art",
@@ -3298,7 +3429,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d7/Gazometro_%28Rome%29.jpg/250px-Gazometro_%28Rome%29.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "tor_marancia",
@@ -3323,7 +3455,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/06/Tormarancia.jpg/250px-Tormarancia.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "governo_vecchio",
@@ -3348,7 +3481,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": null
   },
   {
    "id": "quadraro",
@@ -3373,7 +3507,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": null
   },
   {
    "id": "porta_portese",
@@ -3398,7 +3533,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5e/DSC08090_Portese_Door.jpg/250px-DSC08090_Portese_Door.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "mercato_centrale",
@@ -3423,7 +3559,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": null
   },
   {
    "id": "mercato_trionfale",
@@ -3448,7 +3585,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": null
   },
   {
    "id": "campagna_amica",
@@ -3473,7 +3611,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2c/Circus_Maximus_%E2%80%A2_Circo_Massimo_%2846813512141%29.jpg/250px-Circus_Maximus_%E2%80%A2_Circo_Massimo_%2846813512141%29.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "cooking_class",
@@ -3498,7 +3637,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": true,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/93/Spaghetti_alla_Carbonara.jpg/250px-Spaghetti_alla_Carbonara.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "food_tour",
@@ -3523,7 +3663,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": true,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/bb/Suppl%C3%AC_al_telefono.jpg/250px-Suppl%C3%AC_al_telefono.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "vespa_tour",
@@ -3548,7 +3689,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": true,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b8/PerthVespa.jpg/250px-PerthVespa.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "golf_cart",
@@ -3572,7 +3714,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": true,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/8e/Yamaha_Drive_2_golf_car.jpg/250px-Yamaha_Drive_2_golf_car.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "bici_appia",
@@ -3598,7 +3741,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": true,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/cd/Appian_Way.jpg/250px-Appian_Way.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "crociera_tevere",
@@ -3622,7 +3766,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": true,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/88/Roma_-_Ponte_s._Angelo.jpg/250px-Roma_-_Ponte_s._Angelo.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "cinecitta",
@@ -3647,7 +3792,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": false,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/66/Cinecitt%C3%A0_-_Entrance.jpg/250px-Cinecitt%C3%A0_-_Entrance.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "explora",
@@ -3672,7 +3818,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": true,
-   "esterno": null
+   "esterno": null,
+   "foto": null
   },
   {
    "id": "opera_caracalla",
@@ -3697,7 +3844,8 @@
    "gruppo": null,
    "chiuso": false,
    "indicativo": true,
-   "esterno": null
+   "esterno": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/53/Baths_of_Caracalla%2C_facing_Caldarium.jpg/250px-Baths_of_Caracalla%2C_facing_Caldarium.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   }
  ],
  "gite": [
@@ -3719,7 +3867,8 @@
    "lat": 41.9627,
    "lon": 12.7964,
    "verifica": true,
-   "note": "Chiusa il lunedì mattina"
+   "note": "Chiusa il lunedì mattina",
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/9e/Villa_Deste_park_Rometta_2011_2.jpg/250px-Villa_Deste_park_Rometta_2011_2.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "pompei",
@@ -3737,7 +3886,8 @@
    "lat": 40.7489,
    "lon": 14.4849,
    "verifica": true,
-   "note": null
+   "note": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f5/Aerial_image_of_Pompeii_and_Mount_Vesuvius_%28view_from_the_southeast%29.jpg/250px-Aerial_image_of_Pompeii_and_Mount_Vesuvius_%28view_from_the_southeast%29.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "firenze",
@@ -3758,7 +3908,8 @@
    "lat": 43.7731,
    "lon": 11.256,
    "verifica": true,
-   "note": null
+   "note": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/7c/Florence_Collage.png/250px-Florence_Collage.png?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "orvieto",
@@ -3778,7 +3929,8 @@
    "lat": 42.7185,
    "lon": 12.1107,
    "verifica": true,
-   "note": null
+   "note": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/05/Panorama_di_Orvieto.jpg/250px-Panorama_di_Orvieto.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "napoli",
@@ -3799,7 +3951,8 @@
    "lat": 40.8518,
    "lon": 14.2681,
    "verifica": true,
-   "note": null
+   "note": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/88/Napoli_-_Maschio_Angioino_-_202209302342_3.jpg/250px-Napoli_-_Maschio_Angioino_-_202209302342_3.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "castelli",
@@ -3820,7 +3973,8 @@
    "lat": 41.808,
    "lon": 12.68,
    "verifica": true,
-   "note": "Il Palazzo Papale di Castel Gandolfo è a pagamento"
+   "note": "Il Palazzo Papale di Castel Gandolfo è a pagamento",
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/63/Panorama_di_Frascati.jpg/250px-Panorama_di_Frascati.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "tuscia",
@@ -3839,7 +3993,8 @@
    "lat": 42.6275,
    "lon": 12.0925,
    "verifica": true,
-   "note": null
+   "note": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4a/Civita_%28Bagnoregio%29_-_Panorama.jpg/250px-Civita_%28Bagnoregio%29_-_Panorama.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "assisi",
@@ -3858,7 +4013,8 @@
    "lat": 43.0707,
    "lon": 12.6196,
    "verifica": true,
-   "note": null
+   "note": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c4/AssisiDec122023_03.jpg/250px-AssisiDec122023_03.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "cerveteri",
@@ -3877,7 +4033,8 @@
    "lat": 42.007,
    "lon": 12.107,
    "verifica": true,
-   "note": null
+   "note": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/ae/Cerveteri%2C_necropoli_della_banditaccia%2C_via_sepolcrale_principale%2C_01.jpg/250px-Cerveteri%2C_necropoli_della_banditaccia%2C_via_sepolcrale_principale%2C_01.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "tarquinia",
@@ -3896,7 +4053,8 @@
    "lat": 42.2485,
    "lon": 11.765,
    "verifica": true,
-   "note": null
+   "note": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/92/Danseurs_et_musiciens%2C_tombe_des_l%C3%A9opards.jpg/250px-Danseurs_et_musiciens%2C_tombe_des_l%C3%A9opards.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "ninfa",
@@ -3915,7 +4073,8 @@
    "lat": 41.5881,
    "lon": 12.954,
    "verifica": true,
-   "note": "Apertura stagionale, da aprile a novembre"
+   "note": "Apertura stagionale, da aprile a novembre",
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c5/Castello_di_ninfa_e_giardino.jpg/250px-Castello_di_ninfa_e_giardino.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "sperlonga",
@@ -3935,7 +4094,8 @@
    "lat": 41.259,
    "lon": 13.427,
    "verifica": true,
-   "note": "Consigliata da giugno a settembre"
+   "note": "Consigliata da giugno a settembre",
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/50/Sperlonga_dalla_via_flacca_venendo_da_gaeta_-_panoramio.jpg/250px-Sperlonga_dalla_via_flacca_venendo_da_gaeta_-_panoramio.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "viterbo",
@@ -3956,7 +4116,8 @@
    "lat": 42.4168,
    "lon": 12.105,
    "verifica": true,
-   "note": null
+   "note": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a7/Montefiascone_Vista_aerea.JPG/250px-Montefiascone_Vista_aerea.JPG?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "bracciano",
@@ -3975,7 +4136,8 @@
    "lat": 42.103,
    "lon": 12.175,
    "verifica": true,
-   "note": null
+   "note": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/49/Castel_Orsini-Odescalchi_%28Bracciano%29.jpg/250px-Castel_Orsini-Odescalchi_%28Bracciano%29.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "subiaco",
@@ -3994,7 +4156,8 @@
    "lat": 41.925,
    "lon": 13.093,
    "verifica": true,
-   "note": null
+   "note": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/11/Subiaco_02.jpg/250px-Subiaco_02.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "montecassino",
@@ -4013,7 +4176,8 @@
    "lat": 41.49,
    "lon": 13.814,
    "verifica": true,
-   "note": null
+   "note": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b5/MonteCassino_Abbey.jpg/250px-MonteCassino_Abbey.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   },
   {
    "id": "mare_ostia",
@@ -4031,7 +4195,8 @@
    "lat": 41.729,
    "lon": 12.278,
    "verifica": false,
-   "note": null
+   "note": null,
+   "foto": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/00/Ostia.jpg/250px-Ostia.jpg?utm_source=it.wikipedia.org&utm_campaign=api&utm_content=thumbnail"
   }
  ],
  "serata": [
