@@ -313,6 +313,36 @@ gita('mare_ostia','Mare a Ostia',['spiaggia'],'treno',40,3,0,3,1,
 FUORI = {'villa_deste','villa_adriana','castelli_romani','castel_gandolfo','ostia_mare','bracciano','bomarzo','civita_bagnoregio'}
 A[:] = [a for a in A if a['id'] not in FUORI]
 
-json.dump({'attrazioni':A,'gite':G},open('attrazioni.json','w',encoding='utf-8'),ensure_ascii=False,indent=1)
+# ---------- QUARTIERI PER APERITIVO, CENA E SERATA ----------
+# imp = quanto vale la serata (1-10); tipo = cosa ci si fa; casa = vicino alle nostre strutture
+S=[]
+def sera(id,nome,lat,lon,imp,tipo,desc,casa=False):
+    S.append(dict(id=id,nome=nome,lat=lat,lon=lon,imp=imp,tipo=tipo,desc=desc,casa=casa))
+sera('trastevere','Trastevere',41.8894,12.4700,10,['aperitivo','cena','serata'],
+     'Il cuore della sera romana: aperitivo in Piazza San Calisto, cena in trattoria, poi i gradini di Piazza Trilussa.')
+sera('monti','Rione Monti',41.8950,12.4930,9,['aperitivo','cena'],
+     'Aperitivo in Piazza Madonna dei Monti tra romani e turisti, poi cena nei locali di Via Panisperna e dintorni.')
+sera('campo_navona','Campo de\' Fiori e Navona',41.8970,12.4715,8,['aperitivo','cena','serata'],
+     'Wine bar in Via del Governo Vecchio e Piazza del Fico, cena vicino a Navona, serata a Campo de\' Fiori.')
+sera('ghetto','Ghetto ebraico',41.8925,12.4775,7,['cena'],
+     'Cena giudaico-romana: carciofi alla giudia e filetti di baccalà tra Portico d\'Ottavia e Via del Portico.')
+sera('testaccio','Testaccio',41.8775,12.4765,7,['cena','serata'],
+     'La cucina romana più verace, dalla coda alla vaccinara alla cacio e pepe; poi locali fino a tardi.')
+sera('pigneto','Pigneto',41.8890,12.5280,7,['aperitivo','cena','serata'],
+     'Isola pedonale alternativa, vini naturali e birre artigianali. Vicino alle nostre strutture.',casa=True)
+sera('tridente','Piazza di Spagna e Piazza del Popolo',41.9070,12.4790,6,['aperitivo'],
+     'Aperitivo elegante e terrazze con vista tra Via Margutta e Piazza del Popolo.')
+sera('prati','Prati',41.9080,12.4640,6,['aperitivo','cena'],
+     'Aperitivi raffinati e ristoranti tranquilli, perfetti dopo una giornata in Vaticano.')
+sera('san_lorenzo','San Lorenzo',41.8980,12.5150,6,['aperitivo','cena','serata'],
+     'Il quartiere universitario: economico, vivace, pieno di trattorie e pub. A due passi da casa.',casa=True)
+sera('ostiense','Ostiense',41.8680,12.4800,5,['cena','serata'],
+     'Ex zona industriale con locali, ristoranti e club; Eataly per chi vuole tutto in un posto.')
+sera('ponte_milvio','Ponte Milvio',41.9355,12.4675,5,['aperitivo','serata'],
+     'L\'aperitivo dei giovani romani, con il ponte dei lucchetti.')
+sera('piazza_bologna','Zona Piazza Bologna (vicino casa)',41.9130,12.5210,5,['cena'],
+     'Per una serata tranquilla vicino alle nostre strutture: trovi i locali consigliati nella sezione Mangiare.',casa=True)
+
+json.dump({'attrazioni':A,'gite':G,'serata':S},open('attrazioni.json','w',encoding='utf-8'),ensure_ascii=False,indent=1)
 ver=sum(1 for a in A if a['verifica'])
 print(len(A),'attrazioni |',ver,'con prezzo da verificare |',len(G),'gite')
