@@ -7,9 +7,12 @@ function stampa(r){
     if(g.tipo==='gita'){ console.log(`\n=== GIORNO ${g.n}: GITA ${g.nome} (${g.mezzo}, ${g.viaggio} min, ~${g.costo}€)`); return; }
     console.log(`\n=== GIORNO ${g.n} — ${Math.round(g.minuti/60*10)/10}h, fatica ${g.fatica}, biglietti ${g.costo}€`);
     g.righe.forEach(x=>{
+      if(x.pranzo){ console.log(`  ${hhmm(x.ora)} 🍝 Pausa pranzo (zona ${x.zona})`); return; }
       const tr = x.tratta.modo==='mezzi' ? `🚇 ${x.tratta.minuti}'` : x.tratta.modo==='piedi' ? `🚶 ${x.tratta.metri}m` : '';
       console.log(`  ${hhmm(x.arrivo)} ${x.nome} (${x.durata}') ${x.prezzo? x.prezzo+'€':'gratis'}  ${tr}`);
     });
+    console.log(`  ${hhmm(g.fine)} fine visite`);
+    if(g.serata){ const s=g.serata; console.log(`  ${hhmm(s.aperitivo)} 🍹 Aperitivo e ${hhmm(s.cena)} 🍽️ cena a ${s.nome} (${s.tratta.modo==='mezzi'?'🚇 '+s.tratta.minuti+"'":'🚶 '+s.tratta.metri+'m'})`); }
   });
   console.log('\nTotale biglietti:', r.costoTotale+'€');
   console.log('Rimaste fuori (per tempo/fatica/budget):', r.escluse.length);
