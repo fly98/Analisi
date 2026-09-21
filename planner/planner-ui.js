@@ -35,6 +35,9 @@
     da_togliere: 'Per starci nei tuoi giorni potresti togliere', suggerite: 'Ti avanza tempo: qui vicino ci sono anche',
     rimaste: 'altre attrazioni non ci stavano: prova ad aggiungere un giorno o un ritmo più intenso.',
     nessuna: 'Scegli almeno una tappa.',
+    un_giorno: 'Tutto in un unico itinerario', un_giorno_d: 'Non dividere in giorni: un solo percorso con tutte le tappe scelte.',
+    importanza: 'Importanza', importanza_d: 'Voto da 1 a 10: 10 sono le attrazioni da non perdere assolutamente, poi a scendere fino alle chicche per chi ha più tempo.',
+    tutte: 'Tutte', voto: 'voto',
     note_prezzi: 'Prezzi dei biglietti interi aggiornati al 2026. Molti siti statali sono gratuiti la prima domenica del mese.',
   };
   const CAT = [
@@ -92,6 +95,8 @@
   .vr-cat .ck{width:22px;height:22px;border-radius:6px;border:2px solid var(--border-s);flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.8rem;margin-top:1px}
   .vr-cat.on .ck{background:var(--orange);border-color:var(--orange)}
   .vr-cat b{font-size:.9rem}.vr-cat .m{font-size:.74rem;color:var(--muted)}
+  .vr-voto{display:inline-block;font-size:.66rem;font-weight:800;border-radius:6px;padding:1px 6px;margin-left:4px;vertical-align:1px;background:#eee;color:#555}
+  .vr-voto.vtop{background:var(--orange);color:#fff}.vr-voto.vhi{background:var(--orange-bg);color:var(--orange)}
   .vr-bar{position:sticky;bottom:calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 6px);z-index:5;margin-top:10px}
   .vr-saved{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:8px}
   .vr-saved .t{flex:1;cursor:pointer}.vr-saved b{font-size:.9rem}.vr-saved .m{font-size:.74rem;color:var(--muted)}
@@ -187,17 +192,23 @@
   }
 
   // ---------------- vista: scegli tu ----------------
-  let filtroCat = '', filtroTesto = '', giorniTarget = 0, ritmoScelto = 'medio';
+  let filtroCat = '', filtroTesto = '', giorniTarget = 0, ritmoScelto = 'medio', filtroImp = '', unGiorno = false;
+  const FASCE = [['9', '⭐ Imperdibili (9-10)', 9, 10], ['7', 'Da vedere (7-8)', 7, 8], ['5', 'Interessanti (5-6)', 5, 6], ['1', 'Chicche e curiosità (1-4)', 1, 4]];
   function vistaScegli() {
     stato.vista = 'scegli'; track('planner', 'scegli');
     mostra(`
       <button class="vr-back" data-back>${TX.indietro}</button>
       <div class="vr-h">${TX.ritmo}</div>
       <div class="vr-seg" data-seg="ritmo">${[['rilassato', TX.r_rilassato], ['medio', TX.r_medio], ['intenso', TX.r_intenso]].map(([k, l]) => `<button data-v="${k}" class="${ritmoScelto === k ? 'on' : ''}">${l}</button>`).join('')}</div>
-      <div class="vr-h">${TX.giorni_target}</div>
-      <div class="vr-step"><button data-g="-1">−</button><b id="vrGT">${giorniTarget || '–'}</b><button data-g="1">+</button></div>
+      <div class="vr-cat ${unGiorno ? 'on' : ''}" id="vrUnGiorno" style="margin-top:14px"><span class="ck">✓</span><span><b>${TX.un_giorno}</b><div class="m">${TX.un_giorno_d}</div></span></div>
+      <div id="vrGTBox" style="${unGiorno ? 'display:none' : ''}">
+        <div class="vr-h">${TX.giorni_target}</div>
+        <div class="vr-step"><button data-g="-1">−</button><b id="vrGT">${giorniTarget || '–'}</b><button data-g="1">+</button></div>
+      </div>
       <div class="vr-h" style="margin-top:20px"><input class="vr-input" id="vrCerca" placeholder="${TX.cerca}" value="${esc(filtroTesto)}"></div>
-      <div class="filter-row"><button class="chip ${filtroCat ? '' : 'on'}" data-fc="">Tutte</button>${CAT.map(([k, l]) => `<button class="chip ${filtroCat === k ? 'on' : ''}" data-fc="${k}">${l}</button>`).join('')}</div>
+      <div class="vr-h" style="margin:12px 0 2px">${TX.importanza}</div><p class="vr-sub" style="margin:0 0 6px">${TX.importanza_d}</p>
+      <div class="filter-row"><button class="chip ${filtroImp ? '' : 'on'}" data-fi="">${TX.tutte}</button>${FASCE.map(([k, l]) => `<button class="chip ${filtroImp === k ? 'on' : ''}" data-fi="${k}">${l}</button>`).join('')}</div>
+      <div class="filter-row"><button class="chip ${filtroCat ? '' : 'on'}" data-fc="">${TX.tutte}</button>${CAT.map(([k, l]) => `<button class="chip ${filtroCat === k ? 'on' : ''}" data-fc="${k}">${l}</button>`).join('')}</div>
       <div id="vrLista"></div>
       <div class="vr-bar"><button class="btn" id="vrOrg"></button></div>
     `);
@@ -206,12 +217,14 @@
     r.querySelector('[data-seg]').querySelectorAll('button').forEach(b => b.onclick = () => { r.querySelectorAll('[data-seg] button').forEach(x => x.classList.remove('on')); b.classList.add('on'); ritmoScelto = b.dataset.v; });
     r.querySelectorAll('[data-g]').forEach(b => b.onclick = () => { giorniTarget = Math.min(7, Math.max(0, giorniTarget + +b.dataset.g)); $('#vrGT').textContent = giorniTarget || '–'; });
     r.querySelectorAll('[data-fc]').forEach(b => b.onclick = () => { filtroCat = b.dataset.fc; r.querySelectorAll('[data-fc]').forEach(x => x.classList.toggle('on', x === b)); lista(); });
+    r.querySelectorAll('[data-fi]').forEach(b => b.onclick = () => { filtroImp = b.dataset.fi; r.querySelectorAll('[data-fi]').forEach(x => x.classList.toggle('on', x === b)); lista(); });
+    $('#vrUnGiorno').onclick = () => { unGiorno = !unGiorno; $('#vrUnGiorno').classList.toggle('on', unGiorno); $('#vrGTBox').style.display = unGiorno ? 'none' : ''; };
     $('#vrCerca').oninput = e => { filtroTesto = e.target.value; lista(); };
     $('#vrOrg').onclick = () => {
       if (!stato.selezione.size) { alert(TX.nessuna); return; }
-      const opz = { ritmo: ritmoScelto, giorni: giorniTarget || null, partenza: partenza(), eta: 35 };
+      const opz = { ritmo: ritmoScelto, giorni: unGiorno ? null : (giorniTarget || null), partenza: partenza(), eta: 35, unGiorno };
       stato.risultato = Planner.daSelezione(DB, [...stato.selezione], opz);
-      stato.meta = { titolo: `${stato.selezione.size} tappe scelte da te`, sotto: `${TX['r_' + ritmoScelto]} · ${stato.risultato.giorniNecessari} ${TX.giorni_n}` };
+      stato.meta = { titolo: `${stato.selezione.size} tappe scelte da te`, sotto: unGiorno ? TX.un_giorno : `${TX['r_' + ritmoScelto]} · ${stato.risultato.giorniNecessari} ${TX.giorni_n}` };
       track('planner_genera', 'scegli'); vistaRisultato();
     };
     lista();
@@ -219,9 +232,11 @@
   function lista() {
     const tags = filtroCat ? new Set(Planner.MACRO[filtroCat]) : null;
     const q = filtroTesto.trim().toLowerCase();
-    const el = DB.attrazioni.filter(a => !a.chiuso && (!tags || a.cat.some(t => tags.has(t))) && (!q || (a.nome + ' ' + a.zona).toLowerCase().includes(q)))
+    const fascia = FASCE.find(f => f[0] === filtroImp);
+    const el = DB.attrazioni.filter(a => !a.chiuso && (!tags || a.cat.some(t => tags.has(t))) && (!q || (a.nome + ' ' + a.zona).toLowerCase().includes(q))
+        && (!fascia || (a.imp >= fascia[2] && a.imp <= fascia[3])))
       .sort((a, b) => b.imp - a.imp);
-    $('#vrLista').innerHTML = el.map(a => `<div class="vr-cat ${stato.selezione.has(a.id) ? 'on' : ''}" data-id="${a.id}"><span class="ck">✓</span><span><b>${esc(a.nome)}</b>
+    $('#vrLista').innerHTML = el.map(a => `<div class="vr-cat ${stato.selezione.has(a.id) ? 'on' : ''}" data-id="${a.id}"><span class="ck">✓</span><span style="flex:1"><b>${esc(a.nome)}</b> <span class="vr-voto v${a.imp >= 9 ? 'top' : a.imp >= 7 ? 'hi' : 'mid'}">${a.imp}/10</span>
       <div class="m">${esc(a.zona)} · ${dur(a.durata)} · ${a.prezzo ? (a.indicativo ? TX.circa + ' ' : '') + euro(a.prezzo) : TX.gratis}</div>
       <div class="m">${esc(a.desc)}</div></span></div>`).join('');
     $('#vrLista').querySelectorAll('[data-id]').forEach(d => d.onclick = () => { const id = d.dataset.id; stato.selezione.has(id) ? stato.selezione.delete(id) : stato.selezione.add(id); d.classList.toggle('on'); barra(); });
