@@ -30,9 +30,3 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
           HA_API_KEY: ${{ secrets.HA_API_KEY }}
-
-      - name: Pulizia una tantum della chiave finita per errore su little-shadow-145e
-        run: echo y | npx --yes wrangler@3 secret delete HA_API_KEY --name little-shadow-145e || true
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
