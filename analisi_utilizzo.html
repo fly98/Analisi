@@ -96,7 +96,7 @@ function scheletro() {
   $('#app').innerHTML = `
   <header><div class="wrap">
     <h1>Utilizzo pagine ospiti</h1><div class="sub">Solo ospiti reali: esclusi test, bot, copie di prova e i tuoi dispositivi</div>
-    <div class="row">${[['all','Entrambe'],['campaldino','Campaldino'],['lorenzo','Lorenzo'],['flytour','🎧 FlyTour']].map(([k,l]) => `<button class="chip" data-s="${k}">${l}</button>`).join('')}</div>
+    <div class="row">${[['all','Entrambe'],['campaldino','Campaldino'],['lorenzo','Lorenzo'],['flytour','🎧 FlyTour'],['sito','🌐 Sito']].map(([k,l]) => `<button class="chip" data-s="${k}">${l}</button>`).join('')}</div>
     <div class="row">${[['7','7 giorni'],['30','30 giorni'],['mese','Questo mese'],['mesePrec','Mese scorso'],['anno',"Quest'anno"],['tutto','Tutto']].map(([k,l]) => `<button class="chip" data-p="${k}">${l}</button>`).join('')}</div>
     <div class="row"><span class="muted" style="font-size:12.5px">Dal</span><input type="date" class="date" id="dF"><span class="muted" style="font-size:12.5px">al</span><input type="date" class="date" id="dT"><button class="chip" id="vai">Mostra</button></div>
   </div></header>
@@ -122,6 +122,7 @@ async function carica() {
   $('#corpo').innerHTML = '<p class="muted" style="margin-top:20px">Carico…</p>';
   try {
     const q = `from=${S.from}&to=${S.to}`;
+    if (S.slug === 'sito') { const g = await api(`/wb/sito/ga?${q}`); if (g.error) throw new Error(g.error); return disegnaSito(g); }
     const [st, dv, rec, vecchio] = await Promise.all([
       api(`/wb/${S.slug}/stats2?${q}`), api(`/wb/${S.slug}/dispositivi?${q}`), api(`/wb/${S.slug}/dispositivi?${q}&ord=recenti`),
       Promise.all((S.slug === 'all' ? ['campaldino', 'lorenzo'] : S.slug === 'flytour' ? [] : [S.slug]).map(s => api(`/wb/${s}/stats?days=1`).catch(() => null))), // solo per le domande: veloce
@@ -307,6 +308,56 @@ function disegna(st, dv, vecchio, rec) {
     await fetch(`${WORKER}/wb/all/escludi?key=${encodeURIComponent(KEY)}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sid: b.dataset.sid, on: b.dataset.on === '1', note: 'escluso da analisi' }) });
     carica();
   });
+}
+
+
+// ---------- scheda Sito (Google Analytics 4 di interno1.it) ----------
+const CANALI = { 'Direct': '🔗 Accesso diretto', 'Organic Search': '🔍 Ricerca Google', 'AI Assistant': '🤖 Assistenti AI (ChatGPT…)', 'Organic Social': '📱 Social',
+  'Referral': '🌍 Altri siti', 'Paid Search': '💶 Annunci a pagamento', 'Email': '✉️ Email', 'Unassigned': '❔ Non classificato', 'Organic Video': '▶️ Video', 'Paid Social': '💶 Social a pagamento' };
+const PAESI = { 'Italy': '🇮🇹 Italia', 'United States': '🇺🇸 Stati Uniti', 'Germany': '🇩🇪 Germania', 'Spain': '🇪🇸 Spagna', 'France': '🇫🇷 Francia', 'United Kingdom': '🇬🇧 Regno Unito',
+  'Singapore': '🇸🇬 Singapore', 'China': '🇨🇳 Cina', 'Brazil': '🇧🇷 Brasile', 'Portugal': '🇵🇹 Portogallo', 'Netherlands': '🇳🇱 Paesi Bassi', 'Switzerland': '🇨🇭 Svizzera',
+  'Poland': '🇵🇱 Polonia', 'Ireland': '🇮🇪 Irlanda', 'Canada': '🇨🇦 Canada', 'Belgium': '🇧🇪 Belgio', 'Austria': '🇦🇹 Austria', 'Australia': '🇦🇺 Australia', 'Argentina': '🇦🇷 Argentina', 'Mexico': '🇲🇽 Messico' };
+const DISP = { mobile: '📱 Telefono', desktop: '💻 Computer', tablet: '📟 Tablet' };
+function nomePagina(p) {
+  const m = p.match(/^\/(en|es|fr|de|pt|zh)(\/.*)$/); const lingua = m ? ` (${m[1].toUpperCase()})` : ''; const x = m ? m[2] : p;
+  const base = { '/': '🏠 Home', '/prenota/': '🛎️ Prenota', '/check-in/': '🔑 Check-in', '/camere/': '🛏️ Camere', '/contatto/': '✉️ Contatti', '/info/': 'ℹ️ Info', '/dove-siamo/': '📍 Dove siamo' }[x];
+  if (base) return base + lingua;
+  const c = x.match(/^\/camera\/([^/]+)\/?$/); if (c) return '🛏️ Camera: ' + c[1].replace(/-/g, ' ') + lingua;
+  return p;
+}
+function disegnaSito(g) {
+  const t = g.totali || {}; const u = t.utenti || 0;
+  const mmss = s => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, '0')}`;
+  let h = `<div class="kpis" style="margin-top:14px">
+    <div class="kpi"><span>Visitatori</span><b>${u}</b><small>${t.nuovi || 0} nuovi · ${t.sessioni || 0} visite</small></div>
+    <div class="kpi"><span>Clic su "Prenota"</span><b>${t.clickPrenota || 0}</b><small>da ${t.utentiPrenota || 0} persone · ${pct(t.utentiPrenota, u)}% dei visitatori</small></div>
+    <div class="kpi"><span>Pagine viste</span><b>${t.pagine || 0}</b><small>${t.sessioni ? (t.pagine / t.sessioni).toFixed(1).replace('.', ',') : 0} pagine a visita</small></div>
+    <div class="kpi"><span>Tempo medio</span><b>${mmss(t.durataMedia || 0)}</b><small>${Math.round((t.coinvolgimento || 0) * 100)}% visite coinvolte</small></div>
+  </div>`;
+  const gg = giorniTra(g.from, g.to); const vg = {}, pg = {}; (g.perGiorno || []).forEach(r => vg[r.day] = r.utenti); (g.prenotaGiorno || []).forEach(r => pg[r.day] = r.click);
+  let bucket = gg.map(d => ({ k: d, l: fmtD(d), days: [d] }));
+  if (gg.length > 70) { bucket = []; for (let i = 0; i < gg.length; i += 7) bucket.push({ k: gg[i], l: fmtD(gg[i]), days: gg.slice(i, i + 7) }); }
+  const somma = (o) => { const v = {}; bucket.forEach(b => v[b.k] = b.days.reduce((a, d) => a + (o[d] || 0), 0)); return v; };
+  h += `<div class="card"><h2>Andamento</h2><p class="hint">Visitatori del sito per ${gg.length > 70 ? 'settimana' : 'giorno'}.</p>${grafico(bucket, [{ n: 'visitatori', c: 'var(--lor)', v: somma(vg) }])}
+    <p class="hint" style="margin:12px 0 4px">Clic su "Prenota" per ${gg.length > 70 ? 'settimana' : 'giorno'}.</p>${grafico(bucket, [{ n: 'clic su Prenota', c: 'var(--ok)', v: somma(pg) }])}</div>`;
+  const can = (g.canali || []).map(r => ({ l: CANALI[r.canale] || esc(r.canale), v: r.sessioni, u: r.utenti }));
+  const totS = can.reduce((a, r) => a + r.v, 0);
+  h += `<div class="card"><h2>Da dove arrivano</h2><p class="hint">Visite per provenienza. "Accesso diretto" = link salvati, digitati o aperti da app e messaggi (WhatsApp, email, Booking…).</p>
+    ${barre(can, null, r => `<b>${r.v}</b> · ${pct(r.v, totS)}%`)}
+    ${(g.fonti || []).length ? `<p class="hint" style="margin:10px 0 0">Siti di provenienza: ${(g.fonti || []).slice(0, 10).map(r => `${esc(r.fonte)} <b>${r.sessioni}</b>`).join(' · ')}</p>` : ''}</div>`;
+  const pc = (g.prenotaCanali || []).map(r => ({ l: CANALI[r.canale] || esc(r.canale), v: r.click, u: r.utenti, c: 'var(--ok)' }));
+  h += `<div class="card"><h2>🛎️ Chi preme "Prenota"</h2><p class="hint">Clic sul pulsante Prenota, divisi per provenienza del visitatore: mostra quali canali portano davvero prenotazioni.</p>
+    ${pc.length ? barre(pc, null, r => `<b>${r.v}</b> · ${r.u} pers.`) : '<p class="muted">Nessun clic nel periodo.</p>'}</div>`;
+  const pag = (g.pagine || []).map(r => ({ l: esc(nomePagina(r.pagina)), v: r.viste, u: r.utenti }));
+  h += `<div class="card"><h2>Pagine più viste</h2><p class="hint">Visualizzazioni (e persone diverse).</p>${barre(pag, null, r => `<b>${r.v}</b> · ${r.u}`)}</div>`;
+  const pa = (g.paesi || []).map(r => ({ l: PAESI[r.paese] || esc(r.paese), v: r.utenti, raw: r.paese }));
+  const bot = pa.filter(r => ['Singapore', 'China'].includes(r.raw) && r.v >= u * 0.1);
+  h += `<div class="card"><h2>Paesi</h2><p class="hint">Visitatori per paese.</p>${barre(pa, u, r => `<b>${r.v}</b> · ${pct(r.v, u)}%`)}
+    ${bot.length ? `<div class="note" style="margin-top:10px">⚠️ Il traffico da <b>${bot.map(r => r.l).join(', ')}</b> è quasi certamente di <b>bot</b> (programmi automatici): è un fenomeno noto di Google Analytics. Nei numeri in alto è compreso, quindi i visitatori reali sono un po' meno.</div>` : ''}</div>`;
+  const dv = (g.dispositivi || []).map(r => ({ l: DISP[r.tipo] || esc(r.tipo), v: r.utenti }));
+  h += `<div class="card"><h2>Dispositivi</h2>${barre(dv, u, r => `<b>${r.v}</b> · ${pct(r.v, u)}%`)}</div>`;
+  h += `<p class="hint" style="margin:6px 2px 20px">Dati da Google Analytics (proprietà del sito interno1.it). Le visite tue al sito sono comprese.</p>`;
+  $('#corpo').innerHTML = h;
 }
 
 function avvia() {
