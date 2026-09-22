@@ -1,9 +1,22 @@
 {
-  "generatoIl": "2026-09-21T17:25:29.408Z",
+  "generatoIl": "2026-09-22T17:36:02.960Z",
   "strutture": {
     "deluxe": {
       "nome": "InternoUno Deluxe",
       "bozze": [
+        {
+          "id": "deluxe-6278243921",
+          "dataRecensione": "2026-09-22",
+          "punteggio": 8,
+          "positivo": "Posizione, giusto all'uscita della metro e a due passi da Roma Tiburtina. Terrazzino molto carino, letto comodo.",
+          "negativo": "Il bagno, per quanto pulito, sarebbe da rimodernare (c'è la vasca e non la doccia). Per il resto, forse magari aggiungere una macchinetta del caffè a cialde.",
+          "lingua": "it",
+          "riassuntoIT": "Ospite apprezza posizione e terrazzino ma suggerisce di modernizzare il bagno (vasca invece di doccia) e aggiungere una macchina del caffè.",
+          "rispostaProposta": "Salve, grazie per il riscontro. Sul bagno: la vasca è descritta nell'annuncio e la teniamo perché molti ospiti la preferiscono, ma capisco la preferenza per la doccia. La macchina del caffè è una buona idea che valuteremo. Contenti che il resto sia piaciuto.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "6278243921"
+        },
         {
           "id": "deluxe-6554756047",
           "dataRecensione": "2026-09-21",
@@ -1878,17 +1891,23 @@
           "stato": "senza_testo"
         },
         {
+          "id": "deluxe-5487849493",
+          "dataRecensione": "2025-11-16",
+          "punteggio": 10,
+          "positivo": "La posizione, metro e stazione vicino",
+          "negativo": null,
+          "lingua": "it",
+          "riassuntoIT": "Ospite molto soddisfatto, sottolinea la posizione eccellente vicino a metro e stazione.",
+          "rispostaProposta": "La ringraziamo per la sua recensione. Siamo felici che abbia apprezzato la posizione strategica della struttura. Speriamo di ospitarla di nuovo.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "5487849493"
+        },
+        {
           "id": "deluxe-5367371328",
           "dataRecensione": "2025-11-16",
           "punteggio": 10,
           "stato": "senza_testo"
-        },
-        {
-          "id": "deluxe-5487849493",
-          "dataRecensione": "2025-11-16",
-          "punteggio": 10,
-          "stato": "da_scrivere",
-          "positivo": "La posizione, metro e stazione vicino"
         },
         {
           "id": "deluxe-6450527888",
@@ -2081,23 +2100,53 @@
           "id": "deluxe-4677122839",
           "dataRecensione": "2025-10-15",
           "punteggio": 10,
-          "stato": "da_scrivere",
-          "positivo": "Todo excelente "
+          "positivo": "Todo excelente ",
+          "negativo": null,
+          "lingua": "es",
+          "riassuntoIT": "Ospite spagnolo molto soddisfatto, tutto eccellente.",
+          "rispostaProposta": "Un grazie sincero per le sue parole. Siamo contenti che il soggiorno sia stato di suo gradimento. La aspettiamo per un prossimo soggiorno.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "4677122839"
         },
         {
           "id": "deluxe-5299624900",
           "dataRecensione": "2025-10-15",
           "punteggio": 10,
-          "stato": "da_scrivere",
-          "positivo": "Apartman je na odličnoj lokaciji, na par metara od autobuske, železničke i metro stanice. Dobro povezan sa svim većim lokalitetima.\r\nRecepcionar je izuzetno ljubazan, bio je raspolozen za svaki oblik pomoći. Ulaz u zgradu osvetljen, pokriven video nadzorom. Apatman se čisti svaki dan, ima veliku terasu, soba sasvim dovoljne veličine, ima i malu kuhinju. U blizini ima par kafića sa odličnom kafom i kroasanima... Odlična opcija za boravak u Rimu na nekoliko dana!"
+          "positivo": "Apartman je na odličnoj lokaciji, na par metara od autobuske, železničke i metro stanice. Dobro povezan sa svim većim lokalitetima.\r\nRecepcionar je izuzetno ljubazan, bio je raspolozen za svaki oblik pomoći. Ulaz u zgradu osvetljen, pokriven video nadzorom. Apatman se čisti svaki dan, ima veliku terasu, soba sasvim dovoljne veličine, ima i malu kuhinju. U blizini ima par kafića sa odličnom kafom i kroasanima... Odlična opcija za boravak u Rimu na nekoliko dana!",
+          "negativo": null,
+          "lingua": "sr",
+          "riassuntoIT": "Ospite serbo entusiasta: loda posizione, reception gentile, pulizia giornaliera, terrazza e piccola cucina; ambiente ideale per brevi soggiorni a Roma.",
+          "rispostaProposta": "Grazie mille per la sua recensione così dettagliata. Ci fa piacere sapere che ha apprezzato la nostra posizione, la disponibilità della reception e i servizi della struttura. A presto.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "5299624900"
         },
         {
           "id": "deluxe-6475887616",
           "dataRecensione": "2025-10-13",
           "punteggio": 10,
-          "stato": "da_scrivere",
           "positivo": "Muy buena gran ubicación, ideal para conectar en Tuburtina",
-          "negativo": "Es un poco pequeña pero no le quita lo bueno si vas a estar de paso"
+          "negativo": "Es un poco pequeña pero no le quita lo bueno si vas a estar de paso",
+          "lingua": "es",
+          "riassuntoIT": "Ospite apprezza molto la posizione ideale per Tiburtina, nota che la stanza è piccola ma questo non diminuisce la valutazione complessiva.",
+          "rispostaProposta": "Grazie per il suo commento. Siamo contenti che abbia valutato positivamente la posizione. Le dimensioni della camera sono specificate nell'annuncio, e apprezziamo che non sia stato un problema per il vostro soggiorno.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "6475887616"
+        },
+        {
+          "id": "deluxe-6776581179",
+          "dataRecensione": "2025-10-13",
+          "punteggio": 7,
+          "positivo": "close to train station ",
+          "negativo": "only sray one night no chance to feel how was it ",
+          "lingua": "en",
+          "riassuntoIT": "Ospite apprezza posizione vicino stazione ma restato solo una notte, non ha potuto fare una valutazione approfondita.",
+          "rispostaProposta": "Salve, grazie per la visita. Comprendiamo che una sola notte non sia sufficiente per toccare con mano tutti i servizi. La posizione rimane il nostro punto di forza e siamo a disposizione per soggiorno più lunghi.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "6776581179"
         },
         {
           "id": "deluxe-4449995729",
@@ -2108,19 +2157,17 @@
           "negativo": "Shower could do with some attention"
         },
         {
-          "id": "deluxe-6776581179",
-          "dataRecensione": "2025-10-13",
-          "punteggio": 7,
-          "stato": "da_scrivere",
-          "positivo": "close to train station ",
-          "negativo": "only sray one night no chance to feel how was it "
-        },
-        {
           "id": "deluxe-4336055376",
           "dataRecensione": "2025-10-10",
           "punteggio": 10,
-          "stato": "da_scrivere",
-          "positivo": "Fue muy buena la experiencia, solo estuvimos un par de noches y la ubicaciÃ³n estÃ¡ muy bien al frente de la estaciÃ³n Tiburtina asÃ­ que conectado Con todo.... El personal del lugar excelente. "
+          "positivo": "Fue muy buena la experiencia, solo estuvimos un par de noches y la ubicaciÃ³n estÃ¡ muy bien al frente de la estaciÃ³n Tiburtina asÃ­ que conectado Con todo.... El personal del lugar excelente. ",
+          "negativo": null,
+          "lingua": "es",
+          "riassuntoIT": "Ospite spagnolo molto soddisfatto della posizione vicino a Tiburtina, loda il personale e l'esperienza generale.",
+          "rispostaProposta": "Siamo felici di leggere il suo commento. Ci fa piacere che la posizione e il nostro personale abbiano contribuito a un buon soggiorno. Un caro saluto.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "4336055376"
         },
         {
           "id": "deluxe-5447444888",
@@ -2170,15 +2217,40 @@
           "id": "deluxe-5735333588",
           "dataRecensione": "2025-09-26",
           "punteggio": 8,
-          "stato": "da_scrivere",
-          "positivo": "Struttura molto comoda in quanto si trova a pochissimi passi dalla stazione Tiburtina e arrivi facilmente ovunque. Stanza pulita e ho trovato il personale molto gentile e accogliente "
+          "positivo": "Struttura molto comoda in quanto si trova a pochissimi passi dalla stazione Tiburtina e arrivi facilmente ovunque. Stanza pulita e ho trovato il personale molto gentile e accogliente ",
+          "negativo": null,
+          "lingua": "it",
+          "riassuntoIT": "Ospite soddisfatto della posizione vicino a Tiburtina, stanza pulita e personale gentile.",
+          "rispostaProposta": "Grazie per il riscontro positivo. E' una soddisfazione leggere che le nostra disponibilità e la pulizia della struttura le siano piaciute. Speriamo di rivederla presto.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "5735333588"
         },
         {
           "id": "deluxe-6332559560",
           "dataRecensione": "2025-09-25",
           "punteggio": 10,
-          "stato": "da_scrivere",
-          "positivo": "La miglior scelta. Ottimo"
+          "positivo": "La miglior scelta. Ottimo",
+          "negativo": null,
+          "lingua": "en",
+          "riassuntoIT": "Ospite inglese loda la posizione eccellente per la stazione, il fatto che la camera è piccola ma come indicato sin dall'inizio, proprietario molto disponibile, letto comodo; segnala che doccia potrebbe essere migliorata.",
+          "rispostaProposta": "Grazie per il riscontro. Siamo felici che la posizione e la disponibilità del proprietario siano stati apprezzati. La doccia è un elemento che consideriamo, così come i feedback degli ospiti su questi dettagli. Contenti che le altre caratteristiche le siano piaciute.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "6332559560"
+        },
+        {
+          "id": "deluxe-5598635595",
+          "dataRecensione": "2025-09-22",
+          "punteggio": 8,
+          "positivo": "Posizione ottima, metro Tiburtina davanti al cancello dell'alloggio. Il letto molto comodo.\r\nProprietario disponibile e preciso nonostante sia arrivata e andata via in orari in cui non era prevista la reception.",
+          "negativo": "La mia stanza, avendo solo una finestra rivolta su un porticato interno, risultava un po' buia. \r\nPer brevi soggiorni però questo non è un problema!",
+          "lingua": "it",
+          "riassuntoIT": "Ospite apprezza posizione, letto comodo e disponibilità del proprietario; nota che la camera è un po' buia per la finestra interna, ma ritiene non sia problema per soggiorni brevi.",
+          "rispostaProposta": "Salve, grazie per la recensione. Contenti che posizione e letto le siano piaciuti e che la disponibilità del proprietario sia stata utile. La finestra interna è descritta nell'annuncio; per chi sta pochi giorni, come nel suo caso, non influisce molto sulla valutazione.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "5598635595"
         },
         {
           "id": "deluxe-6955708105",
@@ -2187,20 +2259,17 @@
           "stato": "senza_testo"
         },
         {
-          "id": "deluxe-5598635595",
-          "dataRecensione": "2025-09-22",
-          "punteggio": 8,
-          "stato": "da_scrivere",
-          "positivo": "Posizione ottima, metro Tiburtina davanti al cancello dell'alloggio. Il letto molto comodo.\r\nProprietario disponibile e preciso nonostante sia arrivata e andata via in orari in cui non era prevista la reception.",
-          "negativo": "La mia stanza, avendo solo una finestra rivolta su un porticato interno, risultava un po' buia. \r\nPer brevi soggiorni però questo non è un problema!"
-        },
-        {
           "id": "deluxe-5251950278",
           "dataRecensione": "2025-09-21",
           "punteggio": 9,
-          "stato": "da_scrivere",
           "positivo": "No hubo desayuno y me gustÃ³ lo tranquila que era la habitaciÃ³n",
-          "negativo": "cerca de la entrada de la calle muchos hombres bebiendo y fumando"
+          "negativo": "cerca de la entrada de la calle muchos hombres bebiendo y fumando",
+          "lingua": "es",
+          "riassuntoIT": "Ospite apprezza la tranquillità della camera, ma segnala la presenza di persone che bevono e fumano all'ingresso.",
+          "rispostaProposta": "Grazie per la sua recensione. Siamo contenti che abbia trovato la camera tranquilla. Riguardo a quanto osservato all'ingresso della strada: è una zona che non controlliamo direttamente, poiché esterna alla struttura. Rimane comunque un'area che monitoriamo con attenzione.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "5251950278"
         },
         {
           "id": "deluxe-6745465581",
@@ -2221,17 +2290,23 @@
           "stato": "senza_testo"
         },
         {
+          "id": "deluxe-5273203366",
+          "dataRecensione": "2025-09-18",
+          "punteggio": 10,
+          "positivo": "Vicinanza ai mezzi, perfetto se si arriva tardi col treno e alla mattina dopo si deve fare un concorso in zona fiera di Roma ( dalla stazione Tiburtina passano i treni che portano alla Fiera e a Fiumicino ogni 15 minuti). Camera con tutti i comfort necessari. Check-in e check out veloci e staff disponibile ",
+          "negativo": null,
+          "lingua": "it",
+          "riassuntoIT": "Ospite molto soddisfatto: loda la vicinanza ai mezzi (perfetto per stazione Tiburtina e Fiera), gli spazi, il check-in veloce e lo staff disponibile.",
+          "rispostaProposta": "Grazie per le sue parole. Siamo contenti che la posizione strategica rispetto a Tiburtina e Fiera le sia stata utile, e che il nostro staff e i servizi di check-in l'abbiano soddisfatto. A presto.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "5273203366"
+        },
+        {
           "id": "deluxe-6317104427",
           "dataRecensione": "2025-09-18",
           "punteggio": 8,
           "stato": "senza_testo"
-        },
-        {
-          "id": "deluxe-5273203366",
-          "dataRecensione": "2025-09-18",
-          "punteggio": 10,
-          "stato": "da_scrivere",
-          "positivo": "Vicinanza ai mezzi, perfetto se si arriva tardi col treno e alla mattina dopo si deve fare un concorso in zona fiera di Roma ( dalla stazione Tiburtina passano i treni che portano alla Fiera e a Fiumicino ogni 15 minuti). Camera con tutti i comfort necessari. Check-in e check out veloci e staff disponibile "
         },
         {
           "id": "deluxe-6402239739",
@@ -2243,17 +2318,40 @@
           "id": "deluxe-5394028686",
           "dataRecensione": "2025-09-15",
           "punteggio": 6,
-          "stato": "da_scrivere",
           "positivo": "Posizione",
-          "negativo": "La Pulizia del Bagno , il malfunzionamento dello scarico del water , la poca pulizia della camera ( I cavi delle luci erano pieni di polvere )"
+          "negativo": "La Pulizia del Bagno , il malfunzionamento dello scarico del water , la poca pulizia della camera ( I cavi delle luci erano pieni di polvere )",
+          "lingua": "it",
+          "riassuntoIT": "Ospite critico su pulizia bagno (scarico water malfunzionante), polvere sui cavi luce della camera; apprezza solo la posizione.",
+          "rispostaProposta": "Salve, mi spiace che abbia riscontrato questi problemi di pulizia e igiene. Lo scarico del wc e la polvere sui cavi sono segnalazioni che prendo molto sul serio: verranno affrontate e controllate. Contenti che almeno la posizione sia stata apprezzata.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "5394028686"
         },
         {
           "id": "deluxe-5134381344",
           "dataRecensione": "2025-09-13",
           "punteggio": 6,
-          "stato": "da_scrivere",
           "positivo": "Lokalizacja, taras, klimatyzacja, obsługa ",
-          "negativo": "Łazienka mimo że czysta to bardzo niekomfortowa, mała, kiepska termoregulacja"
+          "negativo": "Łazienka mimo że czysta to bardzo niekomfortowa, mała, kiepska termoregulacja",
+          "lingua": "pl",
+          "riassuntoIT": "Ospite apprezza localizzazione, terrazza, climatizzazione e servizio, ma critica il bagno: seppur pulito, poco confortevole, piccolo e con cattiva termoregolazione.",
+          "rispostaProposta": "Grazie per il riscontro. Siamo contenti che localizzazione, terrazza e climatizzazione le siano piaciute. Sul bagno: le dimensioni sono descritte nell'annuncio, è una camera compatta per natura. La termoregolazione è una nota che considereremo per futuri miglioramenti.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "5134381344"
+        },
+        {
+          "id": "deluxe-4877090726",
+          "dataRecensione": "2025-09-11",
+          "punteggio": 9,
+          "positivo": "We were really satisfied with our stay here. We had the small  room which was perfect for us. There was a small section with fridge, microwave, kettle, cups etc, everything you could possibly want. Bathroom  clean and water hot\r\nGood air con. Very close to the railway station 2 minute walk which was what we wanted \r\n Would definitely stay here again, plenty of eateries, and we sleptt very peacefully Iin our comfy bed.",
+          "negativo": "Nothing, we were very happy",
+          "lingua": "en",
+          "riassuntoIT": "Ospiti molto soddisfatti della piccola camera, della posizione vicina alla stazione e dei comfort forniti.",
+          "rispostaProposta": "Grazie mille per la sua recensione. Ci fa piacere sapere che ha apprezzato la camera e soprattutto la vicinanza alla stazione Tiburtina, che è effettivamente uno dei nostri principali vantaggi. Speriamo di ospitarla di nuovo.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "4877090726"
         },
         {
           "id": "deluxe-5044346338",
@@ -2262,35 +2360,43 @@
           "stato": "senza_testo"
         },
         {
-          "id": "deluxe-4877090726",
-          "dataRecensione": "2025-09-11",
-          "punteggio": 9,
-          "stato": "da_scrivere",
-          "positivo": "We were really satisfied with our stay here. We had the small  room which was perfect for us. There was a small section with fridge, microwave, kettle, cups etc, everything you could possibly want. Bathroom  clean and water hot\r\nGood air con. Very close to the railway station 2 minute walk which was what we wanted \r\n Would definitely stay here again, plenty of eateries, and we sleptt very peacefully Iin our comfy bed.",
-          "negativo": "Nothing, we were very happy"
-        },
-        {
           "id": "deluxe-5871511896",
           "dataRecensione": "2025-09-10",
           "punteggio": 8,
-          "stato": "da_scrivere",
           "positivo": "UbicaciÃ³n ",
-          "negativo": "Zona un poco oscura si llegas tarde por la noche"
+          "negativo": "Zona un poco oscura si llegas tarde por la noche",
+          "lingua": "es",
+          "riassuntoIT": "Ospite apprezza la posizione ma nota che la zona è poco illuminata di notte.",
+          "rispostaProposta": "Salve, capisco la sua osservazione sulla luminosità serale della zona. La Tiburtina è effettivamente un'area in trasformazione; consigliamo comunque di non preoccuparsi in quanto la stazione è ben frequentata e la zona è sicura anche di sera. Grazie per il feedback.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "5871511896"
         },
         {
           "id": "deluxe-5174973580",
           "dataRecensione": "2025-09-07",
           "punteggio": 8,
-          "stato": "da_scrivere",
           "positivo": "駅に近い。お安い。バスタブがある。ベランダで食事ができる。",
-          "negativo": "鍵がある場所は、わかりやすかったですが、開け方がわからず1時間くらいかかったのと、困った時に、スタッフにすぐ連絡がつかなかった事です。"
+          "negativo": "鍵がある場所は、わかりやすかったですが、開け方がわからず1時間くらいかかったのと、困った時に、スタッフにすぐ連絡がつかなかった事です。",
+          "lingua": "ja",
+          "riassuntoIT": "Ospite apprezza la vicinanza alla stazione e i servizi, ma ha avuto difficoltà con la chiave e non ha raggiunto lo staff rapidamente.",
+          "rispostaProposta": "Salve, mi spiace per le difficoltà con la chiave e la comunicazione con lo staff. In genere le istruzioni sono inviate via mail prima dell'arrivo; se non le ha ricevute, la colpa potrebbe essere di Booking. Per il futuro consigliamo di contattarci con anticipo se ha dubbi. Grazie per il suo riscontro.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "5174973580"
         },
         {
           "id": "deluxe-6689332563",
           "dataRecensione": "2025-09-06",
           "punteggio": 10,
-          "stato": "da_scrivere",
-          "positivo": "il servizio dello staff era gentile e accogliente e con un servizio di pulizia straordinario la posizione è ottima per esplorare roma il soggiorno è stato da 10/10"
+          "positivo": "il servizio dello staff era gentile e accogliente e con un servizio di pulizia straordinario la posizione è ottima per esplorare roma il soggiorno è stato da 10/10",
+          "negativo": null,
+          "lingua": "it",
+          "riassuntoIT": "Ospite molto soddisfatto dello staff accogliente, della pulizia e della posizione per esplorare Roma.",
+          "rispostaProposta": "Un grazie sincero per le sue parole. Siamo felici che abbia apprezzato l'accoglienza del nostro team e la posizione della struttura. La aspettiamo per un prossimo soggiorno.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "6689332563"
         },
         {
           "id": "deluxe-5109010082",
@@ -2316,8 +2422,27 @@
           "id": "deluxe-6852331289",
           "dataRecensione": "2025-09-01",
           "punteggio": 10,
-          "stato": "da_scrivere",
-          "positivo": "Le camere sono moderne e belle , molto pulito e terrazza molto comoda , inoltre personale gentilissimo "
+          "positivo": "Le camere sono moderne e belle , molto pulito e terrazza molto comoda , inoltre personale gentilissimo ",
+          "negativo": null,
+          "lingua": "it",
+          "riassuntoIT": "Ospite entusiasta delle camere moderne, della pulizia, del terrazzo e della gentilezza dello staff.",
+          "rispostaProposta": "La ringraziamo per il suo commento. Ci fa piacere sapere che ha apprezzato in particolare la terrazza e il nostro personale. A presto.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "6852331289"
+        },
+        {
+          "id": "deluxe-6517492416",
+          "dataRecensione": "2025-08-31",
+          "punteggio": 9,
+          "positivo": "Struttura comoda vicino alla stazione Tiburtina. Check-in rapido con registrazione online. Camera pulita, accogliente e tranquilla. Bagno piccolo ma dotato di vasca idromassaggio. Angolo cottura pratico e ben attrezzato.",
+          "negativo": "Il condizionatore faceva un piccolo rumore durante il funzionamento.",
+          "lingua": "it",
+          "riassuntoIT": "Ospite soddisfatto della posizione, della pulizia e della camera, ma il condizionatore produce rumore.",
+          "rispostaProposta": "Salve, mi spiace per il rumore del condizionatore. È un apparecchio ormai datato che abbiamo in programma di sostituire. Grazie per aver segnalato il disagio.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "6517492416"
         },
         {
           "id": "deluxe-5443762512",
@@ -2326,42 +2451,49 @@
           "stato": "senza_testo"
         },
         {
-          "id": "deluxe-6517492416",
-          "dataRecensione": "2025-08-31",
-          "punteggio": 9,
-          "stato": "da_scrivere",
-          "positivo": "Struttura comoda vicino alla stazione Tiburtina. Check-in rapido con registrazione online. Camera pulita, accogliente e tranquilla. Bagno piccolo ma dotato di vasca idromassaggio. Angolo cottura pratico e ben attrezzato.",
-          "negativo": "Il condizionatore faceva un piccolo rumore durante il funzionamento."
-        },
-        {
           "id": "deluxe-6391071655",
           "dataRecensione": "2025-08-28",
           "punteggio": 9,
-          "stato": "da_scrivere",
           "positivo": "The location is excellent. You can practically see it from the train station and there are grocery stores and food and the metro is right there (plus a lot of buses stop there). The owner was readily available and friendly. Check in was easy and I felt safe in the building and in the setup of the rooms. ",
-          "negativo": "I noticed the floor was a bit dusty, but throwing on some socks solved that :)"
+          "negativo": "I noticed the floor was a bit dusty, but throwing on some socks solved that :)",
+          "lingua": "en",
+          "riassuntoIT": "Ospite apprezza la posizione ottima, la disponibilità del proprietario e la sicurezza, ma nota polvere sul pavimento.",
+          "rispostaProposta": "Grazie per la sua recensione e per aver apprezzato la posizione e la facilità di check-in. Riguardo alla polvere sul pavimento, questa è una segnalazione utile; miglioriamo costantemente le pulizie. Saluti.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "6391071655"
         },
         {
           "id": "deluxe-5067556970",
           "dataRecensione": "2025-08-27",
           "punteggio": 9,
-          "stato": "da_scrivere",
           "positivo": "Bardzo blisko dworca Tiburtina, metro praktycznie pod budynkiem i w 10 minut można się znaleźć pod Koloseum. W pokoju jest wszystko czego potrzeba. Samodzielne zameldowanie bardzo na plus. ",
-          "negativo": "-"
+          "negativo": "-",
+          "lingua": "pl",
+          "riassuntoIT": "Ospite molto soddisfatto della vicinanza alla stazione Tiburtina, della metro e dei servizi in camera, apprezza il check-in autonomo.",
+          "rispostaProposta": "La ringraziamo per il riscontro positivo. Siamo contenti che abbia apprezzato la posizione strategica e il sistema di check-in autonomo. Speriamo di ospitarla di nuovo.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "5067556970"
+        },
+        {
+          "id": "deluxe-6305394247",
+          "dataRecensione": "2025-08-26",
+          "punteggio": 5,
+          "positivo": "Posizione fantastica, cancello del condominio accanto all'entrata della metropolitana.",
+          "negativo": "Stanza n.4 (matrimoniale con terrazzo) molto piccola, mancanza di manutenzione (soffione doccia ostruito, doccia in vasca idromassaggio con molto scivolosa, condizionatore non proprio silenzioso, porta scorrevole d'accesso al terrazzo difficoltosa da aprire), inoltre nella stanza di notte si sente lo scarico dell'acqua dei piani superiori. Pulizia e arredamento da migliorare.",
+          "lingua": "it",
+          "riassuntoIT": "Ospite apprezza la posizione ma critica la stanza 4 per le dimensioni ridotte, problemi di manutenzione (soffione intasato, doccia scivolosa, condizionatore rumoroso, porta difficile) e rumori di scarico notturni.",
+          "rispostaProposta": "Salve, prendo nota delle segnalazioni sulla stanza 4. Alcuni problemi come il soffione e la porta scorrevole richiedono interventi specifici che abbiamo già in programma. Il rumore di scarico è un aspetto della costruzione dell'edificio difficile da eliminare completamente. Riconosciamo che è necessario un intervento di manutenzione complessivo su questa camera. Grazie per il dettaglio delle criticità.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "6305394247"
         },
         {
           "id": "deluxe-6346332210",
           "dataRecensione": "2025-08-26",
           "punteggio": 10,
           "stato": "senza_testo"
-        },
-        {
-          "id": "deluxe-6305394247",
-          "dataRecensione": "2025-08-26",
-          "punteggio": 5,
-          "stato": "da_scrivere",
-          "positivo": "Posizione fantastica, cancello del condominio accanto all'entrata della metropolitana.",
-          "negativo": "Stanza n.4 (matrimoniale con terrazzo) molto piccola, mancanza di manutenzione (soffione doccia ostruito, doccia in vasca idromassaggio con molto scivolosa, condizionatore non proprio silenzioso, porta scorrevole d'accesso al terrazzo difficoltosa da aprire), inoltre nella stanza di notte si sente lo scarico dell'acqua dei piani superiori. Pulizia e arredamento da migliorare."
         },
         {
           "id": "deluxe-5347441730",
@@ -2385,16 +2517,40 @@
           "id": "deluxe-6423821456",
           "dataRecensione": "2025-08-22",
           "punteggio": 8,
-          "stato": "da_scrivere",
-          "positivo": "Stanza molto accogliente e pulita. Posizione perfetta se si deve partire dalla stazione di Tiburtina e comunque molto vicina alla stazione degli autobus per cui è molto facile muoversi. Accesso alla camera ben spiegato.\nConsigliato."
+          "positivo": "Stanza molto accogliente e pulita. Posizione perfetta se si deve partire dalla stazione di Tiburtina e comunque molto vicina alla stazione degli autobus per cui è molto facile muoversi. Accesso alla camera ben spiegato.\nConsigliato.",
+          "negativo": null,
+          "lingua": "es",
+          "riassuntoIT": "Ospite apprezza la vicinanza a stazione metro, treno e bus ma critica il proprietario.",
+          "rispostaProposta": "Salve, prendo nota della sua osservazione sul proprietario. Se c'è stato un problema specifico nella comunicazione o assistenza, le sarei grato se potesse dettagliare cosa non l'ha soddisfatto.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "6423821456"
         },
         {
           "id": "deluxe-6537943573",
           "dataRecensione": "2025-08-22",
           "punteggio": 7,
-          "stato": "da_scrivere",
           "positivo": "El baÃ±o es muy completo, tiene terraza, en general es bueno, lo mejor es que tiene metro a la salida del lugar",
-          "negativo": "Tenia levantado el piso un poco al costado de la cama y me daÃ±e el pie."
+          "negativo": "Tenia levantado el piso un poco al costado de la cama y me daÃ±e el pie.",
+          "lingua": "es",
+          "riassuntoIT": "Ospite apprezza il bagno completo, la terrazza e la vicinanza alla metro, ma si è ferito con il pavimento rialzato accanto al letto.",
+          "rispostaProposta": "Salve, mi spiace per l'infortunio causato dal pavimento rialzato. Questo è un dettaglio della camera che avremmo dovuto segnalare meglio. Adesso mettiamo un avviso in quella zona. Grazie per aver segnalato il pericolo.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "6537943573"
+        },
+        {
+          "id": "deluxe-4484612381",
+          "dataRecensione": "2025-08-20",
+          "punteggio": 9,
+          "positivo": "Gostei muito da localização próxima da estação Tiburtina e da estação de ônibus. O quarto era pequeno com espaço reduzido, custo-benefício ideal para quem está se locomovendo para outras cidades.",
+          "negativo": "Houve problemas com o check-in, pois há mais de um hotel com o mesmo nome na região e recebemos a informação por e-mail com a localização do outro hotel e nos perdemos. Apesar do cansaço da procura  e do calor de Roma, conseguimos telefonar e resolver o problema. ",
+          "lingua": "pt",
+          "riassuntoIT": "Ospite apprezza la posizione e il rapporto qualità-prezzo, ma ha avuto problemi di check-in per confusione tra strutture omonime, risoltisi però con una telefonata.",
+          "rispostaProposta": "Salve, mi spiace per la confusione del check-in. Purtroppo ci sono altre strutture con nome simile in zona, e talvolta Booking invia coordinate non corrette. Abbiamo segnalato il problema. Grazie per aver perseverato e ricontattato.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "4484612381"
         },
         {
           "id": "deluxe-5759098909",
@@ -2411,14 +2567,6 @@
           "stato": "senza_testo"
         },
         {
-          "id": "deluxe-4484612381",
-          "dataRecensione": "2025-08-20",
-          "punteggio": 9,
-          "stato": "da_scrivere",
-          "positivo": "Gostei muito da localização próxima da estação Tiburtina e da estação de ônibus. O quarto era pequeno com espaço reduzido, custo-benefício ideal para quem está se locomovendo para outras cidades.",
-          "negativo": "Houve problemas com o check-in, pois há mais de um hotel com o mesmo nome na região e recebemos a informação por e-mail com a localização do outro hotel e nos perdemos. Apesar do cansaço da procura  e do calor de Roma, conseguimos telefonar e resolver o problema. "
-        },
-        {
           "id": "deluxe-5616676279",
           "dataRecensione": "2025-08-18",
           "punteggio": 6,
@@ -2428,15 +2576,27 @@
           "id": "deluxe-6469391590",
           "dataRecensione": "2025-08-17",
           "punteggio": 10,
-          "stato": "da_scrivere",
-          "positivo": "Sempre la mia scelta numero 1"
+          "positivo": "Sempre la mia scelta numero 1",
+          "negativo": null,
+          "lingua": "it",
+          "riassuntoIT": "Ospite fedele che sceglie sempre InternoUno come prima opzione.",
+          "rispostaProposta": "Siamo felici di leggere che siamo sempre la sua scelta numero 1. Questo è il miglior complimento che potevamo ricevere. La aspettiamo per il vostro prossimo soggiorno a Roma.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "6469391590"
         },
         {
           "id": "deluxe-6789295857",
           "dataRecensione": "2025-08-13",
           "punteggio": 10,
-          "stato": "da_scrivere",
-          "positivo": "Sempre la mia prima scelta"
+          "positivo": "Sempre la mia prima scelta",
+          "negativo": null,
+          "lingua": "it",
+          "riassuntoIT": "Ospite fedele che sceglie sempre InternoUno come prima scelta.",
+          "rispostaProposta": "Un grazie sincero per la sua fedeltà. È una soddisfazione leggere che siamo la sua prima scelta. Speriamo di ospitarla ancora presto.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "6789295857"
         },
         {
           "id": "deluxe-6409008321",
@@ -2490,16 +2650,27 @@
           "id": "deluxe-6864878734",
           "dataRecensione": "2025-08-04",
           "punteggio": 9,
-          "stato": "da_scrivere",
           "positivo": "Il soggiorno presso InternoUno è stato come essere a casa, quel balconcino era l'ideale per le sere estive. Ringrazio tantissimo lo staff che è stato gentilissimo e disponibile a venirci incontro per qualsiasi necessità, abbiamo avuto un piccolo problema in camera e hanno saputo risolvere subito! Grazie ancora e a presto!",
-          "negativo": "nulla"
+          "negativo": "nulla",
+          "lingua": "it",
+          "riassuntoIT": "Ospite molto soddisfatto del soggiorno, apprezza il balcone e loda lo staff per la rapidità nella risoluzione di un problema.",
+          "rispostaProposta": "La ringraziamo per il suo riscontro. Siamo contenti che il balconcino le abbia regalato belle serate e che il nostro staff sia riuscito a risolvere il piccolo inconveniente. A presto.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "6864878734"
         },
         {
           "id": "deluxe-6645697579",
           "dataRecensione": "2025-08-04",
           "punteggio": 10,
-          "stato": "da_scrivere",
-          "positivo": "Mi è piaciuto tutto,accoglienza, cordialità,gentilezza,posizione della struttura,pulizia. Ritornerei volentieri.Grazie"
+          "positivo": "Mi è piaciuto tutto,accoglienza, cordialità,gentilezza,posizione della struttura,pulizia. Ritornerei volentieri.Grazie",
+          "negativo": null,
+          "lingua": "it",
+          "riassuntoIT": "Ospite molto soddisfatto di tutto: accoglienza, cordialità, posizione e pulizia. Intende tornare.",
+          "rispostaProposta": "Grazie mille per la sua recensione. Ci fa piacere sapere che si è trovato bene da noi in tutti gli aspetti. La aspettiamo per un prossimo soggiorno.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "6645697579"
         },
         {
           "id": "deluxe-6212869025",
@@ -2517,8 +2688,27 @@
           "id": "deluxe-6383001697",
           "dataRecensione": "2025-08-01",
           "punteggio": 10,
-          "stato": "da_scrivere",
-          "positivo": "Molto pulito,centralissimo e proprietario  super carino  e accogliente. Sarà sicuramente  il b&B di riferimento  per tutti i miei viaggi a Roma"
+          "positivo": "Molto pulito,centralissimo e proprietario  super carino  e accogliente. Sarà sicuramente  il b&B di riferimento  per tutti i miei viaggi a Roma",
+          "negativo": null,
+          "lingua": "it",
+          "riassuntoIT": "Ospite entusiasta: loda la pulizia, la posizione centrale e la simpatia del proprietario. Vuole tornare.",
+          "rispostaProposta": "Grazie per il tempo dedicato a questa recensione. È una soddisfazione leggere commenti come il suo e sapere che tornerà a trovarci. Speriamo di ospitarla di nuovo.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "6383001697"
+        },
+        {
+          "id": "deluxe-5403858589",
+          "dataRecensione": "2025-07-27",
+          "punteggio": 10,
+          "positivo": "The terrace/balcony!",
+          "negativo": "The water pressure of the shower, just my preference for a strong stream of water.",
+          "lingua": "en",
+          "riassuntoIT": "Ospite soddisfatto della terrazza, ma nota una preferenza personale per pressione dell'acqua più forte nella doccia.",
+          "rispostaProposta": "Un grazie sincero per le sue parole. Siamo contenti che abbia apprezzato la terrazza. Prenderemo nota della sua osservazione sulla pressione dell'acqua.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "5403858589"
         },
         {
           "id": "deluxe-5551077315",
@@ -2527,33 +2717,36 @@
           "stato": "senza_testo"
         },
         {
-          "id": "deluxe-5403858589",
-          "dataRecensione": "2025-07-27",
+          "id": "deluxe-5114249412",
+          "dataRecensione": "2025-07-25",
           "punteggio": 10,
-          "stato": "da_scrivere",
-          "positivo": "The terrace/balcony!",
-          "negativo": "The water pressure of the shower, just my preference for a strong stream of water."
+          "positivo": "place, calme la nuit,",
+          "negativo": "l'arrivée est compliquée, sans l'aide de personnes italophones nous n'aurions pas pu entrer",
+          "lingua": "fr",
+          "riassuntoIT": "Ospite apprezza la posizione e la tranquillità notturna, ma segnala difficoltà nell'accesso senza aiuto di persone italofone.",
+          "rispostaProposta": "Salve, grazie della sua recensione. Mi dispiace che l'arrivo sia stato complicato: purtroppo le istruzioni in altre lingue non bastano sempre. Farò il possibile per migliorare questo aspetto con ospiti futuri.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "5114249412"
+        },
+        {
+          "id": "deluxe-5839672188",
+          "dataRecensione": "2025-07-25",
+          "punteggio": 9,
+          "positivo": "Gentilissimo il proprietario; posizione perfetta per turisti e per lavoratori. All' interno la stanza/ miniappartamento ha tutto il necessario per un breve periodo.",
+          "negativo": null,
+          "lingua": "it",
+          "riassuntoIT": "Ospite soddisfatto della disponibilità del proprietario, della posizione e della completezza della stanza per brevi soggiorni.",
+          "rispostaProposta": "La ringraziamo per il suo riscontro. Siamo felici che la posizione e la completezza della stanza abbiano risposto alle sue esigenze. A presto.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "5839672188"
         },
         {
           "id": "deluxe-4532435244",
           "dataRecensione": "2025-07-25",
           "punteggio": 6,
           "stato": "senza_testo"
-        },
-        {
-          "id": "deluxe-5114249412",
-          "dataRecensione": "2025-07-25",
-          "punteggio": 10,
-          "stato": "da_scrivere",
-          "positivo": "place, calme la nuit,",
-          "negativo": "l'arrivée est compliquée, sans l'aide de personnes italophones nous n'aurions pas pu entrer"
-        },
-        {
-          "id": "deluxe-5839672188",
-          "dataRecensione": "2025-07-25",
-          "punteggio": 9,
-          "stato": "da_scrivere",
-          "positivo": "Gentilissimo il proprietario; posizione perfetta per turisti e per lavoratori. All' interno la stanza/ miniappartamento ha tutto il necessario per un breve periodo."
         },
         {
           "id": "deluxe-4456979183",
@@ -2565,17 +2758,27 @@
           "id": "deluxe-4379264636",
           "dataRecensione": "2025-07-19",
           "punteggio": 7,
-          "stato": "da_scrivere",
           "positivo": "Everything except one thing",
-          "negativo": "Disturbing washing machines noise even at nights"
+          "negativo": "Disturbing washing machines noise even at nights",
+          "lingua": "en",
+          "riassuntoIT": "Ospite apprezza la struttura ma è disturbato dal rumore della lavatrice anche di notte.",
+          "rispostaProposta": "Salve, grazie della sua recensione. Mi spiace del disturbo causato dalla lavatrice. La struttura è in una zona condivisa e cerchiamo di regolarne l'uso, ma prenderò ulteriori accorgimenti per limitare il rumore durante la notte.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "4379264636"
         },
         {
           "id": "deluxe-4783449314",
           "dataRecensione": "2025-07-18",
           "punteggio": 8,
-          "stato": "da_scrivere",
           "positivo": "La terraza, y el personal muy pendiente",
-          "negativo": "La limpieza de la terraza no era muy buena"
+          "negativo": "La limpieza de la terraza no era muy buena",
+          "lingua": "es",
+          "riassuntoIT": "Ospite apprezza terrazza e staff attento, ma segnala pulizia insufficiente della terrazza.",
+          "rispostaProposta": "Salve, grazie della sua recensione. Mi spiace che la pulizia della terrazza non sia stata all'altezza. Darò istruzioni più rigorose al team di pulizia per assicurare uno standard più elevato.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "4783449314"
         },
         {
           "id": "deluxe-5902633278",
@@ -2605,17 +2808,27 @@
           "id": "deluxe-4954805080",
           "dataRecensione": "2025-07-05",
           "punteggio": 10,
-          "stato": "da_scrivere",
           "positivo": "Very clear communication from proprietor: stressed that we had booked a  small room (which we knew) and showed pictures before we arrived. Also reassuringly clear details for key pickup, with photos. Location is excellent, literally 20m from one of the Metro exits at Staz. Roma Tiburtina, on the ground floor of a secured apartment block. Room itself was very small, very little natural light, but a comfortable bed, a functional a/c and en-suite shower room, microwave and well-functioning fridge with a sink in the room, together with a few basic items of kitchen equipment - no three course dinners here, but if you need to heat up any purchased food just the job. Would certainly stay here again for a night or two.",
-          "negativo": "Look it's not the Ritz, and it's specified as a small room. and I'd have liked more windows, but vfm good for Rome in July"
+          "negativo": "Look it's not the Ritz, and it's specified as a small room. and I'd have liked more windows, but vfm good for Rome in July",
+          "lingua": "en",
+          "riassuntoIT": "Ospite apprezza la comunicazione trasparente del proprietario, la posizione vicino alla metro e la praticità della stanza piccola ma ben attrezzata.",
+          "rispostaProposta": "La ringraziamo per il suo riscontro dettagliato. Ci fa piacere che la chiarezza nella comunicazione e la praticità della stanza abbiano contribuito al vostro soggiorno. Vi aspettiamo per il prossimo passaggio a Roma.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "4954805080"
         },
         {
           "id": "deluxe-4987143060",
           "dataRecensione": "2025-07-04",
           "punteggio": 8,
-          "stato": "da_scrivere",
           "positivo": "Posizione e pulizia ",
-          "negativo": "Un pò impersonale "
+          "negativo": "Un pò impersonale ",
+          "lingua": "it",
+          "riassuntoIT": "Ospite apprezza posizione e pulizia, ma trova la struttura un po' impersonale.",
+          "rispostaProposta": "Grazie per la sua recensione. Siamo contenti che posizione e pulizia abbiano soddisfatto le sue aspettative. Prenderò nota del suo commento sul tono della struttura per renderla più accogliente al prossimo soggiorno.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "4987143060"
         },
         {
           "id": "deluxe-4998055757",
@@ -5309,13 +5522,6 @@
           "stato": "da_scrivere",
           "positivo": "Emplacement ideal avec metro a 2m et bus à 50m.Petite terrasse privé avec un calme parfait. Et surtout aussi parking voiture à 20 m. ",
           "negativo": "Rien"
-        },
-        {
-          "id": "deluxe-4230072456",
-          "dataRecensione": "2023-09-21",
-          "punteggio": 8,
-          "stato": "da_scrivere",
-          "positivo": "Struttura accogliente e personale molto gentile. Nel suo piccolo, la camera ha tutto ciò che serve, anzi molto di più. Tutti i servizi per farti sentire a casa. Solo il prezzo potrebbe essere leggermente più basso, ma del resto è una struttura che consiglio sia per la posizione sia per i servizi a disposizione. La terrò in considerazione per ulteriori soggiorni nella capitale :)"
         }
       ]
     },
@@ -5997,8 +6203,14 @@
           "id": "classica-6013154989",
           "dataRecensione": "2026-05-09",
           "punteggio": 10,
-          "stato": "da_scrivere",
-          "positivo": "Our stay at the apartment was wonderful. Everything was very clean, comfortable, and well organized. The apartment had everything we needed, and the location was also very convenient.\r\n\r\nA special heartfelt thank you to Filippo for his kindness, attention, and hospitality. He prepared everything perfectly for our arrival and was very helpful and responsive during our stay. We truly appreciated his care and professionalism.\r\n\r\nWe would gladly stay here again and highly recommend this apartment to other guests."
+          "positivo": "Our stay at the apartment was wonderful. Everything was very clean, comfortable, and well organized. The apartment had everything we needed, and the location was also very convenient.\r\n\r\nA special heartfelt thank you to Filippo for his kindness, attention, and hospitality. He prepared everything perfectly for our arrival and was very helpful and responsive during our stay. We truly appreciated his care and professionalism.\r\n\r\nWe would gladly stay here again and highly recommend this apartment to other guests.",
+          "negativo": null,
+          "lingua": "en",
+          "riassuntoIT": "Soggiorno eccellente, appartamento pulito e ben organizzato, grande apprezzamento per l'ospitalità e la professionalità di Filippo.",
+          "rispostaProposta": "La ringraziamo per il suo riscontro. Siamo contenti che abbia apprezzato l'attenzione ai dettagli e la pulizia dell'appartamento. La speriamo di ospitarla di nuovo a breve.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "6013154989"
         },
         {
           "id": "classica-6255537105",
@@ -7213,9 +7425,14 @@
           "id": "classica-5303936427",
           "dataRecensione": "2025-10-29",
           "punteggio": 10,
-          "stato": "da_scrivere",
           "positivo": "The apartment was grandest for the euro! VERY SPACIOUS AND I FELT SAFE, it was very clean and fresh! The location was close to food and drink! Buses and treni. The spa tub was wonderful before or after a flight, or a long day out. It was quiet after midnight, i didn't hear traffic until 7am with windows open all night. The windows allowed fresh air, or air conditioning too for quiet. You can cook! Plates, cups, silverware, pots and pans, mini fridge! Tea and café was free! The owner was very helpful when my taxi dropped me at the wrong address! I would stay here again, anytime! Grazie Mille! They were exceptionally patient and kind with my early am departure, late afternoon arrival and guiding me to the correct address within 5 minutes! Arrieverderchi ",
-          "negativo": "Having to leave the apartment! I could have enjoyed more time there! I had a flight to catch. "
+          "negativo": "Having to leave the apartment! I could have enjoyed more time there! I had a flight to catch. ",
+          "lingua": "en",
+          "riassuntoIT": "Valutazione entusiasta: appartamento spazioso, pulito, ben fornito, buona posizione, proprietario molto disponibile anche con problemi logistici.",
+          "rispostaProposta": "Grazie mille per le sue parole. Ci fa piacere sapere che si è trovato bene da noi, e siamo felici di essere stati d'aiuto nei piccoli inconvenienti. A presto.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "5303936427"
         },
         {
           "id": "classica-5655856654",
@@ -7391,8 +7608,14 @@
           "id": "classica-5326998318",
           "dataRecensione": "2025-09-28",
           "punteggio": 8,
-          "stato": "da_scrivere",
-          "positivo": "Il posto "
+          "positivo": "Il posto ",
+          "negativo": null,
+          "lingua": "it",
+          "riassuntoIT": "Valutazione positiva molto sintetica: il posto è piaciuto.",
+          "rispostaProposta": "Grazie per il suo commento. Siamo felici di leggere che ha apprezzato il nostro appartamento. La aspettiamo per un prossimo soggiorno.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "5326998318"
         },
         {
           "id": "classica-6375809707",
@@ -7601,31 +7824,53 @@
           "id": "classica-4298356347",
           "dataRecensione": "2025-08-21",
           "punteggio": 9,
-          "stato": "da_scrivere",
-          "positivo": "Chambre agréable, au calme, bien équipée (salle de bains, kitchenette). Personnel très aimable. Station de métro et bus,   commerces proches."
+          "positivo": "Chambre agréable, au calme, bien équipée (salle de bains, kitchenette). Personnel très aimable. Station de métro et bus,   commerces proches.",
+          "negativo": null,
+          "lingua": "fr",
+          "riassuntoIT": "Camera piacevole, tranquilla, ben attrezzata, personale gentile, buona posizione con trasporti e commerci vicini.",
+          "rispostaProposta": "Un grazie sincero per la sua recensione. Siamo contenti che abbia apprezzato la tranquillità della zona e la disponibilità del nostro staff. Speriamo di ospitarla di nuovo.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "4298356347"
         },
         {
           "id": "classica-5675499783",
           "dataRecensione": "2025-08-21",
           "punteggio": 8,
-          "stato": "da_scrivere",
-          "positivo": "Posizione ottima con possibilità di parcheggio  ,stanza con tutti i servizi e personale disponibile!\n"
+          "positivo": "Posizione ottima con possibilità di parcheggio  ,stanza con tutti i servizi e personale disponibile!\n",
+          "negativo": null,
+          "lingua": "it",
+          "riassuntoIT": "Apprezzamento per la posizione, il parcheggio, i servizi della stanza e la disponibilità del personale.",
+          "rispostaProposta": "La ringraziamo per il feedback positivo. È una soddisfazione leggere commenti come il suo sulla posizione e sul nostro servizio.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "5675499783"
         },
         {
           "id": "classica-6996741403",
           "dataRecensione": "2025-08-20",
           "punteggio": 9,
-          "stato": "da_scrivere",
           "positivo": "The property was clean and good for 3 persons.\nThe staff was so nice and kind. Good hospitality and instructions. \n",
-          "negativo": "The only problem was the single bed. It is not too confortable and surrounded by wooden stages. But in general everything was good"
+          "negativo": "The only problem was the single bed. It is not too confortable and surrounded by wooden stages. But in general everything was good",
+          "lingua": "en",
+          "riassuntoIT": "Proprietà pulita, staff gentile, ma il letto singolo non è molto confortevole e circondato da elementi in legno scomodi.",
+          "rispostaProposta": "Salve, grazie per la segnalazione. Purtroppo il letto singolo è così com'è descritto nell'annuncio, però apprezziamo il feedback. Siamo comunque contenti che nel complesso la permanenza sia stata positiva.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "6996741403"
         },
         {
           "id": "classica-5679864427",
           "dataRecensione": "2025-08-19",
           "punteggio": 7,
-          "stato": "da_scrivere",
           "positivo": "Posizione con i mezzi pubblici",
-          "negativo": "Stanza troppo piccola"
+          "negativo": "Stanza troppo piccola",
+          "lingua": "it",
+          "riassuntoIT": "Valutazione media: posizione buona con mezzi pubblici, ma la stanza è troppo piccola.",
+          "rispostaProposta": "Salve, grazie del commento. Le dimensioni della stanza sono quelle indicate nell'annuncio, però siamo contenti che la posizione e i trasporti le siano piaciuti.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "5679864427"
         },
         {
           "id": "classica-5694930454",
@@ -7637,31 +7882,53 @@
           "id": "classica-5009408538",
           "dataRecensione": "2025-08-11",
           "punteggio": 9,
-          "stato": "da_scrivere",
           "positivo": "Много приятен , чист и спокоен хотел. Хотелчето е в много спокоен квартал, с удобен транспорт. Всеки ден се сменя спалното бельо. Собственика е лъчезарен и отзивчив. ",
-          "negativo": "Малко повече закачалки например, например в коридорчето или банята."
+          "negativo": "Малко повече закачалки например, например в коридорчето или банята.",
+          "lingua": "bg",
+          "riassuntoIT": "Hotel pulito, tranquillo, in zona quieta, buoni trasporti, cambio giornaliero biancheria, proprietario cordiale, ma mancano ganci/appendiabiti.",
+          "rispostaProposta": "La ringraziamo per il suo riscontro. Ci fa piacere sapere che ha apprezzato la pulizia e la tranquillità della struttura. Prenderemo in considerazione la sua osservazione sui ganci.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "5009408538"
         },
         {
           "id": "classica-5749681507",
           "dataRecensione": "2025-08-10",
           "punteggio": 6,
-          "stato": "da_scrivere",
           "positivo": "Camera spaziosa, condizionatore ok e bagno ok, doccia spaziosa. ",
-          "negativo": "Zona piuttosto scomoda e poco raccomandabile soprattutto di notte. Stanza non pulita bene, c'erano avanzi nel frigorifero e abbiamo anche trovato due cose (che non sto a dire) vicino al letto. \nTutto sommato soggiorno tranquillo, fortunatamente solo di una notte. \nIl check-out era alle 10 e noi alle 10.05 infatti eravamo giÃ  in macchina e fuori dalla stanza, ma una cosa che ho trovato poco carina e rispettosa alle 9.45 Ã¨ venuto a bussarci l'uomo delle pulizie per mandarci via dicendo ad alta voce \"forzaaa check ouuut\". ð "
+          "negativo": "Zona piuttosto scomoda e poco raccomandabile soprattutto di notte. Stanza non pulita bene, c'erano avanzi nel frigorifero e abbiamo anche trovato due cose (che non sto a dire) vicino al letto. \nTutto sommato soggiorno tranquillo, fortunatamente solo di una notte. \nIl check-out era alle 10 e noi alle 10.05 infatti eravamo giÃ  in macchina e fuori dalla stanza, ma una cosa che ho trovato poco carina e rispettosa alle 9.45 Ã¨ venuto a bussarci l'uomo delle pulizie per mandarci via dicendo ad alta voce \"forzaaa check ouuut\". ð ",
+          "lingua": "it",
+          "riassuntoIT": "Camera spaziosa e bagno ok, ma zona poco sicura di notte, stanza non ben pulita all'arrivo, e check-out gestito in modo brusco dalla pulizia.",
+          "rispostaProposta": "Mi spiace per l'esperienza. Riguardo alle condizioni della stanza, non è accettabile: avremmo dovuto verificare meglio. Per il check-out alle 9.45, il nostro addetto alle pulizie ha anticipato i tempi senza considerazione dovuta. Questi sono errori che correggeremo.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "5749681507"
         },
         {
           "id": "classica-4558195530",
           "dataRecensione": "2025-08-09",
           "punteggio": 10,
-          "stato": "da_scrivere",
-          "positivo": "A praticidade do sistema self check in e a prontidÃ£o na comunicaÃ§Ã£o com o anfitriÃ£o."
+          "positivo": "A praticidade do sistema self check in e a prontidÃ£o na comunicaÃ§Ã£o com o anfitriÃ£o.",
+          "negativo": null,
+          "lingua": "pt",
+          "riassuntoIT": "Apprezzamento per il sistema di self check-in e la comunicazione veloce con l'host.",
+          "rispostaProposta": "Grazie per il feedback. Siamo contenti che il sistema self check-in e la nostra comunicazione abbiano reso il soggiorno pratico e piacevole. A presto.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "4558195530"
         },
         {
           "id": "classica-4558138240",
           "dataRecensione": "2025-08-09",
           "punteggio": 8,
-          "stato": "da_scrivere",
-          "positivo": "Sistema self check in e a prontidão da comunicação com o anfitrião "
+          "positivo": "Sistema self check in e a prontidão da comunicação com o anfitrião ",
+          "negativo": null,
+          "lingua": "pt",
+          "riassuntoIT": "Valutazione positiva per il self check-in e la comunicazione veloce con il proprietario.",
+          "rispostaProposta": "Un grazie sincero per le sue parole. È una soddisfazione sapere che il nostro sistema di accesso e la prontezza nella comunicazione abbiano funzionato bene per lei.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "4558138240"
         },
         {
           "id": "classica-5993132964",
@@ -7679,31 +7946,53 @@
           "id": "classica-4965057630",
           "dataRecensione": "2025-08-04",
           "punteggio": 10,
-          "stato": "da_scrivere",
-          "positivo": "RelaciÃ³n calidad precio "
+          "positivo": "RelaciÃ³n calidad precio ",
+          "negativo": null,
+          "lingua": "es",
+          "riassuntoIT": "Apprezzamento per il rapporto qualità-prezzo.",
+          "rispostaProposta": "La ringraziamo per la sua recensione. Siamo felici di leggere che ha trovato buona la relazione tra qualità e prezzo. La speriamo di ospitarla di nuovo.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "4965057630"
         },
         {
           "id": "classica-5948099542",
           "dataRecensione": "2025-08-04",
           "punteggio": 8,
-          "stato": "da_scrivere",
           "positivo": "Stanza e bagno piccoli, ma accoglienti. Letto e cuscini davvero comodi.",
-          "negativo": "Insonorizzazione pareti"
+          "negativo": "Insonorizzazione pareti",
+          "lingua": "it",
+          "riassuntoIT": "Stanza e bagno piccoli ma accoglienti, letto comodo, ma scarsa insonorizzazione delle pareti.",
+          "rispostaProposta": "Grazie del commento. Siamo contenti che abbia apprezzato il comfort del letto e l'accoglienza. L'insonorizzazione è una limitazione della struttura, già nota anche ad altri ospiti.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "5948099542"
         },
         {
           "id": "classica-6489207572",
           "dataRecensione": "2025-08-02",
           "punteggio": 10,
-          "stato": "da_scrivere",
-          "positivo": "Ho trovato l'alloggio molto pulito, largo e confortevole. L'host poi molto gentile e disponibile! "
+          "positivo": "Ho trovato l'alloggio molto pulito, largo e confortevole. L'host poi molto gentile e disponibile! ",
+          "negativo": null,
+          "lingua": "it",
+          "riassuntoIT": "Alloggio molto pulito, spazioso e confortevole, host gentile e disponibile.",
+          "rispostaProposta": "Grazie per il suo riscontro. Ci fa piacere che abbia apprezzato la pulizia e la disponibilità. La aspettiamo per un prossimo soggiorno.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "6489207572"
         },
         {
           "id": "classica-4303734490",
           "dataRecensione": "2025-07-31",
           "punteggio": 10,
-          "stato": "da_scrivere",
           "positivo": "E molto comodo ",
-          "negativo": "Si può sempre migliorare "
+          "negativo": "Si può sempre migliorare ",
+          "lingua": "it",
+          "riassuntoIT": "Valutazione positiva per la comodità, ma con la nota generica che si può sempre migliorare.",
+          "rispostaProposta": "La ringraziamo per il feedback. Siamo felici di leggere che ha trovato comodo l'alloggio, e naturalmente rimaniamo aperti a suggerimenti per migliorare ancora.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "4303734490"
         },
         {
           "id": "classica-5401408504",
@@ -7715,15 +8004,27 @@
           "id": "classica-6488938631",
           "dataRecensione": "2025-07-30",
           "punteggio": 7,
-          "stato": "da_scrivere",
-          "negativo": "Room was very small "
+          "positivo": null,
+          "negativo": "Room was very small ",
+          "lingua": "en",
+          "riassuntoIT": "Ospite critica le dimensioni molto piccole della stanza.",
+          "rispostaProposta": "Salve, capisco la considerazione sulla metratura. Le camere di InternoUno sono pensate come monolocali compatti, ma complete di tutti i servizi. Nella descrizione dell'annuncio troverete le dimensioni esatte e le foto per valutare se adatte alle vostre necessità.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "6488938631"
         },
         {
           "id": "classica-5573377446",
           "dataRecensione": "2025-07-26",
           "punteggio": 10,
-          "stato": "da_scrivere",
-          "positivo": "A 5 min a piedi dalla fermata della metro Bologna, in una strada molto tranquilla e silenziosa. Camera pulita e perfetta per le mie esigenza, aveva tutto il necessario e di più, molto sorpreso dal l’avere Netflix incluso sulla tv e l’angolo cottura. Aria condizionata molto efficiente. Sicuramente consigliato"
+          "positivo": "A 5 min a piedi dalla fermata della metro Bologna, in una strada molto tranquilla e silenziosa. Camera pulita e perfetta per le mie esigenza, aveva tutto il necessario e di più, molto sorpreso dal l’avere Netflix incluso sulla tv e l’angolo cottura. Aria condizionata molto efficiente. Sicuramente consigliato",
+          "negativo": null,
+          "lingua": "it",
+          "riassuntoIT": "Ospite molto soddisfatto di pulizia, completezza, metro vicinissima, Netflix e angolo cottura.",
+          "rispostaProposta": "Grazie mille per la sua recensione. Siamo contenti che abbia apprezzato la completezza della camera e soprattutto la praticità della posizione rispetto alla metro. A presto.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "5573377446"
         },
         {
           "id": "classica-4842337277",
@@ -7732,18 +8033,23 @@
           "stato": "senza_testo"
         },
         {
+          "id": "classica-5809321226",
+          "dataRecensione": "2025-07-23",
+          "punteggio": 9,
+          "positivo": "chambre vaste, terrasse appropriée pour stocker les vélos, métro à proximité, le café du matin, avec croissant à proximité",
+          "negativo": "pour arriver, les codes pour ouvrir la grille et la première porte... difficile à comprendre,",
+          "lingua": "fr",
+          "riassuntoIT": "Ospite apprezza spazi, terrazza, metro e caffè, ma critica la difficoltà dei codici di accesso.",
+          "rispostaProposta": "Salve, grazie per le sue osservazioni. Sui codici della griglia e della prima porta, concordo che la comunicazione iniziale potrebbe essere più chiara. Miglioreremo le istruzioni per i prossimi ospiti. Sono contento che il resto dell'esperienza sia stato positivo.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "5809321226"
+        },
+        {
           "id": "classica-6645441051",
           "dataRecensione": "2025-07-23",
           "punteggio": 10,
           "stato": "senza_testo"
-        },
-        {
-          "id": "classica-5809321226",
-          "dataRecensione": "2025-07-23",
-          "punteggio": 9,
-          "stato": "da_scrivere",
-          "positivo": "chambre vaste, terrasse appropriée pour stocker les vélos, métro à proximité, le café du matin, avec croissant à proximité",
-          "negativo": "pour arriver, les codes pour ouvrir la grille et la première porte... difficile à comprendre,"
         },
         {
           "id": "classica-6068295352",
@@ -7761,32 +8067,53 @@
           "id": "classica-4539950003",
           "dataRecensione": "2025-07-18",
           "punteggio": 7,
-          "stato": "da_scrivere",
           "positivo": "Host was friendly, location was good (500m from metro that is going to city centar)",
-          "negativo": "Noise from everywhere (outside and inside - flushing toilet sounds...)"
+          "negativo": "Noise from everywhere (outside and inside - flushing toilet sounds...)",
+          "lingua": "en",
+          "riassuntoIT": "Ospite apprezza l'host e la posizione, ma lamenta rumori sia dall'esterno che dai servizi interni.",
+          "rispostaProposta": "Salve, mi spiace che i rumori abbiano disturbato il soggiorno. InternoUno si trova in una zona residenziale urbana dove è inevitabile qualche rumore esterno, e gli edifici hanno naturalmente trasmissione sonora tra unità. Purtroppo è una limitazione della struttura stessa.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "4539950003"
         },
         {
           "id": "classica-5519259473",
           "dataRecensione": "2025-07-17",
           "punteggio": 9,
-          "stato": "da_scrivere",
-          "positivo": "Buona accoglienza e posizione comoda "
+          "positivo": "Buona accoglienza e posizione comoda ",
+          "negativo": null,
+          "lingua": "it",
+          "riassuntoIT": "Ospite soddisfatto dell'accoglienza e della posizione.",
+          "rispostaProposta": "La ringraziamo per il suo riscontro. Ci fa piacere sapere che si è trovato bene da noi. Speriamo di ospitarla di nuovo.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "5519259473"
         },
         {
           "id": "classica-4706856722",
           "dataRecensione": "2025-07-17",
           "punteggio": 5,
-          "stato": "da_scrivere",
           "positivo": "Posizione molto comoda e host ospitale. ",
-          "negativo": "Pareti molto sottili, si sentiva tutto delle altre stanze. Stanza parecchio datata (nelle foto sembrava nuova e piÃ¹ grande) e pulizia da migliorare. Inoltre, nel bagno oltre a mancare finestra, Mancava anche areatore. Stanza sicuramente da migliorare sotto piÃ¹ punti di vista, ma soprattutto insonorizzare maggiormente e rimodernare! "
+          "negativo": "Pareti molto sottili, si sentiva tutto delle altre stanze. Stanza parecchio datata (nelle foto sembrava nuova e piÃ¹ grande) e pulizia da migliorare. Inoltre, nel bagno oltre a mancare finestra, Mancava anche areatore. Stanza sicuramente da migliorare sotto piÃ¹ punti di vista, ma soprattutto insonorizzare maggiormente e rimodernare! ",
+          "lingua": "it",
+          "riassuntoIT": "Ospite critica pareti sottili, datazione della stanza rispetto alle foto, pulizia e mancanza di aerazione in bagno.",
+          "rispostaProposta": "Salve, apprezzo il dettaglio della recensione. Su alcuni punti: le pareti sono in muratura standard di edifici romani, inevitabilmente con trasmissione sonora; le foto sono recenti e rappresentano lo stato attuale; sulla pulizia e l'aerazione del bagno, prenderò nota per verificare e migliorare. Grazie per il feedback.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "4706856722"
         },
         {
           "id": "classica-4831041169",
           "dataRecensione": "2025-07-16",
           "punteggio": 10,
-          "stato": "da_scrivere",
           "positivo": "Aire acondicionado, plancha y secador de cabello, el personal de recepciÃ³n muy amable, tambiÃ©n esta cerca a paradas de buses, metro y automercado.",
-          "negativo": "Todo estaba bien "
+          "negativo": "Todo estaba bien ",
+          "lingua": "es",
+          "riassuntoIT": "Ospite molto soddisfatto di climatizzazione, attrezzature, staff amichevole e vicinanza ai trasporti.",
+          "rispostaProposta": "Un grazie sincero per le sue parole. Siamo felici che abbia apprezzato la posizione e il servizio del nostro staff. La aspettiamo per un prossimo soggiorno.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "4831041169"
         },
         {
           "id": "classica-5042146040",
@@ -7804,15 +8131,27 @@
           "id": "classica-4691818238",
           "dataRecensione": "2025-07-06",
           "punteggio": 10,
-          "stato": "da_scrivere",
-          "positivo": "Everything was amazing. The staff was friendly "
+          "positivo": "Everything was amazing. The staff was friendly ",
+          "negativo": null,
+          "lingua": "en",
+          "riassuntoIT": "Ospite entusiasta, tutto positivo.",
+          "rispostaProposta": "Grazie per la sua recensione. Siamo contenti che tutto sia stato di suo gradimento. A presto.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "4691818238"
         },
         {
           "id": "classica-5852038087",
           "dataRecensione": "2025-07-05",
           "punteggio": 8,
-          "stato": "da_scrivere",
-          "negativo": "Se posso fare un appunto, non è stato graditissimo a pochi minuti alle 10 sentirsi bussare per dirci di muoverci."
+          "positivo": null,
+          "negativo": "Se posso fare un appunto, non è stato graditissimo a pochi minuti alle 10 sentirsi bussare per dirci di muoverci.",
+          "lingua": "it",
+          "riassuntoIT": "Ospite critica il bussare alla porta poco prima delle 10 per comunicare il checkout.",
+          "rispostaProposta": "Salve, mi spiace per il disturbo al mattino. L'orario di checkout è le 10 e il nostro staff passa per verificare se gli ospiti si sono spostati, ma farò notare di essere più discreti negli avvisi. Grazie del feedback.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "5852038087"
         },
         {
           "id": "classica-4371107009",
@@ -7854,31 +8193,46 @@
           "id": "classica-5292850220",
           "dataRecensione": "2025-06-25",
           "punteggio": 7,
-          "stato": "da_scrivere",
           "positivo": "Posizione perfetta per le mie necessita' operative su Roma",
-          "negativo": "La camera presentava segni della carenza di una manutenzione costante"
+          "negativo": "La camera presentava segni della carenza di una manutenzione costante",
+          "lingua": "it",
+          "riassuntoIT": "Ospite apprezza la posizione ma critica la manutenzione insufficiente della camera.",
+          "rispostaProposta": "Salve, grazie per la considerazione sulla posizione. Sul tema della manutenzione, verificherò direttamente quali segni ha riscontrato per intervenire al più presto. Apprezziamo il segnale.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "5292850220"
         },
         {
           "id": "classica-4416312297",
           "dataRecensione": "2025-06-23",
           "punteggio": 10,
-          "stato": "da_scrivere",
           "positivo": "Disponía de aire acondicionado y persiana automática, que se cerraba por completo y omitia el paso de luz cosa que para nuestro descanso fue excelente! Lo bien distribuida que estaba la habitación ",
-          "negativo": "Realmente no hubo nada que no nos gustara"
+          "negativo": "Realmente no hubo nada que no nos gustara",
+          "lingua": "es",
+          "riassuntoIT": "Ospite molto soddisfatto di climatizzazione, persiana automatica e distribuzione della stanza.",
+          "rispostaProposta": "Siamo felici di leggere il suo commento. Grazie per aver apprezzato i dettagli come la persiana e la climatizzazione. Un caro saluto.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "4416312297"
+        },
+        {
+          "id": "classica-4826474745",
+          "dataRecensione": "2025-06-23",
+          "punteggio": 10,
+          "positivo": "Todo bárbaro, la habitación muy bien, cómoda y con lo necesario para poder descansar. Viajamos con nuestro perro y no tuvimos ningún problema, recomendable para parejas que viajan con mascota ",
+          "negativo": "Ningún problema con nada ",
+          "lingua": "es",
+          "riassuntoIT": "Ospite entusiasta, apprezza la comodità e sottolinea la pet-friendly.",
+          "rispostaProposta": "La ringraziamo per il tempo dedicato a questa recensione. Siamo contenti che il vostro cane si sia trovato a suo agio e che la camera sia stata confortevole. Un caro saluto.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "4826474745"
         },
         {
           "id": "classica-4970006662",
           "dataRecensione": "2025-06-23",
           "punteggio": 6,
           "stato": "senza_testo"
-        },
-        {
-          "id": "classica-4826474745",
-          "dataRecensione": "2025-06-23",
-          "punteggio": 10,
-          "stato": "da_scrivere",
-          "positivo": "Todo bárbaro, la habitación muy bien, cómoda y con lo necesario para poder descansar. Viajamos con nuestro perro y no tuvimos ningún problema, recomendable para parejas que viajan con mascota ",
-          "negativo": "Ningún problema con nada "
         },
         {
           "id": "classica-4560267731",
@@ -7928,9 +8282,14 @@
           "id": "classica-4626065172",
           "dataRecensione": "2025-06-02",
           "punteggio": 7,
-          "stato": "da_scrivere",
           "positivo": "Un po’ tutto ",
-          "negativo": "Struttura leggermente rovinata e pulizia ai limiti comunque tutto sommato buono"
+          "negativo": "Struttura leggermente rovinata e pulizia ai limiti comunque tutto sommato buono",
+          "lingua": "it",
+          "riassuntoIT": "Ospite critica il generale stato di usura e pulizia, pur giudicando tutto sommato accettabile.",
+          "rispostaProposta": "Salve, apprezzo l'equilibrio della sua valutazione. Gli accenni di usura su una struttura consolidata in zona Tiburtina sono reali, ma continueremo a mantenerla pulita e funzionale. Grazie per la considerazione.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "4626065172"
         },
         {
           "id": "classica-4564245819",
@@ -7984,8 +8343,14 @@
           "id": "classica-4695363640",
           "dataRecensione": "2025-05-18",
           "punteggio": 8,
-          "stato": "da_scrivere",
-          "positivo": "la posizione "
+          "positivo": "la posizione ",
+          "negativo": null,
+          "lingua": "it",
+          "riassuntoIT": "Ospite apprezza soprattutto la posizione.",
+          "rispostaProposta": "Grazie per la sua recensione. La posizione è davvero uno dei nostri punti di forza. Speriamo di ospitarla di nuovo.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "4695363640"
         },
         {
           "id": "classica-4747200066",
@@ -8065,24 +8430,40 @@
           "id": "classica-4692553884",
           "dataRecensione": "2025-04-25",
           "punteggio": 7,
-          "stato": "da_scrivere",
-          "positivo": "Posizione ottima, a 5 minuti a piedi dalla fermata della metropolitana, struttura molto accogliente personale molto disponibile e gentile. La camera pulita perfetta per 3 persone."
+          "positivo": "Posizione ottima, a 5 minuti a piedi dalla fermata della metropolitana, struttura molto accogliente personale molto disponibile e gentile. La camera pulita perfetta per 3 persone.",
+          "negativo": null,
+          "lingua": "it",
+          "riassuntoIT": "Ospite molto soddisfatto di posizione vicino metro, struttura accogliente, staff gentile e pulizia.",
+          "rispostaProposta": "Un grazie sincero per le sue parole. Ci fa piacere che abbia apprezzato soprattutto la disponibilità del nostro staff e la praticità della posizione per il vostro soggiorno. A presto.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "4692553884"
         },
         {
           "id": "classica-4967688717",
           "dataRecensione": "2025-04-22",
           "punteggio": 10,
-          "stato": "da_scrivere",
           "positivo": "Location was great, lots of buses within a minute distance and two metro stations within 10 minutes walk. Lots of shops , bars and bakery with excellent food and prices. Beds were comfortable, room size was very decent with everything we needed, and daily room cleaning was amazing, very easy late check in, and very friendly staff.\nWe will definitely be coming back.",
-          "negativo": "Everything was good "
+          "negativo": "Everything was good ",
+          "lingua": "en",
+          "riassuntoIT": "Ospite molto soddisfatto della posizione, pulizia, comfort dei letti, pulizia giornaliera e staff amichevole.",
+          "rispostaProposta": "La ringraziamo per il suo riscontro. Ci fa piacere sapere che ha apprezzato la posizione e la pulizia giornaliera delle stanze. Speriamo di ospitarla di nuovo.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "4967688717"
         },
         {
           "id": "classica-4832827660",
           "dataRecensione": "2025-04-20",
           "punteggio": 7,
-          "stato": "da_scrivere",
           "positivo": "La cama muy confortable, limpieza y muchos servicios cercanos.",
-          "negativo": "Las paredes son de papel y se escucha todo.\r\nSe escucha muchísimo el agua por las cañerías.\r\nLas habitaciones son muy pequeñas."
+          "negativo": "Las paredes son de papel y se escucha todo.\r\nSe escucha muchísimo el agua por las cañerías.\r\nLas habitaciones son muy pequeñas.",
+          "lingua": "es",
+          "riassuntoIT": "Letto confortevole e pulizia buoni, ma lamentele su isolamento acustico insufficiente e spazi piccoli.",
+          "rispostaProposta": "Grazie per la recensione. Comprendo le difficoltà relative al rumore: l'edificio è storico e l'isolamento acustico, purtroppo, è un limite della struttura che già indicato nell'annuncio. Le dimensioni delle camere sono invece indicate nella descrizione e nelle foto. Cordiali saluti.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "4832827660"
         },
         {
           "id": "classica-4496907348",
@@ -8094,9 +8475,14 @@
           "id": "classica-4538927726",
           "dataRecensione": "2025-04-15",
           "punteggio": 7,
-          "stato": "da_scrivere",
           "positivo": "Il punto di forza sicuramente è la posizione, a 5/10 minuti dalla metro di piazza Bologna.",
-          "negativo": "Capisco che la colazione non è inclusa, ma almeno una macchinetta per il caffè "
+          "negativo": "Capisco che la colazione non è inclusa, ma almeno una macchinetta per il caffè ",
+          "lingua": "it",
+          "riassuntoIT": "Apprezzamento della posizione, ma richiesta di una macchinetta del caffè in camera per compensare l'assenza della colazione inclusa.",
+          "rispostaProposta": "Grazie per le sue osservazioni. La posizione è effettivamente uno dei nostri punti di forza. Sulla colazione, è un servizio non incluso come indicato nell'annuncio, ma in zona ci sono ottimi bar e panetterie a pochi passi.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "4538927726"
         },
         {
           "id": "classica-4361175330",
@@ -8108,36 +8494,79 @@
           "id": "classica-4619701695",
           "dataRecensione": "2025-04-12",
           "punteggio": 7,
-          "stato": "da_scrivere",
-          "positivo": "Emplacement juste à côté de bus pour aller dans le centre.\nTrès mal isolé niveau bruit."
+          "positivo": "Emplacement juste à côté de bus pour aller dans le centre.\nTrès mal isolé niveau bruit.",
+          "negativo": null,
+          "lingua": "fr",
+          "riassuntoIT": "Posizione buona per i trasporti, ma problemi significativi di isolamento acustico.",
+          "rispostaProposta": "Grazie per il commento. Apprezziamo che la posizione vicino agli autobus sia stata utile. L'isolamento acustico è purtroppo un limite dell'edificio, già segnalato nella descrizione dell'annuncio.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "4619701695"
         },
         {
           "id": "classica-4519855814",
           "dataRecensione": "2025-04-11",
           "punteggio": 9,
-          "stato": "da_scrivere",
-          "positivo": "Eigentlich wollten wir gegen 10.30 nur unseren Koffer einstellen. Als wir mit dem zugesandten Pin öffnen wollten, wurde von innen geöffnet und ein sehr freundlicher Herr meinte, dass das Zimmer schon fertig sei und wir gleich dort die Koffer abstellen können. Wir bekamen alles erklärt plus die Schlüssel und der Wegerklärung zur Metro Piazza Bologna (8 Min.). Auch für die Abreise durften wir die Koffer in einem Schrank im Flur abstellen und Schlüssel mitnehmen. Gegen 14 Uhr holten wir die Koffer ab und legten die Schlüssel in ein dafür festgelegtes Fach. Zum Busbahnhof Tiburtina ca. 9 Min. Gute Frühstücks- und Essensmöglichkeiten im Umkreis. Lidl um die Ecke. Wären gerne länger geblieben. "
+          "positivo": "Eigentlich wollten wir gegen 10.30 nur unseren Koffer einstellen. Als wir mit dem zugesandten Pin öffnen wollten, wurde von innen geöffnet und ein sehr freundlicher Herr meinte, dass das Zimmer schon fertig sei und wir gleich dort die Koffer abstellen können. Wir bekamen alles erklärt plus die Schlüssel und der Wegerklärung zur Metro Piazza Bologna (8 Min.). Auch für die Abreise durften wir die Koffer in einem Schrank im Flur abstellen und Schlüssel mitnehmen. Gegen 14 Uhr holten wir die Koffer ab und legten die Schlüssel in ein dafür festgelegtes Fach. Zum Busbahnhof Tiburtina ca. 9 Min. Gute Frühstücks- und Essensmöglichkeiten im Umkreis. Lidl um die Ecke. Wären gerne länger geblieben. ",
+          "negativo": null,
+          "lingua": "de",
+          "riassuntoIT": "Ospite molto soddisfatto dello staff amichevole, early check-in, late checkout flessibile, posizione comoda e servizi nei dintorni.",
+          "rispostaProposta": "Grazie mille per le sue parole. Siamo contenti che il nostro staff le sia stato d'aiuto durante il soggiorno e che abbia apprezzato la flessibilità su check-in e checkout. A presto.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "4519855814"
         },
         {
           "id": "classica-4573831390",
           "dataRecensione": "2025-04-10",
           "punteggio": 10,
-          "stato": "da_scrivere",
-          "positivo": "Para lo que yo necesitaba fue excepcional,  cerca de mi familia  100m, cerca de supermercados 200m, Metro a Bologna 500m y bus, 600m Tren Triburtina, lugar limpio con todos los servicios y fácil acceso. Si no tiene 10 puntos es porque para algunas personas el baño y el lugar puede ser algo estrecho para circular. En mi caso lo recomendaré pues hemos pasado unos días excelentes. Muchas gracias!"
+          "positivo": "Para lo que yo necesitaba fue excepcional,  cerca de mi familia  100m, cerca de supermercados 200m, Metro a Bologna 500m y bus, 600m Tren Triburtina, lugar limpio con todos los servicios y fácil acceso. Si no tiene 10 puntos es porque para algunas personas el baño y el lugar puede ser algo estrecho para circular. En mi caso lo recomendaré pues hemos pasado unos días excelentes. Muchas gracias!",
+          "negativo": null,
+          "lingua": "es",
+          "riassuntoIT": "Ospite molto soddisfatto della posizione, pulizia, vicinanza a famiglia e servizi, consiglia la struttura nonostante spazi ridotti.",
+          "rispostaProposta": "Un grazie sincero per le sue parole. Siamo felici di leggere che il nostro affittacamere ha risposto alle sue esigenze e che ha potuto godere dei servizi della zona. La aspettiamo per un prossimo soggiorno.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "4573831390"
         },
         {
           "id": "classica-4964213314",
           "dataRecensione": "2025-04-09",
           "punteggio": 4,
-          "stato": "da_scrivere",
-          "positivo": "Mal Insonorisé on entendait toutes les discussions du voisin de dessus et à côté \nTrop bruyant"
+          "positivo": "Mal Insonorisé on entendait toutes les discussions du voisin de dessus et à côté \nTrop bruyant",
+          "negativo": null,
+          "lingua": "fr",
+          "riassuntoIT": "Lamentele significative su isolamento acustico insufficiente, senza alcun aspetto positivo segnalato.",
+          "rispostaProposta": "Mi spiace che il rumore sia stato un problema durante il suo soggiorno. L'isolamento acustico dell'edificio è purtroppo un limite strutturale già descritto nella descrizione dell'annuncio, che rimane un aspetto da valutare prima della prenotazione.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "4964213314"
         },
         {
           "id": "classica-4862516948",
           "dataRecensione": "2025-04-07",
           "punteggio": 9,
-          "stato": "da_scrivere",
-          "positivo": "We had a pleasant stay."
+          "positivo": "We had a pleasant stay.",
+          "negativo": null,
+          "lingua": "en",
+          "riassuntoIT": "Ospite soddisfatto del soggiorno nel complesso, nessun dettaglio specifico aggiunto.",
+          "rispostaProposta": "Grazie per il tempo dedicato a questa recensione. Ci fa piacere sapere che si è trovato bene da noi. Cordiali saluti.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "4862516948"
+        },
+        {
+          "id": "classica-4392043001",
+          "dataRecensione": "2025-04-05",
+          "punteggio": 7,
+          "positivo": "La disponibiluta di Filippo ",
+          "negativo": "La biancheria troppo datata e piena di polvere ",
+          "lingua": "it",
+          "riassuntoIT": "Apprezzamento per la disponibilità di Filippo, ma criticità sulla condizione della biancheria (datata e polverosa).",
+          "rispostaProposta": "Grazie per il riconoscimento. Mi spiace per il problema con la biancheria: verificherò subito la situazione per assicurarmi che non si ripeta. Apprezziamo la segnalazione.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "4392043001"
         },
         {
           "id": "classica-4466521479",
@@ -8146,20 +8575,17 @@
           "stato": "senza_testo"
         },
         {
-          "id": "classica-4392043001",
-          "dataRecensione": "2025-04-05",
-          "punteggio": 7,
-          "stato": "da_scrivere",
-          "positivo": "La disponibiluta di Filippo ",
-          "negativo": "La biancheria troppo datata e piena di polvere "
-        },
-        {
           "id": "classica-4516284114",
           "dataRecensione": "2025-04-01",
           "punteggio": 8,
-          "stato": "da_scrivere",
           "positivo": "Struttura pulita, letti comodi, tutto come nella descrizione.",
-          "negativo": "Le chiavi nella cassaforte sono insieme a quelle delle altre stanze, per cui, se una persona della stessa stanza arriva dopo e la prima deve uscire es. per impegni di lavoro, altri ospiti posdono avere accesso alla tua chiave e quindi alla tua camera, dove hai lasciato i bagagli...\nSensazione di forte preoccupazione!"
+          "negativo": "Le chiavi nella cassaforte sono insieme a quelle delle altre stanze, per cui, se una persona della stessa stanza arriva dopo e la prima deve uscire es. per impegni di lavoro, altri ospiti posdono avere accesso alla tua chiave e quindi alla tua camera, dove hai lasciato i bagagli...\nSensazione di forte preoccupazione!",
+          "lingua": "it",
+          "riassuntoIT": "Struttura pulita e confortevole come descritto, ma preoccupazione per la gestione delle chiavi in cassaforte condivisa con altre stanze.",
+          "rispostaProposta": "Grazie per la valutazione positiva sulla pulizia e il comfort. Comprendo la sua preoccupazione sulla cassaforte condivisa. Purtroppo lo spazio disponibile impone questa soluzione, ma stiamo valutando alternative per migliorare la sicurezza e il vostro senso di tranquillità.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "4516284114"
         },
         {
           "id": "classica-4307321950",
@@ -10400,13 +10826,6 @@
           "dataRecensione": "2023-09-25",
           "punteggio": 9,
           "stato": "senza_testo"
-        },
-        {
-          "id": "classica-3037509754",
-          "dataRecensione": "2023-09-21",
-          "punteggio": 10,
-          "stato": "da_scrivere",
-          "positivo": "All'arrivo ci hanno accolto con grande cordialità e super disponibilità. La struttura è ben curata e ben pulita. La zona è molto tranquilla infatti nonostante la nostra stanza fosse esposta alla strada non siamo stati disturbati da alcun rumore."
         }
       ]
     }
