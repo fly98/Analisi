@@ -664,6 +664,80 @@ async function handleDomande(request, env, slug, url) {
   return json({ totale: out.length, domande: out });
 }
 
+
+// ================= GOOGLE ANALYTICS 4 (sito interno1.it) =================
+// Account di servizio "analisi-sito" (solo lettura) - chiave nel secret GA_SA_KEY. Proprieta' GA4 del sito:
+const GA_PROPERTY = '393832994';
+let gaToken = null, gaTokenScade = 0;
+const b64url = (buf) => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+const b64urlStr = (s) => b64url(new TextEncoder().encode(s));
+async function gaAccessToken(env) {
+  if (gaToken && Date.now() < gaTokenScade) return gaToken;
+  const sa = JSON.parse(env.GA_SA_KEY);
+  const pem = sa.private_key.replace(/-----[^-]+-----/g, '').replace(/\s+/g, '');
+  const der = Uint8Array.from(atob(pem), c => c.charCodeAt(0));
+  const chiave = await crypto.subtle.importKey('pkcs8', der, { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' }, false, ['sign']);
+  const ora = Math.floor(Date.now() / 1000);
+  const testa = b64urlStr(JSON.stringify({ alg: 'RS256', typ: 'JWT' }));
+  const corpo = b64urlStr(JSON.stringify({ iss: sa.client_email, scope: 'https://www.googleapis.com/auth/analytics.readonly', aud: sa.token_uri, iat: ora, exp: ora + 3600 }));
+  const firma = await crypto.subtle.sign('RSASSA-PKCS1-v1_5', chiave, new TextEncoder().encode(`${testa}.${corpo}`));
+  const r = await fetch(sa.token_uri, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: `grant_type=${encodeURIComponent('urn:ietf:params:oauth:grant-type:jwt-bearer')}&assertion=${testa}.${corpo}.${b64url(firma)}` });
+  const j = await r.json();
+  if (!j.access_token) throw new Error('token Google: ' + JSON.stringify(j).slice(0, 200));
+  gaToken = j.access_token; gaTokenScade = Date.now() + 50 * 60 * 1000;
+  return gaToken;
+}
+async function gaBatch(env, richieste) {
+  const token = await gaAccessToken(env);
+  const r = await fetch(`https://analyticsdata.googleapis.com/v1beta/properties/${GA_PROPERTY}:batchRunReports`, {
+    method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ requests: richieste }) });
+  const j = await r.json();
+  if (j.error) throw new Error('Google Analytics: ' + (j.error.message || j.error.status));
+  // righe semplici: { dims: [...], mets: [...] }
+  return (j.reports || []).map(rep => (rep.rows || []).map(row => ({ d: (row.dimensionValues || []).map(v => v.value), m: (row.metricValues || []).map(v => Number(v.value)) })));
+}
+async function handleGA(request, env, url) {
+  if (!admin(env, url)) return json({ error: 'non autorizzato' }, 401);
+  if (!env.GA_SA_KEY) return json({ error: 'chiave Google Analytics non configurata' }, 503);
+  const { from, to } = periodo(url);
+  const dr = [{ startDate: from, endDate: to }];
+  const rep = (dims, mets, extra) => Object.assign({ dateRanges: dr, dimensions: dims.map(n => ({ name: n })), metrics: mets.map(n => ({ name: n })) }, extra || {});
+  const prenota = { dimensionFilter: { filter: { fieldName: 'eventName', stringFilter: { value: 'click_prenota' } } } };
+  const desc = m => ({ orderBys: [{ metric: { metricName: m }, desc: true }] });
+  try {
+    const [a, b] = await Promise.all([
+      gaBatch(env, [
+        rep([], ['activeUsers', 'newUsers', 'sessions', 'screenPageViews', 'engagementRate', 'averageSessionDuration']),
+        rep(['date'], ['activeUsers', 'sessions'], { orderBys: [{ dimension: { dimensionName: 'date' } }] }),
+        rep(['sessionDefaultChannelGroup'], ['sessions', 'activeUsers'], desc('sessions')),
+        rep(['sessionSource'], ['sessions'], Object.assign(desc('sessions'), { limit: 12 })),
+        rep(['pagePath'], ['screenPageViews', 'activeUsers'], Object.assign(desc('screenPageViews'), { limit: 15 })),
+      ]),
+      gaBatch(env, [
+        rep(['country'], ['activeUsers'], Object.assign(desc('activeUsers'), { limit: 12 })),
+        rep(['deviceCategory'], ['activeUsers'], desc('activeUsers')),
+        rep([], ['eventCount', 'totalUsers'], prenota),
+        rep(['sessionDefaultChannelGroup'], ['eventCount', 'totalUsers'], Object.assign({}, prenota, desc('eventCount'))),
+        rep(['date'], ['eventCount'], Object.assign({}, prenota, { orderBys: [{ dimension: { dimensionName: 'date' } }] })),
+      ]),
+    ]);
+    const t = (a[0][0] || { m: [0, 0, 0, 0, 0, 0] }).m, p = (b[2][0] || { m: [0, 0] }).m;
+    return json({
+      from, to,
+      totali: { utenti: t[0], nuovi: t[1], sessioni: t[2], pagine: t[3], coinvolgimento: t[4], durataMedia: t[5], clickPrenota: p[0], utentiPrenota: p[1] },
+      perGiorno: a[1].map(r => ({ day: `${r.d[0].slice(0, 4)}-${r.d[0].slice(4, 6)}-${r.d[0].slice(6, 8)}`, utenti: r.m[0], sessioni: r.m[1] })),
+      canali: a[2].map(r => ({ canale: r.d[0], sessioni: r.m[0], utenti: r.m[1] })),
+      fonti: a[3].map(r => ({ fonte: r.d[0], sessioni: r.m[0] })),
+      pagine: a[4].map(r => ({ pagina: r.d[0], viste: r.m[0], utenti: r.m[1] })),
+      paesi: b[0].map(r => ({ paese: r.d[0], utenti: r.m[0] })),
+      dispositivi: b[1].map(r => ({ tipo: r.d[0], utenti: r.m[0] })),
+      prenotaCanali: b[3].map(r => ({ canale: r.d[0], click: r.m[0], utenti: r.m[1] })),
+      prenotaGiorno: b[4].map(r => ({ day: `${r.d[0].slice(0, 4)}-${r.d[0].slice(4, 6)}-${r.d[0].slice(6, 8)}`, click: r.m[0] })),
+    });
+  } catch (e) { return json({ error: String(e.message || e) }, 502); }
+}
+
 // ---------------- Stats (admin) ----------------
 async function handleStats(request, env, slug, url) {
   const key = url.searchParams.get("key");
@@ -1177,6 +1251,7 @@ export default {
       if (action === "track" && request.method === "POST") return await handleTrack(request, env, slug);
       if (action === "data" && request.method === "GET") return await handleData(request, env, slug, url);
       if (action === "stats" && request.method === "GET") return await handleStats(request, env, slug, url);
+      if (action === "ga" && request.method === "GET") return await handleGA(request, env, url);
       if (action === "domande" && request.method === "GET") return await handleDomande(request, env, slug, url);
       if (action === "stats2" && request.method === "GET") return await handleStats2(request, env, slug, url);
       if (action === "dispositivi" && request.method === "GET") return await handleDispositivi(request, env, slug, url);
