@@ -175,7 +175,7 @@ document.getElementById('zfit').onclick=fit;
 var pts={},startDist=0,moved=0,downT=0,downDev=null,lpTimer=null,lpFired=false,lastTap=0;
 function devAt(t){var g=t&&t.closest?t.closest('.dev'):null;return g?g.getAttribute('data-id'):null;}
 function bindStage(st){
- st.addEventListener('pointerdown',function(e){st.setPointerCapture(e.pointerId);pts[e.pointerId]={x:e.clientX,y:e.clientY};
+ st.addEventListener('pointerdown',function(e){if(e.isPrimary)pts={};try{st.setPointerCapture(e.pointerId);}catch(x){}pts[e.pointerId]={x:e.clientX,y:e.clientY};
   if(Object.keys(pts).length===1){moved=0;downT=Date.now();downDev=devAt(e.target);lpFired=false;clearTimeout(lpTimer);
    if(downDev)lpTimer=setTimeout(function(){if(moved<8){lpFired=true;openSheet(downDev);}},520);}
   else{clearTimeout(lpTimer);downDev=null;var p=Object.values(pts);startDist=Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y);}});
@@ -187,7 +187,7 @@ function bindStage(st){
   if(Object.keys(pts).length===0){if(moved<8&&!lpFired){var now=Date.now();
     if(downDev)tap(downDev);else if(now-lastTap<320){zoomAt(e.clientX,e.clientY,1.8);lastTap=0;}else lastTap=now;}}
   startDist=0;}
- st.addEventListener('pointerup',up);st.addEventListener('pointercancel',up);
+ st.addEventListener('pointerup',up);st.addEventListener('pointercancel',up);st.addEventListener('lostpointercapture',function(e){delete pts[e.pointerId];});
  st.addEventListener('wheel',function(e){e.preventDefault();zoomAt(e.clientX,e.clientY,Math.exp(-e.deltaY*.0022));},{passive:false});
 }
 window.addEventListener('resize',function(){scaleBadges();});
@@ -206,7 +206,7 @@ var sheetDev=null,confirmKey=null,confirmT=0,lastTouch=0;
 var IT={on:'Acceso',off:'Spento',unavailable:'Non raggiungibile',unknown:'Sconosciuto',open:'Aperta',opening:'Si apre',closing:'Si chiude',closed:'Chiusa',locked:'Chiuso a chiave',unlocked:'Aperto',
  armed_home:'Inserito (in casa)',armed_away:'Inserito (fuori casa)',armed_night:'Inserito (notte)',disarmed:'Disinserito',triggered:'Allarme scattato!',arming:'Si inserisce',pending:'In attesa',
  docked:'Alla base',cleaning:'Sta pulendo',paused:'In pausa',returning:'Torna alla base',idle:'Fermo',error:'Errore',playing:'In riproduzione',standby:'In attesa',heat:'Riscalda',cool:'Raffresca',auto:'Automatico',dry:'Deumidifica',fan_only:'Solo ventola',heat_cool:'Automatico'};
-function openSheet(id,refresh){var d=byId(id);if(!d)return;sheetDev=id;var x=S[d.e]||{s:'unavailable',a:{}},a=x.a||{},dm=dom(d.e),b=document.getElementById('sheetBody');
+function openSheet(id,refresh){var d=byId(id);if(!d)return;if(!refresh){pts={};clearTimeout(lpTimer);}sheetDev=id;var x=S[d.e]||{s:'unavailable',a:{}},a=x.a||{},dm=dom(d.e),b=document.getElementById('sheetBody');
  var h='<h2>'+d.n+'</h2><div class="sub">'+(IT[x.s]||x.s)+(dm==='climate'&&a.current_temperature!=null?' · in stanza '+String(a.current_temperature).replace('.',',')+'°':'')+'</div>';
  if(x.s==='unavailable'){h+='<div class="sub">Home Assistant non riesce a parlarci: controlla che sia acceso e collegato alla corrente o al Wi-Fi.</div>';}
  else if(dm==='light'){var cm=a.supported_color_modes||[],isOn=x.s==='on';h+='<div class="row"><button class="btn '+(isOn?'on':'')+'" data-a="toggle">'+(isOn?'Spegni':'Accendi')+'</button></div>';
@@ -240,8 +240,8 @@ function act(d,a,v,btn){var x=S[d.e]||{a:{}},at=x.a||{};
  else if(a==='t-'||a==='t+'){var step=at.target_temp_step||.5,t=(at.temperature!=null?at.temperature:20)+(a==='t+'?step:-step);if(at.min_temp!=null)t=Math.max(at.min_temp,t);if(at.max_temp!=null)t=Math.min(at.max_temp,t);at.temperature=t;document.getElementById('tt').textContent=String(t).replace('.',',')+'°';
   clearTimeout(act._t);act._t=setTimeout(function(){call('climate','set_temperature',d.e,{temperature:t});},700);}
  else if(a==='hs'){call('light','turn_on',d.e,{hs_color:[+v,100]});var hu2=document.getElementById('hue');if(hu2)hu2.value=v;}
- else if(a==='fx'){call('light','turn_on',d.e,{effect:v});}
- else if(a==='preset'){call('fan','set_preset_mode',d.e,{preset_mode:v});}
+ else if(a==='fx'){at.effect=v;mark('fx',v);call('light','turn_on',d.e,{effect:v});}
+ else if(a==='preset'){at.preset_mode=v;mark('preset',v);call('fan','set_preset_mode',d.e,{preset_mode:v});}
  else if(a==='osc'){call('fan','oscillate',d.e,{oscillating:!at.oscillating});}
  else if(a==='mode'){call('climate','set_hvac_mode',d.e,{hvac_mode:v});toast('Fatto');}
  else if(a==='cov'){call('cover',v,d.e);toast('Fatto');}
@@ -249,6 +249,7 @@ function act(d,a,v,btn){var x=S[d.e]||{a:{}},at=x.a||{};
  else if(a==='vac'){call('vacuum',v,d.e);toast('Fatto');}
  else if(a==='conf'){var k=d.id+v;if(confirmKey!==k||Date.now()-confirmT>4000){confirmKey=k;confirmT=Date.now();btn.textContent='Tocca di nuovo per confermare';return;}
   confirmKey=null;if(v==='cancello')call('button','press','button.cancello_open_door');else if(dom(d.e)==='lock')call('lock',v,d.e);else call('alarm_control_panel',v,d.e);closeSheet();toast('Comando inviato');}}
+function mark(kind,v){document.querySelectorAll('#sheetBody button[data-a="'+kind+'"]').forEach(function(x){x.classList.toggle('on',x.getAttribute('data-v')===v);});}
 function closeSheet(){sheetDev=null;document.getElementById('sheet').classList.remove('open');document.getElementById('scrim').classList.remove('open');}
 document.getElementById('scrim').onclick=closeSheet;
 (function(){var sh=document.getElementById('sheet'),y0=null;sh.addEventListener('touchstart',function(e){if(e.target.tagName!=='INPUT')y0=e.touches[0].clientY;},{passive:true});sh.addEventListener('touchend',function(e){if(y0!=null&&e.changedTouches[0].clientY-y0>60)closeSheet();y0=null;});})();
