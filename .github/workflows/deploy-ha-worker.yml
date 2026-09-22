@@ -5,6 +5,7 @@ on:
     paths:
       - 'ha_worker.js'
       - 'wrangler_ha.toml'
+      - '.github/workflows/deploy-ha-worker.yml'
   workflow_dispatch:
 
 jobs:
@@ -19,3 +20,8 @@ jobs:
           apiToken: ${{ secrets.CF_API_TOKEN }}
           accountId: ${{ secrets.CF_ACCOUNT_ID }}
           command: deploy --config wrangler_ha.toml
+          # la chiave del ponte viene rimessa a ogni pubblicazione: non puo' piu' sparire
+          secrets: |
+            HA_API_KEY
+        env:
+          HA_API_KEY: ${{ secrets.HA_API_KEY }}
