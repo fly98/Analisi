@@ -134,6 +134,7 @@ function paint(){
   var on=isOn(d),na=unav(d),light=(dom(d.e)==='light'||d.k.indexOf('lamp')===0||d.k==='lampadina'||d.k==='piantana'||d.k==='catena'||d.k.indexOf('led')===0||d.k==='ventilampada');
   if(d.k==='catena'){
    E('path',{d:lineD(d.p,d.chiusa),fill:'none',stroke:'#2f2c28','stroke-width':3,opacity:.8},gLine);
+   var hitc=E('g',{class:'dev','data-id':d.id},gLine);E('path',{d:lineD(d.p,d.chiusa),fill:'none',stroke:'#000','stroke-opacity':.001,'stroke-width':70,'stroke-linecap':'round','stroke-linejoin':'round'},hitc);
    for(var i=0;i<d.num;i++){var c=along(d.p,d.chiusa,d.chiusa?i/d.num:i/(d.num-1));
     if(on)E('circle',{cx:c[0],cy:c[1],r:55,fill:'url(#alone)'},gHalo);
     E('circle',{cx:c[0],cy:c[1],r:9,fill:on?'#fff1c9':'#ece6d6',stroke:on?'#e0a948':'#a89f8c','stroke-width':2},gLine);}
@@ -165,7 +166,8 @@ function scaleBadges(){var k=Math.max(1,Math.min(2,13/(27*pxPerUnit())));var kt=
 function setVB(){svg.setAttribute('viewBox',vb.x+' '+vb.y+' '+vb.w+' '+vb.h);scaleBadges();}
 function clampVB(){var mw=VB0.w*1.1,mnw=VB0.w/9;if(vb.w>mw){var f=mw/vb.w;vb.x+= (vb.w-mw)/2;vb.y+=(vb.h-vb.h*f)/2;vb.w=mw;vb.h*=f;}if(vb.w<mnw){var g2=mnw/vb.w;vb.x-=(mnw-vb.w)/2;vb.y-=(vb.h*g2-vb.h)/2;vb.w=mnw;vb.h*=g2;}
  vb.x=Math.max(VB0.x-vb.w*.5,Math.min(VB0.x+VB0.w-vb.w*.5,vb.x));vb.y=Math.max(VB0.y-vb.h*.5,Math.min(VB0.y+VB0.h-vb.h*.5,vb.y));}
-function fit(){var r=svg.getBoundingClientRect(),ar=r.width/r.height,w=VB0.w,h=VB0.h;if(w/h>ar)h=w/ar;else w=h*ar;vb={x:VB0.x-(w-VB0.w)/2,y:VB0.y-(h-VB0.h)/2,w:w,h:h};setVB();}
+var CASA={x:20,y:-20,w:2060,h:1580};
+function fit(){var r=svg.getBoundingClientRect(),ar=r.width/r.height,w=CASA.w,h=CASA.h;if(w/h>ar)h=w/ar;else w=h*ar;vb={x:CASA.x-(w-CASA.w)/2,y:CASA.y-(h-CASA.h)/2,w:w,h:h};setVB();}
 function toMap(cx,cy){var r=svg.getBoundingClientRect();return{x:vb.x+(cx-r.left)/r.width*vb.w,y:vb.y+(cy-r.top)/r.height*vb.h};}
 function zoomAt(cx,cy,f){var m=toMap(cx,cy);vb.w/=f;vb.h/=f;var r=svg.getBoundingClientRect();vb.x=m.x-(cx-r.left)/r.width*vb.w;vb.y=m.y-(cy-r.top)/r.height*vb.h;clampVB();setVB();}
 function center(){var r=svg.getBoundingClientRect();return[r.left+r.width/2,r.top+r.height/2];}
