@@ -35,6 +35,21 @@ export default {
       }
     }
 
+    // GET /camera?entity=camera.xxx - immagine attuale di una telecamera (per la pagina Casa).
+    // Protetta dalla stessa chiave X-API-Key di tutto il resto (controllo sopra).
+    if (path === '/camera' && request.method === 'GET') {
+      const entity = url.searchParams.get('entity') || ''
+      if (!/^camera\.[a-z0-9_]+$/.test(entity)) {
+        return new Response(JSON.stringify({ error: 'entity non valida' }), { status: 400, headers: corsHeaders })
+      }
+      try {
+        const resp = await fetch(`${HA_URL}/api/camera_proxy/${entity}`, { headers: { 'Authorization': `Bearer ${TOKEN}` } })
+        return new Response(resp.body, { status: resp.status, headers: { ...corsHeaders, 'Content-Type': resp.headers.get('content-type') || 'image/jpeg', 'Cache-Control': 'no-store' } })
+      } catch(e) {
+        return new Response(JSON.stringify({ error: e.message }), { status: 502, headers: corsHeaders })
+      }
+    }
+
     // GET /history_family?date=YYYY-MM-DD - storico posizioni di un giorno
     if (path === '/history_family') {
       try {
