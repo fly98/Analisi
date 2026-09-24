@@ -226,16 +226,16 @@
 <rect x="79" y="0" width="79" height="79" fill="#edebe7"></rect>
 <rect x="79" y="79" width="79" height="79" fill="#e8e6e1"></rect>
 <path d="M0 0H158M0 79H158M0 0V158M79 0V158" stroke="#cfcbc3" stroke-width="1.3"></path></pattern>
-<pattern id="cotto" width="120" height="120" patternUnits="userSpaceOnUse"><rect width="120" height="120" fill="#cdbba8"></rect>
-<rect x="1.5" y="1.5" width="37" height="37" rx="1.5" fill="#a97a63"></rect>
-<rect x="1.5" y="41.5" width="37" height="37" rx="1.5" fill="#a37259"></rect>
-<rect x="1.5" y="81.5" width="37" height="37" rx="1.5" fill="#a37259"></rect>
-<rect x="41.5" y="1.5" width="37" height="37" rx="1.5" fill="#b0806a"></rect>
-<rect x="41.5" y="41.5" width="37" height="37" rx="1.5" fill="#ad7c65"></rect>
-<rect x="41.5" y="81.5" width="37" height="37" rx="1.5" fill="#a97a63"></rect>
-<rect x="81.5" y="1.5" width="37" height="37" rx="1.5" fill="#a8775f"></rect>
-<rect x="81.5" y="41.5" width="37" height="37" rx="1.5" fill="#a97a63"></rect>
-<rect x="81.5" y="81.5" width="37" height="37" rx="1.5" fill="#b48771"></rect>
+<pattern id="cotto" width="240" height="240" patternUnits="userSpaceOnUse"><rect width="240" height="240" fill="#cdbba8"></rect>
+<rect x="2" y="2" width="76" height="76" rx="2" fill="#a97a63"></rect>
+<rect x="2" y="82" width="76" height="76" rx="2" fill="#a37259"></rect>
+<rect x="2" y="162" width="76" height="76" rx="2" fill="#a37259"></rect>
+<rect x="82" y="2" width="76" height="76" rx="2" fill="#b0806a"></rect>
+<rect x="82" y="82" width="76" height="76" rx="2" fill="#ad7c65"></rect>
+<rect x="82" y="162" width="76" height="76" rx="2" fill="#a97a63"></rect>
+<rect x="162" y="2" width="76" height="76" rx="2" fill="#a8775f"></rect>
+<rect x="162" y="82" width="76" height="76" rx="2" fill="#a97a63"></rect>
+<rect x="162" y="162" width="76" height="76" rx="2" fill="#b48771"></rect>
 </pattern>
 
 <pattern id="erba" width="36" height="36" patternUnits="userSpaceOnUse"><rect width="36" height="36" fill="#8faa6a"></rect><path d="M4 30l2-7M11 16l1-6M20 33l2-8M27 12l2-6M32 26l1-6M8 6l1-5M17 22l-1-6" stroke="#7a9658" stroke-width="2" stroke-linecap="round"></path><path d="M24 20l1-5M2 14l2-5M30 4l1-4" stroke="#a2bd7c" stroke-width="2" stroke-linecap="round"></path></pattern>
