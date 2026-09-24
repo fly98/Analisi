@@ -237,7 +237,8 @@ function openSheet(id,refresh){var d=byId(id);if(!d)return;if(!refresh){pts={};c
   if(cm.some(function(m){return m!=='onoff';})){var bp=a.brightness?Math.round(a.brightness/2.55):50;h+='<div class="lab"><span>Intensità</span><b id="bv">'+bp+'%</b></div><input id="bri" class="sl" type="range" min="1" max="100" value="'+bp+'">';}
   if(cm.indexOf('color_temp')>=0){var mn=a.min_color_temp_kelvin||2000,mx=a.max_color_temp_kelvin||6500,kv=a.color_temp_kelvin||Math.round((mn+mx)/2);h+='<div class="lab"><span>Bianco caldo · freddo</span><b id="ctv">'+kv+' K</b></div><input id="ct" class="ct sl" type="range" min="'+mn+'" max="'+mx+'" step="50" value="'+kv+'">';}
   if(cm.some(function(m){return /^(hs|xy|rgb|rgbw|rgbww)$/.test(m);})){var hue=(a.hs_color&&a.color_mode!=='color_temp')?Math.round(a.hs_color[0]):30;h+='<div class="lab"><span>Colore</span></div><div class="swatches">'+[[0,'#ff3b30'],[30,'#ff9500'],[50,'#ffcc00'],[120,'#34c759'],[180,'#32d0e0'],[215,'#0a84ff'],[270,'#8e5cf5'],[320,'#ff2d92']].map(function(q){return '<button data-a="hs" data-v="'+q[0]+'" style="background:'+q[1]+'" aria-label="Colore"></button>';}).join('')+'</div><input id="hue" class="hue sl" type="range" min="0" max="359" value="'+hue+'">';}
-  if((a.effect_list||[]).length>1){h+='<div class="lab"><span>Effetti</span></div><div class="chips">'+a.effect_list.map(function(ef){return '<button class="btn '+(a.effect===ef?'on':'')+'" data-a="fx" data-v="'+ef+'">'+(FX[ef]||ef)+'</button>';}).join('')+'</div>';}}
+  if((a.effect_list||[]).length>1){h+='<div class="lab"><span>Effetti</span></div><div class="chips">'+a.effect_list.map(function(ef){return '<button class="btn '+(a.effect===ef?'on':'')+'" data-a="fx" data-v="'+ef+'">'+(FX[ef]||ef)+'</button>';}).join('')+'</div>';
+   var fxAltre=fxStanza(d);if(fxAltre.length)h+='<div class="row"><button class="btn" data-a="fxall">Stesso effetto a tutta la stanza ('+(fxAltre.length+1)+' luci)</button></div>';}}
  else if(dm==='switch'){h+='<div class="row"><button class="btn '+(x.s==='on'?'on':'')+'" data-a="toggle">'+(x.s==='on'?'Spegni':'Accendi')+'</button></div>';}
  else if(dm==='fan'){h+='<div class="row"><button class="btn '+(x.s==='on'?'on':'')+'" data-a="toggle">'+(x.s==='on'?'Spegni':'Accendi')+'</button></div>';
   if(a.percentage!=null||a.percentage_step){var st=a.percentage_step||1,pc=a.percentage||0;h+='<div class="lab"><span>Velocità</span><b id="fv">'+Math.round(pc)+'%</b></div><input id="fsp" class="sl" type="range" min="'+st+'" max="100" step="'+st+'" value="'+(pc||st)+'">';}
@@ -275,6 +276,9 @@ function act(d,a,v,btn){var x=S[d.e]||{a:{}},at=x.a||{};
  else if(a==='t-'||a==='t+'){var step=at.target_temp_step||.5,t=(at.temperature!=null?at.temperature:20)+(a==='t+'?step:-step);if(at.min_temp!=null)t=Math.max(at.min_temp,t);if(at.max_temp!=null)t=Math.min(at.max_temp,t);at.temperature=t;document.getElementById('tt').textContent=String(t).replace('.',',')+'°';
   clearTimeout(act._t);act._t=setTimeout(function(){call('climate','set_temperature',d.e,{temperature:t});},700);}
  else if(a==='hs'){call('light','turn_on',d.e,{hs_color:[+v,100]});var hu2=document.getElementById('hue');if(hu2)hu2.value=v;}
+ else if(a==='fxall'){var ef=at.effect||'off',n=0;fxStanza(d).forEach(function(o){var l=(S[o.e]&&S[o.e].a.effect_list)||[],v=ef;
+   if(/^(off|None)$/.test(ef))v=l.indexOf('off')>=0?'off':(l.indexOf('None')>=0?'None':null);if(v&&l.indexOf(v)>=0){call('light','turn_on',o.e,{effect:v});n++;}});
+  toast(n?((FX[ef]||ef)+' anche su '+n+(n===1?' altra luce':' altre luci')):'Le altre luci della stanza non hanno questo effetto');}
  else if(a==='fx'){at.effect=v;mark('fx',v);call('light','turn_on',d.e,{effect:v});}
  else if(a==='preset'){at.preset_mode=v;mark('preset',v);call('fan','set_preset_mode',d.e,{preset_mode:v});}
  else if(a==='osc'){call('fan','oscillate',d.e,{oscillating:!at.oscillating});}
@@ -290,6 +294,7 @@ function act(d,a,v,btn){var x=S[d.e]||{a:{}},at=x.a||{};
  else if(a==='vac'){call('vacuum',v,d.e);toast('Fatto');}
  else if(a==='conf'){var k=d.id+v;if(confirmKey!==k||Date.now()-confirmT>4000){confirmKey=k;confirmT=Date.now();btn.textContent='Tocca di nuovo per confermare';return;}
   confirmKey=null;if(v==='cancello')call('button','press','button.cancello_open_door');else if(dom(d.e)==='lock')call('lock',v,d.e);else call('alarm_control_panel',v,d.e);closeSheet();toast('Comando inviato');}}
+function fxStanza(d){var r=devRoom(d);return CONF.dev.filter(function(o){var x=S[o.e];return o.id!==d.id&&dom(o.e)==='light'&&devRoom(o)===r&&x&&x.a&&(x.a.effect_list||[]).length>1;});}
 function mark(kind,v){document.querySelectorAll('#sheetBody button[data-a="'+kind+'"]').forEach(function(x){x.classList.toggle('on',x.getAttribute('data-v')===v);});}
 var camTok=0,camUrl=null;
 function hhmmss(t){return t?t.toLocaleTimeString('it-IT'):'—';}
