@@ -894,7 +894,7 @@ select.form-input { height: 42px; }
 
     </div>
     <div style="padding:10px 16px 14px;text-align:center;border-top:1px solid var(--border);margin-top:4px">
-      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v2.2.1</span>
+      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v2.2.2</span>
     </div>
   </div>
 </div>
@@ -3286,16 +3286,23 @@ async function loadRicorrenze() {
   checkRecPending();
 }
 
+// Data locale in formato YYYY-MM-DD, senza passare da toISOString() (che
+// converte in UTC e con l'ora legale italiana fa scalare la data di un giorno
+// a ogni ricorrenza: 27/06 -> 26/07 -> 25/08 ... invece di restare sempre 27).
+function _localISO(d) {
+  var p=function(n){return String(n).padStart(2,'0');};
+  return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());
+}
 function recNextDate(rec,from) {
   var d=new Date(from+'T00:00:00'), f=REC_FREQ[rec.frequenza];
   if(!f) return null;
   if(f.days) d.setDate(d.getDate()+f.days);
   else if(f.months) d.setMonth(d.getMonth()+f.months);
-  return d.toISOString().slice(0,10);
+  return _localISO(d);
 }
 
 function recGetPending(rec) {
-  var today=new Date().toISOString().slice(0,10), pending=[], cur=rec.dataInizio;
+  var today=_localISO(new Date()), pending=[], cur=rec.dataInizio;
   var processed=new Set(rec.processed||[]), max=500;
   while(cur<=today && max-->0) {
     if(!processed.has(cur) && (!rec.dataFine||cur<=rec.dataFine)) pending.push(cur);
