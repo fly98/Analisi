@@ -1139,7 +1139,10 @@
   // l'avanzamento. Ritorna l'esito finale, o "serve_te" se Booking chiede
   // una verifica.
   function seguiLavoro(token, alAvanzare) {
-    var scadenza = Date.now() + 12 * 60 * 1000;
+    // 20 minuti: scaricare i due CSV, scrivere fino a 80 bozze (una chiamata
+    // AI ogni 15) e ripubblicare puo' arrivare a una decina di minuti, e con
+    // 12 la pagina si arrendeva mentre il Mac stava ancora lavorando.
+    var scadenza = Date.now() + 20 * 60 * 1000;
     var avvisatoServeTe = false;
     var verificheViste = 0;
     var mostraEsitoFino = 0;
@@ -1177,7 +1180,10 @@
                 };
                 var avanzamento = s.tipo === "pubblicazione"
                   ? "Pubblicazione in corso" + (s.avanzamento ? " (" + s.avanzamento + " finora)" : "") + "..."
-                  : (passiAggiornamento[s.passo] || passiAggiornamento.scarico);
+                  : (passiAggiornamento[s.passo] || passiAggiornamento.scarico)
+                    // Scrivere le bozze richiede minuti: senza un numero che
+                    // si muove sembra piantato (segnalato il 26/09/2026).
+                    + (s.dettaglioPasso ? " (" + s.dettaglioPasso + ")" : "");
                 // Per un po' la conferma resta accanto all'avanzamento: se
                 // sparisse subito non si farebbe in tempo a leggerla.
                 alAvanzare(Date.now() < mostraEsitoFino ? "✅ Verifica superata. " + avanzamento : avanzamento);
