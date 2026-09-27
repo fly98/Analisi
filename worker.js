@@ -3082,6 +3082,39 @@ async function searchOneAccount(env, account, q, maxResults) {
         });
       }
 
+      // Estrae la parte HTML vera del messaggio (non la versione testo semplice, che spesso
+      // omette tabelle/fatture renderizzate solo in HTML).
+      if (action === "getMailHtml") {
+        const account = url.searchParams.get("account") === "personal" ? "personal" : "business";
+        const id = url.searchParams.get("id");
+        const tok = await getGmailAccessTokenFor(env, account);
+        if (!tok || !tok.access_token) {
+          return new Response(JSON.stringify({ error: "Auth fallita" }), {
+            status: 502, headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        }
+        const mResp = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${id}?format=full`,
+          { headers: { Authorization: "Bearer " + tok.access_token } });
+        const mJson = await mResp.json();
+        function trovaHtml(parte) {
+          if (!parte) return null;
+          if (parte.mimeType === "text/html" && parte.body && parte.body.data) return parte.body.data;
+          for (const sub of (parte.parts || [])) {
+            const r = trovaHtml(sub);
+            if (r) return r;
+          }
+          return null;
+        }
+        const dataB64url = trovaHtml(mJson.payload);
+        if (!dataB64url) {
+          return new Response(JSON.stringify({ error: "Nessuna parte HTML trovata" }), {
+            status: 404, headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        }
+        const html = decodeURIComponent(escape(atob(dataB64url.replace(/-/g, "+").replace(/_/g, "/"))));
+        return new Response(JSON.stringify({ html }), { headers: { ...CORS, "Content-Type": "application/json" } });
+      }
+
       if (action === "getMail") {
         const account = url.searchParams.get("account") === "personal" ? "personal" : "business";
         const id = url.searchParams.get("id");
