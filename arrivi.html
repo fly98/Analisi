@@ -946,6 +946,7 @@ function disegnaMessaggi(d){
 let schedeGiorno=[];
 let aggiornamentoGiorno=false;
 let giornoInAggiornamento=null;
+let progressoGiorno=null; // {i, tot, nome} — cosa sta facendo ORA il giro di aggiornaGiornoMsg
 let rispArmato=false;
 let msgHaScritto=false;   // qualcosa e' stato scritto mentre la finestra era aperta
 // Il colore del pulsante non basta: orario e nota vivono in orariMap/noteMap, e se non li
@@ -1217,7 +1218,8 @@ function render(iso,bookings,isRicerca){
     bookings = (bookings||[]).slice().sort((a,b)=>ordineDi(a)-ordineDi(b));
     document.getElementById("daytitle").innerHTML=`${dataLunga(iso)} — ${bookings.length} ospiti`
       + ` <span id="aggiornaGiorno" title="Rilegge messaggi, chat WhatsApp e pagamenti della tassa di questo giorno"
-           onclick="aggiornaGiornoMsg('${iso}')">🔄</span>`;
+           onclick="aggiornaGiornoMsg('${iso}')">🔄</span>`
+      + `<div id="progressoGiorno" style="font-size:0.72rem;color:var(--muted);margin-top:2px;min-height:1em;"></div>`;
   } else {
     bookings = (bookings||[]).slice();
   }
@@ -1386,7 +1388,7 @@ function render(iso,bookings,isRicerca){
     const waChip=telOk?`<span class="wa-chip solo-icona${waHa?" set":""}" title="${waHa?("Messaggi WhatsApp: "+mRec.whatsapp.length):("Leggi la chat WhatsApp di "+telWa)}" onclick="${apri('wa')}">📱</span>`
       :`<span class="wa-chip solo-icona" style="opacity:.4;cursor:default" title="Nessun numero di telefono su questa prenotazione">📱</span>`;
     msgOspite[i]=mRec;
-    schedeGiorno.push({ i, bookingId:b.booking_id, source, iso:isoCard, tel:telWa, ota:msgAttivo });
+    schedeGiorno.push({ i, bookingId:b.booking_id, source, iso:isoCard, tel:telWa, ota:msgAttivo, nome:(nome+' '+cognome).trim() });
     const restoBadge=restoDaPagare?`<span class="resto-alert" title="Oltre alla tassa risulta da pagare anche il resto della prenotazione: verifica su Amenitiz">❗️ resto da pagare</span>`:"";
 
     let action="";
@@ -2322,9 +2324,15 @@ async function aggiornaGiornoMsg(iso){
   try{
     // Prima i pagamenti: rilegge le email di AmenitizPay, cosi' le tasse gia' incassate
     // diventano verdi al ricaricamento (chiesto il 04/09/2026). E' una sola chiamata.
+    progressoGiorno={i:0, tot:schede.length, nome:"pagamenti tassa di soggiorno"};
+    sincronizzaIconaGiorno();
     try{ await fetch(`${WORKER}/?action=pagamentiMail&forza=1`); }
     catch(e){ /* se fallisce, il resto dell'aggiornamento prosegue lo stesso */ }
+    let idx=0;
     for(const sc of schede){
+      idx++;
+      progressoGiorno={i:idx, tot:schede.length, nome:sc.nome||("Prenotazione "+sc.bookingId)};
+      sincronizzaIconaGiorno();
       if(sc.ota){
         try{
           const r=await fetch(`${WORKER}/?action=messaggi&bookingId=${encodeURIComponent(sc.bookingId)}`
@@ -2343,6 +2351,7 @@ async function aggiornaGiornoMsg(iso){
   } finally {
     aggiornamentoGiorno=false;
     giornoInAggiornamento=null;
+    progressoGiorno=null;
     sincronizzaIconaGiorno();
     msgHaScritto=false;
     // Ricarico solo se sei ancora su quel giorno: se ti sei spostato, i dati sono comunque
@@ -2363,6 +2372,18 @@ function sincronizzaIconaGiorno(){
   ic.title = giornoInAggiornamento
     ? (suQuestoGiorno ? "Aggiornamento in corso…" : "Aggiornamento in corso su "+giornoInAggiornamento)
     : "Rilegge messaggi, chat WhatsApp e pagamenti della tassa di questo giorno";
+  // riga di progresso sotto il titolo: dice ESATTAMENTE cosa sta facendo ora,
+  // cosi' non sembra bloccato durante i minuti in cui gira una prenotazione alla volta
+  const pr=document.getElementById("progressoGiorno");
+  if(pr){
+    if(suQuestoGiorno && progressoGiorno){
+      pr.textContent = progressoGiorno.i===0
+        ? `Aggiorno i pagamenti della tassa di soggiorno…`
+        : `Aggiorno ${progressoGiorno.i} di ${progressoGiorno.tot} · ${progressoGiorno.nome}`;
+    } else {
+      pr.textContent="";
+    }
+  }
 }
 
 // ====== VOCABOLARIO DEI GUASTI (05/09/2026) ======
