@@ -1983,7 +1983,8 @@ async function runInoltroSingoleFatture(env, destinatarioTest, meseFiltro) {
   const isTest = !!destinatarioTest;
   const regole = [
     { account: "business", query: "from:amenitiz.io subject:(fattura)" + (meseFiltro ? ` ${meseFiltro}` : ""), origine: "Amenitiz" },
-    { account: "personal", query: "from:mail.anthropic.com subject:(receipt)" + (meseFiltro ? ` ${meseFiltro}` : ""), origine: "Anthropic (Claude)" }
+    { account: "personal", query: "from:mail.anthropic.com subject:(receipt)" + (meseFiltro ? ` ${meseFiltro}` : ""), origine: "Anthropic (Claude)" },
+    { account: "business", query: "from:pricelabs.co subject:(fattura OR invoice)" + (meseFiltro ? ` ${meseFiltro}` : ""), origine: "PriceLabs" }
   ];
   const risultati = [];
   for (const regola of regole) {
@@ -2083,7 +2084,8 @@ async function runInoltroBookingMensile(env, meseOffset, destinatarioTest) {
 async function marcaFattureStoricheComeInviate(env) {
   const regole = [
     { account: "business", query: "from:amenitiz.io subject:(fattura)" },
-    { account: "personal", query: "from:mail.anthropic.com subject:(receipt)" }
+    { account: "personal", query: "from:mail.anthropic.com subject:(receipt)" },
+    { account: "business", query: "from:pricelabs.co subject:(fattura OR invoice)" }
   ];
   const risultati = [];
   for (const regola of regole) {
