@@ -1984,7 +1984,7 @@ async function runInoltroSingoleFatture(env, destinatarioTest, meseFiltro) {
   const regole = [
     { account: "business", query: "from:amenitiz.io subject:(fattura)" + (meseFiltro ? ` ${meseFiltro}` : ""), origine: "Amenitiz" },
     { account: "personal", query: "from:mail.anthropic.com subject:(receipt)" + (meseFiltro ? ` ${meseFiltro}` : ""), origine: "Anthropic (Claude)" },
-    { account: "business", query: "from:pricelabs.co subject:(fattura OR invoice)" + (meseFiltro ? ` ${meseFiltro}` : ""), origine: "PriceLabs" }
+    { account: "business", query: "from:pricelabs.co subject:(recurring payment)" + (meseFiltro ? ` ${meseFiltro}` : ""), origine: "PriceLabs" }
   ];
   const risultati = [];
   for (const regola of regole) {
@@ -2085,7 +2085,7 @@ async function marcaFattureStoricheComeInviate(env) {
   const regole = [
     { account: "business", query: "from:amenitiz.io subject:(fattura)" },
     { account: "personal", query: "from:mail.anthropic.com subject:(receipt)" },
-    { account: "business", query: "from:pricelabs.co subject:(fattura OR invoice)" }
+    { account: "business", query: "from:pricelabs.co subject:(recurring payment)" }
   ];
   const risultati = [];
   for (const regola of regole) {
@@ -3084,27 +3084,6 @@ async function searchOneAccount(env, account, q, maxResults) {
 
       // Estrae la parte HTML vera del messaggio (non la versione testo semplice, che spesso
       // omette tabelle/fatture renderizzate solo in HTML).
-      if (action === "debugStruttura") {
-        const account = url.searchParams.get("account") === "personal" ? "personal" : "business";
-        const id = url.searchParams.get("id");
-        const tok = await getGmailAccessTokenFor(env, account);
-        const mResp = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${id}?format=full`,
-          { headers: { Authorization: "Bearer " + tok.access_token } });
-        const mJson = await mResp.json();
-        const struttura = [];
-        function esplora(parte, profondita) {
-          if (!parte) return;
-          struttura.push({
-            profondita, mimeType: parte.mimeType, filename: parte.filename || null,
-            hasData: !!(parte.body && parte.body.data), size: parte.body ? parte.body.size : null,
-            attachmentId: parte.body ? parte.body.attachmentId || null : null
-          });
-          for (const sub of (parte.parts || [])) esplora(sub, profondita + 1);
-        }
-        esplora(mJson.payload, 0);
-        return new Response(JSON.stringify(struttura, null, 2), { headers: { ...CORS, "Content-Type": "application/json" } });
-      }
-
       if (action === "getMailHtml") {
         const account = url.searchParams.get("account") === "personal" ? "personal" : "business";
         const id = url.searchParams.get("id");
