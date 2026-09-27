@@ -2901,6 +2901,48 @@ async function searchOneAccount(env, account, q, maxResults) {
         });
       }
 
+      // Invio manuale una tantum: combina più fatture (anche di mittenti diversi) in UNA email
+      // con testo libero, poi le marca come "già gestite" con lo stesso schema usato
+      // dall'automazione (fattura_inoltrata_{account}_{id}), cosi' non ripartono da sole.
+      // POST body: {account, ids:[...], destinatario, oggetto, testo}
+      if (action === "inviaFattureCombinate") {
+        if (request.method !== "POST") {
+          return new Response(JSON.stringify({ error: "Usa POST con body JSON" }), {
+            status: 405, headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        }
+        const body = await request.json().catch(() => null);
+        if (!body || !Array.isArray(body.ids) || !body.ids.length || !body.destinatario || !body.oggetto || !body.testo) {
+          return new Response(JSON.stringify({ error: "Body deve avere account, ids[], destinatario, oggetto, testo" }), {
+            status: 400, headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        }
+        const account = body.account || "business";
+        const tok = await getGmailAccessTokenFor(env, account);
+        if (!tok || !tok.access_token) {
+          return new Response(JSON.stringify({ error: "Auth fallita", detail: tok }), {
+            status: 502, headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        }
+        const tuttiAllegati = [];
+        for (const id of body.ids) {
+          const { attachments } = await scaricaAllegati(env, account, tok, id);
+          tuttiAllegati.push(...attachments);
+        }
+        const result = await sendGmailConAllegati(env, account, body.destinatario, body.oggetto, body.testo, tuttiAllegati);
+        if (result.ok) {
+          for (const id of body.ids) {
+            await env.ARRIVI_KV.put(`fattura_inoltrata_${account}_${id}`, "inviata-manualmente-combinata");
+          }
+          return new Response(JSON.stringify({ ok: true, allegati: tuttiAllegati.length, marcate: body.ids.length }), {
+            headers: { ...CORS, "Content-Type": "application/json" }
+          });
+        }
+        return new Response(JSON.stringify({ error: "Invio fallito", detail: result }), {
+          status: 502, headers: { ...CORS, "Content-Type": "application/json" }
+        });
+      }
+
       if (action === "runInoltroSingoleFatture") {
         const destinatarioTest = url.searchParams.get("testTo");
         const meseFiltro = url.searchParams.get("mese");
