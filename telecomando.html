@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Telecomando Mac</title>
+<meta name="description" content="Mostra la finestra Chrome del Mac e rigioca i tocchi: serve a risolvere di persona la verifica che Booking chiede, da dove ci si trova.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #F6F3EC; --surface: #FFFFFF; --ink: #1E2422; --muted: #5C6A63;
+    --border: #E3DDCD; --accent: #0B6E62; --accent-ink: #FFFFFF;
+    --allarme: #B8452C; --allarme-soft: #FBEAE4; --ok: #2E7D46; --ok-soft: #E7F2E9;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #121615; --surface: #1A211F; --ink: #ECE9E0; --muted: #93A29A;
+      --border: #2A3330; --accent: #4ED0BE; --accent-ink: #0B211D;
+      --allarme: #E2896A; --allarme-soft: #2E1D18; --ok: #6FCB8E; --ok-soft: #17281C;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #121615; --surface: #1A211F; --ink: #ECE9E0; --muted: #93A29A;
+    --border: #2A3330; --accent: #4ED0BE; --accent-ink: #0B211D;
+    --allarme: #E2896A; --allarme-soft: #2E1D18; --ok: #6FCB8E; --ok-soft: #17281C;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--ink);
+    font-family: "IBM Plex Sans", system-ui, sans-serif; font-size: 15px; line-height: 1.55;
+  }
+  .pagina { max-width: 1100px; margin: 0 auto; padding: 20px 16px 60px; }
+  h1 { font-family: "Fraunces", Georgia, serif; font-size: 20px; margin: 0 0 4px; }
+  .sottotitolo { color: var(--muted); font-size: 13.5px; margin-bottom: 18px; }
+  .riquadro {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 16px; margin-bottom: 16px;
+  }
+  .avviso {
+    background: var(--allarme-soft); border: 1px solid var(--allarme);
+    border-radius: 12px; padding: 12px 14px; margin-bottom: 16px; font-size: 14px;
+  }
+  .avviso.ok { background: var(--ok-soft); border-color: var(--ok); }
+  img#schermo {
+    width: 100%; height: auto; display: block; border-radius: 10px;
+    border: 1px solid var(--border); cursor: crosshair; background: var(--bg);
+  }
+  .piede { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 10px; font-size: 13px; color: var(--muted); }
+  button.bottone {
+    font: inherit; font-size: 13.5px; font-weight: 600; background: var(--accent);
+    color: var(--accent-ink); border: none; padding: 10px 18px; border-radius: 10px; cursor: pointer;
+  }
+  button.bottone.secondario { background: transparent; color: var(--accent); border: 1px solid var(--border); }
+  .istruzioni { font-size: 13.5px; color: var(--muted); }
+  .istruzioni strong { color: var(--ink); }
+</style>
+</head>
+<body>
+<div class="pagina">
+  <h1>Telecomando</h1>
+  <div class="sottotitolo">La finestra Chrome del Mac, qui. I tuoi tocchi diventano click veri laggiù.</div>
+
+  <div id="avviso" class="avviso">Sto cercando la finestra sul Mac...</div>
+
+  <div class="riquadro">
+    <img id="schermo" alt="Finestra Chrome del Mac">
+    <div class="piede">
+      <span id="stato"></span>
+      <button class="bottone secondario" id="btnAggiorna" type="button">Aggiorna subito</button>
+      <button class="bottone secondario" id="btnCodice" type="button">Cambia codice</button>
+    </div>
+  </div>
+
+  <p class="istruzioni">
+    <strong>Come funziona:</strong> tocca direttamente sull'immagine, come faresti davanti al Mac.
+    L'immagine si aggiorna da sola due volte al secondo, e dopo ogni tocco chiede subito una foto nuova,
+    così vedi se il riquadro si è selezionato. Quando la verifica è superata questa pagina te lo dice
+    e il lavoro sul Mac riprende da solo.
+  </p>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var WORKER = "https://recensioni-worker.f-castiglioni.workers.dev";
+  var CHIAVE = "recensioni_token";
+
+  function el(id) { return document.getElementById(id); }
+
+  function chiediToken() {
+    var t = localStorage.getItem(CHIAVE);
+    if (t) return t;
+    t = window.prompt("Codice di aggiornamento (resta salvato su questo dispositivo):");
+    if (t) localStorage.setItem(CHIAVE, t);
+    return t;
+  }
+
+  var token = chiediToken();
+  if (!token) {
+    el("avviso").textContent = "Senza codice non posso collegarmi al Mac.";
+    return;
+  }
+
+  var url = null;
+  var inCorso = false;
+  var vistaAlmenoUnaVolta = false;
+  var mancanti = 0;
+
+  // Una richiesta alla volta: su rete lenta le foto si accodano e
+  // l'immagine "salta" avanti e indietro.
+  function prendiFoto() {
+    if (inCorso) return;
+    inCorso = true;
+    fetch(WORKER + "/schermo", { headers: { "X-Auth": token } })
+      .then(function (r) {
+        if (r.status === 404) { mancanti++; return null; }   // nessuna finestra in attesa
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        mancanti = 0;
+        return r.blob();
+      })
+      .then(function (b) {
+        if (!b) { senzaFinestra(); return; }
+        // si mostra solo quando e' decodificata: lo scambio "a freddo"
+        // fa sfarfallare e sul CAPTCHA a riquadri fa sbagliare il dito
+        var nuovo = URL.createObjectURL(b);
+        var prova = new Image();
+        prova.onload = function () {
+          if (url) URL.revokeObjectURL(url);
+          url = nuovo;
+          el("schermo").src = nuovo;
+          conFinestra();
+        };
+        prova.onerror = function () { URL.revokeObjectURL(nuovo); };
+        prova.src = nuovo;
+      })
+      .catch(function (e) { el("stato").textContent = "Collegamento incerto: " + e.message; })
+      .then(function () { inCorso = false; });
+  }
+
+  function conFinestra() {
+    vistaAlmenoUnaVolta = true;
+    var a = el("avviso");
+    a.className = "avviso";
+    a.textContent = "Booking chiede una verifica: risolvila qui sotto toccando sull'immagine.";
+    el("schermo").style.display = "block";
+  }
+
+  // Il Mac rifiuta le foto piu' vecchie di 30 secondi: se non arrivano,
+  // o la verifica e' stata superata o il lavoro e' finito.
+  function senzaFinestra() {
+    var a = el("avviso");
+    if (vistaAlmenoUnaVolta && mancanti >= 2) {
+      a.className = "avviso ok";
+      a.textContent = "✅ Fatto: sul Mac non c'è più niente in attesa. Il lavoro prosegue da solo, puoi chiudere questa pagina.";
+      el("schermo").style.display = "none";
+      clearInterval(timer);
+      return;
+    }
+    if (!vistaAlmenoUnaVolta) {
+      a.className = "avviso";
+      a.textContent = "Nessuna finestra in attesa sul Mac in questo momento. Se hai appena ricevuto l'avviso, aspetta qualche secondo.";
+    }
+  }
+
+  el("schermo").onclick = function (e) {
+    var img = el("schermo");
+    if (!img.naturalWidth) return;
+    var r = img.getBoundingClientRect();
+    var x = Math.round((e.clientX - r.left) * (img.naturalWidth / r.width));
+    var y = Math.round((e.clientY - r.top) * (img.naturalHeight / r.height));
+    el("stato").textContent = "Tocco inviato.";
+    fetch(WORKER + "/click", {
+      method: "POST",
+      headers: { "X-Auth": token, "Content-Type": "application/json" },
+      body: JSON.stringify({ x: x, y: y })
+    })
+      .then(function () {
+        // foto subito: e' il momento in cui serve vedere se ha preso
+        setTimeout(prendiFoto, 250);
+        setTimeout(prendiFoto, 700);
+      })
+      .catch(function (err) { el("stato").textContent = "Tocco non arrivato: " + err.message; });
+  };
+
+  el("btnAggiorna").addEventListener("click", prendiFoto);
+  el("btnCodice").addEventListener("click", function () {
+    localStorage.removeItem(CHIAVE);
+    location.reload();
+  });
+
+  prendiFoto();
+  var timer = setInterval(prendiFoto, 450);
+})();
+</script>
+</body>
+</html>
