@@ -4,6 +4,36 @@ const HOTEL_UUID = "8aec6938-18cb-43fd-b85f-fc00b8ef3bc9";
 // ── Helper notifiche Telegram ────────────────────────────────────────────────
 const STANZE_LORENZO = ["Uno", "Due", "Tre", "Quattro", "Cinque"];
 
+// ── Telefoni recuperati dall'extranet Booking ────────────────────────────────
+// Dal 28/09/2026 Booking non passa piu' il telefono dell'ospite ai PMS, quindi
+// Amenitiz lo manda vuoto. Il Mac lo recupera dall'extranet una prenotazione
+// alla volta (recensioni/telefoni.js) e lo deposita qui.
+//
+// La chiave e' l'EMAIL ALIAS dell'ospite (...@guest.booking.com): e' l'unica
+// cosa identica nei due sistemi. Il booking_id di Amenitiz e quello di Booking
+// sono numeri diversi e non si corrispondono.
+//
+// Il numero recuperato si usa SOLO se Amenitiz non ne manda uno: finche' li
+// manda vincono i suoi, che arrivano dalla fonte.
+function chiaveTelefono(email) {
+  return "telbk_" + String(email || "").trim().toLowerCase().replace(/[^a-z0-9@._-]/g, "_");
+}
+
+async function arricchisciTelefono(env, bookings) {
+  const senza = bookings.filter((b) => b.booker && !String(b.booker.phone || "").trim() && b.booker.email);
+  if (!senza.length) return;
+  await Promise.all(senza.map(async (b) => {
+    try {
+      const v = await env.ARRIVI_KV.get(chiaveTelefono(b.booker.email));
+      if (!v) return;
+      const d = JSON.parse(v);
+      if (!d || !d.telefono) return;
+      b.booker.phone = d.telefono;
+      b.telefonoRecuperato = true;   // cosi' l'app puo' dirlo, se vorra'
+    } catch (e) { /* un telefono mancante non deve far fallire la lista */ }
+  }));
+}
+
 function jsonRes(obj, status = 200) {
   return new Response(JSON.stringify(obj), {
     status,
@@ -2320,6 +2350,24 @@ export default {
       // risolve a mano e il lavoro riprende. Il CAPTCHA lo risolve sempre
       // una persona: questo e' solo il filo che lo avvisa.
       // Protetta dalla chiave come tutte le altre azioni.
+      // Il Mac deposita qui un telefono recuperato dall'extranet.
+      // Contiene un recapito di una persona: protetta dalla chiave come tutto
+      // il resto, e non viene mai restituita in chiaro da questa azione.
+      if (action === "salvaTelefono") {
+        const email = (url.searchParams.get("email") || "").trim();
+        const telefono = (url.searchParams.get("telefono") || "").trim();
+        if (!/@guest\.booking\.com$/i.test(email)) {
+          return jsonRes({ error: "serve l'email alias dell'ospite (...@guest.booking.com)" }, 400);
+        }
+        if (!/^[+0-9][0-9 ().-]{6,24}$/.test(telefono)) {
+          return jsonRes({ error: "numero non plausibile" }, 400);
+        }
+        await env.ARRIVI_KV.put(chiaveTelefono(email), JSON.stringify({
+          telefono, fonte: "extranet-booking", ts: new Date().toISOString()
+        }));
+        return jsonRes({ ok: true, salvato: true });
+      }
+
       if (action === "avvisami") {
         const testo = (url.searchParams.get("testo") || "").slice(0, 900);
         if (!testo) return jsonRes({ error: "parametro testo mancante" }, 400);
@@ -3566,6 +3614,7 @@ async function searchOneAccount(env, account, q, maxResults) {
         const ieriD = new Date(); ieriD.setDate(ieriD.getDate() - 1);
         const ieriIso = ieriD.toISOString().slice(0, 10);
         await arricchisciTassa(env, tutte.filter(b => (b.checkin || "") >= ieriIso));
+        await arricchisciTelefono(env, tutte);
         return new Response(JSON.stringify({
           count: tutte.length,
           from: parti.length ? parti[0][0] : "",
