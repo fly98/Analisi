@@ -1134,6 +1134,30 @@ function chiudiMessaggi(){
   }
 }
 
+// Va a prendere il telefono dall'extranet Booking per gli arrivi di quel
+// giorno. Il Mac apre una finestra Chrome, quindi ci mette qualche decina
+// di secondi: il pulsante resta disabilitato e dice a che punto e'.
+// Se Booking chiede una verifica arriva un messaggio su Telegram.
+async function recuperaNumero(i, checkin){
+  const b=document.getElementById("recbtn"+i);
+  if(!checkin){ if(b) b.textContent="📞 data mancante"; return; }
+  if(b){ b.disabled=true; b.textContent="📞 recupero…"; }
+  try{
+    const r=await fetch(`${WORKER}/?action=recuperaTelefono&checkin=${encodeURIComponent(checkin)}`);
+    const j=await r.json();
+    if(j.esito==="ok" && j.presi>0){
+      if(b) b.textContent="✅ trovato, aggiorno…";
+      setTimeout(()=>location.reload(), 1200);
+      return;
+    }
+    if(j.esito==="serve_te"){ if(b){ b.disabled=false; b.textContent="🔐 serve la verifica"; } alert("Booking ha chiesto una verifica: guarda Telegram, risolvila e riprova."); return; }
+    if(b){ b.disabled=false; b.textContent="📞 nessun numero"; }
+    alert(j.nota||j.error||"Non ho trovato il numero per questa data.");
+  }catch(e){
+    if(b){ b.disabled=false; b.textContent="📞 Recupera numero"; }
+    alert("Mac non raggiungibile: "+e.message);
+  }
+}
 function apriTassa(i){
   taxCurrent=i;
   document.getElementById("taxLink").value="";
@@ -1401,8 +1425,16 @@ function render(iso,bookings,isRicerca){
         </div>`;
     }else{
       const warn=source.toLowerCase().includes("expedia")?"Numero virtuale Expedia":(source==="manual"?"Prenotazione manuale":"Numero assente");
+      // Dal 28/09/2026 Booking non passa piu' il telefono ai PMS: per le
+      // prenotazioni Booking si offre di andarlo a prendere dall'extranet.
+      // Serve per le last minute, che arrivano fra un giro automatico e
+      // l'altro. Ci vuole una quarantina di secondi.
+      const recBtn = source.toLowerCase().includes("booking")
+        ? `<button class="tax-btn" id="recbtn${i}" onclick="recuperaNumero(${i},'${(b.checkin||"").slice(0,10)}')">📞 Recupera numero</button>`
+        : "";
       action=`<div class="copy-note">⚠︎ ${warn} — nessun numero WhatsApp diretto</div>
         <div class="actions">
+          ${recBtn}
           <button class="msg-open-btn" onclick="apriMsg(${i})">✉️ Messaggio</button>
           <button class="tax-btn" onclick="apriTassa(${i})">💶 Tassa</button>
         </div>`;
