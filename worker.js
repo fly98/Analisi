@@ -2324,7 +2324,7 @@ export default {
         const testo = (url.searchParams.get("testo") || "").slice(0, 900);
         if (!testo) return jsonRes({ error: "parametro testo mancante" }, 400);
         const link = url.searchParams.get("link") || "";
-        const buttons = link ? [[{ text: "Apri il telecomando", url: link }]] : undefined;
+        const buttons = link ? [{ label: "🔐 Apri il telecomando", url: link }] : undefined;
         try {
           const ok = await tgSend(env, buttons ? { text: testo, buttons } : { text: testo });
           return jsonRes({ ok, inviato: ok });
