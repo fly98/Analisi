@@ -2353,6 +2353,28 @@ export default {
       // Il Mac deposita qui un telefono recuperato dall'extranet.
       // Contiene un recapito di una persona: protetta dalla chiave come tutto
       // il resto, e non viene mai restituita in chiaro da questa azione.
+      // Recupero al volo, chiamato dal pulsante "recupera numero" dell'app
+      // Arrivi quando una prenotazione non ha il telefono (last minute).
+      // Il Mac apre l'extranet e prende i numeri degli arrivi di quel
+      // giorno; puo' metterci una quarantina di secondi.
+      if (action === "recuperaTelefono") {
+        const checkin = url.searchParams.get("checkin") || "";
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(checkin)) {
+          return jsonRes({ error: "serve checkin=AAAA-MM-GG" }, 400);
+        }
+        try {
+          const r = await fetch(`http://fly98.duckdns.org:3456/telefono-recupera?checkin=${checkin}`, {
+            headers: { "X-Trigger-Key": env.RECENSIONI_TOKEN },
+            signal: AbortSignal.timeout(300000),
+          });
+          return new Response(await r.text(), {
+            status: r.status, headers: { ...CORS, "Content-Type": "application/json; charset=utf-8" }
+          });
+        } catch (e) {
+          return jsonRes({ error: "Mac non raggiungibile", dettaglio: String(e.message || e) }, 502);
+        }
+      }
+
       if (action === "salvaTelefono") {
         const email = (url.searchParams.get("email") || "").trim();
         const telefono = (url.searchParams.get("telefono") || "").trim();
