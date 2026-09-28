@@ -2314,6 +2314,24 @@ export default {
       }
 
       // === log dei tentativi respinti (protetta dal token come tutte le altre) ===
+      // ── avviso su Telegram ────────────────────────────────────────────
+      // Serve agli script sul Mac per chiamare Filippo quando Booking
+      // chiede il CAPTCHA: lui riceve il messaggio col link al telecomando,
+      // risolve a mano e il lavoro riprende. Il CAPTCHA lo risolve sempre
+      // una persona: questo e' solo il filo che lo avvisa.
+      // Protetta dalla chiave come tutte le altre azioni.
+      if (action === "avvisami") {
+        const testo = (url.searchParams.get("testo") || "").slice(0, 900);
+        if (!testo) return jsonRes({ error: "parametro testo mancante" }, 400);
+        const link = url.searchParams.get("link") || "";
+        const buttons = link ? [[{ text: "Apri il telecomando", url: link }]] : undefined;
+        try {
+          const ok = await tgSend(env, buttons ? { text: testo, buttons } : { text: testo });
+          return jsonRes({ ok, inviato: ok });
+        } catch (e) {
+          return jsonRes({ error: "invio Telegram fallito", dettaglio: String(e.message || e) }, 502);
+        }
+      }
       if (action === "secLog") {
         const lista = await env.ARRIVI_KV.list({ prefix: "sec:401:", limit: 500 });
         const out = [];
