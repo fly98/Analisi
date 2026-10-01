@@ -322,7 +322,8 @@ var grafMode = 'perf';  // 'perf' = performance vs carico, 'tot' = valore totale
 var _titoliRows = [];   // righe datate conti titoli (tranne Fineco Inv) per saldo a data
 var _vcRows = [];       // righe storiche del conto Valore di carico [{date,amount}]
 var _strMap = {};       // strumento -> {isBond, vc, vm} per la 2a linea
-var _bondCarico = {};   // 'YYYY-MM-DD' -> {nomeBond: carico a quella data}
+var _bondCarico = {};
+var _strCarico = {};  // carico storico di TUTTI gli strumenti (az+ob), per data   // 'YYYY-MM-DD' -> {nomeBond: carico a quella data}
 let variazioniPeriodo = 'giorno';
 let strumenti = [];
 let txByYear = {};
@@ -702,22 +703,29 @@ async function loadPerfData() {
 // Metodo: si parte dal carico odierno e si cammina all'indietro sugli snapshot;
 // quando il valore di un titolo salta troppo per essere un movimento di prezzo,
 // e' un acquisto/vendita e si toglie quel delta dal carico.
+// Ricostruisce il valore di CARICO di OGNI strumento (non solo bond) a ogni data
+// storica, camminando all'indietro sugli snapshot e scorporando i salti troppo
+// grandi per essere movimenti di prezzo (= acquisti/vendite). _strCarico[data][nome]
+// e' il carico dello strumento a quella data; _bondCarico resta il sottoinsieme dei
+// soli bond, usato dalla 2a linea del grafico.
 function buildBondCaricoHistory() {
-  _bondCarico = {};
+  _strCarico = {}; _bondCarico = {};
   if (!snapshots || !snapshots.length) return;
-  var bondNames = [];
-  for (var n in _strMap) { if (_strMap[n].isBond) bondNames.push(n); }
-  if (!bondNames.length) return;
+  var allNames = Object.keys(_strMap);
+  if (!allNames.length) return;
   var run = {};
-  bondNames.forEach(function(n){ run[n] = _strMap[n].vc || 0; });
+  allNames.forEach(function(n){ run[n] = _strMap[n].vc || 0; });
   for (var i = snapshots.length - 1; i >= 0; i--) {
     var d = snapshots[i].date, bd = snapshots[i].breakdown || {};
-    var row = {};
-    bondNames.forEach(function(n){ row[n] = run[n] || 0; });
-    _bondCarico[d] = row;
+    var row = {}, rowBond = {};
+    allNames.forEach(function(n){
+      row[n] = run[n] || 0;
+      if (_strMap[n].isBond) rowBond[n] = row[n];
+    });
+    _strCarico[d] = row; _bondCarico[d] = rowBond;
     if (i > 0) {
       var prev = snapshots[i-1].breakdown || {};
-      bondNames.forEach(function(n){
+      allNames.forEach(function(n){
         var cur = bd[n], pr = prev[n];
         if (cur == null || pr == null) return;
         var delta = cur - pr;
@@ -766,6 +774,24 @@ function _totaleFiltrato(s, tab) {
   return sum;
 }
 
+// Carico degli strumenti della classe filtrata, alla data dello snapshot s.
+// Usa il carico storico ricostruito (_strCarico): cosi' un acquisto recente non
+// falsa i punti passati, esattamente come gia' avviene per la 2a linea dei bond.
+function _caricoFiltrato(s, tab) {
+  var bd = s.breakdown || {};
+  var row = _strCarico[s.date] || null;
+  var isBondTab = (tab === 'ob');
+  var sum = 0;
+  for (var nome in bd) {
+    var info = _strMap[nome];
+    var isBond = info ? info.isBond : false;
+    if (tab && tab !== 'tutti' && isBond !== isBondTab) continue;
+    var car = row && row[nome] != null ? row[nome] : (info ? info.vc : 0);
+    sum += car;
+  }
+  return sum;
+}
+
 
 function _labelFiltroStr(tab) {
   if (tab === 'az') return 'Filtro: solo Azionario / ETF (Fineco)';
@@ -809,7 +835,11 @@ function renderAndamento() {
   var values = filtered.map(function(s) {
     var tot = _totaleFiltrato(s, activeStrTab);
     if (grafMode === 'perf') {
-      if (activeStrTab && activeStrTab !== 'tutti') return tot;  // solo Fineco filtrato, niente carico/altri conti
+      // Con un filtro di classe attivo: performance della sola fetta selezionata
+      // (mercato filtrato - carico storico filtrato), cosi' un acquisto/versamento
+      // nuovo non sposta il grafico come fosse un guadagno - esattamente come fa
+      // il grafico di default con "Tutti", ma ristretto alla classe scelta.
+      if (activeStrTab && activeStrTab !== 'tutti') return tot - _caricoFiltrato(s, activeStrTab);
       return (titoliAt(s.date) + tot) - vcAt(s.date);
     }
     return tot;
@@ -1200,7 +1230,10 @@ function renderVariazioni() {
   // valore totale: così un versamento/prelievo (che alza sia valore sia carico)
   // NON appare come guadagno/perdita fittizio.
   function perfAt(pt) {
-    if (activeStrTab && activeStrTab !== 'tutti') return pt.totale;  // solo Fineco filtrato
+    if (activeStrTab && activeStrTab !== 'tutti') {
+      // performance della sola classe filtrata (mercato - carico storico filtrato)
+      return pt.totale - _caricoFiltrato(pt, activeStrTab);
+    }
     if (typeof titoliAt === 'function' && typeof vcAt === 'function' && pt.date) {
       return (titoliAt(pt.date) + pt.totale) - vcAt(pt.date);
     }
