@@ -672,7 +672,7 @@ function ricaricaVista(){
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v96';
+  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v97';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -1786,6 +1786,9 @@ function renderIva(){
     k('', Math.round(versatoAnno).toLocaleString('it-IT')+' €', 'versato nel '+d.anno) +
     k('', Math.round(netta).toLocaleString('it-IT')+' €', 'IVA netta da inizio anno');
 
+  // stesso periodo dell’anno scorso, se lo abbiamo fra i versamenti registrati
+  const ly=prox ? d.vers.find(v=>v.periodo===prox.sc.periodo.replace('-'+d.anno,'-'+(d.anno-1))) : null;
+  const lyTxt=ly ? ' L’anno scorso: '+ivaE(ly.importo)+'.' : '';
   const cal=d.trim.filter(t=>t.haVersato&&t.n<4).map(t=>({n:t.n,sc:(t.versato-t.interessi)-t.da})).filter(x=>x.sc>50);
   const calib=cal.length ? ' Sul Q'+cal[0].n+' la stima era più bassa del versato di '+ivaE(cal[0].sc)+': tieni un margine.' : '';
   let h='';
@@ -1796,7 +1799,7 @@ function renderIva(){
        '<div>'+prox.sc.titolo+(prox.st.importo!=null ? ' — circa <b>'+ivaE(prox.st.importo)+'</b>' : '')+' · codice '+prox.sc.codice+'</div>'+
        '<div style="font-size:11.5px;color:var(--muted);margin-top:3px">'+
          (prox.st.base!=null ? ivaE(prox.st.base)+' di imposta più l’1% di interessi. ' : '')+(prox.st.nota||'')+
-         ' Stima provvisoria.'+calib+'</div></div>';
+         ' Stima provvisoria.'+lyTxt+calib+'</div></div>';
   }
 
   h+='<table class="tab-iva"><tr><th>Trimestre</th><th>A debito</th><th>A credito</th><th>Saldo</th><th>Versato</th></tr>';
