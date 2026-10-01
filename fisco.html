@@ -672,7 +672,7 @@ function ricaricaVista(){
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v95';
+  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v96';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -1666,6 +1666,9 @@ document.querySelectorAll('#tipo-doc button').forEach(b => b.onclick = ()=>{
 /* ---------- IVA: stima, scadenzario e versamenti ---------- */
 let IVA = null;
 // ricevute emesse con l’intero importo come escluso art. 15: IVA non esposta, non va a debito
+// integrazione dei corrispettivi 2026 (27.000 €, IVA 2.454,55 €) come da soluzione B scelta dal commercialista:
+// Q1 = gen+feb+mar, Q2 = apr+mag+giu, IVA = lordo ÷ 11
+const IVA_INTEGR_2026 = [1146.90, 1307.65, 0, 0];
 const IVA_ZERO = new Set(['DCW2026/7445-4083','DCW2026/7873-8519','DCW2026/7900-0307','DCW2026/8373-5594',
   'DCW2026/9007-7621','DCW2026/9270-9132','DCW2026/9422-9875','DCW2026/9523-0071','DCW2026/0486-4936']);
 
@@ -1704,11 +1707,18 @@ function ivaCalcola(anno, rc, ft, ps, vers){
   const trim=T.map((t,i)=>{
     const periodo='Q'+(i+1)+'-'+anno;
     const v=vers.filter(x=>x.periodo===periodo);
-    const debito=t.ricIva+t.fatIva, saldo=t.passIva-debito, da=saldo<0?-saldo:0;
+    const debito=t.ricIva+t.fatIva+((anno===2026?IVA_INTEGR_2026:[])[i]||0), saldo=t.passIva-debito, da=saldo<0?-saldo:0;
     return {n:i+1, periodo, debito, credito:t.passIva, saldo, da,
             daConInteressi: i<3 ? da*1.01 : da,
             versato: v.reduce((s,x)=>s+x.importo,0), interessi: v.reduce((s,x)=>s+(x.interessi||0),0),
             haVersato: v.length>0};
+  });
+  // il credito di un trimestre si porta al successivo: lo fa il commercialista, come da sua mail del 30/07
+  let riporto=0;
+  trim.forEach((t,i)=>{
+    const x=t.saldo+riporto;
+    t.riporto=riporto; t.da=x<0?-x:0; t.daConInteressi=i<3?t.da*1.01:t.da;
+    riporto=x>0?x:0;
   });
   const acc=vers.find(x=>x.periodo==='ACC-'+(anno-1)), sal=vers.find(x=>x.periodo==='Q4-'+(anno-1));
   const baseAcc=(acc&&sal) ? acc.importo+sal.importo : null;
@@ -1776,6 +1786,8 @@ function renderIva(){
     k('', Math.round(versatoAnno).toLocaleString('it-IT')+' €', 'versato nel '+d.anno) +
     k('', Math.round(netta).toLocaleString('it-IT')+' €', 'IVA netta da inizio anno');
 
+  const cal=d.trim.filter(t=>t.haVersato&&t.n<4).map(t=>({n:t.n,sc:(t.versato-t.interessi)-t.da})).filter(x=>x.sc>50);
+  const calib=cal.length ? ' Sul Q'+cal[0].n+' la stima era più bassa del versato di '+ivaE(cal[0].sc)+': tieni un margine.' : '';
   let h='';
   if(prox){
     h+='<div style="background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:0 0 12px">'+
@@ -1784,7 +1796,7 @@ function renderIva(){
        '<div>'+prox.sc.titolo+(prox.st.importo!=null ? ' — circa <b>'+ivaE(prox.st.importo)+'</b>' : '')+' · codice '+prox.sc.codice+'</div>'+
        '<div style="font-size:11.5px;color:var(--muted);margin-top:3px">'+
          (prox.st.base!=null ? ivaE(prox.st.base)+' di imposta più l’1% di interessi. ' : '')+(prox.st.nota||'')+
-         ' Stima provvisoria.</div></div>';
+         ' Stima provvisoria.'+calib+'</div></div>';
   }
 
   h+='<table class="tab-iva"><tr><th>Trimestre</th><th>A debito</th><th>A credito</th><th>Saldo</th><th>Versato</th></tr>';
@@ -1831,8 +1843,9 @@ function renderIva(){
   h+='<div style="font-size:11px;color:var(--muted);margin:16px 2px 4px;line-height:1.5">'+
      '<b>Come è calcolata la stima.</b> IVA delle ricevute = importo ÷ 11, al netto delle nove senza IVA esposta; '+
      'fatture emesse per la loro imposta; passive considerate interamente detraibili, per data fattura. '+
-     'Non include crediti riportati, l’integrazione concordata col commercialista né le autofatture TD17 (neutre). '+
-     'Sul Q2 2026 la stima è risultata più bassa del versato: i numeri del commercialista fanno fede.</div>';
+     'Include l’integrazione concordata (soluzione B: IVA 1.146,90 € nel Q1 e 1.307,65 € nel Q2) e riporta il credito da un trimestre al successivo; '+
+     'esclude le autofatture TD17 (neutre). Sul primo semestre la stima risulta più bassa del versato: probabilmente le passive del Q1 sono sovrastimate. '+
+     'I numeri del commercialista fanno fede.</div>';
   $('#lista-ric').innerHTML=h;
 }
 
