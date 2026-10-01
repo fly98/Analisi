@@ -3320,6 +3320,52 @@ export default {
         return json({ ok: true, token, link: `${url.origin}/d/${token}` });
       }
 
+      // Registro dei versamenti IVA (F24): serve allo scadenziario e a confrontare
+      // la stima con quanto effettivamente pagato.
+      if (url.pathname === '/ivaVersamenti') {
+        const CH = 'fisco:iva:versamenti';
+        let lista = await env.FISCO_KV.get(CH, 'json');
+        if (!Array.isArray(lista)) {
+          // prima lettura: parto dai versamenti noti, ricavati dagli F24
+          lista = [
+            { id: 'acc-2025', data: '2025-12-29', codice: '6035', periodo: 'ACC-2025', importo: 2570.83,
+              nota: 'Acconto IVA 2025 (trimestrali)' },
+            { id: 'saldo-2025', data: '2026-03-16', codice: '6099', periodo: 'Q4-2025', importo: 1684.0,
+              nota: 'Saldo IVA annuale 2025, rateazione 0101' },
+            { id: 'q2-2026', data: '2026-08-20', codice: '6032', periodo: 'Q2-2026', importo: 5412.75,
+              interessi: 53.59, nota: 'IVA 2° trimestre 2026, comprensivo di 1%' },
+          ];
+          await env.FISCO_KV.put(CH, JSON.stringify(lista));
+        }
+        if (request.method === 'POST') {
+          const b = await request.json();
+          if (b.rimuovi) {
+            lista = lista.filter((v) => v.id !== b.rimuovi);
+          } else if (b.aggiungi) {
+            const v = b.aggiungi;
+            const imp = Number(v.importo);
+            if (!v.data || !v.periodo || !isFinite(imp) || imp <= 0) {
+              return json({ ok: false, error: 'servono data, periodo e importo' }, 400);
+            }
+            lista = lista.filter((x) => x.id !== v.id);
+            lista.push({
+              id: v.id || `v-${Date.now().toString(36)}`,
+              data: String(v.data).slice(0, 10),
+              codice: String(v.codice || ''),
+              periodo: String(v.periodo),
+              importo: Math.round(imp * 100) / 100,
+              ...(v.interessi ? { interessi: Number(v.interessi) } : {}),
+              nota: String(v.nota || '').slice(0, 200),
+            });
+          } else {
+            return json({ ok: false, error: 'usa aggiungi o rimuovi' }, 400);
+          }
+          lista.sort((a, b) => (a.data < b.data ? -1 : 1));
+          await env.FISCO_KV.put(CH, JSON.stringify(lista));
+        }
+        return json({ ok: true, versamenti: lista });
+      }
+
       if (url.pathname === '/registro') {
         const num = url.searchParams.get('numero');
         if (num) {
