@@ -206,6 +206,7 @@ main { max-width:900px; margin:0 auto; padding:16px; display:flex;
           <button class="range-btn active" data-days="9999">Tutto</button>
         </div>
       </div>
+      <div id="andamento-filtro-badge" style="font-size:11px;color:var(--muted);margin-bottom:6px"></div>
       <div class="chart-wrap">
         <canvas id="chart-andamento"></canvas>
       </div>
@@ -218,7 +219,10 @@ main { max-width:900px; margin:0 auto; padding:16px; display:flex;
     <!-- Variazioni -->
     <div class="card">
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
-        <div class="card-title" style="margin:0">Variazioni</div>
+        <div>
+          <div class="card-title" style="margin:0">Variazioni</div>
+          <div id="variazioni-filtro-badge" style="font-size:11px;color:var(--muted)"></div>
+        </div>
         <div id="variazioni-tabs" style="display:flex;gap:6px">
           <button class="range-btn active" data-periodo="giorno">Giorno</button>
           <button class="range-btn" data-periodo="settimana">Settimana</button>
@@ -373,6 +377,8 @@ document.getElementById('str-tabs').addEventListener('click', function(e) {
   btn.classList.add('active');
   activeStrTab = btn.dataset.tab;
   renderStrumenti();
+  renderAndamento();
+  renderVariazioni();
 });
 
 // ─── LOAD ALL ────────────────────────────────────────────
@@ -744,9 +750,34 @@ function setGrafMode(mode) {
   renderAndamento();
 }
 
+// Totale di uno snapshot Fineco filtrato per classe strumento (coerente col tab
+// Tutti/Azionario/Obbligaz. sopra la tabella). "tutti" = s.totale originale.
+// "az"/"ob" = somma dei soli strumenti del breakdown che matchano la classe.
+function _totaleFiltrato(s, tab) {
+  if (!tab || tab === 'tutti') return s.totale;
+  var bd = s.breakdown || {};
+  var isBondTab = (tab === 'ob');
+  var sum = 0;
+  for (var nome in bd) {
+    var info = _strMap[nome];
+    var isBond = info ? info.isBond : false;
+    if (isBond === isBondTab) sum += bd[nome];
+  }
+  return sum;
+}
+
+
+function _labelFiltroStr(tab) {
+  if (tab === 'az') return 'Filtro: solo Azionario / ETF (Fineco)';
+  if (tab === 'ob') return 'Filtro: solo Obbligaz. / Cert. (Fineco)';
+  return '';
+}
+
 function renderAndamento() {
   var canvas = document.getElementById('chart-andamento');
   var emptyEl = document.getElementById('chart-empty');
+  var andBadge = document.getElementById('andamento-filtro-badge');
+  if (andBadge) andBadge.textContent = _labelFiltroStr(activeStrTab);
 
   // Filtra per range
   var cutoff = new Date();
@@ -772,18 +803,24 @@ function renderAndamento() {
   });
   // Valore di carico attuale (stabile: cambia solo con acquisti/vendite).
   // In performance mostriamo lo scarto totale - carico (guadagno/perdita).
+  // Con un filtro di classe attivo (az/ob), gli "altri conti titoli" (Fideuram,
+  // Fondo Pensione...) non hanno classificazione per singolo titolo: si escludono
+  // dal calcolo, cosi' il numero mostrato e' solo la componente Fineco filtrata.
   var values = filtered.map(function(s) {
+    var tot = _totaleFiltrato(s, activeStrTab);
     if (grafMode === 'perf') {
-      // (conti titoli tranne Fineco Inv) + valore Fineco a quella data - valore di carico a quella data
-      return (titoliAt(s.date) + s.totale) - vcAt(s.date);
+      if (activeStrTab && activeStrTab !== 'tutti') return tot;  // solo Fineco filtrato, niente carico/altri conti
+      return (titoliAt(s.date) + tot) - vcAt(s.date);
     }
-    return s.totale;
+    return tot;
   });
 
   // 2a linea (solo in Performance): come sopra, ma le OBBLIGAZIONI sono congelate
   // al loro valore di carico (non oscillano). Isola il movimento di azionario/ETF/oro.
   var values2 = null;
-  if (grafMode === 'perf') {
+  // La 2a linea (bond congelati al carico) ha senso solo con "Tutti": se il filtro
+  // isola azionario o obbligazionario, il confronto mercato/carico-bond non si applica.
+  if (grafMode === 'perf' && (!activeStrTab || activeStrTab === 'tutti')) {
     // Performance con le OBBLIGAZIONI congelate al loro valore di carico: si parte
     // dalla linea vera e si toglie, punto per punto, la plus/minus latente dei bond
     // a quella data (mercato di quel giorno - carico di quel giorno).
@@ -1115,10 +1152,11 @@ function lunediISO(dateStr) {
   return d.toISOString().slice(0, 10);
 }
 function puntiVariazioni(periodo) {
+  // totale rispetta il tab Tutti/Azionario/Obbligaz. attivo (vedi _totaleFiltrato)
   if (periodo !== 'settimana' && periodo !== 'mese') {
     return snapshots.map(function(s) {
       var p = s.date.split('-');
-      return { totale: s.totale, date: s.date, label: p[2] + '/' + p[1] };
+      return { totale: _totaleFiltrato(s, activeStrTab), breakdown: s.breakdown, date: s.date, label: p[2] + '/' + p[1] };
     });
   }
   var byKey = {};
@@ -1133,7 +1171,7 @@ function puntiVariazioni(periodo) {
     } else {
       label = p[2] + '/' + p[1];
     }
-    return { totale: s.totale, date: s.date, label: label };
+    return { totale: _totaleFiltrato(s, activeStrTab), breakdown: s.breakdown, date: s.date, label: label };
   });
 }
 
@@ -1141,6 +1179,8 @@ function renderVariazioni() {
   var canvas = document.getElementById('chart-variazioni');
   var emptyEl = document.getElementById('variazioni-empty');
   if (!canvas) return;
+  var varBadge = document.getElementById('variazioni-filtro-badge');
+  if (varBadge) varBadge.textContent = _labelFiltroStr(activeStrTab);
   var punti = puntiVariazioni(variazioniPeriodo);
   if (punti.length < 2) {
     canvas.style.display = 'none';
@@ -1160,6 +1200,7 @@ function renderVariazioni() {
   // valore totale: così un versamento/prelievo (che alza sia valore sia carico)
   // NON appare come guadagno/perdita fittizio.
   function perfAt(pt) {
+    if (activeStrTab && activeStrTab !== 'tutti') return pt.totale;  // solo Fineco filtrato
     if (typeof titoliAt === 'function' && typeof vcAt === 'function' && pt.date) {
       return (titoliAt(pt.date) + pt.totale) - vcAt(pt.date);
     }
