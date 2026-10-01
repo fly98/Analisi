@@ -672,7 +672,7 @@ function ricaricaVista(){
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v94';
+  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v95';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -1729,7 +1729,7 @@ function ivaStato(sc, d){
   }
   const t=d.trim[sc.q];
   if(t.haVersato) return {tipo:'pagata', importo:t.versato, base:t.versato-t.interessi, stima:t.da};
-  if(t.da<=0) return {tipo:'nulla', importo:0, nota:'la stima è a credito'};
+  if(t.da<=0) return {tipo:'nulla', importo:0, nota:'la stima è a credito: se a maggio hai versato IVA, registrala in fondo'};
   return {tipo: sc.data<oggi?'verifica':'prossima', importo:t.daConInteressi, base:t.da};
 }
 
@@ -1799,7 +1799,7 @@ function renderIva(){
 
   h+='<div style="font-size:12px;font-weight:650;margin:4px 2px 6px">Scadenzario</div>';
   righe.forEach(r=>{
-    const st=r.st, lbl={pagata:'pagata',prossima:'da pagare',verifica:'da verificare',futura:'più avanti',nulla:'nulla da versare'}[st.tipo];
+    const st=r.st, lbl={pagata:'pagata',prossima:'da pagare',verifica:'da verificare',futura:'più avanti',nulla:'nessun versamento stimato'}[st.tipo];
     const col={pagata:'var(--ok)',prossima:'var(--warn)',verifica:'#b03a2e',futura:'var(--muted)',nulla:'var(--muted)'}[st.tipo];
     let dett='';
     if(st.tipo==='pagata' && st.stima!=null){
