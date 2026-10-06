@@ -894,7 +894,7 @@ select.form-input { height: 42px; }
 
     </div>
     <div style="padding:10px 16px 14px;text-align:center;border-top:1px solid var(--border);margin-top:4px">
-      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v2.2.2</span>
+      <span style="font-size:11px;color:var(--faint);letter-spacing:.5px">Quadra · InternoUno &mdash; v2.2.3</span>
     </div>
   </div>
 </div>
@@ -4025,7 +4025,13 @@ function _autoLog(logId, msg, type) {
         } else {
           amt = tx.amount || 0;
         }
-        var fullUp = (tx.name || '').trim().toUpperCase();
+        // Normalizzare gli spazi PRIMA di troncare a 32 caratteri e' essenziale:
+        // se non lo si fa qui, una descrizione con spazi multipli salvata in Quadra
+        // (es. "MOONEY PAGOPA CHECKOUT MILANO     MI") genera una chiave diversa da
+        // quella calcolata sul movimento in arrivo dalla banca (che la normalizza
+        // prima del troncamento) - stessa operazione, due chiavi diverse, il dedup
+        // fallisce sempre e la riga si ripropone a ogni import.
+        var fullUp = (tx.name || '').replace(/\s+/g,' ').trim().toUpperCase();
         var name = fullUp.substring(0,32);
         var daK = (tx.date||'') + '|' + parseFloat(amt).toFixed(2);
         var k = daK + '|' + name;
