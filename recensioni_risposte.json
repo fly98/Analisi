@@ -1,9 +1,22 @@
 {
-  "generatoIl": "2026-10-01T12:18:20.354Z",
+  "generatoIl": "2026-10-07T09:13:46.701Z",
   "strutture": {
     "deluxe": {
       "nome": "InternoUno Deluxe",
       "bozze": [
+        {
+          "id": "deluxe-6470893817",
+          "dataRecensione": "2026-10-02",
+          "punteggio": 9,
+          "positivo": "Možnost posezení na terase. ",
+          "negativo": "Vše bylo ok. ",
+          "lingua": "cs",
+          "riassuntoIT": "Ospite soddisfatto, apprezza la terrazza, nulla da criticare (9/10).",
+          "rispostaProposta": "La ringraziamo per il suo riscontro. Siamo contenti che abbia apprezzato la terrazza. A presto.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "6470893817"
+        },
         {
           "id": "deluxe-6817198134",
           "dataRecensione": "2026-09-30",
@@ -6518,18 +6531,6 @@
           "reservationNumber": "2327863614"
         },
         {
-          "id": "deluxe-3590645603",
-          "dataRecensione": "2023-10-04",
-          "punteggio": 8,
-          "stato": "senza_testo"
-        },
-        {
-          "id": "deluxe-3584293230",
-          "dataRecensione": "2023-10-03",
-          "punteggio": 10,
-          "stato": "senza_testo"
-        },
-        {
           "id": "deluxe-2193004539",
           "dataRecensione": "2023-10-01",
           "punteggio": 6,
@@ -6547,6 +6548,19 @@
     "classica": {
       "nome": "Internouno",
       "bozze": [
+        {
+          "id": "classica-5051616427",
+          "dataRecensione": "2026-10-06",
+          "punteggio": 10,
+          "positivo": "Velmi čistý a útulný pokoj",
+          "negativo": null,
+          "lingua": "cs",
+          "riassuntoIT": "Ospite molto soddisfatto della pulizia e della coziness della camera (10/10).",
+          "rispostaProposta": "Grazie mille per la sua recensione. Siamo contenti che abbia apprezzato la pulizia e l'atmosfera accogliente della camera. A presto.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "5051616427"
+        },
         {
           "id": "classica-5697188883",
           "dataRecensione": "2026-09-30",
@@ -12565,12 +12579,6 @@
           "rispostaFinale": null,
           "stato": "da_validare",
           "reservationNumber": "4057185524"
-        },
-        {
-          "id": "classica-3651149216",
-          "dataRecensione": "2023-10-04",
-          "punteggio": 8,
-          "stato": "senza_testo"
         },
         {
           "id": "classica-4064947863",
