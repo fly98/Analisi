@@ -412,6 +412,17 @@
     .hero, .temi-griglia { grid-template-columns: 1fr; }
     .tile .valore { font-size: 36px; }
   }
+    /* pulsantino accanto a "Booking mostra": rilegge SOLO il voto, senza
+       rifare il giro delle recensioni (che richiede login e minuti). */
+    .etichetta #btnPunteggio {
+      background: none; border: 1px solid var(--bordo); color: var(--muted);
+      border-radius: 6px; cursor: pointer; font-size: 12px; line-height: 1;
+      padding: 2px 5px; margin-left: 6px; vertical-align: baseline;
+    }
+    .etichetta #btnPunteggio:hover:not(:disabled) { color: var(--accent); border-color: var(--accent); }
+    .etichetta #btnPunteggio:disabled { opacity: .5; cursor: default; }
+    .etichetta #btnPunteggio.gira { animation: giraTondo 1s linear infinite; }
+    @keyframes giraTondo { to { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
@@ -435,7 +446,9 @@
 
   <section class="hero" id="hero">
     <div class="tile mostrato">
-      <div class="etichetta">Booking mostra</div>
+      <div class="etichetta">Booking mostra
+        <button id="btnPunteggio" title="Rileggi solo il voto dalla pagina Booking (pochi secondi)">↻</button>
+      </div>
       <div class="valore num" id="valoreMostrato">—</div>
       <div class="dettaglio" id="dettaglioMostrato">—</div>
     </div>
@@ -1226,6 +1239,34 @@
   el("btnResetToken").addEventListener("click", function () {
     localStorage.removeItem(TOKEN_KEY);
     el("statoAggiorna").textContent = "Codice dimenticato: al prossimo \"Aggiorna\" te lo richiede.";
+  });
+
+  // Rilegge SOLO il voto mostrato da Booking: nessun login, nessun CSV,
+  // nessuna bozza. Serve per quando Booking aggiorna il voto ma le
+  // recensioni sono le stesse — capita a ore di distanza.
+  el("btnPunteggio").addEventListener("click", function () {
+    var token = chiediToken();
+    if (!token) return;
+    var btn = el("btnPunteggio");
+    var dett = el("dettaglioMostrato");
+    var testoPrima = dett.textContent;
+    btn.disabled = true; btn.classList.add("gira");
+    dett.textContent = "rileggo il voto da Booking...";
+    fetch("https://recensioni-worker.f-castiglioni.workers.dev/punteggio", {
+      method: "POST", headers: { "X-Auth": token },
+    })
+      .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+      .then(function (res) {
+        if (!res.ok || (res.j && res.j.esito === "errore")) {
+          if (res.j && res.j.error === "non autorizzato") localStorage.removeItem(TOKEN_KEY);
+          throw new Error((res.j && (res.j.messaggio || res.j.errore || res.j.error)) || "errore sconosciuto");
+        }
+        if (res.j && res.j.esito === "occupato") { dett.textContent = res.j.messaggio; return; }
+        // il file pubblicato impiega un attimo ad arrivare su GitHub Pages
+        return new Promise(function (ok) { setTimeout(ok, 4000); }).then(caricaDati);
+      })
+      .catch(function (e) { dett.textContent = testoPrima; alert("Non ho potuto rileggere il voto: " + e.message); })
+      .then(function () { btn.disabled = false; btn.classList.remove("gira"); });
   });
 
   el("btnAggiorna").addEventListener("click", function () {
