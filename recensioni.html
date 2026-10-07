@@ -654,6 +654,38 @@
       " · " + noteLettura +
       (s.displayedInterno && s.displayedScore != null && s.displayedInterno.voto !== s.displayedScore
         ? " · dato interno di Booking: " + formattaNumero(s.displayedInterno.voto, 1) + " su " + s.displayedInterno.quante + " (probabile prossimo valore)" : "");
+    el("valoreCalcolato").textContent = formattaNumero(s.mediaPonderata, 3);
+    el("dettaglioCalcolato").textContent = "media semplice: " + formattaNumero(s.mediaFlat, 3);
+
+    var diff = (s.mediaPonderata !== null && s.mediaFlat !== null) ? (s.mediaPonderata - s.mediaFlat) : null;
+    if (diff !== null) {
+      var verso = diff >= 0 ? "sopra" : "sotto";
+      el("deltaRiga").innerHTML = "Il peso sulle recensioni recenti porta il punteggio <strong>" + formattaNumero(Math.abs(diff), 3) + " punti " + verso + "</strong> la media semplice.";
+    }
+
+    renderSimulatore(s);
+    renderGrafico(s);
+    renderGraficoMensile(s);
+    renderTemi(s);
+    risposteMostrate = PASSO_RISPOSTE;
+    allargaPeriodoSeVuoto();
+    renderRisposte();
+  }
+
+  // ── simulatore ────────────────────────────────────────────────
+  function renderSimulatore(s) {
+    function aggiorna() {
+      var voto = parseFloat(el("simVoto").value);
+      var box = el("simRisultato");
+      if (isNaN(voto) || voto < 1 || voto > 10 || s.mediaPonderata === null) {
+        box.innerHTML = "<span class=\"nuovo-punteggio\">Inserisci un voto da 1 a 10.</span>";
+        return;
+      }
+      var pesoJ = 1; // una recensione di oggi ha peso pieno (il decadimento parte da li')
+      var delta = (pesoJ * (voto - s.mediaPonderata)) / (s.sommaPesi + pesoJ);
+      var nuovo = s.mediaPonderata + delta;
+      var cls = delta >= 0 ? "su" : "giu";
+      var segno = delta >= 0 ? "+" : "";
       box.innerHTML =
         "<span class=\"delta " + cls + "\">" + segno + formattaNumero(delta, 4) + "</span>" +
         "<span class=\"nuovo-punteggio\">nuovo punteggio: " + formattaNumero(nuovo, 4) + " (da " + formattaNumero(s.mediaPonderata, 4) + ")</span>";
