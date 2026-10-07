@@ -498,7 +498,9 @@
   <details class="metodo card">
     <summary>Come viene calcolato il punteggio</summary>
     <div class="corpo">
-      <p>Booking pesa le recensioni per recenza, a blocchi annuali: <code id="pesoAnno1">85%</code> alle recensioni degli ultimi 12 mesi, <code id="pesoAnno2">10%</code> a quelle fra 12 e 24 mesi, <code id="pesoAnno3">5%</code> a quelle fra 24 e 36 mesi. Oltre i 36 mesi una recensione esce dal calcolo. Booking non pubblica la formula esatta: questi pesi sono una ricostruzione (Mellinas / Di Nolfo-Aiassa / Martín-Fuentes, <em>Tourism and Hospitality Research</em>, 2025, su 100 hotel spagnoli), quindi il valore qui non coincidera' mai al centesimo con quello mostrato da Booking — ma si muove nella stessa direzione e con lo stesso ordine di grandezza.</p>
+      <p>Booking pesa le recensioni per recenza, e il peso <strong>cala in modo continuo</strong>: si dimezza ogni <code id="semivita">5,5</code> mesi. Una recensione di sei mesi fa vale metà di una di oggi, una di un anno fa un quarto, una di tre anni fa circa un cinquantesimo. Oltre i 36 mesi esce del tutto — ma a quel punto pesa così poco che uscire non sposta nulla.</p>
+      <p>Booking non pubblica la formula. Questa curva è stata <strong>ricavata dai tuoi dati</strong> il 7 ottobre 2026: sapendo che l'extranet mostrava 8,5 su entrambe le strutture, è l'unica forma che le spiega tutte e due insieme. È una prova incrociata seria, perché in quel momento le due strutture andavano in direzioni opposte — negli ultimi tre mesi Campaldino faceva 8,87 e il Deluxe 8,29 — e nessun sistema a blocchi annuali riusciva a far quadrare entrambe.</p>
+      <p>Prima qui si usavano pesi a blocchi annuali (85% / 10% / 5%) presi da uno studio accademico: davano 8,6 al Deluxe quando Booking diceva 8,5. Resta comunque una ricostruzione, non la formula ufficiale: ogni volta che il voto mostrato da Booking cambia, abbiamo una verifica in più per raffinarla.</p>
       <p>Le recensioni vengono lette dalla pagina pubblica della struttura (non dall'extranet), che non le mostra tutte in un colpo solo: un aggiornamento completo puo' richiedere piu' tentativi se Booking rallenta la lettura.</p>
     </div>
   </details>
@@ -617,9 +619,8 @@
     var s = dati.strutture[proprietaAttiva];
     if (!s) return;
 
-    el("pesoAnno1").textContent = Math.round(dati.pesi.anno1 * 100) + "%";
-    el("pesoAnno2").textContent = Math.round(dati.pesi.anno2 * 100) + "%";
-    el("pesoAnno3").textContent = Math.round(dati.pesi.anno3 * 100) + "%";
+    // la semivita arriva dal file pubblicato; se manca resta quella scritta
+    if (dati.semivitaMesi) el("semivita").textContent = String(dati.semivitaMesi).replace(".", ",");
 
     var ultima = s.recensioni.length ? s.recensioni[s.recensioni.length - 1] : null;
     el("valoreMostrato").textContent = formattaNumero(s.displayedScore, 1);
