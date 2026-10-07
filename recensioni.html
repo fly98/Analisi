@@ -462,7 +462,7 @@
     <h2>Andamento</h2>
     <div class="sottotitolo">Punteggio ponderato ricostruito settimana per settimana dalle date reali delle recensioni.</div>
     <div class="legenda">
-      <span><i style="background:var(--accent)"></i> Ponderato (85/10/5)</span>
+      <span><i style="background:var(--accent)"></i> Ponderato (recenza)</span>
       <span><i style="background:var(--muted); opacity:.6"></i> Media semplice</span>
     </div>
     <div id="graficoWrap"></div>
@@ -654,7 +654,7 @@
         box.innerHTML = "<span class=\"nuovo-punteggio\">Inserisci un voto da 1 a 10.</span>";
         return;
       }
-      var pesoJ = dati.pesi.anno1; // una recensione nuova e' sempre nel blocco piu' pesante
+      var pesoJ = 1; // una recensione di oggi ha peso pieno (il decadimento parte da li')
       var delta = (pesoJ * (voto - s.mediaPonderata)) / (s.sommaPesi + pesoJ);
       var nuovo = s.mediaPonderata + delta;
       var cls = delta >= 0 ? "su" : "giu";
