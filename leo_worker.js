@@ -32,7 +32,7 @@ async function getAmenitizReport(env) {
   if (!auth.token) return { error: "Gmail auth fallita", google_error: auth.error, google_desc: auth.desc };
   const accessToken = auth.token;
 
-  const query = encodeURIComponent('subject:"Rapporto pagamenti registrati" has:attachment from:hotel-booking@amenitiz.io');
+  const query = encodeURIComponent('has:attachment from:amenitiz.io (subject:"Rapporto pagamenti registrati" OR subject:"esportazione Rapporto pagamenti")');
   const searchResp = await fetch(
     `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${query}&maxResults=5`,
     { headers: { Authorization: `Bearer ${accessToken}` } }
