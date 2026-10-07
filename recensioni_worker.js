@@ -12,6 +12,7 @@
 // + pubblica.js).
 //
 // Endpoint:
+//   POST /punteggio   -> rilegge solo il voto mostrato da Booking
 //   POST /aggiorna?property=deluxe|classica|tutte   (richiede X-Auth: TOKEN)
 //     -> inoltra a http://fly98.duckdns.org:3456/recensioni-aggiorna
 //   POST /approva  { property, approvazioni:[{id, rispostaFinale}] }  (X-Auth: TOKEN)
@@ -47,6 +48,27 @@ export default {
         const r = await fetch(`http://fly98.duckdns.org:3456/recensioni-aggiorna?property=${encodeURIComponent(property)}`, {
           headers: { 'X-Trigger-Key': env.RECENSIONI_TOKEN },
           signal: AbortSignal.timeout(170000), // lo scraping completo puo' metterci qualche minuto
+        });
+        const testo = await r.text();
+        return new Response(testo, { status: r.status, headers: { ...CORS, 'Content-Type': 'application/json; charset=utf-8' } });
+      } catch (e) {
+        return json({ error: 'Mac non raggiungibile', dettaglio: e.message }, 502);
+      }
+    }
+
+    // Rilegge SOLO il voto mostrato da Booking (pagina pubblica, nessun
+    // login) e ripubblica. Una decina di secondi, contro i minuti di
+    // /aggiorna: serve per quando Booking aggiorna il voto ma le
+    // recensioni sono le stesse.
+    if (url.pathname === '/punteggio' && request.method === 'POST') {
+      if (!env.RECENSIONI_TOKEN || request.headers.get('X-Auth') !== env.RECENSIONI_TOKEN) {
+        return json({ error: 'non autorizzato' }, 401);
+      }
+      try {
+        const r = await fetch('http://fly98.duckdns.org:3456/recensioni-punteggio', {
+          method: 'POST',
+          headers: { 'X-Trigger-Key': env.RECENSIONI_TOKEN },
+          signal: AbortSignal.timeout(170000),
         });
         const testo = await r.text();
         return new Response(testo, { status: r.status, headers: { ...CORS, 'Content-Type': 'application/json; charset=utf-8' } });
