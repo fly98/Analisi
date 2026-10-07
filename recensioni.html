@@ -623,10 +623,22 @@
     if (dati.semivitaMesi) el("semivita").textContent = String(dati.semivitaMesi).replace(".", ",");
 
     var ultima = s.recensioni.length ? s.recensioni[s.recensioni.length - 1] : null;
-    el("valoreMostrato").textContent = formattaNumero(s.displayedScore, 1);
+    // Il punteggio di Booking e' una FOTOGRAFIA presa all'ultimo scarico,
+    // non un dato vivo: va detto quando e' stata scattata. Senza la data
+    // era rimasto fermo a 8,6 per un mese mentre Booking diceva 8,5.
+    el("valoreMostrato").textContent = s.displayedScore == null ? "—" : formattaNumero(s.displayedScore, 1);
+    var quandoLetto = s.displayedScoreLetto ? new Date(s.displayedScoreLetto) : null;
+    var giorniFa = quandoLetto ? Math.floor((Date.now() - quandoLetto.getTime()) / 86400000) : null;
+    var noteLettura = s.displayedScore == null
+      ? "non ancora letto: premi «Aggiorna tutto»"
+      : (giorniFa === null ? "letto in data ignota"
+         : giorniFa === 0 ? "letto oggi"
+         : giorniFa === 1 ? "⚠️ letto ieri"
+         : "⚠️ letto " + giorniFa + " giorni fa");
     el("dettaglioMostrato").textContent = (s.displayedCount || s.totaleRecensioniRaccolte) + " recensioni" +
       (s.totaleRecensioniRaccolte < (s.displayedCount || 0) ? " (" + s.totaleRecensioniRaccolte + " lette finora)" : "") +
-      (ultima ? " · ultima " + formattaData(ultima.data) : "");
+      (ultima ? " · ultima " + formattaData(ultima.data) : "") +
+      " · " + noteLettura;
     el("valoreCalcolato").textContent = formattaNumero(s.mediaPonderata, 3);
     el("dettaglioCalcolato").textContent = "media semplice: " + formattaNumero(s.mediaFlat, 3);
 
