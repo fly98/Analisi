@@ -446,7 +446,7 @@
 
   <section class="hero" id="hero">
     <div class="tile mostrato">
-      <div class="etichetta">Booking mostra
+      <div class="etichetta">Booking (dato interno)
         <button id="btnPunteggio" title="Rileggi solo il voto dalla pagina Booking (pochi secondi)">↻</button>
       </div>
       <div class="valore num" id="valoreMostrato">—</div>
@@ -651,7 +651,9 @@
     el("dettaglioMostrato").textContent = (s.displayedCount || s.totaleRecensioniRaccolte) + " recensioni" +
       (s.totaleRecensioniRaccolte < (s.displayedCount || 0) ? " (" + s.totaleRecensioniRaccolte + " lette finora)" : "") +
       (ultima ? " · ultima " + formattaData(ultima.data) : "") +
-      " · " + noteLettura;
+      " · " + noteLettura +
+      (s.displayedBadge && s.displayedScore != null && s.displayedBadge.voto !== s.displayedScore
+        ? " · il badge pubblico dice ancora " + formattaNumero(s.displayedBadge.voto, 1) + " (su " + s.displayedBadge.quante + " recensioni): in ritardo" : "");
     el("valoreCalcolato").textContent = formattaNumero(s.mediaPonderata, 3);
     el("dettaglioCalcolato").textContent = "media semplice: " + formattaNumero(s.mediaFlat, 3);
 
