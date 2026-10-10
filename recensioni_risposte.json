@@ -1,9 +1,15 @@
 {
-  "generatoIl": "2026-10-07T20:30:46.801Z",
+  "generatoIl": "2026-10-10T10:41:25.841Z",
   "strutture": {
     "deluxe": {
       "nome": "InternoUno Deluxe",
       "bozze": [
+        {
+          "id": "deluxe-6249047629",
+          "dataRecensione": "2026-10-09",
+          "punteggio": 10,
+          "stato": "senza_testo"
+        },
         {
           "id": "deluxe-6101976496",
           "dataRecensione": "2026-10-07",
@@ -6518,18 +6524,6 @@
           "reservationNumber": "4123887906"
         },
         {
-          "id": "deluxe-3261625073",
-          "dataRecensione": "2023-10-08",
-          "punteggio": 8,
-          "stato": "senza_testo"
-        },
-        {
-          "id": "deluxe-4277975730",
-          "dataRecensione": "2023-10-07",
-          "punteggio": 10,
-          "stato": "senza_testo"
-        },
-        {
           "id": "deluxe-2327863614",
           "dataRecensione": "2023-10-06",
           "punteggio": 10,
@@ -6560,6 +6554,12 @@
     "classica": {
       "nome": "Internouno",
       "bozze": [
+        {
+          "id": "classica-6825729503",
+          "dataRecensione": "2026-10-08",
+          "punteggio": 8,
+          "stato": "senza_testo"
+        },
         {
           "id": "classica-6065778936",
           "dataRecensione": "2026-10-07",
@@ -12585,12 +12585,6 @@
           "rispostaFinale": null,
           "stato": "da_validare",
           "reservationNumber": "2877689478"
-        },
-        {
-          "id": "classica-1154682378",
-          "dataRecensione": "2023-10-09",
-          "punteggio": 6,
-          "stato": "senza_testo"
         },
         {
           "id": "classica-4057185524",
