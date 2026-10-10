@@ -529,7 +529,7 @@
     <div class="filtro-risposte">
       <span>Mostra:</span>
       <select id="filtroStatoRisposte">
-        <option value="da_fare">da validare o da inviare</option>
+        <option value="da_fare">da validare, da inviare e senza commento</option>
         <option value="da_validare">solo da validare</option>
         <option value="approvata">approvate, non ancora inviate</option>
         <option value="inviata">già pubblicate su Booking</option>
@@ -829,7 +829,11 @@
 
     var stato = el("filtroStatoRisposte").value;
     if (stato === "da_fare") {
-      tutte = tutte.filter(function (b) { return b.stato === "da_validare" || b.stato === "approvata"; });
+      // Anche le "senza_testo": non hanno niente da validare, ma sono
+      // recensioni nuove e vanno viste. Il 10/10/2026 un 10 senza commento
+      // non compariva nell'elenco di default e sembrava che l'aggiornamento
+      // non avesse scaricato niente.
+      tutte = tutte.filter(function (b) { return b.stato === "da_validare" || b.stato === "approvata" || b.stato === "senza_testo"; });
     } else if (stato !== "tutte") {
       tutte = tutte.filter(function (b) { return b.stato === stato; });
     }
