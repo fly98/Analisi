@@ -1,9 +1,22 @@
 {
-  "generatoIl": "2026-10-10T10:44:14.643Z",
+  "generatoIl": "2026-10-12T11:10:32.449Z",
   "strutture": {
     "deluxe": {
       "nome": "InternoUno Deluxe",
       "bozze": [
+        {
+          "id": "deluxe-5897806463",
+          "dataRecensione": "2026-10-11",
+          "punteggio": 10,
+          "positivo": "Todo excelente, la limpieza cada día y muy profunda, la comunicación con el encargado siempre fue inmediata y resolutiva, la relación precio-valor sobresaliente, lo mas espectacular es su ubicación, tienes el metro debajo de la habitación y al frente del hotel, una estación de trenes que comunica aeropuertos, ciudades, buses, metro, absolutamente todo para moverte en Roma y sus alrededores. Para mi fabuloso, se que hay personas con gustos y exigencias mas altas, les digo, quédense en su casa, del resto este es el hotel que necesitan!!!!!",
+          "negativo": "Nada que comentar...",
+          "lingua": "es",
+          "riassuntoIT": "Ospite entusiasta di tutto: pulizia quotidiana profonda, comunicazione rapida, ottimo rapporto qualità-prezzo, e soprattutto posizione straordinaria con metro e stazione ferroviaria a portata di mano.",
+          "rispostaProposta": "Grazie mille per la sua recensione. Siamo contenti che abbia apprezzato la posizione e la comunicazione rapida: è vero, la Tiburtina offre connessioni uniche per muoversi in città e raggiungere gli aeroporti. Un caro saluto.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "5897806463"
+        },
         {
           "id": "deluxe-6249047629",
           "dataRecensione": "2026-10-09",
@@ -6554,6 +6567,31 @@
     "classica": {
       "nome": "Internouno",
       "bozze": [
+        {
+          "id": "classica-5988454986",
+          "dataRecensione": "2026-10-12",
+          "punteggio": 9,
+          "positivo": "Personale gentile e struttura pulita ",
+          "negativo": "Bagno cieco",
+          "lingua": "it",
+          "riassuntoIT": "Ospite soddisfatto di pulizia e staff, ma critica il bagno senza finestre.",
+          "rispostaProposta": "Gentile, mi spiace per il bagno cieco. L'annuncio però lo specifica nella descrizione della camera. Comunque sono contento che abbia apprezzato la pulizia e il personale. Saluti Filippo.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "5988454986"
+        },
+        {
+          "id": "classica-6609675029",
+          "dataRecensione": "2026-10-10",
+          "punteggio": 8,
+          "stato": "senza_testo"
+        },
+        {
+          "id": "classica-5775770126",
+          "dataRecensione": "2026-10-10",
+          "punteggio": 10,
+          "stato": "senza_testo"
+        },
         {
           "id": "classica-6825729503",
           "dataRecensione": "2026-10-08",
