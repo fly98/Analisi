@@ -358,27 +358,44 @@ async function aggiornaElenco(){
     prog("Fase 1 di 3 · controllo su WhatsApp quali chat hanno novità",45);
     const e=await api("action=chatElencoWa&giorni="+g);
     if(e.esito!=="ok")throw new Error("Lettura dell'elenco non riuscita: "+(e.errore||e.error||e.esito)+(e.esito==="profilo_occupato"?" (riprova tra un minuto)":""));
-    const daL=e.da_leggere||[]; let nuovi=0, prob=0, troncato=false, perse=0;
-    // fase 2: solo le chat cambiate, a lotti di 4
-    const LOTTO=4;
-    for(let i=0;i<daL.length;i+=LOTTO){
-      const lotto=daL.slice(i,i+LOTTO);
-      const restanti=daL.length-i;
-      const stima=Math.ceil(restanti/LOTTO)*15+restanti*6+20;       // avvio ~15 s a lotto + ~6 s a chat + traduzione
-      prog(`Fase 2 di 3 · leggo le chat con novità (${i+1}${lotto.length>1?"–"+(i+lotto.length):""} di ${daL.length})`,stima);
-      const d=await api("action=chatLeggiTitoli&giorni="+g+"&t="+encodeURIComponent(JSON.stringify(lotto)));
-      if(d.esito!=="ok")throw new Error("Lettura chat non riuscita: "+(d.errore||d.error||d.esito));
-      for(const x of (d.chat||[])){nuovi+=x.nuovi||0; if(x.esito!=="letta")prob++;}
-      perse+=lotto.length-(d.chat||[]).length; if(d.troncato)troncato=true;
+    const daL=e.da_leggere||[]; let nuovi=0, prob=0, troncato=false, letteOk=0;
+    const falliti=[];                       // chat che non sono riuscito a leggere nemmeno al secondo tentativo
+    // fase 2: solo le chat cambiate, a piccoli lotti (la richiesta non deve superare i 100 s)
+    const coda=daL.slice(), tentativi={}; let fatte=0; const totale=daL.length; let LOTTO=3;
+    while(coda.length){
+      const lotto=coda.splice(0,LOTTO);
+      lotto.forEach(t=>tentativi[t]=(tentativi[t]||0)+1);
+      const stima=Math.ceil((coda.length+lotto.length)/3)*30+20;
+      prog(`Fase 2 di 3 · leggo le chat con novità (${Math.min(fatte+1,totale)}–${Math.min(fatte+lotto.length,totale)} di ${totale})`,stima);
+      let d=null;
+      try{ d=await api("action=chatLeggiTitoli&giorni="+g+"&t="+encodeURIComponent(JSON.stringify(lotto))); }catch(er){ d={esito:"errore",errore:er.message}; }
+      if(d.esito!=="ok"){
+        // il Mac e' rimasto indietro o occupato: pausa e riprovo queste chat una per volta (una sola volta)
+        prog("Il Mac non ha risposto in tempo: aspetto qualche secondo e riprovo",25+stima);
+        await new Promise(r=>setTimeout(r,20000));
+        for(const t of lotto){ if(tentativi[t]<2)coda.unshift(t); else falliti.push(t); }
+        LOTTO=1; continue;
+      }
+      const lette=new Set();
+      for(const x of (d.chat||[])){lette.add(x.nome); nuovi+=x.nuovi||0; if(x.esito==="letta")letteOk++; else prob++;}
+      for(const x of (d.saltate||[])){
+        if(!lotto.includes(x.titolo))continue;
+        if(x.motivo==="tempo_esaurito"&&tentativi[x.titolo]<3)coda.push(x.titolo);
+        else if(x.motivo==="bloccata"&&tentativi[x.titolo]<2){coda.push(x.titolo);}
+        else if(x.motivo!=="gruppo"){falliti.push(x.titolo);}
+      }
+      fatte+=lotto.length;
+      if(d.troncato&&LOTTO>1)LOTTO=2;
     }
     await caricaElenco();
     // fase 3: traduzione di quello che manca
     await traduciElenco(true);
     fineProg();
-    const base=daL.length?`${daL.length} chat con novità lette, ${nuovi} messaggi nuovi.`:`Nessuna novità: ${e.nell_elenco||0} chat già aggiornate.`;
-    stato("statoLista",base+(e.invariate&&daL.length?` ${e.invariate} invariate saltate.`:"")+(prob||perse||troncato?` ${prob+perse} da controllare${troncato?" (lettura interrotta per tempo: ripremi)":""}.`:""),prob||perse||troncato?"ko":"");
+    const base=daL.length?`${letteOk} chat con novità lette, ${nuovi} messaggi nuovi.`:`Nessuna novità: ${e.nell_elenco||0} chat già aggiornate.`;
+    const dubbi=prob+falliti.length;
+    stato("statoLista",base+(e.invariate&&daL.length?` ${e.invariate} invariate saltate.`:"")+(dubbi?` ${dubbi} da controllare${falliti.length?" (non lette: ripremi ⟳ per riprovarle)":""}.`:""),dubbi?"ko":"");
     if(SEL){const k=chiaveConv(SEL);const c=CONV.find(x=>chiaveConv(x)===k); if(c)await caricaMessaggi(c,0);}
-  }catch(err){fineProg();stato("statoLista",err.message,"ko");}
+  }catch(err){fineProg();stato("statoLista",err.message,"ko"); await caricaElenco().catch(()=>{});}
   b.disabled=false; AGG=false;
 }
 
