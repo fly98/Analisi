@@ -130,7 +130,7 @@
     <div class="barra-lista">Ultimi
       <select id="selGiorni" onchange="cambiaGiorni()"><option value="1">1 giorno</option><option value="3" selected>3 giorni</option><option value="7">7 giorni</option><option value="30">30 giorni</option><option value="0">tutte</option></select>
       <span id="contaConv"></span></div>
-    <div class="prog" id="prog" style="display:none"><div class="pt" id="progT"></div><div class="ps" id="progS"></div><div class="pb"><i id="progB"></i></div></div>
+    <div class="prog" id="prog" style="display:none"><div class="pt" id="progT"></div><div class="ps" id="progS"></div><div class="ps" id="progN" style="color:#c0392b"></div><button class="btn sec" style="margin-top:6px;padding:4px 12px;font-size:12px" onclick="STOP=true;document.getElementById('progN').textContent='Interrompo appena finisce la lettura in corso…'">Interrompi</button><div class="pb"><i id="progB"></i></div></div>
     <div class="stato" id="statoLista"></div>
     <div class="scorri" id="elenco"></div>
   </section>
@@ -181,7 +181,8 @@ function chiave(){
 async function api(q){
   const r=await fetch(`${WORKER}/?${q}&k=${encodeURIComponent(chiave())}`);
   if(r.status===401){ try{localStorage.removeItem("arrivi_key");}catch(e){} throw new Error("chiave non valida: riapri la pagina e riscrivila"); }
-  return r.json();
+  const t=await r.text();
+  try{return JSON.parse(t);}catch(e){throw new Error("risposta non valida dal server ("+r.status+"): "+t.replace(/<[^>]*>/g," ").trim().slice(0,90));}
 }
 const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const t9=t=>{const c=String(t||"").replace(/\D/g,"");return c.length>=9?c.slice(-9):"";};
@@ -421,7 +422,7 @@ async function aggiornaChat(){
   b.disabled=false; b.textContent="Aggiorna questa chat";
 }
 // ---------- aggiornamento incrementale a 3 fasi, con tempi ----------
-let AGG=false, TICK=null, PROG={t0:0,resto:0,inizio:0};
+let AGG=false, STOP=false, TICK=null, PROG={t0:0,resto:0,inizio:0};
 function prog(testo,resto){            // resto = secondi stimati da qui alla fine di TUTTO l'aggiornamento
   const box=document.getElementById("prog"); box.style.display="";
   document.getElementById("progT").textContent=testo;
@@ -436,7 +437,7 @@ function tickProg(){
   document.getElementById("progB").style.width=Math.min(97,Math.round(100*tot/(tot+resto+1)))+"%";
 }
 function fineProg(){
-  if(TICK){clearInterval(TICK);TICK=null;} PROG.t0=0;
+  if(TICK){clearInterval(TICK);TICK=null;} PROG.t0=0; document.getElementById("progN").textContent="";
   document.getElementById("prog").style.display="none";
 }
 async function traduciElenco(conProg){
@@ -458,17 +459,17 @@ async function traduciElenco(conProg){
 const AGG_KEY="chati1_aggiornamento";
 function salvaAgg(st){ st.agg=Date.now(); try{localStorage.setItem(AGG_KEY,JSON.stringify(st));}catch(e){} }
 function cancAgg(){ try{localStorage.removeItem(AGG_KEY);}catch(e){} }
-function leggiAgg(){ try{const x=JSON.parse(localStorage.getItem(AGG_KEY)||"null"); if(x&&Date.now()-(x.agg||0)<20*60000)return x;}catch(e){} return null; }
+function leggiAgg(){ try{const x=JSON.parse(localStorage.getItem(AGG_KEY)||"null"); if(x&&x.v===3&&Date.now()-(x.agg||0)<20*60000)return x; if(x)cancAgg();}catch(e){} return null; }
 const pausa=ms=>new Promise(r=>setTimeout(r,ms));
 
 function aggiornaElenco(){
   if(AGG)return;
   const g=Math.min(parseInt(document.getElementById("selGiorni").value,10)||3,30);
-  eseguiAgg({g,t0:Date.now(),fase:1,coda:[],inVolo:[],tentativi:{},totale:0,fatte:0,nuovi:0,letteOk:0,prob:0,falliti:[],nell:0,inv:0,LOTTO:3},false);
+  eseguiAgg({v:3,tot:{},g,t0:Date.now(),fase:1,coda:[],inVolo:[],tentativi:{},totale:0,fatte:0,nuovi:0,letteOk:0,prob:0,falliti:[],nell:0,inv:0,LOTTO:3},false);
 }
 // lo stato vive nel browser: se ricarichi la pagina il lavoro riparte da dove era arrivato
 async function eseguiAgg(st,ripresa){
-  if(AGG)return; AGG=true;
+  if(AGG)return; AGG=true; STOP=false;
   const b=document.getElementById("bAggElenco"); b.disabled=true; stato("statoLista","");
   PROG.t0=st.t0;
   try{
@@ -489,7 +490,8 @@ async function eseguiAgg(st,ripresa){
       // fase 2: solo le chat cambiate, a piccoli lotti (la richiesta non deve superare i 100 s)
       while(st.coda.length){
         const lotto=st.coda.splice(0,st.LOTTO);
-        lotto.forEach(t=>st.tentativi[t]=(st.tentativi[t]||0)+1);
+        if(STOP)throw new Error("Aggiornamento interrotto: ripremi ⟳ per riprendere dalle chat rimaste.");
+        lotto.forEach(t=>{st.tentativi[t]=(st.tentativi[t]||0)+1; st.tot[t]=(st.tot[t]||0)+1;});
         st.inVolo=lotto; salvaAgg(st);
         const stima=Math.ceil((st.coda.length+lotto.length)/3)*30+20;
         prog(`Fase 2 di 3 · leggo le chat con novità (${Math.min(st.fatte+1,st.totale)}–${Math.min(st.fatte+lotto.length,st.totale)} di ${st.totale})`,stima);
@@ -498,9 +500,10 @@ async function eseguiAgg(st,ripresa){
         st.inVolo=[];
         if(d.esito!=="ok"){
           // il Mac e' rimasto indietro o occupato: pausa e riprovo queste chat una per volta (una sola volta)
-          prog("Il Mac non ha risposto in tempo: aspetto qualche secondo e riprovo",25+stima);
+          document.getElementById("progN").textContent="Ultimo errore: "+String(d.errore||d.error||d.esito).slice(0,160);
+          prog("Lettura non riuscita: aspetto qualche secondo e riprovo",25+stima);
           await pausa(20000);
-          for(const t of lotto){ if(st.tentativi[t]<2)st.coda.unshift(t); else st.falliti.push(t); }
+          for(const t of lotto){ if(st.tentativi[t]<2&&st.tot[t]<3)st.coda.unshift(t); else st.falliti.push(t); }
           st.LOTTO=1; salvaAgg(st); continue;
         }
         for(const x of (d.chat||[])){ st.nuovi+=x.nuovi||0; if(x.esito==="letta")st.letteOk++; else st.prob++; }

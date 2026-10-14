@@ -4386,6 +4386,7 @@ async function searchOneAccount(env, account, q, maxResults) {
                          chat: esiti, saltate: j.saltate || [], righe_viste: j.righe_viste || 0 });
       }
       if (action === "chatElencoWa") {
+        try {
         // Fase 1 dell'aggiornamento: il Mac legge SOLO l'elenco di WhatsApp (nessuna chat aperta).
         // Si confronta ogni riga con com'era l'ultima volta che e' stata letta: invariata = si salta.
         if (!env.CHAT) return jsonRes({ error: "archivio chat non ancora attivo" }, 503);
@@ -4411,8 +4412,12 @@ async function searchOneAccount(env, account, q, maxResults) {
         for (let i = 0; i < stmts.length; i += 90) await env.CHAT.batch(stmts.slice(i, i + 90));
         return jsonRes({ esito: "ok", giorni, nell_elenco: daLeggere.size, invariate: daLeggere.size - cambiate.length,
                          da_leggere: cambiate, durata_s: Math.round((Date.now() - t0) / 1000), saltate: j.saltate || [] });
+        } catch (e) {
+          return jsonRes({ esito: "errore", errore: "worker: " + String((e && e.message) || e).slice(0, 200) }, 500);
+        }
       }
       if (action === "chatLeggiTitoli") {
+        try {
         // Fase 2: il Mac apre SOLO le chat indicate (pochi titoli per volta) e se ne salvano i messaggi.
         if (!env.CHAT) return jsonRes({ error: "archivio chat non ancora attivo" }, 503);
         const giorni = Math.max(1, Math.min(30, parseInt(url.searchParams.get("giorni") || "3", 10) || 3));
@@ -4440,6 +4445,9 @@ async function searchOneAccount(env, account, q, maxResults) {
         }
         if (altri.length) await env.CHAT.batch(altri).catch(() => {});
         return jsonRes({ esito: "ok", chat: esiti, saltate: j.saltate || [], troncato: !!j.troncato, durata_s: Math.round((Date.now() - t0) / 1000) });
+        } catch (e) {
+          return jsonRes({ esito: "errore", errore: "worker: " + String((e && e.message) || e).slice(0, 200) }, 500);
+        }
       }
       if (action === "chatTraduci") {
         // Fase 3: traduce i messaggi in attesa di UNA conversazione (la pagina le chiede una alla volta).
