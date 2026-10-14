@@ -11,11 +11,13 @@
 <style>
   :root{
     --ink:#111b21; --muted:#667781; --paper:#f0f2f5; --pannello:#fff; --line:#e9edef;
-    --in:#fff; --out:#d9fdd3; --accent:#00a884; --sel:#f0f2f5; --chiaro:#efeae2;
+    --in:#fff; --out:#d9fdd3; --accent:#00a884; --sel:#f0f2f5; --chiaro:#eef1f4;
+    --b1:#8fe3cf99; --b2:#a9bcff88; --b3:#ffc2dd77; --vin:#ffffff70; --vout:#7fe8c466; --vb:#ffffffb0; --vo:#2a405528; --vh:#ffffffd0; --vh2:#ffffff30; --g1:#ffffffcc; --g2:#ffffff33;
     --sysfont:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI','Helvetica Neue',Helvetica,Arial,sans-serif;
   }
   @media (prefers-color-scheme:dark){
-    :root{--ink:#e9edef;--muted:#8696a0;--paper:#0b141a;--pannello:#111b21;--line:#222d34;--in:#202c33;--out:#005c4b;--sel:#2a3942;--chiaro:#0b141a;}
+    :root{--ink:#e9edef;--muted:#8696a0;--paper:#0b141a;--pannello:#111b21;--line:#222d34;--in:#202c33;--out:#005c4b;--sel:#2a3942;--chiaro:#0b141a;
+      --b1:#00a88444; --b2:#4a64e044; --b3:#c0407a33; --vin:#ffffff17; --vout:#00c08a55; --vb:#ffffff30; --vo:#00000066; --vh:#ffffff4d; --vh2:#ffffff10; --g1:#ffffff40; --g2:#ffffff0d;}
   }
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;}
@@ -35,20 +37,29 @@
   .barra-lista{display:flex;gap:6px;align-items:center;padding:8px 12px;border-bottom:1px solid var(--line);font-size:13px;color:var(--muted);}
   .barra-lista select{border:1px solid var(--line);background:var(--pannello);color:var(--ink);border-radius:8px;padding:5px 6px;font-size:13px;}
   .scorri{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
-  .conv{display:flex;gap:11px;padding:11px 14px;border-bottom:1px solid var(--line);cursor:pointer;align-items:center;}
-  .conv:hover,.conv.sel{background:var(--sel);}
-  .av{width:44px;height:44px;border-radius:22px;background:#6b7c85;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;flex:none;}
+  .conv{display:flex;gap:11px;padding:10px 12px;margin:3px 8px;border-radius:16px;cursor:pointer;align-items:center;}
+  .conv:hover{background:var(--sel);}
+  .conv.sel{background:var(--vin);box-shadow:inset 0 1px 0 var(--vh),0 4px 14px var(--vo);border:1px solid var(--vb);padding:9px 11px;}
+  .av{width:44px;height:44px;border-radius:22px;background:#6b7c85;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;flex:none;background-image:linear-gradient(160deg,#ffffff59,transparent 56%);box-shadow:inset 0 1px 0 #ffffff80,0 2px 7px #00000030;}
+  .av.pr{flex-direction:column;gap:2px;line-height:1;background-color:var(--accent);} .av.pr b{font-size:1.05em;} .av.pr i{font-style:normal;font-size:.6em;font-weight:600;opacity:.92;}
   .conv .c{flex:1;min-width:0;}
   .conv .r1{display:flex;justify-content:space-between;gap:8px;font-weight:600;font-size:15.5px;}
   .conv .r1 span:first-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .conv .r1 small{font-weight:400;color:var(--muted);font-size:12px;flex:none;}
   .conv .r2{color:var(--muted);font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px;}
   .conv .pren{display:inline-block;background:var(--accent);color:#fff;font-size:10px;font-weight:700;border-radius:8px;padding:0 6px;margin-left:6px;vertical-align:1px;}
-  .msgs{flex:1;overflow-y:auto;padding:10px 6% 14px;background:var(--chiaro);-webkit-overflow-scrolling:touch;}
+  .msgs{flex:1;overflow-y:auto;padding:14px 6% 18px;-webkit-overflow-scrolling:touch;
+    background:radial-gradient(55% 38% at 12% 8%,var(--b1),transparent 72%),radial-gradient(48% 40% at 92% 34%,var(--b2),transparent 72%),
+      radial-gradient(60% 46% at 28% 96%,var(--b3),transparent 72%),var(--chiaro);}
   .giorno{text-align:center;margin:12px 0 6px;} .giorno span{background:var(--pannello);color:var(--muted);font-size:12px;padding:4px 10px;border-radius:8px;box-shadow:0 1px 1px #0000001a;}
-  .b{max-width:78%;padding:6px 9px 4px;border-radius:9px;margin:2px 0;font-size:15px;line-height:1.35;overflow-wrap:anywhere;box-shadow:0 1px 1px #0000001a;width:fit-content;}
-  .b.in{background:var(--in);margin-right:auto;border-top-left-radius:2px;}
-  .b.out{background:var(--out);margin-left:auto;border-top-right-radius:2px;}
+  /* vetro liquido: sfondo che sfuma, bordo di luce, riflesso diagonale in alto */
+  .b{max-width:78%;padding:9px 13px 6px;border-radius:20px;margin:8px 0;font-size:15px;line-height:1.38;overflow-wrap:anywhere;width:fit-content;
+    border:1px solid var(--vb);-webkit-backdrop-filter:blur(22px) saturate(1.7);backdrop-filter:blur(22px) saturate(1.7);
+    box-shadow:0 8px 22px var(--vo),inset 0 1.5px 0 var(--vh),inset 0 -1px 0 var(--vh2);}
+  .b.in{margin-right:auto;border-bottom-left-radius:6px;
+    background:linear-gradient(158deg,var(--g1) 0%,var(--g2) 26%,transparent 46%),var(--vin);}
+  .b.out{margin-left:auto;border-bottom-right-radius:6px;
+    background:linear-gradient(202deg,var(--g1) 0%,var(--g2) 26%,transparent 46%),var(--vout);}
   .b .meta{display:flex;gap:6px;justify-content:flex-end;align-items:center;font-size:11px;color:var(--muted);margin-top:1px;}
   .b .fl{font-size:14px;line-height:1;cursor:pointer;}
   .b.tr{cursor:pointer;}
@@ -167,6 +178,15 @@ function infoPren(c){          // prenotazione piu' vicina a oggi per questo num
   return {b,lista:l,camera,date};
 }
 function nomeConv(c){return c.nome||(c.tel?telMostra(c):(c.booking_id?"Prenotazione "+c.booking_id:"?"));}
+const NUMP={uno:1,due:2,tre:3,quattro:4,cinque:5,sei:6,sette:7,otto:8,nove:9,dieci:10};
+function sigla(nome){const n=String(nome||"").trim(); const m=n.match(/\d+/); if(m)return m[0];
+  for(const w of n.toLowerCase().split(/\s+/))if(NUMP[w])return String(NUMP[w]); return n.charAt(0).toUpperCase()||"?";}
+function avatarDi(c){      // con prenotazione: camera (sopra) e data di arrivo (sotto); senza: il segnaposto di prima
+  const ip=infoPren(c); if(!ip)return {cls:"",html:esc(iniziali(c))};
+  const st=(ip.b.rooms||[]).map(r=>r.individual_room_name).filter(Boolean);
+  const d=new Date((ip.b.checkin||"").slice(0,10)+"T12:00:00");
+  return {cls:" pr",html:`<b>${esc(st.length?sigla(st[0])+(st.length>1?"+":""):"–")}</b><i>${isNaN(d)?"":d.getDate()+"/"+(d.getMonth()+1)}</i>`};
+}
 function iniziali(c){const n=c.nome||"";const m=n.match(/[A-Za-zÀ-ÿ]/g);return m?(m[0]+(n.split(/\s+/)[1]||"").charAt(0)).toUpperCase():"#";}
 function chiaveConv(c){return c.tel||("b"+c.booking_id);}
 function quandoBreve(ts){
@@ -199,7 +219,7 @@ function disegnaElenco(){
   el.innerHTML=CONV.map(c=>{
     const k=chiaveConv(c); const pren=c.tel&&MAPTEL[t9(c.tel)];
     return `<div class="conv${SEL&&chiaveConv(SEL)===k?" sel":""}" data-k="${esc(k)}" onclick="apri('${esc(k)}')">
-      <div class="av">${esc(iniziali(c))}</div>
+      <div class="av${avatarDi(c).cls}">${avatarDi(c).html}</div>
       <div class="c"><div class="r1"><span>${esc(nomeConv(c))}${pren?'<span class="pren">PRENOT.</span>':""}</span><small>${esc(quandoBreve(c.ultimo))}</small></div>
       <div class="r2">${c.ultima_dir==="out"?"Tu: ":""}${esc(c.anteprima||"")}</div>
       ${pren?(()=>{const ip=infoPren(c);return ip?`<div class="r3">🛏 ${esc(ip.camera||"camera da assegnare")}${ip.date?" · "+esc(ip.date):""}</div>`:"";})():""}</div></div>`;
@@ -211,7 +231,7 @@ async function apri(k){
   const c=CONV.find(x=>chiaveConv(x)===k); if(!c)return;
   SEL=c; disegnaElenco(); vista("c");
   document.getElementById("titolo").textContent=nomeConv(c);
-  const av=document.getElementById("avTesta"); av.style.display="flex"; av.textContent=iniziali(c);
+  const av=document.getElementById("avTesta"); av.style.display="flex"; {const a=avatarDi(c); av.className="av"+a.cls; av.innerHTML=a.html;}
   document.getElementById("piede").style.display="flex";
   const w=document.getElementById("bWa");
   {const f=telCompleto(c); if(f){w.href="whatsapp://send?phone="+f; w.style.display="";} else w.style.display="none";}
@@ -273,6 +293,7 @@ async function caricaPrenotazioni(){
 let PBOX_APERTO=false;
 async function disegnaDettagli(c){
   const box=document.getElementById("pbox");
+  {const av=document.getElementById("avTesta"),a=avatarDi(c); av.className="av"+a.cls; av.innerHTML=a.html;}
   const ip=infoPren(c);
   if(!ip){box.style.display="none";box.innerHTML="";return;}   // nessuna prenotazione: niente box
   const {b,lista}=ip, bk=b.booker||{};
@@ -348,61 +369,84 @@ async function traduciElenco(conProg){
   if(dt.length){await caricaElenco(); if(SEL){const c=CONV.find(x=>chiaveConv(x)===chiaveConv(SEL)); if(c)caricaMessaggi(c,0);}}
   if(!conProg&&dt.length)stato("statoLista","");
 }
-async function aggiornaElenco(){
-  if(AGG)return; AGG=true;
-  const b=document.getElementById("bAggElenco"); b.disabled=true;
+const AGG_KEY="chati1_aggiornamento";
+function salvaAgg(st){ st.agg=Date.now(); try{localStorage.setItem(AGG_KEY,JSON.stringify(st));}catch(e){} }
+function cancAgg(){ try{localStorage.removeItem(AGG_KEY);}catch(e){} }
+function leggiAgg(){ try{const x=JSON.parse(localStorage.getItem(AGG_KEY)||"null"); if(x&&Date.now()-(x.agg||0)<20*60000)return x;}catch(e){} return null; }
+const pausa=ms=>new Promise(r=>setTimeout(r,ms));
+
+function aggiornaElenco(){
+  if(AGG)return;
   const g=Math.min(parseInt(document.getElementById("selGiorni").value,10)||3,30);
-  stato("statoLista","");
+  eseguiAgg({g,t0:Date.now(),fase:1,coda:[],inVolo:[],tentativi:{},totale:0,fatte:0,nuovi:0,letteOk:0,prob:0,falliti:[],nell:0,inv:0,LOTTO:3},false);
+}
+// lo stato vive nel browser: se ricarichi la pagina il lavoro riparte da dove era arrivato
+async function eseguiAgg(st,ripresa){
+  if(AGG)return; AGG=true;
+  const b=document.getElementById("bAggElenco"); b.disabled=true; stato("statoLista","");
+  PROG.t0=st.t0;
   try{
-    // fase 1: solo l'elenco; il Mac non apre nessuna chat
-    prog("Fase 1 di 3 · controllo su WhatsApp quali chat hanno novità",45);
-    const e=await api("action=chatElencoWa&giorni="+g);
-    if(e.esito!=="ok")throw new Error("Lettura dell'elenco non riuscita: "+(e.errore||e.error||e.esito)+(e.esito==="profilo_occupato"?" (riprova tra un minuto)":""));
-    const daL=e.da_leggere||[]; let nuovi=0, prob=0, troncato=false, letteOk=0;
-    const falliti=[];                       // chat che non sono riuscito a leggere nemmeno al secondo tentativo
-    // fase 2: solo le chat cambiate, a piccoli lotti (la richiesta non deve superare i 100 s)
-    const coda=daL.slice(), tentativi={}; let fatte=0; const totale=daL.length; let LOTTO=3;
-    while(coda.length){
-      const lotto=coda.splice(0,LOTTO);
-      lotto.forEach(t=>tentativi[t]=(tentativi[t]||0)+1);
-      const stima=Math.ceil((coda.length+lotto.length)/3)*30+20;
-      prog(`Fase 2 di 3 · leggo le chat con novità (${Math.min(fatte+1,totale)}–${Math.min(fatte+lotto.length,totale)} di ${totale})`,stima);
-      let d=null;
-      try{ d=await api("action=chatLeggiTitoli&giorni="+g+"&t="+encodeURIComponent(JSON.stringify(lotto))); }catch(er){ d={esito:"errore",errore:er.message}; }
-      if(d.esito!=="ok"){
-        // il Mac e' rimasto indietro o occupato: pausa e riprovo queste chat una per volta (una sola volta)
-        prog("Il Mac non ha risposto in tempo: aspetto qualche secondo e riprovo",25+stima);
-        await new Promise(r=>setTimeout(r,20000));
-        for(const t of lotto){ if(tentativi[t]<2)coda.unshift(t); else falliti.push(t); }
-        LOTTO=1; continue;
+    if(ripresa&&(st.fase===1||(st.inVolo&&st.inVolo.length))){
+      // la richiesta lasciata a meta' puo' essere ancora in corso sul Mac: le do il tempo di finire
+      prog("Riprendo l'aggiornamento: aspetto che il Mac finisca la lettura in corso",30);
+      await pausa(15000);
+      if(st.inVolo&&st.inVolo.length){ st.inVolo.forEach(t=>{st.tentativi[t]=Math.max(0,(st.tentativi[t]||1)-1);}); st.coda.unshift(...st.inVolo); st.inVolo=[]; }
+    }
+    if(st.fase===1){
+      // fase 1: solo l'elenco; il Mac non apre nessuna chat
+      prog("Fase 1 di 3 · controllo su WhatsApp quali chat hanno novità",45);
+      const e=await api("action=chatElencoWa&giorni="+st.g);
+      if(e.esito!=="ok")throw new Error("Lettura dell'elenco non riuscita: "+(e.errore||e.error||e.esito)+(e.esito==="profilo_occupato"?" (riprova tra un minuto)":""));
+      st.coda=(e.da_leggere||[]).slice(); st.totale=st.coda.length; st.nell=e.nell_elenco||0; st.inv=e.invariate||0; st.fase=2; salvaAgg(st);
+    }
+    if(st.fase===2){
+      // fase 2: solo le chat cambiate, a piccoli lotti (la richiesta non deve superare i 100 s)
+      while(st.coda.length){
+        const lotto=st.coda.splice(0,st.LOTTO);
+        lotto.forEach(t=>st.tentativi[t]=(st.tentativi[t]||0)+1);
+        st.inVolo=lotto; salvaAgg(st);
+        const stima=Math.ceil((st.coda.length+lotto.length)/3)*30+20;
+        prog(`Fase 2 di 3 · leggo le chat con novità (${Math.min(st.fatte+1,st.totale)}–${Math.min(st.fatte+lotto.length,st.totale)} di ${st.totale})`,stima);
+        let d=null;
+        try{ d=await api("action=chatLeggiTitoli&giorni="+st.g+"&t="+encodeURIComponent(JSON.stringify(lotto))); }catch(er){ d={esito:"errore",errore:er.message}; }
+        st.inVolo=[];
+        if(d.esito!=="ok"){
+          // il Mac e' rimasto indietro o occupato: pausa e riprovo queste chat una per volta (una sola volta)
+          prog("Il Mac non ha risposto in tempo: aspetto qualche secondo e riprovo",25+stima);
+          await pausa(20000);
+          for(const t of lotto){ if(st.tentativi[t]<2)st.coda.unshift(t); else st.falliti.push(t); }
+          st.LOTTO=1; salvaAgg(st); continue;
+        }
+        for(const x of (d.chat||[])){ st.nuovi+=x.nuovi||0; if(x.esito==="letta")st.letteOk++; else st.prob++; }
+        for(const x of (d.saltate||[])){
+          if(!lotto.includes(x.titolo))continue;
+          if(x.motivo==="tempo_esaurito"&&st.tentativi[x.titolo]<3)st.coda.push(x.titolo);
+          else if(x.motivo==="bloccata"&&st.tentativi[x.titolo]<2)st.coda.push(x.titolo);
+          else if(x.motivo!=="gruppo")st.falliti.push(x.titolo);
+        }
+        st.fatte+=lotto.length;
+        if(d.troncato&&st.LOTTO>1)st.LOTTO=2;
+        salvaAgg(st);
       }
-      const lette=new Set();
-      for(const x of (d.chat||[])){lette.add(x.nome); nuovi+=x.nuovi||0; if(x.esito==="letta")letteOk++; else prob++;}
-      for(const x of (d.saltate||[])){
-        if(!lotto.includes(x.titolo))continue;
-        if(x.motivo==="tempo_esaurito"&&tentativi[x.titolo]<3)coda.push(x.titolo);
-        else if(x.motivo==="bloccata"&&tentativi[x.titolo]<2){coda.push(x.titolo);}
-        else if(x.motivo!=="gruppo"){falliti.push(x.titolo);}
-      }
-      fatte+=lotto.length;
-      if(d.troncato&&LOTTO>1)LOTTO=2;
+      st.fase=3; salvaAgg(st);
     }
     await caricaElenco();
     // fase 3: traduzione di quello che manca
     await traduciElenco(true);
-    fineProg();
-    const base=daL.length?`${letteOk} chat con novità lette, ${nuovi} messaggi nuovi.`:`Nessuna novità: ${e.nell_elenco||0} chat già aggiornate.`;
-    const dubbi=prob+falliti.length;
-    stato("statoLista",base+(e.invariate&&daL.length?` ${e.invariate} invariate saltate.`:"")+(dubbi?` ${dubbi} da controllare${falliti.length?" (non lette: ripremi ⟳ per riprovarle)":""}.`:""),dubbi?"ko":"");
+    fineProg(); cancAgg();
+    const base=st.totale?`${st.letteOk} chat con novità lette, ${st.nuovi} messaggi nuovi.`:`Nessuna novità: ${st.nell} chat già aggiornate.`;
+    const dubbi=st.prob+st.falliti.length;
+    stato("statoLista",base+(st.inv&&st.totale?` ${st.inv} invariate saltate.`:"")+(dubbi?` ${dubbi} da controllare${st.falliti.length?" (non lette: ripremi ⟳ per riprovarle)":""}.`:""),dubbi?"ko":"");
     if(SEL){const k=chiaveConv(SEL);const c=CONV.find(x=>chiaveConv(x)===k); if(c)await caricaMessaggi(c,0);}
-  }catch(err){fineProg();stato("statoLista",err.message,"ko"); await caricaElenco().catch(()=>{});}
+  }catch(err){fineProg();cancAgg();stato("statoLista",err.message,"ko"); await caricaElenco().catch(()=>{});}
   b.disabled=false; AGG=false;
 }
 
 (async function avvio(){
   await caricaElenco();
   caricaPrenotazioni();   // in parallelo: non blocca l'elenco
-  traduciElenco(false);   // chat salvate ma mai aperte: le traduce subito, cosi' anche le anteprime sono in italiano
+  {const st=leggiAgg(); if(st){eseguiAgg(st,true);} else traduciElenco(false);}   // aggiornamento lasciato a meta': riparte da dove era. Altrimenti traduce in sottofondo
+  // chat salvate ma mai aperte: le traduce subito, cosi' anche le anteprime sono in italiano
   const t=P.get("tel"), b=P.get("b");
   if(t||b){
     let c=CONV.find(x=>t?t9(x.tel)===t9(t):String(x.booking_id)===b);
