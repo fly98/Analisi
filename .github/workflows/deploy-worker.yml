@@ -5,6 +5,7 @@ on:
     paths:
       - 'worker.js'
       - 'wrangler.toml'
+      - 'chat_schema.sql'
   workflow_dispatch:
 
 jobs:
@@ -13,8 +14,26 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Storico chat (15/10/2026): database D1 "arrivi-chat", creato la prima volta e poi riusato.
+      # Il collegamento viene aggiunto a wrangler.toml solo dentro questo job (id non nel repo).
+      # Se questo passo fallisce il deploy si ferma PRIMA di toccare il worker in produzione.
+      - name: Database storico chat (D1) - crea se manca, collega, crea le tabelle
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+        run: |
+          npm install -g wrangler@3
+          trova() { wrangler d1 list --json | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{try{const a=JSON.parse(s);const x=a.find(d=>d.name==='arrivi-chat');console.log(x?(x.uuid||x.id||''):'')}catch(e){console.log('')}})"; }
+          ID=$(trova)
+          if [ -z "$ID" ]; then wrangler d1 create arrivi-chat; ID=$(trova); fi
+          echo "ID database: $ID"
+          if [ -z "$ID" ]; then echo "::error::Database D1 non creato: controllare i permessi D1 del token Cloudflare"; exit 1; fi
+          printf '\n[[d1_databases]]\nbinding = "CHAT"\ndatabase_name = "arrivi-chat"\ndatabase_id = "%s"\n' "$ID" >> wrangler.toml
+          wrangler d1 execute arrivi-chat --remote --config wrangler.toml --file chat_schema.sql
+
       - name: Deploy Worker via Wrangler
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CF_API_TOKEN }}
           accountId: ${{ secrets.CF_ACCOUNT_ID }}
+          wranglerVersion: '3'
