@@ -1279,6 +1279,7 @@ async function runAutoSend(env, testMode) {
 const TASSA_FONTI = /booking|expedia/i;
 const MAC_TASSA_URL = "http://fly98.duckdns.org:3456/amenitiz-tassa";
 const MAC_WA_URL = "http://fly98.duckdns.org:3456/whatsapp-messaggi";
+const MAC_WA_RECENTI_URL = "http://fly98.duckdns.org:3456/whatsapp-recenti";
 
 function domaniRoma() {
   const d = new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/Rome" }));
@@ -1662,6 +1663,19 @@ async function chatSalva(env, { bookingId, tel, canale, messaggi }) {
   return { nuovi, totale: stmts.length };
 }
 
+// Nome della conversazione come lo mostra WhatsApp (rubrica o numero). Un nome fatto di sole cifre
+// non aggiunge niente rispetto al numero e non sostituisce un nome vero gia' noto.
+function chatStmtNome(env, tel, nome) {
+  const t9 = chatTel(tel);
+  if (!env.CHAT || !t9) return null;
+  const n = String(nome || "").trim();
+  const utile = n && n.replace(/\D/g, "").length < n.replace(/\s/g, "").length * 0.6;
+  return env.CHAT.prepare(
+    "INSERT INTO conversazioni (tel,nome,letta_il) VALUES (?1,?2,?3) ON CONFLICT(tel) DO UPDATE SET " +
+    (utile ? "nome=excluded.nome," : "") + " letta_il=excluded.letta_il"
+  ).bind(t9, utile ? n.slice(0, 80) : "", Date.now());
+}
+
 // Traduce in italiano i messaggi non ancora tradotti di una conversazione (lingua IS NULL).
 // Si fa quando la chat viene aperta, non durante il giro notturno: li' ogni chiamata esterna
 // pesa sul tetto di 50 per esecuzione. Se l'API non risponde i messaggi restano da tradurre
@@ -1752,6 +1766,7 @@ async function whatsappUna(env, id, tel, giorni, checkin) {
     if (Array.isArray(j.messaggi_tutti)) {
       const sv = await chatSalva(env, { bookingId: id, tel, canale: "whatsapp", messaggi: j.messaggi_tutti });
       rec.chat_nuovi = sv.nuovi;
+      const stN = chatStmtNome(env, tel, j.etichetta_contatto); if (stN) await env.CHAT.batch([stN]);
     }
   } catch (e) { rec.chat_errore = String(e && e.message || e).slice(0, 120); }
 
@@ -4214,18 +4229,84 @@ async function searchOneAccount(env, account, q, maxResults) {
         const da_tradurre = await env.CHAT.prepare(
           "SELECT COUNT(*) n FROM messaggi WHERE lingua IS NULL AND ((?1<>'' AND tel=?1) OR (?2<>'' AND booking_id=?2))"
         ).bind(t9, bid).first();
-        return jsonRes({ bookingId: bid, tel: t9, tradotti, ancora_da_tradurre: (da_tradurre && da_tradurre.n) || 0,
+        const cv = t9 ? await env.CHAT.prepare("SELECT nome FROM conversazioni WHERE tel=?1").bind(t9).first().catch(() => null) : null;
+        return jsonRes({ bookingId: bid, tel: t9, nome: (cv && cv.nome) || "", tradotti, ancora_da_tradurre: (da_tradurre && da_tradurre.n) || 0,
                          messaggi: (q && q.results) || [] });
       }
       if (action === "chatElenco") {
+        // elenco conversazioni (una per numero), piu' recenti in alto. giorni=0 = tutte.
         if (!env.CHAT) return jsonRes({ error: "archivio chat non ancora attivo" }, 503);
+        const g = Math.max(0, Math.min(3650, parseInt(url.searchParams.get("giorni") || "3", 10) || 0));
+        const da = g ? new Date(Date.now() - g * 86400000).toLocaleDateString("sv-SE", { timeZone: "Europe/Rome" }) : "";
         const q = await env.CHAT.prepare(
-          `WITH x AS (SELECT *, COALESCE(NULLIF(tel,''), 'b' || booking_id) k FROM messaggi)
-           SELECT k, MAX(tel) tel, MAX(booking_id) booking_id, MAX(ts) ultimo, COUNT(*) n,
-             (SELECT COALESCE(testo_it, testo) FROM x y WHERE y.k = x.k ORDER BY ts DESC, id DESC LIMIT 1) anteprima,
-             (SELECT dir FROM x y WHERE y.k = x.k ORDER BY ts DESC, id DESC LIMIT 1) ultima_dir
-           FROM x GROUP BY k ORDER BY ultimo DESC LIMIT 100`).all();
-        return jsonRes({ conversazioni: (q && q.results) || [] });
+          `WITH x AS (SELECT *, COALESCE(NULLIF(tel,''), 'b' || booking_id) k FROM messaggi),
+                u AS (SELECT k, MAX(tel) tel, MAX(booking_id) booking_id, MAX(ts) ultimo, COUNT(*) n FROM x GROUP BY k)
+           SELECT u.k, u.tel, u.booking_id, u.ultimo, u.n, COALESCE(c.nome, '') nome,
+             (SELECT COALESCE(testo_it, testo) FROM x WHERE x.k = u.k ORDER BY ts DESC, id DESC LIMIT 1) anteprima,
+             (SELECT dir FROM x WHERE x.k = u.k ORDER BY ts DESC, id DESC LIMIT 1) ultima_dir
+           FROM u LEFT JOIN conversazioni c ON c.tel = u.tel
+           WHERE (?1 = '' OR u.ultimo >= ?1) ORDER BY u.ultimo DESC LIMIT 200`).bind(da).all();
+        return jsonRes({ giorni: g, conversazioni: (q && q.results) || [] });
+      }
+      if (action === "chatLeggi") {
+        // ChatI1, "Aggiorna questa chat": rilegge UN numero dal Mac e salva lo storico. Niente
+        // interpretazione di orario/note e niente KV: serve solo ad accumulare i messaggi.
+        if (!env.CHAT) return jsonRes({ error: "archivio chat non ancora attivo" }, 503);
+        const tel = (url.searchParams.get("tel") || "").trim();
+        const giorni = Math.max(1, Math.min(60, parseInt(url.searchParams.get("giorni") || "7", 10) || 7));
+        if (!chatTel(tel)) return jsonRes({ error: "numero mancante o troppo corto" }, 400);
+        let r = null;
+        for (let t = 0; t < 3; t++) {
+          r = await fetch(`${MAC_WA_URL}?numero=${encodeURIComponent(tel)}&giorni=${giorni}`, {
+            headers: { "X-Trigger-Key": env.TRIGGER_KEY || "" }, signal: AbortSignal.timeout(220000)
+          }).catch(e => ({ ok: false, status: 0, text: async () => String(e) }));
+          if (r.status !== 423) break;
+          await new Promise(res => setTimeout(res, 15000));
+        }
+        const txt = await r.text();
+        let j; try { j = JSON.parse(txt); } catch (e) { j = { esito: "errore", errore: txt.slice(0, 200) }; }
+        let nuovi = 0;
+        if (Array.isArray(j.messaggi_tutti)) {
+          const sv = await chatSalva(env, { bookingId: "", tel, canale: "whatsapp", messaggi: j.messaggi_tutti });
+          nuovi = sv.nuovi;
+          const st = chatStmtNome(env, tel, j.etichetta_contatto); if (st) await env.CHAT.batch([st]).catch(() => {});
+        }
+        const ok = ["messaggi_letti", "nessun_messaggio_in_arrivo"].includes(j.esito);
+        return jsonRes({ esito: j.esito || "errore", errore: j.errore || "", nuovi, messaggi: (j.messaggi_tutti || []).length,
+                         confermato: !!j.numero_confermato }, ok ? 200 : 502);
+      }
+      if (action === "chatRecenti") {
+        // ChatI1, "Aggiorna elenco": il Mac legge le chat recenti di WhatsApp Web (ospite e nostri),
+        // qui si salvano tutte in D1. Una chiamata D1 per chat, ben sotto il tetto di 50.
+        if (!env.CHAT) return jsonRes({ error: "archivio chat non ancora attivo" }, 503);
+        const giorni = Math.max(1, Math.min(30, parseInt(url.searchParams.get("giorni") || "3", 10) || 3));
+        const max = Math.max(1, Math.min(25, parseInt(url.searchParams.get("max") || "12", 10) || 12));
+        let r = null;
+        for (let t = 0; t < 2; t++) {
+          r = await fetch(`${MAC_WA_RECENTI_URL}?giorni=${giorni}&max=${max}`, {
+            headers: { "X-Trigger-Key": env.TRIGGER_KEY || "" }, signal: AbortSignal.timeout(250000)
+          }).catch(e => ({ ok: false, status: 0, text: async () => String(e) }));
+          if (r.status !== 423) break;
+          await new Promise(res => setTimeout(res, 15000));
+        }
+        const txt = await r.text();
+        let j; try { j = JSON.parse(txt); } catch (e) { j = { esito: "errore", errore: txt.slice(0, 200) }; }
+        if (j.esito !== "ok") return jsonRes({ esito: j.esito || "errore", errore: j.errore || j.error || "lettura non riuscita", mac: r.status }, 502);
+        const esiti = [], nomi = [];
+        for (const c of (Array.isArray(j.chat) ? j.chat : [])) {
+          const e = { nome: c.nome || "", tel: chatTel(c.tel), esito: c.esito || "", messaggi: (c.messaggi_tutti || []).length, nuovi: 0 };
+          if (e.tel && Array.isArray(c.messaggi_tutti)) {
+            try {
+              const sv = await chatSalva(env, { bookingId: "", tel: c.tel, canale: "whatsapp", messaggi: c.messaggi_tutti });
+              e.nuovi = sv.nuovi;
+              const st = chatStmtNome(env, c.tel, c.nome || c.etichetta); if (st) nomi.push(st);
+            } catch (err) { e.esito = "errore_salvataggio"; e.errore = String(err && err.message || err).slice(0, 120); }
+          }
+          esiti.push(e);
+        }
+        if (nomi.length) await env.CHAT.batch(nomi).catch(() => {});
+        return jsonRes({ esito: "ok", giorni, durata_s: j.durata_s || null, troncato: !!j.troncato,
+                         chat: esiti, saltate: j.saltate || [], righe_viste: j.righe_viste || 0 });
       }
       if (action === "statoGiro") {
         // l'app lo chiede all'avvio per sapere se il giro notturno e' andato a buon fine

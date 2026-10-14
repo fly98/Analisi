@@ -15,3 +15,10 @@ CREATE TABLE IF NOT EXISTS messaggi (
 CREATE INDEX IF NOT EXISTS msg_tel ON messaggi(tel, ts);
 CREATE INDEX IF NOT EXISTS msg_bk ON messaggi(booking_id, ts);
 CREATE INDEX IF NOT EXISTS msg_da_tradurre ON messaggi(lingua);
+
+-- ChatI1: una riga per numero, con il nome come WhatsApp lo mostra (rubrica o numero)
+CREATE TABLE IF NOT EXISTS conversazioni (
+  tel TEXT PRIMARY KEY,
+  nome TEXT NOT NULL DEFAULT '',
+  letta_il INTEGER NOT NULL DEFAULT 0
+);

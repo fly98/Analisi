@@ -1423,8 +1423,9 @@ function render(iso,bookings,isRicerca){
     const msgChip=msgAttivo?`<span class="msg-chip solo-icona${mHa?" set":""}" title="${mHa?("Messaggi su "+(/airbnb/i.test(source||"")?"Airbnb":"Booking")+": "+mRec.messaggi.length):"Messaggi dell'ospite su "+(/airbnb/i.test(source||"")?"Airbnb":"Booking")}" onclick="${apri('ota')}">💬</span>`:"";
     const waChip=telOk?`<span class="wa-chip solo-icona${waHa?" set":""}" title="${waHa?("Messaggi WhatsApp: "+mRec.whatsapp.length):("Leggi la chat WhatsApp di "+telWa)}" onclick="${apri('wa')}">📱</span>`
       :`<span class="wa-chip solo-icona" style="opacity:.4;cursor:default" title="Nessun numero di telefono su questa prenotazione">📱</span>`;
-    // storico completo della conversazione (pagina chat.html), tutto tradotto in italiano
-    const chatChip=`<a class="wa-chip solo-icona" style="text-decoration:none" title="Storico chat dell'ospite, tradotto in italiano" href="chat.html?b=${b.booking_id}${telWa?("&tel="+encodeURIComponent(telWa)):""}">🗂</a>`;
+    // ChatI1: conversazione WhatsApp tradotta di questo numero. Resta spenta finche' non risulta che esiste.
+    const chatT9=String(telWa||"").replace(/\D/g,"").slice(-9);
+    const chatChip=`<a class="wa-chip solo-icona chat-chip" data-t9="${chatT9.length===9?chatT9:""}" style="text-decoration:none;opacity:.35;pointer-events:none" title="Nessuna conversazione salvata per questo numero" href="chati1.html?tel=${chatT9}">🗂</a>`;
     msgOspite[i]=mRec;
     schedeGiorno.push({ i, bookingId:b.booking_id, source, iso:isoCard, tel:telWa, ota:msgAttivo, nome:(nome+' '+cognome).trim() });
     const restoBadge=restoDaPagare?`<span class="resto-alert" title="Oltre alla tassa risulta da pagare anche il resto della prenotazione: verifica su Amenitiz">❗️ resto da pagare</span>`:"";
@@ -2735,5 +2736,29 @@ async function scansionaWhatsapp(){
   <div class="modal" id="cancMsgBox"></div>
 </div>
 
+<script>
+// ====== ChatI1: attiva il tasto 🗂 solo per i numeri che hanno una conversazione salvata ======
+// Una sola chiamata all'apertura (elenco di tutte le conversazioni); le schede si disegnano e
+// ridisegnano quando vuoi, quindi si riapplica a ogni cambio della pagina.
+let CHAT_T9 = null;
+function segnaChatChip(){
+  if(!CHAT_T9) return;
+  document.querySelectorAll(".chat-chip").forEach(a=>{
+    const ok = a.dataset.t9 && CHAT_T9.has(a.dataset.t9);
+    a.style.opacity = ok ? "" : ".35"; a.style.pointerEvents = ok ? "" : "none";
+    a.title = ok ? "Apri la conversazione in ChatI1 (tradotta in italiano)" : "Nessuna conversazione salvata per questo numero";
+  });
+}
+(async function(){
+  try{
+    const d = await (await fetch(`${WORKER}/?action=chatElenco&giorni=0`)).json();
+    CHAT_T9 = new Set((d.conversazioni||[]).map(c=>String(c.tel||"")).filter(Boolean));
+    segnaChatChip();
+    let atteso=false;
+    new MutationObserver(()=>{ if(atteso)return; atteso=true; requestAnimationFrame(()=>{atteso=false; segnaChatChip();}); })
+      .observe(document.body,{childList:true,subtree:true});
+  }catch(e){ /* senza elenco il tasto resta spento: Arrivi funziona come sempre */ }
+})();
+</script>
 </body>
 </html>
