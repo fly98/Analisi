@@ -37,3 +37,21 @@ CREATE TABLE IF NOT EXISTS lettura_wa (
   firma_nuova TEXT NOT NULL DEFAULT '',
   letta_il INTEGER NOT NULL DEFAULT 0
 );
+
+-- lingua della chat scelta a mano (se manca, si usa quella dei messaggi dell'ospite)
+CREATE TABLE IF NOT EXISTS lingue (
+  tel TEXT PRIMARY KEY,
+  lingua TEXT NOT NULL DEFAULT ''
+);
+
+-- messaggi che ho inviato dall'app: testo mandato (tradotto) e originale italiano. Quando WhatsApp
+-- lo restituisce alla lettura successiva, si ritrova per testo e si abbina all'italiano.
+CREATE TABLE IF NOT EXISTS inviati (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  tel TEXT NOT NULL,
+  testo TEXT NOT NULL,
+  it TEXT NOT NULL DEFAULT '',
+  lingua TEXT NOT NULL DEFAULT '',
+  creato INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS inviati_tel ON inviati(tel, creato);

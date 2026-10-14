@@ -6,7 +6,10 @@
 <title>ChatI1 · InternoUno</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="ChatI1">
-<link rel="apple-touch-icon" href="icons-arrivi/icon-180.png?v=1">
+<link rel="manifest" href="manifest-chati1.json">
+<link rel="apple-touch-icon" href="icons-chati1/icon-180.png?v=1">
+<link rel="apple-touch-icon" sizes="512x512" href="icons-chati1/icon-512.png?v=1">
+<link rel="icon" type="image/png" sizes="192x192" href="icons-chati1/icon-192.png?v=1">
 <meta name="theme-color" content="#f0f2f5">
 <style>
   :root{
@@ -74,6 +77,17 @@
   .prog{padding:8px 14px 10px;background:var(--paper);border-bottom:1px solid var(--line);font-size:13px;}
   .prog .pt{color:var(--ink);line-height:1.35;} .prog .ps{color:var(--muted);font-size:12px;margin-top:2px;}
   .prog .pb{height:5px;border-radius:3px;background:var(--sel);margin-top:6px;overflow:hidden;} .prog .pb i{display:block;height:100%;width:0;background:var(--accent);transition:width .8s linear;}
+  .compo{background:var(--paper);border-top:1px solid var(--line);padding:8px 12px 4px;}
+  .compo .ant{display:none;margin-bottom:8px;padding:10px 12px;border-radius:16px;border:1px solid var(--vb);background:var(--vout);
+    -webkit-backdrop-filter:blur(18px) saturate(1.6);backdrop-filter:blur(18px) saturate(1.6);box-shadow:0 6px 18px var(--vo),inset 0 1px 0 var(--vh);font-size:14.5px;line-height:1.4;}
+  .compo .ant.on{display:block;} .compo .ant .et{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;}
+  .compo .ant .sig{margin-top:7px;padding-top:7px;border-top:1px dashed #00000026;color:var(--muted);font-size:13px;}
+  .compo .ant .az{display:flex;gap:8px;margin-top:10px;justify-content:flex-end;}
+  .compo .riga{display:flex;gap:8px;align-items:flex-end;}
+  .compo textarea{flex:1;min-width:0;resize:none;border:1px solid var(--line);background:var(--pannello);color:var(--ink);border-radius:18px;padding:9px 14px;font:inherit;font-size:15px;line-height:1.35;max-height:140px;outline:none;}
+  .compo .lg{flex:none;border:1px solid var(--line);background:var(--pannello);color:var(--ink);border-radius:18px;height:38px;padding:0 10px;font-size:14px;cursor:pointer;display:flex;align-items:center;gap:4px;position:relative;}
+  .compo .lg select{position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer;font-size:16px;}
+  .conv .r1 .fl2{font-size:12px;margin-left:5px;font-weight:400;}
   .stato{font-size:13px;text-align:center;color:var(--muted);padding:6px 12px;min-height:30px;background:var(--paper);border-top:1px solid var(--line);}
   .stato.ko{color:#c0392b;} .stato.lavoro{color:var(--accent);}
   .piede{display:flex;gap:8px;justify-content:center;padding:8px 12px calc(8px + env(safe-area-inset-bottom));background:var(--paper);border-top:1px solid var(--line);}
@@ -131,6 +145,14 @@
     <div class="pbox" id="pbox" style="display:none"></div>
     <div class="msgs" id="msgs"><div class="vuoto">Scegli una conversazione a sinistra.<br>I messaggi sono sempre in italiano: tocca una bolla con la bandierina per vedere l'originale.</div></div>
     <div class="stato" id="stato"></div>
+    <div class="compo" id="compo" style="display:none">
+      <div class="ant" id="ant"></div>
+      <div class="riga">
+        <label class="lg" title="Lingua in cui viene tradotta la risposta"><span id="lgChip">🌐 Lingua</span><select id="lgSel" onchange="cambiaLingua(this.value)"></select></label>
+        <textarea id="bozza" rows="1" placeholder="Scrivi in italiano: lo traduco prima dell'invio" oninput="this.style.height='auto';this.style.height=Math.min(140,this.scrollHeight)+'px'"></textarea>
+        <button class="btn" id="bTrad" onclick="traduciBozza()">Traduci</button>
+      </div>
+    </div>
     <div class="piede" id="piede" style="display:none">
       <button class="btn sec" id="bAggChat" onclick="aggiornaChat()">Aggiorna questa chat</button>
       <a class="btn" id="bWa" style="text-decoration:none">Scrivi su WhatsApp</a>
@@ -147,8 +169,8 @@ let SEL = null;           // conversazione aperta
 let PRENOTAZIONI = null;  // bookings da Arrivi (solo lettura), caricate una volta
 let MAPTEL = {};          // ultime 9 cifre -> prenotazioni
 
-const FLAG = {en:"🇬🇧",es:"🇪🇸",fr:"🇫🇷",de:"🇩🇪",pt:"🇵🇹",zh:"🇨🇳",ru:"🇷🇺",ja:"🇯🇵",ko:"🇰🇷",pl:"🇵🇱",nl:"🇳🇱",ar:"🇸🇦",tr:"🇹🇷",sv:"🇸🇪",da:"🇩🇰",no:"🇳🇴",nb:"🇳🇴",fi:"🇫🇮",cs:"🇨🇿",ro:"🇷🇴",hu:"🇭🇺",el:"🇬🇷",uk:"🇺🇦",he:"🇮🇱",hi:"🇮🇳",th:"🇹🇭",vi:"🇻🇳",id:"🇮🇩",ca:"🇪🇸",hr:"🇭🇷",sk:"🇸🇰",bg:"🇧🇬"};
-const LNG = {en:"inglese",es:"spagnolo",fr:"francese",de:"tedesco",pt:"portoghese",zh:"cinese",ru:"russo",ja:"giapponese",ko:"coreano",pl:"polacco",nl:"olandese",ar:"arabo",tr:"turco",sv:"svedese",da:"danese",no:"norvegese",fi:"finlandese",cs:"ceco",ro:"rumeno",hu:"ungherese",el:"greco",uk:"ucraino",he:"ebraico",hi:"hindi",th:"thailandese",vi:"vietnamita",id:"indonesiano",ca:"catalano",hr:"croato",sk:"slovacco",bg:"bulgaro"};
+const FLAG = {it:"🇮🇹",en:"🇬🇧",es:"🇪🇸",fr:"🇫🇷",de:"🇩🇪",pt:"🇵🇹",zh:"🇨🇳",ru:"🇷🇺",ja:"🇯🇵",ko:"🇰🇷",pl:"🇵🇱",nl:"🇳🇱",ar:"🇸🇦",tr:"🇹🇷",sv:"🇸🇪",da:"🇩🇰",no:"🇳🇴",nb:"🇳🇴",fi:"🇫🇮",cs:"🇨🇿",ro:"🇷🇴",hu:"🇭🇺",el:"🇬🇷",uk:"🇺🇦",he:"🇮🇱",hi:"🇮🇳",th:"🇹🇭",vi:"🇻🇳",id:"🇮🇩",ca:"🇪🇸",hr:"🇭🇷",sk:"🇸🇰",bg:"🇧🇬"};
+const LNG = {it:"italiano",en:"inglese",es:"spagnolo",fr:"francese",de:"tedesco",pt:"portoghese",zh:"cinese",ru:"russo",ja:"giapponese",ko:"coreano",pl:"polacco",nl:"olandese",ar:"arabo",tr:"turco",sv:"svedese",da:"danese",no:"norvegese",fi:"finlandese",cs:"ceco",ro:"rumeno",hu:"ungherese",el:"greco",uk:"ucraino",he:"ebraico",hi:"hindi",th:"thailandese",vi:"vietnamita",id:"indonesiano",ca:"catalano",hr:"croato",sk:"slovacco",bg:"bulgaro"};
 
 // La chiave e' quella di Arrivi (localStorage 'arrivi_key'): mai scritta nel codice.
 function chiave(){
@@ -210,6 +232,9 @@ async function caricaElenco(){
     const d=await api("action=chatElenco&giorni="+g);
     if(d.error){stato("statoLista",d.error,"ko");return;}
     CONV=d.conversazioni||[]; stato("statoLista","");
+    if(SEL){const n=CONV.find(x=>chiaveConv(x)===chiaveConv(SEL)); if(n){ if(!n.lingua&&SEL.lingua)n.lingua=SEL.lingua; SEL=n;
+      const ch=document.getElementById("lgChip"); if(ch)ch.textContent=n.lingua?`${FLAG[n.lingua]||"🌐"} ${LNG[n.lingua]||n.lingua}`:"🌐 Scegli lingua";
+      const ls=document.getElementById("lgSel"); if(ls)ls.value=n.lingua||""; }}
     disegnaElenco();
   }catch(e){stato("statoLista",e.message,"ko");}
 }
@@ -225,7 +250,7 @@ function disegnaElenco(){
     const k=chiaveConv(c); const pren=c.tel&&MAPTEL[t9(c.tel)];
     return `<div class="conv${SEL&&chiaveConv(SEL)===k?" sel":""}" data-k="${esc(k)}" onclick="apri('${esc(k)}')">
       <div class="av${avatarDi(c).cls}">${avatarDi(c).html}</div>
-      <div class="c"><div class="r1"><span>${esc(nomeConv(c))}${pren?'<span class="pren">PRENOT.</span>':""}</span><small>${esc(quandoBreve(c.ultimo))}</small></div>
+      <div class="c"><div class="r1"><span>${esc(nomeConv(c))}${c.lingua?`<span class="fl2" title="${esc(LNG[c.lingua]||c.lingua)}">${FLAG[c.lingua]||"🌐"}</span>`:""}${pren?'<span class="pren">PRENOT.</span>':""}</span><small>${esc(quandoBreve(c.ultimo))}</small></div>
       <div class="r2">${c.ultima_dir==="out"?"Tu: ":""}${esc(c.anteprima||"")}</div>
       ${pren?(()=>{const ip=infoPren(c);return ip?`<div class="r3">🛏 ${esc(ip.camera||"camera da assegnare")}${ip.date?" · "+esc(ip.date):""}</div>`:"";})():""}</div></div>`;
   }).join("");
@@ -238,6 +263,7 @@ async function apri(k){
   document.getElementById("titolo").textContent=nomeConv(c);
   const av=document.getElementById("avTesta"); av.style.display="flex"; {const a=avatarDi(c); av.className="av"+a.cls; av.innerHTML=a.html;}
   document.getElementById("piede").style.display="flex";
+  disegnaCompo(c);
   const w=document.getElementById("bWa");
   {const f=telCompleto(c); if(f){w.href="whatsapp://send?phone="+f; w.style.display="";} else w.style.display="none";}
   document.getElementById("bAggChat").style.display=c.tel?"":"none";
@@ -326,6 +352,59 @@ async function disegnaDettagli(c){
       ${lista.length>1?`<div class="sez"><div class="lab">Altre prenotazioni con questo numero</div>${lista.filter(x=>x!==b).map(x=>`<div>${esc(gg(x.checkin))} → ${esc(gg(x.checkout))} · ${esc(x.source||"")}</div>`).join("")}</div>`:""}
       <div class="sez"><a class="btn sec" href="arrivi.html" style="text-decoration:none;display:inline-block">Apri Arrivi</a></div>
     </div>`;
+}
+
+// ---------- risposta: scrivo in italiano, traduce nella lingua della chat, controllo, invio ----------
+let BOZZA=null;      // {it, tr, lingua, tel}
+function disegnaCompo(c){
+  document.getElementById("compo").style.display="";
+  const sel=document.getElementById("lgSel");
+  sel.innerHTML='<option value="">Scegli la lingua…</option>'+Object.keys(LNG).map(k=>`<option value="${k}"${c.lingua===k?" selected":""}>${FLAG[k]||"🌐"} ${esc(LNG[k])}</option>`).join("");
+  document.getElementById("lgChip").textContent=c.lingua?`${FLAG[c.lingua]||"🌐"} ${LNG[c.lingua]||c.lingua}`:"🌐 Scegli lingua";
+  document.getElementById("bozza").value=""; document.getElementById("bozza").style.height="auto";
+  chiudiAnteprima();
+  document.getElementById("bozza").disabled=!c.tel; document.getElementById("bTrad").disabled=!c.tel;
+}
+function chiudiAnteprima(){BOZZA=null;const a=document.getElementById("ant");a.className="ant";a.innerHTML="";}
+async function cambiaLingua(v){
+  const c=SEL; if(!c||!c.tel||!v)return;
+  c.lingua=v; document.getElementById("lgChip").textContent=`${FLAG[v]||"🌐"} ${LNG[v]||v}`;
+  chiudiAnteprima(); disegnaElenco();
+  try{await api("action=chatLingua&tel="+encodeURIComponent(c.tel)+"&lingua="+encodeURIComponent(v));}catch(e){stato("stato","Lingua non salvata: "+e.message,"ko");}
+}
+async function traduciBozza(){
+  const c=SEL; if(!c||!c.tel)return;
+  const testo=document.getElementById("bozza").value.trim(); if(!testo)return;
+  if(!c.lingua){stato("stato","Scegli prima la lingua della chat (a sinistra del campo).","ko");return;}
+  const b=document.getElementById("bTrad"); b.disabled=true; b.textContent="Traduco…"; stato("stato","Traduco nella lingua del cliente…","lavoro");
+  try{
+    const d=await api("action=chatBozza&tel="+encodeURIComponent(c.tel)+"&lingua="+encodeURIComponent(c.lingua)+"&testo="+encodeURIComponent(testo));
+    if(d.error)throw new Error(d.error);
+    if(!SEL||chiaveConv(SEL)!==chiaveConv(c))return;
+    BOZZA={it:testo,tr:d.traduzione,lingua:c.lingua,tel:c.tel};
+    const a=document.getElementById("ant"); a.className="ant on";
+    a.innerHTML=`<div class="et">${FLAG[c.lingua]||"🌐"} Verrà inviato in ${esc(LNG[c.lingua]||c.lingua)} — controlla e conferma</div>
+      <div>${esc(d.traduzione)}</div>
+      ${d.ritraduzione?`<div class="sig">In italiano significa: ${esc(d.ritraduzione)}</div>`:""}
+      <div class="az"><button class="btn sec" onclick="chiudiAnteprima()">Modifica</button><button class="btn" id="bInvia" onclick="inviaBozza()">Invia su WhatsApp</button></div>`;
+    stato("stato","");
+  }catch(e){stato("stato","Traduzione non riuscita: "+e.message,"ko");}
+  b.disabled=false; b.textContent="Traduci";
+}
+async function inviaBozza(){
+  const c=SEL, z=BOZZA; if(!c||!z||z.tel!==c.tel)return;
+  const bi=document.getElementById("bInvia"); bi.disabled=true; bi.textContent="Invio…";
+  stato("stato","Invio su WhatsApp dal Mac… circa 40 secondi, non chiudere la pagina.","lavoro");
+  try{
+    const f=telCompleto(c);
+    const d=await api("action=chatInvia&conferma=1&tel="+encodeURIComponent(c.tel)+"&numero="+encodeURIComponent(f)+"&lingua="+encodeURIComponent(z.lingua)
+      +"&it="+encodeURIComponent(z.it)+"&testo="+encodeURIComponent(z.tr));
+    if(!["messaggio_inviato","messaggio_inviato_non_confermato"].includes(d.esito))
+      throw new Error((d.errore||d.error||d.esito||"invio non riuscito")+" — prima di riprovare premi «Aggiorna questa chat» e guarda se è partito");
+    document.getElementById("bozza").value=""; document.getElementById("bozza").style.height="auto"; chiudiAnteprima();
+    stato("stato",d.esito==="messaggio_inviato"?"Inviato ✓ — leggo la chat…":"Inviato (WhatsApp non l'ha ancora confermato) — leggo la chat…","lavoro");
+    await aggiornaChat();
+  }catch(e){stato("stato",e.message,"ko"); const x=document.getElementById("bInvia"); if(x){x.disabled=false;x.textContent="Invia su WhatsApp";}}
 }
 
 // ---------- letture dal Mac ----------

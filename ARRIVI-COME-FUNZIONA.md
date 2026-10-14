@@ -229,3 +229,17 @@ all'apertura della pagina. Il primo giro dopo la pubblicazione rilegge tutto (de
 Numero completo con prefisso in tabella `contatti` (la chiave delle chat resta di 9 cifre).
 Il Mac è raggiunto senza riavvii: `whatsapp-leggi.js` con numero speciale `00000` + modo (1 elenco, 2 titoli
 codificati a 5 cifre per carattere, `99999` separatore) lancia `whatsapp-recenti.js` (`--solo-elenco`, `--titoli`).
+
+### ChatI1 — risposte, lingua, icona (15/10/2026, notte)
+**Rispondere dall'app.** Filippo scrive in italiano → `chatBozza` traduce nella lingua della chat (Haiku, con gli
+ultimi 6 messaggi come contesto) e mostra la traduzione **più** cosa significa tornando in italiano → solo col
+tasto «Invia su WhatsApp» parte `chatInvia` (richiede `conferma=1`; nessun processo automatico la chiama: regola
+«niente invii automatici agli ospiti» rispettata, l'ultimo gesto è suo). Sul Mac: `whatsapp-leggi.js` con numero
+speciale `000003` + numero e messaggio (5 cifre per carattere, `99999` separatore) rilancia se stesso con `--invia`:
+tutti i controlli d'invio esistenti restano (casella intestata al numero giusto, casella vuota, testo identico,
+conferma nel filo). Il messaggio inviato viene registrato in `inviati` e, alla lettura successiva, abbinato al suo
+italiano (la pagina rilegge la chat subito dopo l'invio).
+**Lingua della chat.** Presa dai messaggi dell'ospite (ultima lingua rilevata), sostituibile a mano (`lingue`,
+azione `chatLingua`); bandierina accanto al nome nell'elenco.
+**Risposte/reazioni lette da WhatsApp:** colonne `risposta`, `reazioni` (ALTER nel workflow). **Icona:** `icons-chati1/`,
+`manifest-chati1.json`.
