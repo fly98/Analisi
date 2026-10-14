@@ -178,3 +178,37 @@ rilette automaticamente all'inizio di ogni sessione di lavoro. Le più legate a 
 
 **Quelle note vivono sul Mac di Filippo e non sono nel deposito.** Questo file sì: se un giorno
 mancassero, qui c'è comunque tutto il necessario per rimettere le mani sul sistema.
+
+---
+
+## 9. Storico chat (15/10/2026)
+
+Ogni conversazione con l'ospite (WhatsApp, Booking, Airbnb) si accumula e si legge in `chat.html`,
+tutta in italiano.
+
+- **Dove stanno**: database **D1 `arrivi-chat`** (binding `CHAT` del worker), tabella `messaggi`.
+  Schema in `chat_schema.sql`. Il job `deploy-worker.yml` lo crea/collega prima del deploy; se quel
+  passo fallisce il worker in produzione non viene toccato. **Non** sta in KV: le scritture KV sono
+  1.000 al giorno condivise, D1 ne ha 100.000.
+- **Come ci arrivano**: `whatsappUna` salva `messaggi_tutti` (ospite **e nostri**, con `dir` in/out),
+  `messaggiUna` salva quelli Booking/Airbnb, `rispondiUna` salva le risposte inviate. Dedup per hash
+  (canale, numero, direzione, minuto, testo, n-esima copia): riletture e finestra di 45 giorni non
+  duplicano nulla. Un blocco di messaggi = **una** chiamata D1.
+- **Mac**: `~/automazioni/whatsapp-leggi.js` ora restituisce anche `messaggi_tutti`; `messaggi`
+  (solo ospite) resta com'era perché orario e note si basano su quello. Backup:
+  `whatsapp-leggi.js.bak-20261015-0030`.
+- **Chiave di una chat**: ultime 9 cifre del telefono, oppure id prenotazione per i messaggi
+  Booking/Airbnb (che non portano il numero). Un ospite che torna ha più prenotazioni ma un solo
+  numero: la chat per numero le contiene tutte (`chat?tel=` con `da`/`a` per restringere).
+- **Booking/Airbnb non danno il giorno, solo l'ora**: la data salvata è quella della prima lettura
+  e la bolla mostra `~` davanti all'ora.
+- **Traduzione**: pigra, quando si apre la chat (`action=chat`): una chiamata a Haiku 4.5 per i
+  messaggi con `lingua IS NULL` (max 40 alla volta). Non si fa nel giro notturno per non consumare
+  il tetto di 50 chiamate esterne. Se l'API non risponde restano da tradurre e si riprova.
+- **Azioni**: `chat` (bookingId e/o tel, da, a), `chatElenco`. Come tutte le altre, richiedono la
+  chiave dell'app.
+- **Pagina**: `fly98.github.io/Analisi/chat.html`; senza parametri mostra l'elenco, con `?b=ID`
+  (+`&tel=`) la chat. Dalla scheda di Arrivi: icona 🗂. Chiave in `localStorage` `arrivi_key`.
+- **Non ancora fatto**: rispondere dalla pagina chat (oggi si risponde da Arrivi: 💬/📱 con tasto
+  Traduci), importare lo storico già presente in KV `msg_<id>` (solo messaggi in entrata, senza
+  data per Booking/Airbnb), conservazione limitata nel tempo e aggiornamento della privacy policy.
