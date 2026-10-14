@@ -61,6 +61,11 @@
   .b.out{margin-left:auto;border-bottom-right-radius:6px;
     background:linear-gradient(202deg,var(--g1) 0%,var(--g2) 26%,transparent 46%),var(--vout);}
   .b .meta{display:flex;gap:6px;justify-content:flex-end;align-items:center;font-size:11px;color:var(--muted);margin-top:1px;}
+  .b{position:relative;} .b.conrea{margin-bottom:20px;}
+  .b .rp{font-size:12px;color:var(--muted);margin-right:auto;opacity:.85;} .b .rp svg{width:13px;height:13px;vertical-align:-2px;}
+  .b .rea{position:absolute;bottom:-15px;padding:1px 7px;border-radius:12px;font-size:13px;line-height:1.5;border:1px solid var(--vb);
+    background:var(--vin);-webkit-backdrop-filter:blur(14px) saturate(1.6);backdrop-filter:blur(14px) saturate(1.6);box-shadow:0 3px 9px var(--vo),inset 0 1px 0 var(--vh);}
+  .b.in .rea{left:12px;} .b.out .rea{right:12px;}
   .b .fl{font-size:14px;line-height:1;cursor:pointer;}
   .b.tr{cursor:pointer;}
   .b .orig{display:none;margin-top:5px;padding-top:5px;border-top:1px dashed #00000026;font-size:13.5px;color:var(--muted);}
@@ -260,10 +265,12 @@ function bolla(m){
   const nome=LNG[lng]||lng;
   const tip=m.dir==="out"?`Inviato in ${nome} · tocca per vedere il testo inviato`:`Scritto in ${nome} · tocca per vedere l'originale`;
   const can=m.canale==="whatsapp"?"":(m.canale==="airbnb"?"Airbnb":"Booking");
-  return `<div class="b ${m.dir==="out"?"out":"in"}${trad?" tr":""}" ${trad?`onclick="this.classList.toggle('apri')" title="${esc(tip)}"`:""}>
+  const rea=(m.reazioni||"").trim();
+  return `<div class="b ${m.dir==="out"?"out":"in"}${trad?" tr":""}${rea?" conrea":""}" ${trad?`onclick="this.classList.toggle('apri')" title="${esc(tip)}"`:""}>
     ${can?`<div class="cn">${can}</div>`:""}${esc(trad?m.testo_it:m.testo)}
     ${trad?`<div class="orig">${FLAG[lng]||"🌐"} ${esc(m.testo)}</div>`:""}
-    <div class="meta">${trad?`<span class="fl">${FLAG[lng]||"🌐"}</span>`:""}<span>${m.ts_approx?"~":""}${esc((m.ts||"").slice(11,16))}</span></div></div>`;
+    ${rea?`<span class="rea" title="Reazione al messaggio">${esc(rea)}</span>`:""}
+    <div class="meta">${m.risposta?`<span class="rp" title="Risposta a un messaggio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 6 6v3"/></svg></span>`:""}${trad?`<span class="fl">${FLAG[lng]||"🌐"}</span>`:""}<span>${m.ts_approx?"~":""}${esc((m.ts||"").slice(11,16))}</span></div></div>`;
 }
 function disegnaMessaggi(ms){
   let h="",ult="";

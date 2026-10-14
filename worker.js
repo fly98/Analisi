@@ -1638,6 +1638,7 @@ async function chatSalva(env, { bookingId, tel, canale, messaggi }) {
   const oggi = new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Rome" });
   const visti = {};
   const stmts = [];
+  const insFlag = [];     // true = riga di INSERT (solo quelle contano come messaggi nuovi)
   for (const m of messaggi) {
     const testo = String(m.testo || "").trim();
     if (!testo) continue;
@@ -1651,14 +1652,23 @@ async function chatSalva(env, { bookingId, tel, canale, messaggi }) {
     const base = [canale, approx ? "b" + bookingId : t9, dir, approx ? ora : ts, testo].join("|");
     visti[base] = (visti[base] || 0) + 1;   // due "ok" identici nello stesso minuto restano due
     const h = await chatHash(base + "|" + visti[base]);
+    const risposta = m.risposta ? 1 : 0, reazioni = String(m.reazioni || "").slice(0, 40);
     stmts.push(env.CHAT.prepare(
-      "INSERT OR IGNORE INTO messaggi (h,tel,booking_id,canale,dir,ts,ts_approx,testo,creato) VALUES (?,?,?,?,?,?,?,?,?)"
-    ).bind(h, t9, String(bookingId || ""), canale, dir, ts, approx, testo.slice(0, 4000), Date.now()));
+      "INSERT OR IGNORE INTO messaggi (h,tel,booking_id,canale,dir,ts,ts_approx,testo,creato,risposta,reazioni) VALUES (?,?,?,?,?,?,?,?,?,?,?)"
+    ).bind(h, t9, String(bookingId || ""), canale, dir, ts, approx, testo.slice(0, 4000), Date.now(), risposta, reazioni)); insFlag.push(true);
+    // le reazioni cambiano nel tempo: a ogni lettura si aggiornano quelle del messaggio gia' salvato
+    stmts.push(env.CHAT.prepare("UPDATE messaggi SET reazioni=?2, risposta=?3 WHERE h=?1 AND (reazioni<>?2 OR risposta<>?3)")
+      .bind(h, reazioni, risposta)); insFlag.push(false);
+    // una risposta letta prima con la citazione dentro al testo: via la copia vecchia (finiva col testo nuovo)
+    if (risposta && t9) {
+      stmts.push(env.CHAT.prepare("DELETE FROM messaggi WHERE tel=?1 AND dir=?2 AND ts=?3 AND h<>?4 AND length(testo)>length(?5) AND testo LIKE '%' || ?5")
+        .bind(t9, dir, ts, h, testo.slice(0, 4000))); insFlag.push(false);
+    }
   }
   let nuovi = 0;
   for (let i = 0; i < stmts.length; i += 100) {
     const res = await env.CHAT.batch(stmts.slice(i, i + 100));
-    nuovi += res.reduce((n, r) => n + ((r.meta && r.meta.changes) || 0), 0);
+    res.forEach((r, k) => { if (insFlag[i + k]) nuovi += (r.meta && r.meta.changes) || 0; });
   }
   return { nuovi, totale: stmts.length };
 }
@@ -4249,7 +4259,7 @@ async function searchOneAccount(env, account, q, maxResults) {
         const tradotti = await chatTraduciPendenti(env, t9, bid).catch(() => 0);
         const da = (url.searchParams.get("da") || "").slice(0, 10);
         const a = (url.searchParams.get("a") || "").slice(0, 10);
-        let sql = "SELECT id,canale,dir,ts,ts_approx,testo,lingua,testo_it FROM messaggi WHERE ((?1<>'' AND tel=?1) OR (?2<>'' AND booking_id=?2))";
+        let sql = "SELECT id,canale,dir,ts,ts_approx,testo,lingua,testo_it,risposta,reazioni FROM messaggi WHERE ((?1<>'' AND tel=?1) OR (?2<>'' AND booking_id=?2))";
         const par = [t9, bid];
         if (/^\d{4}-\d{2}-\d{2}$/.test(da)) { par.push(da); sql += ` AND ts>=?${par.length}`; }
         if (/^\d{4}-\d{2}-\d{2}$/.test(a)) { par.push(a + " 23:59"); sql += ` AND ts<=?${par.length}`; }

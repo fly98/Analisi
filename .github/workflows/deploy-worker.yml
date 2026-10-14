@@ -30,6 +30,9 @@ jobs:
           if [ -z "$ID" ]; then echo "::error::Database D1 non creato: controllare i permessi D1 del token Cloudflare"; exit 1; fi
           printf '\n[[d1_databases]]\nbinding = "CHAT"\ndatabase_name = "arrivi-chat"\ndatabase_id = "%s"\n' "$ID" >> wrangler.toml
           wrangler d1 execute arrivi-chat --remote --config wrangler.toml --file chat_schema.sql
+          # colonne aggiunte dopo la prima versione (ALTER non e' ripetibile: se esiste gia' si ignora l'errore)
+          wrangler d1 execute arrivi-chat --remote --config wrangler.toml --command "ALTER TABLE messaggi ADD COLUMN risposta INTEGER NOT NULL DEFAULT 0" || true
+          wrangler d1 execute arrivi-chat --remote --config wrangler.toml --command "ALTER TABLE messaggi ADD COLUMN reazioni TEXT NOT NULL DEFAULT ''" || true
 
       - name: Deploy Worker via Wrangler
         uses: cloudflare/wrangler-action@v3
