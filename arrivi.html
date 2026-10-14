@@ -763,7 +763,7 @@ const waIcon='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 14.4c-
 // breve, senza importo e senza alternativa in contanti.
 function msgCamera(lng,link,importo){
   const imp = (importo==null||importo==="") ? "" : ("€ "+Number(importo).toFixed(2).replace(".",","));
-  const R={ it:"Importo", en:"Amount", es:"Importe", fr:"Montant", pt:"Valor", de:"Betrag" };
+  const R={ it:"Importo", en:"Amount", es:"Importe", fr:"Montant", pt:"Valor", de:"Betrag", zh:"金额" };
   const riga = imp ? `\n${R[lng]||R.en}: ${imp}` : "";
   const T={
     it:`Le invio il link di pagamento per la sua prenotazione ad InternoUno 🏨${riga}\n👉 ${link}\nGrazie!`,
@@ -772,6 +772,7 @@ function msgCamera(lng,link,importo){
     fr:`Je vous envoie le lien de paiement pour votre réservation à InternoUno 🏨${riga}\n👉 ${link}\nMerci !`,
     pt:`Envio o link de pagamento para a sua reserva no InternoUno 🏨${riga}\n👉 ${link}\nObrigado!`,
     de:`Hier ist der Zahlungslink für Ihre Buchung im InternoUno 🏨${riga}\n👉 ${link}\nVielen Dank!`,
+    zh:`这是您在 InternoUno 预订的付款链接 🏨${riga}\n👉 ${link}\n谢谢！`,
   };
   return T[lng]||T.en;
 }
@@ -789,6 +790,8 @@ function msgTassa(nome,lng,notti,link){
         cash:`\nEm alternativa, poderá pagá-la em dinheiro no dia seguinte ao check-in com o pessoal presente.`},
     de:{base:`Die Zahlung für das Zimmer wurde bereits über den Buchungskanal abgewickelt. 😊\nHier ist der Link zur Zahlung der Kurtaxe, die direkt an die Unterkunft entrichtet wird:\n👉 ${link}`,
         cash:`\nAlternativ können Sie diese am Tag nach dem Check-in bar beim anwesenden Personal bezahlen.`},
+    zh:{base:`房费已通过预订平台支付完毕。😊\n以下是城市住宿税的支付链接，该税款需直接支付给住宿方：\n👉 ${link}`,
+        cash:`\n或者，您也可以在入住次日向现场工作人员以现金支付。`},
   };
   const t=T[lng]||T.en;
   return t.base+(notti>=2?t.cash:"");
@@ -797,6 +800,34 @@ let taxStore={};
 let msgOspite={};
 let ospiteCur=null;
 let taxCurrent=null;
+let taxMode="tassa", taxLinkCur="", taxDovuto=null, taxLngCur=null;
+const SUBJ_TASSA={it:"InternoUno — Tassa di soggiorno",en:"InternoUno — Tourist tax",es:"InternoUno — Tasa turística",fr:"InternoUno — Taxe de séjour",de:"InternoUno — Kurtaxe",pt:"InternoUno — Taxa turística",zh:"InternoUno — 城市住宿税"};
+const SUBJ_CAMERA={it:"InternoUno — Pagamento prenotazione",en:"InternoUno — Booking payment",es:"InternoUno — Pago de la reserva",fr:"InternoUno — Paiement de la réservation",de:"InternoUno — Zahlung der Buchung",pt:"InternoUno — Pagamento da reserva",zh:"InternoUno — 预订付款"};
+function cambiaLinguaTassa(l){ taxLngCur=l; disegnaTassa(); }
+function disegnaTassa(){
+  const d=taxStore[taxCurrent]; if(!d||!taxLinkCur) return;
+  const lng=taxLngCur||d.lng;
+  const intero=taxMode==="intera";
+  const testo=intero?msgCamera(lng,taxLinkCur,taxDovuto):msgTassa(d.nome,lng,d.notti,taxLinkCur);
+  const nota=intero?("🏠 Intera camera"+(taxDovuto!=null?" — €"+taxDovuto:"")):(d.notti>=2?"2+ notti: incluso il pagamento in contanti":"1 notte: solo link, senza contanti");
+  let langBtns='<div class="lang-row">';
+  LINGUE_SEL.forEach(([code,label])=>{ langBtns+=`<button class="lang-btn${code===lng?' active':''}" onclick="cambiaLinguaTassa('${code}')">${label}</button>`; });
+  langBtns+='</div>';
+  const wa=d.phone?`<a class="wa-btn" href="whatsapp://send?phone=${d.phone.replace(/\s/g,"").replace("+","")}&text=${encodeURIComponent(testo)}" onclick="setTimeout(chiudiTassa,300)">${waIcon}WhatsApp</a>`:"";
+  const haEmail=d.email && d.email.indexOf("@")>0;
+  const subj=encodeURIComponent((intero?SUBJ_CAMERA:SUBJ_TASSA)[lng]||(intero?SUBJ_CAMERA:SUBJ_TASSA).en);
+  const mail=haEmail?`<a class="m-email" href="mailto:${d.email}?subject=${subj}&body=${encodeURIComponent(testo)}">✉️ Email</a>`:`<button class="m-email disabled" disabled>✉️ No email</button>`;
+  document.getElementById("taxResult").innerHTML=`<div class="copy-note">${nota}</div>
+    ${langBtns}
+    <div class="msg-box" style="margin:12px 0 14px"><button class="copy-btn" id="taxCopyBtn">Copia</button>${testo.replace(/</g,"&lt;")}</div>
+    <div class="modal-actions">${wa}${mail}</div>`;
+  document.getElementById("taxCopyBtn").onclick=function(){
+    navigator.clipboard.writeText(testo).then(()=>{
+      this.textContent="Copiato ✓"; this.classList.add("done");
+      setTimeout(()=>{this.textContent="Copia";this.classList.remove("done");},2000);
+    });
+  };
+}
 
 // ====== TASSA: generazione del link su richiesta (03/09/2026) ======
 // Il chip grigio lancia la creazione sul Mac tramite il worker: dura ~40s (apre Amenitiz
@@ -1161,7 +1192,7 @@ async function recuperaNumero(i, checkin){
 function apriTassa(i){
   taxCurrent=i;
   document.getElementById("taxLink").value="";
-  document.getElementById("taxResult").innerHTML="";
+  document.getElementById("taxResult").innerHTML=""; taxLinkCur=""; taxLngCur=null;
   document.getElementById("taxModal").classList.add("show");
   const d=taxStore[i];
   if(d&&d.link){ document.getElementById("taxLink").value=d.link; generaTassa(); return; }   // link gia' preparato di notte
@@ -1179,12 +1210,8 @@ async function generaIntera(){
     const j=await r.json();
     if(j&&j.link){
       document.getElementById("taxLink").value=j.link;
-      const testo=msgCamera(d.lng,j.link,j.dovuto);
-      const res=document.getElementById("taxResult");
-      const wa=d.phone?`<a class="wa-btn" style="margin-top:10px" href="whatsapp://send?phone=${d.phone.replace(/\s/g,"").replace("+","")}&text=${encodeURIComponent(testo)}" onclick="setTimeout(chiudiTassa,300)">${waIcon}Invia su WhatsApp</a>`:"";
-      res.innerHTML=`<div class="copy-note">🏠 Intera camera${j.dovuto!=null?" — €"+j.dovuto:""}</div>
-        <div class="msg-box"><button class="copy-btn" id="taxCopyBtn">Copia</button>${testo.replace(/</g,"&lt;")}</div>${wa}`;
-      document.getElementById("taxCopyBtn").onclick=function(){navigator.clipboard.writeText(testo).then(()=>{this.textContent="Copiato ✓";this.classList.add("done");setTimeout(()=>{this.textContent="Copia";this.classList.remove("done");},2000);});};
+      taxMode="intera"; taxLinkCur=j.link; taxDovuto=(j.dovuto!=null?j.dovuto:null); taxLngCur=d.lng;
+      disegnaTassa();
     } else alert("Link intera camera non creato: "+((j&&(j.esito||j.errore))||"errore"));
   }catch(e){ alert("Errore: "+e.message); }
   btn.disabled=false; btn.textContent=t;
@@ -1192,24 +1219,9 @@ async function generaIntera(){
 function generaTassa(){
   const link=document.getElementById("taxLink").value.trim();
   if(!link){document.getElementById("taxLink").focus();return;}
-  const d=taxStore[taxCurrent];
-  const testo=msgTassa(d.nome,d.lng,d.notti,link);
-  const res=document.getElementById("taxResult");
-  const nota=d.notti>=2?"2+ notti: incluso il pagamento in contanti":"1 notte: solo link, senza contanti";
-  let waBtn="";
-  if(d.phone){
-    const waLink=`whatsapp://send?phone=${d.phone.replace(/\s/g,"").replace("+","")}&text=${encodeURIComponent(testo)}`;
-    waBtn=`<a class="wa-btn" style="margin-top:10px" href="${waLink}" onclick="setTimeout(chiudiTassa,300)">${waIcon}Invia su WhatsApp</a>`;
-  }
-  res.innerHTML=`<div class="copy-note">${nota}</div>
-    <div class="msg-box"><button class="copy-btn" id="taxCopyBtn">Copia</button>${testo.replace(/</g,"&lt;")}</div>
-    ${waBtn}`;
-  document.getElementById("taxCopyBtn").onclick=function(){
-    navigator.clipboard.writeText(testo).then(()=>{
-      this.textContent="Copiato ✓"; this.classList.add("done");
-      setTimeout(()=>{this.textContent="Copia";this.classList.remove("done");},2000);
-    });
-  };
+  const d=taxStore[taxCurrent]; if(!d) return;
+  taxMode="tassa"; taxLinkCur=link; taxDovuto=null; taxLngCur=d.lng;
+  disegnaTassa();
 }
 
 function badgeCanale(source){
@@ -1485,7 +1497,7 @@ function render(iso,bookings,isRicerca){
         </div>`;
     }
     // salva dati per le modali
-    taxStore[i]={nome,lng,notti,phone:numeroValido(phone)?phone:"", link:(b.tassa&&b.tassa.link)||"", esito:(b.tassa&&b.tassa.esito)||"", bookingId:b.booking_id};
+    taxStore[i]={nome,lng,notti,phone:numeroValido(phone)?phone:"", link:(b.tassa&&b.tassa.link)||"", esito:(b.tassa&&b.tassa.esito)||"", bookingId:b.booking_id, email:(booker.email||"")};
     msgFull[i]={testo:testoCopia, email:(booker.email||""), nome, lng, waLink, testiPerLingua, phone:(numeroValido(phone)?phone:""), rebuild:rebuildTesti};
     infoStore[i]={
       nome:`${nome} ${cognome}`.trim(), struttura, room:roomName, roomLabel,
