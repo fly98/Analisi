@@ -4283,7 +4283,8 @@ async function searchOneAccount(env, account, q, maxResults) {
         const max = Math.max(1, Math.min(25, parseInt(url.searchParams.get("max") || "12", 10) || 12));
         let r = null;
         for (let t = 0; t < 2; t++) {
-          r = await fetch(`${MAC_WA_RECENTI_URL}?giorni=${giorni}&max=${max}`, {
+          // Passa dalla rotta già in funzione (numero finto 000000000 = "leggi le recenti"): nessun riavvio del Mac.
+          r = await fetch(`${MAC_WA_URL}?numero=000000000&giorni=${giorni}`, {
             headers: { "X-Trigger-Key": env.TRIGGER_KEY || "" }, signal: AbortSignal.timeout(250000)
           }).catch(e => ({ ok: false, status: 0, text: async () => String(e) }));
           if (r.status !== 423) break;
