@@ -1423,6 +1423,8 @@ function render(iso,bookings,isRicerca){
     const msgChip=msgAttivo?`<span class="msg-chip solo-icona${mHa?" set":""}" title="${mHa?("Messaggi su "+(/airbnb/i.test(source||"")?"Airbnb":"Booking")+": "+mRec.messaggi.length):"Messaggi dell'ospite su "+(/airbnb/i.test(source||"")?"Airbnb":"Booking")}" onclick="${apri('ota')}">💬</span>`:"";
     const waChip=telOk?`<span class="wa-chip solo-icona${waHa?" set":""}" title="${waHa?("Messaggi WhatsApp: "+mRec.whatsapp.length):("Leggi la chat WhatsApp di "+telWa)}" onclick="${apri('wa')}">📱</span>`
       :`<span class="wa-chip solo-icona" style="opacity:.4;cursor:default" title="Nessun numero di telefono su questa prenotazione">📱</span>`;
+    // storico completo della conversazione (pagina chat.html), tutto tradotto in italiano
+    const chatChip=`<a class="wa-chip solo-icona" style="text-decoration:none" title="Storico chat dell'ospite, tradotto in italiano" href="chat.html?b=${b.booking_id}${telWa?("&tel="+encodeURIComponent(telWa)):""}">🗂</a>`;
     msgOspite[i]=mRec;
     schedeGiorno.push({ i, bookingId:b.booking_id, source, iso:isoCard, tel:telWa, ota:msgAttivo, nome:(nome+' '+cognome).trim() });
     const restoBadge=restoDaPagare?`<span class="resto-alert" title="Oltre alla tassa risulta da pagare anche il resto della prenotazione: verifica su Amenitiz">❗️ resto da pagare</span>`:"";
@@ -1517,7 +1519,7 @@ function render(iso,bookings,isRicerca){
         <div style="display:flex;gap:5px">${roomBadgesHtml}</div>
       </div>
       ${altriOspiti.length?`<div class="altri-ospiti">👤 ${altriOspiti.join(" · ")}</div>`:""}
-      <div class="meta"><span>${dataCompatta(isoCard)} → ${dataCompatta(b.checkout||"")}</span><span>${b.adults||""}${b.children?(" +"+b.children+"🧒"):""}👤</span>${badgeCanale(source)}</div><div class="meta"><span class="orario-chip${orarioSalvato?" set":""}" onclick="apriOrarioModal(${i},${b.booking_id},'${isoCard}')">${orarioSalvato?"🕐 "+orarioSalvato:"🕐 orario"}</span><span class="nota-chip${notaSalvata?" set":""}" onclick="apriNotaModal(${i},${b.booking_id},'${isoCard}')">${notaSalvata?"📝 note":"📝 note"}</span><span class="tassa-chip${tassaCls}" title="${tassaTitle}" onclick="${tassaPronta||tassaPagata?`apriTassa(${i})`:`generaLink(${i},${b.booking_id},false)`}">${tassaTxt}</span>${contantiBadge}${msgChip}${waChip}${restoBadge}</div>
+      <div class="meta"><span>${dataCompatta(isoCard)} → ${dataCompatta(b.checkout||"")}</span><span>${b.adults||""}${b.children?(" +"+b.children+"🧒"):""}👤</span>${badgeCanale(source)}</div><div class="meta"><span class="orario-chip${orarioSalvato?" set":""}" onclick="apriOrarioModal(${i},${b.booking_id},'${isoCard}')">${orarioSalvato?"🕐 "+orarioSalvato:"🕐 orario"}</span><span class="nota-chip${notaSalvata?" set":""}" onclick="apriNotaModal(${i},${b.booking_id},'${isoCard}')">${notaSalvata?"📝 note":"📝 note"}</span><span class="tassa-chip${tassaCls}" title="${tassaTitle}" onclick="${tassaPronta||tassaPagata?`apriTassa(${i})`:`generaLink(${i},${b.booking_id},false)`}">${tassaTxt}</span>${contantiBadge}${msgChip}${waChip}${chatChip}${restoBadge}</div>
       ${action}
 `;
     if(notaSalvata){
