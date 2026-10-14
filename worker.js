@@ -1676,6 +1676,35 @@ function chatStmtNome(env, tel, nome) {
   ).bind(t9, utile ? n.slice(0, 80) : "", Date.now());
 }
 
+// Numero completo con prefisso (es. 393472719250): la chiave della chat e' solo di 9 cifre e
+// mostrata da sola sembra un numero straniero.
+function chatStmtContatto(env, tel) {
+  const c = String(tel || "").replace(/\D/g, "");
+  if (!env.CHAT || c.length < 10 || c.length > 15) return null;
+  return env.CHAT.prepare("INSERT INTO contatti (tel,completo) VALUES (?1,?2) ON CONFLICT(tel) DO UPDATE SET completo=excluded.completo")
+    .bind(c.slice(-9), c);
+}
+// Chiama la scorciatoia del Mac (whatsapp-leggi.js con numero speciale che lancia whatsapp-recenti.js).
+// modo "1" = solo elenco · "2" = solo le chat con questi titoli. Riprova se il Mac e' occupato.
+function chatCodiceMac(modo, titoli) {
+  if (modo === "1") return "000001000";
+  // ogni carattere = 5 cifre (unita' UTF-16, come le legge il Mac); "99999" separa i titoli
+  return "000002" + (titoli || []).map(t => { let o = ""; for (let i = 0; i < t.length; i++) o += String(t.charCodeAt(i)).padStart(5, "0"); return o; }).join("99999");
+}
+async function chatMac(env, numero, giorni) {
+  let r = null;
+  for (let t = 0; t < 2; t++) {
+    r = await fetch(`${MAC_WA_URL}?numero=${numero}&giorni=${giorni}`, {
+      headers: { "X-Trigger-Key": env.TRIGGER_KEY || "" }, signal: AbortSignal.timeout(210000)
+    }).catch(e => ({ ok: false, status: 0, text: async () => String(e) }));
+    if (r.status !== 423) break;
+    await new Promise(res => setTimeout(res, 12000));
+  }
+  const txt = await r.text();
+  let j; try { j = JSON.parse(txt); } catch (e) { j = { esito: "errore", errore: txt.slice(0, 200) }; }
+  return { j, status: r.status };
+}
+
 // Traduce in italiano i messaggi non ancora tradotti di una conversazione (lingua IS NULL).
 // Si fa quando la chat viene aperta, non durante il giro notturno: li' ogni chiamata esterna
 // pesa sul tetto di 50 per esecuzione. Se l'API non risponde i messaggi restano da tradurre
@@ -1766,7 +1795,7 @@ async function whatsappUna(env, id, tel, giorni, checkin) {
     if (Array.isArray(j.messaggi_tutti)) {
       const sv = await chatSalva(env, { bookingId: id, tel, canale: "whatsapp", messaggi: j.messaggi_tutti });
       rec.chat_nuovi = sv.nuovi;
-      const stN = chatStmtNome(env, tel, j.etichetta_contatto); if (stN) await env.CHAT.batch([stN]);
+      const stN = [chatStmtNome(env, tel, j.etichetta_contatto), chatStmtContatto(env, tel)].filter(Boolean); if (stN.length) await env.CHAT.batch(stN);
     }
   } catch (e) { rec.chat_errore = String(e && e.message || e).slice(0, 120); }
 
@@ -4230,7 +4259,8 @@ async function searchOneAccount(env, account, q, maxResults) {
           "SELECT COUNT(*) n FROM messaggi WHERE lingua IS NULL AND ((?1<>'' AND tel=?1) OR (?2<>'' AND booking_id=?2))"
         ).bind(t9, bid).first();
         const cv = t9 ? await env.CHAT.prepare("SELECT nome FROM conversazioni WHERE tel=?1").bind(t9).first().catch(() => null) : null;
-        return jsonRes({ bookingId: bid, tel: t9, nome: (cv && cv.nome) || "", tradotti, ancora_da_tradurre: (da_tradurre && da_tradurre.n) || 0,
+        const cc = t9 ? await env.CHAT.prepare("SELECT completo FROM contatti WHERE tel=?1").bind(t9).first().catch(() => null) : null;
+        return jsonRes({ bookingId: bid, tel: t9, tel_completo: (cc && cc.completo) || "", nome: (cv && cv.nome) || "", tradotti, ancora_da_tradurre: (da_tradurre && da_tradurre.n) || 0,
                          messaggi: (q && q.results) || [] });
       }
       if (action === "chatElenco") {
@@ -4241,10 +4271,11 @@ async function searchOneAccount(env, account, q, maxResults) {
         const q = await env.CHAT.prepare(
           `WITH x AS (SELECT *, COALESCE(NULLIF(tel,''), 'b' || booking_id) k FROM messaggi),
                 u AS (SELECT k, MAX(tel) tel, MAX(booking_id) booking_id, MAX(ts) ultimo, COUNT(*) n FROM x GROUP BY k)
-           SELECT u.k, u.tel, u.booking_id, u.ultimo, u.n, COALESCE(c.nome, '') nome,
+           SELECT u.k, u.tel, u.booking_id, u.ultimo, u.n, COALESCE(c.nome, '') nome, COALESCE(t.completo, '') tel_completo,
+             (SELECT COUNT(*) FROM x WHERE x.k = u.k AND x.lingua IS NULL) da_tradurre,
              (SELECT COALESCE(testo_it, testo) FROM x WHERE x.k = u.k ORDER BY ts DESC, id DESC LIMIT 1) anteprima,
              (SELECT dir FROM x WHERE x.k = u.k ORDER BY ts DESC, id DESC LIMIT 1) ultima_dir
-           FROM u LEFT JOIN conversazioni c ON c.tel = u.tel
+           FROM u LEFT JOIN conversazioni c ON c.tel = u.tel LEFT JOIN contatti t ON t.tel = u.tel
            WHERE (?1 = '' OR u.ultimo >= ?1) ORDER BY u.ultimo DESC LIMIT 200`).bind(da).all();
         return jsonRes({ giorni: g, conversazioni: (q && q.results) || [] });
       }
@@ -4269,7 +4300,7 @@ async function searchOneAccount(env, account, q, maxResults) {
         if (Array.isArray(j.messaggi_tutti)) {
           const sv = await chatSalva(env, { bookingId: "", tel, canale: "whatsapp", messaggi: j.messaggi_tutti });
           nuovi = sv.nuovi;
-          const st = chatStmtNome(env, tel, j.etichetta_contatto); if (st) await env.CHAT.batch([st]).catch(() => {});
+          const st = [chatStmtNome(env, tel, j.etichetta_contatto), chatStmtContatto(env, tel)].filter(Boolean); if (st.length) await env.CHAT.batch(st).catch(() => {});
         }
         const ok = ["messaggi_letti", "nessun_messaggio_in_arrivo"].includes(j.esito);
         return jsonRes({ esito: j.esito || "errore", errore: j.errore || "", nuovi, messaggi: (j.messaggi_tutti || []).length,
@@ -4300,7 +4331,7 @@ async function searchOneAccount(env, account, q, maxResults) {
             try {
               const sv = await chatSalva(env, { bookingId: "", tel: c.tel, canale: "whatsapp", messaggi: c.messaggi_tutti });
               e.nuovi = sv.nuovi;
-              const st = chatStmtNome(env, c.tel, c.nome || c.etichetta); if (st) nomi.push(st);
+              const st = chatStmtNome(env, c.tel, c.nome || c.etichetta); if (st) nomi.push(st); const sc = chatStmtContatto(env, c.tel); if (sc) nomi.push(sc);
             } catch (err) { e.esito = "errore_salvataggio"; e.errore = String(err && err.message || err).slice(0, 120); }
           }
           esiti.push(e);
@@ -4308,6 +4339,74 @@ async function searchOneAccount(env, account, q, maxResults) {
         if (nomi.length) await env.CHAT.batch(nomi).catch(() => {});
         return jsonRes({ esito: "ok", giorni, durata_s: j.durata_s || null, troncato: !!j.troncato,
                          chat: esiti, saltate: j.saltate || [], righe_viste: j.righe_viste || 0 });
+      }
+      if (action === "chatElencoWa") {
+        // Fase 1 dell'aggiornamento: il Mac legge SOLO l'elenco di WhatsApp (nessuna chat aperta).
+        // Si confronta ogni riga con com'era l'ultima volta che e' stata letta: invariata = si salta.
+        if (!env.CHAT) return jsonRes({ error: "archivio chat non ancora attivo" }, 503);
+        const giorni = Math.max(1, Math.min(30, parseInt(url.searchParams.get("giorni") || "3", 10) || 3));
+        const forza = url.searchParams.get("tutte") === "1";
+        const t0 = Date.now();
+        const { j, status } = await chatMac(env, chatCodiceMac("1"), giorni);
+        if (j.esito !== "elenco_letto") return jsonRes({ esito: j.esito || "errore", errore: j.errore || j.error || "lettura elenco non riuscita", mac: status }, 502);
+        const righe = Array.isArray(j.elenco) ? j.elenco : [];
+        const daLeggere = new Set(j.da_leggere || []);
+        const noti = {};
+        const q = await env.CHAT.prepare("SELECT titolo, firma FROM lettura_wa").all();
+        for (const r of ((q && q.results) || [])) noti[r.titolo] = r.firma;
+        const cambiate = [], stmts = [];
+        for (const r of righe) {
+          if (!daLeggere.has(r.titolo)) continue;
+          const firma = `${r.quando || ""}|${r.anteprima || ""}`.slice(0, 300);
+          if (forza || noti[r.titolo] === undefined || noti[r.titolo] !== firma) cambiate.push(r.titolo);
+          stmts.push(env.CHAT.prepare(
+            "INSERT INTO lettura_wa (titolo,firma,firma_nuova,letta_il) VALUES (?1,'',?2,0) ON CONFLICT(titolo) DO UPDATE SET firma_nuova=excluded.firma_nuova"
+          ).bind(r.titolo.slice(0, 120), firma));
+        }
+        for (let i = 0; i < stmts.length; i += 90) await env.CHAT.batch(stmts.slice(i, i + 90));
+        return jsonRes({ esito: "ok", giorni, nell_elenco: daLeggere.size, invariate: daLeggere.size - cambiate.length,
+                         da_leggere: cambiate, durata_s: Math.round((Date.now() - t0) / 1000), saltate: j.saltate || [] });
+      }
+      if (action === "chatLeggiTitoli") {
+        // Fase 2: il Mac apre SOLO le chat indicate (pochi titoli per volta) e se ne salvano i messaggi.
+        if (!env.CHAT) return jsonRes({ error: "archivio chat non ancora attivo" }, 503);
+        const giorni = Math.max(1, Math.min(30, parseInt(url.searchParams.get("giorni") || "3", 10) || 3));
+        let titoli = [];
+        try { titoli = JSON.parse(url.searchParams.get("t") || "[]"); } catch (e) {}
+        titoli = (Array.isArray(titoli) ? titoli : []).map(x => String(x)).filter(Boolean).slice(0, 6);
+        if (!titoli.length) return jsonRes({ error: "nessun titolo" }, 400);
+        const t0 = Date.now();
+        const { j, status } = await chatMac(env, chatCodiceMac("2", titoli), giorni);
+        if (j.esito !== "ok") return jsonRes({ esito: j.esito || "errore", errore: j.errore || j.error || "lettura non riuscita", mac: status }, 502);
+        const esiti = [], altri = [];
+        for (const c of (Array.isArray(j.chat) ? j.chat : [])) {
+          const e = { nome: c.nome || "", tel: chatTel(c.tel), esito: c.esito || "", messaggi: (c.messaggi_tutti || []).length, nuovi: 0 };
+          if (e.tel && Array.isArray(c.messaggi_tutti)) {
+            try {
+              const sv = await chatSalva(env, { bookingId: "", tel: c.tel, canale: "whatsapp", messaggi: c.messaggi_tutti });
+              e.nuovi = sv.nuovi;
+              const st = chatStmtNome(env, c.tel, c.nome || c.etichetta); if (st) altri.push(st);
+              const sc = chatStmtContatto(env, c.tel); if (sc) altri.push(sc);
+              // letta davvero: la riga dell'elenco vista in fase 1 diventa quella di riferimento
+              if (c.esito === "letta") altri.push(env.CHAT.prepare("UPDATE lettura_wa SET firma=firma_nuova, letta_il=?2 WHERE titolo=?1").bind(String(c.nome || "").slice(0, 120), Date.now()));
+            } catch (err) { e.esito = "errore_salvataggio"; e.errore = String(err && err.message || err).slice(0, 120); }
+          }
+          esiti.push(e);
+        }
+        if (altri.length) await env.CHAT.batch(altri).catch(() => {});
+        return jsonRes({ esito: "ok", chat: esiti, saltate: j.saltate || [], troncato: !!j.troncato, durata_s: Math.round((Date.now() - t0) / 1000) });
+      }
+      if (action === "chatTraduci") {
+        // Fase 3: traduce i messaggi in attesa di UNA conversazione (la pagina le chiede una alla volta).
+        if (!env.CHAT) return jsonRes({ error: "archivio chat non ancora attivo" }, 503);
+        const bid = (url.searchParams.get("bookingId") || "").trim();
+        const t9 = chatTel(url.searchParams.get("tel") || "");
+        if (!bid && !t9) return jsonRes({ error: "serve bookingId o tel" }, 400);
+        const tradotti = await chatTraduciPendenti(env, t9, bid).catch(() => 0);
+        const r = await env.CHAT.prepare(
+          "SELECT COUNT(*) n FROM messaggi WHERE lingua IS NULL AND ((?1<>'' AND tel=?1) OR (?2<>'' AND booking_id=?2))"
+        ).bind(t9, bid).first();
+        return jsonRes({ tradotti, ancora: (r && r.n) || 0 });
       }
       if (action === "statoGiro") {
         // l'app lo chiede all'avvio per sapere se il giro notturno e' andato a buon fine

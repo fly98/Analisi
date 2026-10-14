@@ -22,3 +22,18 @@ CREATE TABLE IF NOT EXISTS conversazioni (
   nome TEXT NOT NULL DEFAULT '',
   letta_il INTEGER NOT NULL DEFAULT 0
 );
+
+-- numero completo (con prefisso) di ogni conversazione: la chiave interna e' solo di 9 cifre
+CREATE TABLE IF NOT EXISTS contatti (
+  tel TEXT PRIMARY KEY,
+  completo TEXT NOT NULL DEFAULT ''
+);
+
+-- aggiornamento incrementale: com'era la riga nell'elenco di WhatsApp l'ultima volta che la chat e' stata letta.
+-- firma_nuova viene vista nell'elenco, firma diventa quella buona solo quando la chat e' stata letta davvero.
+CREATE TABLE IF NOT EXISTS lettura_wa (
+  titolo TEXT PRIMARY KEY,
+  firma TEXT NOT NULL DEFAULT '',
+  firma_nuova TEXT NOT NULL DEFAULT '',
+  letta_il INTEGER NOT NULL DEFAULT 0
+);

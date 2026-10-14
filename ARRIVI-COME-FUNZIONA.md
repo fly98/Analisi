@@ -219,3 +219,13 @@ della lingua originale (tocco = testo originale).
   `whatsapp-leggi.js.bak-20261015-0030`. `whatsapp-leggi.js` restituisce ora anche `messaggi_tutti`.
 - **Non ancora fatto**: scrivere dalla pagina (oggi si risponde da WhatsApp/Arrivi), importare lo
   storico già in KV `msg_<id>`, conservazione limitata nel tempo e privacy policy.
+
+### ChatI1 — aggiornamento incrementale (15/10/2026, notte)
+Il tasto ⟳ lavora a 3 fasi e mostra fase e tempo stimato: **1)** il Mac legge solo l'elenco di WhatsApp
+(`chatElencoWa`); ogni riga (ora/giorno + anteprima) è confrontata con l'ultima lettura (tabella `lettura_wa`):
+le chat invariate si saltano. **2)** il Mac apre solo le chat cambiate, a lotti di 4 (`chatLeggiTitoli`).
+**3)** traduzione dei messaggi in attesa, una chat alla volta (`chatTraduci`); la stessa traduzione parte anche
+all'apertura della pagina. Il primo giro dopo la pubblicazione rilegge tutto (dedup in D1, nessun doppione).
+Numero completo con prefisso in tabella `contatti` (la chiave delle chat resta di 9 cifre).
+Il Mac è raggiunto senza riavvii: `whatsapp-leggi.js` con numero speciale `00000` + modo (1 elenco, 2 titoli
+codificati a 5 cifre per carattere, `99999` separatore) lancia `whatsapp-recenti.js` (`--solo-elenco`, `--titoli`).

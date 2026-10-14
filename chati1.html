@@ -55,6 +55,9 @@
   .b .orig{display:none;margin-top:5px;padding-top:5px;border-top:1px dashed #00000026;font-size:13.5px;color:var(--muted);}
   .b.apri .orig{display:block;}
   .b .cn{font-size:10.5px;font-weight:700;color:var(--accent);margin-right:auto;}
+  .prog{padding:8px 14px 10px;background:var(--paper);border-bottom:1px solid var(--line);font-size:13px;}
+  .prog .pt{color:var(--ink);line-height:1.35;} .prog .ps{color:var(--muted);font-size:12px;margin-top:2px;}
+  .prog .pb{height:5px;border-radius:3px;background:var(--sel);margin-top:6px;overflow:hidden;} .prog .pb i{display:block;height:100%;width:0;background:var(--accent);transition:width .8s linear;}
   .stato{font-size:13px;text-align:center;color:var(--muted);padding:6px 12px;min-height:30px;background:var(--paper);border-top:1px solid var(--line);}
   .stato.ko{color:#c0392b;} .stato.lavoro{color:var(--accent);}
   .piede{display:flex;gap:8px;justify-content:center;padding:8px 12px calc(8px + env(safe-area-inset-bottom));background:var(--paper);border-top:1px solid var(--line);}
@@ -95,6 +98,7 @@
     <div class="barra-lista">Ultimi
       <select id="selGiorni" onchange="cambiaGiorni()"><option value="1">1 giorno</option><option value="3" selected>3 giorni</option><option value="7">7 giorni</option><option value="30">30 giorni</option><option value="0">tutte</option></select>
       <span id="contaConv"></span></div>
+    <div class="prog" id="prog" style="display:none"><div class="pt" id="progT"></div><div class="ps" id="progS"></div><div class="pb"><i id="progB"></i></div></div>
     <div class="stato" id="statoLista"></div>
     <div class="scorri" id="elenco"></div>
   </section>
@@ -148,7 +152,15 @@ const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",
 const t9=t=>{const c=String(t||"").replace(/\D/g,"");return c.length>=9?c.slice(-9):"";};
 function stato(id,t,cls){const e=document.getElementById(id);e.textContent=t||"";e.className="stato "+(cls||"");}
 function vista(v){document.body.classList.remove("vl","vc","vd");document.body.classList.add("v"+v);if(v==="d")document.body.classList.add("vc");}
-function nomeConv(c){return c.nome||(c.tel?"+"+c.tel:(c.booking_id?"Prenotazione "+c.booking_id:"?"));}
+function telCompleto(c){
+  if(!c||!c.tel)return"";
+  if(c.tel_completo)return c.tel_completo;
+  const l=MAPTEL[t9(c.tel)];                       // numero completo dalla prenotazione, se c'e'
+  if(l&&l.length){const bk=l[0].booker||{};const d=String(bk.phone||bk.mobile||"").replace(/\D/g,"");if(d.length>=10)return d.replace(/^00/,"");}
+  return"";
+}
+function telMostra(c){const f=telCompleto(c);return f?"+"+f:(c&&c.tel?"…"+c.tel:"");}
+function nomeConv(c){return c.nome||(c.tel?telMostra(c):(c.booking_id?"Prenotazione "+c.booking_id:"?"));}
 function iniziali(c){const n=c.nome||"";const m=n.match(/[A-Za-zÀ-ÿ]/g);return m?(m[0]+(n.split(/\s+/)[1]||"").charAt(0)).toUpperCase():"#";}
 function chiaveConv(c){return c.tel||("b"+c.booking_id);}
 function quandoBreve(ts){
@@ -175,7 +187,7 @@ function disegnaElenco(){
   document.getElementById("contaConv").textContent=CONV.length?CONV.length+" conversazioni":"";
   const el=document.getElementById("elenco");
   if(!CONV.length){
-    el.innerHTML='<div class="vuoto">Nessuna conversazione in questo periodo.<br><br>Premi ⟳ in alto per leggere le chat recenti da WhatsApp (serve il Mac acceso, circa 1-3 minuti).</div>';
+    el.innerHTML='<div class="vuoto">Nessuna conversazione in questo periodo.<br><br>Premi ⟳ in alto per leggere le chat recenti da WhatsApp (serve il Mac acceso, il primo giro è il più lungo, poi legge solo le novità).</div>';
     return;
   }
   el.innerHTML=CONV.map(c=>{
@@ -195,7 +207,7 @@ async function apri(k){
   const av=document.getElementById("avTesta"); av.style.display="flex"; av.textContent=iniziali(c);
   document.getElementById("piede").style.display="flex";
   const w=document.getElementById("bWa");
-  if(c.tel){w.href="whatsapp://send?phone="+c.tel; w.style.display="";} else w.style.display="none";
+  {const f=telCompleto(c); if(f){w.href="whatsapp://send?phone="+f; w.style.display="";} else w.style.display="none";}
   document.getElementById("bAggChat").style.display=c.tel?"":"none";
   try{history.replaceState(null,"","chati1.html?"+(c.tel?"tel="+c.tel:"b="+c.booking_id));}catch(e){}
   disegnaDettagli(c);
@@ -208,6 +220,7 @@ async function caricaMessaggi(c,tentativo){
     const d=await api("action=chat&"+q);
     if(!SEL||chiaveConv(SEL)!==chiaveConv(c))return;   // nel frattempo ne hai aperta un'altra
     if(d.error){stato("stato",d.error,"ko");return;}
+    if(d.tel_completo&&!c.tel_completo){c.tel_completo=d.tel_completo;document.getElementById("titolo").textContent=nomeConv(c);disegnaElenco();disegnaDettagli(c);const w=document.getElementById("bWa");w.href="whatsapp://send?phone="+d.tel_completo;w.style.display="";}
     if(d.nome&&!c.nome){c.nome=d.nome;document.getElementById("titolo").textContent=nomeConv(c);disegnaElenco();}
     disegnaMessaggi(d.messaggi||[]);
     if(d.ancora_da_tradurre>0&&tentativo<5){stato("stato",`Traduco… ancora ${d.ancora_da_tradurre} messaggi`,"lavoro");setTimeout(()=>caricaMessaggi(c,tentativo+1),600);}
@@ -255,7 +268,7 @@ async function disegnaDettagli(c){
   const lista=c.tel?(MAPTEL[t9(c.tel)]||[]):[];
   if(!lista.length){
     bt.style.display="none";
-    det.innerHTML=`<div class="nome">${esc(nomeConv(c))}</div><div class="sub">${c.tel?"+"+esc(c.tel):""}</div>
+    det.innerHTML=`<div class="nome">${esc(nomeConv(c))}</div><div class="sub">${esc(telMostra(c))}</div>
       <div class="sez"><div class="lab">Prenotazione</div>${PRENOTAZIONI===null?"Cerco in Arrivi…":"Questo numero non risulta in nessuna prenotazione recente di Arrivi."}</div>`;
     return;
   }
@@ -295,27 +308,79 @@ async function aggiornaChat(){
   }catch(e){stato("stato",e.message,"ko");}
   b.disabled=false; b.textContent="Aggiorna questa chat";
 }
-async function aggiornaElenco(){
-  const b=document.getElementById("bAggElenco"); b.disabled=true;
-  const g=parseInt(document.getElementById("selGiorni").value,10)||3;
-  stato("statoLista","Leggo le chat recenti dal Mac… da 1 a 3 minuti, non chiudere la pagina.","lavoro");
-  try{
-    const d=await api("action=chatRecenti&giorni="+Math.min(g||30,30));
-    if(d.esito!=="ok"){stato("statoLista","Lettura non riuscita: "+(d.errore||d.error||d.esito),"ko");}
-    else{
-      const nuovi=(d.chat||[]).reduce((n,x)=>n+(x.nuovi||0),0);
-      const prob=(d.chat||[]).filter(x=>x.esito==="numero_non_identificato"||x.esito==="errore"||x.esito==="messaggi_da_sincronizzare").length;
-      stato("statoLista",`Lette ${(d.chat||[]).length} chat, ${nuovi} messaggi nuovi.${d.troncato?" Lettura interrotta per tempo: ripremi per le altre.":""}${prob?` ${prob} da controllare.`:""}`,prob||d.troncato?"ko":"");
-      await caricaElenco();
-      if(SEL){const k=chiaveConv(SEL);const c=CONV.find(x=>chiaveConv(x)===k); if(c)await caricaMessaggi(c,0);}
+// ---------- aggiornamento incrementale a 3 fasi, con tempi ----------
+let AGG=false, TICK=null, PROG={t0:0,resto:0,inizio:0};
+function prog(testo,resto){            // resto = secondi stimati da qui alla fine di TUTTO l'aggiornamento
+  const box=document.getElementById("prog"); box.style.display="";
+  document.getElementById("progT").textContent=testo;
+  PROG.inizio=Date.now(); PROG.resto=resto;
+  if(!PROG.t0)PROG.t0=Date.now();
+  if(!TICK)TICK=setInterval(tickProg,1000); tickProg();
+}
+function tickProg(){
+  const tot=Math.round((Date.now()-PROG.t0)/1000), passo=Math.round((Date.now()-PROG.inizio)/1000);
+  const resto=Math.max(0,PROG.resto-passo);
+  document.getElementById("progS").textContent=`${tot} s trascorsi · `+(resto>0?`ancora circa ${resto<60?resto+" s":Math.ceil(resto/60)+" min"}`:"ancora un attimo…");
+  document.getElementById("progB").style.width=Math.min(97,Math.round(100*tot/(tot+resto+1)))+"%";
+}
+function fineProg(){
+  if(TICK){clearInterval(TICK);TICK=null;} PROG.t0=0;
+  document.getElementById("prog").style.display="none";
+}
+async function traduciElenco(conProg){
+  const dt=CONV.filter(c=>c.da_tradurre>0&&(c.tel||c.booking_id));
+  let fatte=0;
+  for(const c of dt){
+    fatte++;
+    if(conProg)prog(`Fase 3 di 3 · traduco in italiano (${fatte} di ${dt.length}): ${nomeConv(c)}`,6*(dt.length-fatte+1));
+    else stato("statoLista",`Traduco in sottofondo… ${fatte} di ${dt.length}`,"lavoro");
+    const q=c.tel?"tel="+encodeURIComponent(c.tel):"bookingId="+encodeURIComponent(c.booking_id);
+    for(let t=0;t<6;t++){
+      const d=await api("action=chatTraduci&"+q).catch(()=>null);
+      if(!d||d.error||!d.ancora)break;
     }
-  }catch(e){stato("statoLista",e.message,"ko");}
-  b.disabled=false;
+  }
+  if(dt.length){await caricaElenco(); if(SEL){const c=CONV.find(x=>chiaveConv(x)===chiaveConv(SEL)); if(c)caricaMessaggi(c,0);}}
+  if(!conProg&&dt.length)stato("statoLista","");
+}
+async function aggiornaElenco(){
+  if(AGG)return; AGG=true;
+  const b=document.getElementById("bAggElenco"); b.disabled=true;
+  const g=Math.min(parseInt(document.getElementById("selGiorni").value,10)||3,30);
+  stato("statoLista","");
+  try{
+    // fase 1: solo l'elenco; il Mac non apre nessuna chat
+    prog("Fase 1 di 3 · controllo su WhatsApp quali chat hanno novità",45);
+    const e=await api("action=chatElencoWa&giorni="+g);
+    if(e.esito!=="ok")throw new Error("Lettura dell'elenco non riuscita: "+(e.errore||e.error||e.esito)+(e.esito==="profilo_occupato"?" (riprova tra un minuto)":""));
+    const daL=e.da_leggere||[]; let nuovi=0, prob=0, troncato=false, perse=0;
+    // fase 2: solo le chat cambiate, a lotti di 4
+    const LOTTO=4;
+    for(let i=0;i<daL.length;i+=LOTTO){
+      const lotto=daL.slice(i,i+LOTTO);
+      const restanti=daL.length-i;
+      const stima=Math.ceil(restanti/LOTTO)*15+restanti*6+20;       // avvio ~15 s a lotto + ~6 s a chat + traduzione
+      prog(`Fase 2 di 3 · leggo le chat con novità (${i+1}${lotto.length>1?"–"+(i+lotto.length):""} di ${daL.length})`,stima);
+      const d=await api("action=chatLeggiTitoli&giorni="+g+"&t="+encodeURIComponent(JSON.stringify(lotto)));
+      if(d.esito!=="ok")throw new Error("Lettura chat non riuscita: "+(d.errore||d.error||d.esito));
+      for(const x of (d.chat||[])){nuovi+=x.nuovi||0; if(x.esito!=="letta")prob++;}
+      perse+=lotto.length-(d.chat||[]).length; if(d.troncato)troncato=true;
+    }
+    await caricaElenco();
+    // fase 3: traduzione di quello che manca
+    await traduciElenco(true);
+    fineProg();
+    const base=daL.length?`${daL.length} chat con novità lette, ${nuovi} messaggi nuovi.`:`Nessuna novità: ${e.nell_elenco||0} chat già aggiornate.`;
+    stato("statoLista",base+(e.invariate&&daL.length?` ${e.invariate} invariate saltate.`:"")+(prob||perse||troncato?` ${prob+perse} da controllare${troncato?" (lettura interrotta per tempo: ripremi)":""}.`:""),prob||perse||troncato?"ko":"");
+    if(SEL){const k=chiaveConv(SEL);const c=CONV.find(x=>chiaveConv(x)===k); if(c)await caricaMessaggi(c,0);}
+  }catch(err){fineProg();stato("statoLista",err.message,"ko");}
+  b.disabled=false; AGG=false;
 }
 
 (async function avvio(){
   await caricaElenco();
   caricaPrenotazioni();   // in parallelo: non blocca l'elenco
+  traduciElenco(false);   // chat salvate ma mai aperte: le traduce subito, cosi' anche le anteprime sono in italiano
   const t=P.get("tel"), b=P.get("b");
   if(t||b){
     let c=CONV.find(x=>t?t9(x.tel)===t9(t):String(x.booking_id)===b);
