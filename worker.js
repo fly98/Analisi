@@ -1722,6 +1722,28 @@ async function chatMac(env, numero, giorni) {
   return { j, status: r.status };
 }
 
+// Riconosce a costo zero i messaggi chiaramente in italiano (o senza parole da tradurre): niente chiamata
+// all'API per quelli. Prudente di proposito: parole italiane inconfondibili, nessuna parola di altre lingue.
+// Nel dubbio risponde false e il messaggio va all'API come prima.
+const IT_FORTI = new Set(("grazie prego buongiorno buonasera buonanotte ciao salve arrivederci perfetto benissimo bene certo certamente " +
+  "sono siamo abbiamo avete hanno vorrei vorremmo posso possiamo potete puoi può potrebbe saremo arriveremo arriviamo arrivo partenza " +
+  "camera stanza prenotazione bagagli chiavi documenti pagamento contanti saldo orario oggi domani stasera stamattina mattina pomeriggio sera " +
+  "della delle degli dello nella nelle negli nello sulla sulle alla alle allo agli dalla dalle anche però quindi ancora molto tutto tutti " +
+  "cordiali saluti gentile gentilissimo scusi scusate mi dispiace purtroppo disponibile disponibilità quando dove perché siete sarà " +
+  "buona buono giornata serata notte settimana mese giorno giorni ora ore minuti nostro nostra vostro vostra suo sua vi ci mi ti gli").split(" "));
+const STRANIERE = new Set(("the and you your is are we our for with thank thanks hello hi please will would could have has was were this that " +
+  "gracias hola por para que como estamos tenemos obrigado obrigada olá você bonjour merci vous nous est pas une des avec pour " +
+  "danke bitte ist und ich nicht sie wir haben sind ein eine mit für hallo dank niet een het van wij zijn").split(" "));
+function chatSoloItaliano(testo) {
+  const t = String(testo || "").toLowerCase().replace(/(https?:\/\/|www\.)\S+/g, " ");
+  if (/\p{L}/u.test(t.replace(/\p{Script=Latin}/gu, ""))) return false;   // alfabeto non latino (cinese, russo, arabo...): lo traduce l'API
+  const parole = t.match(/[a-zàèéìòù]+/g) || [];
+  if (!parole.length) return true;                                  // solo numeri, link, emoji: niente da tradurre
+  let it = 0;
+  for (const w of parole) { if (STRANIERE.has(w)) return false; if (IT_FORTI.has(w)) it++; }
+  return it >= 2 || (parole.length <= 4 && it >= 1);
+}
+
 // Traduce in italiano i messaggi non ancora tradotti di una conversazione (lingua IS NULL).
 // Si fa quando la chat viene aperta, non durante il giro notturno: li' ogni chiamata esterna
 // pesa sul tetto di 50 per esecuzione. Se l'API non risponde i messaggi restano da tradurre
@@ -1732,8 +1754,13 @@ async function chatTraduciPendenti(env, t9, bookingId) {
   const q = await env.CHAT.prepare(
     "SELECT id,dir,canale,testo FROM messaggi WHERE lingua IS NULL AND ((?1<>'' AND tel=?1) OR (?2<>'' AND booking_id=?2)) ORDER BY ts, id LIMIT 40"
   ).bind(t9 || "", String(bookingId || "")).all();
-  const righe = (q && q.results) || [];
-  if (!righe.length) return 0;
+  const tutte = (q && q.results) || [];
+  if (!tutte.length) return 0;
+  // gli italiani si segnano subito, senza API; solo gli altri vanno al traduttore
+  const locali = tutte.filter(m => chatSoloItaliano(m.testo));
+  const righe = tutte.filter(m => !locali.includes(m));
+  if (locali.length) await env.CHAT.batch(locali.map(m => env.CHAT.prepare("UPDATE messaggi SET lingua='it', testo_it=NULL WHERE id=?").bind(m.id)));
+  if (!righe.length) return locali.length;
   const sistema = [
     "Ricevi i messaggi di una conversazione tra il proprietario di un bed and breakfast a Roma e un ospite.",
     "Per OGNI messaggio numerato: riconosci la lingua (codice ISO 639-1, es. en, es, fr, de, pt, zh, it)",
@@ -1779,7 +1806,7 @@ async function chatTraduciPendenti(env, t9, bookingId) {
     stmts.push(env.CHAT.prepare("UPDATE messaggi SET lingua=?, testo_it=? WHERE id=?").bind(lingua, it, riga.id));
   }
   if (stmts.length) await env.CHAT.batch(stmts);
-  return stmts.length;
+  return stmts.length + locali.length;
 }
 
 // Legge da WhatsApp i messaggi ricevuti dal numero della prenotazione e li unisce
