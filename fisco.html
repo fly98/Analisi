@@ -672,7 +672,7 @@ function ricaricaVista(){
 /* ---------- caricamento ---------- */
 async function carica(){
   const dal = $('#dal').value, al = $('#al').value;
-  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v97';
+  $('#periodo').textContent = 'partenze '+gg(dal)+' – '+gg(al)+' · v98';
   $('#lista').innerHTML = '<div class="loading">Caricamento…</div>';
   try{
     DATI = await api(`/elenco?dal=${dal}&al=${al}`);
@@ -1513,7 +1513,7 @@ async function apriEmissione(id, sostituisce){
       : `${p.nome} · ${gg(p.checkin)} → ${gg(p.checkout)}`,
     `<label>Descrizione sulla ricevuta</label>
      <textarea id="f-desc" rows="2">${desc.replace(/"/g,'&quot;')}</textarea>
-     <label>Importo soggiorno (IVA 10%)</label>
+     <label>Importo soggiorno (IVA 10%) — vuoto se solo tassa</label>
      <input type="number" step="0.01" id="f-imp" value="${p.atteso.toFixed(2)}">
      <label style="display:flex;align-items:center;gap:8px;margin-top:12px;text-transform:none;font-size:13.5px;color:var(--ink)">
        <input type="checkbox" id="f-tassa" style="width:auto;margin:0" onchange="aggiornaTot()">
@@ -2167,9 +2167,9 @@ $('#ric-nuova').onclick = async ()=>{
      <select id="l-pag"><option value="PE">Elettronico</option><option value="PC">Contanti</option></select>`,
     'Emetti');
   if(!ok) return;
-  const importo = parseFloat($('#l-imp').value);
-  if(!importo || importo<=0){ toast('Importo non valido', true); return; }
+  const importo = parseFloat($('#l-imp').value) || 0;
   const tax = parseFloat($('#l-tax').value) || 0;
+  if(importo<=0 && tax<=0){ toast('Importo non valido', true); return; }
   toast('Emissione in corso…');
   try{
     const r = await api('/emettiLibera', {method:'POST', body: JSON.stringify({

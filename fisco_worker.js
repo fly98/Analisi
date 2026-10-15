@@ -755,8 +755,11 @@ async function emettiDocumento(env, pren, opzioni = {}) {
 
   const descrizione = (descrizionePers || '').trim() || descrizioneStandard(pren);
 
-  const elementi = [
-    {
+  // con atteso = 0 (ricevuta di sola imposta di soggiorno) la riga del
+  // soggiorno non c'e': resta solo la riga della tassa
+  const elementi = [];
+  if (pren.atteso > 0) {
+    elementi.push({
       aliquotaIVA: String(aliquota),
       percentualeIVA: parseInt(aliquota, 10),
       descrizioneProdotto: descrizione.slice(0, 100),
@@ -764,8 +767,8 @@ async function emettiDocumento(env, pren, opzioni = {}) {
       quantita: 1,
       scontoLordo: 0,
       omaggioElemento: false,
-    },
-  ];
+    });
+  }
 
   // la tassa di soggiorno e' riscossa per conto del Comune: niente IVA
   const tassa = includiTassa ? Math.round(Number(cityTax) * 100) / 100 : 0;
@@ -773,7 +776,7 @@ async function emettiDocumento(env, pren, opzioni = {}) {
     elementi.push({
       aliquotaIVA: naturaTassa,
       percentualeIVA: 0,
-      descrizioneProdotto: 'Imposta di soggiorno',
+      descrizioneProdotto: pren.atteso > 0 ? 'Imposta di soggiorno' : (descrizione || 'Imposta di soggiorno').slice(0, 100),
       prezzoLordo: tassa,
       quantita: 1,
       scontoLordo: 0,
@@ -781,6 +784,7 @@ async function emettiDocumento(env, pren, opzioni = {}) {
     });
   }
 
+  if (!elementi.length) throw new Error('nessun importo da documentare');
   const totale = Math.round((pren.atteso + tassa) * 100) / 100;
 
   const documento = {
@@ -2715,8 +2719,9 @@ export default {
 
       if (url.pathname === '/emettiLibera' && request.method === 'POST') {
         const body = await request.json();
-        const importo = Number(body.importo);
-        if (!importo || importo <= 0) return json({ ok: false, error: 'importo mancante' }, 400);
+        const importo = Number(body.importo || 0);
+        const soloTassa = !!body.includiTassa && Number(body.cityTax || 0) > 0;
+        if ((!importo || importo <= 0) && !soloTassa) return json({ ok: false, error: 'importo mancante' }, 400);
 
         const finto = {
           nome: body.nome || '',
@@ -2727,7 +2732,7 @@ export default {
         };
         const descr =
           (body.descrizione || '').trim() ||
-          (body.checkin && body.checkout ? descrizioneStandard(finto) : 'Soggiorno');
+          (body.checkin && body.checkout ? descrizioneStandard(finto) : importo > 0 ? 'Soggiorno' : 'Imposta di soggiorno');
 
         const res = await emettiDocumento(env, finto, {
           pagamento: body.pagamento || 'PE',
