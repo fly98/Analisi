@@ -4391,6 +4391,21 @@ async function searchOneAccount(env, account, q, maxResults) {
           // (382877376) e ne aveva preso il nome. Si cancella quella conversazione (WhatsApp non viene toccato) e si azzerano
           // le firme: il prossimo giro rilegge tutto col lettore corretto, senza doppioni.
           if (env.CHAT) {
+            // seconda pulizia: un numero sbagliato (287737601 = riga dell'elenco + ora "01:58") era finito su "Filippo Castiglioni"
+            const gia2 = await env.CHAT.prepare("SELECT 1 x FROM lettura_wa WHERE titolo='__pulizia_20261015b'").first();
+            if (!gia2) {
+              await env.CHAT.batch([
+                env.CHAT.prepare("DELETE FROM messaggi WHERE tel='287737601'"),
+                env.CHAT.prepare("DELETE FROM conversazioni WHERE tel='287737601'"),
+                env.CHAT.prepare("DELETE FROM contatti WHERE tel='287737601'"),
+                env.CHAT.prepare("DELETE FROM lingue WHERE tel='287737601'"),
+                env.CHAT.prepare("DELETE FROM inviati WHERE tel='287737601'"),
+                env.CHAT.prepare("DELETE FROM lettura_wa WHERE titolo='Filippo Castiglioni'"),
+                env.CHAT.prepare("INSERT INTO lettura_wa (titolo,firma,firma_nuova,letta_il) VALUES ('__pulizia_20261015b','','',?1)").bind(Date.now())
+              ]);
+            }
+          }
+          if (env.CHAT) {
             const gia = await env.CHAT.prepare("SELECT 1 x FROM lettura_wa WHERE titolo='__pulizia_20261015'").first();
             if (!gia) {
               await env.CHAT.batch([
