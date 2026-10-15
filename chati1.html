@@ -140,7 +140,7 @@
     <div class="testa">
       <button class="ib solo-telefono" onclick="vista('l')">‹</button>
       <div class="av" id="avTesta" style="width:38px;height:38px;font-size:14px;display:none"></div>
-      <h2 id="titolo">Seleziona una conversazione</h2>
+      <h2 id="titolo">Seleziona una conversazione</h2><span id="sottoTitolo" style="font-size:11.5px;color:var(--muted);flex:none"></span>
     </div>
     <div class="pbox" id="pbox" style="display:none"></div>
     <div class="msgs" id="msgs"><div class="vuoto">Scegli una conversazione a sinistra.<br>I messaggi sono sempre in italiano: tocca una bolla con la bandierina per vedere l'originale.</div></div>
@@ -262,6 +262,7 @@ async function apri(k){
   const c=CONV.find(x=>chiaveConv(x)===k); if(!c)return;
   SEL=c; disegnaElenco(); vista("c");
   document.getElementById("titolo").textContent=nomeConv(c);
+  document.getElementById("sottoTitolo").textContent=(c.nome?telMostra(c):"")+(c.tel?" · chiave "+c.tel:"");
   const av=document.getElementById("avTesta"); av.style.display="flex"; {const a=avatarDi(c); av.className="av"+a.cls; av.innerHTML=a.html;}
   document.getElementById("piede").style.display="flex";
   disegnaCompo(c);
@@ -506,12 +507,12 @@ async function eseguiAgg(st,ripresa){
           for(const t of lotto){ if(st.tentativi[t]<2&&st.tot[t]<3)st.coda.unshift(t); else st.falliti.push(t); }
           st.LOTTO=1; salvaAgg(st); continue;
         }
-        for(const x of (d.chat||[])){ st.nuovi+=x.nuovi||0; if(x.esito==="letta")st.letteOk++; else st.prob++; }
+        for(const x of (d.chat||[])){ st.nuovi+=x.nuovi||0; if(x.esito==="letta")st.letteOk++; else {st.prob++; (st.elProb=st.elProb||[]).push((x.nome||"?")+" ("+(x.esito||"?")+")");} }
         for(const x of (d.saltate||[])){
           if(!lotto.includes(x.titolo))continue;
           if(x.motivo==="tempo_esaurito"&&st.tentativi[x.titolo]<3)st.coda.push(x.titolo);
           else if(x.motivo==="bloccata"&&st.tentativi[x.titolo]<2)st.coda.push(x.titolo);
-          else if(x.motivo!=="gruppo")st.falliti.push(x.titolo);
+          else if(x.motivo!=="gruppo"){st.falliti.push(x.titolo); (st.elProb=st.elProb||[]).push(x.titolo+" ("+x.motivo+")");}
         }
         st.fatte+=lotto.length;
         if(d.troncato&&st.LOTTO>1)st.LOTTO=2;
@@ -525,7 +526,7 @@ async function eseguiAgg(st,ripresa){
     fineProg(); cancAgg();
     const base=st.totale?`${st.letteOk} chat con novità lette, ${st.nuovi} messaggi nuovi.`:`Nessuna novità: ${st.nell} chat già aggiornate.`;
     const dubbi=st.prob+st.falliti.length;
-    stato("statoLista",base+(st.inv&&st.totale?` ${st.inv} invariate saltate.`:"")+(dubbi?` ${dubbi} da controllare${st.falliti.length?" (non lette: ripremi ⟳ per riprovarle)":""}.`:""),dubbi?"ko":"");
+    stato("statoLista",base+(st.inv&&st.totale?` ${st.inv} invariate saltate.`:"")+(dubbi?` Da controllare: ${(st.elProb||[]).join(", ")||dubbi}${st.falliti.length?" — ripremi ⟳ per riprovare le non lette":""}.`:""),dubbi?"ko":"");
     if(SEL){const k=chiaveConv(SEL);const c=CONV.find(x=>chiaveConv(x)===k); if(c)await caricaMessaggi(c,0);}
   }catch(err){fineProg();cancAgg();stato("statoLista",err.message,"ko"); await caricaElenco().catch(()=>{});}
   b.disabled=false; AGG=false;
