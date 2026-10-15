@@ -367,7 +367,12 @@ function disegnaCompo(c){
   chiudiAnteprima();
   document.getElementById("bozza").disabled=!c.tel; document.getElementById("bTrad").disabled=!c.tel;
 }
-function chiudiAnteprima(){BOZZA=null;const a=document.getElementById("ant");a.className="ant";a.innerHTML="";}
+function aggiornaWa(c,testo){
+  const w=document.getElementById("bWa"), f=telCompleto(c); if(!f){w.style.display="none";return;}
+  w.href="whatsapp://send?phone="+f+(testo?"&text="+encodeURIComponent(testo):""); w.style.display="";
+  w.textContent=testo?"Apri su WhatsApp con il testo":"Scrivi su WhatsApp";
+}
+function chiudiAnteprima(){BOZZA=null;{const c=(typeof SEL!=="undefined")?SEL:null; if(c&&document.getElementById("bWa"))aggiornaWa(c,"");}const a=document.getElementById("ant");a.className="ant";a.innerHTML="";}
 async function cambiaLingua(v){
   const c=SEL; if(!c||!c.tel||!v)return;
   c.lingua=v; document.getElementById("lgChip").textContent=`${FLAG[v]||"🌐"} ${LNG[v]||v}`;
@@ -384,11 +389,12 @@ async function traduciBozza(){
     if(d.error)throw new Error(d.error);
     if(!SEL||chiaveConv(SEL)!==chiaveConv(c))return;
     BOZZA={it:testo,tr:d.traduzione,lingua:c.lingua,tel:c.tel};
+    aggiornaWa(c,d.traduzione);
     const a=document.getElementById("ant"); a.className="ant on";
-    a.innerHTML=`<div class="et">${FLAG[c.lingua]||"🌐"} Verrà inviato in ${esc(LNG[c.lingua]||c.lingua)} — controlla e conferma</div>
+    a.innerHTML=`<div class="et">${FLAG[c.lingua]||"🌐"} Verrà inviato in ${esc(LNG[c.lingua]||c.lingua)} a <b>${esc(nomeConv(c))}</b> · ${esc(telMostra(c))} — controlla destinatario e testo</div>
       <div>${esc(d.traduzione)}</div>
       ${d.ritraduzione?`<div class="sig">In italiano significa: ${esc(d.ritraduzione)}</div>`:""}
-      <div class="az"><button class="btn sec" onclick="chiudiAnteprima()">Modifica</button><button class="btn" id="bInvia" disabled title="Invio sospeso per verifica">Invio sospeso</button></div>`;
+      <div class="az"><button class="btn sec" onclick="chiudiAnteprima()">Modifica</button><button class="btn" id="bInvia" onclick="inviaBozza()">Invia a ${esc(nomeConv(c))}</button></div>`;
     stato("stato","");
   }catch(e){stato("stato","Traduzione non riuscita: "+e.message,"ko");}
   b.disabled=false; b.textContent="Traduci";
