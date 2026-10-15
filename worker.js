@@ -4433,10 +4433,15 @@ async function searchOneAccount(env, account, q, maxResults) {
         const q = await env.CHAT.prepare("SELECT titolo, firma FROM lettura_wa").all();
         for (const r of ((q && q.results) || [])) noti[r.titolo] = r.firma;
         const cambiate = [], stmts = [];
+        let recentiRilette = 0;
         for (const r of righe) {
           if (!daLeggere.has(r.titolo)) continue;
           const firma = `${r.quando || ""}|${r.anteprima || ""}`.slice(0, 300);
           if (forza || noti[r.titolo] === undefined || noti[r.titolo] !== firma) cambiate.push(r.titolo);
+          else if (recentiRilette < 8 && /^(\d{1,2}[:.]\d{2}|ieri|yesterday|oggi|today)/i.test(String(r.quando || "").trim())) {
+            // le reazioni non cambiano ne' ora ne' anteprima: le chat di oggi/ieri si rileggono sempre (max 8)
+            recentiRilette++; cambiate.push(r.titolo);
+          }
           stmts.push(env.CHAT.prepare(
             "INSERT INTO lettura_wa (titolo,firma,firma_nuova,letta_il) VALUES (?1,'',?2,0) ON CONFLICT(titolo) DO UPDATE SET firma_nuova=excluded.firma_nuova"
           ).bind(r.titolo.slice(0, 120), firma));
