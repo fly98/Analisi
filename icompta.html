@@ -675,6 +675,65 @@ select.form-input { height: 42px; }
   .txh.tx-c-trasf { color: var(--muted) !important; }
 }
 
+/* ── COMPATTO IPHONE ─────────────────────────────────────────────────────────
+   Si attiva su iPhone verticale (<=430px) e su iPhone/Duo in orizzontale
+   (larghezza <=1000px E altezza <=700px). Desktop e iPad restano invariati. */
+@media (max-width: 430px), (max-width: 1000px) and (max-height: 700px) {
+
+  /* Sidebar: larga quanto serve ai suoi contenuti (niente spazio vuoto) */
+  #sidebar { width: max-content; min-width: 170px; max-width: 250px; }
+  #sidebar-header { padding: 0 8px; min-height: 52px; }
+  .quadra-plate { padding: 6px 10px; gap: 7px; }
+  .quadra-plate h2 { font-size: 15px; }
+  .quadra-plate img { width: 24px; height: 24px; }
+  #total-box { margin: 6px 6px 2px; padding: 8px 10px; gap: 8px; }
+  #total-box .total-amount { font-size: 16px; }
+  .group-row { padding: 6px 10px 2px 10px; }
+  .group-row .chevron { margin-right: 4px; }
+  .group-balance { font-size: 11px; padding: 2px 6px; margin-left: 6px; }
+  .account-row { padding: 5px 6px 5px 14px; margin: 1px 4px; gap: 6px; }
+  .acc-icon { margin-right: 4px; font-size: 15px; }
+  .acc-name { font-size: 13px; white-space: nowrap; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  .acc-balance { font-size: 11px; padding: 2px 6px; }
+
+  /* Barra periodo: una riga con scroll orizzontale invece di tagliarsi */
+  #date-bar { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; gap: 4px; padding: 6px 8px; }
+  #date-bar .filter-chip, #date-bar button { white-space: nowrap; font-size: 12px; padding: 4px 8px; flex-shrink: 0; }
+  #date-bar input[type=date] { width: 86px; font-size: 11px; padding: 3px 4px; flex-shrink: 0; }
+
+  /* Tabella: niente scroll orizzontale, niente colonne extra */
+  #tx-scroll-wrap { overflow-x: hidden !important; }
+  #tx-header { min-width: 0 !important; width: 100% !important; padding: 6px 8px !important; }
+  #tx-body { min-width: 0 !important; }
+  .tx-row { min-width: 0 !important; padding: 7px 8px; }
+  .tx-c-trasf, .txh.tx-c-trasf, .tx-del, .col-resizer { display: none !important; }
+
+  /* Data corta gg/mm; categoria, importo e saldo larghi quanto il contenuto
+     (misurato da _fitCompactCols), descrizione prende tutto il resto */
+  .tx-c-date { width: 36px !important; }
+  .tx-row .tx-c-date { font-size: 11px !important; }
+  .tx-c-desc, .txh.tx-c-desc { min-width: 90px !important; padding: 0 6px !important; }
+  .tx-c-cat, .txh.tx-c-cat { width: var(--fit-cat, 96px) !important; padding: 0 4px !important; }
+  .tx-c-amt, .txh.tx-c-amt { width: var(--fit-amt, 66px) !important; padding: 0 4px !important; }
+  .tx-c-bal, .txh.tx-c-bal { width: var(--fit-bal, 52px) !important; padding: 0 4px !important; }
+  .tx-row .tx-c-amt { font-size: 13px !important; }
+  .tx-row .tx-c-bal { font-size: 12px !important; }
+  #tx-header .txh { font-size: 10px !important; letter-spacing: .3px; }
+  .cat-badge { font-size: 10px !important; padding: 1px 5px !important; max-width: 112px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
+
+  /* Misura: durante il calcolo le celle prendono la larghezza naturale */
+  .fit-measure .tx-c-cat, .fit-measure .tx-c-amt, .fit-measure .tx-c-bal
+    { width: max-content !important; flex: none !important; overflow: visible !important; }
+}
+@media (max-width: 430px) {
+  .cat-badge { max-width: 84px; }
+  /* riga del mese su una riga sola: via il conteggio, totali più stretti */
+  .tx-month-hdr { padding: 6px 8px; }
+  .tx-month-hdr .mhl { white-space: nowrap; font-size: 12px; }
+  .tx-month-hdr .mhc { display: none; }
+  .tx-month-hdr .mht { font-size: 11px; gap: 6px !important; white-space: nowrap; }
+}
+
 .imp2-tab { flex:1; padding:10px; border:none; background:none; font-size:14px; font-weight:600; color:var(--muted); cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px; }
 .imp2-tab.active { color:var(--blue); border-bottom-color:var(--blue); }
 </style>
@@ -1236,6 +1295,39 @@ function fmt(v) {
   return (v < 0 ? '-' : '') + abs + ' €';
 }
 
+// ── Modalità compatta iPhone (vedi blocco CSS "COMPATTO IPHONE") ──
+var _compactMQ = window.matchMedia('(max-width: 430px), (max-width: 1000px) and (max-height: 700px)');
+function _isCompact() { return _compactMQ.matches; }
+function fmtCompact(v, dec) {   // come fmt() ma senza " €" e con decimali a scelta
+  if (v === null || v === undefined) return '—';
+  var abs = Math.abs(v).toLocaleString('it-IT', {minimumFractionDigits:dec, maximumFractionDigits:dec});
+  return (v < 0 ? '-' : '') + abs;
+}
+function _fitCompactCols() {    // larghezza colonne = contenuto più largo (righe + intestazione)
+  var root = document.documentElement;
+  if (!_isCompact()) {
+    ['cat','amt','bal'].forEach(function(k){ root.style.removeProperty('--fit-' + k); });
+    return;
+  }
+  root.classList.add('fit-measure');
+  var mx = { cat:0, amt:0, bal:0 };
+  ['cat','amt','bal'].forEach(function(k){
+    var cells = document.querySelectorAll('.tx-c-' + k);
+    for (var i = 0; i < cells.length; i++) {
+      var w = cells[i].getBoundingClientRect().width;
+      if (w > mx[k]) mx[k] = w;
+    }
+  });
+  root.classList.remove('fit-measure');
+  ['cat','amt','bal'].forEach(function(k){
+    if (mx[k] > 0) root.style.setProperty('--fit-' + k, Math.ceil(mx[k]) + 'px');
+  });
+}
+_compactMQ.addEventListener('change', function() {
+  _fitCompactCols();
+  if (typeof filteredTxs !== 'undefined' && filteredTxs && filteredTxs.length && typeof renderTxList === 'function') renderTxList();
+});
+
 function updateTotalBalance() {
   if (!balances || !meta) return;
   // Solo conti con includedInTotal = true
@@ -1464,8 +1556,9 @@ function _txRenderChunk(body, from, to) {
       for (var jj = 0; jj < tx.splits.length; jj++) { if (tx.splits[jj].comment) sc.push(tx.splits[jj].comment); }
       sub = sc.join(', ');
     }
-    var dd = tx.date.slice(8,10) + '/' + tx.date.slice(5,7) + '/' + tx.date.slice(2,4);
-    var bal = (_txRunBal[ii] !== undefined) ? fmt(_txRunBal[ii]) : '—';
+    var _cmp = _isCompact();
+    var dd = tx.date.slice(8,10) + '/' + tx.date.slice(5,7) + (_cmp ? '' : '/' + tx.date.slice(2,4));
+    var bal = (_txRunBal[ii] !== undefined) ? (_cmp ? fmtCompact(_txRunBal[ii], 0) : fmt(_txRunBal[ii])) : '—';
     var catHtml = (tx.splits && tx.splits[0]) ? getCatBadge(tx.splits[0].categoryId) : '';
     if (!catHtml && tx.splits) {
       var cn = [];
@@ -1481,13 +1574,14 @@ function _txRenderChunk(body, from, to) {
       '<div class="tx-c-desc"><div class="txn">' + esc(tx.name||'') + '</div>' +
       (sub ? '<div class="txs">' + esc(sub) + '</div>' : '') + '</div>' +
       '<div class="tx-c-cat">' + catHtml + '</div>' +
-      '<div class="tx-c-amt ' + amtCls + '">' + fmt(amount) + '</div>' +
+      '<div class="tx-c-amt ' + amtCls + '">' + (_cmp ? fmtCompact(amount, 2) : fmt(amount)) + '</div>' +
       '<div class="tx-c-bal">' + bal + '</div>' +
       '<div class="tx-c-trasf">' + getLinkedAccName(tx) + '</div>' +
       '<div class="tx-del"><button onclick="' + esc(delBtn) + '" title="Elimina">✕</button></div>';
     (function(t){ row.addEventListener('click', function(){ openEditTx(t); }); })(tx);
     body.appendChild(row);
   }
+  if (_isCompact()) _fitCompactCols();
 }
 
 function _txSetupObserver(body) {
