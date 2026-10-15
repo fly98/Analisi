@@ -4517,6 +4517,9 @@ async function searchOneAccount(env, account, q, maxResults) {
         // INVIO su WhatsApp, solo con conferma esplicita (conferma=1) dopo aver visto l'anteprima.
         // Mai chiamata da processi automatici: l'ultimo gesto verso l'ospite resta di Filippo.
         if (!env.CHAT) return jsonRes({ error: "archivio chat non ancora attivo" }, 503);
+        // INTERRUTTORE DI SICUREZZA (15/10/2026 02:00): un messaggio e' finito alla persona sbagliata. L'invio resta spento finche'
+        // la causa non e' trovata e corretta e Filippo non lo riaccende.
+        if (true) return jsonRes({ error: "invio dall'app SOSPESO per verifica: un messaggio e' arrivato alla persona sbagliata. Rispondi da WhatsApp." }, 503);
         if (url.searchParams.get("conferma") !== "1") return jsonRes({ error: "manca la conferma esplicita" }, 400);
         const t9 = chatTel(url.searchParams.get("tel") || "");
         const testo = (url.searchParams.get("testo") || "").trim();

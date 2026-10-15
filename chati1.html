@@ -387,7 +387,7 @@ async function traduciBozza(){
     a.innerHTML=`<div class="et">${FLAG[c.lingua]||"🌐"} Verrà inviato in ${esc(LNG[c.lingua]||c.lingua)} — controlla e conferma</div>
       <div>${esc(d.traduzione)}</div>
       ${d.ritraduzione?`<div class="sig">In italiano significa: ${esc(d.ritraduzione)}</div>`:""}
-      <div class="az"><button class="btn sec" onclick="chiudiAnteprima()">Modifica</button><button class="btn" id="bInvia" onclick="inviaBozza()">Invia su WhatsApp</button></div>`;
+      <div class="az"><button class="btn sec" onclick="chiudiAnteprima()">Modifica</button><button class="btn" id="bInvia" disabled title="Invio sospeso per verifica">Invio sospeso</button></div>`;
     stato("stato","");
   }catch(e){stato("stato","Traduzione non riuscita: "+e.message,"ko");}
   b.disabled=false; b.textContent="Traduci";
