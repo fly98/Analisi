@@ -19,9 +19,11 @@
     --sysfont:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI','Helvetica Neue',Helvetica,Arial,sans-serif;
   }
   @media (prefers-color-scheme:dark){
-    :root{--ink:#e9edef;--muted:#8696a0;--paper:#0b141a;--pannello:#111b21;--line:#222d34;--in:#202c33;--out:#005c4b;--sel:#2a3942;--chiaro:#0b141a;
+    :root:not([data-tema="chiaro"]){--ink:#e9edef;--muted:#8696a0;--paper:#0b141a;--pannello:#111b21;--line:#222d34;--in:#202c33;--out:#005c4b;--sel:#2a3942;--chiaro:#0b141a;
       --b1:#00a88444; --b2:#4a64e044; --b3:#c0407a33; --vin:#ffffff17; --vout:#00c08a55; --vb:#ffffff30; --vo:#00000066; --vh:#ffffff4d; --vh2:#ffffff10; --g1:#ffffff40; --g2:#ffffff0d;}
   }
+  :root[data-tema="scuro"]{--ink:#e9edef;--muted:#8696a0;--paper:#0b141a;--pannello:#111b21;--line:#222d34;--in:#202c33;--out:#005c4b;--sel:#2a3942;--chiaro:#0b141a;
+      --b1:#00a88444; --b2:#4a64e044; --b3:#c0407a33; --vin:#ffffff17; --vout:#00c08a55; --vb:#ffffff30; --vo:#00000066; --vh:#ffffff4d; --vh2:#ffffff10; --g1:#ffffff40; --g2:#ffffff0d;}
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;}
   body{background:var(--paper);color:var(--ink);font-family:var(--sysfont);-webkit-font-smoothing:antialiased;overflow:hidden;}
@@ -117,6 +119,23 @@
   }
   @media (min-width:761px){ .solo-telefono{display:none;} }
 </style>
+<script>
+// tema: auto (segue l'iPad: scuro di notte, chiaro di giorno) / chiaro / scuro
+(function(){
+  function leggi(){try{return localStorage.getItem("chati1_tema")||"auto";}catch(e){return "auto";}}
+  function applica(t){
+    const r=document.documentElement;
+    if(t==="chiaro"||t==="scuro")r.setAttribute("data-tema",t); else r.removeAttribute("data-tema");
+    const scuro=t==="scuro"||(t==="auto"&&window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches);
+    const mt=document.querySelector('meta[name="theme-color"]'); if(mt)mt.content=scuro?"#0b141a":"#f0f2f5";
+    const b=document.getElementById("bTema"); if(b){b.textContent=t==="chiaro"?"☀︎":t==="scuro"?"☾":"◐"; b.title="Tema: "+(t==="auto"?"automatico (segue l'iPad)":t);}
+  }
+  window.giraTema=function(){const n={auto:"chiaro",chiaro:"scuro",scuro:"auto"}[leggi()]||"auto"; try{localStorage.setItem("chati1_tema",n);}catch(e){} applica(n);};
+  applica(leggi());
+  document.addEventListener("DOMContentLoaded",()=>applica(leggi()));
+  try{matchMedia("(prefers-color-scheme: dark)").addEventListener("change",()=>applica(leggi()));}catch(e){}
+})();
+</script>
 </head>
 <body class="vl">
 <div class="app">
@@ -125,6 +144,7 @@
   <section class="col lista">
     <div class="testa"><h1>ChatI1<small id="sottoLista"></small></h1>
       <button class="ib" id="bAggElenco" title="Leggi le chat recenti da WhatsApp" onclick="aggiornaElenco()">⟳</button>
+      <button class="ib" id="bTema" title="Tema: automatico (segue l'iPad) / chiaro / scuro" onclick="giraTema()">◐</button>
       <a class="ib" href="arrivi.html" title="Torna ad Arrivi" style="text-decoration:none;display:flex;align-items:center;justify-content:center">🏠</a>
     </div>
     <div class="barra-lista">Ultimi
