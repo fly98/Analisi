@@ -170,12 +170,12 @@
       <div class="riga">
         <label class="lg" title="Lingua in cui viene tradotta la risposta"><span id="lgChip">🌐 Lingua</span><select id="lgSel" onchange="cambiaLingua(this.value)"></select></label>
         <textarea id="bozza" rows="1" oninput="this.style.height='auto';this.style.height=Math.min(140,this.scrollHeight)+'px'"></textarea>
-        <button class="btn" id="bTrad" onclick="traduciBozza()">Traduci</button>
+        <button class="btn" id="bTrad" onclick="inviaDiretto()">Invia</button>
       </div>
     </div>
     <div class="piede" id="piede" style="display:none">
       <button class="btn sec" id="bAggChat" onclick="aggiornaChat()">Aggiorna questa chat</button>
-      <a class="btn" id="bWa" style="text-decoration:none">Scrivi su WhatsApp</a>
+      <a class="btn" id="bWa" onclick="waConTesto(event)" style="text-decoration:none">Scrivi su WhatsApp</a>
     </div>
   </section>
 
@@ -377,7 +377,6 @@ async function disegnaDettagli(c){
 }
 
 // ---------- risposta: scrivo in italiano, traduce nella lingua della chat, controllo, invio ----------
-let BOZZA=null;      // {it, tr, lingua, tel}
 function disegnaCompo(c){
   document.getElementById("compo").style.display="";
   const sel=document.getElementById("lgSel");
@@ -387,52 +386,59 @@ function disegnaCompo(c){
   chiudiAnteprima();
   document.getElementById("bozza").disabled=!c.tel; document.getElementById("bTrad").disabled=!c.tel;
 }
-function aggiornaWa(c,testo){
+function aggiornaWa(c){
   const w=document.getElementById("bWa"), f=telCompleto(c); if(!f){w.style.display="none";return;}
-  w.href="whatsapp://send?phone="+f+(testo?"&text="+encodeURIComponent(testo):""); w.style.display="";
-  w.textContent=testo?"Apri su WhatsApp con il testo":"Scrivi su WhatsApp";
+  w.href="whatsapp://send?phone="+f; w.style.display=""; w.textContent="Scrivi su WhatsApp";
 }
-function chiudiAnteprima(){BOZZA=null;{const c=(typeof SEL!=="undefined")?SEL:null; if(c&&document.getElementById("bWa"))aggiornaWa(c,"");}const a=document.getElementById("ant");a.className="ant";a.innerHTML="";}
+function chiudiAnteprima(){const a=document.getElementById("ant");if(a){a.className="ant";a.innerHTML="";}}
 async function cambiaLingua(v){
   const c=SEL; if(!c||!c.tel||!v)return;
   c.lingua=v; document.getElementById("lgChip").textContent=`${FLAG[v]||"🌐"} ${LNG[v]||v}`;
   chiudiAnteprima(); disegnaElenco();
   try{await api("action=chatLingua&tel="+encodeURIComponent(c.tel)+"&lingua="+encodeURIComponent(v));}catch(e){stato("stato","Lingua non salvata: "+e.message,"ko");}
 }
-async function traduciBozza(){
-  const c=SEL; if(!c||!c.tel)return;
-  const testo=document.getElementById("bozza").value.trim(); if(!testo)return;
-  if(!c.lingua){stato("stato","Scegli prima la lingua della chat (a sinistra del campo).","ko");return;}
-  const b=document.getElementById("bTrad"); b.disabled=true; b.textContent="Traduco…"; stato("stato","Traduco nella lingua del cliente…","lavoro");
-  try{
-    const d=await api("action=chatBozza&tel="+encodeURIComponent(c.tel)+"&lingua="+encodeURIComponent(c.lingua)+"&testo="+encodeURIComponent(testo));
-    if(d.error)throw new Error(d.error);
-    if(!SEL||chiaveConv(SEL)!==chiaveConv(c))return;
-    BOZZA={it:testo,tr:d.traduzione,lingua:c.lingua,tel:c.tel};
-    aggiornaWa(c,d.traduzione);
-    const a=document.getElementById("ant"); a.className="ant on";
-    a.innerHTML=`<div class="et">${FLAG[c.lingua]||"🌐"} Verrà inviato in ${esc(LNG[c.lingua]||c.lingua)} a <b>${esc(nomeConv(c))}</b> · ${esc(telMostra(c))} — controlla destinatario e testo</div>
-      <div>${esc(d.traduzione)}</div>
-      ${d.ritraduzione?`<div class="sig">In italiano significa: ${esc(d.ritraduzione)}</div>`:""}
-      <div class="az"><button class="btn sec" onclick="chiudiAnteprima()">Modifica</button><button class="btn" id="bInvia" onclick="inviaBozza()">Invia a ${esc(nomeConv(c))}</button></div>`;
-    stato("stato","");
-  }catch(e){stato("stato","Traduzione non riuscita: "+e.message,"ko");}
-  b.disabled=false; b.textContent="Traduci";
+async function traduciTesto(c,testo){
+  if(!c.lingua)throw new Error("Scegli prima la lingua della chat (a sinistra del campo).");
+  if(c.lingua==="it")return testo;
+  const d=await api("action=chatBozza&tel="+encodeURIComponent(c.tel)+"&lingua="+encodeURIComponent(c.lingua)+"&testo="+encodeURIComponent(testo));
+  if(d.error)throw new Error(d.error);
+  if(!d.traduzione)throw new Error("traduzione vuota");
+  return d.traduzione;
 }
-async function inviaBozza(){
-  const c=SEL, z=BOZZA; if(!c||!z||z.tel!==c.tel)return;
-  const bi=document.getElementById("bInvia"); bi.disabled=true; bi.textContent="Invio…";
-  stato("stato","Invio su WhatsApp dal Mac… circa 40 secondi, non chiudere la pagina.","lavoro");
+function azzeraBozza(){const t=document.getElementById("bozza");t.value="";t.style.height="auto";}
+let OCCUPATO=false;
+// tasto «Invia»: traduce nella lingua della chat e manda da WhatsApp sul Mac, in un colpo solo
+async function inviaDiretto(){
+  const c=SEL; if(!c||!c.tel||OCCUPATO)return;
+  const testo=document.getElementById("bozza").value.trim(); if(!testo)return;
+  OCCUPATO=true; const b=document.getElementById("bTrad"); b.disabled=true; b.textContent="Invio…";
   try{
-    const f=telCompleto(c);
-    const d=await api("action=chatInvia&conferma=1&tel="+encodeURIComponent(c.tel)+"&numero="+encodeURIComponent(f)+"&lingua="+encodeURIComponent(z.lingua)
-      +"&it="+encodeURIComponent(z.it)+"&testo="+encodeURIComponent(z.tr));
+    stato("stato","Traduco…","lavoro");
+    const tr=await traduciTesto(c,testo);
+    stato("stato","Invio a "+nomeConv(c)+" ("+telMostra(c)+") da WhatsApp sul Mac… circa 40 secondi, non chiudere la pagina.","lavoro");
+    const d=await api("action=chatInvia&conferma=1&tel="+encodeURIComponent(c.tel)+"&numero="+encodeURIComponent(telCompleto(c))+"&lingua="+encodeURIComponent(c.lingua)
+      +"&it="+encodeURIComponent(testo)+"&testo="+encodeURIComponent(tr));
     if(!["messaggio_inviato","messaggio_inviato_non_confermato"].includes(d.esito))
       throw new Error((d.errore||d.error||d.esito||"invio non riuscito")+" — prima di riprovare premi «Aggiorna questa chat» e guarda se è partito");
-    document.getElementById("bozza").value=""; document.getElementById("bozza").style.height="auto"; chiudiAnteprima();
+    azzeraBozza();
     stato("stato",d.esito==="messaggio_inviato"?"Inviato ✓ — leggo la chat…":"Inviato (WhatsApp non l'ha ancora confermato) — leggo la chat…","lavoro");
     await aggiornaChat();
-  }catch(e){stato("stato",e.message,"ko"); const x=document.getElementById("bInvia"); if(x){x.disabled=false;x.textContent="Invia su WhatsApp";}}
+  }catch(e){stato("stato",e.message,"ko");}
+  OCCUPATO=false; b.disabled=false; b.textContent="Invia";
+}
+// tasto «Scrivi su WhatsApp»: se c'è del testo lo traduce e apre WhatsApp con il testo già nella casella
+async function waConTesto(ev){
+  const c=SEL, w=document.getElementById("bWa"), testo=document.getElementById("bozza").value.trim();
+  if(!c||!c.tel||!testo||OCCUPATO)return;           // niente testo: il link normale apre la chat vuota
+  ev.preventDefault(); OCCUPATO=true; const prima=w.textContent; w.textContent="Traduco…";
+  try{
+    const tr=await traduciTesto(c,testo), f=telCompleto(c);
+    const url="whatsapp://send?phone="+f+"&text="+encodeURIComponent(tr);
+    w.href=url; w.textContent="Apri WhatsApp con il testo ›";
+    stato("stato","Tradotto in "+(LNG[c.lingua]||c.lingua)+". Se WhatsApp non si apre da solo, tocca «Apri WhatsApp con il testo».","");
+    location.href=url;
+  }catch(e){stato("stato","Traduzione non riuscita: "+e.message,"ko"); w.textContent=prima;}
+  OCCUPATO=false;
 }
 
 // ---------- letture dal Mac ----------
