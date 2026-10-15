@@ -149,7 +149,7 @@
       <div class="ant" id="ant"></div>
       <div class="riga">
         <label class="lg" title="Lingua in cui viene tradotta la risposta"><span id="lgChip">🌐 Lingua</span><select id="lgSel" onchange="cambiaLingua(this.value)"></select></label>
-        <textarea id="bozza" rows="1" placeholder="Scrivi in italiano: lo traduco prima dell'invio" oninput="this.style.height='auto';this.style.height=Math.min(140,this.scrollHeight)+'px'"></textarea>
+        <textarea id="bozza" rows="1" oninput="this.style.height='auto';this.style.height=Math.min(140,this.scrollHeight)+'px'"></textarea>
         <button class="btn" id="bTrad" onclick="traduciBozza()">Traduci</button>
       </div>
     </div>
