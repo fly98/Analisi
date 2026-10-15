@@ -1668,7 +1668,7 @@ async function chatSalva(env, { bookingId, tel, canale, messaggi }) {
     }
     // una risposta letta prima con la citazione dentro al testo: via la copia vecchia (finiva col testo nuovo)
     if (risposta && t9) {
-      stmts.push(env.CHAT.prepare("DELETE FROM messaggi WHERE tel=?1 AND dir=?2 AND ts=?3 AND h<>?4 AND length(testo)>length(?5) AND testo LIKE '%' || ?5")
+      stmts.push(env.CHAT.prepare("DELETE FROM messaggi WHERE tel=?1 AND dir=?2 AND ts=?3 AND h<>?4 AND length(testo)>length(?5) AND substr(testo, -length(?5)) = ?5")
         .bind(t9, dir, ts, h, testo.slice(0, 4000))); insFlag.push(false);
     }
   }
