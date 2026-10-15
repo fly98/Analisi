@@ -372,7 +372,7 @@ async function disegnaDettagli(c){
       ${nota?`<div class="sez"><div class="lab">Nota</div>📝 ${esc(nota)}</div>`:""}
       <div class="sez"><div class="lab">Contatto</div>${esc(bk.phone||"")}${bk.email?" · "+esc(bk.email):""}</div>
       ${lista.length>1?`<div class="sez"><div class="lab">Altre prenotazioni con questo numero</div>${lista.filter(x=>x!==b).map(x=>`<div>${esc(gg(x.checkin))} → ${esc(gg(x.checkout))} · ${esc(x.source||"")}</div>`).join("")}</div>`:""}
-      <div class="sez"><a class="btn sec" href="arrivi.html" style="text-decoration:none;display:inline-block">Apri Arrivi</a></div>
+      <div class="sez"><a class="btn sec" href="arrivi.html?cerca=${encodeURIComponent(b.booking_id)}" style="text-decoration:none;display:inline-block">Apri questa prenotazione in Arrivi</a></div>
     </div>`;
 }
 

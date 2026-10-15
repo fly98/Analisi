@@ -2759,6 +2759,17 @@ function segnaChatChip(){
       .observe(document.body,{childList:true,subtree:true});
   }catch(e){ /* senza elenco il tasto resta spento: Arrivi funziona come sempre */ }
 })();
+
+// da ChatI1: arrivi.html?cerca=<n. prenotazione> apre la ricerca già impostata sulla prenotazione giusta
+(function(){
+  try{
+    const q=new URLSearchParams(location.search).get("cerca"); if(!q)return;
+    window.addEventListener("load",()=>setTimeout(()=>{
+      const b=document.querySelector('.range-btn[data-back="8"]'); if(b){document.querySelectorAll(".range-btn").forEach(x=>x.classList.remove("active"));b.classList.add("active");rangeBack=8;rangeFwd=4;cacheRicerca=null;}
+      document.getElementById("searchInput").value=q; filtraRicerca();
+    },400));
+  }catch(e){}
+})();
 </script>
 </body>
 </html>
