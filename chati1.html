@@ -507,7 +507,7 @@ async function eseguiAgg(st,ripresa){
           for(const t of lotto){ if(st.tentativi[t]<2&&st.tot[t]<3)st.coda.unshift(t); else st.falliti.push(t); }
           st.LOTTO=1; salvaAgg(st); continue;
         }
-        for(const x of (d.chat||[])){ st.nuovi+=x.nuovi||0; if(x.esito==="letta")st.letteOk++; else {st.prob++; (st.elProb=st.elProb||[]).push((x.nome||"?")+" ("+(x.esito||"?")+")");} }
+        for(const x of (d.chat||[])){ st.nuovi+=x.nuovi||0; if(x.esito==="letta")st.letteOk++; else {st.prob++; (st.elProb=st.elProb||[]).push((x.nome||"?")+" ("+(x.esito||"?")+(x.errore?": "+x.errore:"")+")");} }
         for(const x of (d.saltate||[])){
           if(!lotto.includes(x.titolo))continue;
           if(x.motivo==="tempo_esaurito"&&st.tentativi[x.titolo]<3)st.coda.push(x.titolo);
