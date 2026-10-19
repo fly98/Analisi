@@ -1,9 +1,28 @@
 {
-  "generatoIl": "2026-10-12T11:19:18.993Z",
+  "generatoIl": "2026-10-19T15:30:34.375Z",
   "strutture": {
     "deluxe": {
       "nome": "InternoUno Deluxe",
       "bozze": [
+        {
+          "id": "deluxe-6561796172",
+          "dataRecensione": "2026-10-18",
+          "punteggio": 8,
+          "stato": "senza_testo"
+        },
+        {
+          "id": "deluxe-5931126905",
+          "dataRecensione": "2026-10-14",
+          "punteggio": 9,
+          "positivo": "It is very close to Rome Tiburtina ",
+          "negativo": "Nothing much , but rooms are quite small and one can hear noise from other rooms ",
+          "lingua": "en",
+          "riassuntoIT": "Ospite apprezza la vicinanza a Roma Tiburtina, ma nota che le camere sono piccole e c'è rumore dai vicini.",
+          "rispostaProposta": "Salve, grazie per la sua recensione. Mi spiace per il rumore: purtroppo è una caratteristica di questa zona e della struttura stessa. Per quanto riguarda le dimensioni, è corretto che le camere siano compatte — come indicato nella descrizione dell'annuncio — ma questo ci permette di mantenere i prezzi accessibili. La posizione vicino a Tiburtina rimane comunque uno dei principali vantaggi della location. Saluti Filippo",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "5931126905"
+        },
         {
           "id": "deluxe-5897806463",
           "dataRecensione": "2026-10-11",
@@ -6473,12 +6492,6 @@
           "reservationNumber": "2471016962"
         },
         {
-          "id": "deluxe-3093619832",
-          "dataRecensione": "2023-10-18",
-          "punteggio": 8,
-          "stato": "senza_testo"
-        },
-        {
           "id": "deluxe-4196151973",
           "dataRecensione": "2023-10-17",
           "punteggio": 10,
@@ -6490,12 +6503,6 @@
           "rispostaFinale": null,
           "stato": "da_validare",
           "reservationNumber": "4196151973"
-        },
-        {
-          "id": "deluxe-3078493024",
-          "dataRecensione": "2023-10-14",
-          "punteggio": 8,
-          "stato": "senza_testo"
         },
         {
           "id": "deluxe-4204594815",
@@ -6567,6 +6574,25 @@
     "classica": {
       "nome": "Internouno",
       "bozze": [
+        {
+          "id": "classica-5372289481",
+          "dataRecensione": "2026-10-14",
+          "punteggio": 8,
+          "positivo": "Было действительно чисто , номера убирались каждый день (!) , 1 мин ходьбы до автобусной остановки , 5 мин до Лидл и Конад , 10 мин до станции Тибуртина ( метро и поезд в аэропорт). ",
+          "negativo": "Мы заказали с друзьями 2 номера по одинаковой цене. Но из предоставленных нам один оказался меньше и с очень маленькой кроватью. Почти без кухни. Друзьям пришлось смириться , разумеется , без особой радости. Наша просьба о более позднем ( на  час ) выезде,  к сожалению , была отклонена. ",
+          "lingua": "ru",
+          "riassuntoIT": "Ospiti apprezzano pulizia e posizione, ma si lamentano che una delle due camere era più piccola pur avendo pagato lo stesso prezzo, e che la richiesta di checkout tardivo è stata negata.",
+          "rispostaProposta": "Salve, mi spiace per il disagio con le camere. Nella descrizione dell'annuncio sono indicate come camere diverse per metratura e dotazioni, che rispecchiano la differenza di prezzo — avremmo potuto chiarire meglio questo al momento della prenotazione. Riguardo al checkout posticipato, in quella data non era disponibile per impegni successivi con la pulizia. Siamo felici comunque che abbiate apprezzato la pulizia quotidiana e la praticità della zona.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "5372289481"
+        },
+        {
+          "id": "classica-5296933469",
+          "dataRecensione": "2026-10-14",
+          "punteggio": 8,
+          "stato": "senza_testo"
+        },
         {
           "id": "classica-5988454986",
           "dataRecensione": "2026-10-12",
@@ -12569,24 +12595,6 @@
           "stato": "senza_testo"
         },
         {
-          "id": "classica-4173037003",
-          "dataRecensione": "2023-10-17",
-          "punteggio": 9,
-          "stato": "senza_testo"
-        },
-        {
-          "id": "classica-4073699909",
-          "dataRecensione": "2023-10-17",
-          "punteggio": 7,
-          "stato": "senza_testo"
-        },
-        {
-          "id": "classica-2559019879",
-          "dataRecensione": "2023-10-17",
-          "punteggio": 9,
-          "stato": "senza_testo"
-        },
-        {
           "id": "classica-4091783098",
           "dataRecensione": "2023-10-16",
           "punteggio": 6,
@@ -12598,18 +12606,6 @@
           "rispostaFinale": null,
           "stato": "da_validare",
           "reservationNumber": "4091783098"
-        },
-        {
-          "id": "classica-4164301281",
-          "dataRecensione": "2023-10-14",
-          "punteggio": 7,
-          "stato": "senza_testo"
-        },
-        {
-          "id": "classica-3454255060",
-          "dataRecensione": "2023-10-14",
-          "punteggio": 10,
-          "stato": "senza_testo"
         },
         {
           "id": "classica-2877689478",
