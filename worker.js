@@ -4432,11 +4432,15 @@ async function searchOneAccount(env, account, q, maxResults) {
         const noti = {};
         const q = await env.CHAT.prepare("SELECT titolo, firma FROM lettura_wa").all();
         for (const r of ((q && q.results) || [])) noti[r.titolo] = r.firma;
+        // L'etichetta di WhatsApp e' RELATIVA ("19:25" oggi, "Ieri" domani, "Venerdi" tra tre giorni): confrontarla cosi'
+        // com'e' faceva sembrare cambiata quasi ogni chat dopo un giorno. Conta l'anteprima; dell'etichetta solo l'ora esatta.
+        const firmaStabile = f => { const i = String(f || "").indexOf("|"); const q = i < 0 ? "" : f.slice(0, i).trim(), a = i < 0 ? String(f || "") : f.slice(i + 1);
+          return (/^\d{1,2}[:.]\d{2}$/.test(q) ? q : "d") + "|" + a; };
         const cambiate = [], stmts = [];
         for (const r of righe) {
           if (!daLeggere.has(r.titolo)) continue;
           const firma = `${r.quando || ""}|${r.anteprima || ""}`.slice(0, 300);
-          if (forza || noti[r.titolo] === undefined || noti[r.titolo] !== firma) cambiate.push(r.titolo);
+          if (forza || noti[r.titolo] === undefined || firmaStabile(noti[r.titolo]) !== firmaStabile(firma)) cambiate.push(r.titolo);
           stmts.push(env.CHAT.prepare(
             "INSERT INTO lettura_wa (titolo,firma,firma_nuova,letta_il) VALUES (?1,'',?2,0) ON CONFLICT(titolo) DO UPDATE SET firma_nuova=excluded.firma_nuova"
           ).bind(r.titolo.slice(0, 120), firma));
