@@ -1,9 +1,28 @@
 {
-  "generatoIl": "2026-10-19T15:32:36.083Z",
+  "generatoIl": "2026-10-21T11:37:03.734Z",
   "strutture": {
     "deluxe": {
       "nome": "InternoUno Deluxe",
       "bozze": [
+        {
+          "id": "deluxe-5938625991",
+          "dataRecensione": "2026-10-21",
+          "punteggio": 2,
+          "stato": "senza_testo"
+        },
+        {
+          "id": "deluxe-6629294136",
+          "dataRecensione": "2026-10-19",
+          "punteggio": 8,
+          "positivo": "Die Lage ist sehr gut",
+          "negativo": "Teuer ",
+          "lingua": "de",
+          "riassuntoIT": "Ospite apprezza la posizione ma trova i prezzi alti.",
+          "rispostaProposta": "Salve, grazie per la recensione. La posizione è effettivamente uno dei nostri punti di forza — siamo ben collegati con i mezzi e vicini ai principali attrattivi della città. Riguardo ai prezzi, sappiamo che la zona è richiesta proprio per questo: la Tiburtina offre accessibilità che altrove costa più cara o richiede spostamenti lunghi. Speriamo di ospitarla di nuovo.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "6629294136"
+        },
         {
           "id": "deluxe-6561796172",
           "dataRecensione": "2026-10-18",
@@ -6575,6 +6594,19 @@
       "nome": "Internouno",
       "bozze": [
         {
+          "id": "classica-5552371165",
+          "dataRecensione": "2026-10-20",
+          "punteggio": 10,
+          "positivo": "Location is very good. Close to restaurants, bars, etc.\r\nRoom was quiet, bed was comfy and shower was nice and hot.",
+          "negativo": null,
+          "lingua": "en",
+          "riassuntoIT": "Ospite molto soddisfatto della posizione centrale, della tranquillità della camera, del letto confortevole e della doccia calda.",
+          "rispostaProposta": "Grazie mille per la sua recensione. Siamo contenti che abbia apprezzato la posizione e il comfort della camera. A presto.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "5552371165"
+        },
+        {
           "id": "classica-5372289481",
           "dataRecensione": "2026-10-14",
           "punteggio": 8,
@@ -12575,24 +12607,6 @@
           "rispostaFinale": null,
           "stato": "da_validare",
           "reservationNumber": "3869118377"
-        },
-        {
-          "id": "classica-4261559120",
-          "dataRecensione": "2023-10-20",
-          "punteggio": 7,
-          "stato": "senza_testo"
-        },
-        {
-          "id": "classica-4291936230",
-          "dataRecensione": "2023-10-19",
-          "punteggio": 10,
-          "stato": "senza_testo"
-        },
-        {
-          "id": "classica-3516505145",
-          "dataRecensione": "2023-10-19",
-          "punteggio": 6,
-          "stato": "senza_testo"
         },
         {
           "id": "classica-4091783098",
