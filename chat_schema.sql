@@ -55,3 +55,11 @@ CREATE TABLE IF NOT EXISTS inviati (
   creato INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS inviati_tel ON inviati(tel, creato);
+
+-- aggiornamento chat guidato dal server (23/10/2026): una sola riga, lo stato e' in json
+CREATE TABLE IF NOT EXISTS agg_stato (
+  id INTEGER PRIMARY KEY,
+  attivo INTEGER NOT NULL DEFAULT 0,
+  lock INTEGER NOT NULL DEFAULT 0,
+  json TEXT NOT NULL DEFAULT ''
+);

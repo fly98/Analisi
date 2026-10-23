@@ -150,7 +150,7 @@
     <div class="barra-lista">Ultimi
       <select id="selGiorni" onchange="cambiaGiorni()"><option value="1">1 giorno</option><option value="3" selected>3 giorni</option><option value="7">7 giorni</option><option value="30">30 giorni</option><option value="0">tutte</option></select>
       <span id="contaConv"></span></div>
-    <div class="prog" id="prog" style="display:none"><div class="pt" id="progT"></div><div class="ps" id="progS"></div><div class="ps" id="progN" style="color:#c0392b"></div><button class="btn sec" style="margin-top:6px;padding:4px 12px;font-size:12px" onclick="STOP=true;document.getElementById('progN').textContent='Interrompo appena finisce la lettura in corso…'">Interrompi</button><div class="pb"><i id="progB"></i></div></div>
+    <div class="prog" id="prog" style="display:none"><div class="pt" id="progT"></div><div class="ps" id="progS"></div><div class="ps" id="progN" style="color:#c0392b"></div><button class="btn sec" style="margin-top:6px;padding:4px 12px;font-size:12px" onclick="api('action=chatStop');document.getElementById('progN').textContent='Interrompo appena finisce la lettura in corso…'">Interrompi</button><div class="pb"><i id="progB"></i></div></div>
     <div class="stato" id="statoLista"></div>
     <div class="scorri" id="elenco"></div>
   </section>
@@ -489,86 +489,59 @@ async function traduciElenco(conProg){
   if(dt.length){await caricaElenco(); if(SEL){const c=CONV.find(x=>chiaveConv(x)===chiaveConv(SEL)); if(c)caricaMessaggi(c,0);}}
   if(!conProg&&dt.length)stato("statoLista","");
 }
-const AGG_KEY="chati1_aggiornamento";
-function salvaAgg(st){ st.agg=Date.now(); try{localStorage.setItem(AGG_KEY,JSON.stringify(st));}catch(e){} }
-function cancAgg(){ try{localStorage.removeItem(AGG_KEY);}catch(e){} }
-function leggiAgg(){ try{const x=JSON.parse(localStorage.getItem(AGG_KEY)||"null"); if(x&&x.v===3&&Date.now()-(x.agg||0)<20*60000)return x; if(x)cancAgg();}catch(e){} return null; }
 const pausa=ms=>new Promise(r=>setTimeout(r,ms));
-
-function aggiornaElenco(){
-  if(AGG)return;
+// l'aggiornamento gira sul SERVER (anche a pagina chiusa, e da solo alle 7): la pagina lo avvia e lo guarda
+async function aggiornaElenco(){
+  if(SEGUO)return;
   const g=Math.min(parseInt(document.getElementById("selGiorni").value,10)||3,30);
-  eseguiAgg({v:3,tot:{},g,t0:Date.now(),fase:1,coda:[],inVolo:[],tentativi:{},totale:0,fatte:0,nuovi:0,letteOk:0,prob:0,falliti:[],nell:0,inv:0,LOTTO:3},false);
+  try{ stato("statoLista",""); await api("action=chatAvvia&giorni="+g); }
+  catch(e){ stato("statoLista","Non riesco ad avviare l'aggiornamento: "+e.message,"ko"); return; }
+  seguiAgg();
 }
-// lo stato vive nel browser: se ricarichi la pagina il lavoro riparte da dove era arrivato
-async function eseguiAgg(st,ripresa){
-  if(AGG)return; AGG=true; STOP=false;
-  const b=document.getElementById("bAggElenco"); b.disabled=true; stato("statoLista","");
-  PROG.t0=st.t0;
+let SEGUO=false;
+async function seguiAgg(){
+  if(SEGUO)return; SEGUO=true;
+  const b=document.getElementById("bAggElenco"); b.disabled=true;
+  let ultimoCaricato=0;
   try{
-    if(ripresa&&(st.fase===1||(st.inVolo&&st.inVolo.length))){
-      // la richiesta lasciata a meta' puo' essere ancora in corso sul Mac: le do il tempo di finire
-      prog("Riprendo l'aggiornamento: aspetto che il Mac finisca la lettura in corso",30);
-      await pausa(15000);
-      if(st.inVolo&&st.inVolo.length){ st.inVolo.forEach(t=>{st.tentativi[t]=Math.max(0,(st.tentativi[t]||1)-1);}); st.coda.unshift(...st.inVolo); st.inVolo=[]; }
+    for(;;){
+      const s=await api("action=chatStato");
+      if(!s||s.stato!=="in_corso"){ await chiudiAgg(s); break; }
+      PROG.t0=s.t0||Date.now();
+      prog(s.msg||"Aggiornamento in corso",s.restoS||20);
+      document.getElementById("progN").textContent=(Date.now()-(s.agg||s.t0))>150000?"Il server non avanza da un po': riprova tra poco (Mac acceso?)":(s.ultimoErrore?"Ultimo errore: "+s.ultimoErrore:"");
+      if(Date.now()-ultimoCaricato>20000 && s.fase>=2){ ultimoCaricato=Date.now(); caricaElenco().catch(()=>{}); }
+      await pausa(3000);
     }
-    if(st.fase===1){
-      // fase 1: solo l'elenco; il Mac non apre nessuna chat
-      prog("Fase 1 di 3 · controllo su WhatsApp quali chat hanno novità",45);
-      const e=await api("action=chatElencoWa&giorni="+st.g);
-      if(e.esito!=="ok")throw new Error("Lettura dell'elenco non riuscita: "+(e.errore||e.error||e.esito)+(e.esito==="profilo_occupato"?" (riprova tra un minuto)":""));
-      st.coda=(e.da_leggere||[]).slice(); st.totale=st.coda.length; st.nell=e.nell_elenco||0; st.inv=e.invariate||0; st.fase=2; salvaAgg(st);
-    }
-    if(st.fase===2){
-      // fase 2: solo le chat cambiate, a piccoli lotti (la richiesta non deve superare i 100 s)
-      while(st.coda.length){
-        const lotto=st.coda.splice(0,st.LOTTO);
-        if(STOP)throw new Error("Aggiornamento interrotto: ripremi ⟳ per riprendere dalle chat rimaste.");
-        lotto.forEach(t=>{st.tentativi[t]=(st.tentativi[t]||0)+1; st.tot[t]=(st.tot[t]||0)+1;});
-        st.inVolo=lotto; salvaAgg(st);
-        const stima=Math.ceil((st.coda.length+lotto.length)/3)*30+20;
-        prog(`Fase 2 di 3 · leggo le chat con novità (${Math.min(st.fatte+1,st.totale)}–${Math.min(st.fatte+lotto.length,st.totale)} di ${st.totale})`,stima);
-        let d=null;
-        try{ d=await api("action=chatLeggiTitoli&giorni="+st.g+"&t="+encodeURIComponent(JSON.stringify(lotto))); }catch(er){ d={esito:"errore",errore:er.message}; }
-        st.inVolo=[];
-        if(d.esito!=="ok"){
-          // il Mac e' rimasto indietro o occupato: pausa e riprovo queste chat una per volta (una sola volta)
-          document.getElementById("progN").textContent="Ultimo errore: "+String(d.errore||d.error||d.esito).slice(0,160);
-          prog("Lettura non riuscita: aspetto qualche secondo e riprovo",25+stima);
-          await pausa(20000);
-          for(const t of lotto){ if(st.tentativi[t]<2&&st.tot[t]<3)st.coda.unshift(t); else st.falliti.push(t); }
-          st.LOTTO=1; salvaAgg(st); continue;
-        }
-        if(d.errore_batch){st.prob++;(st.elProb=st.elProb||[]).push("salvataggio: "+d.errore_batch);}
-        for(const x of (d.chat||[])){ st.nuovi+=x.nuovi||0; if(x.esito==="letta")st.letteOk++; else {st.prob++; (st.elProb=st.elProb||[]).push((x.nome||"?")+" ("+(x.esito||"?")+(x.errore?": "+x.errore:"")+")");} }
-        for(const x of (d.saltate||[])){
-          if(!lotto.includes(x.titolo))continue;
-          if(x.motivo==="tempo_esaurito"&&st.tentativi[x.titolo]<3)st.coda.push(x.titolo);
-          else if(x.motivo==="bloccata"&&st.tentativi[x.titolo]<2)st.coda.push(x.titolo);
-          else if(x.motivo!=="gruppo"){st.falliti.push(x.titolo); (st.elProb=st.elProb||[]).push(x.titolo+" ("+x.motivo+")");}
-        }
-        st.fatte+=lotto.length;
-        if(d.troncato&&st.LOTTO>1)st.LOTTO=2;
-        salvaAgg(st);
-      }
-      st.fase=3; salvaAgg(st);
-    }
-    await caricaElenco();
-    // fase 3: traduzione di quello che manca
-    await traduciElenco(true);
-    fineProg(); cancAgg();
-    const base=st.totale?`${st.letteOk} chat con novità lette, ${st.nuovi} messaggi nuovi.`:`Nessuna novità: ${st.nell} chat già aggiornate.`;
-    const dubbi=st.prob+st.falliti.length;
-    stato("statoLista",base+(st.inv&&st.totale?` ${st.inv} invariate saltate.`:"")+(dubbi?` Da controllare: ${(st.elProb||[]).join(", ")||dubbi}${st.falliti.length?" — ripremi ⟳ per riprovare le non lette":""}.`:""),dubbi?"ko":"");
-    if(SEL){const k=chiaveConv(SEL);const c=CONV.find(x=>chiaveConv(x)===k); if(c)await caricaMessaggi(c,0);}
-  }catch(err){fineProg();cancAgg();stato("statoLista",err.message,"ko"); await caricaElenco().catch(()=>{});}
-  b.disabled=false; AGG=false;
+  }catch(err){ fineProg(); stato("statoLista","Non riesco a leggere lo stato: "+err.message,"ko"); }
+  SEGUO=false; b.disabled=false;
+}
+async function chiudiAgg(s){
+  fineProg();
+  await caricaElenco().catch(()=>{});
+  if(s&&s.riassunto){
+    const quando=s.fine?new Date(s.fine).toLocaleTimeString("it-IT",{hour:"2-digit",minute:"2-digit"}):"";
+    stato("statoLista",(s.origine&&s.origine!=="manuale"?`Aggiornamento automatico delle ${quando}: `:"")+s.riassunto,(s.stato!=="finito"||s.dubbi)?"ko":"");
+    try{localStorage.setItem("chati1_agg_visto",String(s.t0));}catch(e){}
+  }
+  if(SEL){const k=chiaveConv(SEL);const c=CONV.find(x=>chiaveConv(x)===k); if(c)await caricaMessaggi(c,0);}
 }
 
 (async function avvio(){
   await caricaElenco();
   caricaPrenotazioni();   // in parallelo: non blocca l'elenco
-  {const st=leggiAgg(); if(st){eseguiAgg(st,true);} else traduciElenco(false);}   // aggiornamento lasciato a meta': riparte da dove era. Altrimenti traduce in sottofondo
+  // se un aggiornamento e' in corso sul server (anche partito da solo) lo seguo; se e' finito mentre ero via, mostro com'e' andato
+  try{
+    const s=await api("action=chatStato");
+    if(s&&s.stato==="in_corso")seguiAgg();
+    else{
+      if(s&&s.riassunto&&s.fine&&Date.now()-s.fine<12*3600000){
+        let visto=""; try{visto=localStorage.getItem("chati1_agg_visto")||"";}catch(e){}
+        if(visto!==String(s.t0)) await chiudiAgg(s);
+      }
+      traduciElenco(false);
+    }
+  }catch(e){ traduciElenco(false); }
   // chat salvate ma mai aperte: le traduce subito, cosi' anche le anteprime sono in italiano
   const t=P.get("tel"), b=P.get("b");
   if(t||b){

@@ -2542,8 +2542,134 @@ async function runTassaPreparaInterno(env, date, crea) {
   return { date: day, crea: !!crea, count: esiti.length, esiti };
 }
 
-export default {
-  async fetch(request, env) {
+// ====== AGGIORNAMENTO CHAT SUL SERVER (23/10/2026) ======
+// Prima la pagina guidava le tre fasi: chiusa la pagina, si fermava. Ora lo stato sta in D1 (agg_stato) e lo fa
+// avanzare il cron di ogni minuto (e, all'avvio, la richiesta stessa): la pagina guarda soltanto. Alle 7 parte da solo.
+async function chatInt(env, qs) {
+  const rs = await WORKER_DEFAULT.fetch(new Request("https://interno.invalid/?" + qs, { headers: { "X-Interno": env.TRIGGER_KEY || "" } }), env, { waitUntil() {} });
+  const t = await rs.text();
+  try { return JSON.parse(t); } catch (e) { return { esito: "errore", errore: t.slice(0, 160) }; }
+}
+async function chatAggLeggi(env) {
+  try { const r = await env.CHAT.prepare("SELECT json FROM agg_stato WHERE id=1").first(); return r && r.json ? JSON.parse(r.json) : null; } catch (e) { return null; }
+}
+function chatAggPub(st) {
+  if (!st) return { stato: "nessuno" };
+  const { coda, inVolo, tentativi, tot, daTradurre, ...pub } = st;
+  pub.da_leggere_ancora = (coda || []).length + (inVolo || []).length;
+  pub.da_tradurre_ancora = Array.isArray(daTradurre) ? daTradurre.length : null;
+  pub.ora = Date.now();
+  return pub;
+}
+async function chatAggAvvia(env, g, origine) {
+  await env.CHAT.prepare("CREATE TABLE IF NOT EXISTS agg_stato (id INTEGER PRIMARY KEY, attivo INTEGER NOT NULL DEFAULT 0, lock INTEGER NOT NULL DEFAULT 0, json TEXT NOT NULL DEFAULT '')").run().catch(() => {});
+  const vecchio = await chatAggLeggi(env);
+  // gia' in corso (e vivo da meno di 40 minuti): non ne parte un secondo
+  if (vecchio && vecchio.stato === "in_corso" && Date.now() - (vecchio.t0 || 0) < 40 * 60000) return vecchio;
+  const st = { v: 1, stato: "in_corso", origine, g, t0: Date.now(), fase: 1, coda: [], inVolo: [], tentativi: {}, tot: {}, totale: 0, fatte: 0,
+    nuovi: 0, letteOk: 0, prob: 0, falliti: [], elProb: [], nell: 0, inv: 0, LOTTO: 3, daTradurre: null, tradotte: 0,
+    msg: "Parto: controllo su WhatsApp quali chat hanno novità", restoS: 60, fine: 0, riassunto: "" };
+  await env.CHAT.prepare("INSERT INTO agg_stato (id,attivo,lock,json) VALUES (1,1,0,?1) ON CONFLICT(id) DO UPDATE SET attivo=1, lock=0, json=excluded.json").bind(JSON.stringify(st)).run();
+  return st;
+}
+async function chatAggSalva(env, st) {
+  st.agg = Date.now();
+  const r = await env.CHAT.prepare("UPDATE agg_stato SET json=?1 WHERE id=1 AND attivo=1").bind(JSON.stringify(st)).run();
+  return !!(r && r.meta && r.meta.changes);
+}
+async function chatGiro(env, maxPassi) {
+  if (!env.CHAT) return;
+  const ora = Date.now();
+  // un solo esecutore alla volta: il blocco scade da solo (se l'esecuzione viene interrotta, il giro dopo riprende)
+  const lk = await env.CHAT.prepare("UPDATE agg_stato SET lock=?1 WHERE id=1 AND attivo=1 AND lock<?2").bind(ora + 105000, ora).run().catch(() => null);
+  if (!lk || !lk.meta || !lk.meta.changes) return;
+  let st = await chatAggLeggi(env);
+  if (!st || st.stato !== "in_corso") { await env.CHAT.prepare("UPDATE agg_stato SET attivo=0 WHERE id=1").run().catch(() => {}); return; }
+  const inizio = Date.now();
+  try {
+    if (Date.now() - st.t0 > 40 * 60000) throw new Error("troppo lungo (oltre 40 minuti): interrotto");
+    if (st.inVolo && st.inVolo.length) {       // un'esecuzione e' stata interrotta a meta' di una lettura: la rifaccio
+      st.inVolo.forEach(t => { st.tentativi[t] = Math.max(0, (st.tentativi[t] || 1) - 1); });
+      st.coda.unshift(...st.inVolo); st.inVolo = [];
+    }
+    for (let passi = 0; passi < (maxPassi || 3) && st.stato === "in_corso" && Date.now() - inizio < 70000; passi++) {
+      await chatAggPasso(env, st);
+      if (!(await chatAggSalva(env, st))) return;      // fermato nel frattempo
+    }
+  } catch (e) {
+    st.stato = "errore"; st.fine = Date.now(); st.msg = "Aggiornamento non riuscito: " + String((e && e.message) || e).slice(0, 200);
+    st.riassunto = st.msg; await env.CHAT.prepare("UPDATE agg_stato SET attivo=0, json=?1 WHERE id=1").bind(JSON.stringify(st)).run().catch(() => {});
+    return;
+  }
+  if (st.stato !== "in_corso") await env.CHAT.prepare("UPDATE agg_stato SET attivo=0, lock=0 WHERE id=1").run().catch(() => {});
+  else await env.CHAT.prepare("UPDATE agg_stato SET lock=0 WHERE id=1").run().catch(() => {});
+}
+async function chatAggPasso(env, st) {
+  if (st.fase === 1) {
+    st.msg = "Fase 1 di 3 · controllo su WhatsApp quali chat hanno novità"; st.restoS = 45;
+    await chatAggSalva(env, st);
+    const e = await chatInt(env, "action=chatElencoWa&giorni=" + st.g);
+    if (e.esito !== "ok") throw new Error("lettura dell'elenco: " + (e.errore || e.error || e.esito) + (e.esito === "profilo_occupato" ? " (Mac occupato)" : ""));
+    st.coda = (e.da_leggere || []).slice(); st.totale = st.coda.length; st.nell = e.nell_elenco || 0; st.inv = e.invariate || 0; st.fase = 2;
+    return;
+  }
+  if (st.fase === 2) {
+    if (!st.coda.length) { st.fase = 3; return; }
+    const lotto = st.coda.splice(0, st.LOTTO);
+    lotto.forEach(t => { st.tentativi[t] = (st.tentativi[t] || 0) + 1; st.tot[t] = (st.tot[t] || 0) + 1; });
+    st.inVolo = lotto;
+    const stima = Math.ceil((st.coda.length + lotto.length) / 3) * 30 + 20;
+    st.msg = `Fase 2 di 3 · leggo le chat con novità (${Math.min(st.fatte + 1, st.totale)}–${Math.min(st.fatte + lotto.length, st.totale)} di ${st.totale})`; st.restoS = stima;
+    await chatAggSalva(env, st);
+    const d = await chatInt(env, "action=chatLeggiTitoli&giorni=" + st.g + "&t=" + encodeURIComponent(JSON.stringify(lotto)));
+    st.inVolo = [];
+    if (d.esito !== "ok") {
+      st.ultimoErrore = String(d.errore || d.error || d.esito).slice(0, 160);
+      for (const t of lotto) { if (st.tentativi[t] < 2 && st.tot[t] < 3) st.coda.unshift(t); else { st.falliti.push(t); st.elProb.push(t + " (non letta)"); } }
+      st.LOTTO = 1; st.msg = "Lettura non riuscita: riprovo una chat per volta";
+      return;
+    }
+    if (d.errore_batch) { st.prob++; st.elProb.push("salvataggio: " + d.errore_batch); }
+    for (const x of (d.chat || [])) {
+      st.nuovi += x.nuovi || 0;
+      if (x.esito === "letta") st.letteOk++; else { st.prob++; st.elProb.push((x.nome || "?") + " (" + (x.esito || "?") + (x.errore ? ": " + x.errore : "") + ")"); }
+    }
+    for (const x of (d.saltate || [])) {
+      if (!lotto.includes(x.titolo)) continue;
+      if (x.motivo === "tempo_esaurito" && st.tentativi[x.titolo] < 3) st.coda.push(x.titolo);
+      else if (x.motivo === "bloccata" && st.tentativi[x.titolo] < 2) st.coda.push(x.titolo);
+      else if (x.motivo !== "gruppo") { st.falliti.push(x.titolo); st.elProb.push(x.titolo + " (" + x.motivo + ")"); }
+    }
+    st.fatte += lotto.length;
+    if (d.troncato && st.LOTTO > 1) st.LOTTO = 2;
+    return;
+  }
+  if (st.fase === 3) {
+    if (st.daTradurre === null) {
+      const el = await chatInt(env, "action=chatElenco&giorni=0");
+      st.daTradurre = ((el && el.conversazioni) || []).filter(c => c.da_tradurre > 0 && (c.tel || c.booking_id)).map(c => ({ tel: c.tel || "", b: c.booking_id || "", n: c.nome || c.tel || "" }));
+    }
+    if (st.daTradurre.length) {
+      const c = st.daTradurre.shift();
+      st.msg = `Fase 3 di 3 · traduco in italiano (${st.daTradurre.length + 1} rimaste): ${c.n}`; st.restoS = 8 * (st.daTradurre.length + 1);
+      const q = c.tel ? "tel=" + encodeURIComponent(c.tel) : "bookingId=" + encodeURIComponent(c.b);
+      for (let t = 0; t < 6; t++) {
+        const d = await chatInt(env, "action=chatTraduci&" + q).catch(() => null);
+        if (!d || d.error || !d.ancora) break;
+      }
+      st.tradotte = (st.tradotte || 0) + 1;
+      return;
+    }
+    // finito
+    const base = st.totale ? `${st.letteOk} chat con novità lette, ${st.nuovi} messaggi nuovi.` : `Nessuna novità: ${st.nell} chat già aggiornate.`;
+    const dubbi = st.prob + st.falliti.length;
+    st.riassunto = base + (st.inv && st.totale ? ` ${st.inv} invariate saltate.` : "") + (dubbi ? ` Da controllare: ${(st.elProb || []).join(", ") || dubbi}.` : "");
+    st.dubbi = dubbi; st.stato = "finito"; st.fine = Date.now(); st.msg = "Finito"; st.restoS = 0;
+  }
+}
+
+const WORKER_DEFAULT = {
+  async fetch(request, env, ctx) {
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: CORS });
     }
@@ -2558,7 +2684,9 @@ export default {
       // Il callback OAuth di Google non porta mai ?k= (Google restituisce solo code/state/error):
       // è già protetto dal one-time authorization code di Google, va escluso come le PUBLIC_ACTIONS.
       const isOauthCallback = url.pathname.endsWith("/oauth2callback");
-      if (!isOauthCallback && !PUBLIC_ACTIONS.has(action || "__default__")) {
+      // chiamata interna del giro chat (stesso worker): porta il segreto del Mac, mai esposto fuori
+      const internaGiro = !!env.TRIGGER_KEY && request.headers.get("X-Interno") === env.TRIGGER_KEY;
+      if (!internaGiro && !isOauthCallback && !PUBLIC_ACTIONS.has(action || "__default__")) {
         const k = url.searchParams.get("k") || request.headers.get("X-App-Key") || "";
         const _buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(k));
         const _hex = [..._buf ? new Uint8Array(_buf) : []].map(b => b.toString(16).padStart(2, "0")).join("");
@@ -4327,6 +4455,26 @@ async function searchOneAccount(env, account, q, maxResults) {
         return jsonRes({ bookingId: bid, tel: t9, tel_completo: (cc && cc.completo) || "", nome: (cv && cv.nome) || "", tradotti, ancora_da_tradurre: (da_tradurre && da_tradurre.n) || 0,
                          messaggi: (q && q.results) || [] });
       }
+      if (action === "chatAvvia") {
+        if (!env.CHAT) return jsonRes({ error: "archivio chat non ancora attivo" }, 503);
+        const g = Math.max(1, Math.min(30, parseInt(url.searchParams.get("giorni") || "3", 10) || 3));
+        const st = await chatAggAvvia(env, g, "manuale");
+        ctx.waitUntil(chatGiro(env, 1));      // un solo passo (l'elenco): il resto lo fa il cron di ogni minuto
+        return jsonRes(chatAggPub(st));
+      }
+      if (action === "chatStato") {
+        if (!env.CHAT) return jsonRes({ error: "archivio chat non ancora attivo" }, 503);
+        return jsonRes(chatAggPub(await chatAggLeggi(env)));
+      }
+      if (action === "chatStop") {
+        if (!env.CHAT) return jsonRes({ error: "archivio chat non ancora attivo" }, 503);
+        const st = await chatAggLeggi(env);
+        if (st && st.stato === "in_corso") {
+          st.stato = "interrotto"; st.msg = "Aggiornamento interrotto."; st.fine = Date.now();
+          await env.CHAT.prepare("UPDATE agg_stato SET attivo=0, json=?1 WHERE id=1").bind(JSON.stringify(st)).run();
+        }
+        return jsonRes(chatAggPub(st));
+      }
       if (action === "chatElenco") {
         // elenco conversazioni (una per numero), piu' recenti in alto. giorni=0 = tutte.
         if (!env.CHAT) return jsonRes({ error: "archivio chat non ancora attivo" }, 503);
@@ -4743,7 +4891,14 @@ async function searchOneAccount(env, account, q, maxResults) {
     }
   },
   async scheduled(event, env, ctx) {
+    // ogni minuto: se c'e' un aggiornamento chat in corso lo fa avanzare (non tocca gli altri job)
+    if (event.cron === "* * * * *") { ctx.waitUntil(chatGiro(env)); return; }
     const hourUTC = new Date(event.scheduledTime).getUTCHours();
+    // alle 7 italiane: aggiornamento chat automatico (5 e 6 UTC coprono ora legale e solare)
+    if (hourUTC === 5 || hourUTC === 6) {
+      const oraRomaChat = parseInt(new Date(event.scheduledTime).toLocaleString("en-GB", { timeZone: "Europe/Rome", hour: "2-digit", hour12: false }), 10);
+      if (oraRomaChat === 7) ctx.waitUntil(chatAggAvvia(env, 3, "automatico 07:00").then(() => chatGiro(env)));
+    }
 
     // Mapping ESPLICITO orario -> job. Niente "else" generico: un orario non
     // previsto non deve far partire invii di email agli ospiti per sbaglio.
@@ -4799,4 +4954,4 @@ async function searchOneAccount(env, account, q, maxResults) {
     }
   }
 };
-
+export default WORKER_DEFAULT;
