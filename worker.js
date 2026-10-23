@@ -2592,11 +2592,17 @@ async function chatGiro(env, maxPassi) {
       st.inVolo.forEach(t => { st.tentativi[t] = Math.max(0, (st.tentativi[t] || 1) - 1); });
       st.coda.unshift(...st.inVolo); st.inVolo = [];
     }
-    for (let passi = 0; passi < (maxPassi || 3) && st.stato === "in_corso" && Date.now() - inizio < 70000; passi++) {
+    for (let passi = 0; passi < (maxPassi || 3) && st.stato === "in_corso" && Date.now() - inizio < ((maxPassi || 3) > 3 ? 600000 : 70000); passi++) {
       await chatAggPasso(env, st);
       if (!(await chatAggSalva(env, st))) return;      // fermato nel frattempo
     }
   } catch (e) {
+    // troppe richieste in una sola esecuzione (limite del piano): non e' un errore, lo stato resta e la pagina continua
+    if (/subrequest/i.test(String((e && e.message) || e))) {
+      st.msg = "In pausa: riprende quando apri l'app"; st.inVolo = [];
+      await env.CHAT.prepare("UPDATE agg_stato SET json=?1, lock=0 WHERE id=1 AND attivo=1").bind(JSON.stringify(st)).run().catch(() => {});
+      return;
+    }
     st.stato = "errore"; st.fine = Date.now(); st.msg = "Aggiornamento non riuscito: " + String((e && e.message) || e).slice(0, 200);
     st.riassunto = st.msg; await env.CHAT.prepare("UPDATE agg_stato SET attivo=0, json=?1 WHERE id=1").bind(JSON.stringify(st)).run().catch(() => {});
     return;
@@ -4459,8 +4465,14 @@ async function searchOneAccount(env, account, q, maxResults) {
         if (!env.CHAT) return jsonRes({ error: "archivio chat non ancora attivo" }, 503);
         const g = Math.max(1, Math.min(30, parseInt(url.searchParams.get("giorni") || "3", 10) || 3));
         const st = await chatAggAvvia(env, g, "manuale");
-        ctx.waitUntil(chatGiro(env, 1));      // un solo passo (l'elenco): il resto lo fa il cron di ogni minuto
         return jsonRes(chatAggPub(st));
+      }
+      if (action === "chatAvanza") {
+        // un passo dell'aggiornamento (una lettura al Mac), poi lo stato. Lo chiede la pagina finche' e' aperta;
+        // alle 7 lo fa da solo il cron esistente. Se un altro esecutore e' al lavoro, restituisce solo lo stato.
+        if (!env.CHAT) return jsonRes({ error: "archivio chat non ancora attivo" }, 503);
+        await chatGiro(env, 1);
+        return jsonRes(chatAggPub(await chatAggLeggi(env)));
       }
       if (action === "chatStato") {
         if (!env.CHAT) return jsonRes({ error: "archivio chat non ancora attivo" }, 503);
@@ -4897,7 +4909,7 @@ async function searchOneAccount(env, account, q, maxResults) {
     // alle 7 italiane: aggiornamento chat automatico (5 e 6 UTC coprono ora legale e solare)
     if (hourUTC === 5 || hourUTC === 6) {
       const oraRomaChat = parseInt(new Date(event.scheduledTime).toLocaleString("en-GB", { timeZone: "Europe/Rome", hour: "2-digit", hour12: false }), 10);
-      if (oraRomaChat === 7) ctx.waitUntil(chatAggAvvia(env, 3, "automatico 07:00").then(() => chatGiro(env)));
+      if (oraRomaChat === 7) ctx.waitUntil(chatAggAvvia(env, 3, "automatico 07:00").then(() => chatGiro(env, 40)));
     }
 
     // Mapping ESPLICITO orario -> job. Niente "else" generico: un orario non

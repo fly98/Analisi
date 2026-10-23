@@ -505,13 +505,15 @@ async function seguiAgg(){
   let ultimoCaricato=0;
   try{
     for(;;){
-      const s=await api("action=chatStato");
+      prog(PROG.ultimoMsg||"Aggiornamento in corso…",PROG.ultimoResto||20);
+      const s=await api("action=chatAvanza");      // fa avanzare di un passo e restituisce lo stato (se un altro esecutore e' al lavoro, solo lo stato)
       if(!s||s.stato!=="in_corso"){ await chiudiAgg(s); break; }
+      PROG.ultimoMsg=s.msg; PROG.ultimoResto=s.restoS;
       PROG.t0=s.t0||Date.now();
       prog(s.msg||"Aggiornamento in corso",s.restoS||20);
       document.getElementById("progN").textContent=(Date.now()-(s.agg||s.t0))>150000?"Il server non avanza da un po': riprova tra poco (Mac acceso?)":(s.ultimoErrore?"Ultimo errore: "+s.ultimoErrore:"");
       if(Date.now()-ultimoCaricato>20000 && s.fase>=2){ ultimoCaricato=Date.now(); caricaElenco().catch(()=>{}); }
-      await pausa(3000);
+      await pausa(1500);
     }
   }catch(err){ fineProg(); stato("statoLista","Non riesco a leggere lo stato: "+err.message,"ko"); }
   SEGUO=false; b.disabled=false;
