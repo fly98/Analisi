@@ -1952,6 +1952,26 @@ async function firmaGiro(env, dati) {
   catch (e) { return false; }
 }
 
+// Ripresa del mattino (23/10/2026): se il giro notturno e' finito con errori (tipico: il Mac non
+// rispondeva, HTTP 522), alle 8 italiane lo si rifa'. Quello gia' fatto non costa nulla: tassaUna
+// guarda l'archivio prima di muovere il Mac, e i link creati sono gia' in KV. Le chat WhatsApp
+// invece vengono rilette per intero, quindi si rifanno solo se il passaggio delle 3 ha avuto errori.
+async function runRiprovaMattina(env) {
+  const fresco = (iso) => !!iso && (Date.now() - new Date(iso).getTime()) < 10 * 3600 * 1000;
+  try {
+    const tassa = await env.ARRIVI_KV.get("giro_ultimo", "json").catch(() => null);
+    const wa = await env.ARRIVI_KV.get("giro_whatsapp", "json").catch(() => null);
+    const tassaDaRifare = !!tassa && fresco(tassa.iniziato) && (tassa.n_errori > 0 || !tassa.completato);
+    const waDaRifare = !!wa && fresco(wa.iniziato) && (wa.n_errori > 0 || !wa.completato);
+    console.log("Riprova mattina: tassa=" + tassaDaRifare + " whatsapp=" + waDaRifare);
+    // prima i messaggi (se l'ospite scrive che paga in contanti il link non va creato)
+    if (waDaRifare) await runWhatsappPrepara(env, null);
+    if (tassaDaRifare) await runTassaPrepara(env, null, true);
+  } catch (e) {
+    console.log("Riprova mattina: " + String(e && e.message || e).slice(0, 200));
+  }
+}
+
 // Cestina in automatico, una volta al giorno, gli avvisi di accesso/login (Samsung, Aruba,
 // Netatmo, banche varie, auto connesse...) ma SOLO se hanno più di 7 giorni: restano visibili
 // in arrivo per una settimana (utile per accorgersi di un accesso sospetto vero), poi si puliscono
@@ -4750,6 +4770,7 @@ async function searchOneAccount(env, account, q, maxResults) {
       // digest Booking una volta al mese (la funzione stessa controlla se è già stato inviato).
       ctx.waitUntil(runInoltroSingoleFatture(env));
       ctx.waitUntil(runInoltroBookingMensile(env));
+      ctx.waitUntil(runRiprovaMattina(env));
     } else if (hourUTC === 10) {
       ctx.waitUntil(runThankYou(env, false));
     } else if (hourUTC === 15 || hourUTC === 16) {
