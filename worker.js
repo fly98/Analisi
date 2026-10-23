@@ -4502,8 +4502,17 @@ async function searchOneAccount(env, account, q, maxResults) {
           }
           esiti.push(e);
         }
-        if (altri.length) await env.CHAT.batch(altri).catch(() => {});
-        return jsonRes({ esito: "ok", chat: esiti, saltate: j.saltate || [], troncato: !!j.troncato, durata_s: Math.round((Date.now() - t0) / 1000) });
+        // il segno "letta" sta nello stesso gruppo del resto: se un'istruzione sbaglia, TUTTO salta e la chat verrebbe
+        // riletta a ogni aggiornamento. Prima in blocco; se fallisce, una per una, e l'errore viene mostrato.
+        let erroreBatch = "";
+        if (altri.length) {
+          try { await env.CHAT.batch(altri); }
+          catch (e1) {
+            erroreBatch = String((e1 && e1.message) || e1).slice(0, 140);
+            for (const st of altri) { try { await st.run(); } catch (e2) { erroreBatch = String((e2 && e2.message) || e2).slice(0, 140); } }
+          }
+        }
+        return jsonRes({ esito: "ok", chat: esiti, saltate: j.saltate || [], troncato: !!j.troncato, errore_batch: erroreBatch, durata_s: Math.round((Date.now() - t0) / 1000) });
         } catch (e) {
           return jsonRes({ esito: "errore", errore: "worker: " + String((e && e.message) || e).slice(0, 200) }, 500);
         }
