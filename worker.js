@@ -1952,6 +1952,25 @@ async function firmaGiro(env, dati) {
   catch (e) { return false; }
 }
 
+// Sonda del Mac (24/10/2026): ad ogni giro del cron prova a bussare al Mac e annota se risponde.
+// Serve a capire a che ora sparisce di notte (errori 522). Qualunque risposta HTTP, anche un 404,
+// vuol dire "raggiungibile"; conta solo se la connessione si apre. Ultime 60 sonde in KV `mac_ping`.
+async function sondaMac(env) {
+  let esito;
+  const t0 = Date.now();
+  try {
+    const r = await fetch("http://fly98.duckdns.org:3456/", { signal: AbortSignal.timeout(8000) });
+    esito = "ok " + r.status;
+  } catch (e) {
+    esito = "giu " + String(e && e.message || e).slice(0, 60);
+  }
+  try {
+    const prev = (await env.ARRIVI_KV.get("mac_ping", "json").catch(() => null)) || [];
+    prev.push({ ts: new Date().toISOString(), esito, ms: Date.now() - t0 });
+    await env.ARRIVI_KV.put("mac_ping", JSON.stringify(prev.slice(-60)));
+  } catch (e) {}
+}
+
 // Ripresa del mattino (23/10/2026): se il giro notturno e' finito con errori (tipico: il Mac non
 // rispondeva, HTTP 522), alle 8 italiane lo si rifa'. Quello gia' fatto non costa nulla: tassaUna
 // guarda l'archivio prima di muovere il Mac, e i link creati sono gia' in KV. Le chat WhatsApp
@@ -4768,6 +4787,10 @@ async function searchOneAccount(env, account, q, maxResults) {
         await env.CHAT.prepare("INSERT INTO inviati (tel,testo,it,lingua,creato) VALUES (?1,?2,?3,?4,?5)").bind(t9, mostrato, it, lingua, Date.now()).run().catch(() => {});
         return jsonRes({ esito: j.esito, confermato: !!j.confermato_nel_filo });
       }
+      if (action === "macPing") {
+        const l = (await env.ARRIVI_KV.get("mac_ping", "json").catch(() => null)) || [];
+        return jsonRes({ sonde: l }, 200);
+      }
       if (action === "statoGiro") {
         // l'app lo chiede all'avvio per sapere se il giro notturno e' andato a buon fine
         let g = null, leggibile = true;
@@ -4906,6 +4929,7 @@ async function searchOneAccount(env, account, q, maxResults) {
     // ogni minuto: se c'e' un aggiornamento chat in corso lo fa avanzare (non tocca gli altri job)
     if (event.cron === "* * * * *") { ctx.waitUntil(chatGiro(env)); return; }
     const hourUTC = new Date(event.scheduledTime).getUTCHours();
+    ctx.waitUntil(sondaMac(env));
     // alle 7 italiane: aggiornamento chat automatico (5 e 6 UTC coprono ora legale e solare)
     if (hourUTC === 5 || hourUTC === 6) {
       const oraRomaChat = parseInt(new Date(event.scheduledTime).toLocaleString("en-GB", { timeZone: "Europe/Rome", hour: "2-digit", hour12: false }), 10);
