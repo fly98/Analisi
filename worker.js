@@ -1277,9 +1277,9 @@ async function runAutoSend(env, testMode) {
 // Perimetro: solo Booking ed Expedia (Amenitiz diretto include la tassa, Airbnb la incassa lui,
 // le manuali sono eccezioni). Esito e link vengono salvati in KV: tassa_<bookingId>.
 const TASSA_FONTI = /booking|expedia/i;
-const MAC_TASSA_URL = "http://fly98.duckdns.org:3456/amenitiz-tassa";
-const MAC_WA_URL = "http://fly98.duckdns.org:3456/whatsapp-messaggi";
-const MAC_WA_RECENTI_URL = "http://fly98.duckdns.org:3456/whatsapp-recenti";
+const MAC_TASSA_URL = "https://mac.xast.it/amenitiz-tassa";
+const MAC_WA_URL = "https://mac.xast.it/whatsapp-messaggi";
+const MAC_WA_RECENTI_URL = "https://mac.xast.it/whatsapp-recenti";
 
 function domaniRoma() {
   const d = new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/Rome" }));
@@ -1959,7 +1959,7 @@ async function sondaMac(env) {
   let esito;
   const t0 = Date.now();
   try {
-    const r = await fetch("http://fly98.duckdns.org:3456/", { signal: AbortSignal.timeout(8000) });
+    const r = await fetch("https://mac.xast.it/", { signal: AbortSignal.timeout(8000) });
     esito = "ok " + r.status;
   } catch (e) {
     esito = "giu " + String(e && e.message || e).slice(0, 60);
@@ -2757,7 +2757,7 @@ const WORKER_DEFAULT = {
           return jsonRes({ error: "serve checkin=AAAA-MM-GG" }, 400);
         }
         try {
-          const r = await fetch(`http://fly98.duckdns.org:3456/telefono-recupera?checkin=${checkin}`, {
+          const r = await fetch(`https://mac.xast.it/telefono-recupera?checkin=${checkin}`, {
             headers: { "X-Trigger-Key": env.RECENSIONI_TOKEN },
             signal: AbortSignal.timeout(300000),
           });
