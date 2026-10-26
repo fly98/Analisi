@@ -186,13 +186,12 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif
 /* ── Date filter bar ── */
 #date-bar { padding: 6px 16px; display: flex; gap: 6px; flex-shrink: 0; align-items: center;
   background: var(--surface); border-bottom: 1px solid var(--border); }
-.date-chip { padding: 3px 12px; border-radius: 6px; font-size: 13px; font-weight: 500;
-  border: 1px solid var(--border); background: var(--surface); color: var(--muted);
-  cursor: pointer; white-space: nowrap; transition: all 0.15s; }
-.date-chip.active { background: var(--text); color: white; border-color: var(--text); }
 #date-bar input[type=date] { padding: 3px 8px; border-radius: 6px; font-size: 13px;
   border: 1px solid var(--border); color: var(--text); background: var(--surface);
   outline: none; min-width: 140px; }
+#date-preset { padding: 4px 8px; border-radius: 6px; font-size: 13px; font-weight: 600;
+  border: 1px solid var(--border); color: var(--text); background: var(--surface);
+  outline: none; cursor: pointer; flex-shrink: 0; }
 
 /* ── Loading / Empty ── */
 #loading { display: flex; align-items: center; justify-content: center; flex: 1;
@@ -700,6 +699,8 @@ select.form-input { height: 42px; }
   #date-bar { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; gap: 4px; padding: 6px 8px; }
   #date-bar .filter-chip, #date-bar button { white-space: nowrap; font-size: 12px; padding: 4px 8px; flex-shrink: 0; }
   #date-bar input[type=date] { width: 86px; font-size: 11px; padding: 3px 4px; flex-shrink: 0; }
+  #date-preset { font-size: 12px; padding: 4px 6px; }
+  #search-tx { min-width: 70px !important; }
 
   /* Tabella: niente scroll orizzontale, niente colonne extra */
   #tx-scroll-wrap { overflow-x: hidden !important; }
@@ -790,13 +791,12 @@ select.form-input { height: 42px; }
     </div>
 
     <div id="date-bar">
-      <button class="date-chip active" onclick="setDatePreset('12m',this)">Ultimi 12 mesi</button>
-      <button class="date-chip" onclick="setDatePreset('3m',this)">3 mesi</button>
-      <button class="date-chip" onclick="setDatePreset('ytd',this)">Quest'anno</button>
-      <button class="date-chip" onclick="setDatePreset('all',this)">Tutto</button>
-      <input type="date" id="date-from" onchange="setDateCustom()">
-      <span style="color:var(--muted);font-size:13px;padding:0 4px">→</span>
-      <input type="date" id="date-to" onchange="setDateCustom()">
+      <select id="date-preset" onchange="setDatePreset(this.value)" title="Periodo">
+        <option value="12m">Ultimi 12 mesi</option>
+        <option value="3m">Ultimi 3 mesi</option>
+        <option value="ytd">Quest'anno</option>
+        <option value="all">Tutto</option>
+      </select>
       <input id="search-tx" type="search" placeholder="Cerca..." oninput="applySearch(this.value)" style="margin-left:auto">
       <button id="btn-import-contestuale" style="display:none;padding:4px 10px;border-radius:8px;border:1px solid var(--border);background:none;cursor:pointer;color:var(--muted);font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:4px" onclick="importContestuale()"><span id="btn-import-label">Aggiorna</span> <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="2,3 5,7 8,3"/></svg></button>
       <button class="btn-add" onclick="openNewTx()">+ Nuova</button>
@@ -1344,15 +1344,12 @@ function updateTotalBalance() {
 // YEAR BAR
 // ══════════════════════════════════════════════
 function renderYearBar() {
-  const df = document.getElementById('date-from');
-  const dt = document.getElementById('date-to');
-  if (df) df.value = dateFrom;
-  if (dt) dt.value = dateTo;
+  // periodo = solo preset (tendina #date-preset); nessuna data libera
 }
 
-async function setDatePreset(preset, btn) {
-  document.querySelectorAll('.date-chip').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
+async function setDatePreset(preset) {
+  const sel = document.getElementById('date-preset');
+  if (sel && sel.value !== preset) sel.value = preset;
   const today = new Date().toISOString().slice(0,10);
   let from;
   if (preset === '3m') from = new Date(Date.now()-90*24*60*60*1000).toISOString().slice(0,10);
@@ -1360,17 +1357,6 @@ async function setDatePreset(preset, btn) {
   else if (preset === 'all') from = (meta?.years?.[0] || '2001') + '-01-01';
   else from = new Date(Date.now()-365*24*60*60*1000).toISOString().slice(0,10);
   dateFrom = from; dateTo = today;
-  document.getElementById('date-from').value = from;
-  document.getElementById('date-to').value = today;
-  await reloadTxForRange();
-}
-
-async function setDateCustom() {
-  const from = document.getElementById('date-from').value;
-  const to = document.getElementById('date-to').value;
-  if (!from || !to) return;
-  document.querySelectorAll('.date-chip').forEach(b => b.classList.remove('active'));
-  dateFrom = from; dateTo = to;
   await reloadTxForRange();
 }
 
