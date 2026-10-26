@@ -64,7 +64,7 @@ input.hue::-webkit-slider-thumb,input.ct::-webkit-slider-thumb{-webkit-appearanc
 <body>
 <div id="stage"></div>
 <header><button class="pill" id="casaBtn" style="font:inherit;color:inherit;border:1px solid var(--line);display:flex;gap:6px;align-items:baseline;cursor:pointer"><h1>Casa</h1><span id="accese" style="font-size:13px;color:var(--soft)"></span></button><div class="pill" id="stato">Carico…</div></header>
-<div class="zoom"><button id="zin" aria-label="Ingrandisci">+</button><button id="zout" aria-label="Rimpicciolisci">−</button><button id="zfit" aria-label="Mostra tutta la casa">⤢</button></div>
+<div class="zoom"><button id="zin" aria-label="Ingrandisci">+</button><button id="zout" aria-label="Rimpicciolisci">−</button><button id="zfit" aria-label="Mostra tutta la casa">⤢</button><button id="zrel" aria-label="Aggiorna l'app">↻</button></div>
 <div id="scrim"></div>
 <div id="sheet" role="dialog" aria-modal="true"><div class="grab"></div><div id="sheetBody"></div></div>
 <div id="toast"></div>
@@ -322,5 +322,6 @@ fetch('casa_mappa.svg?v=8').then(function(r){return r.text();}).then(function(t)
  rotG=E('g',{id:'rot'},svg);Array.prototype.slice.call(svg.childNodes).forEach(function(n){if(n!==rotG&&n.nodeName!=='defs')rotG.appendChild(n);});var om=document.createElementNS(NS,'image');om.setAttribute('href','casa_ombra.png?v=1');om.setAttribute('x',-10);om.setAttribute('y',-180);om.setAttribute('width',2960);om.setAttribute('height',2270);om.setAttribute('opacity','.55');om.setAttribute('preserveAspectRatio','none');rotG.insertBefore(om,rotG.firstChild);live=E('g',{id:'live'},rotG);orient(true);fit();bindStage(st);paint();load().then(startPoll);
 }).catch(function(){document.getElementById('stato').textContent='Non riesco a caricare la mappa. Ricarica la pagina.';});
 </script>
+<script>document.getElementById('zrel').onclick=function(){try{if(window.caches)caches.keys().then(function(k){k.forEach(function(n){caches.delete(n)})});if(navigator.serviceWorker)navigator.serviceWorker.getRegistrations().then(function(r){r.forEach(function(x){x.unregister()})})}catch(e){}setTimeout(function(){location.replace(location.pathname+'?r='+Date.now())},250)};</script>
 </body>
 </html>
