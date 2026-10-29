@@ -2909,6 +2909,102 @@ export default {
         return json({ ok: true, ...res, stornata: orig.numero, liberate });
       }
 
+      // Rifacimento di una fattura gia' emessa con la partita IVA del cliente.
+      // L'API sendInvoice non ha un campo per la P.IVA del cessionario (manda
+      // solo il codice fiscale): per i professionisti/ditte individuali si
+      // parte dall'XML realmente trasmesso e si aggiunge IdFiscaleIVA.
+      if (url.pathname === '/fatturaXml' && request.method === 'POST') {
+        const b = await request.json();
+        const iva = String(b.ivaCliente || '').replace(/\D/g, '');
+        if (iva.length !== 11) return json({ ok: false, error: 'partita IVA non valida' }, 400);
+        if (!b.idModello || !b.numero) return json({ ok: false, error: 'idModello e numero obbligatori' }, 400);
+        const mn = String(b.numero).match(/^(\w+) (\d+)\/(\d{2})$/);
+        if (!mn) return json({ ok: false, error: 'numero non valido' }, 400);
+
+        const marc = await env.FISCO_KV.get(`fisco:fenum:${b.numero}`, 'json');
+        if (marc && ['inviata', 'in corso', 'incerta'].includes(marc.stato)) {
+          return json({ ok: false, error: `il numero ${b.numero} e' gia' impegnato (${marc.stato})` }, 409);
+        }
+        if (await env.FISCO_KV.get(`fisco:fatt:${b.numero}`)) {
+          return json({ ok: false, error: `il numero ${b.numero} risulta gia' emesso` }, 409);
+        }
+
+        let x = testoXml(await scaricaFatturaXml(env, b.idModello));
+        if (!/<CessionarioCommittente>/.test(x)) return json({ ok: false, error: 'XML modello non leggibile' }, 502);
+        const ces0 = blocchi(x, 'CessionarioCommittente')[0] || '';
+        if (/<IdFiscaleIVA>/.test(ces0)) return json({ ok: false, error: 'il modello ha gia’ la partita IVA' }, 400);
+        const oggi = giorno(new Date());
+        const alfabeto = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        const prog = Array.from({ length: 5 }, () => alfabeto[Math.floor(Math.random() * alfabeto.length)]).join('');
+        const numOrig = tagUno(x, 'Numero');
+        x = x
+          .replace(/<ProgressivoInvio>[^<]*<\/ProgressivoInvio>/, `<ProgressivoInvio>${prog}</ProgressivoInvio>`)
+          .replace(
+            /(<DatiGeneraliDocumento>[\s\S]*?<Data>)[^<]*(<\/Data>\s*<Numero>)[^<]*(<\/Numero>)/,
+            `$1${oggi}$2${b.numero}$3`
+          )
+          .replace(
+            /(<CessionarioCommittente>\s*<DatiAnagrafici>)/,
+            `$1<IdFiscaleIVA><IdPaese>IT</IdPaese><IdCodice>${iva}</IdCodice></IdFiscaleIVA>`
+          );
+        if (tagUno(x, 'Numero') !== b.numero || !/<IdFiscaleIVA><IdPaese>IT<\/IdPaese><IdCodice>/.test(blocchi(x, 'CessionarioCommittente')[0] || '')) {
+          return json({ ok: false, error: 'trasformazione dell’XML non riuscita' }, 500);
+        }
+        const totale = Number(tagUno(x, 'ImportoTotaleDocumento') || 0);
+        if (b.prova) {
+          return json({ ok: true, prova: true, numero: b.numero, modelloNumero: numOrig, totale, xml: x });
+        }
+
+        const orig = await env.FISCO_KV.get(`fisco:fatt:${numOrig}`, 'json');
+        const chiave = `fisco:numeroFE:${mn[3]}`;
+        const scrivi = async (stato, extra) =>
+          env.FISCO_KV.put(
+            `fisco:fenum:${b.numero}`,
+            JSON.stringify({
+              stato, data: oggi, istante: new Date().toISOString(), tipoDocumento: 'TD01',
+              cliente: orig && orig.cliente ? `${orig.cliente.nome || ''} ${orig.cliente.cognome || ''}`.trim() || orig.cliente.denominazione : '',
+              totale, ...(extra || {}),
+            })
+          );
+        await scrivi('in corso');
+        if (orig) {
+          await env.FISCO_KV.put(
+            `fisco:fatt:${b.numero}`,
+            JSON.stringify({ ...orig, numero: b.numero, data: oggi, cliente: { ...orig.cliente, piva: iva } })
+          );
+        }
+        const bytes = new TextEncoder().encode(x);
+        let bin = '';
+        for (const c of bytes) bin += String.fromCharCode(c);
+        let res;
+        try {
+          res = await datacashFE(env, '/sendXmlInvoice/', {
+            xml_base64: btoa(bin),
+            nome_file: `IT09336091005_${prog}.xml`,
+          });
+        } catch (e) {
+          await scrivi('errore', { errore: String(e.message || e) });
+          await env.FISCO_KV.delete(`fisco:fatt:${b.numero}`);
+          throw e;
+        }
+        const idSdi = res && (res.idSdi || res.idsdi || res.id_sdi);
+        if (!idSdi) {
+          await scrivi('incerta', { risposta: (res && res.__grezza) || JSON.stringify(res || {}).slice(0, 500) });
+          const att = parseInt((await env.FISCO_KV.get(chiave)) || '0', 10);
+          await env.FISCO_KV.put(chiave, String(Math.max(att, parseInt(mn[2], 10))));
+          return json({ ok: false, error: `${b.numero}: risposta senza identificativo SdI, numero bloccato: verifica sul portale`, risposta: res && res.__grezza }, 502);
+        }
+        await scrivi('inviata', { idSdi, file: res && res.nome, risposta: res && res.__grezza });
+        const att = parseInt((await env.FISCO_KV.get(chiave)) || '0', 10);
+        await env.FISCO_KV.put(chiave, String(Math.max(att, parseInt(mn[2], 10))));
+        for (const id of [b.prenotazione].filter(Boolean)) {
+          await scriviStato(env, id, {
+            stato: 'fattura', numero: b.numero, data: oggi, importo: totale, nota: `fattura ${b.numero}`,
+          });
+        }
+        return json({ ok: true, numero: b.numero, idSdi, totale, nome: res && res.nome });
+      }
+
       if (url.pathname === '/anteprimaFattura' && request.method === 'POST') {
         const b = await request.json();
         const righe = (b.righe || []).filter((r) => Number(r.prezzo) > 0);
