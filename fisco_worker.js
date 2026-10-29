@@ -2937,7 +2937,10 @@ export default {
         const alfabeto = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
         const prog = Array.from({ length: 5 }, () => alfabeto[Math.floor(Math.random() * alfabeto.length)]).join('');
         const numOrig = tagUno(x, 'Numero');
+        // la firma del modello non vale piu' dopo le modifiche: la toglie e la rifa' il fornitore
         x = x
+          .replace(/<ds:Signature[\s\S]*?<\/ds:Signature>/, '')
+          .replace(/<DataRiferimentoTerminiPagamento>[^<]*<\/DataRiferimentoTerminiPagamento>/g, `<DataRiferimentoTerminiPagamento>${oggi}</DataRiferimentoTerminiPagamento>`)
           .replace(/<ProgressivoInvio>[^<]*<\/ProgressivoInvio>/, `<ProgressivoInvio>${prog}</ProgressivoInvio>`)
           .replace(
             /(<DatiGeneraliDocumento>[\s\S]*?<Data>)[^<]*(<\/Data>\s*<Numero>)[^<]*(<\/Numero>)/,
