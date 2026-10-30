@@ -1,6 +1,57 @@
 {
   "sessioni": [
     {
+      "id": 1793375805855,
+      "dataSalvataggio": "2026-10-30T15:56:45.855Z",
+      "txIds": [
+        "28D257D6-5C83-49A3-9AE4-01EF7562A2A7",
+        "34F777A8-3B9E-4F7D-AB5F-64CF1B22D933",
+        "CD19CC05-D265-494F-813D-3BA3F2C87BF7"
+      ],
+      "periodo": "08/10/2026 - 30/10/2026",
+      "periodoWk": "08/10/2026 - 30/10/2026",
+      "cashIds": [
+        "29/10/2026|Silvia L Rodriguez|30",
+        "29/10/2026|guilia sannolla|5",
+        "26/10/2026|Sergio Cardillo|10",
+        "25/10/2026|Sarka Heckova|45",
+        "25/10/2026|Alice MAZZONE|10",
+        "24/10/2026|Francesca Di Pasquale|30",
+        "23/10/2026|Aiello Francesca|15",
+        "23/10/2026|Roberto Ruga|20",
+        "18/10/2026|Jorge Figueroa|5",
+        "16/10/2026|BYUNGHYE KANG|5",
+        "15/10/2026|Antonio Schifano|100",
+        "11/10/2026|Pablo Castelar|50",
+        "10/10/2026|Angela Panza|20",
+        "08/10/2026|Lina Moreno|10",
+        "08/10/2026|Anshuj Rathi|30"
+      ],
+      "cash": 385,
+      "stripe": 0,
+      "totContanti": 385,
+      "wkTot": 360,
+      "wkN": 6,
+      "wkDateSel": [
+        "10/10/2026",
+        "11/10/2026",
+        "17/10/2026",
+        "18/10/2026",
+        "24/10/2026",
+        "25/10/2026"
+      ],
+      "sp": 175,
+      "man": 0,
+      "bab": 0,
+      "ferie": 0,
+      "stip": 0,
+      "spTot": 175,
+      "daMe": 535,
+      "saldo": -150,
+      "ferieDal": null,
+      "ferieAl": null
+    },
+    {
       "id": 1791373565965,
       "dataSalvataggio": "2026-10-07T11:46:05.965Z",
       "txIds": [
@@ -18,8 +69,8 @@
         "06/10/2026|Mikael Jansson|10",
         "05/10/2026|Roman Kushmar|50",
         "03/10/2026|Anastasiia Kolesova|30",
-        "01/10/2026|Lenka Černíková|10",
-        "01/10/2026|Natàlia Arrufat Kublashvili|40",
+        "01/10/2026|Lenka ÄernÃ­kovÃ¡|10",
+        "01/10/2026|NatÃ lia Arrufat Kublashvili|40",
         "30/09/2026|jinsong dai|20",
         "29/09/2026|Caf Italia SRL|100",
         "28/09/2026|Zanfini Francesco|10",
@@ -121,7 +172,7 @@
       "periodoWk": "08/08/2026 - 04/09/2026",
       "cashIds": [
         "04/09/2026|Ivana Grimaldi|110",
-        "04/09/2026|Giovanni DÃ¢ÂÂAnna|90",
+        "04/09/2026|Giovanni DÃÂ¢ÃÂÃÂAnna|90",
         "03/09/2026|Antonio Schifano|80",
         "01/09/2026|Passante .|120",
         "30/08/2026|Nataliia Lozova|15",
@@ -179,7 +230,7 @@
         "05/08/2026|Parisi Natale|15",
         "04/08/2026|Natalia Prus|20",
         "02/08/2026|Jules Anseaume|-30",
-        "01/08/2026|Mateusz ÃÂÃÂubkowski|40",
+        "01/08/2026|Mateusz ÃÂÃÂÃÂÃÂubkowski|40",
         "01/08/2026|Passante .|160"
       ],
       "cash": 205,
@@ -232,7 +283,7 @@
         "18/07/2026|Claudio Ballatore|60",
         "18/07/2026|Claudio Ballatore|120",
         "18/07/2026|Claudio Ballatore|60",
-        "17/07/2026|Giovanni DÃÂÃÂ¢ÃÂÃÂÃÂÃÂAnna|80",
+        "17/07/2026|Giovanni DÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂAnna|80",
         "16/07/2026|Veronika Saratova|50",
         "15/07/2026|Antonio Schifano|80",
         "13/07/2026|Alisher Rasulov|40"
