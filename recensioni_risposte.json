@@ -1,9 +1,21 @@
 {
-  "generatoIl": "2026-11-03T14:27:07.799Z",
+  "generatoIl": "2026-11-03T14:39:02.197Z",
   "strutture": {
     "deluxe": {
       "nome": "InternoUno Deluxe",
       "bozze": [
+        {
+          "id": "deluxe-6874772850",
+          "dataRecensione": "2026-10-29",
+          "punteggio": 10,
+          "stato": "senza_testo"
+        },
+        {
+          "id": "deluxe-5510596670",
+          "dataRecensione": "2026-10-25",
+          "punteggio": 8,
+          "stato": "senza_testo"
+        },
         {
           "id": "deluxe-5938625991",
           "dataRecensione": "2026-10-21",
@@ -6467,24 +6479,6 @@
           "reservationNumber": "4194073903"
         },
         {
-          "id": "deluxe-4076105915",
-          "dataRecensione": "2023-10-29",
-          "punteggio": 9,
-          "stato": "senza_testo"
-        },
-        {
-          "id": "deluxe-4003055365",
-          "dataRecensione": "2023-10-29",
-          "punteggio": 2,
-          "stato": "senza_testo"
-        },
-        {
-          "id": "deluxe-3969174685",
-          "dataRecensione": "2023-10-23",
-          "punteggio": 8,
-          "stato": "senza_testo"
-        },
-        {
           "id": "deluxe-4131688518",
           "dataRecensione": "2023-10-21",
           "punteggio": 9,
@@ -6593,6 +6587,75 @@
     "classica": {
       "nome": "Internouno",
       "bozze": [
+        {
+          "id": "classica-5930102262",
+          "dataRecensione": "2026-11-03",
+          "punteggio": 10,
+          "positivo": "Отличное местоположение, в тихом районе, но недалеко от центра и метро. Рядом кафе, бары, итальянский ресторан, несколько супермаркетов в 5 минутах от отеля. Номер небольшой, но есть все необходимое. Уборку делают каждый день, постоянно меняют полотенца. \nВладелец дружелюбный и был постоянно на связи, ответил на все наши вопросы.",
+          "negativo": "В номере было немного прохладно, но в Риме ещё не работало отопление, поэтому владелец на это никак не может повлиять:)",
+          "lingua": "ru",
+          "riassuntoIT": "Ospite molto soddisfatto della posizione, pulizia quotidiana e disponibilità del proprietario; nota che la stanza era fredda ma comprende che dipende dal riscaldamento della città.",
+          "rispostaProposta": "Grazie mille per la sua recensione. Siamo contenti che abbia apprezzato la posizione e la pulizia quotidiana della stanza. Riguardo al freddo, ha ragione: Roma in quel periodo non aveva ancora acceso il riscaldamento centralizzato, quindi purtroppo era una situazione oltre il nostro controllo. Ci fa piacere che abbia trovato la nostra disponibilità utile.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "5930102262"
+        },
+        {
+          "id": "classica-6255805432",
+          "dataRecensione": "2026-11-03",
+          "punteggio": 10,
+          "positivo": "Очень уютно и комфортно ",
+          "negativo": "Все понравилось ",
+          "lingua": "ru",
+          "riassuntoIT": "Ospite molto soddisfatto, tutto ha funzionato perfettamente.",
+          "rispostaProposta": "Un grazie sincero per le sue parole. Siamo felici di leggere che si è trovato bene da noi. La aspettiamo per un prossimo soggiorno.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "6255805432"
+        },
+        {
+          "id": "classica-6427987855",
+          "dataRecensione": "2026-11-01",
+          "punteggio": 10,
+          "stato": "senza_testo"
+        },
+        {
+          "id": "classica-6255273289",
+          "dataRecensione": "2026-11-01",
+          "punteggio": 9,
+          "stato": "senza_testo"
+        },
+        {
+          "id": "classica-6693681703",
+          "dataRecensione": "2026-10-26",
+          "punteggio": 9,
+          "stato": "senza_testo"
+        },
+        {
+          "id": "classica-6289971399",
+          "dataRecensione": "2026-10-26",
+          "punteggio": 9,
+          "stato": "senza_testo"
+        },
+        {
+          "id": "classica-5543149811",
+          "dataRecensione": "2026-10-22",
+          "punteggio": 7,
+          "positivo": "Posizione molto buona, staff cordiale e disponibile, pulizia buona.",
+          "negativo": "Il letto e le dimensioni della stanza un po' piccole, le luci a volte funzionavano e a volte no.",
+          "lingua": "it",
+          "riassuntoIT": "Ospite soddisfatto di posizione e staff, ma critico su dimensioni della stanza e problemi saltuari con l'illuminazione.",
+          "rispostaProposta": "Salve, grazie per il suo riscontro. Mi spiace per i problemi con le luci: abbiamo già verificato e rissolto il guasto. Riguardo alle dimensioni della stanza e del letto, questi sono effettivamente piccoli come indicato nella descrizione dell'annuncio — InternoUno è una struttura compatta, pensata per chi privilegia la posizione al centro di Roma rispetto allo spazio. Apprezziamo comunque che abbia trovato lo staff cordiale.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "5543149811"
+        },
+        {
+          "id": "classica-6039343015",
+          "dataRecensione": "2026-10-22",
+          "punteggio": 9,
+          "stato": "senza_testo"
+        },
         {
           "id": "classica-5552371165",
           "dataRecensione": "2026-10-20",
@@ -12475,24 +12538,6 @@
           "reservationNumber": "4054602048"
         },
         {
-          "id": "classica-3733249677",
-          "dataRecensione": "2023-11-02",
-          "punteggio": 10,
-          "stato": "senza_testo"
-        },
-        {
-          "id": "classica-3864550954",
-          "dataRecensione": "2023-11-02",
-          "punteggio": 10,
-          "stato": "senza_testo"
-        },
-        {
-          "id": "classica-4166707559",
-          "dataRecensione": "2023-11-01",
-          "punteggio": 7,
-          "stato": "senza_testo"
-        },
-        {
           "id": "classica-4228493191",
           "dataRecensione": "2023-10-31",
           "punteggio": 8,
@@ -12556,18 +12601,6 @@
           "rispostaFinale": null,
           "stato": "da_validare",
           "reservationNumber": "2655578446"
-        },
-        {
-          "id": "classica-4198004054",
-          "dataRecensione": "2023-10-25",
-          "punteggio": 8,
-          "stato": "senza_testo"
-        },
-        {
-          "id": "classica-4188423164",
-          "dataRecensione": "2023-10-25",
-          "punteggio": 5,
-          "stato": "senza_testo"
         },
         {
           "id": "classica-4104224884",
