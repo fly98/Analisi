@@ -1,40 +1,20 @@
 {
-  "generatoIl": "2026-11-03T14:27:05.449Z",
+  "generatoIl": "2026-11-03T14:39:00.170Z",
   "finestraMesi": 36,
   "semivitaMesi": 5.5,
   "strutture": {
     "deluxe": {
       "nome": "InternoUno Deluxe",
       "pagename": "internouno-deluxe",
-      "totaleRecensioniRaccolte": 684,
+      "totaleRecensioniRaccolte": 681,
       "displayedScore": 8.5,
       "displayedInterno": {
         "voto": 8.5,
         "quante": 681
       },
-      "displayedScoreLetto": "2026-11-03T14:27:00.403Z",
+      "displayedScoreLetto": "2026-11-03T14:38:37.746Z",
       "displayedCount": 693,
       "recensioni": [
-        {
-          "data": "2023-10-21",
-          "punteggio": 9
-        },
-        {
-          "data": "2023-10-23",
-          "punteggio": 8
-        },
-        {
-          "data": "2023-10-29",
-          "punteggio": 9
-        },
-        {
-          "data": "2023-10-29",
-          "punteggio": 2
-        },
-        {
-          "data": "2023-11-02",
-          "punteggio": 10
-        },
         {
           "data": "2023-11-04",
           "punteggio": 9
@@ -2750,553 +2730,556 @@
         {
           "data": "2026-10-21",
           "punteggio": 2
+        },
+        {
+          "data": "2026-10-25",
+          "punteggio": 8
+        },
+        {
+          "data": "2026-10-29",
+          "punteggio": 10
         }
       ],
-      "mediaFlat": 8.428571428571429,
-      "mediaPonderata": 8.444632223324481,
-      "sommaPesi": 141.8268676036039,
+      "mediaFlat": 8.430249632892805,
+      "mediaPonderata": 8.452249474124311,
+      "sommaPesi": 143.76979907599292,
       "serieStorica": [
         {
           "data": "2024-11-02",
-          "mediaPonderata": 8.140978552122395,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.145913128127019,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2024-11-09",
-          "mediaPonderata": 8.138609987956997,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.14343980154588,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2024-11-16",
-          "mediaPonderata": 8.15085784718829,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.1556311380082,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2024-11-23",
-          "mediaPonderata": 8.187362985100744,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.192279599715766,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2024-11-30",
-          "mediaPonderata": 8.21860667551155,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.223529136090681,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2024-12-07",
-          "mediaPonderata": 8.245761144371858,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.250771652189439,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2024-12-14",
-          "mediaPonderata": 8.233332084202026,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.238164766745927,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2024-12-21",
-          "mediaPonderata": 8.26300783450667,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.267980261867375,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2024-12-28",
-          "mediaPonderata": 8.281744325623903,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.286726435001297,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2025-01-04",
-          "mediaPonderata": 8.259716568888125,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.264455104196516,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2025-01-11",
-          "mediaPonderata": 8.296466609713002,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.301216967320839,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2025-01-18",
-          "mediaPonderata": 8.27052148814551,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.274943112336834,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2025-01-25",
-          "mediaPonderata": 8.283942167042186,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.288266833228597,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2025-02-01",
-          "mediaPonderata": 8.304049604679866,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.308426972537635,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2025-02-08",
-          "mediaPonderata": 8.297710793142722,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.301836039347046,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2025-02-15",
-          "mediaPonderata": 8.314817389869434,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.318940412023887,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2025-02-22",
-          "mediaPonderata": 8.329078422609527,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.333146005449185,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2025-03-01",
-          "mediaPonderata": 8.38158145411372,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.385699595208882,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2025-03-08",
-          "mediaPonderata": 8.378525811946854,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.382594896413579,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2025-03-15",
-          "mediaPonderata": 8.377047174511368,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.381010177214653,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2025-03-22",
-          "mediaPonderata": 8.306015166828425,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.309472150630373,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2025-03-29",
-          "mediaPonderata": 8.379514669382758,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.38309367608362,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2025-04-05",
-          "mediaPonderata": 8.356919912209401,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.360187483576755,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2025-04-12",
-          "mediaPonderata": 8.378907940832208,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.382193874023942,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2025-04-19",
-          "mediaPonderata": 8.382466183278437,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.385667552141681,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2025-04-26",
-          "mediaPonderata": 8.369872063493986,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.372860175746212,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2025-05-03",
-          "mediaPonderata": 8.341817174494214,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.344653890974799,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2025-05-10",
-          "mediaPonderata": 8.312342481352482,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.314947173520293,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2025-05-17",
-          "mediaPonderata": 8.310573864477284,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.313095609710697,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2025-05-24",
-          "mediaPonderata": 8.3232954162354,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.325786753599537,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2025-05-31",
-          "mediaPonderata": 8.325942506203756,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.328352438341655,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2025-06-07",
-          "mediaPonderata": 8.328404106527067,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.330735263077129,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2025-06-14",
-          "mediaPonderata": 8.347465087978437,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.349692248998524,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2025-06-21",
-          "mediaPonderata": 8.349206306992372,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.351318625228137,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2025-06-28",
-          "mediaPonderata": 8.361953629853094,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.364015625919714,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2025-07-05",
-          "mediaPonderata": 8.361533511346263,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.363552654610583,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2025-07-12",
-          "mediaPonderata": 8.36343598461996,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.365432678795235,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2025-07-19",
-          "mediaPonderata": 8.360241958389174,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.36217595201418,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2025-07-26",
-          "mediaPonderata": 8.357242846877467,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.359116334167073,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2025-08-02",
-          "mediaPonderata": 8.39091736958107,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.392833629692223,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2025-08-09",
-          "mediaPonderata": 8.423486083343784,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.425374028688546,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2025-08-16",
-          "mediaPonderata": 8.422933775343347,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.424757879770118,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2025-08-23",
-          "mediaPonderata": 8.42418162718065,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.425901814741497,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2025-08-30",
-          "mediaPonderata": 8.417065662384559,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.418716244293943,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2025-09-06",
-          "mediaPonderata": 8.436527935613148,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.438142773152629,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2025-09-13",
-          "mediaPonderata": 8.428960272556745,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.43050986854942,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2025-09-20",
-          "mediaPonderata": 8.375159545509955,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.376554276818984,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2025-09-27",
-          "mediaPonderata": 8.402118072280683,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.403498928168792,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2025-10-04",
-          "mediaPonderata": 8.370102134954086,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.37140355824538,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2025-10-11",
-          "mediaPonderata": 8.360842419985683,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.362095943035698,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2025-10-18",
-          "mediaPonderata": 8.393118335979292,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.394384253816549,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2025-10-25",
-          "mediaPonderata": 8.3807498436877,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.381957153380437,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2025-11-01",
-          "mediaPonderata": 8.348199635059078,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.34931431433139,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2025-11-08",
-          "mediaPonderata": 8.346022772252448,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.347127262993059,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2025-11-15",
-          "mediaPonderata": 8.357789579530829,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.358869343584278,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2025-11-22",
-          "mediaPonderata": 8.408655352382418,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.409771570147596,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2025-11-29",
-          "mediaPonderata": 8.40977979984348,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.410883300623178,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2025-12-06",
-          "mediaPonderata": 8.396855940897389,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.397907602087805,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2025-12-13",
-          "mediaPonderata": 8.389382989587707,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.390404904257489,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2025-12-20",
-          "mediaPonderata": 8.406121138579667,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.407124928807605,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2025-12-27",
-          "mediaPonderata": 8.43031905960719,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.43133304711703,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2026-01-03",
-          "mediaPonderata": 8.442713640385836,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.443697646413641,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2026-01-10",
-          "mediaPonderata": 8.472946800017173,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.473921894533476,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2026-01-17",
-          "mediaPonderata": 8.482599305717782,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.483578905757797,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2026-01-24",
-          "mediaPonderata": 8.482864363454306,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.483831576885072,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2026-01-31",
-          "mediaPonderata": 8.48966634428492,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.49061594579655,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2026-02-07",
-          "mediaPonderata": 8.49321269606584,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.494147478517172,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2026-02-14",
-          "mediaPonderata": 8.512874992533687,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.51381780276681,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2026-02-21",
-          "mediaPonderata": 8.522410613528058,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.52333180602236,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2026-02-28",
-          "mediaPonderata": 8.528401265405677,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.529304075525177,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2026-03-07",
-          "mediaPonderata": 8.560621013831632,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.56153041906021,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2026-03-14",
-          "mediaPonderata": 8.57517318600597,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.576066007265403,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2026-03-21",
-          "mediaPonderata": 8.547669461203451,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.548525670192749,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2026-03-28",
-          "mediaPonderata": 8.568344502029085,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.569179152454701,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2026-04-04",
-          "mediaPonderata": 8.580034469071851,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.580830854723079,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2026-04-11",
-          "mediaPonderata": 8.593414294943338,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.59419583224031,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2026-04-18",
-          "mediaPonderata": 8.611282198912996,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.612042762745679,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2026-04-25",
-          "mediaPonderata": 8.640157717319553,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.640906320398832,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2026-05-02",
-          "mediaPonderata": 8.659221454572608,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.659969583209731,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2026-05-09",
-          "mediaPonderata": 8.65939626934099,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.660130449196222,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2026-05-16",
-          "mediaPonderata": 8.674261922631091,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.67498759134201,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2026-05-23",
-          "mediaPonderata": 8.61736638947859,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.61804058370714,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2026-05-30",
-          "mediaPonderata": 8.594866585267663,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.595509030956796,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2026-06-06",
-          "mediaPonderata": 8.60003543305365,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.60065275451992,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2026-06-13",
-          "mediaPonderata": 8.578726611357398,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.579315543014504,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2026-06-20",
-          "mediaPonderata": 8.589348203314733,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.589928450738455,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2026-06-27",
-          "mediaPonderata": 8.569075080196079,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.569636163070891,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2026-07-04",
-          "mediaPonderata": 8.569269429881832,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.569805754944907,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2026-07-11",
-          "mediaPonderata": 8.587695233779796,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.588234680094708,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2026-07-18",
-          "mediaPonderata": 8.59957978821303,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.600118573559921,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2026-07-25",
-          "mediaPonderata": 8.549622785455055,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.550102497065529,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2026-08-01",
-          "mediaPonderata": 8.568035235417998,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.568518007360106,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2026-08-08",
-          "mediaPonderata": 8.569175776740304,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.569643705301063,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2026-08-15",
-          "mediaPonderata": 8.538320323967861,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.538759039972543,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2026-08-22",
-          "mediaPonderata": 8.537283868978262,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.537710995097738,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2026-08-29",
-          "mediaPonderata": 8.533554018483262,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.53397118272029,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2026-09-05",
-          "mediaPonderata": 8.592309182963943,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.592732837330908,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2026-09-12",
-          "mediaPonderata": 8.592734875923691,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.593145323028264,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2026-09-19",
-          "mediaPonderata": 8.578824539698227,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.579224099399584,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2026-09-26",
-          "mediaPonderata": 8.56294036336579,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.563318475047287,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2026-10-03",
-          "mediaPonderata": 8.516952787174645,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.51730822751029,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2026-10-10",
-          "mediaPonderata": 8.480861127762582,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.481195927761464,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2026-10-17",
-          "mediaPonderata": 8.494230062036427,
-          "mediaFlat": 8.42251461988304
+          "mediaPonderata": 8.494565451960835,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2026-10-24",
-          "mediaPonderata": 8.444314101205768,
-          "mediaFlat": 8.422287390029325
+          "mediaPonderata": 8.444632223324476,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2026-10-31",
-          "mediaPonderata": 8.444749016124264,
-          "mediaFlat": 8.430882352941177
+          "mediaPonderata": 8.452249474124304,
+          "mediaFlat": 8.430249632892805
         },
         {
           "data": "2026-11-03",
-          "mediaPonderata": 8.444632223324481,
-          "mediaFlat": 8.428571428571429
+          "mediaPonderata": 8.452249474124311,
+          "mediaFlat": 8.430249632892805
         }
       ],
       "mediaMensile": [
         {
-          "mese": "2023-10",
-          "media": 7,
-          "numero": 4
-        },
-        {
           "mese": "2023-11",
-          "media": 8.533333333333333,
-          "numero": 15
+          "media": 8.428571428571429,
+          "numero": 14
         },
         {
           "mese": "2023-12",
@@ -3470,14 +3453,14 @@
         },
         {
           "mese": "2026-10",
-          "media": 7.333333333333333,
-          "numero": 9
+          "media": 7.636363636363637,
+          "numero": 11
         }
       ],
       "previsione": {
-        "fra30giorni": 8.444717949142635,
-        "fra60giorni": 8.444570610742423,
-        "fra90giorni": 8.445086490561806
+        "fra30giorni": 8.452343695197982,
+        "fra60giorni": 8.452206520143594,
+        "fra90giorni": 8.452725530718793
       },
       "temi": {
         "positivi": [
@@ -3693,63 +3676,15 @@
     "classica": {
       "nome": "Internouno",
       "pagename": "internouno",
-      "totaleRecensioniRaccolte": 652,
+      "totaleRecensioniRaccolte": 648,
       "displayedScore": 8.5,
       "displayedInterno": {
         "voto": 8.5,
         "quante": 649
       },
-      "displayedScoreLetto": "2026-11-03T14:27:05.074Z",
+      "displayedScoreLetto": "2026-11-03T14:38:42.438Z",
       "displayedCount": 651,
       "recensioni": [
-        {
-          "data": "2023-10-22",
-          "punteggio": 8
-        },
-        {
-          "data": "2023-10-23",
-          "punteggio": 4
-        },
-        {
-          "data": "2023-10-25",
-          "punteggio": 8
-        },
-        {
-          "data": "2023-10-25",
-          "punteggio": 5
-        },
-        {
-          "data": "2023-10-26",
-          "punteggio": 7
-        },
-        {
-          "data": "2023-10-29",
-          "punteggio": 4
-        },
-        {
-          "data": "2023-10-30",
-          "punteggio": 8
-        },
-        {
-          "data": "2023-10-30",
-          "punteggio": 10
-        },
-        {
-          "data": "2023-10-31",
-          "punteggio": 8
-        },
-        {
-          "data": "2023-11-01",
-          "punteggio": 7
-        },
-        {
-          "data": "2023-11-02",
-          "punteggio": 10
-        },
-        {
-          "data": "2023-11-02",
-          "punteggio": 10
-        },
         {
           "data": "2023-11-03",
           "punteggio": 10
@@ -6309,553 +6244,580 @@
         {
           "data": "2026-10-20",
           "punteggio": 10
-        }
-      ],
-      "mediaFlat": 8.2018779342723,
-      "mediaPonderata": 8.508819878839477,
-      "sommaPesi": 130.6636847526591,
-      "serieStorica": [
-        {
-          "data": "2024-11-02",
-          "mediaPonderata": 8.00165663774084,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2024-11-09",
-          "mediaPonderata": 8.009919767689082,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2024-11-16",
-          "mediaPonderata": 7.984538468209434,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2024-11-23",
-          "mediaPonderata": 7.976955921281198,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2024-11-30",
-          "mediaPonderata": 7.952806417959315,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2024-12-07",
-          "mediaPonderata": 7.936221035528288,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2024-12-14",
-          "mediaPonderata": 7.921249930309345,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2024-12-21",
-          "mediaPonderata": 7.922588359994465,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2024-12-28",
-          "mediaPonderata": 7.914505582630653,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2025-01-04",
-          "mediaPonderata": 7.8824911557011355,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2025-01-11",
-          "mediaPonderata": 7.868352823478975,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2025-01-18",
-          "mediaPonderata": 7.924123138002704,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2025-01-25",
-          "mediaPonderata": 7.943375121604533,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2025-02-01",
-          "mediaPonderata": 7.936827209164205,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2025-02-08",
-          "mediaPonderata": 7.973246731502744,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2025-02-15",
-          "mediaPonderata": 7.964976121788048,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2025-02-22",
-          "mediaPonderata": 7.9925640005520275,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2025-03-01",
-          "mediaPonderata": 7.984190957536639,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2025-03-08",
-          "mediaPonderata": 7.951096721507567,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2025-03-15",
-          "mediaPonderata": 8.003498442118547,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2025-03-22",
-          "mediaPonderata": 8.02724740103907,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2025-03-29",
-          "mediaPonderata": 8.018473418514542,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2025-04-05",
-          "mediaPonderata": 8.032904711787545,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2025-04-12",
-          "mediaPonderata": 8.023907644677235,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2025-04-19",
-          "mediaPonderata": 8.015647716805312,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2025-04-26",
-          "mediaPonderata": 8.015250555647144,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2025-05-03",
-          "mediaPonderata": 8.007040384572464,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2025-05-10",
-          "mediaPonderata": 8.006938847580605,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2025-05-17",
-          "mediaPonderata": 8.006937831419695,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2025-05-24",
-          "mediaPonderata": 7.983496581643098,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2025-05-31",
-          "mediaPonderata": 7.961452182937406,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2025-06-07",
-          "mediaPonderata": 7.954028755515158,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2025-06-14",
-          "mediaPonderata": 7.955105201695391,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2025-06-21",
-          "mediaPonderata": 7.917475174536856,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2025-06-28",
-          "mediaPonderata": 7.921651801059112,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2025-07-05",
-          "mediaPonderata": 7.94681902818074,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2025-07-12",
-          "mediaPonderata": 7.95519857097654,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2025-07-19",
-          "mediaPonderata": 7.911427375668933,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2025-07-26",
-          "mediaPonderata": 7.922465386652749,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2025-08-02",
-          "mediaPonderata": 7.954996518056796,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2025-08-09",
-          "mediaPonderata": 8.00859442591352,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2025-08-16",
-          "mediaPonderata": 8.00111819362309,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2025-08-23",
-          "mediaPonderata": 8.030444796558823,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2025-08-30",
-          "mediaPonderata": 8.030220779638654,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2025-09-06",
-          "mediaPonderata": 8.058154475864304,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2025-09-13",
-          "mediaPonderata": 8.057287936723576,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2025-09-20",
-          "mediaPonderata": 8.098780934897743,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2025-09-27",
-          "mediaPonderata": 8.103157563738158,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2025-10-04",
-          "mediaPonderata": 8.116349654382553,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2025-10-11",
-          "mediaPonderata": 8.038566667936795,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2025-10-18",
-          "mediaPonderata": 8.007688057724813,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2025-10-25",
-          "mediaPonderata": 8.000054719784796,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2025-11-01",
-          "mediaPonderata": 7.99280560833434,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2025-11-08",
-          "mediaPonderata": 8.02732588271196,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2025-11-15",
-          "mediaPonderata": 8.040080378939818,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2025-11-22",
-          "mediaPonderata": 8.092273856013795,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2025-11-29",
-          "mediaPonderata": 8.082667041753622,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2025-12-06",
-          "mediaPonderata": 8.05308033834823,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2025-12-13",
-          "mediaPonderata": 8.077992884708333,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2025-12-20",
-          "mediaPonderata": 8.083779576221078,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2025-12-27",
-          "mediaPonderata": 8.087608546331376,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2026-01-03",
-          "mediaPonderata": 8.044952021444082,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2026-01-10",
-          "mediaPonderata": 8.06990877979784,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2026-01-17",
-          "mediaPonderata": 8.081900825350782,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2026-01-24",
-          "mediaPonderata": 8.114042101971883,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2026-01-31",
-          "mediaPonderata": 8.133310662169402,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2026-02-07",
-          "mediaPonderata": 8.150282900864026,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2026-02-14",
-          "mediaPonderata": 8.178204691652514,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2026-02-21",
-          "mediaPonderata": 8.180197332555721,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2026-02-28",
-          "mediaPonderata": 8.184602676730814,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2026-03-07",
-          "mediaPonderata": 8.19612113998658,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2026-03-14",
-          "mediaPonderata": 8.227360158020412,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2026-03-21",
-          "mediaPonderata": 8.229523663212502,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2026-03-28",
-          "mediaPonderata": 8.22725420037697,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2026-04-04",
-          "mediaPonderata": 8.266529490518778,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2026-04-11",
-          "mediaPonderata": 8.223213118495094,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2026-04-18",
-          "mediaPonderata": 8.278640429064678,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2026-04-25",
-          "mediaPonderata": 8.260962404141576,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2026-05-02",
-          "mediaPonderata": 8.290423848912578,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2026-05-09",
-          "mediaPonderata": 8.337015267020325,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2026-05-16",
-          "mediaPonderata": 8.343499883028812,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2026-05-23",
-          "mediaPonderata": 8.356505319642732,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2026-05-30",
-          "mediaPonderata": 8.32573437998792,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2026-06-06",
-          "mediaPonderata": 8.323467540697717,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2026-06-13",
-          "mediaPonderata": 8.302058705330163,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2026-06-20",
-          "mediaPonderata": 8.300046009380313,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2026-06-27",
-          "mediaPonderata": 8.305283722602788,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2026-07-04",
-          "mediaPonderata": 8.3215392552725,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2026-07-11",
-          "mediaPonderata": 8.348956101586197,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2026-07-18",
-          "mediaPonderata": 8.373417521879286,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2026-07-25",
-          "mediaPonderata": 8.376824516068226,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2026-08-01",
-          "mediaPonderata": 8.395317622230248,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2026-08-08",
-          "mediaPonderata": 8.395317622230243,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2026-08-15",
-          "mediaPonderata": 8.403787330195406,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2026-08-22",
-          "mediaPonderata": 8.399442582524118,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2026-08-29",
-          "mediaPonderata": 8.408241126811033,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2026-09-05",
-          "mediaPonderata": 8.442847149684532,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2026-09-12",
-          "mediaPonderata": 8.42928954266469,
-          "mediaFlat": 8.190184049079754
-        },
-        {
-          "data": "2026-09-19",
-          "mediaPonderata": 8.438124846733919,
-          "mediaFlat": 8.190184049079754
         },
         {
-          "data": "2026-09-26",
-          "mediaPonderata": 8.457048405264867,
-          "mediaFlat": 8.190184049079754
+          "data": "2026-10-22",
+          "punteggio": 9
         },
         {
-          "data": "2026-10-03",
-          "mediaPonderata": 8.489708939164178,
-          "mediaFlat": 8.190184049079754
+          "data": "2026-10-22",
+          "punteggio": 7
         },
         {
-          "data": "2026-10-10",
-          "mediaPonderata": 8.500655777079317,
-          "mediaFlat": 8.190184049079754
+          "data": "2026-10-26",
+          "punteggio": 9
         },
         {
-          "data": "2026-10-17",
-          "mediaPonderata": 8.49706822992592,
-          "mediaFlat": 8.190184049079754
+          "data": "2026-10-26",
+          "punteggio": 9
         },
         {
-          "data": "2026-10-24",
-          "mediaPonderata": 8.508303188961458,
-          "mediaFlat": 8.196923076923078
+          "data": "2026-11-01",
+          "punteggio": 10
         },
         {
-          "data": "2026-10-31",
-          "mediaPonderata": 8.509062471217542,
-          "mediaFlat": 8.208398133748055
+          "data": "2026-11-01",
+          "punteggio": 9
         },
         {
           "data": "2026-11-03",
-          "mediaPonderata": 8.508819878839477,
-          "mediaFlat": 8.2018779342723
+          "punteggio": 10
+        },
+        {
+          "data": "2026-11-03",
+          "punteggio": 10
+        }
+      ],
+      "mediaFlat": 8.213292117465224,
+      "mediaPonderata": 8.54442236303214,
+      "sommaPesi": 138.48508423335772,
+      "serieStorica": [
+        {
+          "data": "2024-11-02",
+          "mediaPonderata": 8.014342142302834,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2024-11-09",
+          "mediaPonderata": 8.022461247755482,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2024-11-16",
+          "mediaPonderata": 7.9963214366234405,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2024-11-23",
+          "mediaPonderata": 7.9880846219915425,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2024-11-30",
+          "mediaPonderata": 7.962993165283277,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2024-12-07",
+          "mediaPonderata": 7.945997055379511,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2024-12-14",
+          "mediaPonderata": 7.930410895586025,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2024-12-21",
+          "mediaPonderata": 7.93161545625635,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2024-12-28",
+          "mediaPonderata": 7.923304290811281,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2025-01-04",
+          "mediaPonderata": 7.890486959572382,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2025-01-11",
+          "mediaPonderata": 7.8758926436599985,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2025-01-18",
+          "mediaPonderata": 7.9324036447140305,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2025-01-25",
+          "mediaPonderata": 7.951752080100534,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2025-02-01",
+          "mediaPonderata": 7.944805543731385,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2025-02-08",
+          "mediaPonderata": 7.981575354126545,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2025-02-15",
+          "mediaPonderata": 7.973031943790267,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2025-02-22",
+          "mediaPonderata": 8.000738803879097,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2025-03-01",
+          "mediaPonderata": 7.991962344641374,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2025-03-08",
+          "mediaPonderata": 7.958024555420884,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2025-03-15",
+          "mediaPonderata": 8.010683226634452,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2025-03-22",
+          "mediaPonderata": 8.03430741897261,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2025-03-29",
+          "mediaPonderata": 8.025149940384711,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2025-04-05",
+          "mediaPonderata": 8.039423303735873,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2025-04-12",
+          "mediaPonderata": 8.03007793586699,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2025-04-19",
+          "mediaPonderata": 8.021589209879153,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2025-04-26",
+          "mediaPonderata": 8.021048417832978,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2025-05-03",
+          "mediaPonderata": 8.012621551125441,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2025-05-10",
+          "mediaPonderata": 8.01238526946846,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2025-05-17",
+          "mediaPonderata": 8.012129942212107,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2025-05-24",
+          "mediaPonderata": 7.98836012759367,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2025-05-31",
+          "mediaPonderata": 7.965904744075967,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2025-06-07",
+          "mediaPonderata": 7.9583845304441,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2025-06-14",
+          "mediaPonderata": 7.959366945189077,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2025-06-21",
+          "mediaPonderata": 7.921305273450606,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2025-06-28",
+          "mediaPonderata": 7.925307571453552,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2025-07-05",
+          "mediaPonderata": 7.95054508096794,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2025-07-12",
+          "mediaPonderata": 7.95892735017712,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2025-07-19",
+          "mediaPonderata": 7.914686722031555,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2025-07-26",
+          "mediaPonderata": 7.9256738662167185,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2025-08-02",
+          "mediaPonderata": 7.958314893873987,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2025-08-09",
+          "mediaPonderata": 8.012090954552974,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2025-08-16",
+          "mediaPonderata": 8.004492431735555,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2025-08-23",
+          "mediaPonderata": 8.033836712855189,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2025-08-30",
+          "mediaPonderata": 8.033586333498848,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2025-09-06",
+          "mediaPonderata": 8.06152155326109,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2025-09-13",
+          "mediaPonderata": 8.060599975107866,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2025-09-20",
+          "mediaPonderata": 8.102156795248423,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2025-09-27",
+          "mediaPonderata": 8.10645526811313,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2025-10-04",
+          "mediaPonderata": 8.119662734844319,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2025-10-11",
+          "mediaPonderata": 8.04141523517792,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2025-10-18",
+          "mediaPonderata": 8.01027308750093,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2025-10-25",
+          "mediaPonderata": 8.002530469919028,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2025-11-01",
+          "mediaPonderata": 7.995127708444803,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2025-11-08",
+          "mediaPonderata": 8.029654514188882,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2025-11-15",
+          "mediaPonderata": 8.042376689819953,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2025-11-22",
+          "mediaPonderata": 8.094649216956864,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2025-11-29",
+          "mediaPonderata": 8.084944041151319,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2025-12-06",
+          "mediaPonderata": 8.055194139492233,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2025-12-13",
+          "mediaPonderata": 8.080102580506738,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2025-12-20",
+          "mediaPonderata": 8.085879003393664,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2025-12-27",
+          "mediaPonderata": 8.089649015855956,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2026-01-03",
+          "mediaPonderata": 8.046808069498626,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2026-01-10",
+          "mediaPonderata": 8.071763299144141,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2026-01-17",
+          "mediaPonderata": 8.083752271268708,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2026-01-24",
+          "mediaPonderata": 8.115945838138055,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2026-01-31",
+          "mediaPonderata": 8.135240988549445,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2026-02-07",
+          "mediaPonderata": 8.152205389750451,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2026-02-14",
+          "mediaPonderata": 8.180120034338527,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2026-02-21",
+          "mediaPonderata": 8.182065117825958,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2026-02-28",
+          "mediaPonderata": 8.186455536876233,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2026-03-07",
+          "mediaPonderata": 8.197975774902769,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2026-03-14",
+          "mediaPonderata": 8.229249538376623,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2026-03-21",
+          "mediaPonderata": 8.231377498138153,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2026-03-28",
+          "mediaPonderata": 8.229024668989508,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2026-04-04",
+          "mediaPonderata": 8.26830982951956,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2026-04-11",
+          "mediaPonderata": 8.224842316546026,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2026-04-18",
+          "mediaPonderata": 8.280289863382588,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2026-04-25",
+          "mediaPonderata": 8.26251285636384,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2026-05-02",
+          "mediaPonderata": 8.29193623985139,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2026-05-09",
+          "mediaPonderata": 8.338548571074435,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2026-05-16",
+          "mediaPonderata": 8.345014140364524,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2026-05-23",
+          "mediaPonderata": 8.358010932891922,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2026-05-30",
+          "mediaPonderata": 8.327142740259557,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2026-06-06",
+          "mediaPonderata": 8.324835740498585,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2026-06-13",
+          "mediaPonderata": 8.30335902608688,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2026-06-20",
+          "mediaPonderata": 8.301334659745375,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2026-06-27",
+          "mediaPonderata": 8.30654552520932,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2026-07-04",
+          "mediaPonderata": 8.322807133096594,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2026-07-11",
+          "mediaPonderata": 8.350236391179424,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2026-07-18",
+          "mediaPonderata": 8.374695945434347,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2026-07-25",
+          "mediaPonderata": 8.37807242775934,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2026-08-01",
+          "mediaPonderata": 8.396538297846524,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2026-08-08",
+          "mediaPonderata": 8.396538297846522,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2026-08-15",
+          "mediaPonderata": 8.405001425773365,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2026-08-22",
+          "mediaPonderata": 8.400616933211376,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2026-08-29",
+          "mediaPonderata": 8.409409144196689,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2026-09-05",
+          "mediaPonderata": 8.444030309334321,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2026-09-12",
+          "mediaPonderata": 8.430383477757525,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2026-09-19",
+          "mediaPonderata": 8.439197653487795,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2026-09-26",
+          "mediaPonderata": 8.458118433296589,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2026-10-03",
+          "mediaPonderata": 8.4907897145659,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2026-10-10",
+          "mediaPonderata": 8.501709110614733,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2026-10-17",
+          "mediaPonderata": 8.498095736852811,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2026-10-24",
+          "mediaPonderata": 8.501636417278315,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2026-10-31",
+          "mediaPonderata": 8.508804925387077,
+          "mediaFlat": 8.216049382716049
+        },
+        {
+          "data": "2026-11-03",
+          "mediaPonderata": 8.54442236303214,
+          "mediaFlat": 8.213292117465224
         }
       ],
       "mediaMensile": [
         {
-          "mese": "2023-10",
-          "media": 6.888888888888889,
-          "numero": 9
-        },
-        {
           "mese": "2023-11",
-          "media": 8.38888888888889,
-          "numero": 18
+          "media": 8.266666666666667,
+          "numero": 15
         },
         {
           "mese": "2023-12",
@@ -7029,24 +6991,29 @@
         },
         {
           "mese": "2026-10",
-          "media": 8.777777777777779,
-          "numero": 9
+          "media": 8.692307692307692,
+          "numero": 13
+        },
+        {
+          "mese": "2026-11",
+          "media": 9.75,
+          "numero": 4
         }
       ],
       "previsione": {
-        "fra30giorni": 8.509213231051302,
-        "fra60giorni": 8.510182038180526,
-        "fra90giorni": 8.510369537466394
+        "fra30giorni": 8.544837008338831,
+        "fra60giorni": 8.545797326107852,
+        "fra90giorni": 8.54606085887252
       },
       "temi": {
         "positivi": [
           {
             "parola": "posizione",
-            "conteggio": 58
+            "conteggio": 59
           },
           {
             "parola": "metro",
-            "conteggio": 35
+            "conteggio": 34
           },
           {
             "parola": "ottima",
@@ -7069,64 +7036,64 @@
             "conteggio": 20
           },
           {
-            "parola": "zona",
+            "parola": "disponibile",
             "conteggio": 18
           }
         ],
         "negativi": [
           {
             "parola": "camera",
-            "conteggio": 24
-          },
-          {
-            "parola": "stanza",
             "conteggio": 22
           },
           {
-            "parola": "piccola",
+            "parola": "stanza",
             "conteggio": 21
           },
           {
-            "parola": "bagno",
+            "parola": "piccola",
             "conteggio": 19
           },
           {
-            "parola": "room",
-            "conteggio": 12
+            "parola": "bagno",
+            "conteggio": 17
           },
           {
             "parola": "letto",
-            "conteggio": 11
+            "conteggio": 12
           },
           {
-            "parola": "pulizia",
+            "parola": "room",
             "conteggio": 11
           },
           {
             "parola": "solo",
             "conteggio": 10
+          },
+          {
+            "parola": "nulla",
+            "conteggio": 10
           }
         ],
         "analisiAI": {
-          "riassunto": "L'unico nuovo commento positivo conferma la buona posizione e aggiunge elementi di comfort (letto confortevole, doccia calda, tranquillità). Nessun nuovo commento negativo ricevuto.",
+          "riassunto": "I nuovi commenti confermano i punti di forza principali (posizione, pulizia, staff) e evidenziano alcuni problemi ricorrenti come le dimensioni ridotte delle camere e i guasti agli impianti. Emerge un nuovo tema negativo relativo ai malfunzionamenti dell'illuminazione.",
           "temiPositivi": [
             {
               "tema": "Posizione strategica vicino a metro, stazione e mezzi pubblici",
-              "conteggio": 105,
-              "ultimaData": "2026-10-20",
-              "esempio": "Location is very good. Close to restaurants, bars, etc."
+              "conteggio": 107,
+              "ultimaData": "2026-11-03",
+              "esempio": "Отличное местоположение, в тихом районе, но недалеко от центра и метро"
             },
             {
               "tema": "Pulizia quotidiana della camera e cambio asciugamani",
-              "conteggio": 78,
-              "ultimaData": "2026-10-14",
-              "esempio": "Было действительно чисто, номера убирались каждый день"
+              "conteggio": 80,
+              "ultimaData": "2026-11-03",
+              "esempio": "Уборку делают каждый день, постоянно меняют полотенца"
             },
             {
               "tema": "Personale cordiale, disponibile e responsivo",
-              "conteggio": 71,
-              "ultimaData": "2026-10-12",
-              "esempio": "La gente muy predispuesta, tuvimos un problema con la llave y enseguida nos respondieron"
+              "conteggio": 73,
+              "ultimaData": "2026-11-03",
+              "esempio": "Владелец дружелюбный и был постоянно на связи"
             },
             {
               "tema": "Buon rapporto qualità-prezzo",
@@ -7148,9 +7115,9 @@
             },
             {
               "tema": "Zona con buoni ristoranti locali a prezzi accessibili",
-              "conteggio": 2,
-              "ultimaData": "2026-10-07",
-              "esempio": "Muy linda zona, con supermercados, pizzerias, restoranes y bares cerca"
+              "conteggio": 3,
+              "ultimaData": "2026-11-03",
+              "esempio": "Рядом кафе, бары, итальянский ресторан, несколько супермаркетов в 5 минутах"
             },
             {
               "tema": "Letto confortevole",
@@ -7186,9 +7153,9 @@
             },
             {
               "tema": "Camere e bagni molto piccoli e stretti",
-              "conteggio": 72,
-              "ultimaData": "2026-10-14",
-              "esempio": "Uno dei nostri nomeri era molto più piccolo con una letto molto piccolo, quasi senza cucina"
+              "conteggio": 73,
+              "ultimaData": "2026-10-22",
+              "esempio": "Il letto e le dimensioni della stanza un po' piccole"
             },
             {
               "tema": "Rumore dalla strada e da clienti rumorosi",
@@ -7215,10 +7182,16 @@
               "esempio": "La scritta bed&breakfast sull'insegna è fuorviante perché non c'è la colazione"
             },
             {
+              "tema": "Malfunzionamenti dell'illuminazione in camera",
+              "conteggio": 1,
+              "ultimaData": "2026-10-22",
+              "esempio": "Le luci a volte funzionavano e a volte no"
+            },
+            {
               "tema": "Inconsistenza tra camere della stessa categoria e rigidità nelle politiche di checkout",
               "conteggio": 1,
               "ultimaData": "2026-10-14",
-              "esempio": "Abbiamo ordinato 2 camere dello stesso prezzo, ma una era più piccola con letto molto piccolo, la richiesta di checkout un'ora più tardi è stata respinta"
+              "esempio": "Abbiamo ordinato 2 camere dello stesso prezzo, ma una era più piccola con letto molto piccolo"
             },
             {
               "tema": "Bagno cieco",
@@ -7251,7 +7224,7 @@
               "esempio": "Scarico della doccia un po' intasato"
             }
           ],
-          "generatoIl": "2026-10-21T11:37:01.377Z"
+          "generatoIl": "2026-11-03T14:39:00.121Z"
         }
       }
     }
