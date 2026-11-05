@@ -1,9 +1,28 @@
 {
-  "generatoIl": "2026-11-03T14:49:07.712Z",
+  "generatoIl": "2026-11-05T20:23:55.042Z",
   "strutture": {
     "deluxe": {
       "nome": "InternoUno Deluxe",
       "bozze": [
+        {
+          "id": "deluxe-6504091000",
+          "dataRecensione": "2026-11-05",
+          "punteggio": 10,
+          "positivo": "Emplacement.\nLa literie ",
+          "negativo": "Rien à ",
+          "lingua": "fr",
+          "riassuntoIT": "Ospite molto soddisfatto della posizione e della qualità del letto.",
+          "rispostaProposta": "Grazie mille per la sua recensione. Siamo contenti che abbia apprezzato la posizione e il comfort della camera. A presto.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "6504091000"
+        },
+        {
+          "id": "deluxe-5603622073",
+          "dataRecensione": "2026-11-05",
+          "punteggio": 9,
+          "stato": "senza_testo"
+        },
         {
           "id": "deluxe-6874772850",
           "dataRecensione": "2026-10-29",
@@ -6454,18 +6473,6 @@
           "reservationNumber": "4173587771"
         },
         {
-          "id": "deluxe-4015882903",
-          "dataRecensione": "2023-11-04",
-          "punteggio": 9,
-          "stato": "senza_testo"
-        },
-        {
-          "id": "deluxe-4198050528",
-          "dataRecensione": "2023-11-04",
-          "punteggio": 7,
-          "stato": "senza_testo"
-        },
-        {
           "id": "deluxe-4194073903",
           "dataRecensione": "2023-11-02",
           "punteggio": 10,
@@ -6588,6 +6595,19 @@
       "nome": "Internouno",
       "bozze": [
         {
+          "id": "classica-6588199205",
+          "dataRecensione": "2026-11-04",
+          "punteggio": 10,
+          "positivo": "Limpio y acogedor ",
+          "negativo": "Quizá el lugar donde está, por la noche es algo oscuro. Pero nada relevante ",
+          "lingua": "es",
+          "riassuntoIT": "Ospite molto soddisfatto della pulizia e accoglienza, nota solo che la zona di notte è un po' buia ma lo ritiene irrilevante.",
+          "rispostaProposta": "Grazie per la sua recensione. Siamo contenti che abbia apprezzato la pulizia e l'atmosfera della struttura. Riguardo all'illuminazione serale della zona, è una considerazione che terremo a mente per eventuali miglioramenti.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "6588199205"
+        },
+        {
           "id": "classica-5930102262",
           "dataRecensione": "2026-11-03",
           "punteggio": 10,
@@ -6612,6 +6632,19 @@
           "rispostaFinale": "Un grazie sincero per le sue parole. Siamo felici di leggere che si è trovato bene da noi. La aspettiamo per un prossimo soggiorno.",
           "stato": "inviata",
           "reservationNumber": "6255805432"
+        },
+        {
+          "id": "classica-6536333690",
+          "dataRecensione": "2026-11-03",
+          "punteggio": 9,
+          "positivo": "Todo bien, la ubicación perfecta para moverse, la estancia ha sido muy agradable, recomendamos.\r\nMetro y autobuses cerca. La ropa de cama y toallas perfecto, limpieza correcta,",
+          "negativo": "Por proponer una mejora, el baño con la bañera, ya nos vamos haciendo mayores y mejor ya plato de ducha,",
+          "lingua": "es",
+          "riassuntoIT": "Ospite molto soddisfatto della posizione, pulizia e biancheria; suggerisce di sostituire la vasca con un piatto doccia per maggiore accessibilità.",
+          "rispostaProposta": "Grazie mille per le parole positive. Ci fa piacere che abbia trovato la posizione comoda e che la biancheria l'abbia soddisfatto. Il suggerimento sul piatto doccia è utile e lo valuteremo tra i possibili interventi futuri.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "6536333690"
         },
         {
           "id": "classica-6427987855",
