@@ -1529,10 +1529,7 @@ async function estraiDaMessaggi(env, grezzi, esistente) {
     "   - Nel dubbio fra perdere un'informazione e tenerne una di troppo, TIENILA."
   ].join("\n");
 
-  const r = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: { "x-api-key": k, "anthropic-version": "2023-06-01", "content-type": "application/json" },
-    body: JSON.stringify({
+  const corpo = JSON.stringify({
       model: "claude-haiku-4-5",
       max_tokens: 300,
       system: sistema,
@@ -1554,10 +1551,30 @@ async function estraiDaMessaggi(env, grezzi, esistente) {
         },
         required: ["orario", "fonte", "note", "contanti"]
       } } }
-    })
-  });
-  const j = await r.json().catch(() => ({}));
-  if (!r.ok) return { errore: "API Anthropic " + r.status };
+    });
+  // Un buco passeggero dell'API non deve far perdere l'orario di un'intera notte.
+  // Il 05/11/2026 l'API Anthropic ha risposto 403 a OGNI prenotazione del giro: nessun
+  // orario e nessuna nota sono stati scritti, e poche ore dopo la stessa chiamata
+  // funzionava. Quindi tre tentativi, e l'errore VERO dell'API viene riportato e non
+  // solo il numero: prima j.error.message veniva buttato e non si poteva sapere perche'.
+  let j = null, errore = "";
+  for (let t = 0; t < 3; t++) {
+    const r = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "x-api-key": k, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+      body: corpo
+    }).catch(() => null);
+    if (r) {
+      const d = await r.json().catch(() => null);
+      if (r.ok) { j = d || {}; errore = ""; break; }
+      errore = "API Anthropic " + r.status
+        + (d && d.error && d.error.message ? ": " + String(d.error.message).slice(0, 160) : "");
+      // 400 e 404 vogliono dire che la richiesta e' sbagliata: riprovarla non serve
+      if (r.status === 400 || r.status === 404) break;
+    } else errore = "non ho raggiunto l'API Anthropic";
+    if (t < 2) await new Promise(res => setTimeout(res, 3000 * (t + 1)));
+  }
+  if (!j) return { errore: errore || "nessuna risposta dall'API Anthropic" };
   let dati = {};
   try { dati = JSON.parse((j.content || []).map(b => b.text || "").join("")); } catch (e) { dati = { errore_parsing: true }; }
   const o = String(dati.orario || "").trim();
@@ -2468,7 +2485,8 @@ async function runWhatsappGiorno(env, day, esiti) {
         // niente telefono: WhatsApp non si puo' cercare, ma i messaggi dell'agenzia si'
         const soloOta = MSG_FONTI.test(b.source || "") ? await messaggiUna(env, b, true).catch(() => null) : null;
         esiti.push({ bookingId: String(b.booking_id), nome, esito: "senza_telefono",
-                     messaggi_ota: soloOta ? (soloOta.messaggi || []).length : 0 });
+                     messaggi_ota: soloOta ? (soloOta.messaggi || []).length : 0,
+                     estrazione: (soloOta && soloOta.errore_estrazione) || "" });
         continue;
       }
       // rilettura VERA dei messaggi dell'agenzia (rileggi=true), non la copia in archivio:
@@ -2480,7 +2498,10 @@ async function runWhatsappGiorno(env, day, esiti) {
         bookingId: String(b.booking_id), nome, esito: rec.wa_esito || "errore",
         errore: rec.wa_errore || "", messaggi: (rec.whatsapp || []).length,
         messaggi_ota: ota ? (ota.messaggi || []).length : 0,
-        contanti: !!rec.contanti, orario_scritto: !!rec.orario_scritto, nota_scritta: !!rec.nota_scritta
+        contanti: !!rec.contanti, orario_scritto: !!rec.orario_scritto, nota_scritta: !!rec.nota_scritta,
+        // se l'interpretazione non e' riuscita i messaggi ci sono ma orario e nota no:
+        // va contato come guasto, altrimenti il giro si dichiara pulito (05/11/2026)
+        estrazione: rec.errore_estrazione || (ota && ota.errore_estrazione) || ""
       });
     }
   }
@@ -2503,11 +2524,17 @@ async function runWhatsappPrepara(env, date) {
     }
     // "messaggi_da_sincronizzare" va segnalato come gli altri: il messaggio c'e' ma WhatsApp
     // Web non riesce a decifrarlo, e proprio quello e' spesso l'aggiornamento last minute.
-    const errori = esiti.filter(e => ["errore", "sessione_assente", "chat_diversa_dal_numero", "messaggi_da_sincronizzare"].includes(e.esito));
+    // Un'interpretazione fallita e' un guasto come gli altri. Il 05/11/2026 l'API Anthropic
+    // ha risposto 403 a ogni prenotazione: nessun orario, nessuna nota, e il giro si e'
+    // dichiarato "ok" perche' guardava soltanto l'esito della lettura di WhatsApp.
+    const ERRORI_WA = ["errore", "sessione_assente", "chat_diversa_dal_numero", "messaggi_da_sincronizzare"];
+    const errori = esiti.filter(e => ERRORI_WA.includes(e.esito) || e.estrazione);
     await env.ARRIVI_KV.put("giro_whatsapp", JSON.stringify({
       ts: new Date().toISOString(), iniziato, giorno: giorni[giorni.length - 1], giorni, completato: !guasto,
       totale: esiti.length, con_messaggi: esiti.filter(e => e.messaggi).length,
-      errori: errori.map(e => ({ bookingId: e.bookingId, esito: e.esito, errore: (e.errore || "").slice(0, 160) })),
+      errori: errori.map(e => ERRORI_WA.includes(e.esito)
+        ? { bookingId: e.bookingId, esito: e.esito, errore: (e.errore || "").slice(0, 160) }
+        : { bookingId: e.bookingId, esito: "interpretazione_fallita", errore: String(e.estrazione).slice(0, 160) }),
       n_errori: errori.length, guasto
     })).catch(() => {});
     return { giorno: giorni[giorni.length - 1], giorni, totale: esiti.length, esiti };
