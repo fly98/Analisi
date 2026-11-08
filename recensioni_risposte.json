@@ -1,9 +1,15 @@
 {
-  "generatoIl": "2026-11-05T20:23:55.042Z",
+  "generatoIl": "2026-11-08T15:02:07.798Z",
   "strutture": {
     "deluxe": {
       "nome": "InternoUno Deluxe",
       "bozze": [
+        {
+          "id": "deluxe-5384716024",
+          "dataRecensione": "2026-11-08",
+          "punteggio": 8,
+          "stato": "senza_testo"
+        },
         {
           "id": "deluxe-6504091000",
           "dataRecensione": "2026-11-05",
@@ -16,6 +22,19 @@
           "rispostaFinale": null,
           "stato": "da_validare",
           "reservationNumber": "6504091000"
+        },
+        {
+          "id": "deluxe-5356342365",
+          "dataRecensione": "2026-11-05",
+          "punteggio": 10,
+          "positivo": "Todo muy bien ",
+          "negativo": "Todo bien ",
+          "lingua": "es",
+          "riassuntoIT": "Ospite molto soddisfatto, tutto perfetto, nessuna critica.",
+          "rispostaProposta": "Un grazie sincero per le sue parole. Ci fa piacere sapere che si è trovato bene da noi. A presto.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "5356342365"
         },
         {
           "id": "deluxe-5603622073",
@@ -6594,6 +6613,19 @@
     "classica": {
       "nome": "Internouno",
       "bozze": [
+        {
+          "id": "classica-6128774688",
+          "dataRecensione": "2026-11-06",
+          "punteggio": 8,
+          "positivo": "Il valore aggiunto è sicuramente la posizione, si evita il traffico di Roma e si raggiunge facilmente il centro. Un plus anche la convenzione con il parcheggio.",
+          "negativo": null,
+          "lingua": "it",
+          "riassuntoIT": "Ospite apprezza la posizione strategica fuori dal traffico di Roma e la convenzione con il parcheggio.",
+          "rispostaProposta": "Grazie mille per la sua recensione. Siamo contenti che abbia apprezzato la posizione e la praticità della convenzione con il parcheggio — sono davvero due punti di forza della struttura. A presto.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "6128774688"
+        },
         {
           "id": "classica-6588199205",
           "dataRecensione": "2026-11-04",
