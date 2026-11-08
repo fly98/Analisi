@@ -433,9 +433,12 @@ function dataCompatta(iso){
 }
 function dataBreve(iso){const[y,m,d]=iso.split("-").map(Number);return `${d} ${MESI[m]}`;}
 
+// Amenitiz/WhatsApp incollano a volte segni invisibili di direzione del testo (U+202A..202E, U+2066..2069, U+200E/F)
+// attorno al numero: '+39...' diventa '<LRE>+39...<PDF>' e i controlli sul '+' iniziale lo scartavano (08/11/2026).
+function telPulito(t){return String(t||'').replace(/[\u200B-\u200F\u202A-\u202E\u2060-\u2069\uFEFF\u00A0]/g,'').trim();}
 function lingua(language,phone){
   // PRIORITÀ 1: prefisso telefonico (più affidabile del campo language di Amenitiz)
-  const p=(phone||"").replace(/[\s-]/g,"");
+  const p=telPulito(phone).replace(/[\s-]/g,"");
   if(p.startsWith("+39"))return"it";                                  // Italia
   if(p.startsWith("+34"))return"es";                                  // Spagna
   if(p.startsWith("+52")||p.startsWith("+54")||p.startsWith("+57")||p.startsWith("+56")||p.startsWith("+51"))return"es"; // America Latina
@@ -462,14 +465,14 @@ function telePerRicerca(b){
   const g=(b&&b.rooms&&b.rooms[0]&&b.rooms[0].guests&&b.rooms[0].guests[0])||{};
   const cand=[bk.phone,bk.mobile,bk.telephone,g.phone,g.mobile,g.telephone,b&&b.phone];
   for(const c of cand){
-    const t=String(c||"").trim();
+    const t=telPulito(c);
     if(t.replace(/\D/g,"").length>=9) return t;
   }
   return "";
 }
 function numeroValido(phone){
   if(!phone)return false;
-  const p=phone.replace(/[\s-]/g,"");
+  const p=telPulito(phone).replace(/[\s-]/g,"");
   if(p.startsWith("+357")||p.startsWith("+11"))return false;
   if(/^\+?1+$/.test(p))return false;
   return p.startsWith("+")&&p.length>=9;
@@ -1302,7 +1305,7 @@ function render(iso,bookings,isRicerca){
     const isMultiRoom=(b.rooms||[]).length>1;
     const mismatch=!isMultiRoom&&!noNome&&!guestFallback&&guestNome&&bookerNome&&
       guestNome.toLowerCase()!==bookerNome.toLowerCase();
-    const phone=booker.phone||"";
+    const phone=telPulito(booker.phone);
     const lng=lingua(booker.language,phone);
     const rooms=b.rooms||[];
     const room=rooms[0]||{};
@@ -2171,7 +2174,7 @@ async function cercaCancellazioni(){
     const data=await fetch(`${WORKER}/?action=cancellations&from=${from}&to=${to}`).then(r=>r.json());
     cancStore=(data.cancellations||[]).map((c,i)=>{
       const lng=lingua(c.language||"",c.phone);
-      return {...c, i, lng, msgLng:lng, sconto:15};
+      return {...c, phone:telPulito(c.phone), i, lng, msgLng:lng, sconto:15};
     });
     renderCanc();
   }catch(e){
