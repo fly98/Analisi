@@ -2934,6 +2934,7 @@ export default {
         const ces0 = blocchi(x, 'CessionarioCommittente')[0] || '';
         if (/<IdFiscaleIVA>/.test(ces0)) return json({ ok: false, error: 'il modello ha gia’ la partita IVA' }, 400);
         const oggi = giorno(new Date());
+        const orig0 = await env.FISCO_KV.get(`fisco:fatt:${tagUno(x, 'Numero')}`, 'json');
         const alfabeto = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
         const prog = Array.from({ length: 5 }, () => alfabeto[Math.floor(Math.random() * alfabeto.length)]).join('');
         const numOrig = tagUno(x, 'Numero');
@@ -2950,6 +2951,48 @@ export default {
             /(<CessionarioCommittente>\s*<DatiAnagrafici>)/,
             `$1<IdFiscaleIVA><IdPaese>IT</IdPaese><IdCodice>${iva}</IdCodice></IdFiscaleIVA>`
           );
+        let copiaSost = null;
+        if (sost) {
+          const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+          const f2 = (n) => (Math.round(n * 100) / 100).toFixed(2);
+          const c = b.cliente;
+          const ana = c.denominazione ? `<Denominazione>${esc(c.denominazione)}</Denominazione>` : `<Nome>${esc(c.nome)}</Nome><Cognome>${esc(c.cognome)}</Cognome>`;
+          const cf = String(c.cf || '').toUpperCase();
+          const blocco = `<CessionarioCommittente><DatiAnagrafici><IdFiscaleIVA><IdPaese>IT</IdPaese><IdCodice>${iva}</IdCodice></IdFiscaleIVA>${cf ? `<CodiceFiscale>${esc(cf)}</CodiceFiscale>` : ''}<Anagrafica>${ana}</Anagrafica></DatiAnagrafici><Sede><Indirizzo>${esc(String(c.indirizzo || '').toUpperCase())}</Indirizzo><CAP>${esc(c.cap)}</CAP><Comune>${esc(c.comune)}</Comune>${c.provincia ? `<Provincia>${esc(c.provincia)}</Provincia>` : ''}<Nazione>${esc(c.nazione || 'IT')}</Nazione></Sede></CessionarioCommittente>`;
+          x = x.replace(/<CessionarioCommittente>[\s\S]*?<\/CessionarioCommittente>/, blocco);
+          const dest = String(c.codiceDestinatario || '0000000').toUpperCase();
+          x = x.replace(/<CodiceDestinatario>[^<]*<\/CodiceDestinatario>(<PECDestinatario>[^<]*<\/PECDestinatario>)?/, `<CodiceDestinatario>${esc(dest)}</CodiceDestinatario>${dest === '0000000' && c.pec ? `<PECDestinatario>${esc(c.pec)}</PECDestinatario>` : ''}`);
+          let tot = 0;
+          const linee = [];
+          const riep = {};
+          b.righe.forEach((r, i) => {
+            const al = String(r.aliquota || '10');
+            const esente = /^N/.test(al);
+            const perc = esente ? 0 : parseInt(al, 10);
+            const q = Number(r.quantita || 1);
+            const lordo = Math.round(Number(r.prezzo) * q * 100) / 100;
+            const netto1 = esente ? Number(r.prezzo) : Number(r.prezzo) / (1 + perc / 100);
+            const imp = esente ? lordo : Math.round((lordo / (1 + perc / 100)) * 100) / 100;
+            tot += lordo;
+            linee.push(`<DettaglioLinee><NumeroLinea>${i + 1}</NumeroLinea><Descrizione>${esc(r.descrizione)}</Descrizione><Quantita>${f2(q)}</Quantita><PrezzoUnitario>${f2(netto1)}</PrezzoUnitario><PrezzoTotale>${f2(imp)}</PrezzoTotale><AliquotaIVA>${f2(perc)}</AliquotaIVA>${esente ? `<Natura>${esc(al)}</Natura>` : ''}</DettaglioLinee>`);
+            const k = al;
+            riep[k] = riep[k] || { perc, esente, nat: al, imponibile: 0, lordo: 0 };
+            riep[k].imponibile += imp;
+            riep[k].lordo += lordo;
+          });
+          tot = Math.round(tot * 100) / 100;
+          const rieps = Object.values(riep).map((r) => `<DatiRiepilogo><AliquotaIVA>${f2(r.perc)}</AliquotaIVA>${r.esente ? `<Natura>${esc(r.nat)}</Natura>` : ''}<ImponibileImporto>${f2(r.imponibile)}</ImponibileImporto><Imposta>${f2(r.esente ? 0 : r.lordo - r.imponibile)}</Imposta></DatiRiepilogo>`);
+          x = x
+            .replace(/<DatiBeniServizi>[\s\S]*?<\/DatiBeniServizi>/, `<DatiBeniServizi>${linee.join('')}${rieps.join('')}</DatiBeniServizi>`)
+            .replace(/<ImportoTotaleDocumento>[^<]*<\/ImportoTotaleDocumento>/, `<ImportoTotaleDocumento>${f2(tot)}</ImportoTotaleDocumento>`)
+            .replace(/<ImportoPagamento>[^<]*<\/ImportoPagamento>/g, `<ImportoPagamento>${f2(tot)}</ImportoPagamento>`);
+          copiaSost = {
+            numero: b.numero, data: oggi, tipoDocumento: 'TD01', cliente: { ...c, piva: iva },
+            righe: b.righe.map((r) => ({ descrizione: r.descrizione, quantita: Number(r.quantita || 1), prezzo: Number(r.prezzo), aliquota: String(r.aliquota || '10') })),
+            riepilogo: Object.values(riep).map((r) => ({ aliquota: r.esente ? r.nat : f2(r.perc), imponibile: Math.round(r.imponibile * 100) / 100, imposta: r.esente ? 0 : Math.round((r.lordo - r.imponibile) * 100) / 100 })),
+            totale: tot, modalitaPagamento: (orig0 && orig0.modalitaPagamento) || 'MP05', iban: (orig0 && orig0.iban) || '',
+          };
+        }
         if (tagUno(x, 'Numero') !== b.numero || !/<IdFiscaleIVA><IdPaese>IT<\/IdPaese><IdCodice>/.test(blocchi(x, 'CessionarioCommittente')[0] || '')) {
           return json({ ok: false, error: 'trasformazione dell’XML non riuscita' }, 500);
         }
@@ -2965,12 +3008,14 @@ export default {
             `fisco:fenum:${b.numero}`,
             JSON.stringify({
               stato, data: oggi, istante: new Date().toISOString(), tipoDocumento: 'TD01',
-              cliente: orig && orig.cliente ? `${orig.cliente.nome || ''} ${orig.cliente.cognome || ''}`.trim() || orig.cliente.denominazione : '',
+              cliente: (() => { const cc = (copiaSost && copiaSost.cliente) || (orig && orig.cliente) || {}; return cc.denominazione || `${cc.nome || ''} ${cc.cognome || ''}`.trim(); })(),
               totale, ...(extra || {}),
             })
           );
         await scrivi('in corso');
-        if (orig) {
+        if (copiaSost) {
+          await env.FISCO_KV.put(`fisco:fatt:${b.numero}`, JSON.stringify(copiaSost));
+        } else if (orig) {
           await env.FISCO_KV.put(
             `fisco:fatt:${b.numero}`,
             JSON.stringify({ ...orig, numero: b.numero, data: oggi, cliente: { ...orig.cliente, piva: iva } })
