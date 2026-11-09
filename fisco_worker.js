@@ -2932,7 +2932,8 @@ export default {
         let x = testoXml(await scaricaFatturaXml(env, b.idModello));
         if (!/<CessionarioCommittente>/.test(x)) return json({ ok: false, error: 'XML modello non leggibile' }, 502);
         const ces0 = blocchi(x, 'CessionarioCommittente')[0] || '';
-        if (/<IdFiscaleIVA>/.test(ces0)) return json({ ok: false, error: 'il modello ha gia’ la partita IVA' }, 400);
+        const sost = !!(b.cliente && Array.isArray(b.righe) && b.righe.length);
+        if (!sost && /<IdFiscaleIVA>/.test(ces0)) return json({ ok: false, error: 'il modello ha gia’ la partita IVA' }, 400);
         const oggi = giorno(new Date());
         const orig0 = await env.FISCO_KV.get(`fisco:fatt:${tagUno(x, 'Numero')}`, 'json');
         const alfabeto = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
