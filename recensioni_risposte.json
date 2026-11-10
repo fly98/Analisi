@@ -1,9 +1,22 @@
 {
-  "generatoIl": "2026-11-08T15:07:09.188Z",
+  "generatoIl": "2026-11-10T13:05:58.690Z",
   "strutture": {
     "deluxe": {
       "nome": "InternoUno Deluxe",
       "bozze": [
+        {
+          "id": "deluxe-6887777512",
+          "dataRecensione": "2026-11-08",
+          "punteggio": 9,
+          "positivo": "Der Zugang zur Metro war direkt vor der TÃ¼r und somit war man sehr schnell in der Innenstadt.",
+          "negativo": null,
+          "lingua": "de",
+          "riassuntoIT": "Ospite soddisfatto della posizione strategica vicino alla metro, che consente accesso rapido al centro città.",
+          "rispostaProposta": "Grazie mille per la sua recensione. Siamo contenti che abbia apprezzato la posizione e la vicinanza alla metro — è effettivamente uno dei vantaggi principali della nostra zona. Speriamo di ospitarla di nuovo.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "6887777512"
+        },
         {
           "id": "deluxe-5384716024",
           "dataRecensione": "2026-11-08",
@@ -6614,6 +6627,19 @@
       "nome": "Internouno",
       "bozze": [
         {
+          "id": "classica-6699690149",
+          "dataRecensione": "2026-11-10",
+          "punteggio": 9,
+          "positivo": "Appartamento accogliente e fornito di tutto il necessario,   carina la presenza di Netflix.",
+          "negativo": "Uno dei 2 condizionatori un po' sporco e mal funzionante, l'altro era ok. Nulla di irrimediabile ",
+          "lingua": "it",
+          "riassuntoIT": "Appartamento accogliente con tutto il necessario e Netflix, ma uno dei due condizionatori era sporco e mal funzionante.",
+          "rispostaProposta": "Salve, grazie per la recensione. Mi spiace per il condizionatore: lo abbiamo controllato e pulito subito dopo. È uno dei due apparecchi più vecchio e talvolta ha questi cali di rendimento, ma continueremo a monitorarlo. Contenti che il resto dell'appartamento vi abbia soddisfatto.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "6699690149"
+        },
+        {
           "id": "classica-6128774688",
           "dataRecensione": "2026-11-06",
           "punteggio": 8,
@@ -12555,12 +12581,6 @@
           "id": "classica-4115942790",
           "dataRecensione": "2023-11-10",
           "punteggio": 10,
-          "stato": "senza_testo"
-        },
-        {
-          "id": "classica-4274784342",
-          "dataRecensione": "2023-11-09",
-          "punteggio": 8,
           "stato": "senza_testo"
         },
         {
