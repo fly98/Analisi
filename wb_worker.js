@@ -207,7 +207,7 @@ async function handleChat(request, env, slug) {
   if (!messages.length) return json({ error: "messages mancante" }, 400);
 
   // rate limit soft: max 300 domande/giorno per struttura, protegge il budget
-  const isTest = !!(env.WB_ADMIN_KEY && body.test === env.WB_ADMIN_KEY); // prove: non contano nel limite e non finiscono tra le domande
+  const isTest = chiaveAdminValida(env, body.test); // prove: non contano nel limite e non finiscono tra le domande
   const limitKey = `wb:${slug}:chatcount:${todayStr()}`;
   const count = parseInt((await env.WB_KV.get(limitKey)) || "0", 10);
   if (!isTest && count > 300) {
@@ -531,14 +531,14 @@ async function refreshEventi(env, slug) {
 
 async function handleRefreshEventi(request, env, slug, url) {
   const key = url.searchParams.get("key");
-  if (!env.WB_ADMIN_KEY || key !== env.WB_ADMIN_KEY) return json({ error: "non autorizzato" }, 401);
+  if (!chiaveAdminValida(env, key)) return json({ error: "non autorizzato" }, 401);
   const result = await refreshEventi(env, slug);
   return json(result, result.ok ? 200 : 502);
 }
 
 async function handleRefreshConcerti(request, env, slug, url) {
   const key = url.searchParams.get("key");
-  if (!env.WB_ADMIN_KEY || key !== env.WB_ADMIN_KEY) return json({ error: "non autorizzato" }, 401);
+  if (!chiaveAdminValida(env, key)) return json({ error: "non autorizzato" }, 401);
   const city = url.searchParams.get("city") || "Roma";
   const result = await refreshConcerti(env, slug, city);
   return json(result, result.ok ? 200 : 502);
@@ -565,7 +565,14 @@ function periodo(url) {
   if (!re.test(from || '')) { const d = new Date(to + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() - 29); from = d.toISOString().slice(0, 10); }
   return { from, to };
 }
-function admin(env, url) { return env.WB_ADMIN_KEY && url.searchParams.get('key') === env.WB_ADMIN_KEY; }
+// Due chiavi valide in parallelo: WB_ADMIN_KEY (storica, valore non piu' noto)
+// e WB_ADMIN_KEY_2 (nuova). Serve a poter usare la nuova senza rompere eventuali
+// chiamanti vecchi che usano ancora la prima (script sul Mac, Comandi Rapidi...).
+function chiaveAdminValida(env, k) {
+  if (!k) return false;
+  return k === env.WB_ADMIN_KEY || k === env.WB_ADMIN_KEY_2;
+}
+function admin(env, url) { return chiaveAdminValida(env, url.searchParams.get('key')); }
 
 // "Questo è un mio dispositivo": la pagina ospiti con ?notrack=1 manda il proprio codice anonimo.
 // Chiunque può escludere solo se stesso: non serve chiave.
@@ -741,7 +748,7 @@ async function handleGA(request, env, url) {
 // ---------------- Stats (admin) ----------------
 async function handleStats(request, env, slug, url) {
   const key = url.searchParams.get("key");
-  if (!env.WB_ADMIN_KEY || key !== env.WB_ADMIN_KEY) return json({ error: "non autorizzato" }, 401);
+  if (!chiaveAdminValida(env, key)) return json({ error: "non autorizzato" }, 401);
 
   const days = Math.min(parseInt(url.searchParams.get("days") || "14", 10), 90);
   const out = { slug, days, byDay: {}, uniqueByDay: {}, sections: {}, sectionsByDay: {}, langs: {}, events: {} };
