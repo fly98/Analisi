@@ -2486,7 +2486,8 @@ async function runWhatsappGiorno(env, day, esiti) {
         const soloOta = MSG_FONTI.test(b.source || "") ? await messaggiUna(env, b, true).catch(() => null) : null;
         esiti.push({ bookingId: String(b.booking_id), nome, esito: "senza_telefono",
                      messaggi_ota: soloOta ? (soloOta.messaggi || []).length : 0,
-                     estrazione: (soloOta && soloOta.errore_estrazione) || "" });
+                     estrazione: (soloOta && soloOta.errore_estrazione) || "",
+                     ota_atteso: MSG_FONTI.test(b.source || ""), esito_ota: (soloOta && soloOta.esito) || "" });
         continue;
       }
       // rilettura VERA dei messaggi dell'agenzia (rileggi=true), non la copia in archivio:
@@ -2501,7 +2502,12 @@ async function runWhatsappGiorno(env, day, esiti) {
         contanti: !!rec.contanti, orario_scritto: !!rec.orario_scritto, nota_scritta: !!rec.nota_scritta,
         // se l'interpretazione non e' riuscita i messaggi ci sono ma orario e nota no:
         // va contato come guasto, altrimenti il giro si dichiara pulito (05/11/2026)
-        estrazione: rec.errore_estrazione || (ota && ota.errore_estrazione) || ""
+        estrazione: rec.errore_estrazione || (ota && ota.errore_estrazione) || "",
+        // Se la lettura su Amenitiz non riesce (tab cambiato, sessione scaduta, browser occupato)
+        // i messaggi dell'agenzia non arrivano affatto: va detto. Dal 07/11/2026 al 13/11/2026
+        // nessun messaggio Booking e' stato letto e NESSUNO se n'e' accorto, perche' qui
+        // finiva solo il conteggio (messaggi_ota: 0) e zero messaggi sembra un ospite muto.
+        ota_atteso: MSG_FONTI.test(b.source || ""), esito_ota: (ota && ota.esito) || ""
       });
     }
   }
@@ -2528,13 +2534,19 @@ async function runWhatsappPrepara(env, date) {
     // ha risposto 403 a ogni prenotazione: nessun orario, nessuna nota, e il giro si e'
     // dichiarato "ok" perche' guardava soltanto l'esito della lettura di WhatsApp.
     const ERRORI_WA = ["errore", "sessione_assente", "chat_diversa_dal_numero", "messaggi_da_sincronizzare"];
-    const errori = esiti.filter(e => ERRORI_WA.includes(e.esito) || e.estrazione);
+    // Letture dell'agenzia andate bene: tutto il resto (compreso il vuoto, cioe' un errore
+    // che ha fatto fallire la chiamata) e' un guasto da mostrare in cima all'app.
+    const OTA_BUONI = ["messaggi_letti", "nessun_messaggio_ospite", "fuori_perimetro"];
+    const otaRotto = e => e.ota_atteso && !OTA_BUONI.includes(e.esito_ota);
+    const errori = esiti.filter(e => ERRORI_WA.includes(e.esito) || otaRotto(e) || e.estrazione);
     await env.ARRIVI_KV.put("giro_whatsapp", JSON.stringify({
       ts: new Date().toISOString(), iniziato, giorno: giorni[giorni.length - 1], giorni, completato: !guasto,
       totale: esiti.length, con_messaggi: esiti.filter(e => e.messaggi).length,
       errori: errori.map(e => ERRORI_WA.includes(e.esito)
         ? { bookingId: e.bookingId, esito: e.esito, errore: (e.errore || "").slice(0, 160) }
-        : { bookingId: e.bookingId, esito: "interpretazione_fallita", errore: String(e.estrazione).slice(0, 160) }),
+        : otaRotto(e)
+          ? { bookingId: e.bookingId, esito: e.esito_ota || "messaggi_non_letti", errore: "" }
+          : { bookingId: e.bookingId, esito: "interpretazione_fallita", errore: String(e.estrazione).slice(0, 160) }),
       n_errori: errori.length, guasto
     })).catch(() => {});
     return { giorno: giorni[giorni.length - 1], giorni, totale: esiti.length, esiti };
