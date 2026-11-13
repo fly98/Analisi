@@ -1,9 +1,48 @@
 {
-  "generatoIl": "2026-11-10T13:11:01.991Z",
+  "generatoIl": "2026-11-13T12:37:00.352Z",
   "strutture": {
     "deluxe": {
       "nome": "InternoUno Deluxe",
       "bozze": [
+        {
+          "id": "deluxe-5719557105",
+          "dataRecensione": "2026-11-13",
+          "punteggio": 8,
+          "positivo": "Soprattutto la vicinanza ai mezzi di trasporto, a 5 minuti dalla stazione Tiburtina",
+          "negativo": "Nel complesso tutto bene",
+          "lingua": "it",
+          "riassuntoIT": "Ospite soddisfatto (8/10), apprezza molto la vicinanza alla stazione Tiburtina, nessuna critica sostanziale.",
+          "rispostaProposta": "La ringraziamo per il suo riscontro. Siamo contenti che abbia apprezzato la posizione: la vicinanza a Tiburtina è effettivamente uno dei nostri punti di forza. A presto.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "5719557105"
+        },
+        {
+          "id": "deluxe-5887704115",
+          "dataRecensione": "2026-11-12",
+          "punteggio": 10,
+          "positivo": "Mi è piaciuta molto la mia camera, ho preso quella dell’ultimo minuto ma il proprietario è stato molto gentile e mi ha dato un upgrade. Doccia calda e letto buono.",
+          "negativo": null,
+          "lingua": "it",
+          "riassuntoIT": "Ospite molto soddisfatto (10/10), loda l'upgrade ricevuto, la qualità della camera, doccia e letto.",
+          "rispostaProposta": "Grazie mille per la sua recensione. Ci fa piacere che abbia apprezzato la camera e che l'upgrade sia stato gradito. La aspettiamo per un prossimo soggiorno.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "5887704115"
+        },
+        {
+          "id": "deluxe-5216116121",
+          "dataRecensione": "2026-11-10",
+          "punteggio": 8,
+          "positivo": "La bna comunicacion con el dueÃ±oo",
+          "negativo": "Hubo mucho ruido x ser dia de holewe\nn pero se entiende, k no es todo el tiempo",
+          "lingua": "es",
+          "riassuntoIT": "Ospite soddisfatto (8/10), apprezza la comunicazione col proprietario; lamenta rumore la sera di Halloween ma riconosce che non è abituale.",
+          "rispostaProposta": "Salve, grazie per le sue parole sulla comunicazione. Mi spiace che ci sia stato rumore il giorno di Halloween: è stato un evento isolato legato alla festività, non la situazione normale della zona. Speriamo di ospitarla di nuovo in condizioni più tranquille.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "5216116121"
+        },
         {
           "id": "deluxe-6887777512",
           "dataRecensione": "2026-11-08",
@@ -6627,6 +6666,12 @@
       "nome": "Internouno",
       "bozze": [
         {
+          "id": "classica-5059917089",
+          "dataRecensione": "2026-11-12",
+          "punteggio": 10,
+          "stato": "senza_testo"
+        },
+        {
           "id": "classica-6699690149",
           "dataRecensione": "2026-11-10",
           "punteggio": 9,
@@ -12546,12 +12591,6 @@
           "stato": "senza_testo"
         },
         {
-          "id": "classica-4042733708",
-          "dataRecensione": "2023-11-12",
-          "punteggio": 7,
-          "stato": "senza_testo"
-        },
-        {
           "id": "classica-4172815728",
           "dataRecensione": "2023-11-11",
           "punteggio": 10,
@@ -12576,12 +12615,6 @@
           "rispostaFinale": null,
           "stato": "da_validare",
           "reservationNumber": "2271598435"
-        },
-        {
-          "id": "classica-4115942790",
-          "dataRecensione": "2023-11-10",
-          "punteggio": 10,
-          "stato": "senza_testo"
         },
         {
           "id": "classica-3984306986",
