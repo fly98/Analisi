@@ -49,7 +49,7 @@ __name(putSellaLog, "putSellaLog");
 // ── FINECO AUTO (replica server-side del pulsante "Aggiorna Fineco investimenti") ──
 // Scarica l'XLS dal server Playwright sul Mac, lo parsa, salva titoli + snapshot.
 async function runFinecoAuto(env) {
-  const r = await fetch("http://fly98.duckdns.org:3456/fineco-portafoglio", { signal: AbortSignal.timeout(120000) });
+  const r = await fetch("https://mac.xast.it/fineco-portafoglio", { signal: AbortSignal.timeout(120000) });
   if (!r.ok) throw new Error("Mac/Playwright HTTP " + r.status);
   const buf = await r.arrayBuffer();
   const wb = XLSX.read(new Uint8Array(buf), { type: "array" });
@@ -589,10 +589,14 @@ var icompta_worker_default = {
     // ── AMEX AUTO: proxy verso Mac locale ────────────────────────────────────
     // NB: l'xlsx e' BINARIO -> si passa arrayBuffer(), non text()
     if (path === "/api/amex-auto" && method === "GET") {
-      const MAC_URL = "http://fly98.duckdns.org:3456/amex-xlsx";
+      const MAC_URL = "https://mac.xast.it/amex-xlsx";
       try {
         const r = await fetch(MAC_URL, { signal: AbortSignal.timeout(180000) });
         if (!r.ok) return err("Mac error: " + r.status, 502);
+        // Il Mac risponde 200 + JSON (non un file) quando Amex non ha movimenti nuovi: va passato come tale
+        if (r.headers.get("X-Stato") === "nessuna-nuova-transazione") {
+          return json({ stato: "nessuna_nuova_transazione", messaggio: "Nessun movimento nuovo su Amex da importare." });
+        }
         const buf = await r.arrayBuffer();
         const filename = r.headers.get("X-Filename") || "Amex_auto.xlsx";
         return new Response(buf, {
@@ -610,7 +614,7 @@ var icompta_worker_default = {
 
     // ── SELLA AUTO: proxy verso Mac locale ───────────────────────────────────
     if (path === "/api/sella-personale-auto" && method === "GET") {
-      const MAC_URL = "http://fly98.duckdns.org:3456/sella-personale-csv";
+      const MAC_URL = "https://mac.xast.it/sella-personale-csv";
       try {
         const r = await fetch(MAC_URL, { signal: AbortSignal.timeout(120000) });
         if (!r.ok) return err("Mac error: " + r.status, 502);
@@ -625,7 +629,7 @@ var icompta_worker_default = {
     }
 
     if (path === "/api/fineco-portafoglio-auto" && method === "GET") {
-      const MAC_URL = "http://fly98.duckdns.org:3456/fineco-portafoglio";
+      const MAC_URL = "https://mac.xast.it/fineco-portafoglio";
       try {
         const r = await fetch(MAC_URL, { signal: AbortSignal.timeout(120000) });
         if (!r.ok) return err("Mac error: " + r.status, 502);
@@ -682,7 +686,7 @@ var icompta_worker_default = {
     }
 
     if (path === "/api/fineco-conto-auto" && method === "GET") {
-      const MAC_URL = "http://fly98.duckdns.org:3456/fineco-conto";
+      const MAC_URL = "https://mac.xast.it/fineco-conto";
       try {
         const r = await fetch(MAC_URL, { signal: AbortSignal.timeout(120000) });
         if (!r.ok) return err("Mac error: " + r.status, 502);
@@ -695,7 +699,7 @@ var icompta_worker_default = {
     }
 
     if (path === "/api/sella-auto" && method === "GET") {
-      const MAC_URL = "http://fly98.duckdns.org:3456/sella-csv";
+      const MAC_URL = "https://mac.xast.it/sella-csv";
       try {
         const r = await fetch(MAC_URL, { signal: AbortSignal.timeout(120000) });
         if (!r.ok) return err("Mac error: " + r.status, 502);

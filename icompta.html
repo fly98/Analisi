@@ -4814,6 +4814,11 @@ async function amexAutoDownload() {
       signal: AbortSignal.timeout(180000)
     });
     if (!resp.ok) throw new Error('Errore server Mac: ' + resp.status);
+    if ((resp.headers.get('content-type') || '').indexOf('application/json') >= 0) {
+      var _j = await resp.json();
+      alert(_j.messaggio || 'Nessun movimento nuovo da importare.');
+      return;
+    }
     // xlsx = binario -> blob, non text
     var blob = await resp.blob();
     if (!blob || blob.size < 100) throw new Error('File vuoto o non valido');
@@ -5366,6 +5371,12 @@ async function import2AutoDownload() {
       signal: AbortSignal.timeout(180000)
     });
     if (!resp.ok) throw new Error('Errore server Mac: ' + resp.status);
+    if ((resp.headers.get('content-type') || '').indexOf('application/json') >= 0) {
+      var _j2 = await resp.json();
+      import2Log(_j2.messaggio || 'Nessun movimento nuovo da importare.', 'ok');
+      alert(_j2.messaggio || 'Nessun movimento nuovo da importare.');
+      return;
+    }
     var blob = await resp.blob();
     if (!blob || blob.size < 100) throw new Error('File vuoto o non valido');
     lbl.textContent = 'File ricevuto, analisi...';
