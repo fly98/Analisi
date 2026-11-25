@@ -1,9 +1,68 @@
 {
-  "generatoIl": "2026-11-13T13:04:38.757Z",
+  "generatoIl": "2026-11-25T12:28:08.271Z",
   "strutture": {
     "deluxe": {
       "nome": "InternoUno Deluxe",
       "bozze": [
+        {
+          "id": "deluxe-6950894594",
+          "dataRecensione": "2026-11-25",
+          "punteggio": 9,
+          "positivo": "Il pernottamento e' stato molto gradevole. Le istruzioni per accede alla camera erano chiare. La stanza molto pulita e soprattutto il letto molto comodo. Ho apprezzato molto il minifrigo e il bagno spazioso. Il terrazzo esterno e' una bellissima aggiunta soprattutto per le giornate di sole. La zone e' generalmente tranquilla cosi' come l'alloggio stesso. Infatti seppure si possono sentire le voci di altri ospiti dal corridoio o, leggermente, dalle altre stanze, sono esposti avvisi per incoraggiare gli ospiti a non disturbare durante le ore notturne, infatti ho dormito benissimo. La connessione ad internet e' veloce e stabile e si puo' utilizzare Netflix gratis. Complimenti al proprietario che e' una persona squisita.",
+          "negativo": "Niente.",
+          "lingua": "it",
+          "riassuntoIT": "Ospite molto soddisfatto: stanza pulita, letto comodo, terrazzo piacevole, buona connessione, proprietario gentile, ha dormito bene nonostante si sentano voci dal corridoio.",
+          "rispostaProposta": "La ringraziamo per il suo riscontro. Siamo contenti che abbia apprezzato gli spazi e soprattutto il terrazzo: è davvero una delle caratteristiche che piú distinguono InternoUno. Ci fa piacere che sia riuscito a dormire bene e che abbia trovato tutto pulito e funzionante. Speriamo di ospitarla di nuovo.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "6950894594"
+        },
+        {
+          "id": "deluxe-6230284191",
+          "dataRecensione": "2026-11-22",
+          "punteggio": 10,
+          "positivo": "Friendly staff and affordable price",
+          "negativo": "Things were good",
+          "lingua": "en",
+          "riassuntoIT": "Ospite molto soddisfatto: personale cordiale, prezzo conveniente, tutto positivo.",
+          "rispostaProposta": "Grazie mille per la sua recensione. Ci fa piacere sapere che si è trovato bene con noi e che ha apprezzato il rapporto qualità-prezzo. La aspettiamo per un prossimo soggiorno.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "6230284191"
+        },
+        {
+          "id": "deluxe-6426039940",
+          "dataRecensione": "2026-11-15",
+          "punteggio": 7,
+          "stato": "gia_risposta",
+          "positivo": "Ci è piaciuta la camera, il terrazzino e i servizi offerti dalla struttura.\nLa comodità di avere la stazione, e le varie fermate vicino alla struttura."
+        },
+        {
+          "id": "deluxe-5292118797",
+          "dataRecensione": "2026-11-14",
+          "punteggio": 8,
+          "positivo": "La posizione è ottima",
+          "negativo": "È un piano terra preferisco i piani alti però il piano terra è comodo per i bagagli",
+          "lingua": "it",
+          "riassuntoIT": "Posizione ottima, unica considerazione personale sulla scelta del piano terra, che comunque l'ospite trova pratico per i bagagli.",
+          "rispostaProposta": "Salve, grazie per le sue parole sulla posizione. Comprendo la preferenza per i piani più alti: in questo caso la soluzione al piano terra si è rivelata pratica per i bagagli. Rimaniamo a disposizione per esigenze future.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "5292118797"
+        },
+        {
+          "id": "deluxe-6128715397",
+          "dataRecensione": "2026-11-14",
+          "punteggio": 10,
+          "positivo": "Zona comoda, stanza pulita e con tutto l'essenziale.",
+          "negativo": null,
+          "lingua": "it",
+          "riassuntoIT": "Ospite molto soddisfatto: zona comoda, stanza pulita, dotata di tutto l'essenziale.",
+          "rispostaProposta": "Un grazie sincero per le sue parole. Siamo contenti che abbia trovato la stanza pulita e ben attrezzata, e che la zona le sia piaciuta. A presto.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "6128715397"
+        },
         {
           "id": "deluxe-5719557105",
           "dataRecensione": "2026-11-13",
@@ -6454,12 +6513,6 @@
           "reservationNumber": "4237159297"
         },
         {
-          "id": "deluxe-4197714958",
-          "dataRecensione": "2023-11-19",
-          "punteggio": 10,
-          "stato": "senza_testo"
-        },
-        {
           "id": "deluxe-4016944126",
           "dataRecensione": "2023-11-16",
           "punteggio": 9,
@@ -6497,12 +6550,6 @@
           "rispostaFinale": null,
           "stato": "da_validare",
           "reservationNumber": "4280120447"
-        },
-        {
-          "id": "deluxe-4238429486",
-          "dataRecensione": "2023-11-13",
-          "punteggio": 8,
-          "stato": "senza_testo"
         },
         {
           "id": "deluxe-2973760925",
@@ -6665,6 +6712,32 @@
     "classica": {
       "nome": "Internouno",
       "bozze": [
+        {
+          "id": "classica-5686142324",
+          "dataRecensione": "2026-11-18",
+          "punteggio": 10,
+          "positivo": "niente scale",
+          "negativo": "tutto ok",
+          "lingua": "it",
+          "riassuntoIT": "Ospite molto soddisfatto, apprezza particolarmente l'assenza di scale.",
+          "rispostaProposta": "La ringraziamo per il suo riscontro. Siamo contenti che abbia apprezzato la praticità della struttura. A presto.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "5686142324"
+        },
+        {
+          "id": "classica-5955047050",
+          "dataRecensione": "2026-11-16",
+          "punteggio": 8,
+          "positivo": "Stanze spaziose e personale estremamente cortese e disponibile ",
+          "negativo": null,
+          "lingua": "it",
+          "riassuntoIT": "Ospite soddisfatto degli spazi ampi e della cortesia dello staff.",
+          "rispostaProposta": "Grazie mille per la sua recensione. Ci fa piacere sapere che si è trovato bene da noi, soprattutto con il nostro staff. Speriamo di ospitarla di nuovo.",
+          "rispostaFinale": null,
+          "stato": "da_validare",
+          "reservationNumber": "5955047050"
+        },
         {
           "id": "classica-5059917089",
           "dataRecensione": "2026-11-12",
@@ -12541,18 +12614,6 @@
           "stato": "senza_testo"
         },
         {
-          "id": "classica-4271452590",
-          "dataRecensione": "2023-11-24",
-          "punteggio": 9,
-          "stato": "senza_testo"
-        },
-        {
-          "id": "classica-4255669265",
-          "dataRecensione": "2023-11-22",
-          "punteggio": 8,
-          "stato": "senza_testo"
-        },
-        {
           "id": "classica-4273316909",
           "dataRecensione": "2023-11-20",
           "punteggio": 8,
@@ -12566,12 +12627,6 @@
           "reservationNumber": "4273316909"
         },
         {
-          "id": "classica-4289187149",
-          "dataRecensione": "2023-11-16",
-          "punteggio": 8,
-          "stato": "senza_testo"
-        },
-        {
           "id": "classica-4267691022",
           "dataRecensione": "2023-11-14",
           "punteggio": 10,
@@ -12583,12 +12638,6 @@
           "rispostaFinale": null,
           "stato": "da_validare",
           "reservationNumber": "4267691022"
-        },
-        {
-          "id": "classica-4131464727",
-          "dataRecensione": "2023-11-13",
-          "punteggio": 5,
-          "stato": "senza_testo"
         },
         {
           "id": "classica-4172815728",
